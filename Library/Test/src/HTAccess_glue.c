@@ -1182,7 +1182,7 @@ int HTPutStructuredAbsolute_tcl(ClientData clientData, Tcl_Interp *interp,
       if (input_entry && anchor_entry && request_entry){
 	HTParentAnchor *source = Tcl_GetHashValue(anchor_entry);
 	HTRequest *request = Tcl_GetHashValue(request_entry);
-	HTPostCallback *input = Tcl_GetHashValue(input_entry);
+	HTPostCallback *input = (HTPostCallback *) Tcl_GetHashValue(input_entry);
 
 
 	BOOL result = HTPutStructuredAbsolute(source, destination, 
@@ -1220,10 +1220,10 @@ int HTPutStructuredRelative_tcl(ClientData clientData, Tcl_Interp *interp,
 						    input_key);
 
       if (source_entry && destination_entry  && request_entry && input_entry){
-	HTParentAnchor *source  = Tcl_GetHashValue(source_entry);
-	HTParentAnchor *destination_base = Tcl_GetHashValue(destination_entry);
-	HTRequest *request = Tcl_GetHashValue(request_entry);
-	HTPostCallback *input = Tcl_GetHashValue(input_entry);
+	HTParentAnchor *source  = (HTParentAnchor *) Tcl_GetHashValue(source_entry);
+	HTParentAnchor *destination_base = (HTParentAnchor *) Tcl_GetHashValue(destination_entry);
+	HTRequest *request = (HTRequest *) Tcl_GetHashValue(request_entry);
+	HTPostCallback *input = (HTPostCallback *) Tcl_GetHashValue(input_entry);
 	
 	BOOL result = HTPutStructuredRelative(source, relative, 
 					      destination_base, 
@@ -1259,7 +1259,7 @@ int HTPutStructuredAnchor_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTParentAnchor *source = Tcl_GetHashValue(source_entry);
 	HTAnchor *dest = Tcl_GetHashValue(dest_entry);
 	HTRequest *request = Tcl_GetHashValue(request_entry);
-	HTPostCallback *input = Tcl_GetHashValue(input_entry);
+	HTPostCallback *input = (HTPostCallback *) Tcl_GetHashValue(input_entry);
 	
 	BOOL result = HTPutStructuredAnchor(source, dest, request, input);
 
@@ -1616,14 +1616,14 @@ int HTUploadAnchor_tcl (ClientData clientData, Tcl_Interp *interp,
 							callback_key);
 
       if (source_entry && request_entry && callback_entry) {
-	HTAnchor * source_anchor = Tcl_GetHashValue(source_entry);
+       	HTAnchor * source_anchor = Tcl_GetHashValue(source_entry);
 	HTRequest * request = Tcl_GetHashValue(request_entry);
 
-	HTPostCallback * callback = Tcl_GetHashValue(callback_entry);
+	HTPostCallback * callback = (HTPostCallback *) Tcl_GetHashValue(callback_entry);
 
 	BOOL result = HTUploadAnchor(source_anchor, request, callback);
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);	
-	return TCL_OK;
+       	return TCL_OK;
       }
     }
     Tcl_AppendResult(interp, bad_vars, NULL);

@@ -454,12 +454,13 @@ int HTAlert_add_tcl(ClientData clientData, Tcl_Interp *interp,
     if (cbf_key && opcode_name) {
       Tcl_HashEntry *cbf_entry = Tcl_FindHashEntry(&HTableAlertCallback, 
 						   cbf_key);
-      HTAlertOpcode opcode = HTAlertOpcode_enum(opcode_name);
       if (cbf_entry) {
-	HTAlertCallback *cbf = Tcl_GetHashValue(cbf_entry);
-	
+
+	HTAlertCallback *cbf = (HTAlertCallback *) Tcl_GetHashValue(cbf_entry);
+	HTAlertOpcode opcode = HTAlertOpcode_enum(opcode_name);
 	BOOL result = HTAlert_add(cbf, opcode);
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
+  
 	return TCL_OK;
       }
     }
@@ -483,11 +484,11 @@ int HTAlert_delete_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *cbf_entry = Tcl_FindHashEntry(&HTableAlertCallback, 
 						   cbf_key);
       if (cbf_entry) {
-	HTAlertCallback *cbf = Tcl_GetHashValue(cbf_entry);
-	
+	HTAlertCallback *cbf = (HTAlertCallback *) Tcl_GetHashValue(cbf_entry);
+ 
 	BOOL result = HTAlert_delete(cbf);
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
-	return TCL_OK;
+        return TCL_OK;
       }
     }
     Tcl_AppendResult(interp, bad_vars, NULL);

@@ -32,10 +32,11 @@ int HTProtocol_add_tcl(ClientData clientData, Tcl_Interp *interp,
 						      client_keyname);
       Tcl_HashEntry *server_entry = Tcl_FindHashEntry(&HTableCallback,
 						      server_keyname);
-  
+    
       if(client_entry && server_entry){
-	HTEventCallback *client = Tcl_GetHashValue(client_entry);
-	HTEventCallback *server = Tcl_GetHashValue(server_entry);
+	HTEventCallback *client = (HTEventCallback *) Tcl_GetHashValue(client_entry);
+	HTEventCallback *server = (HTEventCallback *) Tcl_GetHashValue(server_entry);
+
 	BOOL result = HTProtocol_add(name, transport, (BOOL) preemptive, 
 				     client, server);
 

@@ -21,6 +21,8 @@
 char *unreserved;
 int unreserved_length = 73;
 
+int HTRandom(int);
+
 void init_strings() {
   unreserved = malloc(73);
   StrAllocCat(unreserved, alpha);
@@ -206,9 +208,8 @@ char *generate_hostport() {
 char *generate_login() {
 
   char *login = malloc(150);
-  char *port = malloc(sizeof("9999"));
-  int parts = HTRandom(4);
-  int i;
+  /*  char *port = malloc(sizeof("9999"));*/
+  /*  int parts = HTRandom(4);*/
 
   /* user and password */
   if (HTRandom(1)) {
@@ -228,12 +229,14 @@ int generate_login_tcl(ClientData clientData, Tcl_Interp *interp,
 		      int argc, char **argv) {
   if (argc == 1) {
     Tcl_AppendResult(interp, generate_login(), NULL);      
+    return TCL_OK;
   }
+  return TCL_ERROR;
 }
 
 char *generate_urlpath(int size) {
 
-  char *path = malloc(size);
+  /*  char *path = malloc(size);*/
   return(add_xitem(HTRandom(size),""));
 }
 
@@ -341,8 +344,10 @@ int generate_char_tcl(ClientData clientData, Tcl_Interp *interp,
 		      int argc, char **argv) {
   if (argc == 2) {
     char *str = argv[1];
-    Tcl_AppendResult(interp, generate_char(str), NULL);      
+    Tcl_AppendResult(interp, generate_char(str), NULL);  
+    return TCL_OK;
   }
+  return TCL_ERROR;
 }
 
 /* TCL versions of functions */
@@ -355,8 +360,10 @@ int random_tcl(ClientData clientData, Tcl_Interp *interp,
     if (Tcl_GetInt(interp, argv[1], &n) == TCL_OK) {
       sprintf(result, "%d", rand() % n);
       Tcl_AppendResult(interp, result, NULL);      
+      return TCL_OK;
     }
   }
+  return TCL_ERROR;
 }
 
 int add_item_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -371,6 +378,7 @@ int add_item_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_OK;
     }
   }
+  return TCL_ERROR;
 }
 
 int generate_genericurl_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -378,7 +386,9 @@ int generate_genericurl_tcl(ClientData clientData, Tcl_Interp *interp,
   if (argc == 1) {
     Tcl_AppendResult(interp, generate_scheme(),"://",generate_login(), "/",\
 		     generate_urlpath(50), NULL);      
+    return TCL_OK;
   }
+  return TCL_ERROR;
 }
 
 int ftpURL_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -388,6 +398,7 @@ int ftpURL_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, ftpURL(), NULL);      
     return TCL_OK;
   }
+  return TCL_ERROR;
 }
 
 int httpURL_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -397,6 +408,7 @@ int httpURL_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, httpURL(), NULL);      
     return TCL_OK;
   }
+  return TCL_ERROR;
 }
 
 int gopherURL_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -406,6 +418,7 @@ int gopherURL_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, gopherURL(), NULL);      
     return TCL_OK;
   }
+  return TCL_ERROR;
 }
 
 int telnetURL_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -415,11 +428,12 @@ int telnetURL_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, telnetURL(), NULL);      
     return TCL_OK;
   }
+  return TCL_ERROR;
 }
 
 int generateURL_tcl(ClientData clientData, Tcl_Interp *interp, 
 		    int argc, char **argv) {
-
+  return TCL_OK;
 }
 
 

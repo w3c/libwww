@@ -598,6 +598,7 @@ int WWWLib_Init(Tcl_Interp *interp) {
     Tcl_CreateCommand(interp, c->name, c->proc, c->data,
 		      NULL /* delete proc???*/);
   }
+  return TCL_OK;
 }
 
 void WWWLib_Terminate() {
@@ -668,9 +669,11 @@ void HText_appendImage (HText *         text,
 }
 
 BOOL HText_selectAnchor(HText * text, HTChildAnchor* anchor) {
+  return YES;
 }
 
 BOOL HText_select (HText * text) {
+  return YES;
 }
 
 

@@ -105,7 +105,7 @@ int HTConversion_add_tcl(ClientData clientData, Tcl_Interp *interp,
 							 converter_key);
       if(list_entry && converter_entry ) {
 	HTList * conversions = Tcl_GetHashValue(list_entry);
-	HTConverter * converter = Tcl_GetHashValue(converter_entry);
+	HTConverter * converter = (HTConverter *) Tcl_GetHashValue(converter_entry);
 	
 	HTConversion_add(conversions, rep_in, rep_out, 
 			 converter, quality, secs, secs_per_byte);
@@ -168,8 +168,8 @@ int HTCoding_add_tcl(ClientData clientData, Tcl_Interp *interp,
 						       decoder_key);
       if(list_entry && encoder_entry && decoder_entry) {
 	HTList *list = Tcl_GetHashValue(list_entry);
-	HTCoder *encoder = Tcl_GetHashValue(encoder_entry);
-	HTCoder *decoder = Tcl_GetHashValue(decoder_entry);
+	HTCoder *encoder = (HTCoder *) Tcl_GetHashValue(encoder_entry);
+	HTCoder *decoder = (HTCoder *) Tcl_GetHashValue(decoder_entry);
 	
         BOOL result = HTCoding_add(list, encoding, encoder, decoder, 
 				   quality);
@@ -399,7 +399,7 @@ int HTFormat_addConversion_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *converter_entry = Tcl_FindHashEntry(&HTableConverter, 
 							 converter_key);
       if(converter_entry) {
-	HTConverter *converter = Tcl_GetHashValue(converter_entry);
+	HTConverter *converter =(HTConverter *) Tcl_GetHashValue(converter_entry);
 	
 	HTFormat_addConversion(input_format, output_format, converter, 
 			       quality, secs, secs_per_byte);
@@ -484,8 +484,8 @@ int HTFormat_addCoding_tcl(ClientData clientData, Tcl_Interp *interp,
 							decoder_key);
 
       if (encoder_entry && decoder_entry) {
-	HTCoder *encoder = Tcl_GetHashValue(encoder_entry);
-	HTCoder *decoder = Tcl_GetHashValue(decoder_entry);
+	HTCoder *encoder = (HTCoder *) Tcl_GetHashValue(encoder_entry);
+	HTCoder *decoder = (HTCoder *) Tcl_GetHashValue(decoder_entry);
 	
 	BOOL result = HTFormat_addCoding(encoding, encoder, decoder, 
 					 quality);
@@ -574,8 +574,8 @@ int HTFormat_addTransferCoding_tcl(ClientData clientData, Tcl_Interp *interp,
 							decoder_key);
 
       if (encoder_entry && decoder_entry) {
-	HTCoder *encoder = Tcl_GetHashValue(encoder_entry);
-	HTCoder *decoder = Tcl_GetHashValue(decoder_entry);
+	HTCoder *encoder = (HTCoder *) Tcl_GetHashValue(encoder_entry);
+	HTCoder *decoder = (HTCoder *) Tcl_GetHashValue(decoder_entry);
 	
 	BOOL result = HTFormat_addTransferCoding(encoding, encoder, decoder, 
 					 quality);
