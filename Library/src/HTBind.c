@@ -196,6 +196,7 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 	    hash = (hash * 3 + TOLOWER(*p)) % HT_L_HASH_SIZE;
 	}
 
+	if (!HTBindings) HTBind_init();
 	if (!HTBindings[hash]) HTBindings[hash] = HTList_new();
 	suflist = HTBindings[hash];
 
@@ -281,6 +282,7 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
     HTFormat format = HTAnchor_format(anchor);
     HTList * encoding = HTAnchor_encoding(anchor);
     HTList * language = HTAnchor_language(anchor);
+    if (!HTBindings) HTBind_init();
     if (anchor) {
 	for (cnt=0; cnt<HT_L_HASH_SIZE; cnt++) {
 	    if ((cur = HTBindings[cnt])) { 
@@ -429,6 +431,7 @@ PUBLIC BOOL HTBind_getFormat (const char *	filename,
 #ifdef HT_REENTRANT
     char *lasts;					     /* For strtok_r */
 #endif
+    if (!HTBindings) HTBind_init();
     if (*quality < HT_EPSILON)
 	*quality = 1.0;			           /* Set to a neutral value */
     StrAllocCopy(file, filename);
