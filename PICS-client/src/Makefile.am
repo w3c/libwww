@@ -2,6 +2,8 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+SUBDIRS = windows
+
 lib_LIBRARIES = pics
 
 SUBDIRS = windows
