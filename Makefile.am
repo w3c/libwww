@@ -108,11 +108,13 @@ $(top_srcdir)/INSTALL : $(top_srcdir)/INSTALL.html
 		-o $(top_srcdir)/INSTALL
 
 $(top_srcdir)/TODO : $(top_srcdir)/Library/User/ToDo.html
-	www -p -na $(top_srcdir)/Library/User/ToDo.html \
+	cp $(top_srcdir)/Library/User/ToDo.html $(top_srcdir)/TODO.html
+	www -p -na $(top_srcdir)/TODO.html \
 		-o $(top_srcdir)/TODO
 
 $(top_srcdir)/NEWS : $(top_srcdir)/Library/User/ReleaseNotes.html
-	www -p -na $(top_srcdir)/Library/User/ReleaseNotes.html \
+	cp $(top_srcdir)/Library/User/ReleaseNotes.html $(top_srcdir)/NEWS.html
+	www -p -na $(top_srcdir)/NEWS.html \
 		-o $(top_srcdir)/NEWS
 
 $(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
