@@ -19,7 +19,15 @@ EXTRA_DIST = \
 	INSTALL.html \
 	COPYRIGHT.html \
 	PATCHES.html \
-	LICENSE.html
+	LICENSE.html \
+	config/htmlCase.pl \
+	config/splitBigTcpdump.pl \
+	config/makeindx.pl \
+	config/netmon2tcpdump.pl \
+	config/makedefs.pl \
+	config/winConfigure.pl \
+	config/depcomp
+
 
 # We need to install the config.h header file as well. As this file
 # is platform specific, we do not install it with the other libwww include files
