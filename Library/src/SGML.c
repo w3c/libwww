@@ -24,7 +24,7 @@
 **
 */
 
-#define MAX_ATTRIBUTES 20	/* Max number of attributes per element */
+
 
 	
 /*		Element Stack
