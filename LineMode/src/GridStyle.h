@@ -1,18 +1,17 @@
 /*                                                       HTStyle: Style management for libwww
-                              STYLE DEFINITION FOR HYPERTEXT
-                                             
  */
 /*
-**      (c) COPYRIGHT MIT 1995.
-**      Please first read the full copyright statement in the file COPYRIGH.
+**(c) COPYRIGHT MIT 1995.
+**Please first read the full copyright statement in the file COPYRIGH.
 */
 /*
 
+   Styles allow the translation between a logical property of a piece of text and its
+   physical representation.
+   
    A StyleSheet is a collection of styles, defining the translation necessary to represent
    a document. It is a linked list of styles.
    
-OVERRIDING THIS MODULE
-
    Why is the style structure declared in the HTStyle.h module, instead of having the user
    browser define the structure, and the HTStyle routines just use sizeof() for copying?
    
@@ -40,133 +39,98 @@ OVERRIDING THIS MODULE
 
 typedef double HTCoord;
 
-#ifdef OLD_CODE
-typedef struct _HTParagraphStyle {
-    HTCoord     left_indent;            /* @@@@ junk! etc etc*/
-} HTParagraphStyle;
-#endif
-
-typedef int HTColor;            /* Sorry about the US spelling! */
-
-
+typedef int HTColor;/* Sorry about the US spelling! */
 
 typedef struct {
-    short               kind;           /* only NX_LEFTTAB implemented*/
-    HTCoord             position;       /* x coordinate for stop */
+    short       kind;/* only NX_LEFTTAB implemented*/
+    HTCoord         position;/* x coordinate for stop */
 } HTTabStop;
 
-
-
-
-
-
-
-#define STYLE_NAME_LENGTH       80      /* @@@@@@@@@@@ */
-        
-
-/*      The Style Structure
-**      -------------------
-*/
-
-struct _HTStyle {
-
-/*      Style management information
-*/
-    struct _HTStyle     *next;          /* Link for putting into stylesheet */
-    char *              name;           /* Style name */
-    char *              SGMLTag;        /* Tag name to start */
-
-
-/*      Character attributes    (a la NXRun)
-*/
-    HTFont              font;           /* Font id */
-    HTCoord             fontSize;       /* The size of font, not independent */
-    HTColor             color;  /* text gray of current run */
-    int                 superscript;    /* superscript (-sub) in points */
-
-    HTAnchor            *anchor;        /* Anchor id if any, else zero */
-
-/*      Paragraph Attribtes     (a la NXTextStyle)
-*/
-    HTCoord             indent1st;      /* how far first line in paragraph is
-                                 * indented */
-    HTCoord             leftIndent;     /* how far second line is indented */
-    HTCoord             rightIndent;    /* (Missing from NeXT version */
-    short               alignment;      /* quad justification */
-    HTCoord             lineHt;         /* line height */
-    HTCoord             descentLine;    /* descender bottom from baseline */
-    HTTabStop           *tabs;          /* array of tab stops, 0 terminated */
-
-    BOOL                wordWrap;       /* Yes means wrap at space not char */
-    BOOL                freeFormat;     /* Yes means \n is just white space */
-    HTCoord             spaceBefore;    /* Omissions from NXTextStyle */
-    HTCoord             spaceAfter;
-    int                 paraFlags;      /* Paragraph flags, bits as follows: */
-
-#define PARA_KEEP       1       /* Do not break page within this paragraph */
-#define PARA_WITH_NEXT  2       /* Do not break page after this paragraph */
-
-#define HT_JUSTIFY 0            /* For alignment */
-#define HT_LEFT 1
-#define HT_RIGHT 2
-#define HT_CENTER 3
-
-};
-
-#ifdef NOT_IN_GRIDSTYLE
-
+#define STYLE_NAME_LENGTH80/* @@@@@@@@@@@ */
 /*
 
-STYLE CREATION
-
-  HtStyleModify
-  
  */
+struct _HTStyle {
 
-extern HTStyle * HTStyleModify PARAMS((
-                HTStyle *       style,
-                HTNesting*      nesting,
-                int             element_number));
+    /* Style management information */
+    struct _HTStyle * next;                       /* Link for putting into stylesheet */
+    char * name;                                                        /* Style name */
+    char * SGMLTag;                                              /* Tag name to start */
 
 
+    /*Character attributes(a la NXRun) */
+    HTFont      font;                                                      /* Font id */
+    HTCoord     fontSize;                        /* The size of font, not independent */
+    HTColor     color;                                    /* text gray of current run */
+    int         superscript;                          /* superscript (-sub) in points */
 
-/*      Style functions:
-*/
+    HTAnchor*anchor;/* Anchor id if any, else zero */
+
+    /* Paragraph Attribtes(a la NXTextStyle) */
+    HTCoord     indent1st;                            /* how far 1st line is indented */
+    HTCoord     leftIndent;                        /* how far second line is indented */
+    HTCoord     rightIndent;                            /* (Missing from NeXT version */
+    short       alignment;                                      /* quad justification */
+    HTCoord     lineHt;                                                /* line height */
+    HTCoord     descentLine;                        /* descender bottom from baseline */
+    HTTabStop   *tabs;                            /* array of tab stops, 0 terminated */
+
+    BOOL        wordWrap;                         /* Yes means wrap at space not char */
+    BOOL        freeFormat;                       /* Yes means \n is just white space */
+    HTCoord     spaceBefore;                            /* Omissions from NXTextStyle */
+    HTCoord     spaceAfter;
+    int         paraFlags;                       /* Paragraph flags, bits as follows: */
+};
+
+#define PARA_KEEP          1               /* Do not break page within this paragraph */
+#define PARA_WITH_NEXT     2                /* Do not break page after this paragraph */
+
+#define HT_JUSTIFY         0 /* For alignment */
+#define HT_LEFT            1
+#define HT_RIGHT           2
+#define HT_CENTER          3
+
+#ifdef NOT_IN_GRIDSTYLE
+/*
+
+   This routine is passed the style for a particular SGML nesting state, and the element
+   number of a new element whithin that state. The routine returns a suitable style for
+   text within the new element. It is passed a popinter tothe nesting state so that it can
+   link the style back to the nesting state for later manipulation of the SGML nesting
+   tree.
+   
+ */
+extern HTStyle * HTStyleModify (HTStyle *   style,
+                                HTNesting * nesting,
+                                int         element_number);
+
+/* Style functions: */
 extern HTStyle * HTStyleNew NOPARAMS;
-extern HTStyle* HTStyleNewNamed PARAMS ((const char * name));
+extern HTStyle * HTStyleNewNamed PARAMS ((const char * name));
 extern HTStyle * HTStyleFree PARAMS((HTStyle * self));
-#ifdef SUPRESS
-extern HTStyle * HTStyleRead PARAMS((HTStyle * self, HTStream * stream));
-extern HTStyle * HTStyleWrite PARAMS((HTStyle * self, HTStream * stream));
-#endif
-/*              Style Sheet
-**              -----------
-*/
+
+/* Style Sheet */
 typedef struct _HTStyleSheet {
-        char *          name;
-        HTStyle *       styles;
+    char * name;
+    HTStyle * styles;
 } HTStyleSheet;
 
+/* Stylesheet functions: */
+extern HTStyleSheet * HTStyleSheetNew (void);
+extern HTStyleSheet * HTStyleSheetFree (HTStyleSheet * self);
+extern HTStyle * HTStyleNamed (HTStyleSheet * self, const char * name);
+extern HTStyle * HTStyleMatching (HTStyleSheet *self, HTStyle * style);
 
-/*      Stylesheet functions:
-*/
-extern HTStyleSheet * HTStyleSheetNew NOPARAMS;
-extern HTStyleSheet * HTStyleSheetFree PARAMS((HTStyleSheet * self));
-extern HTStyle * HTStyleNamed PARAMS((HTStyleSheet * self, const char * name));
-extern HTStyle * HTStyleMatching PARAMS((HTStyleSheet *self, HTStyle * style));
-/* extern HTStyle * HTStyleForRun PARAMS((HTStyleSheet *self, NXRun * run)); */
-extern HTStyleSheet * HTStyleSheetAddStyle PARAMS((HTStyleSheet * self,
-        HTStyle * style));
-extern HTStyleSheet * HTStyleSheetRemoveStyle PARAMS((HTStyleSheet * self,
-        HTStyle * style));
-#ifdef SUPPRESS
-extern HTStyleSheet * HTStyleSheetRead PARAMS((HTStyleSheet * self,
-                                                HTStream * stream));
-extern HTStyleSheet * HTStyleSheetWrite PARAMS((HTStyleSheet * self,
-                                                HTStream * stream));
-#endif
-#define CLEAR_POINTER ((void *)-1)      /* Pointer value means "clear me" */
+extern HTStyleSheet * HTStyleSheetAddStyle (HTStyleSheet * self, HTStyle * style);
+extern HTStyleSheet * HTStyleSheetRemoveStyle (HTStyleSheet * self, HTStyle * style);
+
+#define CLEAR_POINTER ((void *)-1)/* Pointer value means "clear me" */
 
 #endif /* NOT IN GRIDSTYLE */
 #endif /* GRIDSTYLE_H */
+/*
 
+   
+   ___________________________________
+   
+   */
