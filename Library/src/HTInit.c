@@ -161,7 +161,10 @@ PUBLIC void HTContentEncoderInit (HTList * c)
 */
 PUBLIC void HTBeforeInit (void)
 {
+#if 0
+    /* Often handled better by the application */
     HTNet_addBefore(HTMemoryCacheFilter,	NULL, 		NULL, HT_FILTER_MIDDLE);
+#endif
     HTNet_addBefore(HTCacheFilter,		"http://*",	NULL, HT_FILTER_MIDDLE);
     HTNet_addBefore(HTCredentialsFilter,	"http://*",	NULL, HT_FILTER_LATE);
     HTNet_addBefore(HTPEP_beforeFilter, 	"http://*",	NULL, HT_FILTER_LATE);

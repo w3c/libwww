@@ -193,7 +193,8 @@ PRIVATE InputParser_t parse_command;
 InputParser_t * PInputParser = &parse_command;
 
 /* Net callback handlers */
-PRIVATE HTNetAfter terminate_handler;
+PRIVATE HTNetBefore MemoryCacheFilter;
+PRIVATE HTNetAfter  terminate_handler;
 
 /* ------------------------------------------------------------------------- */
 
@@ -264,7 +265,7 @@ PRIVATE void Thread_cleanup (LineMode * lm)
 	while ((pres = (Context *) HTList_nextObject(cur))) {
 	    if (pres->state&LM_DONE && pres->state&LM_INACTIVE) {
 		if ((HTList_removeObject(lm->active, pres)) == NO)
-		    HTTrace("NOT FOUND\n");
+		    if (APP_TRACE) HTTrace("NOT FOUND\n");
 		HTRequest_delete(pres->request);
 		Context_delete(pres);
 		cur = lm->active;
@@ -424,9 +425,9 @@ PRIVATE void SetSignal (void)
     ** get `connection refused' back
     */
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
+	if (APP_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
     } else {
-	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
+	if (APP_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
 
 #ifdef HT_MEMLOG
@@ -1493,22 +1494,6 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     is_index = HTAnchor_isIndex(HTMainAnchor);
     if (status == HT_LOADED) {
 
-	/*
-	**  Make sure that we have selected the HText object. This is normally
-	**  done by the HText interface but may have been avoided by the mem
-	**  cache filter
-	*/
-	{
-	    HTParentAnchor * parent = HTRequest_anchor(request);
-	    HTChildAnchor * child = HTRequest_childAnchor(request);
-	    HText * document =  HTAnchor_document(parent);
-	    if (child && (HTAnchor *) child != (HTAnchor *) parent)
-		HText_selectAnchor(document, child);
-	    else
-		HText_select(document);
-	    HTRequest_forceFlush(request);
-	}
-
 	/* Should we output a command line? */
 	if (HTAlert_interactive()) {
 	    HText_setStale(HTMainText);
@@ -1546,6 +1531,64 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     context->state |= LM_DONE;
     Thread_cleanup(lm);
     if (!HTAlert_interactive()) Cleanup(lm, -1);
+    return HT_OK;
+}
+
+/*
+**	Check the Memory Cache (History list) BEFORE filter
+**	---------------------------------------------------
+**	Check if document is already loaded. The user can define whether
+**	the history list should follow normal expiration or work as a
+**	traditional history list where expired documents are not updated.
+**	We don't check for anything but existence proof of a document
+**	associated with the anchor as the definition is left to the application
+*/
+PRIVATE int MemoryCacheFilter (HTRequest * request, void * param, int mode)
+{
+    HTReload validation = HTRequest_reloadMode(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    void * document = HTAnchor_document(anchor);
+
+    /*
+    **  We only check the memory cache if it's a GET method
+    */
+    if (HTRequest_method(request) != METHOD_GET) {
+	if (APP_TRACE) HTTrace("Mem Cache... We only check GET methods\n");
+	return HT_OK;
+    }
+
+    /*
+    **  If we are asked to flush the persistent cache then there is no reason
+    **  to do anything here - we're flushing it anyway. Also if no document
+    **  then just exit from this filter.
+    */
+    if (!document || validation > HT_CACHE_FLUSH_MEM) {
+	if (APP_TRACE) HTTrace("Mem Cache... No fresh document...\n");
+	return HT_OK;
+    }
+
+    /*
+    **  If we have a document object associated with this anchor then we also
+    **  have the object in the history list. Depending on what the user asked,
+    **  we can add a cache validator
+    */
+    if (document && validation != HT_CACHE_FLUSH_MEM) {
+	HTParentAnchor * parent = HTRequest_anchor(request);
+	HTChildAnchor * child = HTRequest_childAnchor(request);
+	HText * document =  HTAnchor_document(parent);
+	if (APP_TRACE)
+	    HTTrace("Mem Cache... Document %p already in memory\n", document);
+
+	/*
+	**  Make sure that we have selected the HText object. This is normally
+	**  done by the HText interface but must be repeated here.
+	*/
+	if (child && (HTAnchor *) child != (HTAnchor *) parent)
+	    HText_selectAnchor(document, child);
+	else
+	    HText_select(document);
+	return HT_LOADED;
+    }
     return HT_OK;
 }
 
@@ -1944,6 +1987,7 @@ int main (int argc, char ** argv)
     CSApp_registerApp(PICSCallback, CSApp_callOnBad, PICS_userCallback, 
 		      (void *)lm);
      /* Add our own filter to update the history list */
+    HTNet_addBefore(MemoryCacheFilter, NULL, NULL, HT_FILTER_EARLY);
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Should we load a PICS user profile? */

@@ -293,41 +293,6 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int mode)
     **  have the object in the history list. Depending on what the user asked,
     **  we can add a cache validator
     */
-#if 0
-    if (document) {
-	if (validation != HT_CACHE_FLUSH_MEM) {
-	    HTExpiresMode expires = HTCacheMode_expires();
-	    if (CACHE_TRACE)
-		HTTrace("Mem Cache... Document already in memory\n");
-	    if (expires != HT_EXPIRES_IGNORE) {
-
-		/*
-		**  Ask the cache manager if this object has expired. Also
-		**  check if we should care about expiration or not.
-		*/
-		if (!HTCache_isValid(anchor)) {
-		    if (expires == HT_EXPIRES_NOTIFY) {
-
-			/*
-			** See if we have a function registered for outputting errors.
-			** If so then call it and present the message to the user
-			*/
-			HTAlertCallback * cbf = HTAlert_find(HT_A_MESSAGE);
-			if (cbf)
-			    (*cbf)(request, HT_A_MESSAGE, HTERR_CACHE_EXPIRED,
-				   NULL, HTRequest_error(request), NULL);
-		    } else {
-			if (CACHE_TRACE) HTTrace("Mem Cache... Expired - autoreload\n");
-			HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
-			return HT_OK; 		/* Must go get it */
-		    }
-		}
-	    }
-	}
-	return HT_LOADED;			/* Got it! */
-    }
-    return HT_OK;
-#endif
     if (document && validation != HT_CACHE_FLUSH_MEM) {
 	if (CACHE_TRACE) HTTrace("Mem Cache... Document already in memory\n");
 	return HT_LOADED;
