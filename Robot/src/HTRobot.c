@@ -1055,7 +1055,7 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
     me->follow = YES;
 
     /* Check to see if we have any meta tags */
-    if ((robots = HTAnchor_robots(anchor)) != NULL) {
+    if (!(mr->flags & MR_NOMETATAGS) && (robots = HTAnchor_robots(anchor)) != NULL) {
 	char * strval = NULL;
 	char * ptr = NULL;
 	char * token = NULL;
