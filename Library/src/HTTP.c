@@ -773,8 +773,9 @@ PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 
 	    /* Update where we are in the stream */
 	    l = HTHost_remainingRead(HTNet_host(HTRequest_net(me->request)));
-	    b += (length-l);
+	    b += (length-l);	    
 	    length = l;
+	    if (l <= 0) break;
 
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
