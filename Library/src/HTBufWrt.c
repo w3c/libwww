@@ -168,7 +168,6 @@ PRIVATE int HTBufferWriter_abort (HTOutputStream * me, HTList * e)
 
 PRIVATE int HTBufferWriter_write (HTOutputStream * me, const char * buf, int len)
 {
-    HTNet * net = HTHost_getWriteNet(me->host);
     int status;
     while (1) {
 	int available = me->data + me->allocated - me->read;
