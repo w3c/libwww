@@ -503,7 +503,6 @@ PRIVATE HTNet * create_object (void)
     HTNetCount++;
     if (CORE_TRACE)
 	HTTrace("Net Object.. %p created with hash %d\n",me, me->hash);
-    HTTrace("%d total number of net objects (new)\n", HTNetCount);
     return me;
 }
 
@@ -813,8 +812,6 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 
         /* Remove object from the table of Net Objects */
 	remove_net(net);
-	HTTrace("%d total number of net objects (delete)\n", HTNetCount);
-
 
 #if 0
 	if (NetTable) {

@@ -44,10 +44,11 @@
 #endif
 
 typedef enum _MRFlags {
-    MR_IMG	= 0x1,
-    MR_LINK	= 0x2,
-    MR_PREEMPTIVE= 0x4,
-    MR_TIME	= 0x8
+    MR_IMG		= 0x1,
+    MR_LINK		= 0x2,
+    MR_PREEMPTIVE	= 0x4,
+    MR_TIME		= 0x8,
+    MR_SAVE	  	= 0x10
 } MRFlags;
 
 typedef struct _Robot {
@@ -394,7 +395,9 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    HTParentAnchor * parent = HTRequest_parent(text->request);
 	    HyperDoc * last = HTAnchor_document(parent);
 	    int depth = last ? last->depth+1 : 0;
-	    Finger * newfinger = Finger_new(mr, dest, METHOD_HEAD);
+	    Finger * newfinger = Finger_new(mr, dest,
+					    mr->flags & MR_SAVE ?
+					    METHOD_GET : METHOD_HEAD);
 	    HTRequest * newreq = newfinger->request;
 	    HyperDoc_new(mr, dest, depth);
 	    if (SHOW_MSG) {
@@ -500,6 +503,10 @@ int main (int argc, char ** argv)
 	    /* test inlined images */
 	    } else if (!strcmp(argv[arg], "-img")) {
 		mr->flags |= MR_IMG;
+
+	    /* load inlined images */
+	    } else if (!strcmp(argv[arg], "-saveimg")) {
+		mr->flags |= (MR_IMG | MR_SAVE);
 
 	    /* load anchors */
 	    } else if (!strcmp(argv[arg], "-link")) {

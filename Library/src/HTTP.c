@@ -55,7 +55,7 @@ typedef enum _HTTPState {
     HTTP_ERROR		= -2,
     HTTP_OK		= -1,
     HTTP_BEGIN		= 0,
-    HTTP_NEED_CONNECTION,
+    HTTP_NEED_STREAM,
     HTTP_CONNECTED
 } HTTPState;
 
@@ -103,6 +103,9 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     http_info * http = (http_info *) HTNet_context(net);
     HTStream * input = HTRequest_inputStream(req);
 
+    if (PROT_TRACE)
+	HTTrace("HTTP Clean.. Called with status %d, net %p\n", status, net);
+
     /* Free stream with data TO network */
     if (HTRequest_isDestination(req))
 	HTRequest_removeDestination(req);
@@ -121,10 +124,12 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     }
 #endif
 
-    /* Remove the request object and our own context structure for http */
-    if (HTNet_delete(net, status) == YES && status != HT_RECOVER_PIPE) {
+    /*
+    ** Remove the request object and our own context structure for http.
+    */
+    if (status != HT_RECOVER_PIPE) {
+	HTNet_delete(net, status);
 	HT_FREE(http);
-	HTNet_setContext(net, NULL);
     }
     return YES;
 }
@@ -778,7 +783,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
     int status = HT_ERROR;
     HTNet * net = http->net;
     HTRequest * request = HTNet_request(net);
-    HTParentAnchor *anchor = HTRequest_anchor(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTHost * host = HTNet_host(net);
 
     /*
     **  Check whether we have been interrupted
@@ -806,7 +812,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    HTRequest_killPostWeb(request);
 	}
 	HTTPCleanup(request, HT_RECOVER_PIPE);
-	http->state = HTTP_BEGIN;
+	http->state = HTTP_NEED_STREAM;
 	return HT_OK;
     }
 
@@ -814,13 +820,9 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
     while (1) {
 	switch (http->state) {
 	case HTTP_BEGIN:
-	    http->state = HTTP_NEED_CONNECTION;
-	    break;
-	    
-	case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
-	    status = HTHost_connect(net->host, net, HTAnchor_physical(anchor), HTTP_PORT);
+	    status = HTHost_connect(host, net, HTAnchor_physical(anchor), HTTP_PORT);
+	    host = HTNet_host(net);
 	    if (status == HT_OK) {
-		HTHost * host = HTNet_host(net);
 
 		/*
 		**  Check the protocol class to see if we have connected to a
@@ -840,78 +842,84 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			break;
 		    }
 		}
+		http->state = HTTP_NEED_STREAM;
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
+		return HT_OK;
+	    else	
+		http->state = HTTP_ERROR;	       /* Error or interrupt */
+	    break;
+	    
+	case HTTP_NEED_STREAM:
 
-		/* 
-		** Create the stream pipe FROM the channel to the application.
-		** The target for the input stream pipe is set up using the
-		** stream stack.
-		*/
-		{
-		    HTStream *me=HTStreamStack(WWW_HTTP,
-					       HTRequest_outputFormat(request),
-					       HTRequest_outputStream(request),
-					       request, YES);
-		    HTNet_setReadStream(net, me);
-		    HTRequest_setOutputConnected(request, YES);
-		}
+#if 0
+	    HTChannel_upSemaphore(host->channel);
+#endif
 
+	    /* 
+	    ** Create the stream pipe FROM the channel to the application.
+	    ** The target for the input stream pipe is set up using the
+	    ** stream stack.
+	    */
+	    {
+		HTStream *me=HTStreamStack(WWW_HTTP,
+					   HTRequest_outputFormat(request),
+					   HTRequest_outputStream(request),
+					   request, YES);
+		HTNet_setReadStream(net, me);
+		HTRequest_setOutputConnected(request, YES);
+	    }
+
+	    /*
+	    ** Create the stream pipe TO the channel from the application
+	    ** and hook it up to the request object
+	    */
+	    {
+		HTChannel * channel = HTHost_channel(host);
+		HTOutputStream * output = HTChannel_getChannelOStream(channel);
+		int version = HTHost_version(host);
+		HTStream * app = NULL;
+		
 		/*
-		** Create the stream pipe TO the channel from the application
-		** and hook it up to the request object
+		**  Instead of calling this directly we could have a 
+		**  stream stack builder on the output stream as well
 		*/
-		{
-		    HTChannel * channel = HTHost_channel(net->host);
-		    HTOutputStream * output = HTChannel_getChannelOStream(channel);
-		    int version = HTHost_version(host);
-		    HTStream * app = NULL;
-
-		    /*
-		    **  Instead of calling this directly we could have a 
-		    **  stream stack builder on the output stream as well
-		    */
 #ifdef HT_MUX
-		    output = (HTOutputStream *)
-			HTBuffer_new(HTMuxWriter_new(host, net, output),
-				     request, 512);
+		output = (HTOutputStream *)
+		    HTBuffer_new(HTMuxWriter_new(host, net, output), request, 512);
 #endif
 		    
 #ifdef HTTP_DUMP
-		    if (PROT_TRACE) {
-			if ((htfp = fopen(HTTP_OUTPUT, "ab"))) {
-			    output = (HTOutputStream *)
-				HTTee((HTStream *) output,
-				      HTFWriter_new(request, htfp, YES), NULL);
-			    HTTrace("HTTP........ Dumping request to `%s\'\n",
-				    HTTP_OUTPUT);
-			}
-		    }	
+		if (PROT_TRACE) {
+		    if ((htfp = fopen(HTTP_OUTPUT, "ab"))) {
+			output = (HTOutputStream *)
+			    HTTee((HTStream *) output,
+				  HTFWriter_new(request, htfp, YES), NULL);
+			HTTrace("HTTP........ Dumping request to `%s\'\n",
+				HTTP_OUTPUT);
+		    }
+		}	
 #endif /* HTTP_DUMP */
-		    app = HTMethod_hasEntity(HTRequest_method(request)) ?
-			HTMIMERequest_new(request,
-			    HTTPRequest_new(request, (HTStream *) output, NO,
-					    version),
-					  YES) :
-			HTTPRequest_new(request, (HTStream *) output, YES,
-					version);
-		    HTRequest_setInputStream(request, app);
-		}
+		app = HTMethod_hasEntity(HTRequest_method(request)) ?
+		    HTMIMERequest_new(request,
+				      HTTPRequest_new(request, (HTStream *) output, NO,
+						      version),
+				      YES) :
+		    HTTPRequest_new(request, (HTStream *) output, YES, version);
+		HTRequest_setInputStream(request, app);
+	    }
 
-		/*
-		** Set up concurrent read/write if this request isn't the
-		** source for a PUT or POST. As source we don't start reading
-		** before all destinations are ready. If destination then
-		** register the input stream and get ready for read
-		*/
-		if (HTRequest_isDestination(request)) {
-		    HTHost_register(net->host, net, HTEvent_READ);
-		    HTRequest_linkDestination(request);
-		}
-		http->state = HTTP_CONNECTED;
-		type = HTEvent_WRITE;			    /* fresh, so try a write */
-	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
-		return HT_OK;
-	    else
-		http->state = HTTP_ERROR;	       /* Error or interrupt */
+	    /*
+	    ** Set up concurrent read/write if this request isn't the
+	    ** source for a PUT or POST. As source we don't start reading
+	    ** before all destinations are ready. If destination then
+	    ** register the input stream and get ready for read
+	    */
+	    if (HTRequest_isDestination(request)) {
+		HTHost_register(host, net, HTEvent_READ);
+		HTRequest_linkDestination(request);
+	    }
+	    http->state = HTTP_CONNECTED;
+	    type = HTEvent_WRITE;			    /* fresh, so try a write */
 	    break;
 
 	    /* As we can do simultanous read and write this is now one state */
@@ -951,27 +959,13 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			    }
 			}
 		    } else {
-#if 0
-			HTTransportMode mode = HTHost_mode(net->host, NO);
-
-			/*
-			**  We only flush the request if we are the last in the queue or
-			**  we are in single mode. At the same time we check whether
-			**  we can start a new request.
-			*/
-			if (mode == HT_TP_SINGLE ||
-			    (mode == HT_TP_PIPELINE && !HTHost_launchPending(net->host))) {
-			    status = (*input->isa->flush)(input);
-			}
-#else
 			/*
 			**  Check to see if we can start a new request
 			**  pending in the host object.
 			*/
-			HTHost_launchPending(net->host);
+			HTHost_launchPending(host);
 			status = HTRequest_flush(request) ?
-			    HTHost_forceFlush(net->host) : (*input->isa->flush)(input);
-#endif
+			    HTHost_forceFlush(host) : (*input->isa->flush)(input);
 			type = HTEvent_READ;
 		    }
 		    if (status == HT_WOULD_BLOCK) return HT_OK;
@@ -982,7 +976,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    return HT_ERROR;
 		return (*input->isa->flush)(input);
 	    } else if (type == HTEvent_READ) {
-		status = HTHost_read(net->host, net);
+		status = HTHost_read(host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_CONTINUE) {
@@ -1017,20 +1011,18 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
           case HTTP_RECOVER_PIPE:
 	  {
-	      HTHost * host = HTNet_host(net);
-
 	      /*
 	      ** If this is a persistent connection and we get a close
 	      ** then it is an error and we should recover from it by
 	      ** restarting the pipe line of requests if any
 	      */
 	      if (HTHost_isPersistent(host)) {
-		  HTHost * host = HTNet_host(net);
 		  if (host == NULL) return HT_ERROR;
-		  HTChannel_setSemaphore(host->channel, 0);
-		  HTHost_clearChannel(host, HT_INTERRUPTED);
-		  HTHost_setMode(host, HT_TP_SINGLE);
-		  http->result = HT_RECOVER_PIPE;
+		  HTRequest_setFlush(request, YES);
+		  HTHost_recoverPipe(host);
+		  http->state = HTTP_BEGIN;
+		  HTHost_launchPending(host);
+		  return HT_OK;
 	      } else
 		  http->state = HTTP_OK;
 	  }

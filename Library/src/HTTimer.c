@@ -182,7 +182,7 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
     else
 	HTList_quickRemoveElement(cur, last);
     if (THD_TRACE) HTTrace("Timer....... Dispatch timer %p\n", timer);
-    ret = (*timer->cbf) (timer, timer->param, HTEvent_TIMEOUT);
+    ret = (*timer->cbf) (timer, timer->param);
     if (!timer->relative)
 	HT_FREE(timer);
     return ret;

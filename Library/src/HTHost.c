@@ -29,7 +29,7 @@
 
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
 #define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
-#define MAX_PIPES		5    /* maximum number of pipelined requests */
+#define MAX_PIPES		50   /* maximum number of pipelined requests */
 
 struct _HTInputStream {
     const HTInputStreamClass *	isa;
@@ -1044,12 +1044,6 @@ PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
 {
     if (!host) return NO;
     host->channel = channel;
-
-    /*
-    **  Make sure that we don't have any old remaining bytes as left
-    **  over from previous channels
-    */
-    host->remainingRead = 0;
     return YES;
 }
 
