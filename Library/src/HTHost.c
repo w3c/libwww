@@ -184,6 +184,19 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	/* call the first net object */
 	do {
 	    int ret;
+
+            /* netscape and apache servers can do a lazy close well after usage
+             * of previous socket has been dispensed by the library,
+             * the section below makes sure the event does not get miss attributed
+             */
+	    if (HTChannel_socket(host->channel) != soc) {
+		 if (CORE_TRACE)
+			 HTTrace("Host Event.. wild socket %d type = %s real socket is %d\n", soc, 
+			 type == HTEvent_CLOSE ? "Event_Close" : "Event_Read",
+			 HTChannel_socket(host->channel));
+		 return HT_OK;
+	    }
+
 	    targetNet = (HTNet *)HTList_firstObject(host->pipeline);
 	    if (targetNet) {
 		if (CORE_TRACE)
