@@ -99,8 +99,8 @@ NULL=nul
 # Begin Project
 # PROP Target_Last_Scanned "wwwwais - Win32 Debug"
 MTL=mktyplib.exe
-RSC=rc.exe
 CPP=cl.exe
+RSC=rc.exe
 
 !IF  "$(CFG)" == "msvc_40 - Win32 Release"
 
@@ -127,6 +127,7 @@ ALL : "wwwwais - Win32 Release" "wwwguess - Win32 Release"\
 
 CLEAN : 
 	-@erase ".\Release\msvc_40.dll"
+	-@erase ".\Release\windll.obj"
 	-@erase ".\Release\msvc_40.lib"
 	-@erase ".\Release\msvc_40.exp"
 
@@ -134,9 +135,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/msvc_40.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/msvc_40.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -158,6 +160,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  /pdb:"$(OUTDIR)/msvc_40.pdb" /machine:I386 /out:"$(OUTDIR)/msvc_40.dll"\
  /implib:"$(OUTDIR)/msvc_40.lib" 
 LINK32_OBJS= \
+	"$(INTDIR)/windll.obj" \
 	".\wwwdll\Release\wwwdll.lib" \
 	".\wwwutils\Release\wwwutils.lib" \
 	".\wwwcore\Release\wwwcore.lib" \
@@ -205,19 +208,22 @@ ALL : "wwwwais - Win32 Debug" "wwwguess - Win32 Debug" "wwwapp - Win32 Debug"\
 
 CLEAN : 
 	-@erase ".\Debug\msvc_40.dll"
+	-@erase ".\Debug\windll.obj"
 	-@erase ".\Debug\msvc_40.ilk"
 	-@erase ".\Debug\msvc_40.lib"
 	-@erase ".\Debug\msvc_40.exp"
 	-@erase ".\Debug\msvc_40.pdb"
+	-@erase ".\Debug\vc40.pdb"
+	-@erase ".\Debug\vc40.idb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/msvc_40.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/msvc_40.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -239,6 +245,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  /pdb:"$(OUTDIR)/msvc_40.pdb" /debug /machine:I386 /out:"$(OUTDIR)/msvc_40.dll"\
  /implib:"$(OUTDIR)/msvc_40.lib" 
 LINK32_OBJS= \
+	"$(INTDIR)/windll.obj" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcore\Debug\wwwcore.lib" \
@@ -290,9 +297,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwdll.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwdll.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwdll\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -356,10 +364,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwdll.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwdll.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwdll\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -406,7 +414,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwutils\Release
 INTDIR=.\wwwutils\Release
 
-ALL : "wwwdll - Win32 Release" "$(OUTDIR)\wwwutils.dll"
+ALL : "$(OUTDIR)\wwwutils.dll"
 
 CLEAN : 
 	-@erase ".\Release\wwwutils.dll"
@@ -425,9 +433,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwutils.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwutils.pch" /YX\
+ /Fo"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwutils\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -459,8 +468,7 @@ LINK32_OBJS= \
 	"$(INTDIR)/HTChunk.obj" \
 	"$(INTDIR)/HTUU.obj" \
 	"$(INTDIR)/HTList.obj" \
-	".\wwwdll\Debug\wwwdll.lib" \
-	".\wwwdll\Release\wwwdll.lib"
+	".\wwwdll\Debug\wwwdll.lib"
 
 "$(OUTDIR)\wwwutils.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -482,7 +490,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwutils\Debug
 INTDIR=.\wwwutils\Debug
 
-ALL : "wwwdll - Win32 Debug" "$(OUTDIR)\wwwutils.dll"
+ALL : "$(OUTDIR)\wwwutils.dll"
 
 CLEAN : 
 	-@erase ".\wwwutils\Debug\vc40.pdb"
@@ -505,10 +513,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwutils.pch" /YX /Fo"$(INTDIR)/"\
- /Fd"$(INTDIR)/" /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwutils.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwutils\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -562,8 +570,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwcore\Release
 INTDIR=.\wwwcore\Release
 
-ALL : "wwwutils - Win32 Release" "wwwdll - Win32 Release"\
- "$(OUTDIR)\wwwcore.dll"
+ALL : "$(OUTDIR)\wwwcore.dll"
 
 CLEAN : 
 	-@erase ".\Release\wwwcore.dll"
@@ -596,9 +603,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwcore.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwcore.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwcore\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -646,9 +654,7 @@ LINK32_OBJS= \
 	"$(INTDIR)/HTMethod.obj" \
 	"..\..\..\..\..\..\Msdev\Lib\Wsock32.lib" \
 	".\wwwutils\Debug\wwwutils.lib" \
-	".\wwwdll\Debug\wwwdll.lib" \
-	".\wwwdll\Release\wwwdll.lib" \
-	".\wwwutils\Release\wwwutils.lib"
+	".\wwwdll\Debug\wwwdll.lib"
 
 "$(OUTDIR)\wwwcore.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -670,7 +676,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwcore\Debug
 INTDIR=.\wwwcore\Debug
 
-ALL : "wwwutils - Win32 Debug" "wwwdll - Win32 Debug" "$(OUTDIR)\wwwcore.dll"
+ALL : "$(OUTDIR)\wwwcore.dll"
 
 CLEAN : 
 	-@erase ".\wwwcore\Debug\vc40.pdb"
@@ -707,10 +713,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwcore.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwcore.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwcore\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -793,9 +799,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwcache.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwcache.pch" /YX\
+ /Fo"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwcache\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -862,10 +869,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwcache.pch" /YX /Fo"$(INTDIR)/"\
- /Fd"$(INTDIR)/" /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwcache.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwcache\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -931,9 +938,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwmime.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwmime.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwmime\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1006,10 +1014,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwmime.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwmime.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwmime\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1062,8 +1070,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwhttp\Release
 INTDIR=.\wwwhttp\Release
 
-ALL : "wwwutils - Win32 Release" "wwwhtml - Win32 Release"\
- "wwwdir - Win32 Release" "wwwcore - Win32 Release" "$(OUTDIR)\wwwhttp.dll"
+ALL : "$(OUTDIR)\wwwhttp.dll"
 
 CLEAN : 
 	-@erase ".\Release\wwwhttp.dll"
@@ -1082,9 +1089,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwhttp.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwhttp.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwhttp\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1120,11 +1128,7 @@ LINK32_OBJS= \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwmime\Debug\wwwmime.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
-	".\wwwcore\Debug\wwwcore.lib" \
-	".\wwwcore\Release\wwwcore.lib" \
-	".\wwwdir\Release\wwwdir.lib" \
-	".\wwwhtml\Release\wwwhtml.lib" \
-	".\wwwutils\Release\wwwutils.lib"
+	".\wwwcore\Debug\wwwcore.lib"
 
 "$(OUTDIR)\wwwhttp.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -1146,8 +1150,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwhttp\Debug
 INTDIR=.\wwwhttp\Debug
 
-ALL : "wwwutils - Win32 Debug" "wwwhtml - Win32 Debug" "wwwdir - Win32 Debug"\
- "wwwcore - Win32 Debug" "$(OUTDIR)\wwwhttp.dll"
+ALL : "$(OUTDIR)\wwwhttp.dll"
 
 CLEAN : 
 	-@erase ".\wwwhttp\Debug\vc40.pdb"
@@ -1170,10 +1173,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwhttp.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwhttp.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwhttp\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1209,9 +1212,7 @@ LINK32_OBJS= \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwmime\Debug\wwwmime.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
-	".\wwwcore\Debug\wwwcore.lib" \
-	".\wwwdir\Debug\wwwdir.lib" \
-	".\wwwhtml\Debug\wwwhtml.lib"
+	".\wwwcore\Debug\wwwcore.lib"
 
 "$(OUTDIR)\wwwhttp.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -1247,9 +1248,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwrules.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwrules.pch" /YX\
+ /Fo"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwrules\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1318,10 +1320,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwrules.pch" /YX /Fo"$(INTDIR)/"\
- /Fd"$(INTDIR)/" /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwrules.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwrules\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1388,9 +1390,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwnews.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwnews.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwnews\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1466,10 +1469,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwnews.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwnews.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwnews\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1524,8 +1527,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwgophe\Release
 INTDIR=.\wwwgophe\Release
 
-ALL : "wwwutils - Win32 Release" "wwwcore - Win32 Release"\
- "$(OUTDIR)\wwwgophe.dll"
+ALL : "wwwdir - Win32 Release" "$(OUTDIR)\wwwgophe.dll"
 
 CLEAN : 
 	-@erase ".\Release\wwwgophe.dll"
@@ -1538,9 +1540,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwgophe.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwgophe.pch" /YX\
+ /Fo"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwgophe\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1571,8 +1574,7 @@ LINK32_OBJS= \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib" \
-	".\wwwcore\Release\wwwcore.lib" \
-	".\wwwutils\Release\wwwutils.lib"
+	".\wwwdir\Release\wwwdir.lib"
 
 "$(OUTDIR)\wwwgophe.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -1594,7 +1596,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwgophe\Debug
 INTDIR=.\wwwgophe\Debug
 
-ALL : "wwwutils - Win32 Debug" "wwwcore - Win32 Debug" "$(OUTDIR)\wwwgophe.dll"
+ALL : "wwwdir - Win32 Debug" "$(OUTDIR)\wwwgophe.dll"
 
 CLEAN : 
 	-@erase ".\wwwgophe\Debug\vc40.pdb"
@@ -1611,10 +1613,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwgophe.pch" /YX /Fo"$(INTDIR)/"\
- /Fd"$(INTDIR)/" /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwgophe.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwgophe\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1680,9 +1682,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwftp.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwftp.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwftp\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1753,10 +1756,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwftp.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwftp.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwftp\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1809,7 +1812,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwdir\Release
 INTDIR=.\wwwdir\Release
 
-ALL : "wwwhtml - Win32 Release" "$(OUTDIR)\wwwdir.dll"
+ALL : "$(OUTDIR)\wwwdir.dll"
 
 CLEAN : 
 	-@erase ".\Release\wwwdir.dll"
@@ -1824,9 +1827,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwdir.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwdir.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwdir\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1857,8 +1861,7 @@ LINK32_OBJS= \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
-	".\wwwcore\Debug\wwwcore.lib" \
-	".\wwwhtml\Release\wwwhtml.lib"
+	".\wwwcore\Debug\wwwcore.lib"
 
 "$(OUTDIR)\wwwdir.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -1880,7 +1883,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwdir\Debug
 INTDIR=.\wwwdir\Debug
 
-ALL : "wwwhtml - Win32 Debug" "$(OUTDIR)\wwwdir.dll"
+ALL : "$(OUTDIR)\wwwdir.dll"
 
 CLEAN : 
 	-@erase ".\wwwdir\Debug\vc40.pdb"
@@ -1899,10 +1902,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwdir.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwdir.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwdir\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1969,9 +1972,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwfile.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwfile.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwfile\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2041,10 +2045,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwfile.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwfile.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwfile\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2109,9 +2113,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwtelnt.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwtelnt.pch" /YX\
+ /Fo"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwtelnt\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2179,10 +2184,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwtelnt.pch" /YX /Fo"$(INTDIR)/"\
- /Fd"$(INTDIR)/" /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwtelnt.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwtelnt\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2233,8 +2238,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwhtml\Release
 INTDIR=.\wwwhtml\Release
 
-ALL : "wwwutils - Win32 Release" "wwwcore - Win32 Release"\
- "$(OUTDIR)\wwwhtml.dll"
+ALL : "$(OUTDIR)\wwwhtml.dll"
 
 CLEAN : 
 	-@erase ".\Release\wwwhtml.dll"
@@ -2250,9 +2254,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwhtml.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwhtml.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwhtml\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2283,9 +2288,7 @@ LINK32_OBJS= \
 	"$(INTDIR)/HTMLPDTD.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
-	".\wwwcore\Debug\wwwcore.lib" \
-	".\wwwcore\Release\wwwcore.lib" \
-	".\wwwutils\Release\wwwutils.lib"
+	".\wwwcore\Debug\wwwcore.lib"
 
 "$(OUTDIR)\wwwhtml.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -2307,7 +2310,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwhtml\Debug
 INTDIR=.\wwwhtml\Debug
 
-ALL : "wwwutils - Win32 Debug" "wwwcore - Win32 Debug" "$(OUTDIR)\wwwhtml.dll"
+ALL : "$(OUTDIR)\wwwhtml.dll"
 
 CLEAN : 
 	-@erase ".\wwwhtml\Debug\vc40.pdb"
@@ -2327,10 +2330,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwhtml.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwhtml.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwhtml\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2389,9 +2392,9 @@ CLEAN :
 	-@erase ".\Release\wwwapp.dll"
 	-@erase ".\wwwapp\Release\HTHist.obj"
 	-@erase ".\wwwapp\Release\HTLog.obj"
+	-@erase ".\wwwapp\Release\HTDialog.obj"
 	-@erase ".\wwwapp\Release\windll.obj"
 	-@erase ".\wwwapp\Release\HTHome.obj"
-	-@erase ".\wwwapp\Release\HTDialog.obj"
 	-@erase ".\wwwapp\Release\wwwapp.lib"
 	-@erase ".\wwwapp\Release\wwwapp.exp"
 
@@ -2399,9 +2402,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwapp.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwapp.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwapp\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2427,9 +2431,9 @@ DEF_FILE= \
 LINK32_OBJS= \
 	"$(INTDIR)/HTHist.obj" \
 	"$(INTDIR)/HTLog.obj" \
+	"$(INTDIR)/HTDialog.obj" \
 	"$(INTDIR)/windll.obj" \
 	"$(INTDIR)/HTHome.obj" \
-	"$(INTDIR)/HTDialog.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwrules\Debug\wwwrules.lib" \
@@ -2464,9 +2468,9 @@ CLEAN :
 	-@erase ".\Debug\wwwapp.dll"
 	-@erase ".\wwwapp\Debug\HTHist.obj"
 	-@erase ".\wwwapp\Debug\windll.obj"
+	-@erase ".\wwwapp\Debug\HTDialog.obj"
 	-@erase ".\wwwapp\Debug\HTLog.obj"
 	-@erase ".\wwwapp\Debug\HTHome.obj"
-	-@erase ".\wwwapp\Debug\HTDialog.obj"
 	-@erase ".\Debug\wwwapp.ilk"
 	-@erase ".\wwwapp\Debug\wwwapp.lib"
 	-@erase ".\wwwapp\Debug\wwwapp.exp"
@@ -2476,10 +2480,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwapp.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwapp.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwapp\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2505,9 +2509,9 @@ DEF_FILE= \
 LINK32_OBJS= \
 	"$(INTDIR)/HTHist.obj" \
 	"$(INTDIR)/windll.obj" \
+	"$(INTDIR)/HTDialog.obj" \
 	"$(INTDIR)/HTLog.obj" \
 	"$(INTDIR)/HTHome.obj" \
-	"$(INTDIR)/HTDialog.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwrules\Debug\wwwrules.lib" \
@@ -2547,9 +2551,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwguess.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwguess.pch" /YX\
+ /Fo"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwguess\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2616,10 +2621,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwguess.pch" /YX /Fo"$(INTDIR)/"\
- /Fd"$(INTDIR)/" /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwguess.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwguess\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2669,8 +2674,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwwais\Release
 INTDIR=.\wwwwais\Release
 
-ALL : "wwwutils - Win32 Release" "wwwdll - Win32 Release"\
- "wwwcore - Win32 Release" "$(OUTDIR)\wwwwais.dll"
+ALL : "$(OUTDIR)\wwwwais.dll"
 
 CLEAN : 
 	-@erase ".\Release\wwwwais.dll"
@@ -2683,9 +2687,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwwais.pch" /YX /Fo"$(INTDIR)/" /c 
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwwais.pch" /YX /Fo"$(INTDIR)/"\
+ /c 
 CPP_OBJS=.\wwwwais\Release/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2715,10 +2720,7 @@ LINK32_OBJS= \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwrules\Debug\wwwrules.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
-	".\wwwcore\Debug\wwwcore.lib" \
-	".\wwwcore\Release\wwwcore.lib" \
-	".\wwwdll\Release\wwwdll.lib" \
-	".\wwwutils\Release\wwwutils.lib"
+	".\wwwcore\Debug\wwwcore.lib"
 
 "$(OUTDIR)\wwwwais.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -2740,8 +2742,7 @@ LINK32_OBJS= \
 OUTDIR=.\wwwwais\Debug
 INTDIR=.\wwwwais\Debug
 
-ALL : "wwwutils - Win32 Debug" "wwwdll - Win32 Debug" "wwwcore - Win32 Debug"\
- "$(OUTDIR)\wwwwais.dll"
+ALL : "$(OUTDIR)\wwwwais.dll"
 
 CLEAN : 
 	-@erase ".\wwwwais\Debug\vc40.pdb"
@@ -2758,10 +2759,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
 CPP_PROJ=/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /Fp"$(INTDIR)/wwwwais.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
+ /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /Fp"$(INTDIR)/wwwwais.pch" /YX\
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwwais\Debug/
 CPP_SBRS=
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -3136,6 +3137,26 @@ LINK32_OBJS= \
 !ENDIF 
 
 # End Project Dependency
+################################################################################
+# Begin Source File
+
+SOURCE=.\windll.c
+
+!IF  "$(CFG)" == "msvc_40 - Win32 Release"
+
+
+"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "msvc_40 - Win32 Debug"
+
+
+"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+# End Source File
 # End Target
 ################################################################################
 # Begin Target
@@ -3369,24 +3390,6 @@ SOURCE=.\wwwdll\Debug\wwwdll.lib
 !ENDIF 
 
 # End Source File
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwdll"
-
-!IF  "$(CFG)" == "wwwutils - Win32 Release"
-
-"wwwdll - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdll - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwutils - Win32 Debug"
-
-"wwwdll - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdll - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
 # End Target
 ################################################################################
 # Begin Target
@@ -3956,9 +3959,6 @@ NODEP_CPP_HTERR=\
 # Begin Source File
 
 SOURCE=..\HTDNS.c
-
-!IF  "$(CFG)" == "wwwcore - Win32 Release"
-
 DEP_CPP_HTDNS=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3989,41 +3989,6 @@ NODEP_CPP_HTDNS=\
 "$(INTDIR)\HTDNS.obj" : $(SOURCE) $(DEP_CPP_HTDNS) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
-
-DEP_CPP_HTDNS=\
-	".\..\tcp.h"\
-	".\..\HTUtils.h"\
-	".\..\HTString.h"\
-	".\..\HTAtom.h"\
-	".\..\HTList.h"\
-	".\..\HTParse.h"\
-	".\..\HTAlert.h"\
-	".\..\HTError.h"\
-	".\..\HTNetMan.h"\
-	".\..\HTDNS.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\HTEscape.h"\
-	".\..\HTReq.h"\
-	".\..\HTFormat.h"\
-	".\..\HTStream.h"\
-	".\..\HTEvntrg.h"\
-	".\..\HTNet.h"\
-	".\..\HTAnchor.h"\
-	".\..\HTMethod.h"\
-	".\..\HTSocket.h"\
-	
-NODEP_CPP_HTDNS=\
-	".\..\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTDNS.obj" : $(SOURCE) $(DEP_CPP_HTDNS) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -4242,42 +4207,6 @@ SOURCE=\Msdev\Lib\Wsock32.lib
 !ENDIF 
 
 # End Source File
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwdll"
-
-!IF  "$(CFG)" == "wwwcore - Win32 Release"
-
-"wwwdll - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdll - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
-
-"wwwdll - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdll - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwutils"
-
-!IF  "$(CFG)" == "wwwcore - Win32 Release"
-
-"wwwutils - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
-
-"wwwutils - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
 # End Target
 ################################################################################
 # Begin Target
@@ -4994,81 +4923,9 @@ SOURCE=.\wwwcache\Debug\wwwcache.lib
 
 # End Source File
 ################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwcore"
-
-!IF  "$(CFG)" == "wwwhttp - Win32 Release"
-
-"wwwcore - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwhttp - Win32 Debug"
-
-"wwwcore - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwdir"
-
-!IF  "$(CFG)" == "wwwhttp - Win32 Release"
-
-"wwwdir - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdir - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwhttp - Win32 Debug"
-
-"wwwdir - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdir - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwhtml"
-
-!IF  "$(CFG)" == "wwwhttp - Win32 Release"
-
-"wwwhtml - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwhtml - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwhttp - Win32 Debug"
-
-"wwwhtml - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwhtml - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwutils"
-
-!IF  "$(CFG)" == "wwwhttp - Win32 Release"
-
-"wwwutils - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwhttp - Win32 Debug"
-
-"wwwutils - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
 # Begin Source File
 
-SOURCE=.\..\HTTPGen.c
+SOURCE=..\HTTPGen.c
 DEP_CPP_HTTPG=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -5681,35 +5538,17 @@ SOURCE=.\wwwhtml\Debug\wwwhtml.lib
 ################################################################################
 # Begin Project Dependency
 
-# Project_Dep_Name "wwwcore"
+# Project_Dep_Name "wwwdir"
 
 !IF  "$(CFG)" == "wwwgophe - Win32 Release"
 
-"wwwcore - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Release" 
+"wwwdir - Win32 Release" : 
+   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdir - Win32 Release" 
 
 !ELSEIF  "$(CFG)" == "wwwgophe - Win32 Debug"
 
-"wwwcore - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwutils"
-
-!IF  "$(CFG)" == "wwwgophe - Win32 Release"
-
-"wwwutils - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwgophe - Win32 Debug"
-
-"wwwutils - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Debug" 
+"wwwdir - Win32 Debug" : 
+   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdir - Win32 Debug" 
 
 !ENDIF 
 
@@ -5947,8 +5786,19 @@ SOURCE=.\wwwcore\Debug\wwwcore.lib
 
 SOURCE=.\windll.c
 
+!IF  "$(CFG)" == "wwwdir - Win32 Release"
+
+
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
+
+!ELSEIF  "$(CFG)" == "wwwdir - Win32 Debug"
+
+
+"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -5967,6 +5817,9 @@ SOURCE=.\wwwdir.def
 # Begin Source File
 
 SOURCE=..\HTIcons.c
+
+!IF  "$(CFG)" == "wwwdir - Win32 Release"
+
 DEP_CPP_HTICO=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -5996,11 +5849,47 @@ NODEP_CPP_HTICO=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwdir - Win32 Debug"
+
+DEP_CPP_HTICO=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTParse.h"\
+	".\..\HTFormat.h"\
+	".\..\HTChunk.h"\
+	".\..\HTIcons.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTList.h"\
+	".\..\HTAtom.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEscape.h"\
+	".\..\HTStream.h"\
+	".\..\HTReq.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTICO=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTIcons.obj" : $(SOURCE) $(DEP_CPP_HTICO) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTDir.c
+
+!IF  "$(CFG)" == "wwwdir - Win32 Release"
+
 DEP_CPP_HTDIR=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6037,11 +5926,54 @@ NODEP_CPP_HTDIR=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwdir - Win32 Debug"
+
+DEP_CPP_HTDIR=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTMLPDTD.h"\
+	".\..\HTMLGen.h"\
+	".\..\HTBind.h"\
+	".\..\HTEscape.h"\
+	".\..\HTParse.h"\
+	".\..\HTFormat.h"\
+	".\..\HTReq.h"\
+	".\..\HTIcons.h"\
+	".\..\HTStruct.h"\
+	".\..\HTDescpt.h"\
+	".\..\HTArray.h"\
+	".\..\HTError.h"\
+	".\..\HTDir.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\SGML.h"\
+	".\..\HTStream.h"\
+	".\..\HTList.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTAtom.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTDIR=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTDir.obj" : $(SOURCE) $(DEP_CPP_HTDIR) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTDescpt.c
+
+!IF  "$(CFG)" == "wwwdir - Win32 Release"
+
 DEP_CPP_HTDES=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6067,6 +5999,35 @@ NODEP_CPP_HTDES=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwdir - Win32 Debug"
+
+DEP_CPP_HTDES=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTFormat.h"\
+	".\..\HTList.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTStream.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTDES=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTDescpt.obj" : $(SOURCE) $(DEP_CPP_HTDES) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
@@ -6080,24 +6041,6 @@ SOURCE=.\wwwhtml\Debug\wwwhtml.lib
 !ENDIF 
 
 # End Source File
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwhtml"
-
-!IF  "$(CFG)" == "wwwdir - Win32 Release"
-
-"wwwhtml - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwhtml - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwdir - Win32 Debug"
-
-"wwwhtml - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwhtml - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
 # End Target
 ################################################################################
 # Begin Target
@@ -6353,6 +6296,9 @@ SOURCE=.\wwwtelnt.def
 # Begin Source File
 
 SOURCE=..\HTTelnet.c
+
+!IF  "$(CFG)" == "wwwtelnt - Win32 Release"
+
 DEP_CPP_HTTEL=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6389,6 +6335,41 @@ NODEP_CPP_HTTEL=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwtelnt - Win32 Debug"
+
+DEP_CPP_HTTEL=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTParse.h"\
+	".\..\HTAccess.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTChunk.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTAlert.h"\
+	".\..\HTTelnet.h"\
+	".\..\HTEscape.h"\
+	".\..\HTReq.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTAtom.h"\
+	".\..\HTMethod.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	
+
+"$(INTDIR)\HTTelnet.obj" : $(SOURCE) $(DEP_CPP_HTTEL) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 # End Target
 ################################################################################
@@ -6407,6 +6388,9 @@ NODEP_CPP_HTTEL=\
 # Begin Source File
 
 SOURCE=..\HTMLGen.c
+
+!IF  "$(CFG)" == "wwwhtml - Win32 Release"
+
 DEP_CPP_HTMLG=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6436,11 +6420,47 @@ NODEP_CPP_HTMLG=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
+
+DEP_CPP_HTMLG=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTMLPDTD.h"\
+	".\..\HTStruct.h"\
+	".\..\HTFormat.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTMLGen.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\SGML.h"\
+	".\..\HTStream.h"\
+	".\..\HTList.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTMLG=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTMLGen.obj" : $(SOURCE) $(DEP_CPP_HTMLG) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTMLPDTD.c
+
+!IF  "$(CFG)" == "wwwhtml - Win32 Release"
+
 DEP_CPP_HTMLP=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6460,14 +6480,48 @@ NODEP_CPP_HTMLP=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
+
+DEP_CPP_HTMLP=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTMLPDTD.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTStruct.h"\
+	".\..\SGML.h"\
+	".\..\HTStream.h"\
+	".\..\HTList.h"\
+	
+NODEP_CPP_HTMLP=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=.\windll.c
 
+!IF  "$(CFG)" == "wwwhtml - Win32 Release"
+
+
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
+
+!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
+
+
+"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -6510,6 +6564,9 @@ SOURCE=.\wwwutils\Debug\wwwutils.lib
 # Begin Source File
 
 SOURCE=..\HTTeXGen.c
+
+!IF  "$(CFG)" == "wwwhtml - Win32 Release"
+
 DEP_CPP_HTTEX=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6538,11 +6595,46 @@ NODEP_CPP_HTTEX=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
+
+DEP_CPP_HTTEX=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTTeXGen.h"\
+	".\..\HTMLPDTD.h"\
+	".\..\HTStruct.h"\
+	".\..\HTFormat.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\SGML.h"\
+	".\..\HTStream.h"\
+	".\..\HTList.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTTEX=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTTeXGen.obj" : $(SOURCE) $(DEP_CPP_HTTEX) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\SGML.c
+
+!IF  "$(CFG)" == "wwwhtml - Win32 Release"
+
 DEP_CPP_SGML_=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6563,6 +6655,30 @@ NODEP_CPP_SGML_=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
+
+DEP_CPP_SGML_=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTChunk.h"\
+	".\..\SGML.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTStream.h"\
+	".\..\HTStruct.h"\
+	".\..\HTList.h"\
+	
+NODEP_CPP_SGML_=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\SGML.obj" : $(SOURCE) $(DEP_CPP_SGML_) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
@@ -6576,42 +6692,6 @@ SOURCE=.\wwwhtml.def
 !ENDIF 
 
 # End Source File
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwcore"
-
-!IF  "$(CFG)" == "wwwhtml - Win32 Release"
-
-"wwwcore - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
-
-"wwwcore - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwutils"
-
-!IF  "$(CFG)" == "wwwhtml - Win32 Release"
-
-"wwwutils - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
-
-"wwwutils - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
 # End Target
 ################################################################################
 # Begin Target
@@ -6666,8 +6746,19 @@ SOURCE=.\wwwcore\Debug\wwwcore.lib
 
 SOURCE=.\windll.c
 
+!IF  "$(CFG)" == "wwwapp - Win32 Release"
+
+
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
+
+!ELSEIF  "$(CFG)" == "wwwapp - Win32 Debug"
+
+
+"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -6741,6 +6832,8 @@ SOURCE=..\HTHome.c
 DEP_CPP_HTHOM=\
 	".\..\WWWLib.h"\
 	".\..\WWWApp.h"\
+	".\..\WWWCache.h"\
+	".\..\WWWRules.h"\
 	".\..\HTReqMan.h"\
 	".\..\HTHome.h"\
 	".\..\WWWUtil.h"\
@@ -6778,8 +6871,12 @@ DEP_CPP_HTHOM=\
 	".\..\HTWWWStr.h"\
 	".\..\HTWriter.h"\
 	".\..\HTStream.h"\
+	".\..\HTDialog.h"\
 	".\..\HTLog.h"\
 	".\..\HTHist.h"\
+	".\..\HTCache.h"\
+	".\..\HTRules.h"\
+	".\..\HTProxy.h"\
 	".\..\HTAABrow.h"\
 	".\..\HTAAUtil.h"\
 	
@@ -6894,21 +6991,9 @@ NODEP_CPP_HTDIA=\
 	".\..\HTVMSUtils.h"\
 	
 
-!IF  "$(CFG)" == "wwwapp - Win32 Release"
-
-
 "$(INTDIR)\HTDialog.obj" : $(SOURCE) $(DEP_CPP_HTDIA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "wwwapp - Win32 Debug"
-
-
-"$(INTDIR)\HTDialog.obj" : $(SOURCE) $(DEP_CPP_HTDIA) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 # End Target
@@ -7072,15 +7157,7 @@ SOURCE=.\windll.c
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
 
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\wwwwais.def
-
-!IF  "$(CFG)" == "wwwwais - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
+# End Source Debug"
 
 !ENDIF 
 
@@ -7088,164 +7165,85 @@ SOURCE=.\wwwwais.def
 ################################################################################
 # Begin Source File
 
-SOURCE=..\HTWSRC.c
-
-!IF  "$(CFG)" == "wwwwais - Win32 Release"
-
-DEP_CPP_HTWSR=\
+SOURCE=..\HTLog.c
+DEP_CPP_HTLOG=\
+	".\..\WWWLib.h"\
+	".\..\HTLog.h"\
+	".\..\WWWUtil.h"\
+	".\..\WWWCore.h"\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
-	".\..\HTString.h"\
-	".\..\HTMLPDTD.h"\
-	".\..\HTMLGen.h"\
-	".\..\HTParse.h"\
-	".\..\HTReqMan.h"\
-	".\..\HTProxy.h"\
-	".\..\HTWSRC.h"\
-	".\..\HTStruct.h"\
-	".\..\SGML.h"\
-	".\..\HTStream.h"\
-	".\..\HTList.h"\
-	".\..\HTFormat.h"\
-	".\..\HTAtom.h"\
-	".\..\HTAnchor.h"\
-	".\..\HTReq.h"\
-	".\..\HTMethod.h"\
-	".\..\HTEvntrg.h"\
-	".\..\HTError.h"\
-	".\..\HTNet.h"\
-	".\..\HTEscape.h"\
-	".\..\HTAABrow.h"\
-	".\..\HTSocket.h"\
-	".\..\HTAAUtil.h"\
+	".\..\HTArray.h"\
 	".\..\HTAssoc.h"\
-	
-
-"$(INTDIR)\HTWSRC.obj" : $(SOURCE) $(DEP_CPP_HTWSR) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
-
-DEP_CPP_HTWSR=\
-	".\..\tcp.h"\
-	".\..\HTUtils.h"\
+	".\..\HTAtom.h"\
+	".\..\HTChunk.h"\
+	".\..\HTList.h"\
 	".\..\HTString.h"\
-	".\..\HTMLPDTD.h"\
-	".\..\HTMLGen.h"\
-	".\..\HTParse.h"\
-	".\..\HTReqMan.h"\
-	".\..\HTProxy.h"\
-	".\..\HTWSRC.h"\
+	".\..\HTUU.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\HTStruct.h"\
-	".\..\SGML.h"\
-	".\..\HTStream.h"\
-	".\..\HTList.h"\
-	".\..\HTFormat.h"\
-	".\..\HTAtom.h"\
+	".\..\HTAccess.h"\
+	".\..\HTAlert.h"\
 	".\..\HTAnchor.h"\
-	".\..\HTReq.h"\
-	".\..\HTMethod.h"\
-	".\..\HTEvntrg.h"\
+	".\..\HTBind.h"\
+	".\..\HTConLen.h"\
+	".\..\HTDNS.h"\
 	".\..\HTError.h"\
-	".\..\HTNet.h"\
 	".\..\HTEscape.h"\
-	".\..\HTAABrow.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTFormat.h"\
+	".\..\HTMethod.h"\
+	".\..\HTNet.h"\
+	".\..\HTParse.h"\
+	".\..\HTProt.h"\
+	".\..\HTReq.h"\
 	".\..\HTSocket.h"\
-	".\..\HTAAUtil.h"\
-	".\..\HTAssoc.h"\
+	".\..\HTTCP.h"\
+	".\..\HTTee.h"\
+	".\..\HTWWWStr.h"\
+	".\..\HTWriter.h"\
+	".\..\HTStream.h"\
 	
-NODEP_CPP_HTWSR=\
+NODEP_CPP_HTLOG=\
 	".\..\HTVMSUtils.h"\
 	
 
-"$(INTDIR)\HTWSRC.obj" : $(SOURCE) $(DEP_CPP_HTWSR) "$(INTDIR)"
+"$(INTDIR)\HTLog.obj" : $(SOURCE) $(DEP_CPP_HTLOG) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\wwwhtml\Debug\wwwhtml.lib
-
-!IF  "$(CFG)" == "wwwwais - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\wwwrules\Debug\wwwrules.lib
-
-!IF  "$(CFG)" == "wwwwais - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwcore"
-
-!IF  "$(CFG)" == "wwwwais - Win32 Release"
-
-"wwwcore - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
-
-"wwwcore - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwcore - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwdll"
-
-!IF  "$(CFG)" == "wwwwais - Win32 Release"
-
-"wwwdll - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdll - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
-
-"wwwdll - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwdll - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-################################################################################
-# Begin Project Dependency
-
-# Project_Dep_Name "wwwutils"
-
-!IF  "$(CFG)" == "wwwwais - Win32 Release"
-
-"wwwutils - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Release" 
-
-!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
-
-"wwwutils - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F .\msvc_40.mak CFG="wwwutils - Win32 Debug" 
-
-!ENDIF 
-
-# End Project Dependency
-# End Target
-# End Project
-################################################################################
+SOURCE=..\HTHome.c
+DEP_CPP_HTHOM=\
+	".\..\WWWLib.h"\
+	".\..\WWWApp.h"\
+	".\..\WWWCache.h"\
+	".\..\WWWRules.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTHome.h"\
+	".\..\WWWUtil.h"\
+	".\..\WWWCore.h"\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTArray.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTAtom.h"\
+	".\..\HTChunk.h"\
+	".\..\HTList.h"\
+	".\..\HTString.h"\
+	".\..\HTUU.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTAccess.h"\
+	".\..\HTAlert.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTBind.h"\
+	".\..\HTConLen.h"\
+	".\..\HTDNS.h"\
+	".\..\HTError.h"\
+	".\..\HTEscape.h"\
+	".\

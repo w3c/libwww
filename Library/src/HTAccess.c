@@ -109,17 +109,24 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
     HWND htSocketWin;
     static char className[] = "AsyncWindowClass";
     WNDCLASS wc;
+    OSVERSIONINFO osInfo;
     
     wc.style=0;
     wc.lpfnWndProc=(WNDPROC)AsyncWindowProc;
     wc.cbClsExtra=0;
     wc.cbWndExtra=0;
-    wc.hInstance=GetCurrentProcess();
     wc.hIcon=0;
     wc.hCursor=0;
     wc.hbrBackground=0;
     wc.lpszMenuName=(LPSTR)0;
     wc.lpszClassName=className;
+
+    osInfo.dwOSVersionInfoSize = sizeof(osInfo);
+    GetVersionEx(&osInfo);
+    if (osInfo.dwPlatformId == VER_PLATFORM_WIN32s || osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
+    else
+	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
 #endif /* WWW_WIN_ASYNC */
 
 #if WWWTRACE_MODE == WWWTRACE_FILE			  /* Open trace file */
@@ -172,9 +179,12 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
     	TTYPrint(TDEST, "HTEvent_Loop.. Can't RegisterClass \"%s\"\n", className);
 	    return NO;
     }
-    if (!(htSocketWin = CreateWindow(className, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
-                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, GetCurrentProcess(),0))) {
-       	TTYPrint(TDEST, "HTEvent_Loop.. Can't CreateWindow \"%s\"\n", "");
+    if (!(htSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
+	char space[50];
+       	TTYPrint(TDEST, "HTEvent_Loop.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
+	sprintf(space, "%ld\n", GetLastError());
+	TTYPrint(TDEST, space);
     	return NO;
     }
     HTEvent_setWinHandle (htSocketWin, WM_USER);     /* use first available message since app uses none */

@@ -51,6 +51,7 @@ typedef enum _HTTPState {
 typedef struct _https_info {
     HTTPState	state;			  /* Current State of the connection */
     char *	version;			    /* Version for the reply */
+    HTRequest *	client;			       /* This is out client request */
 } https_info;
 
 /* The HTTP Receive Stream */
@@ -465,39 +466,47 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_PAUSE) {
-		    HTRequest * newreq = HTRequest_dup(request);
+		    http->client = HTRequest_dup(request);
 
 		    /* Set the right client headers */
-		    HTRequest_setGnHd(newreq, DEFAULT_GENERAL_HEADERS);
+		    HTRequest_setGnHd(http->client, DEFAULT_GENERAL_HEADERS);
 
 		    /*
 		    ** If we have a data object in the request then link the
 		    ** two request objects together
 		    */
 		    if (HTMethod_hasEntity(request->method))
-			HTRequest_addDestination(request, newreq);
+			HTRequest_addDestination(request, http->client);
 
 		    /*
 		    ** Set up our reply stream. This is responsible for
 		    ** generating a HTTP reply
 		    */
-		    newreq->output_stream = request->output_stream =
-			HTTPReply_new(request, newreq,
+		    http->client->output_stream = request->output_stream =
+			HTTPReply_new(request, http->client,
 				      HTWriter_new(request->net,YES));
 
 		    /* Start the load of the "client" request */
-		    return HTLoad(newreq, NO) == YES ? HT_OK : HT_ERROR;
+		    return HTLoad(http->client, NO) == YES ? HT_OK : HT_ERROR;
 		} else if (status == HT_CLOSED)
 		    http->state = HTTPS_OK;
 		else
 		    http->state = HTTPS_ERROR;
 	    } else if (ops == FD_WRITE) {
+#if 0
 		if (HTRequest_mainDestination(request)) {
 		    HTNet * dest = request->mainDestination->net;
 		    HTEvent_Register(dest->sockfd, dest->request,
 				     (SockOps) FD_READ,
 				     dest->cbf, dest->priority);
 		}
+#else
+		if (http->client && http->client->net) {
+		    HTNet * dnet = http->client->net;
+		    HTEvent_Register(dnet->sockfd, http->client,
+				     (SockOps) FD_READ, dnet->cbf, dnet->priority);
+		}
+#endif		    
 		return HT_OK;
 	    } else
 		http->state = HTTPS_ERROR;
