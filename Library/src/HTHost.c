@@ -154,10 +154,11 @@ PRIVATE int IdleTimeoutEvent (HTTimer * timer, void * param, HTEventType type)
 {
     HTHost * host = (HTHost *) param;
     SOCKET sockfd = HTChannel_socket(host->channel);
-    int result = HostEvent (sockfd, host, HTEvent_CLOSE);
+
     HTTimer_delete(timer);
     host->timer = NULL;
-    return result;
+
+    return HostEvent (sockfd, host, HTEvent_CLOSE);
 }
 
 /*
@@ -789,6 +790,8 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 	host->close_notification = NO;
 	host->broken_pipe = NO;
        	host->mode = HT_TP_SINGLE;
+
+	host->recovered = 0;
 
 	HTTRACE(CORE_TRACE, "Host info... removed host %p as persistent\n" _ host);
 
