@@ -310,7 +310,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
 		    if (pres->rep_out == present) {
 			if (pres->quality != 1.0) {
-			    sprintf(line, "Accept: %s q=%.3f%c%c",
+			    sprintf(line, "Accept: %s; q=%.3f%c%c",
 				    HTAtom_name(pres->rep),
 				    pres->quality, CR, LF);
 			} else {
