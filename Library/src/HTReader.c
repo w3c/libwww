@@ -227,7 +227,6 @@ PRIVATE int HTReader_close (HTInputStream * me)
 
 PUBLIC int HTReader_consumed (HTInputStream * me, size_t bytes)
 {
-    if (PROT_TRACE) HTTrace("Socket read. consumed %d bytes\n", bytes);
     me->write += bytes;
     me->b_read -= bytes;
     HTHost_setRemainingRead(me->host, me->b_read);

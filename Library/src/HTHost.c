@@ -1009,6 +1009,7 @@ PUBLIC BOOL HTHost_setRemainingRead (HTHost * host, size_t remaining)
 {
     if (host == NULL) return NO;
     host->remainingRead = remaining;
+    if (PROT_TRACE) HTTrace("Host........ %d bytes remaining \n", remaining);
     return YES;
 }
 
@@ -1136,6 +1137,8 @@ PUBLIC BOOL HTHost_setConsumed(HTHost * host, size_t bytes)
     if (!host || !host->channel) return NO;
     if ((input = HTChannel_input(host->channel)) == NULL)
 	return NO;
+    if (PROT_TRACE)
+	HTTrace("Host........ passing %d bytes as consumed to %p\n", bytes, input);
     return (*input->isa->consumed)(input, bytes);
 }
 
