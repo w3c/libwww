@@ -1,0 +1,53 @@
+<HTML>
+<HEAD>
+<TITLE>Getting the W3C Source Code Distribution</TITLE>
+</HEAD>
+<BODY>
+
+<H1>Getting the W3C Source Code Distribution</H1>
+
+There are several ways of down loading the W3C source code
+distribution packages, but the two most important are:
+
+<UL>
+<LI>Using your <A HREF="Clients.html">Web client</A>
+<LI>Using a FTP client
+</UL>
+
+If you are using a Web client then you can get the source code from
+the following places:
+
+<UL>
+<LI><A HREF="Library/">Library of Common Code</A>
+<LI><A HREF="Daemon/Status.html">CERN HTTPD</A>
+<LI><A HREF="LineMode/">Line Mode Browser</A>
+<LI><A HREF="NextStep/Status.html">Next Browser/Editor</A>
+<LI><A HREF="/pub/src/">Directly to our source archive</A>
+</UL>
+
+If you are using a FTP client then you can FTP anonymously to <A
+HREF="ftp://ftp.w3.org">ftp.w3.org</A> by doing the following:
+
+<PRE>
+	> ftp ftp.w3.org
+	Enter user name: <B>anonymous</B>
+	Password: <B>me@myhost.edu</B>
+	ftp> cd /pub/www/src
+	ftp> binary
+	ftp> get WWWLibrary.tar.Z
+	ftp> get WWWLineMode.tar.Z
+	ftp> get WWWDaemon.tar.Z
+	ftp> quit
+	>
+</PRE>
+
+The W3C software is put under the <A HREF="COPYRIGHT.html">MIT
+Copyright Statement</A> <P>
+
+You are now ready to <A HREF="README.html">install the software</A>
+
+<P>
+<HR>
+<ADDRESS><A HREF="People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+</BODY>
+</HTML>

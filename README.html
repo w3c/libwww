@@ -4,12 +4,12 @@
 </HEAD>
 <BODY>
 
-<H1>World-Wide Web CERN-distributed code</H1>
+<H1>W3C Source Code Distribution Packages</H1>
 
 <HR>
 
 <PRE>
-	(c) COPYRIGHT CERN 1994.
+	(c) COPYRIGHT MIT 1995.
 	Please first read the full copyright statement in the file COPYRIGH.
 </PRE>
 
@@ -19,15 +19,15 @@ applications and related reference applications. In its full contents
 it contains the source code for the following modules:
 
 <UL>
-<LI>Library of Common Code
-<LI>CERN HTTPD
-<LI>CERN Line Mode Browser
-<LI>CERN Next Browser/Editor
+<LI><A HREF="Library/">Library of Common Code</A>
+<LI><A HREF="Daemon/Status.html">CERN HTTPD</A>
+<LI><A HREF="LineMode/">Line Mode Browser</A>
+<LI><A HREF="NextStep/Status.html">Next Browser/Editor</A>
 </UL>
 
 <H2>Handling the Distribution Files</H2>
 
-These distribution files contains source code. CERN also provides a
+These distribution files contains source code. W3C also provides a
 wide set of precompiled binaries which are available from via
 anonymous FTP from <A HREF="ftp://ftp.w3.org/">ftp.w3.org</A> or
 directly via HTTP from the status page mentioned under each
@@ -68,11 +68,11 @@ follows (directories):
 	WWW/Daemon/Implementation	Source Code
 	WWW/Daemon/*			Platform dependent object files
 
-	WWW/LineMode			CERN LineMode Browser
+	WWW/LineMode			LineMode Browser
 	WWW/LineMode/Implementation	Source Code
 	WWW/LineMode/*			Platform dependent object files
 
-	WWW/Next			CERN Next Browser/Editor
+	WWW/Next			Next Browser/Editor
 	WWW/Next/Implementation		Source Code
 	WWW/Next/*			Platform dependent object files
 </PRE>
@@ -116,35 +116,35 @@ in order to BUILD all applications
 
 This will require some more work, but please read the online
 documentation at <A
-HREF="WWW/Library/User/Platform/Porting.html">http://www.w3.org/hypertext/WWW/Library/User/Platform/Porting.html</A>
+HREF="Library/User/Platform/Porting.html">http://www.w3.org/hypertext/WWW/Library/User/Platform/Porting.html</A>
 
 
 <H2>Library of Common Code</H2>
 
-The CERN World-Wide Web Library of Common Code is a general code base
-that can be used to build clients and servers. It contains code for
+The World-Wide Web Library of Common Code is a general code base that
+can be used to build clients and servers. It contains code for
 accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local
 file system. Furthermore it provides modules for parsing, managing and
 presenting hypertext objects to the user and a wide spectra of generic
 programming utilities. The Library is the basis for many <A
-HREF="WWW/TheProject.html">World-Wide Web</A> applications and all the
-CERN WWW software is build on top of it. The Library is a required
-part of all other CERN WWW applications in this distribution. <P>
+HREF="TheProject.html">World-Wide Web</A> applications and all the W3C
+software is build on top of it. The Library is a required part of all
+other W3C applications in this distribution. <P>
 
-Online documentation is available <A HREF="WWW/Library/Status.html">
+Online documentation is available <A HREF="Library/">
 http://www.w3.org/hypertext/WWW/Library/Status.html</A>. If you don't
 have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
 or password required) and you will get the Line Mode Browser.
 
 <H2>LineMode Browser</H2>
 
-The CERN Line Mode Browser is a character based World-Wide Web
-Browser.  It is developed for use on dumb terminals and as a test tool
-for the CERN Common Code Library. It can be run in interactive mode,
-non- interactive mode and as a proxy client. Furthermore it gives a
-variety of possibilities for data format conversion, filtering etc. It
-is primarily intended as a test-tool for quick access to the Web or
-used in batch jobs.<P>
+The Line Mode Browser is a character based World-Wide Web Browser.  It
+is developed for use on dumb terminals and as a test tool for the
+Common Code Library. It can be run in interactive mode, non-
+interactive mode and as a proxy client. Furthermore it gives a variety
+of possibilities for data format conversion, filtering etc. It is
+primarily intended as a test-tool for quick access to the Web or used
+in batch jobs.<P>
 
 Installation is very simple as the application can run without any
 particular seup. You can specify your own <EM>HOME PAGE</EM> using the
@@ -152,7 +152,7 @@ particular seup. You can specify your own <EM>HOME PAGE</EM> using the
 <CODE>NNTPSERVER</CODE> environment variable before you try to access
 a news server. <P>
 
-Online documentation is available <A HREF="WWW/LineMode/Status.html">
+Online documentation is available <A HREF="LineMode/">
 http://www.w3.org/hypertext/WWW/LineMode/Status.html</A>. If you don't
 have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
 or password required) and you will get the Line Mode Browser.
@@ -168,10 +168,10 @@ may be configured to do caching of documents resulting in faster
 response times. <P>
 
 Follow instructions above for compiling and then go on to "<A
-NAME="z9" HREF="WWW/Daemon/User/Installation.html"> Installing the
-basic W3 server</A>". <P>
+NAME="z9" HREF="Daemon/User/Installation/Installation.html">
+Installing the basic W3 server</A>". <P>
 
-Online documentation is available <A HREF="WWW/Daemon/Status.html">
+Online documentation is available <A HREF="Daemon/Status.html">
 http://www.w3.org/hypertext/WWW/Daemon/Status.html</A>. If you don't
 have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
 or password required) and you will get the Line Mode Browser.
@@ -183,7 +183,7 @@ directory WWW/Next/Implementation/WorldWideWeb.app and is
 compiled. When you install the app, you may want to configure the
 default page, WorldWideWeb.app/default.html. These must point to some
 useful information! You should keep it up to date with pointers to
-info on your site and elsewhere. If you use the CERN home page note
+info on your site and elsewhere. If you use the W3C home page note
 there is a link at the bottom to the master copy on our server. You
 should set up the address of your local news server with
 
@@ -192,11 +192,11 @@ should set up the address of your local news server with
 </PRE>
 
 replacing the last word with the actual address of your news host.
-See <A NAME="6" HREF="WWW/NeXT/Installation.html">Installation
+See <A NAME="6" HREF="NextStep/Installation.html">Installation
 instructions</A>. <P>
 
-Online documentation is available <A HREF="WWW/Next/Status.html">
-http://www.w3.org/hypertext/WWW/Next/Status.html</A>. If you don't
+Online documentation is available at <A HREF="NextStep/Status.html">
+http://www.w3.org/hypertext/WWW/NextStep/Status.html</A>. If you don't
 have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
 or password required) and you will get the Line Mode Browser.
 
@@ -206,26 +206,18 @@ If you encounter problems, would like to feed back suggestions good
 ideas etc. then please contact the following addresses:
 
 <UL>
-<LI><B>libwww@info.cern.ch</B> regarding the Library of Common Code
-<LI><B>httpd@info.cern.ch</B> regarding the CERN HTTPD
-<LI><B>www-bug@info.cern.ch</B> regarding the CERN Line Mode Browser
-<LI><B>www-bug@info.cern.ch</B> regarding the CERN Next Browser/Editor
+<LI><B><A HREF="mailto:libwww@w3.org">libwww@w3.org</A></B> regarding the Library of Common Code
+<LI><B><A HREF="mailto:httpd@w3.org">httpd@w3.org</A></B> regarding the CERN HTTPD
+<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the Line Mode Browser
+<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the Next Browser/Editor
 </UL>
-
-<H2>General</H2>
-
-Your comments will of course be most appreciated, on code, or
-information on the web which is out of date or misleading. If you
-write your own hypertext and make it available by anonymous ftp or
-using a server, tell us and we'll put some pointers to it in
-ours. Thus spreads the web... <P>
 
 <EM>Have fun!</EM>
 
 <P>
 <HR>
 
-<ADDRESS>CERN, Marts 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, May 1995</ADDRESS>
 
 </BODY>
 </HTML>
