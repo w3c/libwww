@@ -6,120 +6,106 @@
 </HEAD>
 <BODY>
 <P>
-<A HREF="../"><IMG alt="W3C" SRC="../Icons/WWW/w3c_48x48"></A>
-<A HREF="../Consortium/Prospectus/ActivityList.html"><IMG alt="Activities"
-    src="../Icons/WWW/activity_48x48"></A>
-<A href="./"><IMG alt="Library" src="../Icons/WWW/Lib48x"></A>
+<A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_48x48" BORDER="0"></A>
+<A HREF="../Consortium/Prospectus/ActivityList.html"><IMG ALT="Activities"
+    SRC="../Icons/WWW/activity_48x48" BORDER="0"></A>
+<A href="./"><IMG ALT="Library" SRC="../Icons/WWW/Lib48x" BORDER="0"></A>
 <H1>
   W3C Reference Library Position Statement
 </H1>
 <P>
-The W3C Reference Library provides a basic, application independent API for
-building Web applications. The purpose of the Library is to demonstrate a
-Web API in practice, show new features, act as a reference implementation
-for W3C specifications and make it easy to build new Web applications. This
-is the W3C position statement of direction concerning <A HREF="./">W3C Reference
-Library</A> and it is part of the
-<A HREF="../Consortium/Prospectus/ActivityList">W3C position statements</A>.
+The success of the Web has put very high demands on the efficiency and
+reliability by which people can exchange information.
+<A HREF="../Protocols/">HTTP</A> has been one of the main vehicles behind
+the success and has changed significantly in the last six years to keep up
+with the evolution. W3C is playing an active role in the design and development
+of HTTP and an important part of this work is to test out new ideas and features
+in real applications.
+<P>
+The purpose of libwww is to provide an environment for experimenting with
+extensions and new features - most notably for HTTP but also for many other
+parts of the Web. The focus of libwww is mostly client side applications
+like robots and browsers but it can also be used as a basis for server and
+proxy applications. Libwww is part of the <A HREF="../Areas.html">W3C
+Architecture area</A> and contains reference code for HTTP clients and for
+other Internet protocols such as FTP, Gopher, News, WAIS, Telnet servers.
+It has a rudimentary HTML parser which can only do the very basics but please
+have a look at the <A HREF="../Amaya/">Amaya Web client</A> for a full-blown
+HTML browser/editor application.
 <H2>
-  Background
+  History
 </H2>
 <P>
-The <A HREF="./">W3C Reference Library</A>, a.k.a. libwww has been part of
-the World Wide Web almost from the beginning. Tim Berners-Lee designed and
-implemented the first version back in November 1992 in order to demonstrate
-the Web model. Many people have picked up the Library and used it in a variety
-of contexts. Applications such as Lou Montulli's Lynx character based client,
-Mosaic Web browser by Marc Andreesen and Eric Bena, and the CERN server by
-Ari Luotonen were all based on later versions of libwww. Later on, applications
-like the Arena browser by Dave Raggett and H&aring;kon W. have been added
-to the list.
+Libwww has been part of the World Wide Web almost from the beginning. Tim
+Berners-Lee designed and implemented the first version back in November 1992
+in order to demonstrate the Web model. Many people have picked up the Library
+and used it in a variety of contexts. Applications such as Lou Montulli's
+Lynx character based client, Mosaic Web browser by Marc Andreesen and Eric
+Bena, and the CERN server by Ari Luotonen were all based on later versions
+of libwww. Later on, applications like the Arena browser by Dave Raggett
+and H&aring;kon W. have been added to the list.
 <H2>
   Current Status
 </H2>
 <P>
-Version 4.0 of the <A HREF="../../">W3C Reference Library</A>, a.k.a. libwww,
-was released to the public in January. Our expectations were high as the
-Library had undertaken a major revision of its APIs and it was the first
-version that supported both the Microsoft Windows and the Macintosh platforms.
-However, from the number of people who downloaded the Library, it was considered
-a success. In the period from January 12 to February 12, version 4.0 was
-downloaded almost 6000 times from our FTP server.
+Libwww is freely available under W3C copyright for use by anyone. The
+distribution package contains a set of example applications spanning from
+very simple ones to more advanced ones like a robot, and a text based Web
+client. It also has a DejaGNU test kit for testing libwww internals and a
+high-level interface to Tcl.
 <P>
-We maintain a number of small example applications in order to guarantee
-diversity in the libwww architecture and to show how to use libwww and how
-to build applications on top of it.
-<P>
+With <I>version 5.0</I> of libwww which was released September 10 1996, the
+status of libwww has changed from generic Web toolkit for writing applications
+to playground for experimenting with HTTP. The reason for this is that the
+need for a generic Web API written in basic C has changed and we are now
+more focused on how to improve HTTP than to provide a generic Web API.
+<H2>
+  Recent Accomplishments
+</H2>
 <DL>
   <DT>
-    <A HREF="../LineMode/"><IMG SRC="../Icons/WWW/LMB48x" ALT="LMB"></A> <B>Line
-    Mode Browser</B>
+    Version 5.0 released September 10
   <DD>
-    The Line Mode Browser is a character-based Web browser developed for use
-    on terminals. It is an example of a client application using the
-    <A HREF="./">libwww</A>. It is also useful as a test tool for quick access
-    to the Web from scripts, cron jobs etc.
+    The focus for version 5.0 was to provide a set of higher level, application
+    specific APIs for accessing the Web. The Library contains a significantly
+    improved interface for easy access to the Web through a large set of functions
+    specialized to perform certain Web operations like <CODE>PUT</CODE>,
+    <CODE>POST</CODE>, <CODE>DELETE</CODE>, GET and <CODE>HEAD</CODE>. Libwww
+    contains a full HTTP/1.1 compliant client implementation including persistent
+    connections, two-way PUT, the host header and many other features.
   <DT>
-    <A HREF="../ComLine/"><IMG SRC="../Icons/WWW/lines48x" ALT="ComLine"></A>
-    <B>Command Line Tool</B>
+    Web API Presentation at WWW5
   <DD>
-    This application which shows how to use the W3C Reference Library for building
-    simple batch mode tools for accessing the Web.
-  <DT>
-    <A HREF="../Robot/"><IMG SRC="../Icons/WWW/robot48x" ALT="Robot"></A> <B>Mini
-    Robot</B>
-  <DD>
-    A simple application which shows how to use the W3C Reference Library for
-    building robots
-  <DT>
-    <A HREF="../MiniServ/"><IMG SRC="../Icons/WWW/serv48x" ALT="MiniServ"></A>
-    <B>Mini Server</B>
-  <DD>
-    A small example application showing how to implement a server or a proxy
-    using the W3C Reference Library.
-  <DT>
-    <A HREF="../Listen/"><IMG SRC="../Icons/WWW/listen48x" ALT="Listen"></A>
-    <B>Listen</B>
-  <DD>
-    A small tool that can listen on a socket. Good for debugging clients.
-  <DT>
+    The libwww API was presented at the
+    "<A HREF="http://www.cs.vu.nl/~eliens/WWW5/program.html">Programming the
+    Web - a search for APIs</A>" workshop in connection with the
+    <A HREF="http://www.w3.org/pub/Conferences/WWW5/">5th World Wide Web
+    conference</A> in Paris. The
+    <A HREF="http://www.w3.org/pub/Conferences/WWW5/">libwww position paper</A>
+    presented at the workshop discusses &nbsp;the basic requirements of a generic
+    Web API and the lessons learned from the development of the libwww API. The
+    most important requirement that we see today is that the Web must move towards
+    <I>language independent, formalized APIs.</I> Only by doing this can we ensure
+    that the APIs can keep up with the Web explosion which does not show signs
+    of slowing down. W3C sees the development of generic and open Web APIs as
+    an essential part of building new generations of Web applications and takes
+    an active role in focusing efforts towards this goal.
 </DL>
 <H2>
-  Accomplishments
+  What is the Next Step?
 </H2>
 <P>
-The libwww API was presented at the
-"<A HREF="http://www.cs.vu.nl/~eliens/WWW5/program.html">Programming the
-Web - a search for APIs</A>" workshop in connection with the
-<A HREF="http://www.w3.org/pub/Conferences/WWW5/">5th World Wide Web
-conference</A> in Paris. The
-<A HREF="http://www.w3.org/pub/Conferences/WWW5/">libwww position paper</A>
-presented at the workshop discusses &nbsp;the basic requirements of a generic
-Web API and the lessons learned from the development of the libwww API. The
-most important requirement that we see today is that the Web must move towards
-<I>language independent, formalized APIs.</I> Only by doing this can we ensure
-that the APIs can keep up with the Web explosion which does not show signs
-of slowing down. W3C sees the development of generic and open Web APIs as
-an essential part of building new generations of Web applications and takes
-an active role in focusing efforts towards this goal.
-<H2>
-  Next Step
-</H2>
-<P>
-Libwww is still in use by many applications and lately our own Amaya Web
-client has been added to the list. Many new and exiting features have been
-added and we are now ready to present the first beta release of version 4.1
-- scheduled for final release June 15.
-<P>
-We are actively looking into how the experiences from building the libwww
-API fits into the paradigm of <A HREF="../MobileCode/">mobile code</A> being
-an important part of the Web model. Especially, we are looking to integration
-between libwww and
+With the release of version 5.0, libwww will not be released bi-annually
+as for previous versions. Instead, libwww will be used for extensive
+experimentation with new features in HTTP and for gathering data with new
+protocols like W3Mux. &nbsp;We are also actively looking into how the experiences
+from building the libwww API fits into the paradigm of
+<A HREF="../MobileCode/">mobile code</A> being an important part of the Web
+model. Especially, we are looking to integration between libwww and
 <A HREF="ftp://parcftp.parc.xerox.com/pub/ilu/ilu.html">ILU</A> and also
-how we can integrate libwww with other languages such as Tcl and Java.
-<P>
-For a more specific list of new features, please look at the
-<A HREF="User/ToDo.html">Library work list </A>for the next release
+how we can integrate libwww with other languages such as Tcl and Java. For
+a specific list of new features, please look at the
+<A HREF="User/ToDo.html">Library work list</A> for libwww.
 <P>
   <HR>
 <FORM action="http://www.netmind.com/cgi-bin/uncgi/url-mind/URL-minder/URL-minder.txt">
@@ -131,7 +117,7 @@ For a more specific list of new features, please look at the
   <INPUT type=submit value="Register">
 </FORM>
 <P>
-<A href="../"><IMG SRC="../Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<A href="../"><IMG SRC="../Icons/WWW/w3c_48x48" ALT="W3C" BORDER="0"></A>
 <ADDRESS>
   Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
   <P>
