@@ -181,7 +181,7 @@ PRIVATE BOOL create_cache_place ARGS2(char *, base, char *, cfn)
 	if (create || HTStat(cfn, &stat_info) == -1) {
 	    create = YES;	/* To avoid doing stat()s in vain */
 	    CTRACE(stderr, "Cache....... creating cache dir \"%s\"\n", cfn);
-	    if (-1 == mkdir(cfn, 0775)) {
+	    if (-1 == mkdir(cfn, 0777)) { /* howcome 30/10/94  changed from 755 to allow several browser to write */
 		CTRACE(stderr, "Cache....... can't create dir \"%s\"\n", cfn);
 		return NO;
 	    }
@@ -206,7 +206,7 @@ PRIVATE BOOL create_cache_place ARGS2(char *, base, char *, cfn)
 			    tmp1,tmp2);
 		}
 		rename(cfn,tmp1);
-		mkdir(cfn,0775);
+		mkdir(cfn,0777);   /* howcome 30/10/94  changed from 755 to allow several browser to write */
 		rename(tmp1,tmp2);
 
 /*		if (HTCacheInfo_for(cfn,&t1,&t2,&t3,&t4,&t5)) {
@@ -821,7 +821,7 @@ PRIVATE void limit_cache ARGS1(HTList * , list)
     if (best_item) HTCache_remove(list, best_item);
 }
 
-
+#ifdef GOT_READ_DIR
 
 /*	Cache Writer
 **	------------------
@@ -837,10 +837,13 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 {
     char *fnam;
     HTStream* me;
+    mode_t cmask;
+
     if (HTClientHost) {
 	if (TRACE) fprintf(stderr, "Only caching if WWW is run locally.\n");
 	return HTBlackHole();
     }
+    cmask = umask(0000);	/* howcome 30/10/94 to make cache dir's world writable */
     me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "CacheWriter");
     me->isa = &HTFWriter;  
@@ -854,8 +857,8 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 			      HTFileSuffix(input_format),
 			      0, NO);
     if (!fnam) {                         /* HWL 22/9/94 */
-/*	HTAlert("Can't open local file to write into for callback."); howcome: this will also be true for cgi-scripts */
 	free(me);
+	umask(cmask);
 	return NULL;
     }
 
@@ -863,9 +866,11 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     limit_cache(HTCache);		 /* Limit number (not size) of files */
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
-	HTAlert("Can't open local file to write into for callback.");
+	HTAlert("Can't open local file for writing.");
+	if (TRACE) fprintf(stderr, "HTStream: can't open %s for writing\n",fnam);
 	free(fnam);
 	free(me);
+	umask(cmask);
 	return NULL;
     }
     
@@ -888,8 +893,12 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     me->callback = request->callback;
     me->request = request;	/* won't be freed */
     me->filename = fnam;   /* will be freed */
+    umask(cmask);
     return me;
 }
+
+#endif /* GOT_READ_DIR */
+
 
 /*	Save and Call Back
 **	------------------

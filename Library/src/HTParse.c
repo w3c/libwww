@@ -71,7 +71,14 @@ PRIVATE void scan ARGS2(char *, name, struct struct_parts *, parts)
 	if (*p==':') {
 		*p = 0;
 		parts->access = after_access; /* Scheme has been specified */
+
 		after_access = p+1;
+
+/*
+		after_access = p;
+		while (*after_access == 0)	/* HWL 15/10/94: weird bug on HP *//*
+		    after_access++;		/* after_access = p + 1 *//*
+*/
 		if (0==strcasecomp("URL", parts->access)) {
 		    parts->access = NULL;  /* Ignore IETF's URL: pre-prefix */
 		} else break;

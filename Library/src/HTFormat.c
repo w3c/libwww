@@ -115,8 +115,8 @@ PUBLIC void HTSetPresentation ARGS7(
 	CONST char *, 	test_command,    /* HWL 27/9/94: mailcap functionality */
 	float,		quality,
 	float,		secs, 
-	float,		secs_per_byte)
-{
+	float,		secs_per_byte
+){
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
     
