@@ -43,26 +43,24 @@ HTAnchor * HTHistory_backtrack
   return (HTAnchor *) HTList_lastObject (history);
 }
 
-HTAnchor * HTHistory_back
-  ARGS1 (HTAnchor *,cur_anch)
+
+PUBLIC HTAnchor * HTHistory_back ARGS1 (HTAnchor *,cur_anch)
 {
-  if (HTHistory_canBacktrack()) {
-    int pos = HTList_indexOf(history, cur_anch);
-    return (HTList_objectAt(history, pos + 1));
-  }
-  /* return NULL to indicate that browser should not redraw */
-  return NULL;
+    if (HTHistory_canBacktrack()) {
+	int pos = HTList_indexOf(history, cur_anch);
+	return ((HTAnchor *) HTList_objectAt(history, pos + 1));
+    }
+    return NULL;               /* to indicate that browser should not redraw */
 }
 
 
-HTAnchor * HTHistory_forward
-  ARGS1 (HTAnchor *,cur_anch)
+PUBLIC HTAnchor * HTHistory_forward ARGS1 (HTAnchor *,cur_anch)
 {
     int pos = HTList_indexOf(history, cur_anch);
     if (pos <= 0)
 	return NULL;
     else
-	return (HTList_objectAt(history, pos - 1));
+	return ((HTAnchor *) HTList_objectAt(history, pos - 1));
 }
 
 /*

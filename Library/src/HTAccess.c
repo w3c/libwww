@@ -237,12 +237,17 @@ PUBLIC void HTDisposeProtocols NOARGS
 
 
 /*
-**	Is a protocol registered as BLOCKING? returns YES or NO
+**	Is a protocol registered as BLOCKING? The default behavior registered
+**	when the protocol module was registered can be overridden by the
+**	BlockingIO field in the HTRequest structure
 */
 PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
 {
-    return (me && me->anchor && me->anchor->protocol &&
-	    ((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK);
+    if (me) {
+	return (me->BlockingIO || (me->anchor && me->anchor->protocol &&
+		((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK));
+    }
+    return NO;
 }
 
 /* --------------------------------------------------------------------------*/
@@ -893,7 +898,7 @@ PUBLIC int HTLoadRelative ARGS3(CONST char *,		relative_name,
 				HTRequest *,		request)
 {
     char * 		full_address = 0;
-    BOOL       		result;
+    int       		result;
     char * 		mycopy = 0;
     char * 		stripped = 0;
     char *		current_address =
@@ -1002,7 +1007,7 @@ PUBLIC int HTSearch ARGS3(CONST char *,        	keywords,
     char *q, *u;
     CONST char * p, *s, *e;		/* Pointers into keywords */
     char * address = HTAnchor_address((HTAnchor*)here);
-    BOOL result;
+    int result;
     char * escaped = (char *) malloc(strlen(keywords)*3+1);
 
     /* static CONST BOOL isAcceptable[96] = */

@@ -37,13 +37,15 @@ Library of Common Code</A>.
 #define HTEXTPARSE_H
 
 #include "HTStream.h"
+#include "HTAccess.h"
 
 typedef struct _HTExtParseStruct HTExtParseStruct;
-
-/*typedef void (*CallClient) PARAMS((struct _HTExtParseStruct *me));*/
-
+typedef void (*CallClient) PARAMS((struct _HTExtParseStruct *me));
 struct _HTExtParseStruct {
+	CallClient	call_client;
+#if 0
 	void            (*call_client)(struct _HTExtParseStruct *eps);
+#endif
 	int             used;         /* how much of the buffer is being used */
 	BOOL            finished;     /* document loaded? */
         int             length;       /* how long the buffer is */

@@ -65,17 +65,14 @@ extern void HTHistory_record
 **		------------------
 */
 
-extern HTAnchor * HTHistory_back
-  ARGS1 (HTAnchor *,cur_anch);
+extern HTAnchor * HTHistory_back	PARAMS((HTAnchor * cur_anch));
 
-extern HTAnchor * HTHistory_forward
-  ARGS1 (HTAnchor *,cur_anch);
+extern HTAnchor * HTHistory_forward	PARAMS((HTAnchor * cur_anch));
 
-extern HTAnchor * HTHistory_backtrack
-  NOPARAMS;  /* FIXME: Should we add a `sticky' option ? */
+/* FIXME: Should we add a `sticky' option ? */
+extern HTAnchor * HTHistory_backtrack	NOPARAMS;
 
-extern BOOL HTHistory_canBacktrack
-  NOPARAMS;
+extern BOOL HTHistory_canBacktrack	NOPARAMS;
 
 /*		Browse through references in the same parent node
 **		-------------------------------------------------

@@ -12,8 +12,11 @@
 #include "HTExtParse.h"                 /* defines HTStreamClass */
 #include "HTEPtoClient.h"               /* defines dummy routine for talking to client */
 
+#if 0
 /*extern void  (*HTCallClient)(HTExtParseStruct *eps);*/
-extern void  HTCallClient(HTExtParseStruct *eps);
+#endif
+
+extern CallClient HTCallClient;
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;

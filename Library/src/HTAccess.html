@@ -338,6 +338,13 @@ data etc. from the library. If <CODE>NULL</CODE>, then WWW_PRESENT is
 default value.
 
 <PRE>
+    BOOL BlockingIO;
+</PRE>
+
+This flag can be set to override if a protocol module is registered as
+using non-blocking IO.
+
+<PRE>
     HTParentAnchor *parentAnchor;
 </PRE>
 

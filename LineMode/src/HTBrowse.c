@@ -559,7 +559,8 @@ PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
     if (oldreq) {
 	if (reqlist)
 	    HTList_removeObject(reqlist, (void *) oldreq);
-	oldreq->conversions = NULL;	    /* We keep them in a global list */
+	if (oldreq->conversions == conversions)
+	    oldreq->conversions = NULL;	    /* We keep them in a global list */
 	HTRequest_delete(oldreq);
     }
 }
@@ -663,6 +664,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
     char * next_word;			                      /* Second word */
     char * other_words;				/* Second word and following */
     BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+    BOOL found = YES;
     int loadstat = HT_INTERNAL;
 
     if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
@@ -727,13 +729,16 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    }
 	} else if (Check_User_Input("BOTTOM")) {	/* Scroll to bottom  */
 	    HText_scrollBottom(HTMainText);
-	}
+	} else
+	    found = NO;
 	break;
 	
 #ifdef unix
       case 'C':
-	if (Check_User_Input("CD"))	       /* Change working directory ? */
+	if (Check_User_Input("CD")) {	       /* Change working directory ? */
 	    goto lcd;
+	} else
+	    found = NO;
 	break;
 #endif
 	
@@ -742,12 +747,15 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	  down:
 	    if (HText_canScrollDown(HTMainText))
 		HText_scrollDown(HTMainText);
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'E':			       /* Quit program ? Alternative command */
-	if (Check_User_Input("EXIT"))
+	if (Check_User_Input("EXIT")) {
 	    status = EVENT_QUIT;
+	} else
+	    found = NO;
 	break;
 	
       case 'F':						 /* Keyword search ? */
@@ -759,7 +767,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		    loadstat = HTSearch(other_words, HTMainAnchor, *actreq);
 		}
 	    }
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'G':
@@ -768,7 +777,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		*actreq = Thread_new(YES);
 		loadstat = HTLoadRelative(next_word, HTMainAnchor, *actreq);
 	    }
-	}
+	} else
+	    found = NO;
 	break;
 	
       case '?':
@@ -785,13 +795,15 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		*actreq = Thread_new(YES);
 		loadstat = HTLoadAnchor(HTHistory_recall(1), *actreq);
 	    }
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'K':						 /* Keyword search ? */
 	if (is_index && Check_User_Input("KEYWORDS")) {
 	    goto find;
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'L':
@@ -824,13 +836,16 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    }
 	}
 #endif
+	else
+	    found = NO;
 	break;
 	
       case 'M':
 	if (Check_User_Input("MANUAL")) {		 /* Read User manual */
 	    *actreq = Thread_new(YES);
 	    loadstat = HTLoadRelative(MANUAL, HTMainAnchor,*actreq);
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'N':                    
@@ -844,7 +859,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		*actreq = Thread_new(YES);
 		loadstat = HTLoadAnchor(HTHistory_moveBy(1),*actreq);
 	    }
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'P':                    
@@ -893,6 +909,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    HText_scrollTop(HTMainText);
 	}	
 #endif
+	else
+	    found = NO;
 	break;
 	
       case 'Q':						   /* Quit program ? */
@@ -906,7 +924,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		printf ("\n Please type \"quit\" in full to leave www.\n");
 	    } else
 		status = EVENT_QUIT;
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'R':	
@@ -939,7 +958,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    }
 	} else if (Check_User_Input("REFRESH")) {
 	    HText_select(HTMainText);			   /* Refresh screen */
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'S':						       /* TBL 921009 */
@@ -954,26 +974,30 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    }
 	} else if (Check_User_Input("SET")) {          	           /* config */
 	    HTSetConfiguration(other_words);
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'T':
 	if (Check_User_Input("TOP")) {			   /* Return to top  */
 	    HText_scrollTop(HTMainText);
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'U':
 	if (Check_User_Input("UP")) {		      /* Scroll up one page  */
 	    HText_scrollUp(HTMainText);
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'V':
 	if (Check_User_Input("VERBOSE")) {	     /* Switch verbose mode  */
 	    WWW_TraceFlag = WWW_TraceFlag ? 0 : OldTraceFlag;
 	    printf ("\n  Verbose mode %s.\n", WWW_TraceFlag ? "ON":"OFF");
-	}
+	} else
+	    found = NO;
 	break;
 	
       case 'Z':
@@ -1026,16 +1050,20 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	break;
 #endif
       default:
-	if (is_index && *this_word) {	     /* No commands, search keywords */
+	found = NO;
+	break;
+    } /* Switch on 1st character */
+
+    if (!found) {
+	if (is_index && *this_word) {  /* No commands, search keywords */
 	    next_word = other_words = this_command;
+	    found = YES;
 	    goto find;
 	} else {             
 	    ErrMsg("Bad command, for list of commands type help.",
 		   this_command);
 	}
-	break;
-    } /* Switch on 1st character */
-
+    }
     if (loadstat != HT_INTERNAL && loadstat != HT_WOULD_BLOCK)
 	status = EVENT_TERM;
     if (loadstat != HT_LOADED)
@@ -1457,6 +1485,7 @@ int main ARGS2(int, argc, char **, argv)
 	return_status = HTEventLoop(request, home_anchor,
 				    (keywords && *keywords) ? keywords : NULL);
     } else {
+	request->BlockingIO = YES;		/* Turn off non-blocking I/O */
 	if (((keywords && *keywords) ?
 	     HTSearch(keywords, home_anchor, request) :
 	     HTLoadAnchor((HTAnchor*) home_anchor, request)) != HT_LOADED) {

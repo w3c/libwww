@@ -1117,7 +1117,8 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		if (status == -1) {
 		    if (PROT_TRACE)
 			fprintf(stderr, "HTDoConnect. Can NOT make socket non-blocking\n");
-		}
+		} else if (PROT_TRACE)
+		    fprintf(stderr, "HTDoConnect. Using NON_BLOCKING I/O\n");
 	    }
 	    
 	    /* If multi-homed host then start timer on connection */
