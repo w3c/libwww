@@ -39,7 +39,8 @@ PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
   fprintf(stderr, "WWW: %s (y/n) ", Msg);
                        /* (y/n) came twice -- AL */
 
-  fgets(Reply, 4, stdin); /* get reply, max 3 characters */
+  if (!fgets(Reply, 4, stdin))	 	      /* get reply, max 3 characters */
+      return NO;
   URep=Reply;
   while (*URep) {
     if (*URep == '\n') {
@@ -67,7 +68,8 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
     fprintf(stderr, "WWW: %s", Msg);
     if (deflt) fprintf(stderr, " (RETURN for [%s]) ", deflt);
     
-    fgets(Tmp, 200, stdin);
+    if (!fgets(Tmp, 200, stdin))
+	return "";		       	/* Empty string on error, Henrik */
     Tmp[strlen(Tmp)-1] = (char)0;	/* Overwrite newline */
    
     StrAllocCopy(rep, *Tmp ? Tmp : deflt);
