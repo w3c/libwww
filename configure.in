@@ -6,13 +6,12 @@ AC_PREREQ(2.2)
 AC_INIT(Library)
 AC_REVISION
 AC_CONFIG_HEADER(config.h)
-AC_CONFIG_AUX_DIR(config)
 
 dnl Cheks for platform information
 AC_CANONICAL_SYSTEM
 
 dnl Variables for Automake.
-PACKAGE=w3c
+PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 VERSION=4.1
 AC_SUBST(VERSION)
@@ -200,11 +199,15 @@ dnl ******************
 
 dnl Create output files
 AC_OUTPUT([Makefile
-Library/Makefile Library/src/Makefile
-PICS/Makefile PICS/src/Makefile
-LineMode/Makefile LineMode/src/Makefile
-Robot/Makefile Robot/src/Makefile
-MiniServ/Makefile MiniServ/src/Makefile
-ComLine/Makefile ComLine/src/Makefile
-Listen/Makefile Listen/src/Makefile
+Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
+Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
+Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile
+PICS/Makefile PICS/User/Makefile PICS/src/Makefile
+LineMode/Makefile LineMode/User/Makefile
+LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
+Robot/Makefile Robot/User/Makefile Robot/src/Makefile
+MiniServ/Makefile MiniServ/User/Makefile MiniServ/src/Makefile
+ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile
+Listen/Makefile Listen/User/Makefile Listen/src/Makefile
+Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile
 ], date>stamp-h)
