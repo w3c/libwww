@@ -65,12 +65,12 @@ BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwutils.bsc"
 BSC32_SBRS= \
 	$(INTDIR)/windll.sbr \
 	$(INTDIR)/HTArray.sbr \
-	$(INTDIR)/HTChunk.sbr \
 	$(INTDIR)/HTString.sbr \
 	$(INTDIR)/HTList.sbr \
 	$(INTDIR)/HTAssoc.sbr \
 	$(INTDIR)/HTAtom.sbr \
-	$(INTDIR)/HTUU.sbr
+	$(INTDIR)/HTUU.sbr \
+	$(INTDIR)/HTChunk.sbr
 
 $(OUTDIR)/wwwutils.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -79,10 +79,8 @@ $(OUTDIR)/wwwutils.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
  /PDB:$(OUTDIR)/"wwwutils.pdb" /MACHINE:I386 /DEF:".\wwwutils.def"\
  /OUT:$(OUTDIR)/"wwwutils.dll" /IMPLIB:$(OUTDIR)/"wwwutils.lib" 
 DEF_FILE=.\wwwutils.def
@@ -90,12 +88,12 @@ LINK32_OBJS= \
 	$(INTDIR)/windll.obj \
 	$(INTDIR)/HTArray.obj \
 	.\WinDebug\wwwdll.lib \
-	$(INTDIR)/HTChunk.obj \
 	$(INTDIR)/HTString.obj \
 	$(INTDIR)/HTList.obj \
 	$(INTDIR)/HTAssoc.obj \
 	$(INTDIR)/HTAtom.obj \
-	$(INTDIR)/HTUU.obj
+	$(INTDIR)/HTUU.obj \
+	$(INTDIR)/HTChunk.obj
 
 $(OUTDIR)/wwwutils.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -138,12 +136,12 @@ BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwutils.bsc"
 BSC32_SBRS= \
 	$(INTDIR)/windll.sbr \
 	$(INTDIR)/HTArray.sbr \
-	$(INTDIR)/HTChunk.sbr \
 	$(INTDIR)/HTString.sbr \
 	$(INTDIR)/HTList.sbr \
 	$(INTDIR)/HTAssoc.sbr \
 	$(INTDIR)/HTAtom.sbr \
-	$(INTDIR)/HTUU.sbr
+	$(INTDIR)/HTUU.sbr \
+	$(INTDIR)/HTChunk.sbr
 
 $(OUTDIR)/wwwutils.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -161,12 +159,12 @@ LINK32_OBJS= \
 	$(INTDIR)/windll.obj \
 	$(INTDIR)/HTArray.obj \
 	$(INTDIR)/wwwdll.lib \
-	$(INTDIR)/HTChunk.obj \
 	$(INTDIR)/HTString.obj \
 	$(INTDIR)/HTList.obj \
 	$(INTDIR)/HTAssoc.obj \
 	$(INTDIR)/HTAtom.obj \
-	$(INTDIR)/HTUU.obj
+	$(INTDIR)/HTUU.obj \
+	$(INTDIR)/HTChunk.obj
 
 $(OUTDIR)/wwwutils.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -208,15 +206,6 @@ $(INTDIR)/HTArray.obj :  $(SOURCE)  $(INTDIR)
 # Begin Source File
 
 SOURCE=.\WinDebug\wwwdll.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTChunk.c
-
-$(INTDIR)/HTChunk.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
 # End Source File
 ################################################################################
 # Begin Source File
@@ -265,6 +254,15 @@ $(INTDIR)/HTAtom.obj :  $(SOURCE)  $(INTDIR)
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTUU.c
 
 $(INTDIR)/HTUU.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTChunk.c
+
+$(INTDIR)/HTChunk.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 # End Source File

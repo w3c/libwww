@@ -25,6 +25,7 @@ CFG=Win32 Debug
 
 ################################################################################
 # Begin Project
+# PROP Target_Last_Scanned "Win32 Debug"
 MTL=MkTypLib.exe
 CPP=cl.exe
 RSC=rc.exe
@@ -62,6 +63,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwmime.bsc" 
 BSC32_SBRS= \
+	$(INTDIR)/windll.sbr \
 	$(INTDIR)/HTHeader.sbr \
 	$(INTDIR)/HTBound.sbr \
 	$(INTDIR)/HTMIMERq.sbr \
@@ -74,21 +76,20 @@ $(OUTDIR)/wwwmime.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
  /PDB:$(OUTDIR)/"wwwmime.pdb" /MACHINE:I386 /DEF:".\wwwmime.def"\
  /OUT:$(OUTDIR)/"wwwmime.dll" /IMPLIB:$(OUTDIR)/"wwwmime.lib" 
 DEF_FILE=.\wwwmime.def
 LINK32_OBJS= \
+	$(INTDIR)/windll.obj \
 	.\WinDebug\wwwdll.lib \
 	.\WinDebug\wwwutils.lib \
+	.\WinDebug\wwwcore.lib \
 	$(INTDIR)/HTHeader.obj \
 	$(INTDIR)/HTBound.obj \
 	$(INTDIR)/HTMIMERq.obj \
-	$(INTDIR)/HTMIME.obj \
-	.\WinDebug\wwwcore.lib
+	$(INTDIR)/HTMIME.obj
 
 $(OUTDIR)/wwwmime.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -115,7 +116,7 @@ $(OUTDIR) :
 
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
 # ADD MTL /nologo /D "_DEBUG" /win32
-MTL_PROJ=/nologo /D "_DEBUG" /win32  
+MTL_PROJ=/nologo /D "_DEBUG" /win32 
 # ADD BASE CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /c
 # ADD CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "DEBUG" /FR /c
 CPP_PROJ=/nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
@@ -129,6 +130,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwmime.bsc" 
 BSC32_SBRS= \
+	$(INTDIR)/windll.sbr \
 	$(INTDIR)/HTHeader.sbr \
 	$(INTDIR)/HTBound.sbr \
 	$(INTDIR)/HTMIMERq.sbr \
@@ -141,21 +143,20 @@ $(OUTDIR)/wwwmime.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
  /PDB:$(OUTDIR)/"wwwmime.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwmime.def"\
  /OUT:$(OUTDIR)/"wwwmime.dll" /IMPLIB:$(OUTDIR)/"wwwmime.lib" 
 DEF_FILE=.\wwwmime.def
 LINK32_OBJS= \
+	$(INTDIR)/windll.obj \
 	$(INTDIR)/wwwdll.lib \
 	$(INTDIR)/wwwutils.lib \
+	$(INTDIR)/wwwcore.lib \
 	$(INTDIR)/HTHeader.obj \
 	$(INTDIR)/HTBound.obj \
 	$(INTDIR)/HTMIMERq.obj \
-	$(INTDIR)/HTMIME.obj \
-	$(INTDIR)/wwwcore.lib
+	$(INTDIR)/HTMIME.obj
 
 $(OUTDIR)/wwwmime.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -179,12 +180,25 @@ $(OUTDIR)/wwwmime.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 ################################################################################
 # Begin Source File
 
+SOURCE=.\windll.c
+
+$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
+
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=.\WinDebug\wwwdll.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=.\WinDebug\wwwutils.lib
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\WinDebug\wwwcore.lib
 # End Source File
 ################################################################################
 # Begin Source File
@@ -207,6 +221,11 @@ $(INTDIR)/HTBound.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
+SOURCE=.\wwwmime.def
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMIMERq.c
 
 $(INTDIR)/HTMIMERq.obj :  $(SOURCE)  $(INTDIR)
@@ -221,16 +240,6 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMIME.c
 $(INTDIR)/HTMIME.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\wwwmime.def
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\WinDebug\wwwcore.lib
 # End Source File
 # End Group
 # End Project

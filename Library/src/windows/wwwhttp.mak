@@ -43,7 +43,7 @@ RSC=rc.exe
 OUTDIR=.\WinRel
 INTDIR=.\WinRel
 
-ALL : .\WinRel\wwwhttp.dll .\WinRel\wwwhttp.bsc
+ALL : $(OUTDIR)/wwwhttp.dll $(OUTDIR)/wwwhttp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -63,37 +63,39 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwhttp.bsc" 
 BSC32_SBRS= \
-	.\WinRel\HTTP.sbr \
-	.\WinRel\HTTPReq.sbr \
-	.\WinRel\HTAABrow.sbr \
-	.\WinRel\HTAAUtil.sbr
+	$(INTDIR)/windll.sbr \
+	$(INTDIR)/HTTP.sbr \
+	$(INTDIR)/HTAABrow.sbr \
+	$(INTDIR)/HTAlert.sbr \
+	$(INTDIR)/HTAAUtil.sbr \
+	$(INTDIR)/HTTPReq.sbr
 
-.\WinRel\wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
  /PDB:$(OUTDIR)/"wwwhttp.pdb" /MACHINE:I386 /DEF:".\wwwhttp.def"\
  /OUT:$(OUTDIR)/"wwwhttp.dll" /IMPLIB:$(OUTDIR)/"wwwhttp.lib" 
 DEF_FILE=.\wwwhttp.def
 LINK32_OBJS= \
-	.\WinRel\HTTP.obj \
+	$(INTDIR)/windll.obj \
+	$(INTDIR)/HTTP.obj \
 	.\WinDebug\wwwdll.lib \
 	.\WinDebug\wwwutils.lib \
 	.\WinDebug\wwwcore.lib \
-	.\WinRel\HTTPReq.obj \
-	.\WinRel\HTAABrow.obj \
-	.\WinRel\HTAAUtil.obj \
 	.\WinDebug\wwwcache.lib \
-	.\WinDebug\wwwmime.lib
+	.\WinDebug\wwwmime.lib \
+	$(INTDIR)/HTAABrow.obj \
+	$(INTDIR)/HTAlert.obj \
+	$(INTDIR)/HTAAUtil.obj \
+	$(INTDIR)/HTTPReq.obj
 
-.\WinRel\wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -111,7 +113,7 @@ LINK32_OBJS= \
 OUTDIR=.\WinDebug
 INTDIR=.\WinDebug
 
-ALL : .\WinDebug\wwwhttp.dll .\WinDebug\wwwhttp.bsc
+ALL : $(OUTDIR)/wwwhttp.dll $(OUTDIR)/wwwhttp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -132,37 +134,39 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwhttp.bsc" 
 BSC32_SBRS= \
-	.\WinDebug\HTTP.sbr \
-	.\WinDebug\HTTPReq.sbr \
-	.\WinDebug\HTAABrow.sbr \
-	.\WinDebug\HTAAUtil.sbr
+	$(INTDIR)/windll.sbr \
+	$(INTDIR)/HTTP.sbr \
+	$(INTDIR)/HTAABrow.sbr \
+	$(INTDIR)/HTAlert.sbr \
+	$(INTDIR)/HTAAUtil.sbr \
+	$(INTDIR)/HTTPReq.sbr
 
-.\WinDebug\wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
  /PDB:$(OUTDIR)/"wwwhttp.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwhttp.def"\
  /OUT:$(OUTDIR)/"wwwhttp.dll" /IMPLIB:$(OUTDIR)/"wwwhttp.lib" 
 DEF_FILE=.\wwwhttp.def
 LINK32_OBJS= \
-	.\WinDebug\HTTP.obj \
-	.\WinDebug\wwwdll.lib \
-	.\WinDebug\wwwutils.lib \
-	.\WinDebug\wwwcore.lib \
-	.\WinDebug\HTTPReq.obj \
-	.\WinDebug\HTAABrow.obj \
-	.\WinDebug\HTAAUtil.obj \
-	.\WinDebug\wwwcache.lib \
-	.\WinDebug\wwwmime.lib
+	$(INTDIR)/windll.obj \
+	$(INTDIR)/HTTP.obj \
+	$(INTDIR)/wwwdll.lib \
+	$(INTDIR)/wwwutils.lib \
+	$(INTDIR)/wwwcore.lib \
+	$(INTDIR)/wwwcache.lib \
+	$(INTDIR)/wwwmime.lib \
+	$(INTDIR)/HTAABrow.obj \
+	$(INTDIR)/HTAlert.obj \
+	$(INTDIR)/HTAAUtil.obj \
+	$(INTDIR)/HTTPReq.obj
 
-.\WinDebug\wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -184,19 +188,18 @@ LINK32_OBJS= \
 ################################################################################
 # Begin Source File
 
+SOURCE=.\windll.c
+
+$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
+
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTP.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTTP.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTTP.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTTP.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -217,20 +220,12 @@ SOURCE=.\WinDebug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPReq.c
+SOURCE=.\WinDebug\wwwcache.lib
+# End Source File
+################################################################################
+# Begin Source File
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTTPReq.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTTPReq.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
-
+SOURCE=.\WinDebug\wwwmime.lib
 # End Source File
 ################################################################################
 # Begin Source File
@@ -242,17 +237,17 @@ SOURCE=.\wwwhttp.def
 
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAABrow.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTAABrow.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTAABrow.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
-!ELSEIF  "$(CFG)" == "Win32 Debug"
+# End Source File
+################################################################################
+# Begin Source File
 
-.\WinDebug\HTAABrow.obj :  $(SOURCE)  $(INTDIR)
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAlert.c
+
+$(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -260,28 +255,18 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAABrow.c
 
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAAUtil.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=.\WinDebug\wwwcache.lib
-# End Source File
-################################################################################
-# Begin Source File
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPReq.c
 
-SOURCE=.\WinDebug\wwwmime.lib
+$(INTDIR)/HTTPReq.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
 # End Source File
 # End Group
 # End Project

@@ -52,9 +52,9 @@ $(OUTDIR) :
 # ADD MTL /nologo /D "NDEBUG" /win32
 MTL_PROJ=/nologo /D "NDEBUG" /win32 
 # ADD BASE CPP /nologo /MT /W3 /GX /YX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FR /c
-# ADD CPP /nologo /MT /W3 /GX /YX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /FR /c
+# ADD CPP /nologo /MT /W3 /GX /YX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /FR /c
 CPP_PROJ=/nologo /MT /W3 /GX /YX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwcore.pch"\
+ "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwcore.pch"\
  /Fo$(INTDIR)/ /c 
 CPP_OBJS=.\WinRel/
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -72,11 +72,13 @@ BSC32_SBRS= \
 	$(INTDIR)/HTReqMan.sbr \
 	$(INTDIR)/HTNet.sbr \
 	$(INTDIR)/HTTCP.sbr \
+	$(INTDIR)/HTDialog.sbr \
 	$(INTDIR)/HTEscape.sbr \
 	$(INTDIR)/HTDNS.sbr \
 	$(INTDIR)/HTFWrite.sbr \
 	$(INTDIR)/HTAccess.sbr \
 	$(INTDIR)/HTFormat.sbr \
+	$(INTDIR)/HTAlert.sbr \
 	$(INTDIR)/HTBind.sbr \
 	$(INTDIR)/HTAnchor.sbr \
 	$(INTDIR)/HTWriter.sbr \
@@ -84,9 +86,7 @@ BSC32_SBRS= \
 	$(INTDIR)/HTSocket.sbr \
 	$(INTDIR)/HTMethod.sbr \
 	$(INTDIR)/HTConLen.sbr \
-	$(INTDIR)/HTWWWStr.sbr \
-	$(INTDIR)/HTAlert.sbr \
-	$(INTDIR)/HTDialog.sbr
+	$(INTDIR)/HTWWWStr.sbr
 
 $(OUTDIR)/wwwcore.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -95,12 +95,10 @@ $(OUTDIR)/wwwcore.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-# ADD LINK32 gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib user32.lib wsock32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-LINK32_FLAGS=gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib\
- ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib user32.lib wsock32.lib\
- /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no /PDB:$(OUTDIR)/"wwwcore.pdb"\
- /MACHINE:I386 /DEF:".\wwwcore.def" /OUT:$(OUTDIR)/"wwwcore.dll"\
- /IMPLIB:$(OUTDIR)/"wwwcore.lib" 
+# ADD LINK32 user32.lib wsock32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
+LINK32_FLAGS=user32.lib wsock32.lib /NOLOGO /SUBSYSTEM:windows /DLL\
+ /INCREMENTAL:no /PDB:$(OUTDIR)/"wwwcore.pdb" /MACHINE:I386 /DEF:".\wwwcore.def"\
+ /OUT:$(OUTDIR)/"wwwcore.dll" /IMPLIB:$(OUTDIR)/"wwwcore.lib" 
 DEF_FILE=.\wwwcore.def
 LINK32_OBJS= \
 	$(INTDIR)/windll.obj \
@@ -113,11 +111,13 @@ LINK32_OBJS= \
 	$(INTDIR)/HTReqMan.obj \
 	$(INTDIR)/HTNet.obj \
 	$(INTDIR)/HTTCP.obj \
+	$(INTDIR)/HTDialog.obj \
 	$(INTDIR)/HTEscape.obj \
 	$(INTDIR)/HTDNS.obj \
 	$(INTDIR)/HTFWrite.obj \
 	$(INTDIR)/HTAccess.obj \
 	$(INTDIR)/HTFormat.obj \
+	$(INTDIR)/HTAlert.obj \
 	$(INTDIR)/HTBind.obj \
 	$(INTDIR)/HTAnchor.obj \
 	$(INTDIR)/HTWriter.obj \
@@ -125,9 +125,7 @@ LINK32_OBJS= \
 	$(INTDIR)/HTSocket.obj \
 	$(INTDIR)/HTMethod.obj \
 	$(INTDIR)/HTConLen.obj \
-	$(INTDIR)/HTWWWStr.obj \
-	$(INTDIR)/HTAlert.obj \
-	$(INTDIR)/HTDialog.obj
+	$(INTDIR)/HTWWWStr.obj
 
 $(OUTDIR)/wwwcore.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -156,9 +154,9 @@ $(OUTDIR) :
 # ADD MTL /nologo /D "_DEBUG" /win32
 MTL_PROJ=/nologo /D "_DEBUG" /win32 
 # ADD BASE CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /c
-# ADD CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "DEBUG" /FR /c
-CPP_PROJ=/nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "DEBUG" /FR$(INTDIR)/\
+# ADD CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /FR /c
+CPP_PROJ=/nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "DEBUG" /D "WIN32" /D\
+ "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /FR$(INTDIR)/\
  /Fp$(OUTDIR)/"wwwcore.pch" /Fo$(INTDIR)/ /Fd$(OUTDIR)/"wwwcore.pdb" /c 
 CPP_OBJS=.\WinDebug/
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -176,11 +174,13 @@ BSC32_SBRS= \
 	$(INTDIR)/HTReqMan.sbr \
 	$(INTDIR)/HTNet.sbr \
 	$(INTDIR)/HTTCP.sbr \
+	$(INTDIR)/HTDialog.sbr \
 	$(INTDIR)/HTEscape.sbr \
 	$(INTDIR)/HTDNS.sbr \
 	$(INTDIR)/HTFWrite.sbr \
 	$(INTDIR)/HTAccess.sbr \
 	$(INTDIR)/HTFormat.sbr \
+	$(INTDIR)/HTAlert.sbr \
 	$(INTDIR)/HTBind.sbr \
 	$(INTDIR)/HTAnchor.sbr \
 	$(INTDIR)/HTWriter.sbr \
@@ -188,9 +188,7 @@ BSC32_SBRS= \
 	$(INTDIR)/HTSocket.sbr \
 	$(INTDIR)/HTMethod.sbr \
 	$(INTDIR)/HTConLen.sbr \
-	$(INTDIR)/HTWWWStr.sbr \
-	$(INTDIR)/HTAlert.sbr \
-	$(INTDIR)/HTDialog.sbr
+	$(INTDIR)/HTWWWStr.sbr
 
 $(OUTDIR)/wwwcore.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -216,11 +214,13 @@ LINK32_OBJS= \
 	$(INTDIR)/HTReqMan.obj \
 	$(INTDIR)/HTNet.obj \
 	$(INTDIR)/HTTCP.obj \
+	$(INTDIR)/HTDialog.obj \
 	$(INTDIR)/HTEscape.obj \
 	$(INTDIR)/HTDNS.obj \
 	$(INTDIR)/HTFWrite.obj \
 	$(INTDIR)/HTAccess.obj \
 	$(INTDIR)/HTFormat.obj \
+	$(INTDIR)/HTAlert.obj \
 	$(INTDIR)/HTBind.obj \
 	$(INTDIR)/HTAnchor.obj \
 	$(INTDIR)/HTWriter.obj \
@@ -228,9 +228,7 @@ LINK32_OBJS= \
 	$(INTDIR)/HTSocket.obj \
 	$(INTDIR)/HTMethod.obj \
 	$(INTDIR)/HTConLen.obj \
-	$(INTDIR)/HTWWWStr.obj \
-	$(INTDIR)/HTAlert.obj \
-	$(INTDIR)/HTDialog.obj
+	$(INTDIR)/HTWWWStr.obj
 
 $(OUTDIR)/wwwcore.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -340,6 +338,15 @@ $(INTDIR)/HTTCP.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDialog.c
+
+$(INTDIR)/HTDialog.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTEscape.c
 
 $(INTDIR)/HTEscape.obj :  $(SOURCE)  $(INTDIR)
@@ -379,6 +386,15 @@ $(INTDIR)/HTAccess.obj :  $(SOURCE)  $(INTDIR)
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFormat.c
 
 $(INTDIR)/HTFormat.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAlert.c
+
+$(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 # End Source File
@@ -451,24 +467,6 @@ $(INTDIR)/HTConLen.obj :  $(SOURCE)  $(INTDIR)
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTWWWStr.c
 
 $(INTDIR)/HTWWWStr.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAlert.c
-
-$(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDialog.c
-
-$(INTDIR)/HTDialog.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 # End Source File

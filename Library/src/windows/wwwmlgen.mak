@@ -25,6 +25,7 @@ CFG=Win32 Debug
 
 ################################################################################
 # Begin Project
+# PROP Target_Last_Scanned "Win32 Debug"
 MTL=MkTypLib.exe
 CPP=cl.exe
 RSC=rc.exe
@@ -62,8 +63,9 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwmlgen.bsc" 
 BSC32_SBRS= \
-	$(INTDIR)/HTMLGen.sbr \
-	$(INTDIR)/HTMLPDTD.sbr
+	$(INTDIR)/windll.sbr \
+	$(INTDIR)/HTMLPDTD.sbr \
+	$(INTDIR)/HTMLGen.sbr
 
 $(OUTDIR)/wwwmlgen.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -72,19 +74,18 @@ $(OUTDIR)/wwwmlgen.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
  /PDB:$(OUTDIR)/"wwwmlgen.pdb" /MACHINE:I386 /DEF:".\wwwmlgen.def"\
  /OUT:$(OUTDIR)/"wwwmlgen.dll" /IMPLIB:$(OUTDIR)/"wwwmlgen.lib" 
 DEF_FILE=.\wwwmlgen.def
 LINK32_OBJS= \
+	$(INTDIR)/windll.obj \
 	.\WinDebug\wwwdll.lib \
 	.\WinDebug\wwwutils.lib \
 	.\WinDebug\wwwcore.lib \
-	$(INTDIR)/HTMLGen.obj \
-	$(INTDIR)/HTMLPDTD.obj
+	$(INTDIR)/HTMLPDTD.obj \
+	$(INTDIR)/HTMLGen.obj
 
 $(OUTDIR)/wwwmlgen.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -125,8 +126,9 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwmlgen.bsc" 
 BSC32_SBRS= \
-	$(INTDIR)/HTMLGen.sbr \
-	$(INTDIR)/HTMLPDTD.sbr
+	$(INTDIR)/windll.sbr \
+	$(INTDIR)/HTMLPDTD.sbr \
+	$(INTDIR)/HTMLGen.sbr
 
 $(OUTDIR)/wwwmlgen.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -135,19 +137,18 @@ $(OUTDIR)/wwwmlgen.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
  /PDB:$(OUTDIR)/"wwwmlgen.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwmlgen.def"\
  /OUT:$(OUTDIR)/"wwwmlgen.dll" /IMPLIB:$(OUTDIR)/"wwwmlgen.lib" 
 DEF_FILE=.\wwwmlgen.def
 LINK32_OBJS= \
+	$(INTDIR)/windll.obj \
 	$(INTDIR)/wwwdll.lib \
 	$(INTDIR)/wwwutils.lib \
 	$(INTDIR)/wwwcore.lib \
-	$(INTDIR)/HTMLGen.obj \
-	$(INTDIR)/HTMLPDTD.obj
+	$(INTDIR)/HTMLPDTD.obj \
+	$(INTDIR)/HTMLGen.obj
 
 $(OUTDIR)/wwwmlgen.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -171,6 +172,14 @@ $(OUTDIR)/wwwmlgen.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 ################################################################################
 # Begin Source File
 
+SOURCE=.\windll.c
+
+$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
+
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=.\WinDebug\wwwdll.lib
 # End Source File
 ################################################################################
@@ -186,15 +195,6 @@ SOURCE=.\WinDebug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLGen.c
-
-$(INTDIR)/HTMLGen.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\wwwmlgen.def
 # End Source File
 ################################################################################
@@ -203,6 +203,15 @@ SOURCE=.\wwwmlgen.def
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLPDTD.c
 
 $(INTDIR)/HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLGen.c
+
+$(INTDIR)/HTMLGen.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 # End Source File

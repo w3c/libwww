@@ -63,6 +63,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwrules.bsc" 
 BSC32_SBRS= \
+	$(INTDIR)/windll.sbr \
 	$(INTDIR)/HTRules.sbr \
 	$(INTDIR)/HTProxy.sbr
 
@@ -73,14 +74,13 @@ $(OUTDIR)/wwwrules.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
  /PDB:$(OUTDIR)/"wwwrules.pdb" /MACHINE:I386 /DEF:".\wwwrules.def"\
  /OUT:$(OUTDIR)/"wwwrules.dll" /IMPLIB:$(OUTDIR)/"wwwrules.lib" 
 DEF_FILE=.\wwwrules.def
 LINK32_OBJS= \
+	$(INTDIR)/windll.obj \
 	$(INTDIR)/HTRules.obj \
 	.\WinDebug\wwwdll.lib \
 	.\WinDebug\wwwutils.lib \
@@ -126,6 +126,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwrules.bsc" 
 BSC32_SBRS= \
+	$(INTDIR)/windll.sbr \
 	$(INTDIR)/HTRules.sbr \
 	$(INTDIR)/HTProxy.sbr
 
@@ -136,14 +137,13 @@ $(OUTDIR)/wwwrules.bsc : $(OUTDIR)  $(BSC32_SBRS)
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
+# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
+LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
  /PDB:$(OUTDIR)/"wwwrules.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwrules.def"\
  /OUT:$(OUTDIR)/"wwwrules.dll" /IMPLIB:$(OUTDIR)/"wwwrules.lib" 
 DEF_FILE=.\wwwrules.def
 LINK32_OBJS= \
+	$(INTDIR)/windll.obj \
 	$(INTDIR)/HTRules.obj \
 	$(INTDIR)/wwwdll.lib \
 	$(INTDIR)/wwwutils.lib \
@@ -172,6 +172,14 @@ $(OUTDIR)/wwwrules.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 ################################################################################
 # Begin Source File
 
+SOURCE=.\windll.c
+
+$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
+
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTRules.c
 
 $(INTDIR)/HTRules.obj :  $(SOURCE)  $(INTDIR)
@@ -196,16 +204,16 @@ SOURCE=.\WinDebug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
+SOURCE=.\wwwrules.def
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTProxy.c
 
 $(INTDIR)/HTProxy.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\wwwrules.def
 # End Source File
 # End Group
 # End Project
