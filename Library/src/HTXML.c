@@ -12,8 +12,8 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "HTXML.h"     				 /* Implemented here */
 #include "SGML.h"
+#include "HTXML.h"     				 /* Implemented here */
 
 #define XML_MAX_ATTRIBUTES 50
 
