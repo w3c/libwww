@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Main Module for Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -46,8 +46,11 @@ extern char *	end_mark;		   	  /* Format string for [End] */
 #endif /* HTBROWSE_H */
 
 /* for access to windows app's windows procedures */
+typedef int InputParser_t (char* buf, SOCKET s, HTRequest * req, SockOps ops);
+extern InputParser_t * PInputParser;
 PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps ops);
 </PRE>
+
 End of HTBrowse Declaration
 </BODY>
 </HTML>

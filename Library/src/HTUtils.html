@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -24,7 +24,7 @@ for system specific information. <P>
 #ifndef HTUTILS_H
 #define HTUTILS_H
 
-#if defined(__STDC__) || defined(__cplusplus) || defined(_WINDOWS)
+#if defined(__STDC__) || defined(__cplusplus) || defined(WWW_MSWINDOWS)
 #define _STANDARD_CODE_
 #endif
 </PRE>
@@ -57,7 +57,7 @@ active, but in addition the following WWWTRACE defines have been made:
 #define WWWTRACE_TTY	3
 
 #ifndef WWWTRACE_MODE
-#if (defined _WINDOWS) &amp;&amp; !defined(_CONSOLE)
+#ifdef WWW_WIN_WINDOW
 #define WWWTRACE_MODE WWWTRACE_TTY
 #else
 #define WWWTRACE_MODE WWWTRACE_STDERR
@@ -79,7 +79,7 @@ extern FILE *WWWTrace;
 #endif
 
 #if WWWTRACE_MODE == WWWTRACE_TTY
-#if defined(_WINDOWS) && !defined(_CONSOLE) /* EGP */
+#ifdef WWW_WIN_WINDOW
 /* standard windows 3.x and non-console WIN32 programs */
 #define TDEST    0
 #ifdef WWW_WIN_DLL

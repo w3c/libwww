@@ -166,10 +166,12 @@ typedef struct _Context {
     LineMode *		lm;
 } Context;
 
-#ifndef _WINDOWS
+#ifndef WWW_WIN_WINDOW
 PRIVATE FILE *		output = STDOUT;
 #endif
  
+PRIVATE InputParser_t parse_command;
+InputParser_t * PInputParser = &parse_command;
 /* ------------------------------------------------------------------------- */
 
 /*	Create a Context Object
@@ -250,6 +252,11 @@ PRIVATE void Thread_deleteAll (LineMode * lm)
     }
 }
 
+#ifdef WWW_WIN_WINDOW
+HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
+                           it gets key events so save it in a global here       */
+#endif
+
 /*	Create a Line Mode Object
 **	-------------------------
 */
@@ -261,6 +268,9 @@ HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
 PRIVATE LineMode * LineMode_new (void)
 {
     LineMode * me;
+#ifdef WWW_WIN_WINDOW
+    TTYReq = me->request;
+#endif
     if ((me = (LineMode *) calloc(1, sizeof(LineMode))) == NULL ||
 	(me->tv = (struct timeval*) calloc(1, sizeof(struct timeval))) == NULL)
 	outofmem(__FILE__, "LineMode_new");
@@ -289,7 +299,7 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 	HTHistory_delete(lm->history);
 	FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
-#ifndef _WINDOWS
+#ifndef WWW_WIN_WINDOW
 	if (OUTPUT && OUTPUT != STDOUT) fclose(OUTPUT);
 #endif
 	free(lm);
@@ -393,7 +403,7 @@ PRIVATE void Reference_List (LineMode * lm, BOOL titles)
 		    (char *)(title ? title : address));
 	    free(address);
 	}
-#ifndef _WINDOWS
+#ifndef WWW_WIN_WINDOW
 	fflush(OUTPUT);
 #endif
     }
@@ -618,12 +628,14 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
     BOOL OutSource = NO;			    /* Output source, YES/NO */
     int status = YES;
     HTRequest * cur_req = req;
-    Context * cur_context = (Context *) HTRequest_context(req);
-    LineMode * lm = cur_context->lm;
+    Context * cur_context;
+    LineMode * lm;
 
-#ifdef _WINDOWS
+#ifdef WWW_WIN_WINDOW
     req = TTYReq;
 #endif
+    cur_context = (Context *) HTRequest_context(req);
+    lm = cur_context->lm;
 
     StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
     if (*the_choice && the_choice[strlen(the_choice)-1] == '\n') /* final \n */
@@ -1040,7 +1052,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 **	non-blocking read of the WIN32 console. EGP
 */
 
-#ifdef _CONSOLE
+#ifdef WWW_WIN_CONSOLE
 PUBLIC BOOL readConsole(HANDLE conIn, char* buf, int len, int* pRed)
 {
     DWORD recordIndex, bufferIndex, toRead, red;
@@ -1093,15 +1105,14 @@ PUBLIC BOOL readConsole(HANDLE conIn, char* buf, int len, int* pRed)
     *pRed = bufferIndex;		/* actual characters stuck into buffer */
     return (TRUE);
 }
-#endif /* _CONSOLE */
+#endif /* WWW_WIN_CONSOLE */
 
 /*	bufferInput
 **	-----------
 **	Read available characters from buf into stat. buf maybe bigger or
 **	smaller than stat.
 */
-PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req,	
-			SockOps ops)
+PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps ops)
 {
     static char stat[RESPONSE_LENGTH];
     static int iStat = 0;
@@ -1117,7 +1128,7 @@ PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req,
 		    int ret;
 		    stat[iStat] = 0;
 		    iStat = 0;
-		    if ((ret = parse_command(stat, 0, 0, 0)) != HT_OK)
+		    if ((ret = (*PInputParser)(stat, s, req, ops)) != HT_OK)
 			return (ret);
 		}
 		break;
@@ -1145,19 +1156,11 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
     int red;
     int ret;
 
-#ifndef _CONSOLE
+#ifndef WWW_MSWINDOWS
     if (!fgets(buf, sizeof(buf), stdin))		  /* Read User Input */
-	return HT_ERROR;				      /* Exit if EOF */
-    return (parse_command(buf, s, req, ops));
-#else
-
-    while(1) {
-#ifdef _CONSOLE
-	if (!readConsole((HANDLE)s, buf, sizeof(buf), &red)) {
-	    if (PROT_TRACE) TTYPrint(TDEST, "Read Console... READ ERROR\n");
-	    return HT_ERROR;
-	}
-#else	/* _CONSOLE */
+        return HT_ERROR;				      /* Exit if EOF */
+    return ((*PInputParser)(buf, s, req, ops));
+#if 0
 	if ((red = read(s, buf, sizeof(buf))) < 0) {
 #ifdef EAGAIN
 	    if (socerrno==EINPROGRESS || socerrno==EAGAIN)
@@ -1165,10 +1168,20 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    if (socerrno==EINPROGRESS)
 #endif
 		return (HT_OK);
-	    if (PROT_TRACE) TTYPrint(TDEST, "Read Console... READ ERROR\n");
+    	    if (PROT_TRACE) TTYPrint(TDEST, "Read Console... READ ERROR\n");
 	    return HT_ERROR;
 	}
-#endif /* _CONSOLE */
+#endif
+#else
+
+    while(1) {
+#ifdef WWW_WIN_CONSOLE
+	if (!readConsole((HANDLE)s, buf, sizeof(buf), &red)) {
+        if (PROT_TRACE) TTYPrint(TDEST, "Read Console... READ ERROR\n");
+	    return HT_ERROR;
+	}
+#else	/* !WWW_WIN_CONSOLE */
+#endif /* !WWW_WIN_CONSOLE */
 	if (!red) return (HT_OK);
 	ret = bufferInput(buf, red, s, req, ops);
 	if (ret != HT_OK) return (ret);
@@ -1241,6 +1254,15 @@ PRIVATE int header_handler (HTRequest * request, CONST char * token)
 
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
+#ifdef WWW_PICS
+#include "CSLApp.h" /* the PICApp library should provide everything the app needs */
+Pics_callback Pics_appCallback; /* forward reference for strong typechecking */
+Pics_error Pics_appCallback(HTRequest* pReq, Pics_error disposition)
+{
+    return disposition;
+}
+#endif /* WWW_PICS */
+
 /* ------------------------------------------------------------------------- */
 
 int main (int argc, char ** argv)
@@ -1273,6 +1295,7 @@ int main (int argc, char ** argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
+    lm = LineMode_new();
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
     lm = LineMode_new();
@@ -1577,7 +1600,7 @@ int main (int argc, char ** argv)
 
     /* Open output file */
     if (!HTAlert_interactive()) {
-#ifndef _WINDOWS
+#ifndef WWW_WIN_WINDOW
 	if (lm->outputfile) {
 	    if ((OUTPUT = fopen(lm->outputfile, "wb")) == NULL) {
 		if (SHOW_MSG) TTYPrint(TDEST, "Can't open `%s'\\n",
@@ -1612,6 +1635,15 @@ int main (int argc, char ** argv)
 	HTLoadSocket(STDIN_FILENO, lm->request, FD_NONE);
 #endif
 	Cleanup(lm, 0);
+#ifdef WWW_PICS
+	Pics_registerApp(Pics_appCallback, Pics_callOnBad|Pics_callOnGood);
+	Pics_registerDefaultUserByName("dad", "d");
+#if 0
+	Pics_AddService("http://www.gcf.org");
+    	Pics_AddService("http://www.joe.bob.com");
+#endif
+#endif /* WWW_PICS */
+
     }
 
     /* Register our User Prompts etc in the Alert Manager */
@@ -1668,6 +1700,10 @@ int main (int argc, char ** argv)
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
 	if (SHOW_MSG) TTYPrint(TDEST, "Couldn't load home page\n");
+#ifdef WWW_PICS
+    Pics_unregisterDefaultUser();
+    Pics_unregisterApp();
+#endif /* WWW_PICS */
 	Cleanup(lm, -1);
     }
 

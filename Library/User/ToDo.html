@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Working List</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -13,38 +13,35 @@
 This is the current work plan for new features and changed interfaces
 for the W3C Referene Library. <P>
 
-<IMG SRC="../../../Icons/32x32/caution.gif" ALT="NOTE"> Next major
-release is scheduled for <B>DECEMBER 1st 1995</B>. This release will
-go into public domain <B>JANUARY 1st 1996</B>.
+<H2>Initial Plan for Next release <IMG ALT="NEW" SRC="../../../Icons/WWW/new_red.gif"></H2>
 
-<H2>Plan for Next release</H2>
+<DL>
 
-<UL>
-<LI>Enhanced support for Power Mac and Windows
-<LI>Embed stream taking an HTML object and strips everything outside (including) &lt;BODY&gt;
-<LI>Descriptions in directory listings
-<LI>Content-Length counter stream
-<LI>HTTP/1.1 reference implementation
-<LI>New NNTP module with support for POST and persistent connections
-<LI>Persistent caching scheme
-<LI>Better documentation
-<LI>Make <B>small</B> examples of the code
-</UL>
+<DT>Memory Resource Handler
 
-<H2>Long Term (when specified)</H2>
+<DD>The Library needs a mechanism to allow to get around situations when memory is exhausted.
 
-Prototypes of this will appear as we get the specifications ready. 
+<DT>Better debug and trace messages facilities
 
-<UL>
-<LI>HTTP-NG reference implementation
-<LI>HTML level 3 parser
-<LI>URN/URC support
-<LI>Content Negotiation
-</UL>
+<DD>Currently all debug messages are included in all versions of the Library. In order to
+distinguish between debug versions and release versions, the debug messages should only be included
+in the debug version.
+
+<DT>Experimenting with HTTP protocol implementations including HTTP/1.x, PEP and <A HREF="../../../Protocols/HTTP-NG/">HTTP-NG</A>
+
+<DD>An important part of the W3C software is to provide reference implementations of the Web
+protocols. The next release will provide important new features in this area.
+
+<DT>Integration with <A HREF="ftp://ftp.parc.xerox.com/pub/ilu/ilu.html">ILU</A> from Xerox Parc
+
+<DD>Integrating ILU and libwww is part of the experiments with HTTP-NG and it also allows for better
+integration between various programming languages.
+
+</DL>
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, January 1996</ADDRESS>
 </BODY>
 </HTML>
 

@@ -487,7 +487,7 @@ PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
 #ifdef VMS
 	    HTVMS_checkDecnet(path);
 #endif
-#ifdef _WINDOWS
+#ifdef WWW_MSWINDOWS
 	    /* an absolute pathname with logical drive */
 	    if (*path == '/' && path[2] == ':')    
 		/* NB. need memmove because overlaps */

@@ -71,7 +71,7 @@ PUBLIC CONST char * HTErrnoString (int errornumber)
 	    vaxc$errno);
     return buf;
 #else 
-#ifdef _WINDOWS 
+#ifdef _WINSOCKAPI_ 
 	static char buf[60];
 	sprintf(buf, "Unix errno = %ld dec, WinSock erro = %ld", errornumber, WSAGetLastError());
 	return buf;
@@ -490,7 +490,7 @@ PUBLIC CONST char * HTGetMailAddress (void)
 #ifdef WIN32 
     login = getenv("USERNAME") ;
 #else 
-#ifdef _WINDOWS
+#ifdef WWW_MSWINDOWS
     login = "PCUSER";				  /* @@@ COULD BE BETTER @@@ */
 #else
 #ifdef GUSI
@@ -520,7 +520,7 @@ PUBLIC CONST char * HTGetMailAddress (void)
 	    login = pw_info->pw_name;
     }
 #endif /* GUSI */
-#endif /* _WINDOWS */
+#endif /* WWW_MSWINDOWS */
 #endif /* WIN32 */
 #endif /* VMS */
 
@@ -666,7 +666,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
 	    if (!net->preemtive) {
-#ifdef _WINDOWS
+#ifdef _WINSOCKAPI_
 		{		/* begin windows scope  */
 		    HTRequest * rq = request;
 		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
@@ -976,7 +976,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
 	    if (!net->preemtive) {
-#ifdef _WINDOWS 
+#ifdef _WINSOCKAPI_ 
 		{		/* begin windows scope  */
 		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
 			FD_CONNECT | FD_CLOSE ;

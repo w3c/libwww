@@ -1,7 +1,7 @@
-<HTML>
+<Html>
 <HEAD>
 <TITLE>How to Build the WWW Libraries for Windows</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jan-1996 -->
 </HEAD>
 
 <BODY>
@@ -10,34 +10,99 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG ALT="OS" SRC="../../../Icons/WWW/Platform48x.gif"></A>
 
-<H1>Building Window DLLs</H1>
+<H1>Building on Windows</H1>
 
-<IMG SRC="../../../Icons/WWW/construction.gif"> This is under rapid construction. 
-Please look at the <A HREF="../Using/">User's Guide</A> for more details. <P>
-
-The WWW Libraries for Windows may be build many ways. The builder must decide 
-on:
+When building the W3C Reference Library on a Windows platform (Windows 3.1, 95, or NT), you can
+decide on a set of different options to be enabled or disabled. This document describes the set of
+DLLs and how they can be built. C compilers on Windows platforms often have a notion of
+<EM>projects</EM> that define what files to include in the compilation and where to put the
+output. This document does not describe the process of creating projects as it depends on the
+compiler that you are using but refers you to your C compiler manuals.
 
 <OL>
-
-<LI><A HREF="#lib">Library Types</A>: <A HREF="#static">static</A> vs <A
-HREF="#dynamic">dynamic</A><BR>
-
-<LI><A HREF="#select">Select Options</A>: <A HREF="#unix">unix-style select</A> vs <A
-HREF="#async">WSAAsyncSelect</A><BR>
-
-<LI><A HREF="#io">Input/Output Options</A>: <A HREF="#windowed">windowed</A> vs <A
-HREF="#console">console</A>
-
+<LI><A HREF="#select">Interleaved vs Asynchronous Sockets</A>
+<LI><A HREF="#io">Console vs Windows Application</A>
+<LI><A HREF="#lib">Static vs Dynamic Library</A>
 </OL>
 
-<A NAME="lib"><H2>Library Types:</H2></A>
+<A NAME="select"><H2>Interleaved vs Asynchronous Sockets</H2></A>
 
-When building the LibWWW for Windows (3.x) or WIN32 (NT, 95), you have the option of creating
-seperate DLLs with defined interfaces. This is reccomended for WIN32 builds and required for Win 3.x
-due to boundry size problems.
+Non-blocking network access can either be done using multiplexed I/O or asynchronous
+I/O. Multiplexed I/O is based on an eventloop with a <CODE>select()</CODE> system call. The
+<CODE>select()</CODE> system call is a function that scans a set of BSD like socket descriptors and
+returns when one or more sockets are ready for either network <B>read</B> or
+<B>write</B>. Asynchronous I/O is based on signals instead of a <CODE>select()</CODE> call. Each
+time a socket is ready for a network operation, for example <B>read</B>, a signal is generated. This
+signal can then be caught by the application in an signal handler. Using the <CODE>select()</CODE>
+call is called <EM>reactive</EM> whereas using signals is called <EM>pro-active</EM>. <P>
 
-<A NAME="static"><H4>static</H4></A>
+The W3C Reference Library supports both approaches under Windows, and therefore you must choose
+which model you prefer. The choice can depend on what type of application you are using and what
+other libraries you are using.
+
+<A NAME="unix"><H3>Interleaved I/O Using select()</H3></A>
+
+In this mode the <A HREF="../../Implementation/HTEvntrg.html">Event Manager</A> registers all
+active sockets and passes them to a <CODE>select()</CODE> call which then processes the registered
+sockets. When <CODE>select()</CODE> returns the Event Manager dispatches the appropriate handlers as
+the sockets get ready. <P>
+
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't have to do anything
+
+<A NAME="async"><H3>Asynchronous I/O based using Signals</H3></A>
+
+Here the <A HREF="../../Implementation/HTEvntrg.html">Event Manager</A> registers all active sockets
+using <CODE>WSAAsyncSelect</CODE> which is part of the WinSock API. When <CODE>AsyncSelect()</CODE>
+which is the asynchronous equivalent to the <CODE>select()</CODE> returns, the Event Manager
+dispatches the results of the <CODE>AsyncSelect()</CODE>. <P>
+
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Define <B>WWW_WIN_ASYNC</B> as a preprocessor directive when generating the
+project for the Library.
+
+<A NAME="io"><H2>Console vs Windows Application</H2></A>
+
+A Windows application can use either a character based command line interface, or a graphic windows
+interface. Many MS-DOS applications do run as a simple command line tool which doesn't use GUI at
+all. Under Win32, there is a notion of a <A HREF="#console">console</A> application. This means that
+all user interaction happens through a standard DOS shell interface, with a FILE pointer like that
+in Unix. This does not exist under Win16, where a Windows window is required. <P>
+
+The Library supports both the console and the windows interface, and again you must choose what
+version you prefer. This is often something you have to decide as you are creating the project.
+
+<A NAME="windowed"><H3>Windows Application</H3></A>
+
+If you want to make a windows application then this is the mode to use. Eric Prud'hommeaux has
+provided a Windows application wrapper for the <A HREF="../../../LineMode/">W3C Line Mode
+Browser</A> which you can use in order to build the browser as a Windows application. This is found
+in <A HREF="../../../LineMode/Implementation/windows/www.c">www.c</A>. Three other modules, <A
+HREF="../../../LineMode/Implementation/windows/scroll.c">scroll.c</A> and <A
+HREF="../../../LineMode/Implementation/windows/lib.c">lib.c</A> provide the window for the
+application. <P>
+
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
+have to do anything
+
+<A NAME="console"><H3>Console Application</H3></A>
+
+The console option is available only in Win32 in which case all user interaction happens through the
+Win32 console window. This model strongly resembles a Unix vt100 terminal interface. <P>
+
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Define <B>_CONSOLE</B> as preprocessor
+directives when generating the project for the Library.
+
+<A NAME="lib"><H2>Static vs Dynamic Libraries</H2></A>
+
+Windows has a concept of both static and dynamic libraries, the latter also known as
+<EM>DLLs</EM>. It is out of scope here to describe the difference between DLLs and static libraries,
+but as DLLs is based on a lot more flexible memory model it is almost always the best solution for
+Windows applications. <P>
+
+The W3C Reference Library support both models in that if can be built as either one big static
+library or as a set of small DLLs. As mentioned, it is in almost all cases recommended to build DLLs
+instead of static libraries, and on Win16 it is required because a static library is too big.
+
+<A NAME="static"><H3>Static Library</H3></A>
 
 The libraries may be build as one large static library. This is how libwww is implemented on Unix
 platforms. Subsequent references to the various DLLs may all be assumed to refer to the staticly
@@ -47,227 +112,27 @@ building a static library, see the following sections on <A HREF="#select">Selec
 HREF="#io">Input/Output Options</A>, accumulate all the <I>#defines</I> that are required, and build
 the whole libwww with those <I>#defines</I>. <P>
 
-<IMG ALT="NOTE" SRC="../../../Icons/32x32/caution.gif"> Note - it is not recomended to staticly link
-to the libraries if you are building a WIN16 application as it creates segment size problems.
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
+have to do anything but please note, that it is not recommended to staticly link to the libraries if
+you are building a Win16 application as it creates segment size problems.
 
-<A NAME="dynamic"><H4>dynamic</H4></A>
+<A NAME="dynamic"><H3>Dynamic Libraries (DLLs)</H3></A>
 
-The libwww has been divided up into several dynamic link libraries. The boundries between these DLLs
-are based on module interdependancy and some assumptions regarding which modules may be replaced by
-the application.  Unlike static linking, dynamic linking requires that all the modules in a DLL be
-replaced at once. This is because the DLL needs all internal references to be resolved at build
-time. Define <B>WWW_WIN_DLL</B> for all libraries that you are building as DLLs. This takes care of
-dereferencing TTYPrint and WWW_TraceFlags.
+The libwww can also be built as a set of DLLs that follows the modular architecture of the
+Library. This enables the application programmer to choose exactly what functionality should be
+enabled in the application.  The boundaries between these DLLs are based on module interdependency
+and some assumptions regarding which modules may be replaced by the application.  Unlike static
+linking, dynamic linking requires that all the modules in a DLL be replaced at once. This is because
+the DLL needs all internal references to be resolved at build time. <P>
 
-<A NAME="dlls"><H4>list of DLLs</H4></A>
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Define <B>WWW_WIN_DLL</B> as
+preprocessor directives when generating the project for the Library.
 
-There are three basic libraries that you will need for any LibWWW application:
+<H3>Special Windows DLL</H3>
 
-<OL>
-<LI><A HREF="#dll">wwwdll.dll</A>
-<LI><A HREF="#utils">wwwutils.dll</A>
-<LI><A HREF="#core">wwwcore.dll</A>
-<LI><A HREF="#cache">wwwcache.dll</A>
-<LI><A HREF="#mime">wwwmime.dll</A>
-<LI><A HREF="#http">wwwhttp.dll</A>
-<LI><A HREF="#mlgen">wwwmlgen.dll</A>
-<LI><A HREF="#rules">wwwrules.dll</A>
-<LI><A HREF="#news">wwwnews.dll</A>
-<LI><A HREF="#remaining">remaining modules</A>
-</OL>
-
-<A NAME="dll"><H2>wwwdll.dll</H2></A>
-
-The wwwdll library is a tiny library that contains a pointer to the <A
-HREF="TTYPrint.html">TTYPrint</A> function. When Windows loads a DLL, the exported function and data
-pointers get "fixed up" in the other modules.  Consequently, what may be a directly addressable
-piece of data in it's home library will be a pointer in the other libraries and executables that
-dynamically link to it. The <A HREF="TTYPrint.html">TTYPrint</A> pointer is <A
-HREF="../../Implementation/windows/wwwdll.def">exported</A> to the other modules and referenced via
-the TTYPrint macro in <A HREF="../../Implementation/HTUtils.html">HTUtils.h</A>. <A
-HREF="#dll">wwwdll.dll </A> also contains the WWW_TraceFlag to the same end of macroing the
-indirection.  <B> Dependencies:</B> <I> windll.c wwwdll.c wwwdll.def </I>
-
-<A NAME="utils"><H2>wwwutils.dll</H2></A>
-
-The utils are a set of basic utilies that are used by the other libraries and may prove usefull
-outside the context of the libwww. It implements linked lists, associative arrays, ... See <A
-HREF="../../Implementation/WWWUtil.html"> Util Modules</A> for a description of the use of these
-functions.  <B> Dependencies:</B>
-<I>
-wwwdll.lib
-windll.c
-wwwutils.def
-HTArray.c
-HTAssoc.c
-HTAtom.c
-HTChunk.c
-HTList.c
-HTString.c
-HTUU.c
-</I>
-
-<A NAME="core"><H2>wwwcore.dll</H2></A>
-
-This library contains all the WWW specific functions needed to write an application that uses the
-standard streams and converters, or produces it's own. See <A
-HREF="../../Implementation/WWWCore.html">Core Modules</A> for a description of the use of these
-functions.  <B> Dependencies:</B>
-<I>
-wwwdll.lib
-wwwutils.lib
-windll.c
-wwwcore.def
-HTAccess.c
-HTAlert.c
-HTAnchor.c
-HTBind.c
-HTConLen.c
-HTDialog.c
-HTDNS.c
-HTError.c
-HTEscape.c
-HTEvntrg.c
-HTFormat.c
-HTFWrite.c
-HTMethod.c
-HTNet.c
-HTParse.c
-HTProt.c
-HTReqMan.c
-HTSocket.c
-HTTCP.c
-HTTee.c
-HTWriter.c
-HTWWWStr.c
-</I>
-
-
-<A NAME="cache"><H2>wwwcache.dll</H2></A>
-
-<B> Dependencies:</B>
-<I>
-wwwdll.lib
-wwwutils.lib
-windll.c
-wwwcache.def
-HTCache.c
-</I>
-
-<A NAME="mime"><H2>wwwmime.dll</H2></A>
-
-<B> Dependencies:</B>
-<I>
-wwwdll.lib
-wwwutils.lib
-wwwcore.lib
-windll.c
-wwwmime.def
-HTBound.c
-HTHeader.c
-HTMIME.c
-HTMIMERq.c
-</I>
-
-<A NAME="http"><H2>wwwhttp.dll</H2></A>
-
-<B> Dependencies:</B>
-<I>
-wwwdll.lib
-wwwutils.lib
-wwwcore.lib
-wwwcache.lib
-wwwmime.lib
-windll.c
-wwwhttp.def
-HTAABrow.c
-HTAAUtil.c
-HTTP.c
-HTTPReq.c
-HTTPRes.c
-HTTPServ.c
-</I>
-
-<A NAME="mlgen"><H2>wwwmlgen.dll</H2></A>
-<B> Dependencies:</B> <I>
-wwwdll.lib
-wwwutils.lib
-wwwcore.lib
-windll.c
-wwwmlgen.def
-HTMLGen.c
-HTMLPDTD.c
-</I>
-
-<A NAME="rules"><H2>wwwrules.dll</H2></A>
-<B> Dependencies:</B> <I>
-wwwdll.lib
-wwwutils.lib
-wwwcore.lib
-windll.c
-wwwrules.def
-HTProxy.c
-HTRules.c
-</I>
-
-<A NAME="news"><H2>wwwnews.dll</H2></A>
-<B> Dependencies:</B> <I>
-wwwdll.lib
-wwwutils.lib
-wwwcore.lib
-wwwmime.lib
-wwwmlgen.lib
-wwwnews.lib
-windll.c
-wwwnews.def
-HTNDir.c
-HTNews.c
-HTNewsLs.c
-HTNewsRq.c
-</I>
-
-<A NAME="remaining"><H2>remaining modules</H2></A>
-Not all the modules have been incorporated into DLLs yet. Therefore, it is 
-required that the application link directly to the remaining modules. In 
-addition to it's own source files, the application will have the remaining
-<B> Dependencies:</B> <I>
-wwwdll.lib
-wwwutils.lib
-wwwcore.lib
-wwwmime.lib
-wwwhttp.lib
-wwwmlgen.lib
-wwwrules.lib
-HTDir.c
-HTFile.c
-HTFTP.c
-HTFTPDir.c
-HTGopher.c
-HTGuess.c
-HTHist.c
-HTHome.c
-HTIcons.c
-HTInit.c
-HTBInit.c
-HTLog.c
-HTML.c
-HTMulti.c
-HTPlain.c
-HTTelnet.c
-HTTeXGen.c
-HTWSRC.c
-</I>
-
-<H2>Make Files</H2>
-
-MSVC2.2 Make files are available in the <A HREF="../../Implementation/windows/">windows</A>
-directory. Each library is build from some .c files,
-
-It is impoortant to build these libraries in the correct order. Observe the dependancies listed at
-the end of each library description. The first dependancies are the lib files that were generated
-when previous libraries were built.<P>
-
-<H2>Extra Modules for the DLLs</H2>
+In addition to platform independent modules, there is a small Windows specific DLL which implements
+the trace message generation. The DLL is called <CODE>windll.dll</CODE> and contains also the
+definition of the global trace flag definition.
 
 <UL>
 <LI><I>windll.c</I> - DLLMain to ALL DLLs.
@@ -277,66 +142,62 @@ it can export the variables to the rest of the DLLs.
 names.
 </UL>
 
-<H2>Exporting Functions</H2>
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Include the windll.dll as a part of
+your project and make sure that it is built as the first DLL.
+
+<H3>Exporting Functions from DLLs</H3>
 
 The functions exported from a DLL are listed in the EXPORTS section of a .def file. These can be
-found in the <A HREF="../../Implementation/windows">windows</A> directory. These may also be build by
-the <A HREF="#makedefs"> makeDefs.pl</A> perl script.
+found in the <A HREF="../../Implementation/windows">windows</A> directory. These may also be build
+by the <A HREF="../../Implementation/windows/makedefs.pl">makeDefs.pl</A> perl script, see the
+description below. You can use the def files as a basis for generating the DLL projects for your
+compiler. <P>
 
-<A NAME="makedefs"><H2>makeDefs.pl</H2></A>
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Generate the DLLs according to the def
+files so the exported interface is identical to the set of functions defined in the actual c files
+included in the DLL.
 
-makeDefs.pl is a perl 4 script which takes a list of modules and generates a list of exports from
-them. The module list may be taken from the appropriate header file for the library, eg
-<I>wwwutils.dll</I> uses <I>wwwutils.def</I> which is made from <I>WWWUtils.html</I>. The file list
-assumes nothing except the module file names with no extensions so each line that says:<BR>
-<I>#include "some file.h"</I> should be translated to <I>some file</I>.  As of the time of this
-writing, there were to ways in which the library header files must be modified to give an accurate
-list of the modules in a library.<BR> in WWWCore.html, <I>HTReq.h</I> shoud tranlate to
-<I>HTReqMan</I><BR> and in WWWUtils.html, <I>HTUtils.h</I> should be removed from the list.
+<H2>Make Files and Projects</H2>
 
-<A NAME="select"><H2>Select Options:</H2></A>
+Unfortunately, make files are not easily shared among different C compilers on Windows which
+complicates the distribution.
 
-The library is designed around the standard, unix-style, select call. The Winsock spec defines a
-Windows specific extension called WSAAsyncSelct.  Calling WSAAsyncSelect tells your Winsock.DLL to
-pass messages to a window when I/O is ready on a socket.
+<H3>Microsoft Visual C++ 4.0</H3>
 
-<A NAME="unix"><H4>unix-style select</H4></A>
+In the distribution file you can find a complete <A
+HREF="../../Implementation/windows/msvc_40.mak">Microsoft Visual C++ 4.0 Project</A> that builds the
+W3C Reference Library as a set of DLLs as described in the <A HREF="../../User/Guide/">Library
+Internals</A>.
 
-This is the default mode for the compilation. All sockets are registered via HTEvent_Register. A
-select call in HTEvent_Loop processes these registered sockets and dispatches the appropriate
-handlers.
+<H3>Microsoft Visual C++ 2.0</H3>
 
-<A NAME="async"><H4>WSAAsyncSelect</H4></A>
+You can also find a set of Microsoft 2.0 make files in the <A
+HREF="../../Implementation/windows/">windows directory</A> of the distribution file. However, as
+version 2.0 does not support having one single Make file, you must compile the set described by the
+<A HREF="../Guide/Modules.html">following list of DLLs</A>
 
-HTEvent_Register calls WSAAsyncSelect to register the sockets. HTEvent_Loop is a standard Windows
-event loop that dispatches the results of the AsyncSelect calls and, optionally, the windows
-messages for the <A HREF="#windowed">IO window</A>. Define <B>WWW_WIN_ASYNC</B> in the <A
-HREF="#core">wwwcore</A> library to include WSAAsyncSelect logic.
+<H3>Other Compilers</H3>
 
-<A NAME="io"><H2>Input/Output Options:</H2></A>
+You can often use this project as the basis for porting the make file. The DLL description also
+various from compiler to compiler which can cause that you can't use the DLL def files directly. We
+try to make as generic solutions as possible but have limited resources to provide projects for
+multiple compilers.
 
-The IO has to go somewhere, right? In WIN32, there is a notion of a <A HREF="#console">console</A>
-application. This means that all IO happens through a standard DOS shell interface, with a FILE
-pointer like that in Unix. WIN16 users will have to use a Windows(r)(tm) window for IO. All the
-libraries (except <A HREF="#dll">wwwdll.dll</A>) make calls to <A
-HREF="TTYPrint.html">TTYPrint</A>. It is therefore important that all modules agree on whether they
-are a console application or a windows application.
+<A NAME="makedefs"><H3>makeDefs.pl</H3></A>
 
-<A NAME="windowed"><H4>windowed</H4></A>
-
-The HTBrowse.c file provides a main. However, as a window program, the LineMode browser needs a
-LibMain. This is found in <A HREF="../../../LineMode/Implementation/windows/www.c">www.c</A>. Three
-other modules, <A HREF="../../../LineMode/Implementation/windows/scroll.c">scroll.c</A> and <A
-HREF="../../../LineMode/Implementation/windows/lib.c">lib.c</A> provide the window for the application.
-
-<A NAME="console"><H4>console</H4></A>
-
-The console option is available only in WIN32. All io happens through the WIN32 console window. This
-model stronly resembles the unix model.  Define <B>_CONSOLE</B> for all libraries
+<A HREF="../../Implementation/windows/makedefs.pl">makeDefs.pl</A> is a perl 4 script which takes a
+list of modules and generates a list of exports from them. The module list may be taken from the
+appropriate header file for the library, e.g. <I>wwwutils.dll</I> uses <I>wwwutils.def</I> which is
+made from <I>WWWUtils.html</I>. The file list assumes nothing except the module file names with no
+extensions so each line that says: <I>#include "some file.h"</I> should be translated to <I>some
+file</I>.  As of the time of this writing, there were to ways in which the library header files must
+be modified to give an accurate list of the modules in a library. In WWWCore.html, <I>HTReq.h</I>
+should translate to <I>HTReqMan</I> and in WWWUtils.html, <I>HTUtils.h</I> should be removed from
+the list.
 
 <P>
 <HR>
-<ADDRESS><A HREF="mailto:eric@w3.org">Eric Prud'hommeaux</A>, December 1995</ADDRESS>
+<ADDRESS>Eric Prud'hommeaux and Henrik frystyk, <A HREF="mailto:libwww.w3.org">libwww@w3.org</A> January 1996</ADDRESS>
 </BODY>
 </HTML>
 

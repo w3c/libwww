@@ -177,7 +177,7 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
     HTEvent_setWinHandle (htSocketWin, WM_USER);     /* use first available message since app uses none */
 #endif /* WWW_WIN_ASYNC */
 
-#ifdef _WINDOWS
+#ifdef _WINSOCKAPI_
     /*
     ** Initialise WinSock DLL. This must also be shut down! PMH
     */
@@ -196,7 +196,7 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
             return NO;
         }
     }
-#endif /* _WINDOWS */
+#endif /* _WINSOCKAPI_ */
 
 #ifndef NO_TIMEGM
     HTGetTimeZoneOffset();	   /* Find offset from GMT if using mktime() */
@@ -226,7 +226,7 @@ PUBLIC BOOL HTLibTerminate (void)
     HTFreeMailAddress();
     HTTmp_freeRoot();
 
-#ifdef _WINDOWS
+#ifdef _WINSOCKAPI_
     WSACleanup();
 #endif
 

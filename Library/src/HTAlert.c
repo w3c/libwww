@@ -224,7 +224,7 @@ PUBLIC BOOL HTAlert_setReplyOutput (HTAlertPar * me, void * output)
 **	--------
 **	Single function through which all trace messages must pass - EGP
 */
-#if WWWTRACE_MODE == WWWTRACE_TTY && (!defined(_WINDOWS) || defined(_CONSOLE))
+#if WWWTRACE_MODE == WWWTRACE_TTY && !defined(WWW_WIN_WINDOW)
 int TTYPrint(FILE* file, CONST char* fmt, ...)
 {
     int len;

@@ -37,6 +37,8 @@ extern char *   end_mark;                         /* Format string for [End] */
 #endif /* HTBROWSE_H */
 
 /* for access to windows app's windows procedures */
+typedef int InputParser_t (char* buf, SOCKET s, HTRequest * req, SockOps ops);
+extern InputParser_t * PInputParser;
 PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps ops);
 /*
 

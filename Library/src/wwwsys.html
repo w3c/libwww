@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -282,11 +282,24 @@ This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
 
 <H2>PC running Windows (16-bit)</H2>
 
-Help provided by Susan C. Weber &lt;sweber@kyle.eitech.com&gt;, Paul
-Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
+Help provided by Eric Prud'hommeaux, Susan C. Weber
+&lt;sweber@kyle.eitech.com&gt;, Paul Hounslow
+&lt;P.M.Hounslow@reading.ac.uk&gt;, and a lot of other PC people.
 
 <PRE>
-#ifdef _WINDOWS
+#if defined(_WINDOWS) || defined(_CONSOLE)
+#define WWW_MSWINDOWS
+#endif
+
+#if defined(_WINDOWS) && !defined (_CONSOLE)
+#define WWW_WIN_WINDOW
+#endif
+
+#if defined(_CONSOLE)
+#define WWW_WIN_CONSOLE
+#endif
+
+#ifdef _WWW_MSWINDOWS
 #include &lt;windows.h&gt;
 #include &lt;fcntl.h&gt;
 #include &lt;sys\types.h&gt;

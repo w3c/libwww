@@ -99,7 +99,7 @@ PRIVATE int socketsInUse = 0 ;		/* actual sockets in use */
 PRIVATE int userSockets = 0;		/* Number of user sockets */
 PRIVATE BOOL console_in_use = NO;
 
-#ifndef _WINDOWS 
+#ifndef WWW_MSWINDOWS 
 typedef void * HANDLE ;
 #endif
 
@@ -278,7 +278,7 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
  
     return __HTEvent_addRequest((SOCKET)console_handle, rq, ops, cbf, p);
 #else 
-#ifdef _WINDOWS /* EGP - added stub */
+#ifdef WWW_MSWINDOWS /* EGP - added stub */
     return (0);
 #else
 #error "Don't know how to handle console tty for this system!"
@@ -298,7 +298,7 @@ PUBLIC int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops)
     	return 0;
     console_in_use = NO;
 
-#ifdef _WINDOWS
+#ifdef WWW_WIN_CONSOLE
     s = (SOCKET)console_handle ;
 #endif
 #ifdef TTY_IS_SELECTABLE
@@ -589,7 +589,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 {
     MSG msg;
-#ifdef _CONSOLE
+#ifdef WWW_WIN_CONSOLE
     EndLoop = 0;
     while (!EndLoop) {
     	DWORD toRead;
@@ -658,7 +658,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 	if (console_in_use) { 
 
-#ifdef _CONSOLE
+#ifdef WWW_WIN_CONSOLE
             int result;
  	    DWORD time2wait;
 	    tvptr = &seltime.tv;
@@ -692,7 +692,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	     if (THD_TRACE)
 		TTYPrint(TDEST, "Console..... %s ready for input\n",
 			consoleReady ? "is" : "ISN'T" );
-#endif /* _CONSOLE */
+#endif /* WWW_WIN_CONSOLE */
 
 	} /* if tty in use */
 	 
@@ -733,7 +733,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
                 break;
         } /* switch */
 
-#ifndef _WINDOWS 
+#ifndef WWW_WIN_CONSOLE 
 	if (console_in_use) {
 	    consoleReady = active_sockets && 
 		FD_ISSET((SOCKET) (console_handle), &treadset);
@@ -747,7 +747,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	    if (status != HT_OK)
 		return status;
 
-#ifndef _WINDOWS
+#ifndef WWW_WIN_CONSOLE
 	    /* Remember to take out the console handle from the read set */
 	    FD_CLR((SOCKET) (console_handle), &treadset);
 #endif
