@@ -213,8 +213,12 @@ $(FTP)/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
 	    $(CMN)*.html
 	cp $(FTP)/src/WWWLibrary_$(VC).tar $(FTP)/src/temp.tar
 	compress -f $(FTP)/src/WWWLibrary_$(VC).tar
+	-rm $(FTP)/src/WWWLibrary.tar.Z
+	ln -s $(FTP)/src/WWWLibrary_$(VC).tar.Z $(FTP)/src/WWWLibrary.tar.Z
 	mv $(FTP)/src/temp.tar $(FTP)/src/WWWLibrary_$(VC).tar
 	gzip -f $(FTP)/src/WWWLibrary_$(VC).tar
+	-rm $(FTP)/src/WWWLibrary.tar.gz
+	ln -s $(FTP)/src/WWWLibrary_$(VC).tar.gz $(FTP)/src/WWWLibrary.tar.gz
 
 # This only works on Linux or other platforms with 'zip'
 zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
