@@ -164,6 +164,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	/*
 	** Cache lookup
 	*/
+#ifdef NOT_USED_YET
 	if (request->method == METHOD_GET &&
 	    !request->authorization &&
 	    !request->arg_keywords) {
@@ -183,6 +184,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		cache_file_name = NULL;
 	    } /* Cache lookup */
 	} /* Can use cache? */
+#endif /* NOT_USED_YET */
     } /* I'm a gateway */
     else {
 	arg = HTAnchor_physical(request->anchor);
@@ -438,7 +440,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		CTRACE(stderr, "Gateway..... writing to cache file\n");
 	    }
 	    else {
+#ifdef NOT_USED_YET
 		HTCacheCancel(arg);
+#endif /* NOT_USED_YET */
 		free(cache_file_name);
 		cache_file_name = NULL;
 		CTRACE(stderr, "Gateway..... couldn't create cache file\n");
@@ -452,7 +456,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	HTCopy(s, request->output_stream);
 	(*request->output_stream->isa->free)(request->output_stream);
 	if (cache_file_name) {
+#ifdef NOT_USED_YET
 	    HTCacheCreated(arg, (time_t)0);
+#endif /* NOT_USED_YET */
 	    free(cache_file_name);
 	}
 	return HT_LOADED;
