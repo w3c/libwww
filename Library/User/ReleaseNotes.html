@@ -57,6 +57,14 @@ These are the things that are upcoming in the next release.
 </H3>
 <UL>
   <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.144&amp;r2=1.145">Remove
+    access authentication credentials</A> duplicates when doing the HTSaveFilter
+    on the same resource
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAnchor.c?r1=1.77&amp;r2=1.78">Checks
+    that etags are not the same when setting a new one</A>. This caused first
+    the old (which was also the new) to be deleted and then created again.
+  <LI>
     Fixed HTTP POST problem where small post data didn't always get posted. This
     affects several files including
     <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.88&amp;r2=2.89">HTMIME.c</A>
