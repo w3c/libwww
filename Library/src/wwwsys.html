@@ -297,7 +297,8 @@ definitions moved from _WIN32 ifdef by EGP
 <P>
 Return code for socket functions. We can't use -1 as return value
 <P>
-<PRE>#define EWOULDBLOCK     WSAEWOULDBLOCK
+<PRE>
+#define EWOULDBLOCK     WSAEWOULDBLOCK
 #define EINPROGRESS     WSAEINPROGRESS
 #define ECONNREFUSED    WSAECONNREFUSED
 #define ETIMEDOUT       WSAETIMEDOUT
@@ -305,6 +306,7 @@ Return code for socket functions. We can't use -1 as return value
 #define EHOSTUNREACH    WSAEHOSTUNREACH
 #define EHOSTDOWN       WSAEHOSTDOWN
 #define EISCONN         WSAEISCONN
+#define EINVAL          WSAEINVAL
 
 /* Some compilers do only define WIN32 and NOT _WINDOWS */
 #define NO_GROUPS

@@ -24,8 +24,11 @@ and a timeout. The callback will be called every time the timer expires.
 #include "sysdep.h"
 #include "HTReq.h"
 
+#ifndef IN_EVENT
 typedef struct _HTTimer HTTimer;
-typedef int HTTimerCallback (HTTimer *, void *);
+#endif
+
+typedef int HTTimerCallback (HTTimer *, void *, HTEventType type);
 </PRE>
 <H3>
   Create and Delete Timers
@@ -33,6 +36,7 @@ typedef int HTTimerCallback (HTTimer *, void *);
 <PRE>
 extern HTTimer * HTTimer_new (HTTimer *, HTTimerCallback *, 
 			      void *, ms_t millis, BOOL relative);
+extern BOOL HTTimer_refresh(HTTimer * timer, ms_t now);
 extern BOOL HTTimer_delete (HTTimer * timer);
 extern BOOL HTTimer_deleteAll (void);
 </PRE>
@@ -40,15 +44,10 @@ extern BOOL HTTimer_deleteAll (void);
   Get the next timer in line
 </H3>
 <P>
-Returns the next timer registered in line.
+Dispatches all expired timers and optionally returns the time till the
+next one.
 <PRE>
-extern ms_t HTTimer_soonest (void);
-</PRE>
-<H3>
-  Dispatch All Timers that have expired
-</H3>
-<PRE>
-extern int HTTimer_dispatchAll (void);
+extern int HTTimer_next (ms_t * pSoonest);
 </PRE>
 
 <PRE>

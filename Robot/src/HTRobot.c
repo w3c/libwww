@@ -35,7 +35,8 @@
 #define DEFAULT_LOG_FILE       	"robot.log"
 #define DEFAULT_DEPTH		0
 
-#define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
+/* #define SHOW_MSG		(WWWTRACE || HTAlert_interactive()) */
+#define SHOW_MSG		(!(mr->flags & MR_QUIET))
 
 #define DEFAULT_TIMEOUT		10000		       /* timeout in millis */
 
@@ -48,7 +49,8 @@ typedef enum _MRFlags {
     MR_LINK		= 0x2,
     MR_PREEMPTIVE	= 0x4,
     MR_TIME		= 0x8,
-    MR_SAVE	  	= 0x10
+    MR_SAVE	  	= 0x10,
+    MR_QUIET	  	= 0x20
 } MRFlags;
 
 typedef struct _Robot {
@@ -302,15 +304,15 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
     Finger * finger = (Finger *) HTRequest_context(request);
-    Robot * robot = finger->robot;
+    Robot * mr = finger->robot;
     if (SHOW_MSG) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
     Finger_delete(finger);
-    if (robot->cnt <= 0) {
+    if (mr->cnt <= 0) {
 	if (SHOW_MSG) HTTrace("             Everything is finished...\n");
-	Cleanup(robot, 0);			/* No way back from here */
+	Cleanup(mr, 0);			/* No way back from here */
     }
 
-    if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", robot->cnt, robot->cnt == 1 ? "" : "s");
+    if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
     return HT_OK;
 }
 
@@ -454,7 +456,8 @@ int main (int argc, char ** argv)
 #endif
 
     HTMemLog_open("data.log", 8192, YES);
-    HTTraceData_setCallback(HTMemLog_callback);
+    /*    HTFakeReader_init ("readz", "elements", NO); */
+
     /* Initiate W3C Reference Library with a robot profile */
     HTProfile_newRobot(APP_NAME, APP_VERSION);
 
@@ -525,6 +528,10 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-version")) { 
 		VersionInfo();
 		Cleanup(mr, 0);
+
+	    /* run in quiet mode */
+	    } else if (!strcmp(argv[arg], "-q")) { 
+		mr->flags |= MR_QUIET;
 
 #ifdef WWWTRACE
 	    /* trace flags */

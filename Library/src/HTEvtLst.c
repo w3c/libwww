@@ -32,6 +32,7 @@
 #include "WWWCore.h"
 #include "HTReqMan.h"
 #include "HTTimer.h"
+#include "HTEvent.h"
 #include "HTEvtLst.h"					 /* Implemented here */
 
 /* Type definitions and global variables etc. local to this module */
@@ -53,7 +54,9 @@ PRIVATE SOCKET MaxSock = 0 ;			  /* max socket value in use */
 typedef struct {
     SOCKET 	s ;	 		/* our socket */
     HTEvent * 	events[HTEvent_TYPES];	/* event parameters for read, write, oob */
-    HTTimer *   timeouts[HTEvent_TYPES];/* timeout for each of the events */
+#ifndef IN_EVENT
+    HTTimer *	timeouts[HTEvent_TYPES];
+#endif
 } SockEvents;
 
 typedef enum {
@@ -156,12 +159,55 @@ PRIVATE void EventList_dump (void)
 		    HTTrace("%s", names[i]);
 		    HTEvent_trace(pres->events[i]);
 		    HTTrace(" ");
+#ifndef IN_EVENT
 		    HTTimer_trace(pres->timeouts[i]);
 		    HTTrace(" ");
+#endif
 		}
 	    HTTrace("\n");
 	}
     }
+}
+
+/* ------------------------------------------------------------------------- */
+/*		T I M E O U T   H A N D L E R				     */
+PRIVATE int EventListTimerHandler (HTTimer * timer, void * param, HTEventType type)
+{
+    SockEvents * sockp = (SockEvents *)param;
+    HTEvent * event;
+    HTMemLog_flush();
+#ifdef IN_EVENT
+    if (sockp->events[HTEvent_INDEX(HTEvent_READ)]->timer == timer)
+#else /* IN_EVENT */
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_READ)] == timer)
+#endif /* !IN_EVENT */
+    {
+	event = sockp->events[HTEvent_INDEX(HTEvent_READ)];
+	if (THD_TRACE) HTTrace("Event....... READ timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
+    }
+#ifdef IN_EVENT
+    if (sockp->events[HTEvent_INDEX(HTEvent_WRITE)]->timer == timer)
+#else /* IN_EVENT */
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_WRITE)] == timer)
+#endif /* !IN_EVENT */
+    {
+	event = sockp->events[HTEvent_INDEX(HTEvent_WRITE)];
+	if (THD_TRACE) HTTrace("Event....... WRITE timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
+    }
+#ifdef IN_EVENT
+    if (sockp->events[HTEvent_INDEX(HTEvent_OOB)]->timer == timer)
+#else /* IN_EVENT */
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_OOB)] == timer)
+#endif /* !IN_EVENT */
+    {
+	event = sockp->events[HTEvent_INDEX(HTEvent_OOB)];
+	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
+    }
+    HTTrace("Event....... can't find event for timer %p.\n", timer);
+    return HT_ERROR;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -189,17 +235,28 @@ int EventOrderComparer (const void * a, const void * b)
 }
 #endif
 
-int EventOrder_add (SOCKET s, HTEventType type)
+int EventOrder_add (SOCKET s, HTEventType type, ms_t now)
 {
     EventOrder * pres;
     HTList * cur = EventOrderList;
     HTList * insertAfter = cur;
-    HTEvent * event = HTEventList_lookup(s, type);
+    SockEvents * sockp = SockEvents_get(s, SockEvents_find);
+    HTEvent * event;
 
-    if (event == NULL) {
-	HTTrace("EventOrder.. no event found for socket %d, type %x.\n", s, type);
+    if (sockp == NULL || (event = sockp->events[HTEvent_INDEX(type)]) == NULL) {
+	HTTrace("EventOrder.. no event found for socket %d, type %s.\n", s, HTEvent_type2str(type));
 	return HT_ERROR;
     }
+
+    /*	Fixup the timeout
+    */
+#ifdef IN_EVENT
+    if (event->timer)
+	HTTimer_refresh(event->timer, now);
+#else
+    if (sockp->timeouts[HTEvent_INDEX(type)])
+	HTTimer_refresh(sockp->timeouts[HTEvent_INDEX(type)], now);
+#endif
 
     /*
     **	Look to see if it's already here from before
@@ -233,7 +290,12 @@ PUBLIC int EventOrder_executeAndDelete (void)
     if (THD_TRACE) HTTrace("EventOrder.. execute ordered events\n");
     if (cur == NULL) return NO;
     while ((pres = (EventOrder *) HTList_removeLastObject(cur)) && i < EVENTS_TO_EXECUTE) {
-	int ret = (*pres->event->cbf)(pres->s, pres->event->param, pres->type);
+	HTEvent * event = pres->event;
+	int ret;
+	HTTrace("EventList... calling socket %d, request %p handler %p type %s\n",
+		pres->s, (void *) event->request,
+		(void *) event->cbf, HTEvent_type2str(pres->type));
+	ret = (*pres->event->cbf)(pres->s, pres->event->param, pres->type);
 	HT_FREE(pres);
 	if (ret != HT_OK)
 	    return ret;
@@ -257,31 +319,6 @@ PUBLIC BOOL EventOrder_deleteAll (void)
 #endif /* HT_EVENT_ORDER */
 
 /* ------------------------------------------------------------------------- */
-/*		T I M E O U T   H A N D L E R				     */
-PRIVATE int EventListTimerHandler (HTTimer * timer, void * param)
-{
-    SockEvents * sockp = (SockEvents *)param;
-    HTEvent * event;
-    if (sockp->timeouts[HTEvent_INDEX(HTEvent_READ)] == timer) {
-	event = sockp->events[HTEvent_INDEX(HTEvent_READ)];
-	if (THD_TRACE) HTTrace("Event....... READ timed out on %d.\n", sockp->s);
-	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
-    }
-    if (sockp->timeouts[HTEvent_INDEX(HTEvent_WRITE)] == timer) {
-	event = sockp->events[HTEvent_INDEX(HTEvent_WRITE)];
-	if (THD_TRACE) HTTrace("Event....... WRITE timed out on %d.\n", sockp->s);
-	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
-    }
-    if (sockp->timeouts[HTEvent_INDEX(HTEvent_OOB)] == timer) {
-	event = sockp->events[HTEvent_INDEX(HTEvent_OOB)];
-	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", sockp->s);
-	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
-    }
-    HTTrace("Event....... can't find event for timer %p.\n", timer);
-    return HT_ERROR;
-}
-
-/* ------------------------------------------------------------------------- */
 
 /*
 **  For a given socket, reqister a request structure, a set of operations, 
@@ -293,26 +330,18 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 {
     SockEvents * sockp;
     if (THD_TRACE) 
-	HTTrace("Event....... Register socket %d, request %p handler %p type %x at priority %d\n",
+	HTTrace("Event....... Register socket %d, request %p handler %p type %s at priority %d\n",
 		s, (void *) event->request,
-		(void *) event->cbf, (unsigned) type,
+		(void *) event->cbf, HTEvent_type2str(type),
 		(unsigned) event->priority);
     if (s==INVSOC || HTEvent_INDEX(type) >= HTEvent_TYPES)
 	return 0;
-#if 0
-    /*
-    ** Don't write down TIMEOUT events in the SockEvents list or the fd sets.
-    ** They just manifest in the HTTimer
-    */
-    if (type == HTEvent_TIMEOUT)
-	return HT_OK;
-#endif /* 0 */
 
     /*
     ** Insert socket into appropriate file descriptor set. We also make sure
     ** that it is registered in the global set.
     */
-    if (THD_TRACE) HTTrace("Event....... Registering socket for %d\n", type);
+    if (THD_TRACE) HTTrace("Event....... Registering socket for %s\n", HTEvent_type2str(type));
     sockp = SockEvents_get(s, SockEvents_mayCreate);
     sockp->s = s;
     sockp->events[HTEvent_INDEX(type)] = event;
@@ -328,7 +357,11 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     ** a new timeout for this event
     */
     if (event->millis >= 0) {
+#ifdef IN_EVENT
+	event->timer = HTTimer_new(NULL, EventListTimerHandler, sockp, event->millis, YES);
+#else
 	sockp->timeouts[HTEvent_INDEX(type)] = HTTimer_new(NULL, EventListTimerHandler, sockp, event->millis, YES);
+#endif
     }
 
     return HT_OK;
@@ -371,7 +404,11 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    **  If so then delete the timeout as well.
 	    */
 	    {
+#ifdef IN_EVENT
+		HTTimer * timer = pres->events[HTEvent_INDEX(type)]->timer;
+#else
 		HTTimer * timer = pres->timeouts[HTEvent_INDEX(type)];
+#endif
 		if (timer) HTTimer_delete(timer);
 	    }
 	    
@@ -393,7 +430,7 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
 #endif /* !WWW_WIN_ASYNC */
       	    if (THD_TRACE)
-		HTTrace("Event....... Socket %d unregisterd for %x\n", s, type);
+		HTTrace("Event....... Socket %d unregisterd for %s\n", s, HTEvent_type2str(type));
 	    return HT_OK;
 	}
     }
@@ -438,12 +475,21 @@ PUBLIC int HTEventList_unregisterAll (void)
 **  Dispatch the event to the appropriate event handler.
 **  If no event handler is found then just return.
 */
-PUBLIC int HTEventList_dispatch (SOCKET s, HTEventType type)
+PUBLIC int HTEventList_dispatch (SOCKET s, HTEventType type, ms_t now)
 {
     SockEvents * sockp = SockEvents_get(s, SockEvents_find);
     if (sockp) {
 	HTEvent * event = sockp->events[HTEvent_INDEX(type)];
 
+	/*	Fixup the timeout
+	*/
+#ifdef IN_EVENT
+	if (event->timer)
+	    HTTimer_refresh(event->timer, now);
+#else
+	if (sockp->timeouts[HTEvent_INDEX(type)])
+	    HTTimer_refresh(sockp->timeouts[HTEvent_INDEX(type)], now);
+#endif
 	/*
 	**  If we have found an event object for this event then see
 	**  is we should call it.
@@ -581,6 +627,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     WORD event;
     SOCKET sock;
     HTEventType type;
+    ms_t now = HTGetTimeInMillis();
 
     /* timeout stuff */
     if (uMsg == WM_TIMER) {
@@ -602,7 +649,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     case FD_CLOSE: type = HTEvent_CLOSE; break;
     default: HTDebugBreak();
     }
-    if (HTEventList_dispatch((int)sock, type) != HT_OK)
+    if (HTEventList_dispatch((int)sock, type, now) != HT_OK)
 	HTEndLoop = -1;
     return (0);
 }
@@ -633,9 +680,10 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
     struct timeval waittime, * wt;
     int active_sockets;
     int maxfds;
-    int timeout;
+    ms_t timeout;
+    ms_t now;
     SOCKET s;
-    int status = 0;
+    int status = HT_OK;
     HTEndLoop = 0;
 
     EventOrderList = HTList_new();	/* is kept around until EventOrder_deleteAll */
@@ -655,7 +703,9 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	**  other OS). Code borrowed from X server.
 	*/
 	wt = NULL;
-	if ((timeout = HTTimer_soonest())) {
+	if ((status = HTTimer_next(&timeout)))
+	    return status;
+	if (timeout != 0) {
 	    waittime.tv_sec = timeout / MILLI_PER_SECOND;
 	    waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
 		(1000000 / MILLI_PER_SECOND);
@@ -673,6 +723,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
         active_sockets = select(maxfds+1, &treadset, &twriteset, &texceptset, wt);
 #endif
 
+	now = HTGetTimeInMillis();
 	HTTraceData((char*)&treadset, maxfds/8 + 1, "HTEventList_loop post treadset: (active_sockets:%d)", active_sockets);
 	HTTraceData((char*)&twriteset, maxfds/8 + 1, "HTEventList_loop post twriteset: (errno:%d)", errno);
 	HTTraceData((char*)&texceptset, maxfds/8 + 1, "HTEventList_loop post texceptset:");
@@ -692,30 +743,28 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 
 	/*
 	**  We had a timeout so now we check and see if we have a timeout
-	**  handler to call
+	**  handler to call. Let HTTimer_next get it.
 	*/ 
-	if (active_sockets == 0) {
-	    HTTimer_dispatchAll();
+	if (active_sockets == 0)
 	    continue;
-	}
 
 	/*
 	**  There were active sockets. Determine which fd sets they were in
 	*/
 #ifdef HT_EVENT_ORDER
-#define DISPATCH(socket, type) EventOrder_add(socket, type)
+#define DISPATCH(socket, type, now) EventOrder_add(socket, type, now)
 #else /* HT_EVENT_ORDER */
-#define DISPATCH(socket, type) HTEventList_dispatch(socket, type)
+#define DISPATCH(socket, type, now) HTEventList_dispatch(socket, type, now)
 #endif /* !HT_EVENT_ORDER */
 	for (s = 0 ; s <= maxfds ; s++) { 
 	    if (FD_ISSET(s, &texceptset))
-		if ((status = DISPATCH(s, HTEvent_OOB)) != HT_OK)
+		if ((status = DISPATCH(s, HTEvent_OOB, now)) != HT_OK)
 		    return status;
 	    if (FD_ISSET(s, &twriteset))
-		if ((status = DISPATCH(s, HTEvent_WRITE)) != HT_OK)
+		if ((status = DISPATCH(s, HTEvent_WRITE, now)) != HT_OK)
 		    return status;
 	    if (FD_ISSET(s, &treadset))
-		if ((status = DISPATCH(s, HTEvent_READ)) != HT_OK)
+		if ((status = DISPATCH(s, HTEvent_READ, now)) != HT_OK)
 		    return status;
 	}
 #ifdef HT_EVENT_ORDER

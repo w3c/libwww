@@ -212,6 +212,8 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	}
 	HT_FREE(suffix);
 	HT_FREE(deflt);
+	if (cbf == NULL)
+	    return HTBlackHole();
 	if (filename) {
 	    if ((fp = fopen(filename, "wb")) == NULL) {
 		HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,

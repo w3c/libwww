@@ -12,6 +12,7 @@
 #include "sysdep.h"
 #include "HTUtils.h"
 #include "HTMemLog.h"
+#include "HTTimer.h"
 
 PRIVATE size_t		LogBuffSize = 1024; /* default size is 1k */
 PRIVATE int		LogFd = 2;
@@ -19,8 +20,15 @@ PRIVATE const char *	LogName = NULL;
 PRIVATE char *		LogBuff  = NULL;
 PRIVATE size_t		LogLen = 0;
 PRIVATE BOOL		KeepOpen = YES;
+PRIVATE HTTimer *	Timer = NULL;
 
-PUBLIC int HTMemLog_open (const char * logName, const size_t size, BOOL keepOpen)
+PRIVATE int MemLogTimeout (HTTimer * timer, void * param, HTEventType type)
+{
+    HTTrace("MemLog...... flushing on timeout\n");
+    return HTMemLog_flush();
+}
+
+PUBLIC int HTMemLog_open (char * logName, size_t size, BOOL keepOpen)
 {
 #ifdef USE_SYSLOG
     openlog(LogName, LOG_NDELAY, LOG_USER);
@@ -36,6 +44,8 @@ PUBLIC int HTMemLog_open (const char * logName, const size_t size, BOOL keepOpen
 	HT_OUTOFMEM("HTMemLog_open");
     LogLen = 0;
 #endif /* !USE_SYSLOG */
+    HTTraceData_setCallback(HTMemLog_callback);
+    Timer = HTTimer_new(NULL, MemLogTimeout, NULL, 10000, YES);
     return HT_OK;
 }
 
@@ -88,18 +98,24 @@ PRIVATE int HTMemLog_addTime(void)
 {
     char buff[20];
     int len;
-    struct timeval tp;
+    int ret;
 #ifdef WWW_MSWINDOWS
-    return GetTickCount();
+    SYSTEMTIME systemTime;
+
+    GetLocalTime(&systemTime);
+    ret = systemTime.wSecond;
+    len = sprintf(buff, "%02d:%02d:%02d.%d", systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
 #else /* WWW_MSWINDOWS */
+    struct timeval tp;
     struct timezone tz = {300, DST_USA};
 
     gettimeofday(&tp, &tz);
     tp.tv_sec = HTMemLog_adjustGMT(tp.tv_sec)%(24*60*60);
+    ret = tp.tv_sec;
     len = sprintf(buff, "%02d:%02d:%02d.%d", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
-    HTMemLog_add(buff, len);
-    return tp.tv_sec;
 #endif /* !WWW_MSWINDOWS */
+    HTMemLog_add(buff, len);
+    return ret;
 }
 
 PUBLIC void HTMemLog_close (void)
@@ -121,10 +137,30 @@ PUBLIC void HTMemLog_close (void)
 #define PRINT_BUFF_SIZE	200
 #endif /* !USE_SYSLOG */
 
-PUBLIC int HTMemLog_callback (const char * data, const size_t len, const char * fmt, va_list pArgs)
+#ifdef USE_EXCLUDES
+typedef struct {char * str; int len;} StrIndexIndex;
+
+PRIVATE int StrIndex (char * str, StrIndexIndex element[], int elements)
+{
+    int i;
+    for (i = 0; i < elements; i++)
+	if (!strncmp(element[i].str, str, element[i].len))
+	    return i + 1;
+    return 0;
+}
+
+PRIVATE StrIndexIndex Excludes[] = {{"HTReader_read", 13}, {"HTWriter_write", 14}, {"HTEventList_loop", 16}};
+
+#endif /* USE_EXCLUDES */
+
+PUBLIC int HTMemLog_callback (char * data, size_t len, char * fmt, va_list pArgs)
 {
     char buff[PRINT_BUFF_SIZE];
     int ret;
+#ifdef USE_EXCLUDES
+    if (StrIndex(fmt, Excludes, sizeof(Excludes)/sizeof(Excludes[0])))
+	return 0;
+#endif /* USE_EXCLUDES */
 #ifdef USE_SYSLOG
     ret = vsprintf(buff, fmt, pArgs);
     syslog(LOG_DEBUG, "%s\n", buff);

@@ -31,9 +31,9 @@ Reference Library</A>.
 Too much to do right now.
 <P>
 <PRE>
-extern int HTMemLog_open (const char * logName, const size_t size, BOOL keepOpen);
-extern int HTMemLog_add(const char * buf, const size_t len);
-extern int HTMemLog_flush(void);
+extern int HTMemLog_open (char * logName, size_t size, BOOL keepOpen);
+extern int HTMemLog_add (char * buf, size_t len);
+extern int HTMemLog_flush (void);
 extern void HTMemLog_close (void);
 extern HTTraceDataCallback HTMemLog_callback;
 </PRE>

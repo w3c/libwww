@@ -174,6 +174,21 @@ PUBLIC int HTList_indexOf (HTList * me, void * object)
     return -1;
 }
 
+PUBLIC int HTList_indexOfElement (HTList * me, HTList * element)
+{
+    if (me) {
+	int position = 0;
+	if (me == element)
+	    return -1;
+	while ((me = me->next)) {
+	    if (me == element)
+		return position;
+	    position++;
+	}
+    }
+    return -2;
+}
+
 PUBLIC HTList * HTList_elementOf (HTList * cur, void * object, HTList ** pLast)
 {
     HTList * 	last = cur;

@@ -77,9 +77,28 @@ PRIVATE int HTReader_abort (HTInputStream * me, HTList * e)
 **     		HT_WOULD_BLOCK	if read or write would block
 **		HT_PAUSE	if stream is paused
 */
+char * strnstr(char * haystack, int *pLen, char * needle)
+{
+    int found = 0;
+    int need = strlen(needle);
+    int i, start;
+    for (start = i = 0; i < *pLen; i++)
+	if (haystack[i] == needle[found]) {
+	    if (++found == need) {
+		i -= need - 1; /* beginning of string */
+		*pLen -= i;
+		return haystack+i;
+	    }
+	} else {
+	    found = 0;
+	}
+    *pLen = 0;
+    return NULL;
+}
+
 int DebugBufferSize = INPUT_BUFFER_SIZE;
 
-/* #include fakeReader.c */
+#include "HTFakRed.c"
 PRIVATE int HTReader_read (HTInputStream * me)
 {
     HTHost * host = me->host;
@@ -148,7 +167,18 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    HTTraceData(me->data, me->b_read, "HTReader_read me->data:");
 	    me->write = me->data;
 	    me->read = me->data + me->b_read;
-
+#ifdef FIND_SIGNATURES
+	    {
+		char * ptr = me->data;
+		int len = me->b_read;
+		while ((ptr = strnstr(ptr, &len, "HTTP/1.1 200 OK")) != NULL) {
+		    if (PROT_TRACE)
+			HTTrace("Read Socket. Signature found at 0x%x of 0x%x.\n", ptr - me->data, me->b_read);
+		    ptr++;
+		    len--;
+		}
+	    }
+#endif /* FIND_SIGNATURES */
 #ifdef NOT_ASCII
 	    {
 		char *p = me->data;

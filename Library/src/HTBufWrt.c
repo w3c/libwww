@@ -57,7 +57,7 @@ PRIVATE int HTBufferWriter_flush (HTOutputStream * me)
     return status;
 }
 
-PRIVATE int FlushEvent (HTTimer * timer, void * param)
+PRIVATE int FlushEvent (HTTimer * timer, void * param, HTEventType type)
 {
     HTOutputStream * me = (HTOutputStream *) param;
     if (timer != me->timer) HTDebugBreak();

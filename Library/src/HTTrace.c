@@ -62,7 +62,7 @@ PUBLIC HTTraceDataCallback * HTTraceData_getCallback (void)
     return PHTTraceDataCallback;
 }
 
-PUBLIC int HTTraceData (const char * data, const size_t len, const char * fmt, ...)
+PUBLIC int HTTraceData (char * data, size_t len, char * fmt, ...)
 {
     va_list pArgs;
     va_start(pArgs, fmt);

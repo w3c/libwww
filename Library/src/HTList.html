@@ -90,7 +90,9 @@ extern int	HTList_count			(HTList *me);
 In some situations is is required to use an index in order to refer to a
 list element. This is for example the case if an element can be registered
 multiple times.
-<PRE>extern int	HTList_indexOf	 (HTList * me, void * object);
+<PRE>
+extern int	HTList_indexOf	 (HTList * me, void * object);
+extern int	HTList_indexOfElement (HTList * me, HTList * element);
 extern void *	HTList_objectAt	 (HTList * me, int position);
 extern HTList * HTList_elementOf (HTList * me, void * object, HTList ** pLast);
 #define 	HTList_objectOf(me)		(me ? me-&gt;object: NULL)

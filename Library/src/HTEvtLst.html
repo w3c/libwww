@@ -100,7 +100,7 @@ extern int HTEventList_unregisterAll (void);
 Callbacks can be looked up or dispatched based on the socket and operation 
 (read/write/oob)
 <PRE>
-extern int HTEventList_dispatch (SOCKET, HTEventType);
+extern int HTEventList_dispatch (SOCKET s, HTEventType type, ms_t now);
 extern HTEvent * HTEventList_lookup (SOCKET s, HTEventType type);
 </PRE>
 <H2>

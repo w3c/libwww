@@ -122,13 +122,13 @@ extern int HTTrace(const char * fmt, ...);
 A similare mechanism exists for logging data, except that is adds a
 data and length argument to the trace call.
 <PRE>
-typedef int HTTraceDataCallback(const char * data, const size_t len, 
-			       const char * fmt, va_list pArgs);
+typedef int HTTraceDataCallback(char * data, size_t len, 
+				char * fmt, va_list pArgs);
 
 extern void HTTraceData_setCallback(HTTraceDataCallback * pCall);
 extern HTTraceDataCallback * HTTraceData_getCallback(void);
 
-extern int HTTraceData(const char * data, const size_t len, const char * fmt, ...);
+extern int HTTraceData(char * data, size_t len, char * fmt, ...);
 </PRE>
 <H3>
   Hiding Extraneous Logging Messages

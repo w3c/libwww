@@ -114,3 +114,15 @@ PUBLIC BOOL HTEvent_setTimeout(HTEvent * event, int timeout)
     return NO;
 }
 
+PUBLIC char * HTEvent_type2str(HTEventType type)
+{
+    int i;
+    static char space[20]; /* in case we have to sprintf type */
+    static struct {int type; char * str;} match[] = {HT_EVENT_INITIALIZER};
+    for (i = 0; i < sizeof(match)/sizeof(match[0]); i++)
+	if (match[i].type == type)
+	    return match[i].str;
+    sprintf(space, "0x%x", type);
+    return space;
+}
+

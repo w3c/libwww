@@ -47,6 +47,9 @@ Library</A>.
 #ifndef HTEVENT_H
 #define HTEVENT_H
 #include "sysdep.h"
+#ifdef IN_EVENT
+typedef struct _HTTimer HTTimer;
+#endif
 
 #if 0
 #define FD_NONE	0
@@ -96,6 +99,21 @@ typedef enum {
 
 #define HTEvent_BITS(type) (type & 0xFFFF)
 #define HTEvent_INDEX(type) (type >> HTEVENT_INDEX)
+
+#define HT_EVENT_INITIALIZER \
+    {HTEvent_READ, "HTEvent_READ"}, \
+    {HTEvent_ACCEPT, "HTEvent_ACCEPT"}, \
+    {HTEvent_CLOSE, "HTEvent_CLOSE"}, \
+    {HTEvent_WRITE, "HTEvent_WRITE"}, \
+    {HTEvent_CONNECT, "HTEvent_CONNECT"}, \
+    {HTEvent_OOB, "HTEvent_OOB"}, \
+    {HTEvent_TIMEOUT, "HTEvent_TIMEOUT"}, \
+    {HTEvent_BEGIN, "HTEvent_BEGIN"}, \
+    {HTEvent_END, "HTEvent_END"}, \
+    {HTEvent_FLUSH, "HTEvent_FLUSH"}, \
+    {HTEvent_RESET, "HTEvent_RESET"}
+
+extern char * HTEvent_type2str(HTEventType type);
 
 /* Avoid circular include for HTReq->HTNet->HTHost: HTEvent blah */
 typedef struct _HTEvent HTEvent;
@@ -153,6 +171,9 @@ your own event manager by using the methods below:
 struct _HTEvent {
     HTPriority		priority;	 /* Priority of this request (event) */
     int                 millis;              /* Timeout in ms for this event */
+#ifdef IN_EVENT
+    HTTimer *		timer;
+#endif
     HTEventCallback *	cbf;			   /* Protocol state machine */
     void *		param;		       /* HTEvent_register parameter */
     HTRequest *		request;
