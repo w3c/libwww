@@ -1,0 +1,928 @@
+Index: Library/Repository/src/HTAnchor.c
+diff -c Library/Repository/src/HTAnchor.c:1.61 Library/Repository/src/HTAnchor.c:1.62
+*** Library/Repository/src/HTAnchor.c:1.61	Mon Sep  9 20:54:28 1996
+--- Library/Repository/src/HTAnchor.c	Thu Sep 12 22:05:20 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	An anchor represents a region of a hypertext document which is
+  **	linked to another anchor in the same or a different document.
+--- 3,9 ----
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	An anchor represents a region of a hypertext document which is
+  **	linked to another anchor in the same or a different document.
+***************
+*** 1074,1079 ****
+--- 1074,1080 ----
+  #if 0
+  	if (me->last_modified < 0) me->last_modified = me->date;
+  #endif
++ 	if (ANCH_TRACE) HTTrace("HTAnchor.... Anchor is parsed\n");
+  	me->header_parsed = YES;
+      }
+  }
+***************
+*** 1088,1093 ****
+--- 1089,1095 ----
+  */
+  PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
+  {
++     if (ANCH_TRACE) HTTrace("HTAnchor.... Clearing header\n");
+      me->methods = METHOD_INVALID;
+      if (me->content_encoding) {
+  	HTList_delete(me->content_encoding);
+***************
+*** 1129,1143 ****
+      HT_FREE(me->version);
+      HT_FREE(me->etag);
+  
+! #if 0
+!     if (me->extra_headers) {
+! 	HTList *cur = me->extra_headers;
+! 	char *pres;
+! 	while ((pres = (char *) HTList_nextObject(cur)))
+! 	    HT_FREE(pres);
+! 	HTList_delete(me->extra_headers);
+! 	me->extra_headers = NULL;
+!     }
+!     me->header_parsed = NO;				      /* All cleared */
+! #endif
+  }
+--- 1131,1136 ----
+      HT_FREE(me->version);
+      HT_FREE(me->etag);
+  
+!     /* Anchor is cleared */
+!     me->header_parsed = NO;
+  }
+Index: Library/Repository/src/HTCache.c
+diff -c Library/Repository/src/HTCache.c:2.24 Library/Repository/src/HTCache.c:2.25
+*** Library/Repository/src/HTCache.c:2.24	Mon Sep  9 16:53:31 1996
+--- Library/Repository/src/HTCache.c	Thu Sep 12 22:05:22 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This modules manages the cache
+  **
+--- 3,9 ----
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This modules manages the cache
+  **
+***************
+*** 256,262 ****
+  
+  	/*
+  	**  Walk through the list and write it out. The format is really
+! 	**  simple as we keep it all in ASCII
+  	*/
+  	{
+  	    HTList * cur;
+--- 256,262 ----
+  
+  	/*
+  	**  Walk through the list and write it out. The format is really
+! 	**  simple as we keep it all in ASCII.
+  	*/
+  	{
+  	    HTList * cur;
+***************
+*** 333,338 ****
+--- 333,350 ----
+  	cache->must_revalidate = validate-0x30;
+  
+  	/*
++ 	**  Create the new anchor and fill in the information that we have read
++ 	**  in the index. This is for example the etag and date
++ 	*/
++ 	if (cache) {
++ 	    HTAnchor * anchor = HTAnchor_findAddress(cache->url);
++ 	    HTParentAnchor * parent = HTAnchor_parent(anchor);
++ 	    HTAnchor_setDate(parent, cache->date);
++ 	    HTAnchor_setExpires(parent, cache->expires);
++ 	    if (cache->etag) HTAnchor_setEtag(parent, cache->etag);
++ 	}
++ 
++ 	/*
+  	**  Create the cache table if not already existent and add the new
+  	**  entry. Also check that the hash is still within bounds
+  	*/
+***************
+*** 983,988 ****
+--- 995,1079 ----
+  }
+  
+  /*
++ **  Is we have a valid entry in the cache then we also need a location
++ **  where we can get it. Hopefully, we may be able to access it
++ **  thourgh one of our protocol modules, for example the local file
++ **  module. The name returned is in URL syntax and must be freed by
++ **  the caller
++ */
++ PRIVATE char * HTCache_location (HTCache * cache, BOOL meta)
++ {
++     char * local = NULL;
++     if (cache && HTCacheRoot) {
++ 	if (meta) {
++ 	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
++ 					    strlen(HT_CACHE_META) +
++ 					    strlen(cache->cachename))) == NULL)
++ 		HT_OUTOFMEM("HTCache_location");
++ 	    sprintf(local, "%s%d/%s%s", HTCacheRoot, cache->hash, cache->cachename,
++ 		    HT_CACHE_META);
++ 	} else {
++ 	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
++ 					    strlen(cache->cachename))) == NULL)
++ 		HT_OUTOFMEM("HTCache_location");
++ 	    sprintf(local, "%s%d/%s", HTCacheRoot, cache->hash, cache->cachename);
++ 	}
++     }
++     return local;
++ }
++ 
++ /*
++ **  Remove from disk. You must explicitly remove a lock
++ **  before this operation can succeed
++ */
++ PRIVATE BOOL flush_object (HTCache * cache)
++ {
++     if (cache && !HTCache_hasLock(cache)) {
++ 	char * head = HTCache_location(cache, YES);
++ 	char * body = HTCache_location(cache, NO);
++ 	REMOVE(head);
++ 	REMOVE(body);
++ 	HT_FREE(head);
++ 	HT_FREE(body);
++ 	return YES;
++     }
++     return NO;
++ }
++ 
++ /*	HTCache_flushAll
++ **	----------------
++ **	Destroys all cache entried in memory and on disk. Resets the cache
++ **	to empty but the cache does not have to be reinitialized before we
++ **	can use it again.
++ */
++ PUBLIC BOOL HTCache_flushAll (void)
++ {
++     if (CacheTable) {
++ 	HTList * cur;
++ 	int cnt;
++ 
++ 	/* Delete the rest */
++ 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
++ 	    if ((cur = CacheTable[cnt])) { 
++ 		HTCache * pres;
++ 		while ((pres = (HTCache *) HTList_nextObject(cur)) != NULL) {
++ 		    flush_object(pres);
++ 		    free_object(pres);
++ 		}
++ 	    }
++ 	    HTList_delete(CacheTable[cnt]);
++ 	    CacheTable[cnt] = NULL;
++ 	}
++ 
++ 	/* Write the new empty index to disk */
++ 	HTCacheIndex_write(HTCacheRoot);
++ 	HTTotalSize = 0L;
++ 	return YES;
++     }
++     return NO;
++ }
++ 
++ /*
+  **  This function checks whether a document has expired or not.
+  **  The check is based on the metainformation passed in the anchor object
+  **  The function returns the level of validation needed for getting a fresh
+***************
+*** 1096,1129 ****
+  **  module. The name returned is in URL syntax and must be freed by
+  **  the caller
+  */
+- PRIVATE char * HTCache_location (HTCache * cache, BOOL meta)
+- {
+-     char * local = NULL;
+-     if (cache && HTCacheRoot) {
+- 	if (meta) {
+- 	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
+- 					    strlen(HT_CACHE_META) +
+- 					    strlen(cache->cachename))) == NULL)
+- 		HT_OUTOFMEM("HTCache_location");
+- 	    sprintf(local, "%s%d/%s%s", HTCacheRoot, cache->hash, cache->cachename,
+- 		    HT_CACHE_META);
+- 	} else {
+- 	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
+- 					    strlen(cache->cachename))) == NULL)
+- 		HT_OUTOFMEM("HTCache_location");
+- 	    sprintf(local, "%s%d/%s", HTCacheRoot, cache->hash, cache->cachename);
+- 	}
+-     }
+-     return local;
+- }
+- 
+- /*
+- **  Is we have a valid entry in the cache then we also need a location
+- **  where we can get it. Hopefully, we may be able to access it
+- **  thourgh one of our protocol modules, for example the local file
+- **  module. The name returned is in URL syntax and must be freed by
+- **  the caller
+- */
+  PUBLIC char * HTCache_name (HTCache * cache)
+  {
+      if (cache && HTCacheRoot) {
+--- 1187,1192 ----
+***************
+*** 1141,1156 ****
+  */
+  PUBLIC BOOL HTCache_remove (HTCache * cache)
+  {
+!     if (cache && !HTCache_hasLock(cache)) {
+! 	char * head = HTCache_location(cache, YES);
+! 	char * body = HTCache_location(cache, NO);
+! 	REMOVE(head);
+! 	REMOVE(body);
+! 	HT_FREE(head);
+! 	HT_FREE(body);
+! 	return HTCache_delete(cache);
+!     }
+!     return NO;
+  }
+  
+  /*
+--- 1204,1210 ----
+  */
+  PUBLIC BOOL HTCache_remove (HTCache * cache)
+  {
+!     return flush_object(cache) && HTCache_delete(cache);
+  }
+  
+  /*
+Index: Library/Repository/src/HTCache.html
+diff -c Library/Repository/src/HTCache.html:2.12 Library/Repository/src/HTCache.html:2.13
+*** Library/Repository/src/HTCache.html:2.12	Mon Sep  9 12:23:03 1996
+--- Library/Repository/src/HTCache.html	Thu Sep 12 22:05:24 1996
+***************
+*** 210,216 ****
+  extern BOOL HTCache_remove (HTCache * cache);
+  </PRE>
+  <H3>
+!   Delete All Cache Objects
+  </H3>
+  <P>
+  Destroys all cache entried in memory but does not write anything to disk.
+--- 210,216 ----
+  extern BOOL HTCache_remove (HTCache * cache);
+  </PRE>
+  <H3>
+!   Delete All Cache Objects in Memory
+  </H3>
+  <P>
+  Destroys all cache entried in memory but does not write anything to disk.
+***************
+*** 219,224 ****
+--- 219,234 ----
+  extern BOOL HTCache_deleteAll (void);
+  </PRE>
+  <H3>
++   Delete all Cache Object and File Entries
++ </H3>
++ <P>
++ Destroys all cache entried in memory <B>and</B> on disk. This call basically
++ resets the cache to the inital state but it does not terminate the cache.
++ That is, you don't have to reinitialize the cache before you can use it again.
++ <PRE>
++ extern BOOL HTCache_flushAll (void);
++ </PRE>
++ <H3>
+    Find a Cached Object
+  </H3>
+  <P>
+***************
+*** 296,301 ****
+  <P>
+    <HR>
+  <ADDRESS>
+!   @(#) $Id$
+  </ADDRESS>
+  </BODY></HTML>
+--- 306,311 ----
+  <P>
+    <HR>
+  <ADDRESS>
+!   @(#) $Id$
+  </ADDRESS>
+  </BODY></HTML>
+Index: Library/Repository/src/HTFilter.c
+diff -c Library/Repository/src/HTFilter.c:2.13 Library/Repository/src/HTFilter.c:2.14
+*** Library/Repository/src/HTFilter.c:2.13	Mon Sep  9 12:23:04 1996
+--- Library/Repository/src/HTFilter.c	Thu Sep 12 22:05:25 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implrments a set of default filters that can be registerd
+  **	as BEFORE and AFTER filters to the Net manager
+--- 3,9 ----
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implrments a set of default filters that can be registerd
+  **	as BEFORE and AFTER filters to the Net manager
+***************
+*** 264,269 ****
+--- 264,277 ----
+      void * document = HTAnchor_document(anchor);
+  
+      /*
++     **  We only check the memory cache if it's a GET method
++     */
++     if (HTRequest_method(request) != METHOD_GET) {
++ 	if (CACHE_TRACE) HTTrace("Mem Cache... We only check GET methods\n");
++ 	return HT_OK;
++     }
++ 
++     /*
+      **  If we are asked to flush the persistent cache then there is no reason
+      **  to do anything here - we're flushing it anyway. Also if no document
+      **  then just exit from this filter.
+***************
+*** 278,286 ****
+      **  have the object in the history list. Depending on what the user asked,
+      **  we can add a cache validator
+      */
+      if (document) {
+- 	HTExpiresMode expires = HTCacheMode_expires();
+  	if (validation != HT_CACHE_FLUSH_MEM) {
+  	    if (CACHE_TRACE)
+  		HTTrace("Mem Cache... Document already in memory\n");
+  	    if (expires != HT_EXPIRES_IGNORE) {
+--- 286,295 ----
+      **  have the object in the history list. Depending on what the user asked,
+      **  we can add a cache validator
+      */
++ #if 0
+      if (document) {
+  	if (validation != HT_CACHE_FLUSH_MEM) {
++ 	    HTExpiresMode expires = HTCacheMode_expires();
+  	    if (CACHE_TRACE)
+  		HTTrace("Mem Cache... Document already in memory\n");
+  	    if (expires != HT_EXPIRES_IGNORE) {
+***************
+*** 289,299 ****
+  		**  Ask the cache manager if this object has expired. Also
+  		**  check if we should care about expiration or not.
+  		*/
+- #if 0
+  		if (!HTCache_isValid(anchor)) {
+- #else
+- 		    if (1) {
+- #endif
+  		    if (expires == HT_EXPIRES_NOTIFY) {
+  
+  			/*
+--- 298,304 ----
+***************
+*** 311,325 ****
+  		    }
+  		}
+  	    }
+- 	    return HT_LOADED;			/* Got it! */
+- 	} else {
+- 
+- 	    /*
+- 	    **  If we were asked to validate the memory version then
+- 	    **  use either the etag or the last modified for cache validation
+- 	    */
+- 	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
+  	}
+      }
+      return HT_OK;
+  }
+--- 316,329 ----
+  		    }
+  		}
+  	    }
+  	}
++ 	return HT_LOADED;			/* Got it! */
++     }
++     return HT_OK;
++ #endif
++     if (document && validation != HT_CACHE_FLUSH_MEM) {
++ 	if (CACHE_TRACE) HTTrace("Mem Cache... Document already in memory\n");
++ 	return HT_LOADED;
+      }
+      return HT_OK;
+  }
+Index: Library/Repository/src/HTMIMERq.c
+diff -c Library/Repository/src/HTMIMERq.c:2.27 Library/Repository/src/HTMIMERq.c:2.28
+*** Library/Repository/src/HTMIMERq.c:2.27	Sun Sep  8 18:08:31 1996
+--- Library/Repository/src/HTMIMERq.c	Thu Sep 12 22:05:26 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implements the output stream for MIME used for sending
+  **	requests with a entity body to HTTP, NEWS, etc. or for generating
+--- 3,9 ----
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implements the output stream for MIME used for sending
+  **	requests with a entity body to HTTP, NEWS, etc. or for generating
+***************
+*** 209,215 ****
+      if (me->transparent) {
+  	if (me->put_fix) {
+  	    HTNet * net = HTRequest_net(me->request);
+! 	    HTEvent_unregister(net->sockfd, FD_READ);
+  	    me->put_fix = NO;
+  	}
+      } else {
+--- 209,215 ----
+      if (me->transparent) {
+  	if (me->put_fix) {
+  	    HTNet * net = HTRequest_net(me->request);
+! 	    HTEvent_unregister(net->sockfd, FD_READ | FD_WRITE);
+  	    me->put_fix = NO;
+  	}
+      } else {
+Index: Library/Repository/src/HTMethod.html
+diff -c Library/Repository/src/HTMethod.html:2.13 Library/Repository/src/HTMethod.html:2.14
+*** Library/Repository/src/HTMethod.html:2.13	Tue Jul  2 18:54:52 1996
+--- Library/Repository/src/HTMethod.html	Thu Sep 12 22:05:27 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+    <TITLE>W3C Reference Library libwww Request Access Methods</TITLE>
+- <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
+  </HEAD>
+  <BODY>
+  <H1>
+--- 1,7 ----
+  <HTML>
+  <HEAD>
++   <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
+    <TITLE>W3C Reference Library libwww Request Access Methods</TITLE>
+  </HEAD>
+  <BODY>
+  <H1>
+***************
+*** 65,75 ****
+    Is Method "Safe"?
+  </H3>
+  <P>
+! If a method a safe, it doesn't produce any side effects on the server
+  <PRE>
+  #define HTMethod_isSafe(me)	((me) &amp; (METHOD_GET|METHOD_HEAD))
+  </PRE>
+  <H3>
+    Does a Method include Entity?
+  </H3>
+  <P>
+--- 65,85 ----
+    Is Method "Safe"?
+  </H3>
+  <P>
+! If a method is safe, it doesn't produce any side effects on the server
+  <PRE>
+  #define HTMethod_isSafe(me)	((me) &amp; (METHOD_GET|METHOD_HEAD))
+  </PRE>
+  <H3>
++   Does the Method Replace or Add to Metainformation
++ </H3>
++ <P>
++ Most methods override the current set of metainformation stored in an
++ <A HREF="HTAnchor.html">anchor</A>. However, a few methods actually only
++ add to the anchor metainformation. We have a small macro to make the distinction.
++ <PRE>
++ #define HTMethod_addMeta(me)  ((me) &amp; (METHOD_TRACE | METHOD_OPTIONS))
++ </PRE>
++ <H3>
+    Does a Method include Entity?
+  </H3>
+  <P>
+***************
+*** 83,88 ****
+  <P>
+    <HR>
+  <ADDRESS>
+!   @(#) $Id$
+  </ADDRESS>
+  </BODY></HTML>
+--- 93,98 ----
+  <P>
+    <HR>
+  <ADDRESS>
+!   @(#) $Id$
+  </ADDRESS>
+  </BODY></HTML>
+Index: Library/Repository/src/HTReqMan.c
+diff -c Library/Repository/src/HTReqMan.c:2.57 Library/Repository/src/HTReqMan.c:2.58
+*** Library/Repository/src/HTReqMan.c:2.57	Sun Sep  8 18:08:42 1996
+--- Library/Repository/src/HTReqMan.c	Thu Sep 12 22:05:29 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  ** Authors
+  **	TBL	Tim Berners-Lee timbl@w3.org
+--- 3,9 ----
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  ** Authors
+  **	TBL	Tim Berners-Lee timbl@w3.org
+***************
+*** 1187,1193 ****
+  {
+      if (request) {
+  	if (!request->cache_control) request->cache_control=HTAssocList_new();
+! 	return HTAssocList_addObject(request->cache_control, token, value);
+      }
+      return NO;
+  }
+--- 1187,1193 ----
+  {
+      if (request) {
+  	if (!request->cache_control) request->cache_control=HTAssocList_new();
+! 	return HTAssocList_replaceObject(request->cache_control, token, value);
+      }
+      return NO;
+  }
+***************
+*** 1247,1253 ****
+      if (request) {
+  	if (!request->client_connection)
+  	    request->client_connection=HTAssocList_new();
+! 	return HTAssocList_addObject(request->client_connection, token, value);
+      }
+      return NO;
+  }
+--- 1247,1254 ----
+      if (request) {
+  	if (!request->client_connection)
+  	    request->client_connection=HTAssocList_new();
+! 	return HTAssocList_replaceObject(request->client_connection,
+! 					 token, value);
+      }
+      return NO;
+  }
+***************
+*** 1273,1279 ****
+      if (request) {
+  	if (!request->server_connection)
+  	    request->server_connection=HTAssocList_new();
+! 	return HTAssocList_addObject(request->server_connection, token, value);
+      }
+      return NO;
+  }
+--- 1274,1281 ----
+      if (request) {
+  	if (!request->server_connection)
+  	    request->server_connection=HTAssocList_new();
+! 	return HTAssocList_replaceObject(request->server_connection,
+! 					 token, value);
+      }
+      return NO;
+  }
+Index: Library/Repository/src/HTTP.c
+diff -c Library/Repository/src/HTTP.c:1.138 Library/Repository/src/HTTP.c:1.139
+*** Library/Repository/src/HTTP.c:1.138	Mon Sep  9 20:22:02 1996
+--- Library/Repository/src/HTTP.c	Thu Sep 12 22:05:32 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implments the HTTP protocol as a state machine
+  **
+--- 3,9 ----
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implments the HTTP protocol as a state machine
+  **
+***************
+*** 40,45 ****
+--- 40,47 ----
+  #define FREE_TARGET	(*me->target->isa->_free)(me->target)
+  #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
+  
++ #define HTTP_OUTPUT	"w3chttp.out"
++ 
+  /* Type definitions and global variables etc. local to this module */
+  
+  /* Final states have negative value */
+***************
+*** 56,61 ****
+--- 58,64 ----
+      HTTPState		state;		  /* Current State of the connection */
+      HTTPState		next;				       /* Next state */
+      int			result;	     /* Result to report to the after filter */
++     BOOL		lock;				/* Block for writing */
+  } http_info;
+  
+  #define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
+***************
+*** 531,546 ****
+  	**  As we are getting fresh metainformation in the HTTP response,
+  	**  we clear the old metainfomation in order not to mix it with the new
+  	**  one. This is particularly important for the content-length and the
+! 	**  like.
+  	*/
+  	if (me->status==200 || me->status==203 || me->status==300) {
+! 	    HTAnchor_clearHeader(anchor);
+  	    HTAnchor_setCachable(anchor, YES);
+  	    me->target = HTStreamStack(WWW_MIME,
+  				       HTRequest_outputFormat(request),
+  				       HTRequest_outputStream(request),
+  				       request, NO);
+! 	} else if (me->status==304) {
+  	    HTAnchor_setCachable(anchor, YES);
+  	    me->target = HTStreamStack(WWW_MIME_HEAD,
+  				       HTRequest_debugFormat(request),
+--- 534,551 ----
+  	**  As we are getting fresh metainformation in the HTTP response,
+  	**  we clear the old metainfomation in order not to mix it with the new
+  	**  one. This is particularly important for the content-length and the
+! 	**  like. The TRACE and OPTIONS method just adds to the current 
+! 	**  metainformation so in that case we don't clear the anchor.
+  	*/
+  	if (me->status==200 || me->status==203 || me->status==300) {
+! 	    HTMethod  method = HTRequest_method(request);
+! 	    if (!HTMethod_addMeta(method)) HTAnchor_clearHeader(anchor);
+  	    HTAnchor_setCachable(anchor, YES);
+  	    me->target = HTStreamStack(WWW_MIME,
+  				       HTRequest_outputFormat(request),
+  				       HTRequest_outputStream(request),
+  				       request, NO);
+! 	} else if (me->status==204 || me->status==304) {
+  	    HTAnchor_setCachable(anchor, YES);
+  	    me->target = HTStreamStack(WWW_MIME_HEAD,
+  				       HTRequest_debugFormat(request),
+***************
+*** 553,559 ****
+  				       HTRequest_debugStream(request),
+  				       request, NO);
+  	} else {
+! 	    /* We still need to parser the MIME part */
+  	    HTAnchor_clearHeader(anchor);
+  	    me->target = HTStreamStack(WWW_MIME,
+  				       HTRequest_debugFormat(request),
+--- 558,564 ----
+  				       HTRequest_debugStream(request),
+  				       request, NO);
+  	} else {
+! 	    /* We still need to parse the MIME part */
+  	    HTAnchor_clearHeader(anchor);
+  	    me->target = HTStreamStack(WWW_MIME,
+  				       HTRequest_debugFormat(request),
+***************
+*** 775,785 ****
+  		*/
+  		{
+  		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+! 		    HTStream * app =
+! 			HTMethod_hasEntity(HTRequest_method(request)) ?
+! 		        HTMIMERequest_new(request,
+! 			  HTTPRequest_new(request,(HTStream*) output,NO),YES) :
+! 			    HTTPRequest_new(request, (HTStream*) output, YES);
+  		    HTRequest_setInputStream(request, app);
+  		}
+  
+--- 780,802 ----
+  		*/
+  		{
+  		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+! 		    HTStream * app = NULL;
+! #ifdef HTTP_DUMP
+! 		    if (PROT_TRACE) {
+! 			FILE * fp = NULL;
+! 			if ((fp = fopen(HTTP_OUTPUT, "wb"))) {
+! 			    output = HTTee(output,
+! 					   HTFWriter_new(request,fp,YES),NULL);
+! 			    HTTrace("HTTP........ Dumping request to `%s\'\n",
+! 				    HTTP_OUTPUT);
+! 			}
+! 		    }	
+! #endif /* HTTP_DUMP */
+! 		    app = HTMethod_hasEntity(HTRequest_method(request)) ?
+! 			HTMIMERequest_new(request,
+! 					  HTTPRequest_new(request,(HTStream *)
+! 							  output,NO),YES) :
+! 			HTTPRequest_new(request, (HTStream*) output, YES);
+  		    HTRequest_setInputStream(request, app);
+  		}
+  
+***************
+*** 825,833 ****
+  		    HTStream * input = HTRequest_inputStream(request);
+  		    HTPostCallback * pcbf = HTRequest_postCallback(request);
+  		    if (pcbf) {
+! 			status = pcbf(request, input);
+! 			if (status == HT_PAUSE || status == HT_LOADED)
+! 			    ops = FD_READ;
+  		    } else {
+  			status = (*input->isa->flush)(input);
+  			ops = FD_READ;	  /* Trick to ensure that we do READ */
+--- 842,862 ----
+  		    HTStream * input = HTRequest_inputStream(request);
+  		    HTPostCallback * pcbf = HTRequest_postCallback(request);
+  		    if (pcbf) {
+! 			if (http->lock)
+! 			    return HT_OK;
+! 			else {
+! 			    status = pcbf(request, input);
+! 			    if (status == HT_PAUSE) {
+! 				ops = FD_READ;
+! 				http->lock = YES;
+! 			    } else if (status == HT_LOADED)
+! 				ops = FD_READ;
+! 			    else if (status == HT_ERROR) {
+! 				http->result = HT_INTERRUPTED;
+! 				http->state = HTTP_ERROR;
+! 				break;
+! 			    }
+! 			}
+  		    } else {
+  			status = (*input->isa->flush)(input);
+  			ops = FD_READ;	  /* Trick to ensure that we do READ */
+***************
+*** 840,845 ****
+--- 869,875 ----
+  		    return HT_OK;
+  		else if (status == HT_CONTINUE) {
+  		    if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
++ 		    http->lock = NO;
+  		    ops = FD_WRITE;
+  		    continue;
+  		} else if (status==HT_LOADED)
+Index: Library/Repository/src/HTTPReq.c
+diff -c Library/Repository/src/HTTPReq.c:2.43 Library/Repository/src/HTTPReq.c:2.44
+*** Library/Repository/src/HTTPReq.c:2.43	Sun Sep  8 18:08:49 1996
+--- Library/Repository/src/HTTPReq.c	Thu Sep 12 22:05:35 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implements the output stream for HTTP used for sending
+  **	requests with or without a entity body.
+--- 3,9 ----
+  **
+  **	(c) COPYRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **	This module implements the output stream for HTTP used for sending
+  **	requests with or without a entity body.
+***************
+*** 103,112 ****
+  		/*
+  		** We don't preserve the final slash or lack of same through
+  		** out the code. This is mainly for optimization reasons
+! 		** but it gives a problem OPTIONS
+  		*/
+! 		if (!me->url) me->url = HTParse(addr, "", PARSE_PATH);
+! 		if (!*me->url) StrAllocCopy(me->url, "*");
+  		status = PUTS(me->url);
+  	    } else {
+  		if (!me->url)
+--- 103,115 ----
+  		/*
+  		** We don't preserve the final slash or lack of same through
+  		** out the code. This is mainly for optimization reasons
+! 		** but it gives a problem OPTIONS. We can either send a "*"
+! 		** or a "/" but not both. For now we send a "*".
+  		*/
+! 		if (!me->url) {
+! 		    me->url = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+! 		    if (!strcmp(me->url, "/")) *me->url = '*';
+! 		}
+  		status = PUTS(me->url);
+  	    } else {
+  		if (!me->url)
+Index: LineMode/Repository/src/HTBrowse.c
+diff -c LineMode/Repository/src/HTBrowse.c:1.157 LineMode/Repository/src/HTBrowse.c:1.158
+*** LineMode/Repository/src/HTBrowse.c:1.157	Mon Sep  9 14:54:42 1996
+--- LineMode/Repository/src/HTBrowse.c	Thu Sep 12 22:05:44 1996
+***************
+*** 3,9 ****
+  **
+  **	(c) COPRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **  Authors:
+  **	NP:  Nicola Pellow  Tech.Student CERN 1990-91
+--- 3,9 ----
+  **
+  **	(c) COPRIGHT MIT 1995.
+  **	Please first read the full copyright statement in the file COPYRIGH.
+! **	@(#) $Id$
+  **
+  **  Authors:
+  **	NP:  Nicola Pellow  Tech.Student CERN 1990-91
+***************
+*** 575,581 ****
+  */
+  PRIVATE int PutAnchor (LineMode * lm, HTRequest * request)
+  {
+-     int status = HT_INTERNAL;
+      char * dest = AskUser(request, "Destination: ", NULL);
+  
+      /*
+--- 575,580 ----
+***************
+*** 585,594 ****
+      */
+      if (dest) {
+  	HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
+! 	status = HTPutRelative(HTMainAnchor, dest, HTMainAnchor, new_request);
+  	HT_FREE(dest);
+      }
+!     return status;
+  }
+  
+  /*
+--- 584,593 ----
+      */
+      if (dest) {
+  	HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
+! 	HTPutDocumentRelative(HTMainAnchor, dest, HTMainAnchor, new_request);
+  	HT_FREE(dest);
+      }
+!     return YES;
+  }
+  
+  /*
+***************
+*** 934,939 ****
+--- 933,942 ----
+  					    (HTAnchor *) HTMainAnchor, req);
+  		}
+  	    }
++ 	} else if (CHECK_INPUT("FLUSH", token)) {	 /* Flush file cache */
++ 	    if (confirm(req, "Flush Persistent Cache?") == YES)
++ 		HTCache_flushAll();
++ 
+  	} else if (CHECK_INPUT("FORWARD", token)) {
+  	    if (HTHistory_canForward(lm->history)) {
+  		req = Thread_new(lm, YES, LM_NO_UPDATE);
+***************
+*** 1020,1025 ****
+--- 1023,1038 ----
+        case 'M':
+  	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
+  	    status = LineMode_load(lm, HTMainAnchor, MANUAL, YES, &req);
++ 	} else
++ 	    found = NO;
++ 	break;
++ 	
++       case 'O':
++ 	if (CHECK_INPUT("OPTIONS", token)) {		   /* OPTIONS method */
++ 	    req = Thread_new(lm, YES, LM_NO_UPDATE);
++ 	    status = HTOptionsAnchor((HTAnchor*)
++ 				     (HTMainAnchor ? HTMainAnchor:lm->anchor),
++ 				     req);
+  	} else
+  	    found = NO;
+  	break;
