@@ -19,6 +19,8 @@ static char *rcsid = "$Id$";
 /* changes: MJD 2003-03-08: removed mdnkit backwards compatibility code
  *          MJD 2003-03-08: changed #includes to use local include files
  *          MJD 2003-03-16: tweaked inclusion of config.h
+ *          MJD 2003-03-20: coded actual conversion
+ *          MJD 2003-03-20: again tweaked inclusion of config.h
  */
 
 /* Original sources are: */
@@ -65,11 +67,7 @@ static char *rcsid = "$Id$";
  *    ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-#if defined(_WINDOWS)
-#include "windows/config.h"
-#else
 #include <config.h>
-#endif
 
 #include <string.h>
 #include <stdlib.h>
