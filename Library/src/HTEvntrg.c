@@ -324,6 +324,7 @@ PUBLIC int HTEventrg_register (SOCKET s, HTRequest * rq, SockOps ops,
 		s, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p) ;
 
 
+    if (s==INVSOC) return 0;
     (void)__AddRequest( s, rq, ops, cbf, p);
  
 #ifdef WWW_WIN_ASYNC

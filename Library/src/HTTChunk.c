@@ -22,14 +22,14 @@
 #include "HTTChunk.h"					 /* Implemented here */
 
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
-#define PUTDEBUG(b, l)	(*me->debug->isa->put_block)(me->debug, b, l)
-#define FREE_TARGET	(*me->target->isa->_free)(me->target)
+#define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
 
 struct _HTStream {
     const HTStreamClass *	isa;
     HTEncoding			coding;
     HTStream *			target;
     HTRequest *			request;
+    char * 			param;	    /* Extra parameters for encoding */
     long			left;	    /* Remaining bytes in this chunk */
     long			total;			      /* Full length */
     HTEOLState			state;    
@@ -39,33 +39,37 @@ struct _HTStream {
 /* ------------------------------------------------------------------------- */
 
 /*
-**
+**	Chunked Decoder stream
 */
-PRIVATE BOOL HTTChunk_header (HTStream * me) 
+PRIVATE BOOL HTChunkDecode_header (HTStream * me) 
 {
-    me->left = strtol(HTChunk_data(me->buf), (char **) NULL, 16);    /* hex! */
-    if (STREAM_TRACE) HTTrace("Chunked..... chunk size: %X\n", me->left);
-    if (me->left) {
-	me->total += me->left;
+    char * line = HTChunk_data(me->buf);
+    if (line) {
+	me->left = strtol(line, (char **) NULL, 16);    /* hex! */
+	if (STREAM_TRACE) HTTrace("Chunked..... chunk size: %X\n", me->left);
+	if (me->left) {
+	    me->total += me->left;
 
-	/* Look for arguments */
+	    /* Look for arguments */
 	
-	HTChunk_clear(me->buf);
-    } else {						       /* Last chunk */
-	HTRequest * request = me->request;
-	me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
-				   me->target, request, NO);
+	    HTChunk_clear(me->buf);
+	} else {					       /* Last chunk */
+	    HTRequest * request = me->request;
+	    me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
+				       me->target, request, NO);
+	}
+	return YES;
     }
-    return YES;
+    return NO;
 }
 
-PRIVATE int HTTChunk_put_block (HTStream * me, const char * b, int l)
+PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 {
     while (l > 0) {
 	if (me->left <= 0) {
 	    while (l > 0) {
 		if (me->state == EOL_FLF) {
-		    HTTChunk_header(me);
+		    HTChunkDecode_header(me);
 		    me->state = EOL_DOT;
 		    break;
 		} else if (*b == CR) {
@@ -90,22 +94,22 @@ PRIVATE int HTTChunk_put_block (HTStream * me, const char * b, int l)
     return HT_OK;
 }
 
-PRIVATE int HTTChunk_put_string (HTStream * me, const char * s)
+PRIVATE int HTChunkDecode_string (HTStream * me, const char * s)
 {
-    return HTTChunk_put_block(me, s, (int) strlen(s));
+    return HTChunkDecode_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int HTTChunk_put_character (HTStream * me, char c)
+PRIVATE int HTChunkDecode_character (HTStream * me, char c)
 {
-    return HTTChunk_put_block(me, &c, 1);
+    return HTChunkDecode_block(me, &c, 1);
 }
 
-PRIVATE int HTTChunk_flush (HTStream * me)
+PRIVATE int HTChunkDecode_flush (HTStream * me)
 {
     return (*me->target->isa->flush)(me->target);
 }
 
-PRIVATE int HTTChunk_free (HTStream * me)
+PRIVATE int HTChunkDecode_free (HTStream * me)
 {
     int status = HT_OK;
     HTParentAnchor * anchor = HTRequest_anchor(me->request);
@@ -120,24 +124,25 @@ PRIVATE int HTTChunk_free (HTStream * me)
     return status;
 }
 
-PRIVATE int HTTChunk_abort (HTStream * me, HTList * e)
+PRIVATE int HTChunkDecode_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE) HTTrace("Chunked..... ABORTING...\n");
+    HTChunk_delete(me->buf);
     HT_FREE(me);
     return status;
 }
 
-PRIVATE const HTStreamClass HTChunkedClass =
+PRIVATE const HTStreamClass HTChunkDecodeClass =
 {
-    "HTChunked",
-    HTTChunk_flush,
-    HTTChunk_free,
-    HTTChunk_abort,
-    HTTChunk_put_character,
-    HTTChunk_put_string,
-    HTTChunk_put_block
+    "ChunkDecoder",
+    HTChunkDecode_flush,
+    HTChunkDecode_free,
+    HTChunkDecode_abort,
+    HTChunkDecode_character,
+    HTChunkDecode_string,
+    HTChunkDecode_block
 };
 
 PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
@@ -148,8 +153,8 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
     HTStream * me;
     HTParentAnchor * anchor = HTRequest_anchor(request);
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-        HT_OUTOFMEM("HTTChunk");
-    me->isa = &HTChunkedClass;
+        HT_OUTOFMEM("HTChunkDecoder");
+    me->isa = &HTChunkDecodeClass;
     me->coding = coding;
     me->target = target;
     me->request = request;
@@ -157,8 +162,115 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
     me->buf = HTChunk_new(64);
     
     /* Adjust information in anchor */
+    HTAnchor_setLength(anchor, -1);
     HTAnchor_setTransfer(anchor, NULL);
 
     if (STREAM_TRACE) HTTrace("Chunked..... Decoder stream created\n");
     return me;
 }
+
+/*
+**	Chunked Encoder Stream
+*/
+PRIVATE int HTChunkEncode_block (HTStream * me, const char * b, int l)
+{
+    char * chunky = HTChunk_data(me->buf);
+    if (me->param) {
+	if (me->total)
+	    sprintf(chunky, "%c%c%x %s %c%c", CR, LF, l, me->param, CR, LF);
+	else
+	    sprintf(chunky, "%x %s %c%c", l, me->param, CR, LF);
+    } else {
+	if (me->total)
+	    sprintf(chunky, "%c%c%x%c%c", CR, LF, l, CR, LF);
+	else
+	    sprintf(chunky, "%x%c%c", l, CR, LF);
+    }
+    me->total += l;
+    PUTBLOCK(chunky, (int) strlen(chunky));
+    if (STREAM_TRACE) HTTrace("Chunked..... chunk size: %X\n", l);
+    if (l > 0) return PUTBLOCK(b, l);
+
+    /* Here we should provide a footer */
+
+    PUTC(CR);
+    PUTC(LF);
+    return HT_OK;
+}
+
+PRIVATE int HTChunkEncode_string (HTStream * me, const char * s)
+{
+    return HTChunkEncode_block(me, s, (int) strlen(s));
+}
+
+PRIVATE int HTChunkEncode_character (HTStream * me, char c)
+{
+    return HTChunkEncode_block(me, &c, 1);
+}
+
+PRIVATE int HTChunkEncode_flush (HTStream * me)
+{
+    return (*me->target->isa->flush)(me->target);
+}
+
+PRIVATE int HTChunkEncode_free (HTStream * me)
+{
+    int status = HTChunkEncode_block(me, NULL, 0);
+    if (status != HT_WOULD_BLOCK) {
+	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
+	    return HT_WOULD_BLOCK;
+	HT_FREE(me);
+    }
+    return status;
+}
+
+PRIVATE int HTChunkEncode_abort (HTStream * me, HTList * e)
+{
+    int status = HT_ERROR;
+    if (me->target) status = (*me->target->isa->_free)(me->target);
+    if (PROT_TRACE) HTTrace("Chunked..... ABORTING...\n");
+    HT_FREE(me);
+    return status;
+}
+
+PRIVATE const HTStreamClass HTChunkEncoderClass =
+{
+    "ChunkEncoder",
+    HTChunkEncode_flush,
+    HTChunkEncode_free,
+    HTChunkEncode_abort,
+    HTChunkEncode_character,
+    HTChunkEncode_string,
+    HTChunkEncode_block
+};
+
+PUBLIC HTStream * HTChunkedEncoder   (HTRequest *	request,
+				      void *		param,
+				      HTEncoding	coding,
+				      HTStream *	target)
+{
+    HTStream * me;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTChunkEncoder");
+    me->isa = &HTChunkEncoderClass;
+    me->coding = coding;
+    me->target = target;
+    me->request = request;
+    me->param = (char *) param;
+    me->state = EOL_BEGIN;
+    {
+	int length = me->param ? strlen(me->param)+20 : 20;
+	me->buf = HTChunk_new(length);
+	HTChunk_ensure(me->buf, length);
+    }
+
+    /* Adjust information in anchor */
+    HTAnchor_setTransfer(anchor, NULL);
+
+    if (STREAM_TRACE) HTTrace("Chunked..... Encoder stream created\n");
+    return me;
+}
+
+
+

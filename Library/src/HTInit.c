@@ -116,7 +116,7 @@ PUBLIC void HTFormatInit (HTList * c)
 */
 PUBLIC void HTEncoderInit (HTList * c)
 {
-    HTCoding_add(c, "chunked", NULL, HTChunkedDecoder, 1.0);
+    HTCoding_add(c, "chunked", HTChunkedEncoder, HTChunkedDecoder, 1.0);
 }
 
 /*	REGISTER CALLBACKS FOR THE NET MANAGER
@@ -166,7 +166,7 @@ PUBLIC void HTTransportInit (void)
 **	-------------------------------------------
 **	Not done automaticly - may be done by application!
 */
-PUBLIC void HTAccessInit (void)
+PUBLIC void HTProtocolInit (void)
 {
 #ifndef DECNET
     HTProtocol_add("ftp", "tcp", NO, HTLoadFTP, NULL);

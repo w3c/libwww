@@ -1,4 +1,3 @@
-HTAccess.c
 HTAlert.c
 HTAnchor.c
 HTBind.c
@@ -11,6 +10,8 @@ HTFormat.c
 HTFWrite.c
 HTHost.c
 HTInet.c
+HTLib.c
+HTLink.c
 HTMethod.c
 HTNet.c
 HTParse.c

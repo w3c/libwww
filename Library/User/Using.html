@@ -126,12 +126,12 @@ extern void HTPresenterInit (HTList * conversions);
 </H3>
 <P>
 By default the Library enables all available protocol modules but if this
-is desired then it can easily be changed using the <CODE>HTAccessInit</CODE>
+is desired then it can easily be changed using the <CODE>HTProtocolInit</CODE>
 function. An example is if you want to make an application that only can
 speak HTTP, then you can disable the initialization of all the other protocol
-modules by simply taking them out of the <CODE>HTAccessInit</CODE> function.
+modules by simply taking them out of the <CODE>HTProtocolInit</CODE> function.
 <PRE>
-extern void HTAccessInit (void);
+extern void HTProtocolInit (void);
 </PRE>
 <H2>
   Binding File Suffixes and Data Formats

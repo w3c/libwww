@@ -338,6 +338,7 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
     dir->target = HTMLGenerator(request, NULL, WWW_HTML,
 			       HTRequest_outputFormat(request),
 			       HTRequest_outputStream(request));
+    HTRequest_setOutputConnected(request, YES);
     HTAnchor_setFormat(HTRequest_anchor(request), WWW_HTML);
     dir->request = request;
     dir->show = show;
@@ -348,6 +349,9 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
 	dir->curfw = MinFileW;
 	dir->array = HTArray_new(256);
     }
+
+    /* We're all OK */
+    HTRequest_addError(request, ERR_INFO, NO, HTERR_OK, NULL, 0, "HTDir_new");
 
     /* Find the length of the fields */
     {

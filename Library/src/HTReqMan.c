@@ -160,7 +160,7 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 {
     if (request) {
 	if (CORE_TRACE) HTTrace("Request..... Delete %p\n", request);
-	if (request->net) request->net->request = NULL;
+	if (request->net) HTNet_setRequest(request->net, NULL);
 
 	/* Should we delete the output stream? */
 	if (!request->connected && request->output_stream) {
@@ -415,7 +415,7 @@ PUBLIC HTEnHd HTRequest_enHd (HTRequest *request)
 */
 PUBLIC void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor)
 {
-    if (request && anchor) {
+    if (request) {
 	request->anchor = HTAnchor_parent(anchor);
 	request->childAnchor = ((HTAnchor *) request->anchor != anchor) ?
 	    (HTChildAnchor *) anchor : NULL;
@@ -432,7 +432,7 @@ PUBLIC HTParentAnchor * HTRequest_anchor (HTRequest *request)
 */
 PUBLIC BOOL HTRequest_setNet (HTRequest * request, HTNet * net)
 {
-    if (request && net) {
+    if (request) {
 	request->net = net;
 	return YES;
     }
@@ -449,7 +449,7 @@ PUBLIC HTNet * HTRequest_net (HTRequest * request)
 */
 PUBLIC BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up)
 {
-    if (request && up) {
+    if (request) {
 	request->userprofile = up;
 	return YES;
     }

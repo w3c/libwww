@@ -65,6 +65,22 @@ request.
 <PRE>#include "<A HREF="HTMIMERq.html">HTMIMERq.h</A>"			/* MIME request generator */
 </PRE>
 <H3>
+  Default MIME Header Parsers
+</H3>
+<P>
+The Library's MIME parser is divided into two parts: A generic MIME parser
+that knows how to unwrap all RFC822 headers and specialized header parsers
+that knows how to parse <CODE>Content-Length</CODE>, for example. This is
+the default set of the specialized MIME header parsers that can be registered
+as part of the generic MIME. Note that these functions are not registered
+by default - they must be registered by the application. This can be done
+using the <A HREF="HTInit.html">HTMIMEInit()</A> function in the
+<A HREF="WWWInit.html">WWWInit interface</A>. Of course this can also be
+used to register new headers that are not represented below - or if you want
+to replace a default parser then this is also very easy.
+<PRE>#include "<A HREF="HTMIMImp.html">HTMIMImp.h</A>"
+</PRE>
+<H3>
   Multipart MIME Parsing and Generation
 </H3>
 <P>

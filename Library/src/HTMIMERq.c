@@ -88,16 +88,23 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (request->EntityMask & HT_E_CONTENT_LENGTH &&
-	entity->content_length >= 0) { 			/* Must be there!!! */
-	sprintf(linebuf, "Content-Length: %ld%c%c",
-		entity->content_length, CR, LF);
-	PUTBLOCK(linebuf, (int) strlen(linebuf));	
+    if (request->EntityMask & HT_E_CONTENT_LENGTH) {
+ 	if (entity->content_length >= 0) {
+	    sprintf(linebuf, "Content-Length: %ld%c%c",
+		    entity->content_length, CR, LF);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));	
+	} else {
+	    HTEncoding chunked = HTAtom_for("chunked");
+	    HTAnchor_setTransfer(entity, chunked);
+	}
     }
     if (request->EntityMask & HT_E_CTE && entity->transfer) {
-	sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
-		HTAtom_name(entity->transfer), CR, LF);
-	PUTBLOCK(linebuf, (int) strlen(linebuf));
+	HTEncoding transfer = HTAnchor_transfer(entity);
+	if (!HTFormat_isUnityTransfer(transfer)) {
+	    sprintf(linebuf, "Transfer-Encoding: %s%c%c",
+		    HTAtom_name(transfer), CR, LF);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
+	}
     }
     if (request->EntityMask & HT_E_CONTENT_TYPE && entity->content_type &&
 	entity->content_type != WWW_UNKNOWN) {
@@ -170,6 +177,30 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	sprintf(linebuf, "%c%c", CR, LF);	   /* Blank line means "end" */
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
+
+    /*
+    ** Now make sure that the body has the right format
+    */
+
+    /* Handle any Transfer encoding */
+    {
+	HTEncoding transfer = HTAnchor_transfer(entity);
+	if (!HTFormat_isUnityTransfer(transfer)) {
+	    if (STREAM_TRACE) HTTrace("Building.... C-T-E stack\n");
+	    me->target = HTTransferCodingStack(transfer, me->target,
+					       request, NULL, YES);
+	}
+    }
+
+    /* Handle any Content Encoding */
+    {
+	HTList * cc = HTAnchor_encoding(entity);
+	if (cc) {
+	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
+	    me->target = HTContentDecodingStack(cc, me->target, request, NULL);
+	}
+    }
+
     if (PROT_TRACE) HTTrace("MIME........ Generating Entity Headers\n");
     return HT_OK;
 }

@@ -548,18 +548,19 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 	/* Close socket */
 	if (net->channel) {
 	    HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
-	    HTChannel_delete(net->channel, status);
 	    if (HTHost_channel(net->host) == NULL) {
 		if (CORE_TRACE)
 		    HTTrace("HTNet_delete closing %d\n", net->sockfd);
+		HTChannel_downSemaphore(net->channel);
+		HTChannel_delete(net->channel, status);
 	    } else {
 		if (CORE_TRACE)
 		    HTTrace("HTNet_delete keeping %d\n", net->sockfd);
 		/* Here we should probably use a low priority */
+		HTChannel_delete(net->channel, status);
 		HTEvent_register(net->sockfd, 0, (SockOps) FD_READ,
 				 HTHost_catchClose, net->priority);
 	    }
-	    HTChannel_downSemaphore(net->channel);
 	    net->channel = NULL;
 	}
 	HTRequest_setNet(net->request, NULL); 	    /* Break link to request */

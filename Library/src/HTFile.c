@@ -206,9 +206,11 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	}
 	closedir(dp);
 	HTDir_free(dir);
-    } else
+	return HT_LOADED;
+    } else {
 	HTRequest_addSystemError(request,  ERR_FATAL, errno, NO, "opendir");
-    return HT_LOADED;
+	return HT_ERROR;
+    }
 #else
     return HT_ERROR;	/* needed for WWW_MSWINDOWS */
 #endif /* HAVE_READDIR */
@@ -516,11 +518,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    status = HTFile_readDir(request, file);
 	    if (status == HT_LOADED)
 		file->state = FS_GOT_DATA;
-	    else {
-		HTRequest_addError(request, ERR_INFO, NO, HTERR_FORBIDDEN,
-				   NULL, 0, "HTLoadFile");
+	    else
 		file->state = FS_ERROR;
-	    }
 	    break;
 
 	  case FS_TRY_FTP:

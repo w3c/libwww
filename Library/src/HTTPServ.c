@@ -140,10 +140,18 @@ PRIVATE int MakeReplyPipe (HTStream * me, HTRequest * client)
     }
 
     /*
-    ** We now have to create the rest of the response stream
+    ** We now have to create the rest of the response stream. We see whether
+    ** there is a data object or not by looking at the Content Type of the
+    ** client anchor.
     */
-    me->target = HTMIMERequest_new(client,
-		     HTTPResponse_new(client, me->target, NO), YES);
+    {
+	HTParentAnchor * anchor = HTRequest_anchor(client);
+	HTFormat format = HTAnchor_format(anchor);
+	me->target = (format == WWW_UNKNOWN) ?
+	    HTTPResponse_new(client, me->target, YES) :
+	    HTMIMERequest_new(client,
+	        HTTPResponse_new(client,me->target,NO), YES);
+    }
     return HT_OK;
 }
 
@@ -414,6 +422,10 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    HTRequest * client = HTRequest_new();
 	    void * context = HTRequest_context(request);
 	    if (context) HTRequest_setContext(client, context);
+	    HTRequest_setOutputConnected(client, NO);
+	    HTRequest_setGnHd(client, HTRequest_gnHd(request));
+	    HTRequest_setRsHd(client, HTRequest_rsHd(request));
+	    HTRequest_setEnHd(client, HTRequest_enHd(request));
 	    HTList_addObject(http->clients, client);
 	    
 	    /*

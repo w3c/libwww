@@ -1,4 +1,5 @@
 HTConLen.c
 HTGuess.c
+HTSChunk.c
 HTTee.c
 HTXParse.c

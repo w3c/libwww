@@ -292,7 +292,7 @@ PRIVATE LineMode * LineMode_new (void)
 	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
 	HT_OUTOFMEM("LineMode_new");
     me->tv->tv_sec = -1;
-    me->cwd = HTFindRelatedName();
+    me->cwd = HTGetCurrentDirectoryURL();
     me->active = HTList_new();
     me->console = HTRequest_new();
     Context_new(me, me->console, LM_UPDATE);
@@ -323,6 +323,7 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 #ifndef WWW_WIN_WINDOW
 	if (OUTPUT && OUTPUT != stdout) fclose(OUTPUT);
 #endif
+	HText_freeAll();	/* Free all loaded documents */
 	HT_FREE(lm);
 	return YES;
     }
@@ -1924,7 +1925,7 @@ int main (int argc, char ** argv)
 #endif
 
     /* Initialize the protocol modules */
-    HTAccessInit();
+    HTProtocolInit();
 
     /* Setup authentication manager */
     HTAuthCall_add("basic", HTBasic_parse, HTBasic_generate, HTBasic_delete);

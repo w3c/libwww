@@ -13,5 +13,4 @@ BUILT_SOURCES = \
 	Extrnals.html
 
 Extrnals.html:
-	../../config/makeindx.pl ../src ../src/windows/*.docs >Extrnals.html
-
+	$(top_srcdir)/config/makeindx.pl $(srcdir)/../src $(srcdir)/../src/windows/*.docs > Extrnals.html

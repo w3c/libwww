@@ -219,8 +219,8 @@ PUBLIC void hyper_free (HText *  self)
 		self->last_line = last->prev;
 		if (last == self->last_line) break;
 		HT_FREE(last);
-	    }
-	    break;
+	    } else
+		break;
 	}
 	while (self->first_anchor) {		    /* Free off anchor array */
 	    TextAnchor * last = self->first_anchor;
@@ -228,6 +228,7 @@ PUBLIC void hyper_free (HText *  self)
 	    HT_FREE(last);
 	}
 	if (self == HTMainText) HTMainText = NULL;
+	HT_FREE(self->last_line);
 	HT_FREE(self);
     }
 }
@@ -242,6 +243,22 @@ PUBLIC void 	HText_free (HText * self)
 	HTAnchor_setDocument(self->node_anchor, NULL);
 	hyper_free(self);
     }
+}
+
+/*
+**	Free all registered hypertext documents in memory
+*/
+PUBLIC BOOL HText_freeAll (void)
+{
+    if (loaded_texts) {
+	HTList * cur = loaded_texts;
+	HText * pres;
+	while ((pres = (HText *) HTList_nextObject(cur)))
+	    HText_free(pres);
+	HTList_delete(loaded_texts);
+	return YES;
+    }
+    return NO;
 }
 
 
@@ -515,10 +532,9 @@ PRIVATE void split_line (HText * text, int split)
 	   (previous->data[previous->size-1] == ' '))	/* Strip trailers */
         previous->size--;
 
-    if ((previous = (HTLine *) HT_REALLOC(previous,
-					  LINE_SIZE(previous->size)))==NULL)
-        HT_OUTOFMEM("split_line");
-
+    if ((previous = (HTLine *)
+	 HT_REALLOC(previous, LINE_SIZE(previous->size)))==NULL)
+	HT_OUTOFMEM("split_line");
     previous->prev->next = previous;	/* Link in new line */
     previous->next->prev = previous;	/* Could be same node of course */
 

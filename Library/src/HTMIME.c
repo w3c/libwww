@@ -208,8 +208,10 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		start=b, end=b;
 		status = _dispatchParsers(me);
 		if (me->EOLstate == EOL_END) {		/* EOL_END */
-		    if (status == HT_OK)
+		    if (status == HT_OK) {
+			b++, l--;
 		        status = pumpData(me);
+		    }
 		    HTNet_setBytesRead(me->net, l);
 	        } else {				/* EOL_LINE */
 		    HTChunk_clear(me->token);
@@ -402,5 +404,6 @@ PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
     HTStream * me = HTMIMEConvert(request, param, input_format,
 				  output_format, output_stream);
     me->footer = YES;
+    me->EOLstate = EOL_FLF;
     return me;
 }

@@ -37,6 +37,13 @@ case "$target" in
     alpha-dec*)
 	if test "$CC" = "cc"; then
 	  CFLAGS="$CFLAGS -std1"
+	  AC_MSG_WARN(Adding extra compiler directives for Digital Unix)
+	fi
+	;;
+    hp*)
+	if test "$CC" = "cc"; then
+	  CFLAGS="$CFLAGS -Aa -D_HPUX_SOURCE"
+	  AC_MSG_WARN(Adding extra compiler directives for HT-UX)
 	fi
 	;;
 esac

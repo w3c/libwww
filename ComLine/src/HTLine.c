@@ -100,7 +100,7 @@ PRIVATE ComLine * ComLine_new (void)
 	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
 	HT_OUTOFMEM("ComLine_new");
     me->tv->tv_sec = DEFAULT_TIMEOUT;
-    me->cwd = HTFindRelatedName();
+    me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
 
     /* Bind the ConLine object together with the Request Object */

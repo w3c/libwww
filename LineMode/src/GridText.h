@@ -41,6 +41,14 @@ extern int HText_getLines (HText * text);
 
 /*
 
+DELETE ALL DOCUMENTS IN MEMORY
+
+   This is typically called at clean up time just before exiting the application.
+   
+ */
+extern BOOL HText_freeAll (void);
+/*
+
 MEMORY CACHE HANDLER
 
    Check if document is already loaded. As the application handles the memory cache, we

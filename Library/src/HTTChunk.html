@@ -1,44 +1,51 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Chunked Decoding</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Chunked Transfer Encoding and Decoding</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Chunked Decoding</H1>
-
+<H1>
+  Chunked Transfer Encoding and Decoding
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module is implemented by <A HREF="HTTChunk.c">HTTChunk.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
-<PRE>
-#ifndef HTTCHUNK_H
+<P>
+Chunked transfer encoding and decoding is new in HTTP/1.1. It allows applications
+to use persistent connections while not knowing the content length a priori
+to the response header is generated.
+<P>
+Both the encoder and the decoder are of type
+<A HREF="HTFormat.html#encoding">HTCoder</A> which is defined in the
+<A HREF="HTFormat.html">Stream Pipe Builder</A>. This means that bot the
+encoder and the decoder are registered dynamically and called by the Stream
+Pipe Builder if required.
+<P>
+<B>Note</B>: These streams are <I>not</I> set up by default. They must be
+registered by the application. You can use the default initialization function
+<CODE>HTEncoderInit()</CODE> function in the
+<A HREF="WWWInit.html">initialization interface</A>.
+<P>
+This module is implemented by <A HREF="HTTChunk.c">HTTChunk.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<P>
+<PRE>#ifndef HTTCHUNK_H
 #define HTTCHUNK_H
 
 #include "HTFormat.h"
 </PRE>
-
-This is the definition of the chunked decoder
-
 <PRE>
-extern HTCoder HTChunkedDecoder;
+extern HTCoder HTChunkedDecoder, HTChunkedEncoder;
 </PRE>
-
 <PRE>
 #endif /* HTTCHUNK_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

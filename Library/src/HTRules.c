@@ -196,6 +196,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, const char * config)
     if ((ptr = strchr(config, '#'))) *ptr = '\0';
     StrAllocCopy(line, config);				 /* Get our own copy */
     ptr = line;
+    if (APP_TRACE) HTTrace("Rule Parse.. `%s\'\n", config ? config : "<null>");
     if ((word1 = HTNextField(&ptr)) == NULL) {		       /* Empty line */
 	HT_FREE(line);
 	return YES;

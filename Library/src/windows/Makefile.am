@@ -23,8 +23,10 @@ EXTRA_DIST = \
 	$(MAK)
 #	$(PL) - EGP
 
+def:  maintainer-clean-generic $(BUILT_SOURCES)
+	
 .files.def:
-	../../../config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
+	$(top_srcdir)/config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
 
 

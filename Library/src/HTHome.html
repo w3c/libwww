@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Application Helper Functions</TITLE>
 </HEAD>
 <BODY>
@@ -79,7 +79,8 @@ Getting an anchor for the <I>home page</I> involves looking for the (environment
 variables described in the section above. As this is something that almost
 all client applications must do then we provide some simple methods that
 do the work for you.
-<PRE>extern HTParentAnchor * HTHomeAnchor (void);
+<PRE>
+extern HTParentAnchor * HTHomeAnchor (void);
 </PRE>
 <H3>
   Get The Current Directory in URL form
@@ -90,7 +91,8 @@ expanding other URLs relative to the current location in the local file system
 tree where the application is running. The code for this routine originates
 from the Line Mode Browser and was moved here by <EM>howcome@w3.org</EM>
 in order for all clients to take advantage.
-<PRE>#define HTFindRelatedName HTGetCurrentDirectoryURL
+<PRE>
+#define HTFindRelatedName	HTGetCurrentDirectoryURL
 extern char *  HTGetCurrentDirectoryURL (void);
 </PRE>
 <H2>
@@ -101,7 +103,8 @@ Standard interface to libwww <A HREF="HTUtils.html#Debug">TRACE messages</A>.
 Pass this function a string of characters and it will set up the appropriate
 TRACE flags. The shortnames for the trace messages are not as intuitive as
 they could be :-(. The string must be null terminated
-<PRE>extern int HTSetTraceMessageMask (const char * shortnames);
+<PRE>
+extern int HTSetTraceMessageMask (const char * shortnames);
 </PRE>
 <H2>
   Net Manager Callback Functions
@@ -118,7 +121,8 @@ often has to do anyway.
 This function uses all the functionaly that the app part of the Library gives
 for URL translations <I>BEFORE</I> a request is isseued. It checks for
 <B>cache</B>, <B>proxy</B>, and <B>gateway</B> (in that order)
-<PRE>extern HTNetCallback HTLoadStart;
+<PRE>
+extern HTNetCallback HTLoadStart;
 </PRE>
 <H3>
   AFTER Request Callback
@@ -126,7 +130,8 @@ for URL translations <I>BEFORE</I> a request is isseued. It checks for
 <P>
 This function uses all the functionaly that the app part of the Library gives
 for handling <I>AFTER</I> a request.
-<PRE>extern HTNetCallback HTLoadTerminate;
+<PRE>
+extern HTNetCallback HTLoadTerminate;
 </PRE>
 <PRE>
 #endif /* HTHOME_H */

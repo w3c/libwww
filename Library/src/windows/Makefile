@@ -62,7 +62,7 @@ DIST_COMMON = README Makefile.am Makefile.in README
 
 
 PACKAGE = w3c-libwww
-VERSION = 4.1b1
+VERSION = 4.1b2
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
@@ -148,8 +148,10 @@ SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
 #	$(PL) - EGP
 
+def:  maintainer-clean-generic $(BUILT_SOURCES)
+
 .files.def:
-	../../../config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
+	$(top_srcdir)/config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 .SUFFIXES:
 .SUFFIXES: $(SUFFIXES)
 

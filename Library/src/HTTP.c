@@ -349,7 +349,13 @@ PRIVATE int stream_pipe (HTStream * me)
 	me->version = HTNextField(&ptr);
 
 	/* here we want to find out when to use persistent connection */
-	HTHost_setVersion(host, HTTP_10);
+	if (!strncasecomp(me->version, "1.0", 3)) {
+	    if (PROT_TRACE)HTTrace("HTTP Status. This is a HTTP/1.0 server\n");
+	    HTHost_setVersion(host, HTTP_10);
+	} else {
+	    HTHost_setVersion(host, HTTP_11);
+	    HTNet_setPersistent(net, YES);		       /* By default */
+	}
 
 	me->status = atoi(HTNextField(&ptr));
 	me->reason = ptr;

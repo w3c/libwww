@@ -217,8 +217,8 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	    default:
 		if (WWWTRACE) HTTrace("Trace....... Bad argument\n");
 	    }
-	    if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
 	}
+	if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
     }
     return WWWTRACE;
 #else

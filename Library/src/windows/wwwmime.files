@@ -2,3 +2,5 @@ HTBound.c
 HTHeader.c
 HTMIME.c
 HTMIMERq.c
+HTMIMImp.c
+HTMulpar.c

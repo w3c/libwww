@@ -61,6 +61,7 @@ typedef struct _Robot {
     struct timeval *	tv;				/* Timeout on socket */
     char *		cwd;				  /* Current dir URL */
     HTList *		converters;
+    HTList *		encoders;
     char *		rules;
     char *		logfile;
     char *		outputfile;
@@ -161,7 +162,7 @@ PRIVATE Robot * Robot_new (void)
     me->hyperdoc = HTList_new();
     me->htext = HTList_new();
     me->tv->tv_sec = DEFAULT_TIMEOUT;
-    me->cwd = HTFindRelatedName();
+    me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
 
     /* We keep an extra timeout request object for the timeout_handler */
@@ -194,6 +195,8 @@ PRIVATE BOOL Robot_delete (Robot * me)
 		HText_free(pres);
 	    HTList_delete(me->htext);
 	}
+	HTConversion_deleteAll(me->converters);
+	HTCoding_deleteAll(me->encoders);
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	if (me->flags & MR_TIME) {
@@ -299,12 +302,11 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
 PRIVATE int timeout_handler (HTRequest * request)
 {
     Robot * mr = (Robot *) HTRequest_context(request);
-    if (SHOW_MSG) HTTrace("Robot....... Request timeout...\n");
+    if (SHOW_MSG) HTTrace("Robot....... We don't know how to handle timeout...\n");
 #if 0
     HTRequest_kill(request);
     Thread_delete(mr, request);
 #endif
-    Cleanup(mr, -1);
     return HT_OK;
 }
 
@@ -484,13 +486,18 @@ int main (int argc, char ** argv)
     HTTransportInit();
 
     /* Initialize the protocol modules */
-    HTAccessInit();
+    HTProtocolInit();
 
     /* Initialize set of converters */
     mr->converters = HTList_new();
     HTConverterInit(mr->converters);
     HTMLInit(mr->converters);
     HTFormat_setConversion(mr->converters);
+
+    /* Set up encoders and decoders */
+    mr->encoders = HTList_new();
+    HTEncoderInit(mr->encoders);
+    HTFormat_setTransferCoding(mr->encoders);
 
     /* Initialize bindings between file suffixes and media types */
     HTFileInit();
