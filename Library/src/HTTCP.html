@@ -116,7 +116,8 @@ pass the error number as a parameter as we on some platforms get
 different codes from sockets and local file access.
 
 <PRE>
-extern CONST char * HTErrnoString PARAMS((int errornumber));
+extern CONST char * HTErrnoString	PARAMS((int errnum));
+extern int HTInetStatus			PARAMS((int errnum, char * where));
 </PRE>
 
 <H3>Parse a Cardinal Value</H3>

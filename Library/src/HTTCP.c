@@ -111,15 +111,14 @@ PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
 }
 
 
-#ifdef OLD_CODE
 /*	Debug error message
 */
-PUBLIC int HTInetStatus ARGS1(char *, where)
+PUBLIC int HTInetStatus ARGS2(int, errnum, char *, where)
 {
 #ifndef VMS
 
     if (PROT_TRACE)
-	fprintf(TDEST, "TCP errno... %d after call to %s() failed.\n............ %s\n", errno, where, HTErrnoString(errornumber));
+	fprintf(TDEST, "TCP errno... %d after call to %s() failed.\n............ %s\n", errnum, where, HTErrnoString(errnum));
 
 #else /* VMS */
 
@@ -140,7 +139,6 @@ PUBLIC int HTInetStatus ARGS1(char *, where)
     return -errno;
 #endif
 }
-#endif
 
 
 /*	Parse a cardinal value				       parse_cardinal()

@@ -33,10 +33,15 @@ that all external functionality can be reached through this one.
 /* Format Management, and Access functions for loading a URL etc. */
 #include "HTFormat.h"			/* Stream Stack etc. */
 #include "HTAccess.h"			/* Document access network code */
+#include "HTMulti.h"
 
 /* URLs and Anchors - Internal representation of URLs */
 #include "HTAnchor.h"			/* Anchor class Definition */
 #include "HTParse.h"			/* Parse URLs */
+
+/* Access Authenticatio */
+#include "HTAAUtil.h"
+#include "HTUU.h"
 
 /* History Management */
 #include "HTHist.h"			/* Navigational aids */
@@ -44,7 +49,13 @@ that all external functionality can be reached through this one.
 /* Presentation of graphical objects and other streams */
 #include "HTML.h"			/* For HTML parser */
 #include "HTMLGen.h"			/* For reformatting HTML */
-#include "HTFWrite.h"			/* For non-interactive output */
+#include "HTWriter.h"
+#include "HTFWrite.h"
+
+/* Directory Listings */
+#include "HTIcons.h"
+#include "HTDirBrw.h"
+#include "HTDescpt.h"
 
 /* Graphic Object and Styles */
 #include "HText.h"
@@ -64,6 +75,7 @@ that all external functionality can be reached through this one.
 
 /* Messages and User prompts */
 #include "HTAlert.h"
+#include "HTError.h"
 
 /* TEMPORARY STUFF */
 #include "HTTP.h"
