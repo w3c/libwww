@@ -52,7 +52,7 @@ PUBLIC HTList * HTReadDescriptions (char * dirname)
 	HT_FREE(name);
 	return NULL;
     } else {
-	if (WWWTRACE)
+	if (PROT_TRACE)
 	    HTTrace("DirBrowse... Description file found %s\n", name);
     }
 

@@ -836,13 +836,13 @@ PUBLIC BOOL HTEventInit (void)
     {
         WSADATA            wsadata;
 	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
-	    if (WWWTRACE)
+	    if (THD_TRACE)
 		HTTrace("HTEventInit. Can't initialize WinSoc\n");
             WSACleanup();
             return NO;
         }
         if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
-            if (WWWTRACE)
+            if (THD_TRACE)
 		HTTrace("HTEventInit. Bad version of WinSoc\n");
             WSACleanup();
             return NO;

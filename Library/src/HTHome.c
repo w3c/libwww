@@ -120,7 +120,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 	if (fp) {
 	    fclose(fp);
 	} else {
-	    if (WWWTRACE)
+	    if (APP_TRACE)
 		HTTrace("Home Anchor. No local home document in ~/%s or %s\n",
 			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
 	    HT_FREE(my_home_document);
@@ -132,7 +132,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 		  HTLib_secure() ? REMOTE_ADDRESS : LAST_RESORT, "file:",
 		  PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
-	if (WWWTRACE)
+	if (APP_TRACE)
 	    HTTrace("Home Anchor. `%s\' used for custom home page as\n`%s\'\n",
 		    my_home_document, ref);
 	HT_FREE(my_home_document);

@@ -145,7 +145,7 @@ PUBLIC BOOL HTLib_isInitialized (void)
 */
 PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 {
-    if (WWWTRACE)
+    if (CORE_TRACE)
 	HTTrace("WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
     /* Set the application name and version */
@@ -186,7 +186,7 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 */
 PUBLIC BOOL HTLibTerminate (void)
 {
-    if (WWWTRACE) HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+    if (CORE_TRACE) HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
 
     HTNet_killAll();
     HTChannel_deleteAll();			/* Delete remaining channels */

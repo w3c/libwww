@@ -399,7 +399,7 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
     if ((cbf && (*cbf)(request,HT_A_CONFIRM, HT_MSG_RULES, NULL,NULL,NULL))) {
 #endif
 	HTStream * me;
-	if (WWWTRACE) HTTrace("Rule file... Parser object created\n");
+	if (APP_TRACE) HTTrace("Rule file... Parser object created\n");
 	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
 	    HT_OUTOFMEM("HTRules");
 	me->isa = &HTRuleClass;
@@ -426,7 +426,7 @@ PUBLIC HTStream * HTRules_parseAutomatically (HTRequest *	request,
 {
     if (request) {
 	HTStream * me;
-	if (WWWTRACE) HTTrace("Rule file... Automatic parser object created\n");
+	if (APP_TRACE) HTTrace("Rule file... Automatic parser object created\n");
 	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
 	    HT_OUTOFMEM("HTRules");
 	me->isa = &HTRuleClass;

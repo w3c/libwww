@@ -574,7 +574,7 @@ PUBLIC BOOL HTGetFormAnchor (HTAssocList *	formdata,
 PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 {
     HTParentAnchor * entity = HTRequest_entityAnchor(request);
-    if (WWWTRACE) HTTrace("Posting Data from callback function\n");
+    if (APP_TRACE) HTTrace("Posting Data from callback function\n");
     if (!request || !entity || !target) return HT_ERROR;
     {
 	BOOL chunking = NO;
@@ -1355,7 +1355,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
     HTRequest * src_req;
     HTList * cur;
     if (!src_anchor || !main_dest) {
-	if (WWWTRACE) HTTrace("Copy........ BAD ARGUMENT\n");
+	if (APP_TRACE) HTTrace("Copy........ BAD ARGUMENT\n");
 	return NO;
     }
 
@@ -1377,7 +1377,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 	    HTAnchor *main_anchor = HTLink_destination(main_link);
 	    HTMethod method = HTLink_method(main_link);
 	    if (!main_link || method==METHOD_INVALID) {
-		if (WWWTRACE)
+		if (APP_TRACE)
 		    HTTrace("Copy Anchor. No destination found or unspecified method\n");
 		HTRequest_delete(src_req);
 		return NO;
@@ -1399,7 +1399,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 		HTMethod method = HTLink_method(pres);
 		HTRequest *dest_req;
 		if (!dest || method==METHOD_INVALID) {
-		    if (WWWTRACE)
+		    if (APP_TRACE)
 			HTTrace("Copy Anchor. Bad anchor setup %p\n",
 				dest);
 		    return NO;
@@ -1461,7 +1461,7 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
     HTAnchor * dest_anchor = HTLink_destination(link);
     HTMethod method = HTLink_method(link);
     if (!link || method==METHOD_INVALID || !callback) {
-	if (WWWTRACE)
+	if (APP_TRACE)
 	    HTTrace("Upload...... No destination found or unspecified method\n");
 	return NO;
     }
@@ -1484,7 +1484,7 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
 */
 PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
 {
-    if (WWWTRACE) HTTrace("Uploading... from callback function\n");
+    if (APP_TRACE) HTTrace("Uploading... from callback function\n");
     if (!request || !request->source_anchor || !target) return HT_ERROR;
     {
 	int status;
