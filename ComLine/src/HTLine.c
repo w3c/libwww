@@ -53,7 +53,8 @@ typedef enum _CLFlags {
     CL_COUNT		= 0x2,
     CL_QUIET		= 0x4,
     CL_VALIDATE		= 0x8,
-    CL_END_VALIDATE	= 0x10
+    CL_END_VALIDATE	= 0x10,
+    CL_CACHE_FLUSH	= 0x20
 } CLFlags;
 
 #define SHOW_MSG		(!(cl->flags & CL_QUIET))
@@ -404,6 +405,10 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-endvalidate")) {
 		cl->flags |= CL_END_VALIDATE;
 
+	    /* Force complete reload */
+	    } else if (!strcmp(argv[arg], "-nocache")) {
+		cl->flags |= CL_CACHE_FLUSH;
+
 #ifdef WWWTRACE
 	    /* trace flags */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
@@ -482,8 +487,10 @@ int main (int argc, char ** argv)
     */
     if (cl->flags & CL_VALIDATE)
 	HTRequest_setReloadMode(cl->request, HT_CACHE_VALIDATE);
-    if (cl->flags & CL_END_VALIDATE)
+    else if (cl->flags & CL_END_VALIDATE)
 	HTRequest_setReloadMode(cl->request, HT_CACHE_END_VALIDATE);
+    else if (cl->flags & CL_CACHE_FLUSH)
+	HTRequest_setReloadMode(cl->request, HT_CACHE_FLUSH);
 
     /* Add progress notification */
     if (cl->flags & CL_QUIET) HTAlert_deleteOpcode(HT_A_PROGRESS);
