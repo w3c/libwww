@@ -43,8 +43,23 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTANCHOR_H
 #define HTANCHOR_H
+
 #include "HTList.h"
 #include "HTAtom.h"
+</PRE>
+
+<A NAME="td"><H2>Types for Atoms</H2></A>
+
+This is a set of videly used type definitions used through out the
+Library:
+
+<PRE>
+typedef HTAtom * HTFormat;
+typedef HTAtom * HTLevel;		       /* Used to specify HTML level */
+typedef HTAtom * HTEncoding;				 /* Content Encoding */
+typedef HTAtom * HTCte;				/* Content transfer encoding */
+typedef HTAtom * HTCharset;
+typedef HTAtom * HTLanguage;
 </PRE>
 
 <A NAME="anchor"><H2>Anchor data structures</H2></A>
@@ -61,8 +76,6 @@ typedef struct _HTChildAnchor HTChildAnchor;
 Must be AFTER definition of HTAnchor:
 
 <PRE>
-#include "HTFormat.h"
-
 typedef HTAtom HTLinkType;
 
 typedef struct {
@@ -472,12 +485,13 @@ extern void HTAnchor_addExtra		PARAMS((HTParentAnchor *me,
 						CONST char *	header));
 </PRE>
 
-<H3>Has header been parsed?</H3>
+<H3>Status of Header Parsing</H3>
 
 These are primarily for internal use
 
 <PRE>
 extern BOOL HTAnchor_headerParsed	PARAMS((HTParentAnchor *me));
+extern void HTAnchor_setHeaderParsed	PARAMS((HTParentAnchor *me));
 </PRE>
 
 <H3>We want to clear the header information...</H3>

@@ -57,7 +57,6 @@
 
 /* Max number of non-blocking accepts */
 #define MAX_ACCEPT_POLL		30
-#define FCNTL(r, s, t)		fcntl(r, s, t)
 
 #ifndef RESOLV_CONF
 #define RESOLV_CONF "/etc/resolv.conf"
@@ -1115,11 +1114,12 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		}
 #endif /* VMS */
 #endif /* WINDOW */
-		if (status == -1) {
-		    if (PROT_TRACE)
-			fprintf(TDEST, "HTDoConnect. Can NOT make socket non-blocking\n");
-		} else if (PROT_TRACE)
-		    fprintf(TDEST, "HTDoConnect. Using NON_BLOCKING I/O\n");
+		if (PROT_TRACE) {
+		    if (status == -1)
+			fprintf(TDEST, "HTDoConnect. Can't make socket non-blocking\n");
+		    else
+			fprintf(TDEST, "HTDoConnect. Using NON_BLOCKING I/O\n");
+		}
 	    }
 	    
 	    /* If multi-homed host then start timer on connection */

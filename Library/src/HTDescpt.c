@@ -17,10 +17,10 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
+#include "HTFormat.h"
 #include "HTList.h"
 #include "HTAAUtil.h"
 #include "HTAccess.h"
-#include "HTFile.h"
 
 #define MAX_LINE_LEN 256
 

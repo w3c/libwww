@@ -1144,6 +1144,10 @@ value. However, the value <B>IS</B> used!
 #ifndef DEFAULT_SUFFIXES
 #define DEFAULT_SUFFIXES	".,_"
 #endif
+
+#ifndef FCNTL
+#define FCNTL(r,s,t)	fcntl((r),(s),(t))
+#endif
 </PRE>
 
 <H3>Macros for manipulating masks for select()</H3>

@@ -22,6 +22,7 @@
 #include "HTParse.h"
 #include "HTTCP.h"
 #include "HTFormat.h"
+#include "HTSocket.h"
 #include "HTAlert.h"
 #include "HTMIME.h"
 #include "HTAccess.h"		/* HTRequest */
@@ -109,19 +110,22 @@ PRIVATE int HTTPCleanup ARGS2(HTRequest *, req, BOOL, abort)
 	if (http->sockfd != INVSOC) {
 
 	    /* Free stream with data TO network */
-	    if (!req->PostCallBack) {
+	    if (http->target) {
+		if (!req->PostCallBack) {
+		    if (abort) {
+		        (*req->input_stream->isa->abort)(req->input_stream,
+							 NULL);
+		    } else {
+			(*req->input_stream->isa->_free)(req->input_stream);
+		    }
+		}
+		
+		/* Free stream with data FROM network */
 		if (abort)
-		    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+		    (*http->target->isa->abort)(http->target, NULL);
 		else
-		    (*req->input_stream->isa->_free)(req->input_stream);
+		    (*http->target->isa->_free)(http->target);
 	    }
-	    
-	    /* Free stream with data FROM network */
-	    if (abort)
-		(*http->target->isa->abort)(http->target, NULL);
-	    else
-		(*http->target->isa->_free)(http->target);
-
 	    if (PROT_TRACE)
 		fprintf(TDEST,"HTTP........ Closing socket %d\n",http->sockfd);
 	    if ((status = NETCLOSE(http->sockfd)) < 0)
@@ -357,18 +361,21 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 	/* Set up the streams */
 	if (me->status==200) {
 	    HTStream *s;
-	    me->target = HTStreamStack(WWW_MIME, req->output_format,
-				       req->output_stream, req, NO);
+	    if (req->output_format == WWW_SOURCE) {
+		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
+					   req->output_format,
+					   req->output_stream);
+	    } else {
+		me->target = HTStreamStack(WWW_MIME, req->output_format,
+					   req->output_stream, req, NO);
 	    
-	    /* howcome: test for return value from HTCacheWriter 12/1/95 */
-	    if (req->method==METHOD_GET && HTCache_isEnabled() &&
-		(s = HTCacheWriter(req, NULL, WWW_MIME,	req->output_format,
-				   req->output_stream))) {
-		me->target = HTTee(me->target, s);
+		/* howcome: test for return value from HTCacheWriter 12/1/95 */
+		if (req->method==METHOD_GET && HTCache_isEnabled() &&
+		    (s = HTCacheWriter(req, NULL, WWW_MIME, req->output_format,
+				       req->output_stream))) {
+		    me->target = HTTee(me->target, s);
+		}
 	    }
-	} else if (req->output_format == WWW_SOURCE) {
-	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->output_format,
-				       req->output_stream);
 	} else {
 	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->error_format,
 				       req->error_stream);
@@ -521,11 +528,15 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	http->sockfd = INVSOC;			    /* Invalid socket number */
 	http->request = request;
 	http->state = HTTP_BEGIN;
+	http->next = HTTP_ERROR;
 	request->net_info = (HTNetInfo *) http;
 	HTThread_new((HTNetInfo *) http);
 	request->input_stream = HTTPRequest_new(request,request->input_stream);
-    } else
+    } else {
 	http = (http_info *) request->net_info;		/* Get existing copy */
+	if (http->sockfd != INVSOC && HTThreadIntr(http->sockfd))
+	    http->state = HTTP_ERROR;
+    }
  
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
@@ -562,7 +573,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		request->input_stream->target=HTWriter_new(http->sockfd, YES);
 		http->target = HTImProxy ?
 		    request->output_stream : HTTPStatus_new(request, http);
-		HTThreadState(http->isoc->input_file_number, THD_SET_READ);
+		HTThreadState(http->sockfd, THD_SET_READ);
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK)
 		return status;
@@ -599,10 +610,18 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_INTERRUPTED)
 		    http->state = HTTP_ERROR;
+#if 0
 		else if (status == HT_LOADED) {
 		    http->state = http->next;	       /* Jump to next state */
 		} else
 		    http->state = HTTP_ERROR;
+#else
+		else {
+		    if (PROT_TRACE)
+			fprintf(TDEST, "TESTTESTTEST Jumpingto bext state\n");
+		    http->state = http->next;	       /* Jump to next state */
+		}
+#endif
 	    } else
 		http->state = HTTP_ERROR;
 	    break;
@@ -637,9 +656,34 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    
 	  case HTTP_AA:
 	    HTTPCleanup(request, NO);			 /* Close connection */
+
+	    /*
+	    ** We must also kill the source request. As now the whole stream
+	    ** get's freed (this input stream is identical to the copyrequest
+	    ** output stream, we must re-initialize the input_stream
+	    */
+	    if (request->CopyRequest) {
+		HTThread_kill(request->CopyRequest->net_info);
+		request->input_stream = NULL;
+	    }
+
 	    if (HTTPAuthentication(request) == YES &&
 		HTAA_retryWithAuth(request) == YES) {
-		return HTLoadAnchor((HTAnchor *) request->anchor, request);
+
+		/* We have to figure out where we were called from */
+		if (request->CopyRequest) {
+		    return HTCopyAnchor((HTAnchor *)
+					request->CopyRequest->anchor,
+					request->CopyRequest,
+					request->anchor,
+					request);
+		} else if (request->PostCallBack) {
+#if 0
+		    return HTUploadAnchor((HTAnchor *)request->anchor,request);
+#endif
+		} else {
+		    return HTLoadAnchor((HTAnchor *) request->anchor, request);
+		}
 	    } else {
 		char *unescaped = NULL;
 		StrAllocCopy(unescaped, url);

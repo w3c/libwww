@@ -84,8 +84,8 @@ PUBLIC int HTThreadGetFDInfo ARGS2(fd_set *, read, fd_set *, write)
 PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 {
 #ifdef _WIN32
-	if (sockfd <= 2) 
-		sockfd = _get_osfhandle(sockfd) ;
+    if (sockfd <= 2)
+	sockfd = _get_osfhandle(sockfd);
 #endif
   
     if (THD_TRACE) {
@@ -105,10 +105,10 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
     switch (action) {
       case THD_SET_WRITE:
 	FD_CLR(sockfd, &HTfd_read);
-	if (! FD_ISSET(sockfd, &HTfd_write))
-		FD_SET(sockfd, &HTfd_write);
-	if (! FD_ISSET(sockfd, &HTfd_set))
-		FD_SET(sockfd, &HTfd_set);
+	if (!FD_ISSET(sockfd, &HTfd_write))
+	    FD_SET(sockfd, &HTfd_write);
+	if (!FD_ISSET(sockfd, &HTfd_set))
+	    FD_SET(sockfd, &HTfd_set);
 	break;
 
       case THD_CLR_WRITE:
@@ -118,11 +118,11 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 	break;
 
       case THD_SET_READ:
-	if (! FD_ISSET(sockfd, &HTfd_read))
-		FD_SET(sockfd, &HTfd_read);
+	if (!FD_ISSET(sockfd, &HTfd_read))
+	    FD_SET(sockfd, &HTfd_read);
 	FD_CLR(sockfd, &HTfd_write);
-	if (! FD_ISSET(sockfd, &HTfd_set))
-		FD_SET(sockfd, &HTfd_set);
+	if (!FD_ISSET(sockfd, &HTfd_set))
+	    FD_SET(sockfd, &HTfd_set);
 	break;
 
       case THD_CLR_READ:
@@ -141,8 +141,8 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
       case THD_SET_INTR:
 	FD_CLR(sockfd, &HTfd_read);
 	FD_CLR(sockfd, &HTfd_write);
-	if (! FD_ISSET(sockfd, &HTfd_intr))
-		FD_SET(sockfd, &HTfd_intr);
+	if (!FD_ISSET(sockfd, &HTfd_intr))
+	    FD_SET(sockfd, &HTfd_intr);
 	break;
 
       case THD_CLR_INTR:
@@ -193,10 +193,23 @@ PUBLIC BOOL HTThreadIntr ARGS1(SOCKFD, sockfd)
 /*							    HTThreadMarkIntrAll
 **
 **	Marks all Library sockets as interrupted. User sockets can not be
-**	interrupted
+**	interrupted.
 */
-PUBLIC void HTThreadMarkIntrAll ARGS1(CONST fd_set *,	fd_user)
+PUBLIC BOOL HTThreadMarkIntrAll ARGS1(CONST fd_set *, fd_user)
 {
+    HTNetInfo *pres;
+    if (HTThreads) {
+	while ((pres = (HTNetInfo *) HTList_lastObject(HTThreads)) != NULL)
+	    HTThread_kill(pres);
+	return YES;
+    }
+    return NO;
+
+#if 0
+    /*
+    ** Use the HTThread list instead of the bit arrays. This makes it easier
+    ** to execute a kill thread right away
+    */
     int cnt;
 #ifdef _WINSOCKAPI_
     int i;
@@ -213,6 +226,7 @@ PUBLIC void HTThreadMarkIntrAll ARGS1(CONST fd_set *,	fd_user)
 #endif
 	    FD_SET(cnt, &HTfd_intr);
     }
+#endif
 }
 
 
@@ -239,24 +253,68 @@ PUBLIC BOOL HTThreadActive NOARGS
 /*							     	   HTThread_new
 **
 **	Register the HTNetInfo structure in a list so that we can find the 
-**	request which corresponds to a socket descriptor
+**	request which corresponds to a socket descriptor.
+**	Returns YES on success, NO on error
 */
-PUBLIC void HTThread_new ARGS1(HTNetInfo *, new_net)
+PUBLIC BOOL HTThread_new ARGS1(HTNetInfo *, new_net)
 {
     if (!HTThreads)
 	HTThreads = HTList_new();
-    HTList_addObject(HTThreads, (void *) new_net);
+    return HTList_addObject(HTThreads, (void *) new_net);
 }
 
 
 /*							         HTThread_clear
 **
-**	Remove the HTNetInfo from the list of acrive threads.
+**	Remove the HTNetInfo from the list of active threads.
+**	Returns YES on success, NO on error
 */
-PUBLIC int HTThread_clear ARGS1(HTNetInfo *, old_net)
+PUBLIC BOOL HTThread_clear ARGS1(HTNetInfo *, old_net)
 {
     if (HTThreads)
 	return HTList_removeObject(HTThreads, (void *) old_net);
+    return NO;
+}
+
+
+/*							         HTThread_kill
+**
+**	Kill the thread and remove the HTNetInfo from the list of active
+**	threads.
+**	Returns YES on success, NO on error
+**
+**	BUG: We do not take ANSI C file descriptors into account
+*/
+PUBLIC BOOL HTThread_kill ARGS1(HTNetInfo *, kill_net)
+{
+    if (HTThreads) {
+	HTList *cur = HTThreads;
+	HTNetInfo *pres;
+
+	/* Find the corresponding HTRequest structure */
+	while ((pres = (HTNetInfo *) HTList_nextObject(cur)) != NULL) {
+	    if (pres == kill_net) break;
+	}
+
+	/*
+	**  Now see if a socket is active (or an ANSI C file descriptor).
+	**  If so then mark the thread as interrupted and call the load
+	**  function.
+	*/
+	if (pres) {
+	    if (kill_net->sockfd != INVSOC) {	  /* @@@ ANSI C FIlE DES @@@ */
+		HTProtocol *prot = (HTProtocol *)
+		    HTAnchor_protocol(kill_net->request->anchor);
+		HTThreadState(kill_net->sockfd, THD_SET_INTR);
+		(*(prot->load))(kill_net->request);
+	    }
+	    return HTThread_clear(kill_net);
+	} else {
+	    if (THD_TRACE)
+		fprintf(TDEST, "Kill Thread. Thread is not registered\n");
+	    return NO;
+	}
+    }
     return NO;
 }
 
@@ -271,8 +329,6 @@ PUBLIC int HTThread_clear ARGS1(HTNetInfo *, old_net)
 PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 					    CONST fd_set *, 	fd_write)
 {
-    HTList *cur = HTThreads;
-    HTNetInfo *pres;
     SOCKFD cnt;
     SocAction found = SOC_INVALID;
 
@@ -280,8 +336,12 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
     int ic = 0;
 #endif
 
+#if 0
+
+/* Should not be necessary after we have HTThread_kill() */
 #ifdef _WINSOCKAPI_
-    for (ic = 0; ic < HTfd_set.fd_count; ic++) { cnt = HTfd_set.fd_array[ic];
+    for (ic = 0; ic < HTfd_set.fd_count; ic++) {
+	cnt = HTfd_set.fd_array[ic];
 #else
     for (cnt=STDIN_FILENO+1; cnt<HTMaxfdpl; cnt++) {		/* INTERRUPT */
 #endif
@@ -292,6 +352,8 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 	    break;
 	}
     }
+
+#endif
 
     if (found == SOC_INVALID) {
 #ifdef _WINSOCKAPI_
@@ -325,14 +387,20 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 	}
     }
 
-    if (found == SOC_INVALID || cur == NULL)
+    if (found == SOC_INVALID)
 	return NULL;
 
     /* Find the corresponding HTNetInfo and HTRequest structure */
-    while ((pres = (HTNetInfo *) HTList_nextObject(cur)) != NULL) {
-	if (pres->sockfd == cnt) {
-	    pres->action = found;
-	    return pres->request;
+    {
+	HTList *cur = HTThreads;
+	HTNetInfo *pres;
+	if (cur) {
+	    while ((pres = (HTNetInfo *) HTList_nextObject(cur)) != NULL) {
+		if (pres->sockfd == cnt) {
+		    pres->action = found;
+		    return pres->request;
+		}
+	    }
 	}
     }
     return NULL;

@@ -29,6 +29,7 @@
 #include "HTTCP.h"
 #include "HTIcons.h"
 #include "HTAccess.h"
+#include "HTSocket.h"
 #include "HTFormat.h"
 #include "HTError.h"
 #include "HTBind.h"

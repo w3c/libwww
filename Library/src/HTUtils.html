@@ -58,14 +58,14 @@ extern FILE *WWWTrace;
 #endif
 
 typedef enum _HTTraceFlags {
-    SHOW_CACHE_TRACE	= 0x3,				/*		  11 */
-    SHOW_SGML_TRACE	= 0xC,				/*		1100 */
+    SHOW_CACHE_TRACE	= 0x2,				/*		  10 */
+    SHOW_SGML_TRACE	= 0x8,				/*		1000 */
     SHOW_BIND_TRACE	= 0x10,				/* 	      1.0000 */
-    SHOW_THREAD_TRACE	= 0x30,				/* 	     11.0000 */
+    SHOW_THREAD_TRACE	= 0x20,				/* 	     10.0000 */
     SHOW_STREAM_TRACE	= 0x40,				/* 	    100.0000 */
-    SHOW_PROTOCOL_TRACE = 0xC0,				/* 	   1100.0000 */
-    SHOW_URI_TRACE	= 0x300,			/* 	11.0000.0000 */
-    SHOW_ANCHOR_TRACE	= 0xC00,			/*   11.00.0000.0000 */
+    SHOW_PROTOCOL_TRACE = 0x80,				/* 	   1000.0000 */
+    SHOW_URI_TRACE	= 0x200,			/* 	10.0000.0000 */
+    SHOW_ANCHOR_TRACE	= 0x800,			/*   10.00.0000.0000 */
     SHOW_ALL_TRACE	= 0xFFF				/*   11.11.1111.1111 */
 } HTTraceFlags;
 </PRE>

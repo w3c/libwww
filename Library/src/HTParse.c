@@ -25,29 +25,6 @@ struct struct_parts {
 	char * anchor;
 };
 
-/*	Strip white space off a string
-**	------------------------------
-**
-** On exit,
-**	Return value points to first non-white character, or to 0 if none.
-**	All trailing white space is OVERWRITTEN with zero.
-*/
-
-PUBLIC char * HTStrip ARGS1(char *, s)
-{
-#define SPACE(c) ((c==' ')||(c=='\t')||(c=='\n')) 
-    char * p=s;
-    if (!s) return NULL;	/* Doesn't dump core if NULL */
-    for(p=s;*p;p++);		/* Find end of string */
-    for(p--;p>=s;p--) {
-    	if(SPACE(*p)) *p=0;	/* Zap trailing blanks */
-	else break;
-    }
-    while(SPACE(*s))s++;	/* Strip leading blanks */
-    return s;
-}
-
-
 /*	Scan a filename for its consituents
 **	-----------------------------------
 **

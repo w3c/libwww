@@ -19,7 +19,6 @@
 #include "HTMLPDTD.h"
 #include "HTAnchor.h"
 #include "HTParse.h"
-#include "HTFile.h"
 #include "HTFormat.h"
 #include "HTChunk.h"
 #include "HTIcons.h"					 /* Implemented here */

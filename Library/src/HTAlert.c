@@ -73,16 +73,19 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
 {
     char buffer[200];
     char *reply = NULL;
-    fprintf(TDEST, "%s", Msg ? Msg : "UNKNOWN");
+    fprintf(TDEST, "%s ", Msg ? Msg : "UNKNOWN");
     if (deflt)
-	fprintf(TDEST, " (RETURN for [%s]) ", deflt);
+	fprintf(TDEST, "(RETURN for [%s]) ", deflt);
 
     if (HTInteractive) {
 #ifndef NO_STDIO
 	if (!fgets(buffer, 200, stdin))
 	    return NULL;	       	     /* NULL string on error, Henrik */
 	buffer[strlen(buffer)-1] = '\0';	        /* Overwrite newline */
-	StrAllocCopy(reply, *buffer ? buffer : deflt);
+	if (*buffer)
+	    StrAllocCopy(reply, buffer);
+	else if (deflt)
+	    StrAllocCopy(reply, deflt);
 #endif
     }
     return reply;
@@ -130,7 +133,7 @@ PUBLIC void HTPromptUsernameAndPassword ARGS3(CONST char *,	Msg,
 					      char **,		password)
 {
     fprintf(TDEST, "%s\n", Msg ? Msg : "UNKNOWN");
-    *username = HTPrompt("Username: ", *username);
+    *username = HTPrompt("Username:", *username);
     *password = HTPromptPassword("Password: ");
 }
 

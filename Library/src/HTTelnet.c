@@ -23,7 +23,6 @@
 #include "HTUtils.h"
 #include "HTParse.h"
 #include "HTAnchor.h"
-#include "HTFile.h"
 #include "HTAccess.h"
 #include "HTAlert.h"
 #include "HTTelnet.h"					 /* Implemented here */

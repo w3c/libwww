@@ -96,17 +96,6 @@ for freeing the resulting name later.
 extern char * HTRelative PARAMS((const char * aName, const char *relatedName));
 </PRE>
 
-<H3>Strip white space off a string</H3>
-
-<H3>On exit</H3>Return value points to first non-white
-character, or to 0 if none.<P>
-All trailing white space is OVERWRITTEN
-with zero.
-
-<PRE>
-extern char * HTStrip PARAMS((char * s));
-</PRE>
-
 <A NAME="canon"><H2>Canonicalization</H2></A>
 
 Canonicalization of URIs is a difficult job, but it saves a lot of

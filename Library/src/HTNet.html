@@ -55,8 +55,17 @@ respectively. A normal place to call these functions would be on
 creation and deletion of the <CODE>HTNetInfo</CODE> data structure.
 
 <PRE>
-extern void HTThread_new	PARAMS((HTNetInfo * new_net));
-extern int  HTThread_clear	PARAMS((HTNetInfo * old_net));
+extern BOOL HTThread_new	PARAMS((HTNetInfo * new_net));
+extern BOOL HTThread_clear	PARAMS((HTNetInfo * old_net));
+</PRE>
+
+<H2>Kill a Thread</H2>
+
+This function forces a call to the load function and resets the state
+machine. It also removes the thread from the list of active threads.
+
+<PRE>
+extern BOOL HTThread_kill	PARAMS((HTNetInfo * net));
 </PRE>
 
 <H2>Get Copy of Registered Bit-arrays</H2>
@@ -93,14 +102,14 @@ typedef enum _HTThreadAction {
 </PRE>
 
 <PRE>
-extern void HTThreadState PARAMS((SOCKFD sockfd, HTThreadAction action));
+extern void HTThreadState	PARAMS((SOCKFD sockfd, HTThreadAction action));
 </PRE>
 
 This function makes life easier if you want to mark all sockets as
 interrupted.
 
 <PRE>
-extern void HTThreadMarkIntrAll	PARAMS((CONST fd_set * fd_user));
+extern BOOL HTThreadMarkIntrAll	PARAMS((CONST fd_set * fd_user));
 </PRE>
 
 <H2>Is a Thread Interrupted?</H2>

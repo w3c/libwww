@@ -23,6 +23,7 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTChunk.h"
+#include "HTSocket.h"
 #include "HTFWrite.h"
 #include "HTMIME.h"					 /* Implemented here */
 

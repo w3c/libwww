@@ -31,6 +31,8 @@ The module contains a lot of stuff but the main topics are:
 <LI><A HREF="#log">Logging of requests</A>
 <LI><A HREF="#Methods">Management of access methods</A>
 <LI><A HREF="#Addresses">A lot of hard coded addresses</A>
+<LI><A HREF="#socket">Buffering for the Network</A>
+<LI><A HREF="#NetInfo">Protocol Specific Information</A>
 <LI><A HREF="#z1">The HTRequest structure</A>
 <LI><A HREF="#z100">Management of the HTRequest structure</A>
 <LI><A HREF="#LoadDoc">Functions for loading a document</A>
@@ -44,8 +46,10 @@ The module contains a lot of stuff but the main topics are:
 #ifndef HTACCESS_H
 #define HTACCESS_H
 
-#include "HTList.h"
-#include "HTChunk.h"
+#include <A HREF="HTList.h">"HTList.h"</A>
+#include <A HREF="HTChunk.h">"HTChunk.h"</A>
+#include <A HREF="HTAnchor.html">"HTAnchor.h"</A>
+#include <A HREF="HTStream.h">"HTStream.h"</A>
 </PRE>
 
 <H2>Global Flags</H2>
@@ -160,40 +164,57 @@ because of circular references.
 typedef struct _HTRequest HTRequest;
 typedef struct _HTNetInfo HTNetInfo;
 
+#include "HTAAUtil.h"			       /* HTAAScheme, HTAAFailReason */
+#include "HTAABrow.h"						/* HTAASetup */
 /*
 ** Callback to a protocol module
 */
 typedef int (*HTLoadCallBack)	PARAMS((HTRequest *	req));
-
-#include "HTAnchor.h"
-#include <A
-NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
-#include "HTAAUtil.h"		/* HTAAScheme, HTAAFailReason */
-#include "HTAABrow.h"		/* HTAASetup */
 </PRE>
 
 <A NAME="HeaderMask"><H2>General HTTP Header Mask</H2></A>
 
-This mask enables and disables which automaticly generated HTTP
-headers are to be sent in a request. If the bit is not turned on they
+There are a few header fields which have general applicability for
+both request and response mesages, but which do not apply to the
+communication parties or theentity being transferred. This mask
+enables and disables these headers. If the bit is not turned on they
 are not sent. Extra header can be generated when initializing the <A
-HREF="#ExtraHeaders">ExtraHeaders field</A>. The first set is general
-headers and the second is request headers.
+HREF="#ExtraHeaders">ExtraHeaders field</A>. All headers are optional
+and the default value is <EM>NO GENERAL HEADERS</EM>
 
 <PRE>
-typedef enum _HeaderEnum {
+typedef enum _GenHeaderEnum {
     HT_DATE		= 0x1,
-    HT_MESSAGE_ID	= 0x2,
-    HT_MIME		= 0x4,				     /* MIME-Version */
+    HT_FORWARDED	= 0x2,
+    HT_MESSAGE_ID	= 0x4,
+    HT_MIME		= 0x8
+} GenHeaderEnum;
 
-    HT_ACCEPT		= 0x8,
+#define <A NAME="DEF_HEAD">DEFAULT_GENERAL_HEADERS</A> 0
+</PRE>
+
+<H2>Request Headers</H2>
+
+The request header fields allow the client to pass additional
+information about the request (and about the client itself) to the
+server. All headers are optional but the default value is all request
+headers if present <EM>except</EM> <CODE>From</CODE> and
+<CODE>Pragma</CODE>.
+
+<PRE>
+typedef enum _ReqHeaderEnum {
+    HT_ACCEPT_TYPE	= 0x1,
+    HT_ACCEPT_CHAR	= 0x2,
+    HT_ACCEPT_ENC	= 0x4,
+    HT_ACCEPT_LAN	= 0x8,
     HT_FROM		= 0x10,
     HT_PRAGMA		= 0x20,
     HT_REFERER		= 0x40,
     HT_USER_AGENT	= 0x80
-} HeaderEnum;
+} ReqHeaderEnum;
 
-#define <A NAME="DEF_HEAD">DEFAULT_HEADERS</A> HT_ACCEPT+HT_REFERER+HT_USER_AGENT
+#define <A NAME="DEF_REQ">DEFAULT_REQUEST_HEADERS</A> \
+HT_ACCEPT_TYPE+HT_ACCEPT_CHAR+HT_ACCEPT_ENC+HT_ACCEPT_LAN+HT_REFERER+HT_USER_AGENT
 </PRE>
 
 <H2>Entity Header Mask</H2>
@@ -202,7 +223,8 @@ The entity headers contain information about the object sent in the
 HTTP transaction. See the <A HREF="HTAnchor.html">Anchor module</A>,
 for the storage of entity headers. This flag defines which headers are
 to be sent in a request together with an entity body (the <B>O</B>
-stands for <EM>object</EM>)
+stands for <EM>object</EM>). All headers are optional but the default
+value is <EM>ALL ENTITY HEADERS IF PRESENT</EM>
 
 <PRE>
 typedef enum _EntityHeaderEnum {
@@ -221,8 +243,7 @@ typedef enum _EntityHeaderEnum {
     HT_VERSION		= 0x2000
 } EntityHeaderEnum;
 
-#define <A NAME="DEF_ENTITY">DEFAULT_ENTITY_HEADERS</A> HT_CONTENT_TYPE+HT_CONTENT_LENGTH \
-	+HT_DERIVED_FROM+HT_VERSION
+#define <A NAME="DEF_ENTITY">DEFAULT_ENTITY_HEADERS</A> 0xFFFF
 </PRE>
 
 <A NAME="Addresses"><H2>Default WWW Addresses</H2></A>
@@ -269,6 +290,24 @@ is asking for user confusion.
 #ifndef HT_TMP_ROOT
 #define HT_TMP_ROOT		"/tmp"
 #endif
+</PRE>
+
+<A NAME="socket"><H2>Buffering for the network</H2></A>
+
+This structure provides buffering for READ (and future WRITE) to the
+network. It is used by all the protocol modules. The size of the
+buffer, <CODE>INPUT_BUFFER_SIZE</CODE>, is a compromis between speed
+and memory.
+
+<PRE>
+#define INPUT_BUFFER_SIZE 8192
+
+typedef struct _socket_buffer {
+	char	input_buffer[INPUT_BUFFER_SIZE];
+	char *	input_pointer;
+	char *	input_limit;
+	SOCKFD	input_file_number;
+} HTInputSocket;
 </PRE>
 
 <H2><A NAME="HTNetInfo">Protocol Specific Information</A></H2>
@@ -371,16 +410,21 @@ The list of (human) language values acceptable in the response. The default
 is all languages.
 
 <PRE>
-    HeaderEnum		HeaderMask;
+    HTList *	charsets;
+</PRE>
+
+The list of charsets accepted by the application
+
+<PRE>
+    GenHeaderEnum	GenMask;
+    ReqHeaderEnum	RequestMask;
     EntityHeaderEnum	EntityMask;
 </PRE>
 
-These two masks defines which headers to include in a HTTP request (or
-any other MIME-like protocol). the first mask defines what
-autogenerated HTTP header fields should be sent in the HTTP
-request. The default value is <A
-HREF="DEF_HEAD">DEFAULT_HEADERS</A>. The second defines what entity
-headers should be sent along with an entity (using PUT or POST).
+These bitmask variables defines which headers to include in a HTTP
+request (or any other MIME-like protocol). See <A
+HREF="#HeaderMask">header masks</A> for more information on default
+values.
 
 <PRE>
     HTParentAnchor *parentAnchor;
@@ -469,10 +513,14 @@ handling. The function must have the same return values as the other
 <PRE>
     BOOL BlockingIO;
     BOOL ForceReload;
+    BOOL ContentNegotiation;
 </PRE>
 
-This flag can be set to override if a protocol module is registered as
-using non-blocking IO.
+<CODE>BlockingIO</CODE> can be set to override if a protocol module is
+registered as using non-blocking IO, <CODE>ForceReload</CODE> will
+cancel any cached element, and <CODE>ContentNegotioation</CODE> will
+force content negotiation when looking for a local file. This is the
+default!
 
 <PRE>
     BOOL (*<A NAME="z9"> callback</A> ) PARAMS((struct _HTRequest* request,

@@ -234,7 +234,7 @@ PUBLIC void HTFileInit NOARGS
     HTBind_setBinding("gz",	NULL,				"gzip",	    NULL, 1.0);	/* Gnu Compressed data	*/
 
     HTBind_setBinding("*.*",     "www/unknown",			"binary", NULL, 0.1);	/* Unknown suffix */
-    HTBind_setBinding("*",       "text/plain",			"7bit",   NULL, 0.5);	/* No suffix */
+    HTBind_setBinding("*",       "www/unknown",			"7bit",   NULL, 0.5);	/* No suffix */
 }
 #endif /* !HT_NO_INIT */
 

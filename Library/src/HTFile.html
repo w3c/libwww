@@ -45,13 +45,14 @@ GLOBALREF HTProtocol HTFile;
 <H2>Make a WWW name from a full local path name</H2>
 
 <PRE>
-extern char * WWW_nameOfFile PARAMS((const char * name));
+extern char * WWW_nameOfFile	PARAMS((const char * name));
 </PRE>
 
 <H2>Determine write access to a file</H2>
 
 <PRE>
-extern BOOL HTEditable PARAMS((CONST char * filename));
+extern BOOL HTEditable		PARAMS((CONST char * filename,
+					struct stat *stat_info));
 </PRE>
 
 <PRE>

@@ -14,6 +14,7 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
+#include "HTFormat.h"
 #include "HTThread.h"
 #include "HTTCP.h"
 #include "HTWriter.h"
@@ -84,32 +85,34 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
     HTChunkPutc(header, CR);
     HTChunkPutc(header, LF);
 
-    /* Header Information */
-    if (request->HeaderMask & HT_DATE) {
+    /* General Headers */
+    if (request->GenMask & HT_DATE) {
 	time_t local = time(NULL);
 	sprintf(linebuf, "Date: %s%c%c", HTDateTimeStr(&local, NO), CR,LF);
 	HTChunkPuts(header, linebuf);
     }
-    if (request->HeaderMask & HT_MESSAGE_ID) {
+    if (request->GenMask & HT_FORWARDED) {		/* @@@@@@ */
+    }
+    if (request->GenMask & HT_MESSAGE_ID) {
 	CONST char *msgid = HTMessageIdStr();
 	if (msgid) {
 	    sprintf(linebuf, "Message-ID: %s%c%c", msgid, CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
     }
-    if (request->HeaderMask & HT_MIME) {
+    if (request->GenMask & HT_MIME) {
 	sprintf(linebuf, "MIME-Version: %s%c%c", MIME_VERSION, CR, LF);
 	HTChunkPuts(header, linebuf);
     }
 
-    /* Run through local and global list of conversions for `Accept' lines */
-    if (request->HeaderMask & HT_ACCEPT) {
+    /* Request Headers */
+    if (request->RequestMask & HT_ACCEPT_TYPE) {
 	int list;
 	HTList *cur;
 	for (list=0; list<2; list++) {
 	    if ((!list && ((cur=HTConversions) != NULL)) ||
 		(list && ((cur=request->conversions) != NULL))) {
-		HTPresentation *pres;
+		HTPresentation  *pres;
 		while ((pres =(HTPresentation *) HTList_nextObject(cur))) {
 		    if (pres->rep_out == WWW_PRESENT) {
 			if (pres->quality != 1.0) {
@@ -126,25 +129,92 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	    }
 	}
     }
-
-    /* Put out authorization */
-    if (request->authorization != NULL) {
+    if (request->RequestMask & HT_ACCEPT_CHAR) {
+	BOOL first=YES;
+	int list;
+	HTList *cur;
+	for (list=0; list<2; list++) {
+	    if ((!list && ((cur=HTCharsets) != NULL)) ||
+		(list && ((cur=request->charsets) != NULL))) {
+		HTAcceptNode *pres;
+		if (first) {
+		    HTChunkPuts(header, "Accept-Charset: ");
+		    first=NO;
+		}
+		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+		    if (cur->next)
+			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
+		    else
+			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
+				CR, LF);
+		    HTChunkPuts(header, linebuf);
+		}
+	    }
+	}
+    }
+    if (request->RequestMask & HT_ACCEPT_ENC) {
+	BOOL first=YES;
+	int list;
+	HTList *cur;
+	for (list=0; list<2; list++) {
+	    if ((!list && ((cur=HTEncodings) != NULL)) ||
+		(list && ((cur=request->encodings) != NULL))) {
+		HTAcceptNode *pres;
+		if (first) {
+		    HTChunkPuts(header, "Accept-Encoding: ");
+		    first=NO;
+		}
+		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+		    if (cur->next)
+			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
+		    else
+			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
+				CR, LF);
+		    HTChunkPuts(header, linebuf);
+		}
+	    }
+	}
+    }
+    if (request->RequestMask & HT_ACCEPT_LAN) {
+	BOOL first=YES;
+	int list;
+	HTList *cur;
+	for (list=0; list<2; list++) {
+	    if ((!list && ((cur=HTLanguages) != NULL)) ||
+		(list && ((cur=request->languages) != NULL))) {
+		HTAcceptNode *pres;
+		if (first) {
+		    HTChunkPuts(header, "Accept-Language: ");
+		    first=NO;
+		}
+		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+		    if (cur->next)
+			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
+		    else
+			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
+				CR, LF);
+		    HTChunkPuts(header, linebuf);
+		}
+	    }
+	}
+    }
+    if (request->authorization != NULL) {	    /* Put out authorization */
 	sprintf(linebuf, "Authorization: %s%c%c", request->authorization,
 		CR, LF);
 	HTChunkPuts(header, linebuf);
     }
-    if (request->HeaderMask & HT_FROM) {
+    if (request->RequestMask & HT_FROM) {
 	CONST char *mailaddress = HTGetMailAddress();
 	if (mailaddress) {
 	    sprintf(linebuf, "From: %s%c%c", mailaddress, CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
     }
-    if (request->HeaderMask & HT_PRAGMA) {
+    if (request->RequestMask & HT_PRAGMA) {
 	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
 	HTChunkPuts(header, linebuf);
     }
-    if (request->HeaderMask & HT_REFERER && request->parentAnchor) {
+    if (request->RequestMask & HT_REFERER && request->parentAnchor) {
 	char *act = HTAnchor_address((HTAnchor *) request->anchor);
 	char *parent = HTAnchor_address((HTAnchor *) request->parentAnchor);
 	char *relative = HTParse(parent, act,
@@ -157,7 +227,7 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	free(parent);
 	    free(relative);
     }
-    if (request->HeaderMask & HT_USER_AGENT) {
+    if (request->RequestMask & HT_USER_AGENT) {
 	sprintf(linebuf, "User-Agent: %s/%s libwww/%s%c%c",
 		HTAppName ? HTAppName : "unknown",
 		HTAppVersion ? HTAppVersion : "0.0",
@@ -343,7 +413,6 @@ PRIVATE int HTTPRequest_abort ARGS2(HTStream *, me, HTError, e)
 {
     if (me->target)
 	ABORT_TARGET;
-    FREE(me->url);
     HTChunkFree(me->buffer);
     free(me);
     if (PROT_TRACE)

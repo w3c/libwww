@@ -22,6 +22,7 @@
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
+#include "HTSocket.h"
 #include "HTError.h"
 #include "HTNews.h"				/* Implemented here */
 

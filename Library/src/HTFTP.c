@@ -73,7 +73,7 @@
 #include "HTTCP.h"
 #include "HTAnchor.h"
 #include "HTBind.h"
-#include "HTFile.h"
+#include "HTSocket.h"
 #include "HTBTree.h"
 #include "HTChunk.h"
 #include "HTAlert.h"

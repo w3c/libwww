@@ -749,12 +749,17 @@ PUBLIC void HTAnchor_addExtra ARGS2(HTParentAnchor *, me,
     }
 }
 
-/*	Has header been parsed?
-**	-----------------------
+/*
+**	Has header been parsed?
 */
 PUBLIC BOOL HTAnchor_headerParsed ARGS1(HTParentAnchor *, me)
 {
     return (me ? me->header_parsed : NO);
+}
+
+PUBLIC void HTAnchor_setHeaderParsed ARGS1(HTParentAnchor *, me)
+{
+    if (me) me->header_parsed = YES;
 }
 
 /*	Clear Header Information

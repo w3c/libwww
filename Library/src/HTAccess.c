@@ -41,12 +41,14 @@
 #include "HTLog.h"
 #include "HTTee.h"
 #include "HTError.h"
+#include "HTSocket.h"
 #include "HTString.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
 #include "HTThread.h"
 #include "HTEvent.h"
 #include "HTBind.h"
 #include "HTInit.h"
+#include "HTProxy.h"
 
 #ifndef NO_RULES
 #include "HTRules.h"
@@ -88,11 +90,23 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     HTRequest * me = (HTRequest*) calloc(1, sizeof(*me));  /* zero fill */
     if (!me) outofmem(__FILE__, "HTRequest_new()");
     
-    me->conversions	= HTList_new();     /* No conversions registered yet */
+    /* User preferences for this particular request. Only empty lists! */
+    me->conversions = HTList_new();
+    me->encodings = HTList_new();
+    me->languages = HTList_new();
+    me->charsets = HTList_new();
+
+    /* Format of output */
     me->output_format	= WWW_PRESENT;	    /* default it to present to user */
     me->error_format	= WWW_HTML;	 /* default format of error messages */
-    me->HeaderMask	= DEFAULT_HEADERS;	       /* Send these headers */
-    me->EntityMask	= DEFAULT_ENTITY_HEADERS;	       /* Also these */
+
+    /* HTTP headers */
+    me->GenMask		= DEFAULT_GENERAL_HEADERS;
+    me->RequestMask	= DEFAULT_REQUEST_HEADERS;
+    me->EntityMask	= DEFAULT_ENTITY_HEADERS;
+
+    /* Content negotiation */
+    me->ContentNegotiation = NO;		       /* Do this by default */
 
 #ifdef _WINDOWS
     me->hwnd = HTsocketWin;
@@ -319,17 +333,26 @@ PUBLIC BOOL HTLibInit NOARGS
     if (TRACE)
 	fprintf(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
-    /* Put up a global conversion list, but leave initialization
-       to the application */
-    HTBind_init();
+    /* Set up User preferences, but leave initialization to the application */
     if (!HTConversions)
 	HTConversions = HTList_new();
+    if (!HTEncodings)
+	HTEncodings = HTList_new();
+    if (!HTLanguages)
+	HTLanguages = HTList_new();
+    if (!HTCharsets)
+	HTCharsets = HTList_new();
 
-    /* Initialize the bindings between (access method, protocol module),
-       (file extension, media type)? */
+    /* Set up bindings to the local file system */
+    HTBind_init();
+
 #ifndef HT_NO_INIT
     HTAccessInit();		 /* Bind access schemes and protocol modules */
     HTFileInit();		     /* Bind file extensions and media types */
+#endif
+
+#ifndef HT_DIRECT_WAIS
+    HTProxy_setGateway("wais", HT_DEFAULT_WAIS_GATEWAY);
 #endif
 
 #ifdef WWWLIB_SIG
@@ -388,7 +411,11 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
 #endif
 
-    HTFreeHostName();
+    HTProxy_deleteProxy();	   /* Clean up lists of proxies and gateways */
+    HTProxy_deleteNoProxy();
+    HTProxy_deleteGateway();
+
+    HTFreeHostName();			    /* Free up some internal strings */
     HTFreeMailAddress();
     HTCache_freeRoot();
     HTTmp_freeRoot();
@@ -411,6 +438,7 @@ PUBLIC BOOL HTLibTerminate NOARGS
 /*			Physical Anchor Address Manager			     */
 /* --------------------------------------------------------------------------*/
 
+#ifdef OLD_CODE
 /*							override_proxy()
 **
 **	Check the no_proxy environment variable to get the list
@@ -488,7 +516,7 @@ PRIVATE BOOL override_proxy ARGS1(CONST char *, addr)
     free(host);
     return NO;
 }
-
+#endif /* OLD_CODE */
 
 
 /*		Find physical name and access protocol
@@ -507,7 +535,6 @@ PRIVATE BOOL override_proxy ARGS1(CONST char *, addr)
 */
 PRIVATE int get_physical ARGS1(HTRequest *, req)
 {    
-    char * access=0;	/* Name of access method */
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
 
 #ifndef HT_NO_RULES
@@ -529,18 +556,14 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     HTAnchor_setPhysical(req->anchor, addr);
 #endif /* HT_NO_RULES */
 
+#ifdef OLDCODE
     access =  HTParse(HTAnchor_physical(req->anchor),
 		      "file:", PARSE_ACCESS);
 
-/*	Check whether gateway access has been set up for this
-**	This function can be replaced by the rule system above.
-*/
-#ifndef HT_NO_PROXY
-
+    if (!override_proxy(addr)) {
     /* make sure the using_proxy variable is false */
     req->using_proxy = NO;
 
-    if (!override_proxy(addr)) {
 	char * gateway_parameter, *gateway, *proxy;
 
 	gateway_parameter = (char *)malloc(strlen(access)+20);
@@ -569,40 +592,41 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	    fprintf(TDEST,"Gateway..... Found: `%s\'\n", gateway);
 	if (TRACE && proxy)
 	    fprintf(TDEST,"Proxy....... Found: `%s\'\n", proxy);
+#endif /* OLD_CODE */
 
-	/* proxy servers have precedence over gateway servers */
-	if (proxy && *proxy) {
-	    char * gatewayed=0;
+    /*
+    **  Check whether gateway or proxy access has been set up for this url
+    */
+    {
+	char *proxy = HTProxy_getProxy(addr);
+	char *gateway = HTProxy_getGateway(addr);
 
-            StrAllocCopy(gatewayed,proxy);
-	    StrAllocCat(gatewayed,addr);
+	/* Proxy servers have precedence over gateway servers */
+	if (proxy) {
+	    StrAllocCat(proxy, addr);
 	    req->using_proxy = YES;
-	    HTAnchor_setPhysical(req->anchor, gatewayed);
-	    free(gatewayed);
-	    free(access);
-
-	    access =  HTParse(HTAnchor_physical(req->anchor),
-			      "http:", PARSE_ACCESS);
-	} else if (gateway && *gateway) {
+	    HTAnchor_setPhysical(req->anchor, proxy);
+	    free(proxy);
+	} else if (gateway) {
 	    char * path = HTParse(addr, "",
-	    	PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
+				  PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
 		/* Chop leading / off to make host into part of path */
 	    char * gatewayed = HTParse(path+1, gateway, PARSE_ALL);
-	    free(path);
             HTAnchor_setPhysical(req->anchor, gatewayed);
+	    free(path);
 	    free(gatewayed);
-	    free(access);
-	    
-    	    access =  HTParse(HTAnchor_physical(req->anchor),
-    		"http:", PARSE_ACCESS);
+	    free(gateway);
+	} else {
+	    req->using_proxy = NO;     	    /* We don't use proxy or gateway */
 	}
     }
-#endif /* HT_NO_PROXY */
+    FREE(addr);
 
-    free(addr);
-
-    /* Search registered protocols to find suitable one */
+    /*
+    ** Search registered protocols to find suitable one
+    */
     {
+	char *access = HTParse(HTAnchor_physical(req->anchor),"",PARSE_ACCESS);
 	HTList *cur = protocols;
 	HTProtocol *p;
 	if (!cur) {
@@ -610,15 +634,15 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 		fprintf(TDEST, "HTAccess.... NO PROTOCOL MODULES INITIATED\n");
 	} else {
 	    while ((p = (HTProtocol*)HTList_nextObject(cur))) {
-		if (strcmp(p->name, access)==0) {
+		if (strcmp(p->name, access)==0) {	/* Case insensitive? */
 		    HTAnchor_setProtocol(req->anchor, p);
 		    free(access);
 		    return (HT_OK);
 		}
 	    }
 	}
+	free(access);
     }
-    free(access);
     return HT_NO_ACCESS;
 }
 
@@ -838,7 +862,7 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 	} /* if cache available for this anchor */
     } else {			  /* Make sure that we don't use old headers */
 	HTAnchor_clearHeader(request->anchor);
-	request->HeaderMask += HT_PRAGMA;       /* Force reload through proxy */
+	request->RequestMask += HT_PRAGMA;     /* Force reload through proxy */
     }
     if ((status = HTLoad(request, keep_error_stack)) != HT_WOULD_BLOCK)
 	HTLoadTerminate(request, status);
@@ -1175,7 +1199,6 @@ PUBLIC int HTCopyAnchor ARGS4(HTAnchor *,	src_anchor,
     /* First open the destination then open the source */
     if (HTLoadAnchor((HTAnchor *) dest_anchor, dest_req) != HT_ERROR) {
 	src_req->ForceReload = YES;
-	src_req->HeaderMask += HT_DATE;			 /* Send date header */
 	if (src_req->output_format == WWW_PRESENT)	       /* Use source */
 	    src_req->output_format = WWW_SOURCE;
 
@@ -1184,6 +1207,7 @@ PUBLIC int HTCopyAnchor ARGS4(HTAnchor *,	src_anchor,
 	   the destination. Then set up the call back function so that
 	   the destination can call for more data */
 	src_req->output_stream = dest_req->input_stream;
+	dest_req->GenMask += HT_DATE;			 /* Send date header */
 	dest_req->CopyRequest = src_req;
 	dest_req->PostCallBack = HTSocketRead;
 
@@ -1220,6 +1244,8 @@ PUBLIC int HTUploadAnchor ARGS3(HTAnchor *,		src_anchor,
 	if (!HTConfirm(buf))
 	    return HT_ERROR;
     }
+
+    /* @@@ NOT FINISHED @@@ */
 
     return HT_ERROR;
 }
