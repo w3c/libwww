@@ -473,7 +473,7 @@ PUBLIC char * HTRelative (const char * aName, const char * relatedName)
     } else {					/* Some path in common */
         int levels= 0;
         for(; *q && *q!='#' && *q!=';' && *q!='?'; q++) if (*q=='/') levels++;
-	if ((result = (char  *) HT_MALLOC(3*levels + strlen(last_slash) + 1)) == NULL)
+	if ((result = (char  *) HT_MALLOC(3*levels + strlen(last_slash) + 4)) == NULL)
 	    HT_OUTOFMEM("HTRelative");
 	*result = '\0';
 	for(;levels; levels--)strcat(result, "../");
