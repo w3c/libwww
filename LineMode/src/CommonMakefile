@@ -38,7 +38,7 @@ FTP = /afs/w3.org/ftp/pub
 # PURIFY_LOG = $(HOME)/purify-output
 PURIFY_CACHE = $(HOME)/purify-cache
 
-CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
+CFLAGS2 = -I$(CMN) -I$(LM) $(CFLAGS)
 
 CERNLIBBIN = $(WWW)/bin
 
