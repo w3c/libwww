@@ -1,0 +1,26 @@
+#  Make WWW under unix
+#
+#   This is a generic version. If you copy it and adapt it for
+#   a new architecure, please mail the diffs mack to www-bug@info.cern.ch
+#
+# For W3 distribution, machine type for subdirectories
+WWW_MACH = unix
+
+# For ASIS installation, the ASIS code for the machine/os
+ASIS_MACH = hardware/os
+
+CFLAGS = -DDEBUG
+CC = cc
+LFLAGS =
+
+
+# Directory for installed binary:
+BINDIR = /usr/local/bin
+
+#_________________ OK if normal W3 distribution
+# Where is the WWW source root?
+WWW = ../..
+
+# Where is the W3 object library?
+LIBDIR = $(WWW)/Library/Implementation/$(WWW_MACH)
+
