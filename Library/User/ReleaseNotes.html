@@ -19,27 +19,50 @@ HTML version in
 <P>
 This release was originally called 4.1 but because we now have a complete
 <A HREF="../../Protocols/">HTTP/1.1</A> client side implemenation including
-a <A HREF="../src/WWWCache/html">persistent cache manager</A> and full support
+a <A HREF="../src/WWWCache.html">persistent cache manager</A> and full support
 for uploading documents, we decided to call it <B>version 5.0</B> instead.
+The main new features are:
+<P>
+<UL>
+  <LI>
+    Full HTTP/1.1 reference implementation
+  <LI>
+    Persistent cache manager
+  <LI>
+    Full support for PUT and POST
+  <LI>
+    Application profiles for easier setup
+  <LI>
+    Many new access methods for using libwww
+  <LI>
+    Simple Tcl interface
+  <LI>
+    Configuration based on autoconf
+</UL>
 <P>
 The focus for version 5.0 of the <A HREF="../">W3C Reference Library</A>
 is to provide a set of higher level, application specific APIs for accessing
-the Web. These APIs - called <A HREF="../src/HTProfil.html">profiles</A>
-- will help the application, a Web client for example, to more easily use
-the full potential of the application independent
-<A HREF="../src/WWWCore.html">Library core</A>. Also, the Library contains
-a significantly better interface for easy access to the Web through a
-<A HREF="../src/HTAccess.html">large set of functions</A> specialized to
-perform certain Web operations like <CODE>PUT</CODE>, <CODE>POST</CODE>,
-<CODE>DELETE</CODE>, <CODE>GET</CODE> and <CODE>HEAD</CODE>.
+the Web. The Library contains a significantly improved interface for easy
+access to the Web through a large set of functions specialized to perform
+certain Web operations like PUT, POST, DELETE, GET and HEAD. The Library
+now includes a set of <A HREF="../src/HTProfil.html">profiles</A> that helps
+the application, a Web client for example, to more easily use the full potential
+of the application independent <A HREF="../src/WWWCore.html">Library core</A>.
 <P>
-This release contains a <A HREF="../../Robot/">TCL add-on to the Robot
-</A>example application and a <A HREF="../Test/User/">Deja GNU Test suite</A>
-for the Library. Also, it support <A HREF="../../Protocols/">HTTP/1.1</A>
-including persistent connections, two-way <CODE>PUT</CODE>, and the
-<CODE>host</CODE> header. There is also a sample <A HREF="../src/HTPEP.c">PEP
-implementation</A>, that although incomplete can give an idea of where we're
-headed using PEP.
+The focus for version 5.0 of the <A HREF="../">W3C Reference Library</A>
+is to provide a set of higher level, application specific APIs for accessing
+the Web. Also, the Library contains a significantly better interface for
+easy access to the Web through a <A HREF="../src/HTAccess.html">large set
+of functions</A> specialized to perform certain Web operations like
+<CODE>PUT</CODE>, <CODE>POST</CODE>, <CODE>DELETE</CODE>, <CODE>GET</CODE>
+and <CODE>HEAD</CODE>.
+<P>
+It supports HTTP/1.1 including persistent connections, two-way PUT, the host
+header and many other features. This release contains a
+<A HREF="../../Robot">TCL add-on to the Robot</A> example application and
+a beta version of a <A HREF="../Test/User/">Deja GNU Test suite</A> for the
+Library. There is also a sample PEP implementation, that although incomplete
+can give an idea of where we're headed using PEP.
 <P>
 <IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> <B>Check out the latest
 &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
@@ -85,8 +108,8 @@ noting.
     and the <I>entity-tag</I> validators have precedence over the <I>date</I>
     validators.
   <LI>
-    Added <A HREF="../acinclude.m4">acinclude.m4</A> in the WWW directory. The
-    file is used by automake
+    Added <A HREF="../../acinclude.m4">acinclude.m4</A> in the WWW directory.
+    The file is used by automake
   <LI>
     Changed the <A HREF="../../INSTALL.html">configure script</A> to handle the
     location of the icons distributed as part of the libwww distribution package.
@@ -105,14 +128,14 @@ noting.
     include any notification messages. Any messages to be transmitted to the
     user is now handled by the <A HREF="../src/HTAlert.html">Alert manager</A>.
   <LI>
-    Added <A HREF="../src/WWWCacge.html">persistent cache manager</A> to the
+    Added <A HREF="../src/WWWCache.html">persistent cache manager</A> to the
     <A HREF="../src/HTProfil.html">client profile</A>.
   <LI>
     Added <I>validation</I> command to the line mode browser
   <LI>
     Changed the cache validation management in the
-    <A HREF="../src/Req.html">Request object</A>. The validation scheme is now
-    compatible with HTTP/1.1 caching including handling of the history list.
+    <A HREF="../src/HTReq.html">Request object</A>. The validation scheme is
+    now compatible with HTTP/1.1 caching including handling of the history list.
     We have changed the validation enumerations from
     <UL>
       <LI>

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jun-1996 -->
   <TITLE>Known Bugs in W3C Reference Library</TITLE>
 </HEAD>
 <BODY>
@@ -36,6 +36,48 @@ distribution tree. In order to apply a patch, do the following in the
 </OL>
 <P>
   <HR>
+<H2>
+  Version 5.0
+</H2>
+<DL>
+  <DT>
+    <A HREF="lib_5.0_1.fix">Patch 1</A>
+  <DD>
+    This patch fixes some minor problems in the library and example applications
+    <UL>
+      <LI>
+	Bugfix in handling <CODE>OPTIONS</CODE> requests on URL other than "/". The
+	path didn't contain an initial "/"
+      <LI>
+	Changed 204 handling so that it never expects a body
+      <LI>
+	Added support for <CODE>OPTIONS</CODE> in <A HREF="../../../LineMode/">line
+	mode browser</A>.
+      <LI>
+	Bugfix: now the memory cache filter only checks for cached documents on
+	<CODE>GET</CODE> requests.
+      <LI>
+	Bugfix: HTTP State machine didn't catch an error code returned by a POST
+	callback function
+      <LI>
+	Bugfix: Do not flush metainformation on a TRACE method and a OPTIONS method
+	request.
+      <LI>
+	Bugfix: Now we copy information from the cache index back to the amchor obejct
+	when we read the index
+      <LI>
+	Change: Cache controls are now added as replacements instead of add so that
+	we don't get duplicate entries
+      <LI>
+	Added HTCache_flushAll() to the cache manager.
+      <LI>
+	Added flush as command in the Line mode browser. It flushes the persistent
+	cache completely.
+      <LI>
+	Bugfix: Automatic connection recovery had a problem when restarting a HTTP/1.1
+	persistent connection (thanks to Markku Savela)
+    </UL>
+</DL>
 <H2>
   Version 4.0D
 </H2>
