@@ -6,7 +6,10 @@
 <BODY>
 <H1>Error reporting functions</H1>
 
-This module maintaines a list of error messages that might occur during load of a requested URL. The error list is put out to standard output by a simple function that easily can be overwritten by a smart server or client. It is garanteed that at the moment, HTErrorMsg() is called no stream has been put up or taken down in the library.
+This module maintaines a list of error messages that might occur during load of a requested URL. The error list is put out to standard output by a simple function that easily can be overwritten by a smart server or client.  <P>
+
+<NOTE><B>Note: </B></NOTE>
+At the moment, HTErrorMsg() is called, if the flag HTRequest-&gt;error_block is set to YES, then a stream has been put up or taken down in the library and therefore it is <B>VERY</B> unsafe to put anything more to the stream.
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
@@ -18,7 +21,8 @@ The basic data structure is HTErrorInfo, but in addition the following types are
 
 <H3>Error Numbers</H3>
 
-<B>Note:</B> All non-HTTP error codes have index numbers &gt; HTERR_HTTP_CODES, and they will not be shown in the error-message generated.
+<NOTE><B>Note: </B></NOTE>
+All non-HTTP error codes have index numbers &gt; HTERR_HTTP_CODES, and they will not be shown in the error-message generated.
 <PRE>
 typedef enum _HTErrorElement {
 	HTERR_OK = 0,						/* 200 */
@@ -133,7 +137,7 @@ extern void HTErrorIgnore PARAMS((HTRequest * request));
 
 This function outputs the content of the error_stack to standard output (used in Line Mode Browser), but smart clients and servers might overwrite this function so that the error messages can be handled to the user in a nice way. That is the reason for putting the actual implementation in HTML.c, that normally gets overwritten by clients and servers apart from Line Mode Browser. <P>
 
-<NOTE>NOTE</NOTE>
+<NOTE><B>Note: </B></NOTE>
 
 If a stream <EM>has</EM> been put up (and maybe taken down again) inside the Library, then request-&gt;error_block has been set to YES. This indicates that it is NOT possible any more to use the stream as output for the message.
 <PRE>

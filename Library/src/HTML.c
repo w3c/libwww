@@ -999,7 +999,8 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		fprintf(stderr, "\nReason: ");
 
 	    /* Output error message */
-	    fprintf(stderr, "%s ", error_info[pres->element].msg);
+	    if (pres->element != HTERR_SYSTEM)
+		fprintf(stderr, "%s ", error_info[pres->element].msg);
 
 	    /* Output parameters */
 	    if (pres->par && HTErrorShowMask & HT_ERR_SHOW_PARS) {
