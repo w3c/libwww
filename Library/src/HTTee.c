@@ -72,6 +72,10 @@ PRIVATE int HTTee_flush (HTStream * me)
     return me->resolver(&ret1, &ret2);
 }
 
+/*
+**	BUGS: We do not handle WOULD_BLOCK here. This is tricky as we don't
+**	know which one actually blocked.
+*/
 PRIVATE int HTTee_free (HTStream * me)
 {
     int ret1 = (*me->s1->isa->_free)(me->s1);

@@ -1,97 +1,86 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Streams</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww Streams</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference Library Streams</H1>
-
+<H1>
+  Declaration of W3C Reference Library Streams
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The stream part of the Library is a set of streams that can be used in
-many contexts throughout the Library.
-
+<P>
+The stream part of the Library is a set of streams that can be used in many
+contexts throughout the Library.
 <PRE>
 #ifndef WWWSTREAM_H
 #define WWWSTREAM_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H3>
+  System dependencies
+</H3>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "sysdep.h"
 </PRE>
-
-<H2>Stream Modules</H2>
-
-These are the streams describing this interface
-
-<H3>Content Length Counter</H3>
-
-This stream also buffers the result to find out the content length.
-If a maximum buffer limit is reached Content-Length is calculated for
-logs but it is not sent to the client -- rather the buffer is flushed
-right away.
-
+<H3>
+  Content Length Counter
+</H3>
+<P>
+This stream also buffers the result to find out the content length. If a
+maximum buffer limit is reached Content-Length is calculated for logs but
+it is not sent to the client -- rather the buffer is flushed right away.
 <PRE>
-#include "HTConLen.h"			/* Content Length Counter */
+#include "<A HREF="HTConLen.html">HTConLen.h</A>"			/* Content Length Counter */
 </PRE>
-
-<H3>Content Guess Stream</H3>
-
-This interface provides functionality for guessing unknown media types
-from magic words. The stream is a one that reads first a chunk of
-stuff, tries to figure out the format, and calls
-<CODE>HTStreamStack()</CODE>. This is a kind of lazy-evaluation of
-<CODE>HTStreamStack()</CODE>. This could be extended arbitrarily to
-recognize all the possible file formats in the world, if someone only
-had time to do it. <P>
-
+<H3>
+  Content Guess Stream
+</H3>
+<P>
+This interface provides functionality for guessing unknown media types from
+magic words. The stream is a one that reads first a chunk of stuff, tries
+to figure out the format, and calls <CODE>HTStreamStack()</CODE>. This is
+a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. This could be
+extended arbitrarily to recognize all the possible file formats in the world,
+if someone only had time to do it.
 <PRE>
-#include "HTGuess.h"			/* Guess stream */
+#include "<A HREF="HTGuess.html">HTGuess.h</A>"			/* Guess stream */
 </PRE>
-
-<H3>Tee Stream</H3>
-
-The Tee stream just writes everything you put into it into two oter
-streams. One use (the only use?!) is for taking a cached copey on disk
-while loading the main copy, without having to wait for the disk copy
-to be finished and reread it.
-
+<H3>
+  Tee Stream
+</H3>
+<P>
+The Tee stream just writes everything you put into it into two oter streams.
+One use (the only use?!) is for taking a cached copey on disk while loading
+the main copy, without having to wait for the disk copy to be finished and
+reread it.
 <PRE>
-#include "HTTee.h"			/* T streem for splitting a stream */
+#include "<A HREF="HTTee.html">HTTee.h</A>"			/* T streem for splitting a stream */
 </PRE>
-
-<H3>Memory Buffer</H3>
-
-This version of the stream object is a hook for clients that want an
-unparsed stream from libwww. The HTXParse_put_* and HTXParse_write
-routines copy the content of the incoming buffer into a buffer that is
-realloced whenever necessary. This buffer is handed over to the client
-in HTXParse_free. See also <A HREF="HTFWrite.html">HTFWriter</A> for
-writing to C files.
-
+<H3>
+  Memory Buffer
+</H3>
+<P>
+This version of the stream object is a hook for clients that want an unparsed
+stream from libwww. The HTXParse_put_* and HTXParse_write routines copy the
+content of the incoming buffer into a buffer that is realloced whenever
+necessary. This buffer is handed over to the client in HTXParse_free. See
+also <A HREF="HTFWrite.html">HTFWriter</A> for writing to C files.
 <PRE>
-#include "HTXParse.h"			/* External parse stream */
+#include "<A HREF="HTXParse.html">HTXParse.h</A>"			/* External parse stream */
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -99,10 +88,9 @@ writing to C files.
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

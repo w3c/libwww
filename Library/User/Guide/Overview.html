@@ -1,8 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
-  <!-- Changed by: Eric Prud'hommeaux, 20-Mar-1996 -->
-  <NEXTID N="z78">
   <TITLE>W3C Library Interfaces</TITLE>
 </HEAD>
 <BODY>
@@ -46,8 +43,9 @@ then always use the HTML files and not the .h files!
 <IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution" ALT="NOTE"> This document
 is also available as <A HREF="choppy.html"><B>one big HTML file</B></A> intended
 for printout. Please note that not all links in this version work!
+<P>
 <H2>
-  Core Interfaces
+  Base Interfaces
 </H2>
 <P>
 The core interfaces must be included in all applications. <A NAME="dll"></A>
@@ -55,17 +53,8 @@ The core interfaces must be included in all applications. <A NAME="dll"></A>
   <A NAME="dll">Windows Specifics</A>
 </H3>
 <P>
-The wwwdll library is a tiny library that contains a pointer to the
-<A HREF="../../src/TTYPrint.html">TTYPrint</A> function. When Windows loads
-a DLL, the exported function and data pointers get "fixed up" in the other
-modules. Consequently, what may be a directly addressable piece of data in
-it's home library will be a pointer in the other libraries and executables
-that dynamically link to it. The
-<A HREF="../../src/TTYPrint.html">TTYPrint</A> pointer is
-<A HREF="../../src/windows/wwwdll.def">exported</A> to the other modules
-and referenced via the TTYPrint macro in
-<A HREF="../../src/HTUtils.html">HTUtils.h</A>. <A HREF="#dll">wwwdll.dll
-</A> also contains the WWW_TraceFlag to the same end of macroing the indirection.
+This is a small interface that handles trace messages on Windows
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwdll.dll</B>
@@ -83,6 +72,7 @@ by the application. See also the main Library include file called
 <A HREF="../../src/WWWLib.html">WWWLib.h</A> which contains all converters
 and protocol modules known to the Library. You can include this one if the
 application is to use all the functionality of the Library.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwutil.dll</B>
@@ -108,14 +98,14 @@ modules that makes it easier to use the core.
 <P>
 <UL>
   <LI>
-    Name of DLL: <B>wwwcode.dll</B>
+    Name of DLL: <B>wwwcore.dll</B>
   <LI>
     <A HREF="../../src/windows/wwwcore.def">Definition list of exported API</A>
   <LI>
     <A HREF="../../src/WWWCore.html">Interface include file</A>
 </UL>
 <H2>
-  Transport Interfaces
+  Transport Protocol Interfaces
 </H2>
 <P>
 All transport interfaces are registered dynamically in libwww. This means
@@ -186,23 +176,21 @@ specific modules which are required to compile and build the DIRECTORY DLL.
     <A HREF="../../src/WWWDir.html">Interface include file</A>
 </UL>
 <H3>
-  <A HREF="../../src/WWWGuess.html">Content Type Guessing Stream</A>
+  <A HREF="../../src/WWWStream.html">Stream Interface</A>
 </H3>
 <P>
-This interface provides functionality for guessing unknown media types from
-magic words. The stream is a one that reads first a chunk of stuff, tries
-to figure out the format, and calls <CODE>HTStreamStack()</CODE>. This is
-a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. This could be
-extended arbitrarily to recognize all the possible file formats in the world,
-if someone only had time to do it.
+This interface provides a set of specialized stream. For example a stream
+for guessing unknown media types from magic words. It also contains streams
+for downloading a document into a memory buffer, counting content lenght
+and much more.
 <P>
 <UL>
   <LI>
-    Name of DLL: <B>wwwguess.dll</B>
+    Name of DLL: <B>wwwstream.dll</B>
   <LI>
-    <A HREF="../../src/windows/wwwguess.def">Definition list of exported API</A>
+    <A HREF="../../src/windows/wwwstream.def">Definition list of exported API</A>
   <LI>
-    <A HREF="../../src/WWWGuess.html">Interface include file</A>
+    <A HREF="../../src/WWWStream.html">Interface include file</A>
 </UL>
 <H3>
   <A HREF="../../src/WWWMIME.html">MIME Parser and Generator</A>
@@ -219,76 +207,6 @@ modules which are required to compile and build the MIME DLL.
     <A HREF="../../src/windows/wwwmime.def">Definition list of exported API</A>
   <LI>
     <A HREF="../../src/WWWMIME.html">Interface include file</A>
-</UL>
-<H2>
-  Application Interfaces
-</H2>
-<H3>
-  <A HREF="../../src/WWWRules.html">Rule File Management</A>
-</H3>
-<P>
-A way to initialize applications is to use a rule file, also known as a
-configuration file. This is for example the case with the W3C httpd and the
-W3C Line Mode Browser. This module provides basic support for configuration
-file management and the application can use this is desired. The module is
-not referred to by the Library. Reading a rule file is implemented as a stream
-converter so that a rule file can come from anywhere, even across the network!
-<P>
-Applications do not have to provide native support for all protocols, they
-can in many situations rely on the support of proxies and gateways to help
-doing the job. Proxy servers are often used to carry client requests through
-a firewall where they can provide services like corporate caching and other
-network optimizations. Both Proxy servers and gateways can serve as "protocol
-translators" which can convert a request in the main Web protocol, HTTP,
-to an equivalent request in another protocol, for example NNTP, FTP, or Gopher.
-In case a proxy server or a gateway is available to the application, it can
-therefore by use of HTTP forward all requests to for example a proxy server
-which then handle the communications with the remote server, for example
-using FTP about the document and return it to the application (proxy client)
-using HTTP.
-<P>
-<UL>
-  <LI>
-    Name of DLL: <B>wwwrules.dll</B>
-  <LI>
-    <A HREF="../../src/windows/wwwrules.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWRules.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWApp.html">Application Specific</A>
-</H3>
-<P>
-This module provides some "make life easier" functions in order to get the
-application going. They help you generate the first anchor, also called the
-<EM>home anchor</EM>. It also contains a nice set of default WWW addresses.
-<P>
-<UL>
-  <LI>
-    Name of DLL: <B>wwwapp.dll</B>
-  <LI>
-    <A HREF="../../src/windows/wwwapp.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWApp.html">Interface include file</A>
-</UL>
-<H3>
-  Initialization Modules
-</H3>
-<P>
-The core parts of the Library is a framework for adding functionality. It
-has hooks for adding protocol modules, like for example HTTP, FTP, and also
-for adding streams that can convert from one media type to some other type,
-or presenting the result to the user. In the distribution file of the Library
-you will find a large set of protocol modules and streams already implemented.
-However, in order to use these you need to initialize them. This can be done
-by using the methods in the <A HREF="WWWInit.html">WWWInit</A> module. You
-can modify these modules as you like to fit your particular needs. The modules
-in this interface are <B>not</B> part of any DLL and so must be included
-directly if desired.
-<P>
-<UL>
-  <LI>
-    <A HREF="../../src/WWWInit.html">WWWInit Interface include file</A>
 </UL>
 <H2>
   Protocol Interfaces
@@ -406,6 +324,74 @@ modules which are required to compile and build the WAIS DLL.
     <A HREF="../../src/windows/wwwwais.def">Definition list of exported API</A>
   <LI>
     <A HREF="../../src/WWWWAIS.html">Interface include file</A>
+</UL>
+<H2>
+  Application Interfaces
+</H2>
+<H3>
+  <A HREF="../../src/WWWRules.html">Rule File Management</A>
+</H3>
+<P>
+A way to initialize applications is to use a rule file, also known as a
+configuration file. This is for example the case with the W3C httpd and the
+W3C Line Mode Browser. This module provides basic support for configuration
+file management and the application can use this is desired. The module is
+not referred to by the Library. Reading a rule file is implemented as a stream
+converter so that a rule file can come from anywhere, even across the network!
+<P>
+Applications do not have to provide native support for all protocols, they
+can in many situations rely on the support of proxies and gateways to help
+doing the job. Proxy servers are often used to carry client requests through
+a firewall where they can provide services like corporate caching and other
+network optimizations. Both Proxy servers and gateways can serve as "protocol
+translators" which can convert a request in the main Web protocol, HTTP,
+to an equivalent request in another protocol, for example NNTP, FTP, or Gopher.
+In case a proxy server or a gateway is available to the application, it can
+therefore by use of HTTP forward all requests to for example a proxy server
+which then handle the communications with the remote server, for example
+using FTP about the document and return it to the application (proxy client)
+using HTTP.
+<UL>
+  <LI>
+    Name of DLL: <B>wwwrules.dll</B>
+  <LI>
+    <A HREF="../../src/windows/wwwrules.def">Definition list of exported API</A>
+  <LI>
+    <A HREF="../../src/WWWRules.html">Interface include file</A>
+</UL>
+<H3>
+  <A HREF="../../src/WWWApp.html">Application Specific</A>
+</H3>
+<P>
+This module provides some "make life easier" functions in order to get the
+application going. They help you generate the first anchor, also called the
+<EM>home anchor</EM>. It also contains a nice set of default WWW addresses.
+<UL>
+  <LI>
+    Name of DLL: <B>wwwapp.dll</B>
+  <LI>
+    <A HREF="../../src/windows/wwwapp.def">Definition list of exported API</A>
+  <LI>
+    <A HREF="../../src/WWWApp.html">Interface include file</A>
+</UL>
+<H3>
+  Initialization Modules
+</H3>
+<P>
+The core parts of the Library is a framework for adding functionality. It
+has hooks for adding protocol modules, like for example HTTP, FTP, and also
+for adding streams that can convert from one media type to some other type,
+or presenting the result to the user. In the distribution file of the Library
+you will find a large set of protocol modules and streams already implemented.
+However, in order to use these you need to initialize them. This can be done
+by using the methods in the <A HREF="WWWInit.html">WWWInit</A> module. You
+can modify these modules as you like to fit your particular needs. The modules
+in this interface are <B>not</B> part of any DLL and so must be included
+directly if desired.
+<P>
+<UL>
+  <LI>
+    <A HREF="../../src/WWWInit.html">WWWInit Interface include file</A>
 </UL>
 <P>
   <HR>

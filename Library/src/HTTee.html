@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww TEE STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<TITLE>W3C Reference Library libwww T Stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 31-May-1996 -->
 </HEAD>
 <BODY>
 
@@ -14,7 +14,7 @@
 */
 </PRE>
 
-The Tee stream just writes everything you put into it into two oter
+The Tee stream just writes everything you put into it into two other
 streams. One use (the only use?!) is for taking a cached copey on disk
 while loading the main copy, without having to wait for the disk copy
 to be finished and reread it. <P>
@@ -32,10 +32,15 @@ a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
 Reference Library</A>.
 
 <PRE>
+#ifndef _HTTEE_H
+#define _HTTEE_H
+
 #include "HTStream.h"
 #include "HTArray.h"
 
 extern HTStream * HTTee (HTStream * s1, HTStream * s2, HTComparer * resolver);
+
+#endif /* HTTEE_H */
 </PRE>
 
 <HR>

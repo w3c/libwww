@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  8-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-May-1996 -->
   <TITLE>W3C Reference Library libwww SYSTEM DEPENDENCIES</TITLE>
 </HEAD>
 <BODY>
@@ -336,7 +336,9 @@ August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
 #define NO_GMTOFF
 #define HAVE_STRERROR
 
+#ifndef DIR
 #define DIR		struct dirent
+#endif
 #define d_ino           d_fileno        /* backward compatibility */
 
 #define SLEEP(n)	GUSIDefaultSpin( SP_SLEEP, n/60)

@@ -14,13 +14,13 @@
 */
 </PRE>
 <P>
-It is useful to have both FWriter and Writer for environments in which
-<CODE>fdopen()</CODE> doesn't exist for example. The module contains the
-following parts:
+This module contains a set of basic file writer streams that are used to
+dump data objects to disk at various places within the Library core. Most
+notably, we use these streams in the <A HREF="HTFWrite.html">Format Manager</A>
+in order to handle external presenters, for example post script viewers etc.
+These streams can of course also be used in other contexts by the application.
 <P>
 <UL>
-  <LI>
-    <A HREF="#utils">Basic Utility Streams</A>
   <LI>
     <A HREF="#write">An ANSI C File Writer Stream</A>
   <LI>
@@ -50,7 +50,7 @@ extern HTStream * HTFWriter_new	(HTRequest * request,
 				 BOOL leave_open);
 </PRE>
 <H2>
-  Various Converters using the File Writer Stream
+  <A NAME="converters">Various Converters using the File Writer Stream</A>
 </H2>
 <P>
 This is a set of functions that can be registered as converters. They all

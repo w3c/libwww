@@ -17,6 +17,7 @@
 #include "WWWApp.h"				        /* Application stuff */
 #include "WWWRules.h"
 #include "WWWApp.h"
+#include "WWWTrans.h"
 #include "WWWInit.h"
 
 #include "HText.h"
@@ -29,9 +30,6 @@
 
 #define APP_NAME		"W3CRobot"
 #define APP_VERSION		W3C_VERSION
-
-/* Default page for "-help" command line option */
-#define HELP	"http://www.w3.org/pub/WWW/Robot/User/CommandLine.html"
 
 #define DEFAULT_OUTPUT_FILE	"robot.out"
 #define DEFAULT_RULE_FILE	"robot.conf"
@@ -481,6 +479,9 @@ int main (int argc, char ** argv)
     /* Set up our event manager */
     HTEventInit();
 
+    /* Register a transport */
+    HTTransportInit();
+
     /* Initialize the protocol modules */
     HTAccessInit();
 
@@ -499,13 +500,8 @@ int main (int argc, char ** argv)
     for (arg=1; arg<argc; arg++) {
 	if (*argv[arg] == '-') {
 	    
-	    /* -? or -help: show the command line help page */
-	    if (!strcmp(argv[arg],"-?") || !strcmp(argv[arg],"-help")) {
-		mr->anchor = (HTParentAnchor *) HTAnchor_findAddress(HELP);
-		keycnt = 1;
-
 	    /* non-interactive */
-	    } else if (!strcmp(argv[arg], "-n")) {
+	    if (!strcmp(argv[arg], "-n")) {
 		HTAlert_setInteractive(NO);
 
 	    /* log file */
@@ -588,7 +584,7 @@ int main (int argc, char ** argv)
 	    } else {
 		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
 	    }
-	} else {	 /* If no leading `-' then check for URL or keywords */
+       } else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!keycnt) {
 		char * ref = HTParse(argv[arg], mr->cwd, PARSE_ALL);
 		mr->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);

@@ -76,13 +76,13 @@
 #define APP_VERSION		W3C_VERSION
 
 /* Default page for "Manual" command */
-#define MANUAL	"http://www.w3.org/pub/WWW/LineMode/Defaults/QuickGuide.html"
+#define MANUAL	"http://www.w3.org/pub/WWW/LineMode/User/QuickGuide.html"
 
 /* Default page for "help" command */
-#define C_HELP	"http://www.w3.org/pub/WWW/LineMode/Defaults/Commands.html"
+#define C_HELP	"http://www.w3.org/pub/WWW/LineMode/User/Commands.html"
 
 /* Default page for "-help" command line option */
-#define L_HELP	"http://www.w3.org/pub/WWW/LineMode/Defaults/CommandLine.html"
+#define L_HELP	"http://www.w3.org/pub/WWW/LineMode/User/CommandLine.html"
 
 #define DEFAULT_OUTPUT_FILE	"www.out"
 #define DEFAULT_RULE_FILE	"www.conf"

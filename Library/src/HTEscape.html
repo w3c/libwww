@@ -1,43 +1,44 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww URIs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="1">
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <NEXTID N="1">
+  <TITLE>W3C Reference Library libwww URIs</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Escape and Unescape Illegal Characters in URIs</H1>
-
+<H1>
+  Escape and Unescape Illegal Characters in URIs
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module have been spawned from <A HREF="HTParse.html">HTParse</A>,
-as it then can be used in utility programs without loading a whole
-bunch of the library code. It contains functions for escaping and
-unescaping a URI for reserved characters in URIs. <P>
-
-This module is implemented by <A HREF="HTEscape.c">HTEscape.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+URLs are written only with the graphic printable characters of the US-ASCII
+coded character set. All other characters must be escaped before they can
+be used in URLs. This module defines the methods required for escaping and
+unescaping the URLs. Internally in the Library, all URLs are escaped so that
+we never see illegal characters in the URL handled by the Library. We only
+unescape the URLs when we have to, for example while taking to the local
+file system etc.
+<P>
+This module is implemented by <A HREF="HTEscape.c">HTEscape.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTESCAPE_H
 #define HTESCAPE_H
 
 </PRE>
-
-<H2>Encode Unacceptable Characters using %xy</H2>
-
-This funtion takes a string containing any sequence of ASCII
-characters, and returns a malloced string containing the same
-infromation but with all "unacceptable" characters represented in the
-form <CODE>%xy</CODE> where <CODE>x</CODE> and <CODE>y</CODE> are two
-hex digits.
-
+<H2>
+  Encode Unacceptable Characters using %xy
+</H2>
+<P>
+This function takes a string containing any sequence of ASCII characters,
+and returns a malloced string containing the same infromation but with all
+"unacceptable" characters represented in the form <CODE>%xy</CODE> where
+<CODE>x</CODE> and <CODE>y</CODE> are two hex digits.
 <PRE>
 typedef enum _HTURIEncoding {
     URL_XALPHAS		= 0x1,
@@ -47,25 +48,23 @@ typedef enum _HTURIEncoding {
 
 extern char * HTEscape (const char * str, HTURIEncoding mask);
 </PRE>
-
-<H2>Decode %xy Escaped Characters</H2>
-
-This function takes a pointer to a string in which character smay have
-been encoded in <CODE>%xy</CODE> form, where <CODE>xy</CODE> is the
-acsii hex code for character 16x+y. The string is converted in place,
-as it will never grow.
-
+<H2>
+  Decode %xy Escaped Characters
+</H2>
+<P>
+This function takes a pointer to a string in which character smay have been
+encoded in <CODE>%xy</CODE> form, where <CODE>xy</CODE> is the acsii hex
+code for character 16x+y. The string is converted in place, as it will never
+grow.
 <PRE>
 extern char * HTUnEscape (char * str);
 </PRE>
-
 <PRE>
 #endif	/* HTESCAPE_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

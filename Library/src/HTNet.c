@@ -379,45 +379,56 @@ PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
     return me;
 }
 
-/*	HTNet_newServer
-**	---------------
-**	Create a new HTNet object as a new request to be handled. If we have
-**	more than HTMaxActive connections already then return NO.
-**	Returns YES if OK, else NO
+/*      HTNet_newServer
+**      ---------------
+**      Create a new HTNet object as a new request to be handled. If we have
+**      more than HTMaxActive connections already then return NO.
+**      Returns YES if OK, else NO
 */
 PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
 {
     HTNet * me;
     HTProtocol * protocol;
+    HTTransport * tp = NULL;    	/* added JTD:5/28/96 */
     if (!request) return NO;
 
     /* Check if we can start the request, else return immediately */
     if (HTList_count(HTNetActive) > HTMaxActive) {
-	if (CORE_TRACE) HTTrace("HTNet new... NO SOCKET AVAILABLE\n");
-	HTNet_callAfter(request, HT_RETRY);
-	return YES;
+        if (CORE_TRACE) HTTrace("HTNet new... NO SOCKET AVAILABLE\n");
+        HTNet_callAfter(request, HT_RETRY);
+        return YES;
     }
 
     /* Find a protocol object for this access scheme */
     protocol = HTProtocol_find(request, access);
-	
+
+    /* added - JTD:5/28/96 */
+    /* Find a transport object for this protocol */
+    tp = HTTransport_find(request, HTProtocol_transport(protocol));
+    if (tp == NULL) {
+        if (CORE_TRACE) HTTrace("HTNet....... NO TRANSPORT OBJECT\n");
+        return NO;
+    }
+    /* end of additions - JTD:5/28/96 */
+
     /* Create new net object and bind it to the request object */
     if ((me = create_object(request)) == NULL) return NO;
     me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
     me->protocol = protocol;
+    me->transport = tp; 		/* added - JTD:5/28/96 */
     me->priority = request->priority;
     me->sockfd = sockfd;
     if (!(me->cbf = HTProtocol_server(protocol))) {
-	if (CORE_TRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
-	HT_FREE(me);
-	return NO;
+        if (CORE_TRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
+        HT_FREE(me);
+        return NO;
     }
     request->retrys++;
 
     /* Start the server request */
     HTList_addObject(HTNetActive, (void *) me);
     if (CORE_TRACE)
-	HTTrace("HTNet_new... starting SERVER request %p with net object %p\n", request, me);
+        HTTrace("HTNet_new... starting SERVER request %p with net object %p\n", request, me);
     (*(me->cbf))(me->sockfd, request, FD_NONE);
     return YES;
 }

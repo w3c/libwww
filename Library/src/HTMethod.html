@@ -1,41 +1,35 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww HTTP METHODS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Request Access Methods</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Method Management</H1>
-
+<H1>
+  Request Access Methods
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module keeps a list of valid methods to be used on a request
-obejct. It used to be in <A HREF="HTReq.html">HTAccess module</A>
-but for future extensions, it is now in its own module. <P>
-
-This module is implemented by <A HREF="HTMethod.c">HTmethod.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
-<PRE>
-#ifndef HTMETHOD_H
+<P>
+This module keeps a list of valid methods to be performed on a
+<A HREF="HTReq.html">request object</A>, for example <B>GET</B>, <B>HEAD</B>,
+<B>PUT</B>, <B>POST</B>, <B>DELETE</B>, etc.&nbsp;You can assign which method
+to be performed on the request object <A HREF="HTReq.html">directly</A> or
+you can go through the <A HREF="HTReq.html">Access module</A> for higher
+level functions.
+<P>
+This module is implemented by <A HREF="HTMethod.c">HTmethod.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>#ifndef HTMETHOD_H
 #define HTMETHOD_H
 
 </PRE>
-
-These are the valid methods, see <A
-HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/Methods.html">HTTP
-Methods</A>. <P>
-
-<B>NOTE:</B> the anchor list of allowed methods is now a bitflag, not
-at list.
-
+<P>
+<B>NOTE:</B> the anchor list of allowed methods is now a bitflag, not at
+list.
 <PRE>
 typedef enum {
     METHOD_INVALID	= 0x0,
@@ -48,46 +42,44 @@ typedef enum {
     METHOD_UNLINK	= 0x40
 } HTMethod;
 </PRE>
-
-<H3>Get Method Enumeration</H3>
-
+<H3>
+  Get Method Enumeration
+</H3>
+<P>
 Gives the enumeration value of the method as a function of the (char *) name.
-
 <PRE>
 extern HTMethod HTMethod_enum (const char * name);
 </PRE>
-
-<H3>Get Method String</H3>
-
+<H3>
+  Get Method String
+</H3>
+<P>
 The reverse of <I>HTMethod_enum()</I>
-
 <PRE>
 extern const char * HTMethod_name (HTMethod method);
 </PRE>
-
-<H3>Is Method "Safe"</H3>
-
+<H3>
+  Is Method "Safe"
+</H3>
+<P>
 If a method a safe, it doesn't produce any side effects on the server
-
 <PRE>
 #define HTMethod_isSafe(me)	((me) &amp; (METHOD_GET|METHOD_HEAD))
 </PRE>
-
-<H3>Does a Method include Entity</H3>
-
+<H3>
+  Does a Method include Entity
+</H3>
+<P>
 Does a method include an entity to be sent from the client to the server?
-
 <PRE>
 #define HTMethod_hasEntity(me)	((me) &amp; (METHOD_PUT | METHOD_POST))
 </PRE>
-
 <PRE>
 #endif /* HTMETHOD_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>
