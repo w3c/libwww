@@ -242,7 +242,6 @@ retry:
     
     /* Get numeric status etc */
 
-	int status;
 	int length = 0;
 	BOOL end_of_file = NO;
 	HTAtom * encoding = HTAtom_for("7bit");
@@ -265,6 +264,7 @@ retry:
 	    			buffer_length - length -1);
 	    if (status < 0) {
 	        HTAlert("Unexpected network read error on response");
+		NETCLOSE(s);
 		return status;
 	    }
 	    if (status == 0) {
@@ -325,6 +325,7 @@ retry:
 	if (fields < 2) {			/* HTTP0 reply */
 	    format_in = WWW_HTML;
 	    start_of_data = line_buffer;	/* reread whole reply */
+	    if (eol) *eol = '\n';		/* Reconstitute buffer */
 	    
 	} else {				/* Ful HTTP reply */
 	
@@ -350,7 +351,6 @@ retry:
 		    char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
 		    char * message = (char*)malloc(
 			strlen(line_buffer)+strlen(p1) + 100);
-		    int status;
 		    if (!message) outofmem(__FILE__, "HTTP 5xx status");
 		    sprintf(message,
 		    "HTTP server at %s replies:\n%s", p1, line_buffer);

@@ -122,19 +122,28 @@ static attr nextid_attr[] = {
 
 
 /*	Elements
+**	--------
+**
+**	Must match definitions in HTMLDTD.html!
+**	Must be in alphabetical order.
+**
+**    Name, 	Attributes, 		content
 */
-/*    Name, 	Attributes, 		content
-*/
-static HTTag tags[] = {
+static HTTag tags[HTML_ELEMENTS] = {
     { "A"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_MIXED },
     { "ADDRESS"	, no_attr,	0,		SGML_MIXED },
+    { "B"	, no_attr,	0,		SGML_MIXED },
     { "BLOCKQUOTE", no_attr,	0,		SGML_MIXED },
+    { "CITE"	, no_attr,	0,		SGML_MIXED },
+    { "CODE"	, no_attr,	0,		SGML_MIXED },
     { "COMMENT",  no_attr,	0,		SGML_MIXED },
     { "DD"	, no_attr,	0,		SGML_EMPTY },
+    { "DFN"	, no_attr,	0,		SGML_MIXED },
     { "DIR"	, list_attr,	1,		SGML_MIXED },
     { "DL"	, glossary_attr,1,		SGML_MIXED },
     { "DLC"	, glossary_attr,1,		SGML_MIXED },
     { "DT"	, no_attr,	0,		SGML_EMPTY },
+    { "EM"	, no_attr,	0,		SGML_MIXED },
     { "H1"	, no_attr,	0,		SGML_MIXED },
     { "H2"	, no_attr,	0,		SGML_MIXED },
     { "H3"	, no_attr,	0,		SGML_MIXED },
@@ -142,27 +151,33 @@ static HTTag tags[] = {
     { "H5"	, no_attr,	0,		SGML_MIXED },
     { "H6"	, no_attr,	0,		SGML_MIXED },
     { "H7"	, no_attr,	0,		SGML_MIXED },
+    { "I"	, no_attr,	0,		SGML_MIXED },
     { "IMG"     , img_attr,	0,		SGML_EMPTY },
-    { "ISINDEX", no_attr,	0,		SGML_EMPTY },
+    { "ISINDEX" , no_attr,	0,		SGML_EMPTY },
+    { "KBD"	, no_attr,	0,		SGML_MIXED },
     { "LI"	, list_attr,	1,		SGML_EMPTY },
     { "LINK"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_EMPTY },
     { "LISTING"	, no_attr,	0,		SGML_LITTERAL },
-    { "NEXTID",   nextid_attr,	1,		SGML_EMPTY },
+    { "NEXTID"  , nextid_attr,	1,		SGML_EMPTY },
     { "MENU"	, list_attr,	1,		SGML_MIXED },
     { "OL"	, list_attr,	1,		SGML_MIXED },
     { "P"	, no_attr,	0,		SGML_EMPTY },
     { "PLAINTEXT", no_attr,	0,		SGML_LITTERAL },
     { "PRE"	, no_attr,	0,		SGML_MIXED },
+    { "SAMP"	, no_attr,	0,		SGML_MIXED },
+    { "STRONG"	, no_attr,	0,		SGML_MIXED },
     { "TITLE", 	  no_attr,	0,		SGML_CDATA },
+    { "TT"	, no_attr,	0,		SGML_MIXED },
+    { "U"	, no_attr,	0,		SGML_MIXED },
     { "UL"	, list_attr,	1,		SGML_MIXED },
+    { "VAR"	, no_attr,	0,		SGML_MIXED },
     { "XMP"	, no_attr,	0,		SGML_LITTERAL },
 };
-#define HTML_TAGS 29
 
 
 PUBLIC CONST SGML_dtd HTML_dtd = {
 	tags,
-	HTML_TAGS,
+	HTML_ELEMENTS,
 	entities,
 	sizeof(entities)/sizeof(char**)
 };

@@ -545,6 +545,23 @@ PRIVATE void HTML_start_element ARGS4(
     	    HText_appendText(me->text, me->comment_end);
 	break;
 	
+    case HTML_IMG:			/* Images -- ignore */
+    
+    case HTML_TT:			/* Physical character highlighting */
+    case HTML_B:			/* Currently ignored */
+    case HTML_I:
+    case HTML_U:
+    
+    case HTML_EM:			/* Logical character highlighting */
+    case HTML_STRONG:			/* Currently ignored */
+    case HTML_CODE:
+    case HTML_SAMP:
+    case HTML_KBD:
+    case HTML_VAR:
+    case HTML_DFN:
+    case HTML_CITE:
+    	break;
+	
     default:
     	change_style(me, styles[element_number]);	/* May be postponed */
 	break;
@@ -555,9 +572,9 @@ PRIVATE void HTML_start_element ARGS4(
     	--(me->sp);
 	me->sp[0].style = me->new_style;	/* Stack new style */
 	me->sp[0].tag_number = element_number;
-    }
-	
+    }	
 }
+
 
 /*		End Element
 **		-----------
