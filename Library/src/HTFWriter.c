@@ -390,11 +390,9 @@ PRIVATE void HTCache_remove ARGS2(HTList *, list, HTCacheItem *, item)
 /* This can be called for the main list or an anchor's list
 */
 
-#ifdef WHO_THE_HELL_IS_FRED
-int fred;
-#endif /* Freddy is now going bye-bye! -- Cheers, Ari -- */
 
-PUBLIC void HTCacheClear (HTList * list)
+
+PUBLIC void HTCacheClear ARGS1(HTList *, list)
 {
     HTCacheItem * item;
     while ((item=HTList_objectAt(list, 0)) != NULL) {

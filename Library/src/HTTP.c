@@ -57,6 +57,94 @@ extern char * HTAppVersion;	/* Application version: please supply */
 PUBLIC BOOL HTCacheHTTP = YES;	/* Enable caching of HTTP-retrieved files */
 
 
+PRIVATE char * HTCacheRoot = NULL;
+PRIVATE char * gateway_cache_filename ARGS1(CONST char *, name)
+{
+    char * access;
+    char * host;
+    char * path;
+    char * cache_filename;
+
+    if (HTCacheRoot && name && !strchr(name, '?') &&
+	(access = HTParse(name, "", PARSE_ACCESS))) {
+
+	if (!strcmp(access, "file")) {
+	    free(access);
+	    return NULL;
+	}
+
+	host   = HTParse(name, "", PARSE_HOST);
+	path   = HTParse(name, "", PARSE_PATH | PARSE_PUNCTUATION);
+	cache_filename = (char*)malloc(strlen(HTCacheRoot) + strlen(access) +
+				       (host ? strlen(host) : 0) +
+				       (path ? strlen(path) : 0) + 3);
+	if (!cache_filename) outofmem(__FILE__, "cache_filename");
+	sprintf(cache_filename, "%s/%s/%s%s", HTCacheRoot, access, host, path);
+
+	FREE(access); FREE(host); FREE(path);
+	return cache_filename;
+    }
+    return NULL;
+}
+
+
+PRIVATE FILE * gateway_cache_lookup ARGS1(CONST char *, name)
+{
+    char * cache_filename = gateway_cache_filename(name);
+
+    if (cache_filename) {
+	FILE * cache_file = fopen(cache_filename, "r");
+	if (cache_file && TRACE)
+	    fprintf(stderr, "Gateway cache: HIT \"%s\"\n", cache_filename);
+	free(cache_filename);
+	return cache_file;
+    }
+    return NULL;
+}
+
+
+PRIVATE FILE * gateway_cache_open ARGS1(CONST char *, name)
+{
+    char * cache_filename = gateway_cache_filename(name);
+
+    if (HTCacheRoot  &&  cache_filename) {
+	char * cur = cache_filename + strlen(HTCacheRoot) + 1;
+	FILE * cache_file;
+	struct stat stat_info;
+
+	while ((cur = strchr(cur, '/'))) {
+	    *cur = 0;
+	    if (-1 == stat(cache_filename, &stat_info)) {
+		CTRACE(stderr, "Gateway cache: creating cache dir \"%s\"\n",
+		       cache_filename);
+		if (-1 == mkdir(cache_filename, 0775)) {
+		    CTRACE(stderr, "Gateway cache: can't create dir \"%s\"\n",
+			   cache_filename);
+		    free(cache_filename);
+		    return NULL;
+		}
+		CTRACE(stderr, "Gateway cache: created directory \"%s\"\n",
+		       cache_filename);
+	    }
+	    else CTRACE(stderr, "Gateway cache: dir \"%s\" already exists\n",
+			cache_filename);
+	    *cur = '/';
+	    cur++;
+	}
+	cache_file = fopen(cache_filename, "w");
+	if (!cache_file) {
+	    CTRACE(stderr, "Gateway cache: can't create cache file \"%s\"\n",
+		   cache_filename);
+	}
+	free(cache_filename);
+	return cache_file;
+    }
+    return NULL;
+}
+
+
+
+
 PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 				     HTInputSocket *,	isoc)
 {
@@ -157,6 +245,22 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
     if (request->reason == HTAA_OK_GATEWAY) {
 	arg = request->translated;
+
+	/*
+	** Cache lookup
+	*/
+	if (HTCacheRoot  &&  request->method == METHOD_GET &&
+	    !request->authorization && !request->arg_keywords) {
+
+	    FILE * cache_file = gateway_cache_lookup(arg);
+
+	    if (cache_file) {
+		HTFileCopy(cache_file, request->output_stream);
+		return HT_LOADED;
+	    }
+
+	} /* Cache lookup */
+
     }
     else {
 	arg = HTAnchor_physical(request->anchor);
@@ -246,8 +350,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    char * p1 = HTParse(arg, "", PARSE_PATH|PARSE_PUNCTUATION);
 	    command = malloc(4 + strlen(p1)+ 2 + 31);
 	    if (command == NULL) outofmem(__FILE__, "HTLoadHTTP");
-	    if (request->method) {
-		strcpy(command, HTAtom_name(request->method));
+	    if (request->method != METHOD_INVALID) {
+		strcpy(command, HTMethod_name(request->method));
 		strcat(command, " ");
 	    }
 	    else {
@@ -396,6 +500,27 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		i = remain;
 	    }
 	}
+
+	/*
+	** Cache the document if it a GET request,
+	** not protected and not a search request.
+	*/
+	if (HTCacheRoot  &&  request->method == METHOD_GET &&
+	    !request->authorization && !request->arg_keywords) {
+
+	    FILE * cache_file = gateway_cache_open(request->translated);
+
+	    if (cache_file) {
+		request->output_stream = HTTee(request->output_stream,
+					       HTFWriter_new(cache_file));
+		CTRACE(stderr, "Gateway cache: writing to cache file\n");
+	    }
+	    else {
+		CTRACE(stderr, "Gateway cache: couldn't create cache file\n");
+	    }
+	}
+	else CTRACE(stderr, "Gateway cache: not caching\n");
+
 	/*
 	** Load results directly to client
 	*/

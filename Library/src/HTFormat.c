@@ -64,6 +64,17 @@ struct _HTStream {
 };
 
 
+/*
+** Accept-Encoding and Accept-Language
+*/
+typedef struct _HTAcceptNode {
+    HTAtom *	atom;
+    float	quality;
+} HTAcceptNode;
+
+
+
+
 /*	Presentation methods
 **	--------------------
 */
@@ -146,6 +157,218 @@ PUBLIC void HTSetConversion ARGS7(
 
 
 
+PUBLIC void HTAcceptEncoding ARGS3(HTList *,	list,
+				   char *,	enc,
+				   float,	quality)
+{
+    HTAcceptNode * node;
+    char * cur;
+
+    if (!list || !enc || !*enc) return;
+
+    for(cur=enc; *cur; cur++) *cur=TOLOWER(*cur);
+
+    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
+    if (!node) outofmem(__FILE__, "HTAcceptEncoding");
+    HTList_addObject(list, (void*)node);
+
+    node->atom = HTAtom_for(enc);
+    node->quality = quality;
+}
+
+
+PUBLIC void HTAcceptLanguage ARGS3(HTList *,	list,
+				   char *,	lang,
+				   float,	quality)
+{
+    HTAcceptNode * node;
+
+    if (!list || !lang || !*lang) return;
+
+    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
+    if (!node) outofmem(__FILE__, "HTAcceptLanguage");
+
+    HTList_addObject(list, (void*)node);
+    node->atom = HTAtom_for(lang);
+    node->quality = quality;
+}
+
+
+PRIVATE BOOL wild_match ARGS2(HTAtom *,	template,
+			      HTAtom *,	actual)
+{
+    char *t, *a, *st, *sa;
+    BOOL match = NO;
+
+    if (template && actual &&
+	(t = HTAtom_name(template)) && strchr(t, '*') &&
+	(a = HTAtom_name(actual)) &&
+	(st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
+
+	*sa = 0;
+	*st = 0;
+
+	if ((*(st-1)=='*' &&
+	     (*(st+1)=='*' || !strcasecomp(st+1, sa+1))) ||
+	    (*(st+1)=='*' && !strcasecomp(t,a)))
+	    match = YES;
+
+	*sa = '/';
+	*st = '/';
+    }    
+    return match;
+}
+
+
+PRIVATE float type_value ARGS2(HTAtom *,	content_type,
+			       HTList *,	accepted)
+{
+    HTList * cur = accepted;
+    HTPresentation * pres;
+    HTPresentation * wild = NULL;
+
+    if (!content_type || !accepted) return -1;
+
+    while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
+	if (pres->rep == content_type)
+	    return pres->quality;
+	else if (wild_match(pres->rep, content_type))
+	    wild = pres;
+    }
+    if (wild) return wild->quality;
+    else return -1;
+}
+
+
+PRIVATE float lang_value ARGS2(HTAtom *,	language,
+			       HTList *,	accepted)
+{
+    HTList * cur = accepted;
+    HTAcceptNode * node;
+    HTAcceptNode * wild = NULL;
+
+    if (!language || !accepted || HTList_isEmpty(accepted)) {
+	return 0.1;
+    }
+
+    while ((node = (HTAcceptNode*)HTList_nextObject(cur))) {
+	if (node->atom == language) {
+	    return node->quality;
+	}
+	else if (wild_match(node->atom, language)) {
+	    wild = node;
+	}
+    }
+
+    if (wild) {
+	return wild->quality;
+    }
+    else {
+	return 0.1;
+    }
+}
+
+
+PRIVATE float encoding_value ARGS2(HTAtom *,	encoding,
+				   HTList *,	accepted)
+{
+    HTList * cur = accepted;
+    HTAcceptNode * node;
+    HTAcceptNode * wild = NULL;
+    char * e;
+
+    if (!encoding || !accepted || HTList_isEmpty(accepted))
+	return 1;
+
+    e = HTAtom_name(encoding);
+    if (!strcmp(e, "7bit") || !strcmp(e, "8bit") || !strcmp(e, "binary"))
+	return 1;
+
+    while ((node = (HTAcceptNode*)HTList_nextObject(cur))) {
+	if (node->atom == encoding)
+	    return node->quality;
+	else if (wild_match(node->atom, encoding))
+	    wild = node;
+    }
+    if (wild) return wild->quality;
+    else return 1;
+}
+
+
+PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
+			 HTList *, accepted_content_types,
+			 HTList *, accepted_languages,
+			 HTList *, accepted_encodings)
+{
+    int accepted_cnt = 0;
+    HTList * accepted;
+    HTList * sorted;
+    HTList * cur;
+    HTContentDescription * d;
+
+    if (!possibilities) return NO;
+
+    accepted = HTList_new();
+    cur = possibilities;
+    while ((d = (HTContentDescription*)HTList_nextObject(cur))) {
+	float tv = type_value(d->content_type, accepted_content_types);
+	float lv = lang_value(d->content_language, accepted_languages);
+	float ev = encoding_value(d->content_encoding, accepted_encodings);
+
+#ifdef ARI_DEBUG
+	CTRACE(stderr,
+	       " ## FOR FILE \"%s\" (%.3f) VALUES type %.3f enc %.3f lang %.3f\n",
+	       d->filename, d->quality, tv, ev, lv);
+#endif
+
+	if (tv > 0) {
+	    d->quality *= tv * lv * ev;
+	    HTList_addObject(accepted, d);
+	    accepted_cnt++;
+	}
+    }
+
+    CTRACE(stderr,
+	   "RANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING    FILE\n");
+
+    sorted = HTList_new();
+    while (accepted_cnt-- > 0) {
+	HTContentDescription * worst = NULL;
+	cur = accepted;
+	while ((d = (HTContentDescription*)HTList_nextObject(cur))) {
+	    if (!worst || d->quality < worst->quality)
+		worst = d;
+	}
+	if (worst) {
+	    CTRACE(stderr, "%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
+		   accepted_cnt+1,
+		   worst->quality,
+		   (worst->content_type
+		         ? HTAtom_name(worst->content_type)      : "-"),
+		   (worst->content_language
+		         ? HTAtom_name(worst->content_language)  :"-"),
+		   (worst->content_encoding
+		         ? HTAtom_name(worst->content_encoding)  :"-"),
+		   (worst->filename
+		         ? worst->filename                       :"-"));
+	    HTList_removeObject(accepted, (void*)worst);
+	    HTList_addObject(sorted, (void*)worst);
+	}
+    }
+    HTList_delete(accepted);
+    HTList_delete(possibilities->next);
+    possibilities->next = sorted->next;
+    sorted->next = NULL;
+    HTList_delete(sorted);
+
+    if (!HTList_isEmpty(possibilities)) return YES;
+    else return NO;
+}
+
+
+
+
+
 /*			Socket Input Buffering
 **			----------------------
 **
@@ -200,7 +423,7 @@ PUBLIC char HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
     return FROMASCII(ch);
 }
 
-PUBLIC void HTInputSocket_free(HTInputSocket * me)
+PUBLIC void HTInputSocket_free ARGS1(HTInputSocket *, me)
 {
     if (me) free(me);
 }
@@ -302,9 +525,6 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 	    ** Get more if needed to complete line
 	    */
 	    if (cur >= isoc->input_limit) { /* Need more data */
-#if 0
-		if (TRACE) fprintf(stderr, "HTInputSocket: reading more data\n");
-#endif
 		ascii_cat(&line, start, cur);
 		if (fill_in_buffer(isoc) <= 0)
 		    return line;
@@ -314,22 +534,12 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 	    /*
 	    ** Find a line feed if there is one
 	    */
-#if 0
-	    if (TRACE) fprintf(stderr, "HTInputSocket: processing read buffer\n");
-#endif
 	    for(; cur < isoc->input_limit; cur++) {
 		char c = FROMASCII(*cur);
 		if (!c) {
-#if 0
-		    if (TRACE) fprintf(stderr, "HTInputSocket: panic, read zero!\n");
-#endif
 		    return NULL;	/* Panic! read a 0! */
 		}
 		if (check_unfold  &&  c != ' '  &&  c != '\t') {
-#if 0
-		    if (TRACE) fprintf(stderr, "HTInputSocket: returning \"%s\"\n",
-				       (line ? line : "(null)"));
-#endif
 		    return line;  /* Note: didn't update isoc->input_pointer */
 		}
 		else {
@@ -337,31 +547,17 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 		}
 
 		if (c=='\r') {
-#if 0
-		    if (TRACE) fprintf(stderr, "HTInputSocket: found linefeed\n");
-#endif
 		    prev_cr = 1;
 		}
 		else {
 		    if (c=='\n') {		/* Found a line feed */
-#if 0
-			if (TRACE) fprintf(stderr, "HTInputSocket: found newline\n");
-#endif
 			ascii_cat(&line, start, cur-prev_cr);
 			start = isoc->input_pointer = cur+1;
 
 			if (line && strlen(line) > 0 && unfold) {
-#if 0
-			    if (TRACE) fprintf(stderr, "HTInputSocket: next time check unfolding\n");
-#endif
 			    check_unfold = YES;
 			}
 			else {
-#if 0
-			    if (TRACE) fprintf(stderr,
-					       "HTInputSocket: no unfold check -- just return \"%s\"\n",
-					       (line ? line : "(line)"));
-#endif
 			    return line;
 			}
 		    } /* if NL */
@@ -474,6 +670,7 @@ PUBLIC int HTOutputBinary ARGS3( HTInputSocket *, isoc,
 }
 
 
+
 /*		Create a filter stack
 **		---------------------
 **
@@ -492,7 +689,6 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 {
     HTFormat rep_out = request->output_format;	/* Could be a param */
     HTList * conversion[2];
-    HTAtom * wildcard = HTAtom_for("*");
     HTFormat source = WWW_SOURCE;
     int which_list;
     HTPresentation * pres, *match, *wildcard_match=0,
@@ -503,33 +699,29 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 	HTAtom_name(rep_in),	
 	HTAtom_name(rep_out));
 		
-
-#ifdef BUG_OUT	/* by Lou Montulli 16 Aug 93, put in by AL 6 Dec 93 */
-    if (rep_out == WWW_SOURCE ||
-    	rep_out == rep_in) return request->output_stream;
-#endif
     if (rep_out == rep_in) return request->output_stream;
 
     conversion[0] = request->conversions;
     conversion[1] = HTConversions;
-    
+
     for(which_list = 0; which_list<2; which_list++) {
 	HTList * cur = conversion[which_list];
 	
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
-	    if (pres->rep == rep_in) {
+	    if (pres->rep == rep_in ||
+		wild_match(pres->rep, rep_in)) {
 	        if (pres->rep_out == rep_out)
 	            return (*pres->converter)(request, pres->command,
 					      rep_in, pres->rep_out,
 					      request->output_stream);
-		if (pres->rep_out == wildcard) {
+		if (wild_match(pres->rep_out, rep_out)) {
 		    wildcard_match = pres;
 		}
 	    }
 	    if (pres->rep == source) {
 	        if (pres->rep_out == rep_out)
 	            source_match = pres;
-		if (pres->rep_out == wildcard) {
+		if (wild_match(pres->rep_out, rep_out)) {
 		    source_wildcard_match = pres;
 		}
 	    }
@@ -562,7 +754,6 @@ PUBLIC float HTStackValue ARGS5(
 	float,			initial_value,
 	long int,		length)
 {
-    HTAtom * wildcard = HTAtom_for("*");
     int which_list;
     HTList* conversion[2];
     
@@ -585,7 +776,7 @@ PUBLIC float HTStackValue ARGS5(
 	HTPresentation * pres;
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
 	    if (pres->rep == rep_in &&
-		(pres->rep_out == rep_out || pres->rep_out == wildcard)) {
+		(pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))) {
 	        float value = initial_value * pres->quality;
 		if (HTMaxSecs != 0.0)
 		    value = value - (length*pres->secs_per_byte + pres->secs)
@@ -596,9 +787,10 @@ PUBLIC float HTStackValue ARGS5(
     }
     
     return -1e30;		/* Really bad */
-
 }
-	
+
+
+
 
 /*	Push data from a socket down a stream
 **	-------------------------------------

@@ -22,6 +22,7 @@ NAME="z0" HREF="Overview.html">libwww library</A> .
 /*	Definition uses:
 */
 #include "HTUtils.h"
+#include "HTList.h"
 #include "tcp.h"
 
 
@@ -32,7 +33,83 @@ NAME="z0" HREF="Overview.html">libwww library</A> .
 #define HTOutputFormat		HTOuForm
 #endif
 
-</PRE>The following have to be defined
+typedef enum {
+	METHOD_INVALID	= 0,
+	METHOD_GET	= 1,
+	METHOD_HEAD,
+	METHOD_POST,
+	METHOD_PUT,
+	METHOD_DELETE,
+	METHOD_CHECKOUT,
+	METHOD_CHECKIN,
+	METHOD_SHOWMETHOD,
+	METHOD_LINK,
+	METHOD_UNLINK,
+	MAX_METHODS
+} HTMethod;
+
+
+</PRE>
+
+<H2>Methods</H2>
+<PRE>
+
+/*	Get method enum value
+**	---------------------
+*/
+PUBLIC HTMethod HTMethod_enum PARAMS((char * name));
+
+
+/*	Get method name
+**	---------------
+*/
+PUBLIC char * HTMethod_name PARAMS((HTMethod method));
+
+
+/* PUBLIC						HTMethod_inList()
+**		IS A METHOD IN A LIST OF METHOD NAMES
+** ON ENTRY:
+**	method		is the method to look for.
+**	list		is a list of method names.
+**
+** ON EXIT:
+**	returns		YES, if method was found.
+**			NO, if not found.
+*/
+PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
+				    HTList *	list));
+</PRE>
+<H2>Match Template Against Filename</H2>
+<PRE>
+/* PUBLIC						HTAA_templateMatch()
+**		STRING COMPARISON FUNCTION FOR FILE NAMES
+**		   WITH ONE WILDCARD * IN THE TEMPLATE
+** NOTE:
+**	This is essentially the same code as in HTRules.c, but it
+**	cannot be used because it is embedded in between other code.
+**	(In fact, HTRules.c should use this routine, but then this
+**	 routine would have to be more sophisticated... why is life
+**	 sometimes so hard...)
+**
+** ON ENTRY:
+**	template	is a template string to match the file name
+**			agaist, may contain a single wildcard
+**			character * which matches zero or more
+**			arbitrary characters.
+**	filename	is the filename (or pathname) to be matched
+**			agaist the template.
+**
+** ON EXIT:
+**	returns		YES, if filename matches the template.
+**			NO, otherwise.
+*/
+PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * template, 
+				       CONST char * filename));
+
+
+</PRE>
+
+The following have to be defined
 in advance of the other include files
 because of circular references.
 <PRE>typedef struct _HTRequest HTRequest;
@@ -120,16 +197,11 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 	void *		context;	/* caller data -- HTAccess unaware */
 	HTParentAnchor*	anchor;		/* Set by HTAccess */
 	void *		using_cache;	/* pointer to cache element if cache hit */
-	HTAtom *	method;		/* HTTP method */
-	HTChildAnchor *	childAnchor;	/* For element within the object */
-	HTAtom *	content_type;	/* Content-Type:		  */
-	int		content_length;	/* Content-Length:		  */
-	char *		last_modified;	/* Last-Modified:		  */
-	char *		message_id;	/* Message-Id:			  */
-	HTList *	allowed;	/* Allowed: (list of HTAtoms)	  */
-	HTList *	public;		/* Public: (list of HTAtoms)	  */
+	HTMethod	method;		/* HTTP method */
+	HTChildAnchor *	childAnchor;	/* For element within the object  */
 	int		status_code;	/* HTTP status code		  */
 	char *		reason_line;	/* Reason for failing		  */
+
 	/*
 	** Server side info about request
 	*/
@@ -137,19 +209,24 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 	HTInputSocket *	isoc;		/* InputSocket object for reading */
 	char *		request;	/* First request line as received */
 	char *		argument;	/* Arg to HTTP method as given	  */
-	char *		access;		/* Access method		  */
 	char *		arg_path;	/* Pathinfo part of argument	  */
-	char *		arg_keywords;	/* keyword part of URL		  */
-	char *		simplified;	/* Simplified filename		  */
-	char *		translated;	/* Translated filename		  */
-	char *		localname;	/* Local filename		  */
-	char *		script;		/* Executable server script name  */
+	char *		arg_keywords;	/* Keyword part of URL		  */
+	char *		translated;	/* Translated pathname		  */
+	char *		script;		/* Executable server script path  */
 	char *		script_pathinfo;/* Path info after script name	  */
 	char *		script_pathtrans;/* Path info translated	  */
 	BOOL		cgi_script;	/* If a CGI/1.0 script		  */
 	BOOL		nph_script;	/* If an nph- script		  */
 	char *		location;	/* Location for redirection	  */
-	char *		redir_on_fly;	/* Non-full URL location on local */
+	HTAtom *	content_type;	/* Content-Type:		  */
+	int		content_length;	/* Content-Length:		  */
+	char *		last_modified;	/* Last-Modified:		  */
+	char *		expires;	/* Expires:			  */
+	char *		uri;		/* Uri:				  */
+	char *		message_id;	/* Message-Id:			  */
+	HTList *	allowed;	/* Allowed: (list of HTAtoms)	  */
+	HTList *	public;		/* Public: (list of HTAtoms)	  */
+
 	/*
 	** Access Authorization
 	*/
@@ -158,15 +235,8 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 	char *		auth_string;	/* Authentication string	  */
 	char *		www_authenticate;/*WWW-Authenticate: (should be a */
 	                                /* a HTList *)			  */
-	/*
-	** Server side AA
-	*/
-#if 0
-	HTAAProt *	prot;		/* Protection (Protect rule)	  */
-	HTAAProt *	def_prot;	/* Default prot (DefProt rule)	  */
-	HTAAUser *	user;		/* Authenticated user		  */
-#endif
 	HTAAFailReason	reason;		/* Reason for failing		  */
+
 	/*
 	** Client side AA
 	*/
@@ -178,11 +248,6 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 	char *		dialog_msg;	/* Authentication prompt (client) */
 	HTRetryCallbackType
 			retry_callback;	/* Called when password entered	  */
-#ifdef OLD_CODE
-	void		(*retry_callback) PARAMS((
-				struct _HTRequest * request
-			));		/* Call this when password entered*/
-#endif
 };
 
 </PRE>The elements of the request structure

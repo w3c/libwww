@@ -96,6 +96,71 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 }
 
 
+PRIVATE char * method_names[(int)MAX_METHODS + 1] =
+{
+    "INVALID-METHOD",
+    "GET",
+    "HEAD",
+    "POST",
+    "PUT",
+    "DELETE",
+    "CHECKOUT",
+    "CHECKIN",
+    "SHOWMETHOD",
+    "LINK",
+    "UNLINK",
+    NULL
+};
+
+/*	Get method enum value
+**	---------------------
+*/
+PUBLIC HTMethod HTMethod_enum ARGS1(char *, name)
+{
+    if (name) {
+	int i;
+	for (i=1; i < (int)MAX_METHODS; i++)
+	    if (!strcmp(name, method_names[i]))
+		return (HTMethod)i;
+    }
+    return METHOD_INVALID;
+}
+
+
+/*	Get method name
+**	---------------
+*/
+PUBLIC char * HTMethod_name ARGS1(HTMethod, method)
+{
+    if ((int)method > (int)METHOD_INVALID  && 
+	(int)method < (int)MAX_METHODS)
+	return method_names[(int)method];
+    else
+	return method_names[(int)METHOD_INVALID];
+}
+
+
+/*	Is method in a list of method names?
+**	-----------------------------------
+*/
+PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
+				  HTList *,	list)
+{
+    char * method_name = HTMethod_name(method);
+    HTList *cur = list;
+    char *item;
+
+    while (NULL != (item = (char*)HTList_nextObject(cur))) {
+	CTRACE(stderr, " %s", item);
+	if (0==strcasecomp(item, method_name))
+	    return YES;
+    }
+    return NO;	/* Not found */
+}
+
+
+
+
 
 /*	Register a Protocol				HTRegisterProtocol
 **	-------------------
@@ -167,9 +232,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
     
 #ifndef NO_RULES
-    if (req->localname)
-	HTAnchor_setPhysical(req->anchor, req->localname);
-    else if (req->translated)
+    if (req->translated)
 	HTAnchor_setPhysical(req->anchor, req->translated);
     else {
 	physical = HTTranslate(addr);
@@ -276,8 +339,8 @@ PRIVATE int HTLoad ARGS2(
 {
     HTProtocol* p;
     int status;
-    if (!request->method)
-	request->method = HTAtom_for("GET");
+    if (request->method == METHOD_INVALID)
+	request->method = METHOD_GET;
     status = get_physical(request);
     if (status == HT_FORBIDDEN) {
         return HTLoadError(request, 500,
@@ -297,7 +360,7 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 {
     HTProtocol * p;
     int status;
-    request->method = HTAtom_for("PUT");
+    request->method = METHOD_PUT;
     status = get_physical(request);
     if (status == HT_FORBIDDEN) {
         HTLoadError(request, 500,

@@ -42,13 +42,11 @@ has itself allocated.
 
 #include "HTUtils.h"		/* BOOL, PARAMS, ARGS */
 #include "HTList.h"
-#include "HTAtom.h"
 #include "tcp.h"
 
 #ifdef SHORT_NAMES
 #define HTAASenu	HTAAScheme_enum
 #define HTAASnam	HTAAScheme_name
-#define	HTMeInLi	HTMethod_inList
 #define HTAAteMa	HTAA_templateMatch
 #define HTAAmaPT	HTAA_makeProtectionTemplate
 #define HTAApALi	HTAA_parseArgList
@@ -92,6 +90,7 @@ has itself allocated.
 typedef enum {
     HTAA_OK,		/* 200 OK				*/
     HTAA_OK_GATEWAY,	/* 200 OK, acting as a gateway		*/
+    HTAA_OK_REDIRECT,	/* 302 OK, redirected			*/
     HTAA_NO_AUTH,	/* 401 Unauthorized, not authenticated	*/
     HTAA_NOT_MEMBER,	/* 401 Unauthorized, not authorized	*/
     HTAA_IP_MASK,	/* 403 Forbidden by IP mask		*/
@@ -101,6 +100,10 @@ typedef enum {
     HTAA_SETUP_ERROR,	/* 403 Forbidden, server setup error	*/
     HTAA_DOTDOT,	/* 403 Forbidden, URL with /../ illegal	*/
     HTAA_HTBIN,		/* 403 Forbidden, /htbin not enabled	*/
+    HTAA_INVALID_REDIRECT,
+			/* 403 Forbidden, bad redirection setup */
+    HTAA_NOT_ALLOWED,	/* 403 Forbidden, dangerous method must	*/
+			/*		  be explicitly allowed	*/
     HTAA_NOT_FOUND	/* 404 Not found, or read protected	*/
 } HTAAFailReason;
 
@@ -148,52 +151,8 @@ PUBLIC HTAAScheme HTAAScheme_enum PARAMS((CONST char* name));
 */
 PUBLIC char *HTAAScheme_name PARAMS((HTAAScheme scheme));
 
-</PRE>
-<H2>Methods</H2>
-Methods are now represented as HTAtoms.
-<PRE>
-/* PUBLIC						HTMethod_inList()
-**		IS A METHOD IN A LIST OF METHOD NAMES
-** ON ENTRY:
-**	method		is the method to look for.
-**	list		is a list of method names.
-**
-** ON EXIT:
-**	returns		YES, if method was found.
-**			NO, if not found.
-*/
-PUBLIC BOOL HTMethod_inList PARAMS((HTAtom *	method,
-				    HTList *	list));
-</PRE>
-<H2>Match Template Against Filename</H2>
-<PRE>
-/* PUBLIC						HTAA_templateMatch()
-**		STRING COMPARISON FUNCTION FOR FILE NAMES
-**		   WITH ONE WILDCARD * IN THE TEMPLATE
-** NOTE:
-**	This is essentially the same code as in HTRules.c, but it
-**	cannot be used because it is embedded in between other code.
-**	(In fact, HTRules.c should use this routine, but then this
-**	 routine would have to be more sophisticated... why is life
-**	 sometimes so hard...)
-**
-** ON ENTRY:
-**	template	is a template string to match the file name
-**			agaist, may contain a single wildcard
-**			character * which matches zero or more
-**			arbitrary characters.
-**	filename	is the filename (or pathname) to be matched
-**			agaist the template.
-**
-** ON EXIT:
-**	returns		YES, if filename matches the template.
-**			NO, otherwise.
-*/
-PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * template, 
-				       CONST char * filename));
 
-
-/* PUBLIC						HTAA_templateCaseMatch()
+/* PUBLIC					    HTAA_templateCaseMatch()
 **		STRING COMPARISON FUNCTION FOR FILE NAMES
 **		   WITH ONE WILDCARD * IN THE TEMPLATE (Case Insensitive)
 ** NOTE:
@@ -216,7 +175,7 @@ PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * template,
 **			NO, otherwise.
 */
 PUBLIC BOOL HTAA_templateCaseMatch PARAMS((CONST char * template, 
-			        	 CONST char * filename));
+					   CONST char * filename));
 
 
 /* PUBLIC					HTAA_makeProtectionTemplate()

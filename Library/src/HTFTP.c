@@ -672,8 +672,10 @@ ARGS6 (
   
     data_read_pointer = data_write_pointer = data_buffer;
 
-    if (*filename == 0)  /* Empty filename : use root */
+    if (*filename == 0) { /* Empty filename : use root */
+	lastpath = (char*)malloc(2);
         strcpy (lastpath, "/");
+    }
     else 
     {
         char * p = strrchr(filename, '/');  /* find lastslash */

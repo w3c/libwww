@@ -33,6 +33,30 @@ NAME="z7" HREF="HTStream.html">"HTStream.h"</A>
 #define HTOutputBinary HTOuBina
 #endif
 
+
+typedef struct _HTContentDescription {
+    char *	filename;
+    HTAtom *	content_type;
+    HTAtom *	content_language;
+    HTAtom *	content_encoding;
+    int		content_length;
+    float	quality;
+} HTContentDescription;
+
+PUBLIC void HTAcceptEncoding PARAMS((HTList *	list,
+				     char *	enc,
+				     float	quality));
+
+PUBLIC void HTAcceptLanguage PARAMS((HTList *	list,
+				     char *	lang,
+				     float	quality));
+
+PUBLIC BOOL HTRank PARAMS((HTList * possibilities,
+			   HTList * accepted_content_types,
+			   HTList * accepted_content_languages,
+			   HTList * accepted_content_encodings));
+
+
 </PRE>
 <H2>HT<A
 NAME="z15"> Input Socket: Buffering for network

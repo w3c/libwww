@@ -110,40 +110,6 @@ PUBLIC char *HTAAScheme_name ARGS1(HTAAScheme, scheme)
 
 
 
-/* PUBLIC						HTMethod_inList()
-**		IS A METHOD IN A LIST OF METHOD NAMES
-** ON ENTRY:
-**	method		is the method to look for.
-**	list		is a list of method names.
-**
-** ON EXIT:
-**	returns		YES, if method was found.
-**			NO, if not found.
-*/
-PUBLIC BOOL HTMethod_inList ARGS2(HTAtom *,	method,
-				  HTList *,	list)
-{
-    char *method_name;
-    HTList *cur = list;
-    char *item;
-
-    if (!method || !(method_name = HTAtom_name(method))) {
-	fprintf(stderr, "HTMethod_inList: invalid param: %s is NULL!!\n",
-		(method ? "method's name (atom name)" : "method (atom)"));
-	return NO;
-    }
-
-    while (NULL != (item = (char*)HTList_nextObject(cur))) {
-	if (TRACE) fprintf(stderr, " %s", item);
-	if (0==strcasecomp(item, method_name))
-	    return YES;
-    }
-
-    return NO;	/* Not found */
-}
-
-
-
 /* PUBLIC						HTAA_templateMatch()
 **		STRING COMPARISON FUNCTION FOR FILE NAMES
 **		   WITH ONE WILDCARD * IN THE TEMPLATE

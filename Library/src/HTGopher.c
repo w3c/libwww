@@ -155,8 +155,9 @@ PRIVATE void parse_menu ARGS3 (
     char ch;
     char line[BIG];
     char address[BIG];
-    char *name, *selector;		/* Gopher menu fields */
-    char *host;
+    char *name = "";
+    char *selector = "";		/* Gopher menu fields */
+    char *host = "";
     char *port;
     char *p = line;
     CONST char *title;
@@ -235,7 +236,7 @@ PRIVATE void parse_menu ARGS3 (
 		    sprintf(address, "//%s/%c", host, gtype);
 		    q = address+ strlen(address);
 		    for(p=selector; *p; p++) {	/* Encode selector string */
-			if (acceptable[*p]) *q++ = *p;
+			if (acceptable[(int)*p]) *q++ = *p;
 			else {
 			    *q++ = HEX_ESCAPE;	/* Means hex coming */
 			    *q++ = hex[(TOASCII(*p)) >> 4];

@@ -26,6 +26,12 @@
 #include "tcp.h"
 #include "HTFile.h"
 #include "HTParse.h"	/* HTParse() */
+#include "HTAAUtil.h"
+
+#ifndef VMS
+#include <pwd.h>	/* Unix password file routine: getpwnam() */
+#endif /* not VMS */
+
 
 #define LINE_LENGTH 256
 
@@ -49,6 +55,8 @@ PUBLIC char * HTBinDir = NULL;		/* Physical /htbin directory	*/
 PUBLIC char * HTSearchScript = NULL;	/* Search script name.		*/
 PUBLIC char * HTPutScript = NULL;	/* Script to handle PUT		*/
 PUBLIC char * HTPostScript = NULL;	/* Script to handle POST	*/
+PRIVATE char * HTUserDir = NULL;	/* User supported directory name*/
+
 
 
 /*	Module-wide variables
@@ -147,6 +155,42 @@ PUBLIC int HTClearRules NOARGS
 }
 
 
+PRIVATE char * wrap ARGS1(char *, s)
+{
+    if (s && *s=='/') {
+	char * n = (char*)malloc(strlen(s) + 6);
+	if (!n) outofmem(__FILE__, "HTRules:wrap");
+	sprintf(n, "file:%s", s);
+	free(s);
+	return n;
+    }
+    return s;
+}
+
+
+PRIVATE char * unwrap ARGS1(char *, s)
+{
+    if (s && !strncmp(s, "file:", 5)) {
+	char * t;
+	char * n = NULL;
+
+	if (!strncmp(s, "file://", 7))
+	    t = strchr(s+7, '/');
+	else t = s+5;
+
+	if (!t) {
+	    free(s);
+	    return NULL;
+	}
+	StrAllocCopy(n, t);
+	free(s);
+	return n;
+    }
+    return s;
+}
+
+
+
 /*	Translate by rules					HTTranslate()
 **	------------------
 **
@@ -239,7 +283,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 	case HT_Pass:				/* Authorised */
     		if (!r->equiv) {
 		    CTRACE(stderr, "HTRule: Pass `%s'\n", current);
-		    return current;
+		    return wrap(current);
 	        }
 		/* Else fall through ...to map and pass */
 		
@@ -275,7 +319,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 		}
 		if (r->op == HT_Pass) {
 		    CTRACE(stderr, "HTRule: ...and pass `%s'\n", current);
-		    return current;
+		    return wrap(current);
 		}
 		break;
 
@@ -291,7 +335,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
     } /* loop over rules */
 
 
-    return current;
+    return wrap(current);
 }
 
 
@@ -301,7 +345,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 **
 ** On entry,
 **	req		request structure.
-**	req->simplified	simplified pathname (no ..'s etc in it),
+**	req->arg_path	simplified pathname (no ..'s etc in it),
 **			which will be translated.
 **			If this starts with /htbin/ it is taken
 **			to be a script call request.
@@ -318,10 +362,44 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
     rule * r;
     char *current = NULL;
 
-    if (!req  ||  !req->simplified)
+    if (!req  ||  !req->arg_path)
 	return NO;
 
-    StrAllocCopy(current, req->simplified);
+    StrAllocCopy(current, req->arg_path);
+
+    if (HTUserDir && current[0] == '/' && current[1] == '~') {	/* User dir */
+	char * username = current+2;
+	char * end = strchr(username, '/');
+
+	if (end)  *end++ = 0;
+
+	if (*username) {
+	    struct passwd * pw = getpwnam(username);
+
+	    if (pw && pw->pw_dir) {
+		int homelen = strlen(pw->pw_dir);
+		char * d = (char*)malloc(homelen +
+					 strlen(HTUserDir) +
+					 (end ? strlen(end) : 0) + 3);
+		strcpy(d, pw->pw_dir);
+		if (pw->pw_dir[homelen-1] != '/' && HTUserDir[0] != '/')
+		    strcat(d, "/");
+		strcat(d, HTUserDir);
+		if (end) {
+		    if (HTUserDir[strlen(HTUserDir)-1] != '/')
+			strcat(d, "/");
+		    strcat(d, end);
+		}
+		CTRACE(stderr, "\"%s\" --user--> \"%s\"\n", current, d);
+		free(current);
+		current = d;
+	    }
+	    else CTRACE(stderr, "HTRule: User dir for '%s' not found\n",
+			current);
+	}
+	else CTRACE(stderr, "HTRule: Invalid user dir request '%s'\n",
+		    current);
+    }
 
     for(r = rules; r; r = r->next) {
         char * p = r->pattern;
@@ -383,6 +461,7 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 				   current);
 		req->script = current;
 		req->script_pathinfo = NULL;
+		req->script_pathtrans = NULL;
 		return YES;
 	    }
 	    else if (*p == *q || !strchr(r->equiv, '*')) { /* No wildcards */
@@ -391,13 +470,16 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 				   r->equiv);
 		StrAllocCopy(req->script, r->equiv);
 		req->script_pathinfo = NULL;
+		req->script_pathtrans = NULL;
 		return YES;
 	    }
 	    else {
 		char *ins = strchr(r->equiv, '*');
 		char *pathinfo;
-		if (!(req->script = (char*)malloc(strlen(r->equiv) + m)))
-		    outofmem(__FILE__, "HTTranslate");
+
+		req->script = (char*)malloc(strlen(r->equiv) + m);
+		if (!req->script) outofmem(__FILE__, "HTTranslateReq");
+
 		strncpy(req->script, r->equiv, ins-r->equiv);
 		strncpy(req->script+(ins-r->equiv), q, m);
 		strcpy(req->script+(ins-r->equiv)+m, ins+1);
@@ -408,24 +490,30 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 		FREE(req->script_pathinfo);
 		FREE(req->script_pathtrans);
 		if (*pathinfo) {
-		    char *tmp;
 		    StrAllocCopy(req->script_pathinfo, pathinfo);
 		    *pathinfo = 0;
-		    tmp = HTTranslate(req->script_pathinfo);
-		    if (tmp) {
-			req->script_pathtrans =
-			    HTParse(tmp, "", PARSE_PATH | PARSE_PUNCTUATION);
-			free(tmp);
-		    }
+		    req->script_pathtrans =
+			unwrap(HTTranslate(req->script_pathinfo));
 		}
 		return YES;
 	    }
 	    break;
-			     
+
+	  case HT_Redirect:
+	    if (!r->equiv) {
+		CTRACE(stderr,
+		       "HTRule: ERROR: No destination for redirect %s\n",
+		       r->pattern);
+		req->reason = HTAA_INVALID_REDIRECT;
+		return NO;
+	    }
+	    else req->reason = HTAA_OK_REDIRECT;
+	    /* And fall through to HT_Map... */
+
 	case HT_Pass:				/* Authorised */
     		if (!r->equiv) {
 		    if (TRACE) fprintf(stderr, "HTRule: Pass `%s'\n", current);
-		    req->translated = current;
+		    req->translated = unwrap(current);
 		    return YES;
 	        }
 		/* Else fall through ...to map and pass */
@@ -435,36 +523,40 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 		CTRACE(stderr,"For `%s' using `%s'\n", current, r->equiv);  
 		StrAllocCopy(current, r->equiv); /* use entire translation */
 	    } else {
-		  char * ins = strchr(r->equiv, '*');	/* Insertion point */
-	          if (ins) {	/* Consistent rule!!! */
-			char * temp = (char *)malloc(
-				strlen(r->equiv)-1 + m + 1);
-			if (temp==NULL) 
-			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
-			strncpy(temp, 	r->equiv, ins-r->equiv);
-			/* Note: temp may be unterminated now! */
-			strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
-			strcpy (temp+(ins-r->equiv)+m, ins+1);	/* Last bit */
-    			CTRACE(stderr,"For `%s' using `%s'\n", current, temp);
-			free(current);
-			current = temp;			/* Use this */
+		char * ins = strchr(r->equiv, '*');	/* Insertion point */
+		if (ins) {	/* Consistent rule!!! */
+		    char * temp=(char*)malloc(strlen(r->equiv)-1 + m + 1);
+		    if (!temp) outofmem(__FILE__, "HTTranslateReq");
 
-		    } else {	/* No insertion point */
-			char * temp = (char *)malloc(strlen(r->equiv)+1);
-			if (temp==NULL) 
-			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
-			strcpy(temp, r->equiv);
-    			CTRACE(stderr, "For `%s' using `%s'\n", current, temp);
-			free(current);
-			current = temp;			/* Use this */
-		    } /* If no insertion point exists */
-		}
-		if (r->op == HT_Pass) {
-		    if (TRACE) fprintf(stderr, "HTRule: Pass `%s'\n", current);
-		    req->translated = current;
-		    return YES;
-		}
-		break;
+		    strncpy(temp, 	r->equiv, ins-r->equiv);
+		    /* Note: temp may be unterminated now! */
+		    strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
+		    strcpy (temp+(ins-r->equiv)+m, ins+1);	/* Last bit */
+		    CTRACE(stderr,"\"%s\" --map*-> \"%s\"\n",current,temp);
+		    free(current);
+		    current = temp;			/* Use this */
+
+		} else {	/* No insertion point */
+		    char * temp = (char *)malloc(strlen(r->equiv)+1);
+		    if (temp==NULL) 
+			outofmem(__FILE__, "HTTranslateReq"); /* NT & AS */
+		    strcpy(temp, r->equiv);
+		    CTRACE(stderr,"\"%s\" --map--> \"%s\"\n",current,temp);
+		    free(current);
+		    current = temp;			/* Use this */
+		} /* If no insertion point exists */
+	    }
+	    if (r->op == HT_Pass) {
+		CTRACE(stderr, "HTRule: Pass `%s'\n", current);
+		req->translated = unwrap(current);
+		return YES;
+	    }
+	    else if (r->op == HT_Redirect) {
+		CTRACE(stderr, "HTRule: Redirected to `%s'\n", current);
+		req->location = current;
+		return YES;
+	    }
+	    break;
 
 	case HT_Invalid:
 	case HT_Fail:				/* Unauthorised */
@@ -476,7 +568,7 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
     } /* loop over rules */
 
     /* Actually here failing might be more appropriate?? */
-    req->translated = current;
+    req->translated = unwrap(current);
     return YES;
 }
 
@@ -567,6 +659,12 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 	       0==strncasecomp(word1, "post-script", 11)) {
 	StrAllocCopy(HTPostScript, word2);
 
+    } else if (0==strncasecomp(word1, "userdir", 7)) {
+	CTRACE(stderr,
+	       "User supported directories are '%s' under each user's home\n",
+	       word2);
+	StrAllocCopy(HTUserDir, word2);
+
     } else if (0==strncasecomp(word1, "htbin", 5) ||
 	       0==strncasecomp(word1, "bindir", 6)) {
 	char *bindir = (char*)malloc(strlen(word2) + 3);
@@ -606,6 +704,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 	    :	0==strcasecomp(word1, "pass") ?	HT_Pass
 	    :	0==strcasecomp(word1, "fail") ?	HT_Fail
 	    :   0==strcasecomp(word1, "exec") ? HT_Exec
+	    :   0==strcasecomp(word1, "redirect")? HT_Redirect
 	    :   0==strcasecomp(word1, "defprot") ? HT_DefProt
 	    :	0==strcasecomp(word1, "protect") ? HT_Protect
 	    :						HT_Invalid;
