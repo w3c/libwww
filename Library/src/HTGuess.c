@@ -226,7 +226,7 @@ PRIVATE int HTGuess_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int HTGuess_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTGuess_abort ARGS2(HTStream *, me, HTList *, e)
 {
     if (me->target)
 	(*me->target->isa->abort)(me,e);

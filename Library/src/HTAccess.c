@@ -166,6 +166,7 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTCache_freeRoot();
     HTCache_clearMem();				  /* Keep the disk versions! */
     HTTmp_freeRoot();
+    HTError_freePrefix();
 
 #ifdef _WINDOWS
     WSACleanup();

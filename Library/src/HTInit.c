@@ -20,11 +20,14 @@
 
 /*	BINDINGS BETWEEN A SOURCE MEDIA TYPE AND A DEST MEDIA TYPE (CONVERSION)
 **	----------------------------------------------------------------------
-**
 **	Not done automaticly - must be done by application!
 */
 PUBLIC void HTConverterInit (HTList * c)
 {
+    HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
+
+#if 0
     /*
     ** This set of converters uses the HTML/HText interface.
     ** If you do not want this interface then replace them!
@@ -39,7 +42,6 @@ PUBLIC void HTConverterInit (HTList * c)
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */
-    HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTConversion_add(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
 
@@ -47,9 +49,13 @@ PUBLIC void HTConverterInit (HTList * c)
     ** The following conversions are converting ASCII output from various
     ** protocols to HTML objects.
     */
+#if 0
+    HTConversion_add(c,"text/x-gopher",		"www/present",	HTGopherMenu,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/x-cso",		"www/present",	HTGopherCSO,	1.0, 0.0, 0.0);
+#endif
     HTConversion_add(c,"text/x-nntp-list",	"www/present",	HTNewsList,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-nntp-over",	"www/present",	HTNewsGroup,	1.0, 0.0, 0.0);
-
+#endif
     /*
     ** This dumps all other formats to local disk without any further
     ** action taken
@@ -59,11 +65,9 @@ PUBLIC void HTConverterInit (HTList * c)
 
 /*	BINDINGS BETWEEN MEDIA TYPES AND EXTERNAL VIEWERS/PRESENTERS
 **	------------------------------------------------------------
-**
+**	Not done automaticly - must be done by application!
 **	The data objects are stored in temporary files before the external
 **	program is called
-**
-**	Not done automaticly - must be done by application!
 */
 PUBLIC void HTPresenterInit (HTList * c)
 {
@@ -89,7 +93,7 @@ PUBLIC void HTPresenterInit (HTList * c)
 
 /*	PRESENTERS AND CONVERTERS AT THE SAME TIME
 **	------------------------------------------
-**
+**	Not done automaticly - must be done by application!
 **	This function is only defined in order to preserve backward
 **	compatibility.
 */
@@ -102,11 +106,7 @@ PUBLIC void HTFormatInit (HTList * c)
 
 /*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY
 **	-------------------------------------------
-**
-**	Add to or subtract from this list if you add or remove protocol
-**	modules. This function is called from HTLibInit()
-**	Compiling with HT_NO_INIT prevents all known protocols from being
-**	force in at link time.
+**	Not done automaticly - must be done by application!
 */
 PUBLIC void HTAccessInit (void)
 {
@@ -129,14 +129,13 @@ PUBLIC void HTAccessInit (void)
 
 /*	BINDINGS BETWEEN FILE EXTENSIONS AND MEDIA TYPES
 **	------------------------------------------------
-**
+**	Not done automaticly - must be done by application!
 **	The LAST suffix for a type is that used for temporary files of that
 **	type. The quality is an apriori bias as to whether the file should be
 **	used.  Not that different suffixes can be used to represent files
 **	which are of the same format but are originals or regenerated,
 **	with different values. Called from HTLibraryInit().
 */
-
 PUBLIC void HTFileInit (void)
 {
     /*		       Suffix	 Content-Type		        Encoding  Lang	Quality	*/

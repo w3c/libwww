@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -141,14 +141,14 @@ extern void HTProgress	(HTRequest *request, HTProgressState state,
 
 <H3>Generating an Error Message of a request</H3>
 
-This function outputs the content of the error_stack to standard
-output (used in Line Mode Browser), but smart clients and servers
-might overwrite this function so that the error messages can be
-handled to the user in a nice(r) way. That is the reason for putting
-the actual implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
+This function outputs the content of the error list to standard output
+(used in Line Mode Browser), but smart clients and servers might
+overwrite this function so that the error messages can be handled to
+the user in a nice(r) way. That is the reason for putting the actual
+implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
 
 <PRE>
-extern void HTErrorMsg	(HTRequest * request);
+extern void HTError_print (HTRequest * request, HTList * list);
 
 #endif
 </PRE>

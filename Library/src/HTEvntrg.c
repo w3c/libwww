@@ -31,8 +31,8 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTError.h"
 #include "HTReqMan.h"
+#include "HTError.h"
 #include "HTDNS.h"
 #include "HTEvntrg.h"					 /* Implemented here */
 
@@ -288,7 +288,7 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 #endif
     if (rq -> hwnd != 0) {
         if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) {
-	    HTErrorSysAdd( rq, ERR_FATAL, GetLastError(), NO,"WSAAsyncSelect");
+	    HTRequest_addSystemError( rq, ERR_FATAL, GetLastError(), NO,"WSAAsyncSelect");
 	    return HTERROR;
 	}
     }
@@ -525,17 +525,17 @@ LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     event = LOWORD(lParam);
     sock = (SOCKET)wParam;
     if (event & (FD_READ | FD_ACCEPT | FD_CLOSE))
-    	if (__DoCallBack((int)sock, FD_READ) != HT_OK) {
+    	if (__DoCallback((int)sock, FD_READ) != HT_OK) {
 	    EndLoop = -1;
 	    return 0;
 	}
     if (event & (FD_WRITE | FD_CONNECT))
-    	if (__DoCallBack((int)sock, FD_WRITE) != HT_OK) {
+    	if (__DoCallback((int)sock, FD_WRITE) != HT_OK) {
 	    EndLoop = -1;
 	    return 0;
 	}
     if (event & FD_OOB)
-    	if (__DoCallBack((int)sock, FD_OOB) != HT_OK) {
+    	if (__DoCallback((int)sock, FD_OOB) != HT_OK) {
 	    EndLoop = -1;
 	    return 0;
 	}
@@ -646,7 +646,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 		case WAIT_FAILED :
 		case WAIT_ABANDONED: 		      /* should never happen */
-		    HTErrorSysAdd(theRequest, ERR_FATAL, GetLastError(), NO,
+		    HTRequest_addSystemError(theRequest, ERR_FATAL, GetLastError(), NO,
 				  "WaitForSingleObject");
 		    return HT_ERROR;
 		    break ; 
@@ -689,7 +689,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	    break;
             
             case -1:        /* error has occurred */
-	    	HTErrorSysAdd( theRequest, ERR_FATAL, socerrno, NO, "select");
+	    	HTRequest_addSystemError( theRequest, ERR_FATAL, socerrno, NO, "select");
 		__DumpFDSet( &treadset, "Read");
 		__DumpFDSet( &twriteset, "Write") ;
 		__DumpFDSet( &texceptset, "Exceptions");
@@ -709,7 +709,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	
 	if (console_in_use && consoleReady) {
 	    if (THD_TRACE) 
-	    	TTYPrint(TDEST,"Event Loop.. console ready, make callback\n");
+	    	TTYPrint(TDEST, "Event Loop.. console ready, do callback\n");
 	    status = __DoUserCallback((SOCKET) console_handle, FD_READ);
 	    if (status != HT_OK)
 		return status;

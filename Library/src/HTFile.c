@@ -132,7 +132,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
     char *name;
     if (PROT_TRACE) TTYPrint(TDEST, "Reading..... directory\n");
     if (dir_access == HT_DIR_FORBID) {
-	HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		   NULL, 0, "HTFile_readDir");
 	return HT_NO_ACCESS;
     }
@@ -156,7 +156,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	    if (PROT_TRACE)
 		TTYPrint(TDEST,
 			"Read dir.... `%s\' not found\n", DEFAULT_DIR_FILE);
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		       NULL, 0, "HTFile_readDir");
 	    return HT_NO_ACCESS;
 	}
@@ -211,7 +211,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	closedir(dp);
 	HTDir_free(dir);
     } else
-	HTErrorSysAdd(request,  ERR_FATAL, errno, NO, "opendir");
+	HTRequest_addSystemError(request,  ERR_FATAL, errno, NO, "opendir");
     return HT_LOADED;
 #endif /* GOT_READ_DIR */
 }
@@ -343,7 +343,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
     } /* if take backup */    
     
     if ((fp = fopen(filename, "wb")) == NULL) {
-	HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
+	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
 	return NULL;
     } else
     	return HTFWriter_new(fp, NO);
@@ -460,7 +460,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 			if (PROT_TRACE)
 			    TTYPrint(TDEST, "HTLoadFile.. Can't stat %s\n",
 				    file->local);
-			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+			HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				   NULL, 0, "HTLoadFile");
 			file->state = FS_ERROR;
 			break;
@@ -484,7 +484,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setHeaderParsed(anchor);
 
 		    if (!editable && !stat_info.st_size) {
-			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
+			HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
 				   NULL, 0, "HTLoadFile");
 			file->state = FS_NO_DATA;
 		    } else
@@ -500,7 +500,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    */
 #ifndef NO_UNIX_IO
 	    if ((net->sockfd = open(file->local, O_RDONLY)) == -1) {
-		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "open");
+		HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "open");
 		file->state = FS_ERROR;
 		break;
 	    }
@@ -535,7 +535,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 #else
 	    if ((file->fp = fopen(file->local,"r")) == NULL) {
 #endif /* !VMS */
-		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
+		HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
 		file->state = FS_ERROR;
 		break;
 	    }

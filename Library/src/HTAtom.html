@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Atoms - an easy way of organizing strings</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -25,9 +25,8 @@ HREF="HTFormat.html#FormatTypes">MIME-types</A> defined as
 <CODE>atoms</CODE>, so please use them! <P>
 
 This module is implemented by <A HREF="HTAtom.c">HTAtom.c</A>, and it
-is a part of the <A NAME="z10"
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>. <P>
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTATOM_H
@@ -54,8 +53,8 @@ same value for the same given string. The former is case sensitive,
 the latter is case insensitive.
 
 <PRE>
-extern HTAtom * HTAtom_for	PARAMS((CONST char * string));
-extern HTAtom * HTAtom_caseFor	PARAMS((CONST char * string));
+extern HTAtom * HTAtom_for	(CONST char * string);
+extern HTAtom * HTAtom_caseFor	(CONST char * string);
 </PRE>
 
 <H3>Get Content of an Atom</H3>
@@ -74,7 +73,7 @@ template like <CODE>text&lt;slash&gt;&lt;star&gt;</CODE> returns a
 list of all MIME-types of type <CODE>text</CODE>.
 
 <PRE>
-extern HTList * HTAtom_templateMatches PARAMS((CONST char * templ));
+extern HTList * HTAtom_templateMatches (CONST char * templ);
 </PRE>
 
 <H3>Cleanup Memory</H3>
@@ -84,7 +83,7 @@ automaticly from the <A
 HREF="HTReq.html#Library">HTLibTerminate</A> function.
 
 <PRE>
-extern void HTAtom_deleteAll NOPARAMS;
+extern void HTAtom_deleteAll (void);
 
 #endif
 </PRE>

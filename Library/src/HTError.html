@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Error Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -15,29 +15,22 @@
 */
 </PRE>
 
-This module maintaines a list of error messages that might occur
-during load of a requested URL. The error list is put out to standard
-output by a simple function that easily can be overwritten by a smart
-server or client. <P>
+This is the implementaion of an error message reporting system that
+reports errors occured either in a stream module (structured streams
+inclusive) or in a protocol module. A list of errors are put into the
+a list which can be bound to a request object or to a stream. <P>
 
 This module is implemented by <A HREF="HTError.c">HTError.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
-
 #include "HTReq.h"
 </PRE>
 
-<A NAME="errorinfo"><H2>Data Structures</H2></A>
-
-The basic data structure is HTErrorInfo, but in addition the following
-types are used:
-
-<H3>Error Numbers</H3>
+<A NAME="errorinfo"><H2>Error Codes and Messages</H2></A>
 
 <NOTE><B>Note: </B></NOTE> All non-HTTP error codes have index numbers
 &gt; HTERR_HTTP_CODES, and they will not be shown in the error-message
@@ -92,26 +85,71 @@ typedef enum _HTErrorElement {
 	HTERR_CLASS,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
+</PRE>
 
-typedef enum _HTErrSeverity {
+<H2>Creation and Deletion Methods</H2>
+
+<H3>Add an Error</H3>
+
+Add an error message to the error list. `par' and `where' might be set
+to NULL. If par is a string, it is sufficient to let length be
+unspecified, i.e., 0. If only a part of the string is wanted then
+specify a length inferior to strlen((char *) par).  The string is '\0'
+terminated automaticly.  See also HTError_addSystem for system errors. Returns YES if OK, else NO.
+
+<PRE>
+typedef struct _HTError HTError;
+
+typedef enum _HTSeverity {
     ERR_FATAL		  = 0x1,
     ERR_NON_FATAL	  = 0x2,
     ERR_WARN	 	  = 0x4,
     ERR_INFO	 	  = 0x8
-} HTErrSeverity;
+} HTSeverity;
 
-typedef struct _HTErrorInfo {
-    int			handle;		/* Unique number in this stack */
-    HTErrorElement 	element;        /* Index number into HTErrorMsgInfo */
-    HTErrSeverity 	severity; 	/* A la VMS */
-    BOOL               	ignore;         /* YES if msg should not go to user */
-    void *  		par;          	/* Explanation, e.g. filename  */
-    unsigned int 	par_length;   	/* For copying by generic routine */
-    char *       	where;          /* Which function */
-} HTErrorInfo;
+extern BOOL HTError_add (HTList * 	list,
+			 HTSeverity	severity,
+			 BOOL		ignore,
+			 int		element,
+			 void *		par,
+			 unsigned int	length,
+			 char *		where);
+
 </PRE>
 
-<H2>Controling Globals</H2>
+<H3>Add a System Error</H3>
+
+Add a system error message to the error list. syscall is the name of
+the system call, e.g. "close". The message put to the list is that
+corresponds to the error number passed. See also HTError_add. Returns
+YES if OK, else NO.
+
+<PRE>
+extern BOOL HTError_addSystem (HTList *		list,
+			       HTSeverity 	severity,
+			       int		errornumber,
+			       BOOL		ignore,
+			       char *		syscall);
+</PRE>
+
+
+<H3>Delete an Entire Error Stack</H3>
+
+Deletes all errors in a list.
+
+<PRE>
+extern BOOL HTError_deleteAll (HTList * list);
+</PRE>
+
+<H3>Deletes the Last Edded Entry</H3>
+
+Deletes the last error entry added to the list. Return YES if OK, else NO
+
+<PRE>
+extern BOOL HTError_deleteLast (HTList * list);
+</PRE>
+
+<H2>How Should Errors be Presented</H2>
 
 This variable dictates which errors should be put out when generating
 the message to the user. The first four enumerations make it possible
@@ -140,86 +178,79 @@ typedef enum _HTErrorShow {
     HT_ERR_SHOW_DEBUG	  = 0x7F
 } HTErrorShow;
 
-extern unsigned int HTErrorShowMask;
+extern HTErrorShow HTError_show (void);
+extern BOOL HTError_setShow (HTErrorShow mask);
 </PRE>
 
-This is the table containing the actual error-messages and links for
-more information:
+<H3>Show the Error Entry?</H3>
+
+Should we show this entry in the list or just continue to the next one?
 
 <PRE>
-typedef struct _HTErrorMsgInfo {
-    int  	code;           	/* Error number */
-    char *	msg;          		/* Short explanation */
-    char *	url;			/* Explaning URL */
-} HTErrorMsgInfo;
-
-extern HTErrorMsgInfo error_info[];
+extern BOOL HTError_doShow (HTError * info);
 </PRE>
 
-<H2>Public Error Functions</H2>
+<H2>Ignore last Added Error</H2>
 
-<H3>Add an Error Message</H3>
+Turns on the `ignore' flag for the most recent error entered the
+error list. Returns YES if OK else NO
 
-This function adds an error message to the error_stack list in the HTRequest
-structure. It always returns a negative value.
 <PRE>
-extern int HTErrorAdd PARAMS((	HTRequest * 	request,
-			    	HTErrSeverity 	severity,
-			    	BOOL		ignore,
-			     	int		element,
-			     	void *		par,
-			     	unsigned int	par_length,
-			     	char *		where));
+extern BOOL HTError_ignoreLast	(HTList * list);
+extern BOOL HTError_setIgnore	(HTError * info);
 </PRE>
 
-<H3>Add a System Error Message</H3>
+<H2>Error Codes and Messages</H2>
 
-This function adds an error from a system call that initializes errno
-or equivalent and adds it to the error_stack list in the HTRequest
-structure. It always returns a negative value.
+The error code can be set as part of the error message in the
+<CODE>HTErrors</CODE> structure in the <A HREF="HTError.c">HTError.c
+file</A>. The convention is that HTTP errors have an error code
+equivalent to hte ones specified by the <A
+HREF="http://www.w3.org/pub/WWW/Protocols/">HTTP specification</A> and
+that internal errors have a code of 0.
 
 <PRE>
-extern int HTErrorSysAdd PARAMS(( HTRequest * 	request,
-				  HTErrSeverity	severity,
-				  int		errornumber,
-				  BOOL		ignore,
-				  char *	syscall));
+extern int HTError_code			(HTError * info);
 </PRE>
 
-<H3>Ignoring an Error Message</H3>
-
-If an error message is not to be send to the user, e.g., output to the
-stream, then the ignore flag must be turn on. Theese functions turns
-it on for the latest error appended to the list or an arbitrary error
-refered to by its handle.
+The Error Message is also a part of the <CODE>HTErrors</CODE>
+structure in the <A HREF="HTError.c">HTError.c file</A>. It's hard
+wired i order to make sure that the Librray always have a set of error
+messages to provide to the user. The content can of course be changed.
 
 <PRE>
-extern void HTErrorIgnore PARAMS((HTRequest * request, int handle));
-extern void HTErrorIgnoreLast PARAMS((HTRequest * request));
+extern CONST char * HTError_message	(HTError * info);
 </PRE>
 
-<H3>Handling Prefix for Links in Error Message</H3>
+<H2>Error Object Specific Information</H2>
 
-Two functions handle the URL prefix of the links inside the error
-message. They are quite obvious:
+The following methods provide the registered information in the
+<CODE>Error object</CODE>.
 
 <PRE>
-extern void HTErrorSetPrefix PARAMS((char *path));
-extern CONST char *HTErrorGetPrefix NOPARAMS;
+extern HTSeverity HTError_severity	(HTError * info);
+extern void * HTError_parameter		(HTError * info, int * length);
+extern CONST char * HTError_location	(HTError * info);
 </PRE>
 
-<H3>Freeing an Error List</H3>
+<H2>Error URLs</H2>
 
-This is normally done when the HTRequest structure is freed but it might be 
-done at any other time in order to ignore a whole series of errors.
+Each error message can point to a URL with extended description of
+what went wrong. This can for example also be used by a server in
+order to send back a error URL to the client. The file names of the
+URLs are given in the error message table but the prefix where to find
+them can be handled with the following functions
+
 <PRE>
-extern void HTErrorFree   PARAMS((HTRequest * request));
+extern void HTError_setPrefix		(CONST char * path);
+extern CONST char *HTError_prefix	(void);
+extern void HTError_freePrefix		(void);
 </PRE>
 
 <PRE>
 #endif
 </PRE>
-end
+End of Declaration Manager
 </BODY>
 </HTML>
 

@@ -204,102 +204,89 @@ PUBLIC void HTPromptUsernameAndPassword (HTRequest *	request,
 }
 
 
-/*								HTErrorMsg
+/*								HTError_print
 **
 **	Default function that creates an error message using HTAlert() to
 **	put out the contents of the error_stack messages. Furthermore, the
 **	error_info structure contains a name of a help file that might be put
 **	up as a link. This file can then be multi-linguistic.
-**
-**	This function might be overwritten by a smart server or client.
 */
-PUBLIC void HTErrorMsg (HTRequest * request)
+PUBLIC void HTError_print (HTRequest * request, HTList * list)
 {
-    HTList *cur = HTRequest_errorStack(request);
-    BOOL highest = YES;
-    HTChunk *chunk;
-    HTErrorInfo *pres;
-
-    /* Output messages */
-    chunk = HTChunkCreate(128);
-    while ((pres = (HTErrorInfo *) HTList_nextObject(cur))) {
-
-	/* Check if we are going to show the message */
-	if ((!pres->ignore || HTErrorShowMask & HT_ERR_SHOW_IGNORE) && 
-	    (HTErrorShowMask & pres->severity)) {
-
-	    /* Output code number */
-	    if (highest) {			    /* If first time through */
-		if (WWWTRACE)
-		    TTYPrint(TDEST,
-			    "HTError..... Generating message.\n");
-		
-		/* Output title */
-		if (pres->severity == ERR_WARN)
-		    HTChunkPuts(chunk, "Warning ");
-		else if (pres->severity == ERR_NON_FATAL)
-		    HTChunkPuts(chunk, "Non Fatal Error ");
-		else if (pres->severity == ERR_FATAL)
-		    HTChunkPuts(chunk, "Fatal Error ");
-		else if (pres->severity == ERR_INFO)
-		    HTChunkPuts(chunk, "Information ");
+    HTList *cur = list;
+    HTError *pres;
+    HTErrorShow showmask = HTError_show();
+    HTChunk *msg = NULL;
+    int code;
+    if (WWWTRACE) TTYPrint(TDEST, "HTError..... Generating message\n");
+    if (!request || !list) return;
+    while ((pres = (HTError *) HTList_nextObject(cur))) {
+	if (HTError_doShow(pres)) {
+	    if (!msg) {
+		HTSeverity severity = HTError_severity(pres);
+		msg = HTChunkCreate(128);
+		if (severity == ERR_WARN)
+		    HTChunkPuts(msg, "Warning: ");
+		else if (severity == ERR_NON_FATAL)
+		    HTChunkPuts(msg, "Non Fatal Error: ");
+		else if (severity == ERR_FATAL)
+		    HTChunkPuts(msg, "Fatal Error: ");
+		else if (severity == ERR_INFO)
+		    HTChunkPuts(msg, "Information: ");
 		else {
 		    if (WWWTRACE)
-			TTYPrint(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", pres->severity);
-		    HTChunkFree(chunk);
+			TTYPrint(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", severity);
+		    HTChunkFree(msg);
 		    return;
 		}
-
-		/* Only output error code if it is a real HTTP code */
-		if (pres->element < HTERR_HTTP_CODES_END) {
-		    char codestr[10];
-		    sprintf(codestr, "%d ", error_info[pres->element].code);
-		    HTChunkPuts(chunk, codestr);
+		if ((code = HTError_code(pres)) > 0) {	     /* Error number */
+		    char buf[10];
+		    sprintf(buf, "%d ", code);
+		    HTChunkPuts(msg, buf);
 		}
-		highest = NO;
 	    } else
-		HTChunkPuts(chunk, "\nReason: ");
+		HTChunkPuts(msg, "\nReason: ");
+	    HTChunkPuts(msg, HTError_message(pres));	    /* Error message */
 
-	    /* Output error message */
-	    if (pres->element != HTERR_SYSTEM) {
-		HTChunkPuts(chunk, error_info[pres->element].msg);
-		HTChunkPutc(chunk, ' ');
-	    }
-
-	    /* Output parameters */
-	    if (pres->par && HTErrorShowMask & HT_ERR_SHOW_PARS) {
-		unsigned int cnt;
-		char ch;
-		HTChunkPutc(chunk, '(');
-		for (cnt=0; cnt<pres->par_length; cnt++) {
-		    ch = *((char *)(pres->par)+cnt);
-		    if (ch < 0x20 || ch >= 0x7F)
-			HTChunkPutc(chunk, '#'); /* Can't print real content */
-		    else
-			HTChunkPutc(chunk, ch);
+	    if (showmask & HT_ERR_SHOW_PARS) {		 /* Error parameters */
+		int length;
+		int cnt;		
+		char *pars = (char *) HTError_parameter(pres, &length);
+		if (length && pars) {
+		    HTChunkPuts(msg, " (");
+		    for (cnt=0; cnt<length; cnt++) {
+			char ch = *(pars+cnt);
+			if (ch < 0x20 || ch >= 0x7F)
+			    HTChunkPutc(msg, '#');
+			else
+			    HTChunkPutc(msg, ch);
+		    }
+		    HTChunkPuts(msg, ") ");
 		}
-		HTChunkPutc(chunk, ')');
 	    }
 
-	    /* Output location */
-	    if (pres->where && HTErrorShowMask & HT_ERR_SHOW_LOCATION) {
-		HTChunkPuts(chunk, "This occured in ");
-		HTChunkPuts(chunk, pres->where);
-		HTChunkPutc(chunk, '\n');
+	    if (showmask & HT_ERR_SHOW_LOCATION) {	   /* Error Location */
+		HTChunkPuts(msg, "This occured in ");
+		HTChunkPuts(msg, HTError_location(pres));
+		HTChunkPutc(msg, '\n');
 	    }
 
-	    /* We don't want the message more than once */
-	    HTErrorIgnore(request, pres->handle);
+	    /*
+	    ** Make sure that we don't get this error more than once even
+	    ** if we are keeping the error stack from one request to another
+	    */
+	    HTError_setIgnore(pres);
 	    
-	    /* If we only are going to show the higest entry */
-	    if (HTErrorShowMask & HT_ERR_SHOW_FIRST)
+	    /* If we only are show the most recent entry then break here */
+	    if (showmask & HT_ERR_SHOW_FIRST)
 		break;
 	}
     }
-    if (HTChunkSize(chunk)) {
-	HTChunkPutc(chunk, '\n');
-	HTAlert(request, HTChunkData(chunk));
+
+    if (msg) {
+	HTChunkPutc(msg, '\n');
+	HTAlert(request, HTChunkData(msg));
+	HTChunkFree(msg);
     }
-    HTChunkFree(chunk);
     return;
 }

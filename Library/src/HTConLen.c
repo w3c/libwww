@@ -184,7 +184,7 @@ PRIVATE int buf_free (HTStream * me)
     return status;
 }
 
-PRIVATE int buf_abort (HTStream * me, HTError e)
+PRIVATE int buf_abort (HTStream * me, HTList * e)
 {
     if (!me->give_up)
 	free_buf_all(me);

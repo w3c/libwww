@@ -331,6 +331,7 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
     dir->target = HTMLGenerator(request, NULL, WWW_HTML,
 			       HTRequest_outputFormat(request),
 			       HTRequest_outputStream(request));
+    HTAnchor_setFormat(HTRequest_anchor(request), WWW_HTML);
     dir->request = request;
     dir->show = show;
     dir->key = key;

@@ -220,6 +220,7 @@ PRIVATE int ScanResponse (HTStream * me)
 	HTChunkPutc(me->welcome, '\n');
     }
     me->buflen = 0;
+    me->state = EOL_BEGIN;
     if (cont != '-') {
 	me->first_line = YES;
 	return HT_LOADED;
@@ -237,7 +238,6 @@ PRIVATE int FTPStatus_put_block (HTStream * me, CONST char * b, int l)
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
 	    if (*b == LF) {
-		me->state = EOL_BEGIN;
 		if (!me->junk) {
 		    if ((status = ScanResponse(me)) != HT_OK)
 			return status;
@@ -249,7 +249,6 @@ PRIVATE int FTPStatus_put_block (HTStream * me, CONST char * b, int l)
 	} else if (*b == CR) {
 	    me->state = EOL_FCR;
 	} else if (*b == LF) {
-	    me->state = EOL_BEGIN;
 	    if (!me->junk) {
 		if ((status = ScanResponse(me)) != HT_OK)
 		    return status;
@@ -301,7 +300,7 @@ PRIVATE int FTPStatus_free (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int FTPStatus_abort (HTStream * me, HTError e)
+PRIVATE int FTPStatus_abort (HTStream * me, HTList * e)
 {
     if (me->target)
 	(*me->target->isa->abort)(me->target, e);
@@ -471,7 +470,8 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 	memset((void *) &local_addr, '\0', sizeof(local_addr));
 	if (getsockname(dnet->sockfd, (struct sockaddr *) &local_addr,
 			&addr_size) < 0) {
-	    HTErrorSysAdd(dnet->request, ERR_FATAL, socerrno,NO,"getsockname");
+	    HTRequest_addSystemError(dnet->request, ERR_FATAL, socerrno,
+				     NO, "getsockname");
 	    return NO;
 	}
 	if (PROT_TRACE) TTYPrint(TDEST, "FTP......... This host is `%s\'\n",
@@ -1269,8 +1269,8 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (status == HT_OK) {
 		char *s_class = HTDNS_serverClass(cnet->dns);
 		if (s_class && strcasecomp(s_class, "ftp")) {
-		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_CLASS, NULL, 0,
-			       "HTLoadFTP");
+		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
+				       NULL, 0, "HTLoadFTP");
 		    ctrl->state = FTP_ERROR;
 		    break;
 		}

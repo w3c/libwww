@@ -595,7 +595,7 @@ PRIVATE int HTCache_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int HTCache_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTCache_abort ARGS2(HTStream *, me, HTList *, e)
 {
     if (CACHE_TRACE)
 	TTYPrint(TDEST, "Cache....... ABORTING\n");

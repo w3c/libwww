@@ -63,7 +63,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTProxy.o \
 	$(LOB)/HTMLGen.o $(LOB)/HTTee.o $(LOB)/HTXParse.o $(LOB)/HTEPtoCl.o \
 	$(LOB)/HTAnchor.o $(LOB)/HTStyle.o \
 	$(LOB)/HTRules.o $(LOB)/HTFormat.o $(LOB)/HTInit.o \
-	$(LOB)/HTMIME.o $(LOB)/HTMIMERq.o \
+	$(LOB)/HTMIME.o $(LOB)/HTMIMERq.o $(LOB)/HTBound.o \
 	$(LOB)/HTHist.o $(LOB)/HTSocket.o $(LOB)/HTEvntrg.o \
 	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o \
 	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
@@ -85,7 +85,8 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTChunk.c $(CMN)HTAtom.c   $(CMN)HTAnchor.c $(CMN)HTStyle.c \
 	$(CMN)HTList.c  $(CMN)HTString.c $(CMN)HTAlert.c $(CMN)HTRules.c \
 	$(CMN)HTFormat.c $(CMN)HTInit.c $(CMN)HTHist.c \
-	$(CMN)HTMIME.c $(CMN)HTMIMERq.c $(CMN)HTConLen.c $(CMN)HTHeader.c \
+	$(CMN)HTMIME.c $(CMN)HTMIMERq.c $(CMN)HTBound.c \
+	$(CMN)HTConLen.c $(CMN)HTHeader.c \
 	$(CMN)HTGopher.c $(CMN)HTTelnet.c \
 	$(CMN)HTWAIS.c  $(CMN)HTWSRC.c $(CMN)HTSocket.c \
 	$(CMN)HTAAUtil.c $(CMN)HTAABrow.c $(CMN)HTAssoc.c \
@@ -110,7 +111,8 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTList.h \
 	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
 	$(CMN)HTFormat.h $(CMN)HTInit.h \
-	$(CMN)HTMIME.h $(CMN)HTMIMERq.h $(CMN)HTConLen.h $(CMN)HTHeader.h \
+	$(CMN)HTMIME.h $(CMN)HTMIMERq.h $(CMN)HTBound.h \
+	$(CMN)HTConLen.h $(CMN)HTHeader.h \
 	$(CMN)HTHist.h \
 	$(CMN)HTGopher.h $(CMN)HTDir.h \
 	$(CMN)HTUtils.h $(CMN)tcp.h $(CMN)HText.h \
@@ -131,7 +133,7 @@ SOURCES = $(CFILES) $(HFILES) \
 
 ICONS = $(ICON)/WWW/Bug48x.gif \
 	$(ICON)/WWW/Lib48x.gif \
-	$(ICON)/WWW/WWW48x.gif \
+	$(ICON)/WWW/w3c_48x48.gif \
 	$(ICON)/WWW/Platform48x.gif \
 	$(ICON)/WWW/design48x.gif \
 	$(ICON)/WWW/doc48x.gif \
@@ -318,6 +320,9 @@ $(LOB)/HTMIME.o : $(OE) $(CMN)HTMIME.c $(CMN)HTMIME.h $(CMN)HTUtils.h
 
 $(LOB)/HTMIMERq.o : $(OE) $(CMN)HTMIMERq.c $(CMN)HTMIMERq.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTMIMERq.c
+
+$(LOB)/HTBound.o : $(OE) $(CMN)HTBound.c $(CMN)HTBound.h $(CMN)HTUtils.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTBound.c
 
 $(LOB)/HTHist.o : $(OE) $(CMN)HTHist.c $(CMN)HTHist.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTHist.c

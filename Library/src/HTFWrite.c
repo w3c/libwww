@@ -90,7 +90,7 @@ PRIVATE int HTBlackHole_free (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_abort (HTStream * me, HTError e)
+PRIVATE int HTBlackHole_abort (HTStream * me, HTList * e)
 {
     return HT_ERROR;
 }
@@ -190,7 +190,7 @@ PRIVATE int HTFWriter_free (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int HTFWriter_abort (HTStream * me, HTError e)
+PRIVATE int HTFWriter_abort (HTStream * me, HTList * e)
 {
     if (me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */

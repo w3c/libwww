@@ -488,7 +488,7 @@ PRIVATE int GopherMenu_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int GopherMenu_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int GopherMenu_abort ARGS2(HTStream *, me, HTList *, e)
 {
     (*me->target->isa->abort)(me->target, e);
     free(me);

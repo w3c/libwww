@@ -31,7 +31,7 @@ PRIVATE BOOL initialised = NO;
 **	Finds an atom representation for a string. The atom doesn't have to be
 **	a new one but can be an already existing atom.
 */
-PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
+PUBLIC HTAtom * HTAtom_for (CONST char * string)
 {
     int hash;
     CONST char * p;
@@ -79,7 +79,7 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
 **	Finds an atom representation for a string. The atom doesn't have to be
 **	a new one but can be an already existing atom.
 */
-PUBLIC HTAtom * HTAtom_caseFor ARGS1(CONST char *, string)
+PUBLIC HTAtom * HTAtom_caseFor (CONST char * string)
 {
     int hash;
     CONST char * p;
@@ -123,7 +123,7 @@ PUBLIC HTAtom * HTAtom_caseFor ARGS1(CONST char *, string)
 **	This function cleans up the memory used by atoms.
 **	Written by Eric Sink, eric@spyglass.com
 */
-PUBLIC void HTAtom_deleteAll NOARGS
+PUBLIC void HTAtom_deleteAll (void)
 {
     int i;
     HTAtom *cur;
@@ -144,8 +144,7 @@ PUBLIC void HTAtom_deleteAll NOARGS
 }
 
 
-PRIVATE BOOL mime_match ARGS2(CONST char *, name,
-			      CONST char *, templ)
+PRIVATE BOOL mime_match (CONST char * name, CONST char * templ)
 {
     if (name && templ) {
 	static char *n1 = NULL;
@@ -170,7 +169,7 @@ PRIVATE BOOL mime_match ARGS2(CONST char *, name,
 }
 	
 
-PUBLIC HTList *HTAtom_templateMatches ARGS1(CONST char *, templ)
+PUBLIC HTList *HTAtom_templateMatches (CONST char * templ)
 {
     HTList *matches = HTList_new();
 

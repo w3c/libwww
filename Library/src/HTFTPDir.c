@@ -256,7 +256,7 @@ PRIVATE int FTPDir_free (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int FTPDir_abort (HTStream * me, HTError e)
+PRIVATE int FTPDir_abort (HTStream * me, HTList * e)
 {
     if (PROT_TRACE) TTYPrint(TDEST, "FTPDir...... ABORTING...\n");
     FTPDir_free(me);

@@ -293,8 +293,7 @@ PUBLIC void HTFormat_deleteAll (void)
 /* 				FORMAT NEGOTIATION			     */
 /* ------------------------------------------------------------------------- */
 
-PRIVATE BOOL better_match ARGS2(HTFormat, f,
-				HTFormat, g)
+PRIVATE BOOL better_match (HTFormat f, HTFormat g)
 {
     CONST char *p, *q;
 
@@ -308,8 +307,7 @@ PRIVATE BOOL better_match ARGS2(HTFormat, f,
 }
 
 
-PRIVATE BOOL wild_match ARGS2(HTAtom *,	tmplate,
-			      HTAtom *,	actual)
+PRIVATE BOOL wild_match (HTAtom * tmplate, HTAtom * actual)
 {
     char *t, *a, *st, *sa;
     BOOL match = NO;
@@ -340,8 +338,7 @@ PRIVATE BOOL wild_match ARGS2(HTAtom *,	tmplate,
 /*
  * Added by takada@seraph.ntt.jp (94/04/08)
  */
-PRIVATE BOOL lang_match ARGS2(HTAtom *,	tmplate,
-			      HTAtom *,	actual)
+PRIVATE BOOL lang_match (HTAtom * tmplate, HTAtom * actual)
 {
     char *t, *a, *st, *sa;
     BOOL match = NO;
@@ -373,8 +370,7 @@ PRIVATE BOOL lang_match ARGS2(HTAtom *,	tmplate,
 
 
 
-PRIVATE double type_value ARGS2(HTAtom *,	content_type,
-			       HTList *,	accepted)
+PRIVATE double type_value (HTAtom * content_type, HTList * accepted)
 {
     HTList * cur = accepted;
     HTPresentation * pres;
@@ -393,8 +389,7 @@ PRIVATE double type_value ARGS2(HTAtom *,	content_type,
 }
 
 
-PRIVATE double lang_value ARGS2(HTAtom *,	language,
-			       HTList *,	accepted)
+PRIVATE double lang_value (HTAtom * language, HTList * accepted)
 {
     HTList * cur = accepted;
     HTAcceptNode * node;
@@ -428,8 +423,7 @@ PRIVATE double lang_value ARGS2(HTAtom *,	language,
 }
 
 
-PRIVATE double encoding_value ARGS2(HTAtom *,	encoding,
-				   HTList *,	accepted)
+PRIVATE double encoding_value (HTAtom * encoding, HTList * accepted)
 {
     HTList * cur = accepted;
     HTAcceptNode * node;
@@ -454,10 +448,10 @@ PRIVATE double encoding_value ARGS2(HTAtom *,	encoding,
 }
 
 
-PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
-			 HTList *, accepted_content_types,
-			 HTList *, accepted_languages,
-			 HTList *, accepted_encodings)
+PUBLIC BOOL HTRank (HTList * possibilities,
+		    HTList * accepted_content_types,
+		    HTList * accepted_languages,
+		    HTList * accepted_encodings)
 {
     int accepted_cnt = 0;
     HTList * accepted;
@@ -538,11 +532,11 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 **	The star/star format is special, in that if you can take
 **	that you can take anything.
 */
-PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
-				      HTFormat,		rep_out,
-				      HTStream *,	output_stream,
-				      HTRequest *,	request,
-				      BOOL,		guess)
+PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
+				 HTFormat	rep_out,
+				 HTStream *	output_stream,
+				 HTRequest *	request,
+				 BOOL		guess)
 {
     HTList * conversion[2];
     int which_list;
@@ -612,12 +606,11 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 ** On entry,
 **	length	The size of the data to be converted
 */
-PUBLIC double HTStackValue ARGS5(
-	HTList *,		theseConversions,
-	HTFormat,		rep_in,
-	HTFormat,		rep_out,
-	double,			initial_value,
-	long int,		length)
+PUBLIC double HTStackValue (HTList *	theseConversions,
+			    HTFormat	rep_in,
+			    HTFormat	rep_out,
+			    double	initial_value,
+			    long int	length)
 {
     int which_list;
     HTList* conversion[2];
