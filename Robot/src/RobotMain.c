@@ -177,6 +177,10 @@ int main (int argc, char ** argv)
 		mr->rules = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_RULE_FILE;
 
+	    /* Don't follow HTML META tags with robot information */
+	    } else if (!strcmp(argv[arg], "-nometatags")) {
+		mr->flags |= MR_NOMETATAGS;
+
 	    /* output filename */
 	    } else if (!strcmp(argv[arg], "-o")) { 
 		mr->outputfile = (arg+1 < argc && *argv[arg+1] != '-') ?

@@ -175,6 +175,7 @@ PUBLIC HTList * get_all_user_agents(char * rob_str)
 
 	return user_agents;
     }
+    return NULL;
 }
 
 PUBLIC char * skip_comments(char *ptr)
