@@ -8,7 +8,7 @@
  </HEAD>
 <A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
     HEIGHT="48"></A>
-<A HREF="http://www.w3.org/Robot/"><IMG ALT="libwww" SRC="http://www.w3.org/Icons/WWW/Cogs48x" BORDER="0"></A>
+<A HREF="http://www.w3.org/Library/"><IMG ALT="libwww" SRC="http://www.w3.org/Icons/WWW/Cogs48x" BORDER="0"></A>
 <A HREF="./">Top</A>
 
 <H1>
