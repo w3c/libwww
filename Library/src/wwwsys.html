@@ -1131,9 +1131,11 @@ typedef char	BOOLEAN;				    /* Logical value */
 If we don't have these (for some mysterious reason) then define them. This
 should (is?) be handled by the configure script already.
 <PRE>
-#ifndef __MINGW32__
-/* Disabled - caused problems because mingw32 has typedefs for these. */
+/* Richard Atterer <libwww@list02.atterer.net> 
+   Disabled - caused problems because mingw32 has typedefs for these. 
+   They seem useless now. */
 
+/* 
 #ifndef u_short
 #define u_short unsigned short
 #endif
@@ -1142,7 +1144,7 @@ should (is?) be handled by the configure script already.
 #define u_long unsigned long
 #endif
 
-#endif /* __MINGW332 */
+*/
 </PRE>
 <H2>
   NULL Definition
