@@ -1,5 +1,9 @@
 Changes with libwww 5.3.2
 
+2002-06-06	Jose Kahan <jose@w3.org>
+
+	* Make the make dist generate a .tgz file.
+
 2002-06-05	Jose Kahan <jose@w3.org>
 
 	* The Library/User/Extrnals.html file (a list of all exported
