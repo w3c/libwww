@@ -16,7 +16,11 @@
 **	This module requires a SSL library in order to compile/link
 **
 **	AUTHOR:
-**		Olga Antropova <olga@eai.com>
+**	   Olga Antropova <olga@eai.com>
+**
+**      HISTORY:
+**         June 15 2000 Jose Kahan (kahan@w3.org)
+**              Extended the API to be able to change the protocol method
 */
 
 /* System files */
@@ -44,6 +48,9 @@ PRIVATE HTList * ssl_list = NULL;
 /* For certificate verification */
 PRIVATE int verify_depth = 0;
 PRIVATE int verify_error = X509_V_OK;
+
+/* For choosing an SSL protocol method */
+PRIVATE HTSSL_PROTOCOL ssl_prot_method = HTTLS_V1;
 
 /* ----------------------------------------------------------------- */
 
@@ -126,6 +133,19 @@ PRIVATE int verify_callback (int ok, X509_STORE_CTX * ctx)
     return ok;
 }
 
+/* 
+** Set or retrieve the SSL protocol we want to use
+*/
+PUBLIC void HTSSL_protMethod_set (HTSSL_PROTOCOL prot_method)
+{
+  ssl_prot_method = prot_method;
+}
+
+PUBLIC HTSSL_PROTOCOL HTSSL_protMethod (void)
+{
+  return ssl_prot_method;
+}
+
 /*
 **  Create an SSL application context if not already done
 */
@@ -134,8 +154,27 @@ PUBLIC BOOL HTSSL_init (void)
     if (!app_ctx) {
 	SSL_METHOD * meth = NULL;
         SSLeay_add_ssl_algorithms();
+	/* Seems to provide English error messages */
         SSL_load_error_strings();
-        meth = TLSv1_client_method();
+
+	/* select the protocol method */
+	switch (ssl_prot_method) {
+	case HTSSL_V2:
+	  meth = SSLv2_client_method();
+	  break;
+	case HTSSL_V3:
+	  meth = SSLv3_client_method();
+	  break;
+	case HTSSL_V23:
+	  meth = SSLv23_client_method();
+	  break;
+	default:
+	case HTTLS_V1:
+	  meth = TLSv1_client_method();
+	  break;
+	}
+
+        /* set up the application context */
 	if ((app_ctx = SSL_CTX_new(meth)) == NULL) {
             HTTRACE(PROT_TRACE, "HTSSLContext Could not create context\n");
 	    return NO;
@@ -152,9 +191,6 @@ PUBLIC BOOL HTSSL_init (void)
 
 	/* Not sure what this does */
         SSL_CTX_set_session_cache_mode(app_ctx, SSL_SESS_CACHE_CLIENT);
-
-	/* Seems to provide English error messages */
-      	SSL_load_error_strings();
      }
     return YES;
 }
@@ -209,7 +245,7 @@ PRIVATE void HTSSL_addRef(HTSSL * htssl)
 {
     if (htssl) {
 	(htssl->ref_count)++;
-	if (PROT_TRACE) HTTrace("HTSSL....... New reference count = %d\n" _ htssl->ref_count);
+	HTTRACE (PROT_TRACE, "HTSSL....... New reference count = %d\n" _ htssl->ref_count);
     }
 }
 
