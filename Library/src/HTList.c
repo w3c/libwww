@@ -14,16 +14,16 @@
 #include "HTUtils.h"
 #include "HTList.h"
 
-HTList * HTList_new (void)
+PUBLIC HTList * HTList_new (void)
 {
-  HTList *newList = (HTList *)malloc (sizeof (HTList));
-  if (newList == NULL) outofmem(__FILE__, "HTList_new");
-  newList->object = NULL;
-  newList->next = NULL;
-  return newList;
+    HTList *newList = (HTList *) calloc(1, sizeof (HTList));
+    if (newList == NULL) outofmem(__FILE__, "HTList_new");
+    newList->object = NULL;
+    newList->next = NULL;
+    return newList;
 }
 
-BOOL HTList_delete (HTList * me)
+PUBLIC BOOL HTList_delete (HTList * me)
 {
     if (me) {
 	HTList *current;
@@ -36,10 +36,10 @@ BOOL HTList_delete (HTList * me)
     return NO;
 }
 
-BOOL HTList_addObject (HTList * me, void * newObject)
+PUBLIC BOOL HTList_addObject (HTList * me, void * newObject)
 {
     if (me) {
-	HTList *newNode = (HTList *)malloc (sizeof (HTList));
+	HTList *newNode = (HTList *) calloc (1, sizeof(HTList));
 	if (newNode == NULL) outofmem(__FILE__, "HTList_addObject");
 	newNode->object = newObject;
 	newNode->next = me->next;
@@ -54,7 +54,7 @@ BOOL HTList_addObject (HTList * me, void * newObject)
     return NO;
 }
 
-BOOL HTList_removeObject (HTList *  me, void *  oldObject)
+PUBLIC BOOL HTList_removeObject (HTList *  me, void *  oldObject)
 {
     if (me) {
 	HTList *previous;
@@ -71,88 +71,86 @@ BOOL HTList_removeObject (HTList *  me, void *  oldObject)
     return NO;			/* object not found or NULL list */
 }
 
-void * HTList_removeLastObject  (HTList * me)
+PUBLIC void * HTList_removeLastObject  (HTList * me)
 {
-  if (me && me->next) {
-    HTList *lastNode = me->next;
-    void * lastObject = lastNode->object;
-    me->next = lastNode->next;
-    free (lastNode);
-    return lastObject;
-  } else  /* Empty list */
-    return NULL;
+    if (me && me->next) {
+	HTList *lastNode = me->next;
+	void * lastObject = lastNode->object;
+	me->next = lastNode->next;
+	free (lastNode);
+	return lastObject;
+    } else			/* Empty list */
+	return NULL;
 }
 
-void * HTList_removeFirstObject  (HTList * me)
+PUBLIC void * HTList_removeFirstObject  (HTList * me)
 {
-  if (me && me->next) {
-    HTList * prevNode;
-    void *firstObject;
-    while (me->next) {
-      prevNode = me;
-      me = me->next;
+    if (me && me->next) {
+	HTList * prevNode;
+	void *firstObject;
+	while (me->next) {
+	    prevNode = me;
+	    me = me->next;
+	}
+	firstObject = me->object;
+	prevNode->next = NULL;
+	free (me);
+	return firstObject;
+    } else			/* Empty list */
+	return NULL;
+}
+
+PUBLIC int HTList_count  (HTList * me)
+{
+    int count = 0;
+    if (me)
+	while ((me = me->next))
+	    count++;
+    return count;
+}
+
+PUBLIC int HTList_indexOf (HTList * me, void * object)
+{
+    if (me) {
+	int position = 0;
+	while ((me = me->next)) {
+	    if (me->object == object)
+		return position;
+	    position++;
+	}
     }
-    firstObject = me->object;
-    prevNode->next = NULL;
-    free (me);
-    return firstObject;
-  } else  /* Empty list */
-    return NULL;
+    return -1;
 }
 
-int HTList_count  (HTList * me)
+PUBLIC void * HTList_objectAt  (HTList * me, int position)
 {
-  int count = 0;
-  if (me)
-    while ((me = me->next))
-      count++;
-  return count;
-}
-
-int HTList_indexOf (HTList * me, void * object)
-{
-  if (me) {
-    int position = 0;
-    while ((me = me->next)) {
-      if (me->object == object)
-	return position;
-      position++;
+    if (position < 0)
+	return NULL;
+    if (me) {
+	while ((me = me->next)) {
+	    if (position == 0)
+		return me->object;
+	    position--;
+	}
     }
-  }
-  return -1;  /* Object not in the list */
+    return NULL;		/* Reached the end of the list */
 }
 
-void * HTList_objectAt  (HTList * me, int position)
+PUBLIC void * HTList_removeObjectAt  (HTList * me, int position)
 {
-  if (position < 0)
-    return NULL;
-  if (me) {
-    while ((me = me->next)) {
-      if (position == 0)
-	return me->object;
-      position--;
+    if (position < 0)
+	return NULL;
+    if (me) {
+	HTList * prevNode;
+	prevNode = me;
+	while ((me = me->next)) {
+	    if (position == 0) {
+		prevNode->next = me->next;
+		return me->object;
+	    }
+	    prevNode = me;
+	    position--;
+	}
     }
-  }
-  return NULL;  /* Reached the end of the list */
+    return NULL;  /* Reached the end of the list */
 }
-
-
-void * HTList_removeObjectAt  (HTList * me, int position)
-{
-  if (position < 0)
-    return NULL;
-  if (me) {
-    HTList * prevNode;
-    prevNode = me;
-    while ((me = me->next)) {
-      if (position == 0) {
-	prevNode->next = me->next;
-	return me->object;
-      }
-      prevNode = me;
-      position--;
-    }
-  }
-  return NULL;  /* Reached the end of the list */
-}
-

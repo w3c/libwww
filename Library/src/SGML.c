@@ -319,7 +319,7 @@ PUBLIC int SGML_free  ARGS1(HTStream *, context)
     return HT_OK;
 }
 
-PUBLIC int SGML_abort  ARGS2(HTStream *, context, HTError, e)
+PUBLIC int SGML_abort  ARGS2(HTStream *, context, HTList *, e)
 {
     int cnt;
     while (context->element_stack) {    /* Make sure, that all tags are gone */

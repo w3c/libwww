@@ -98,7 +98,7 @@ PRIVATE int HTPlain_free ARGS1(HTStream *, me)
 /*	End writing
 */
 
-PRIVATE int HTPlain_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTPlain_abort ARGS2(HTStream *, me, HTList *, e)
 {
     HTPlain_free(me);
     return HT_ERROR;

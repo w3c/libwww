@@ -79,7 +79,7 @@ PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTList *, e)
 {
     if (WWWTRACE)
 	TTYPrint(TDEST, "HTExtParse_abort\n");

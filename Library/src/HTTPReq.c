@@ -238,7 +238,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
     if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", header->data);
 }
 
-PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
+PRIVATE int HTTPRequest_put_block (HTStream * me, CONST char * b, int l)
 {
     if (!me->target) {
 	return HT_WOULD_BLOCK;
@@ -259,12 +259,12 @@ PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
     }
 }
 
-PRIVATE int HTTPRequest_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTTPRequest_put_character (HTStream * me, char c)
 {
     return HTTPRequest_put_block(me, &c, 1);
 }
 
-PRIVATE int HTTPRequest_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTTPRequest_put_string (HTStream * me, CONST char * s)
 {
     return HTTPRequest_put_block(me, s, strlen(s));
 }
@@ -272,7 +272,7 @@ PRIVATE int HTTPRequest_put_string ARGS2(HTStream *, me, CONST char*, s)
 /*
 **	Flushes data but doesn't free stream object
 */
-PRIVATE int HTTPRequest_flush ARGS1(HTStream *, me)
+PRIVATE int HTTPRequest_flush (HTStream * me)
 {
     int status = HTTPRequest_put_block(me, NULL, 0);
     return status==HT_OK ? (*me->target->isa->flush)(me->target) : status;
@@ -281,7 +281,7 @@ PRIVATE int HTTPRequest_flush ARGS1(HTStream *, me)
 /*
 **	Flushes data and frees stream object
 */
-PRIVATE int HTTPRequest_free ARGS1(HTStream *, me)
+PRIVATE int HTTPRequest_free (HTStream * me)
 {
     int status = HTTPRequest_flush(me);
     if (status != HT_WOULD_BLOCK) {
@@ -293,7 +293,7 @@ PRIVATE int HTTPRequest_free ARGS1(HTStream *, me)
     return status;
 }
 
-PRIVATE int HTTPRequest_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HTChunkFree(me->buffer);
@@ -316,8 +316,8 @@ PRIVATE CONST HTStreamClass HTTPRequestClass =
     HTTPRequest_put_block
 };
 
-PUBLIC HTStream * HTTPRequest_new ARGS2(HTRequest *,	request,
-					HTStream *,	target)
+PUBLIC HTStream * HTTPRequest_new (HTRequest *	request,
+				   HTStream *	target)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     HTdns *dns = HTNet_dns(request->net);

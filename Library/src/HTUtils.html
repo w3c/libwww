@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -53,7 +53,11 @@ active, but in addition the following WWWTRACE defines have been made:
 #define WWWTRACE_TTY	3
 
 #ifndef WWWTRACE_MODE
+#if (defined _WINDOWS) &amp;&amp; !defined(_CONSOLE)
+#define WWWTRACE_MODE WWWTRACE_TTY
+#else
 #define WWWTRACE_MODE WWWTRACE_STDERR
+#endif
 #endif
 
 #if WWWTRACE_MODE == WWWTRACE_FILE
@@ -121,19 +125,6 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 #define URI_TRACE	0
 #define ANCH_TRACE	0
 #endif
-</PRE>
-
-<H2>Error type</H2>
-
-THIS IS NOW OBSOLETE AND WILL BE REMOVED IN FUTURE RELEASES <P>
-
-This is passed back when streams
-are aborted. It might be nice to
-have some structure of error messages,
-numbers, and recursive pointers to
-reasons. Curently this is a placeholder
-for something more sophisticated.
-<PRE>typedef void * HTError;			/* Unused at present -- best definition? */
 </PRE>
 
 <H2>Standard C library for malloc() etc</H2>

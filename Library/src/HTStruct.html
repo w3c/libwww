@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Structured Stream Definition</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -23,6 +23,7 @@ W3C Reference Library</A>.
 #define HTSTRUCT_H
 
 #include "HTStream.h"
+#include "HTList.h"
 </PRE>
 
 A structured object is something which can reasonably be represented
@@ -55,7 +56,7 @@ typedef struct _HTStructuredClass {
 
     int (*_free)	(HTStructured *	me);
 
-    int (*abort)	(HTStructured *	me, HTError e);
+    int (*abort)	(HTStructured *	me, HTList * errorlist);
 
     int (*put_character)(HTStructured *	me, char ch);
 

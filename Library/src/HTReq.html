@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -36,6 +36,7 @@ typedef struct _HTRequest HTRequest;
 #include "HTFormat.h"
 #include "HTStream.h"
 #include "HTEvntrg.h"
+#include "HTError.h"
 #include "HTNet.h"
 </PRE>
 
@@ -509,14 +510,36 @@ extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_negotiation (HTRequest *request);
 </PRE>
 
-<H2>Error Manager Information</H2>
+<H2>Error Manager</H2>
 
-The error manager keeps a list (called an error stack) of all errors
-and warnings occured during a request. The list of errors can be
-accessed for generating an error message by the following function.
+Errors are like almost anything kept in lists and a error list can be
+associated with a request using the following functions. In order to
+make life easier, there are also some easy mapping functions to the
+real HTError module, so that you can add an error directly to a
+request object.
 
 <PRE>
-extern HTList *HTRequest_errorStack (HTRequest *request);
+extern HTList * HTRequest_error (HTRequest * request);
+extern void HTRequest_setError	(HTRequest * request, HTList * list);
+</PRE>
+
+These are the cover functions that go directly to the <A
+HREF="HTError.html">Error manager</A>
+
+<PRE>
+extern BOOL HTRequest_addError (HTRequest * 	request,
+				HTSeverity	severity,
+				BOOL		ignore,
+				int		element,
+				void *		par,
+				unsigned int	length,
+				char *		where);
+
+extern BOOL HTRequest_addSystemError (HTRequest * 	request,
+				      HTSeverity 	severity,
+				      int		errornumber,
+				      BOOL		ignore,
+				      char *		syscall);
 </PRE>
 
 <H2>Bytes Read in Current Request</H2>

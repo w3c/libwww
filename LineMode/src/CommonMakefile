@@ -81,7 +81,7 @@ SOURCES=$(CFILES) $(HFILES) \
 
 ICONS = $(ICON)/WWW/Bug48x.gif \
 	$(ICON)/WWW/LMB48x.gif \
-	$(ICON)/WWW/WWW48x.gif \
+	$(ICON)/WWW/w3c_48x48.gif \
 	$(ICON)/WWW/doc48x.gif \
 	$(ICON)/WWW/guide48x.gif \
 	$(ICON)/WWW/internals48x.gif \
@@ -104,7 +104,10 @@ SPECIFIC = \
 	$(DOC)/Patch/*.fix \
 	$(LM)DefaultStyles.c.classic \
 	$(LM)DefaultStyles.c.modern \
-	$(LM)windows/* \
+	$(LM)windows/WWW* \
+	$(LM)windows/www* \
+	$(LM)windows/lib* \
+	$(LM)windows/scroll* \
 	$(LM)vms/descrip.mms \
 	$(LM)vms/build_multinet.com \
 	$(LM)vms/setup.com \

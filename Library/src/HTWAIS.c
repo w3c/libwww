@@ -737,7 +737,7 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 	char *unescaped = NULL;
 	StrAllocCopy(unescaped, arg);
 	HTUnEscape(unescaped);
-	HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 		   (void *) unescaped, (int) strlen(unescaped),
 		   "HTLoadWAIS");
 	free(unescaped);
@@ -760,7 +760,7 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 	  if (PROT_TRACE)
 	      TTYPrint(TDEST, "HTLoadWAIS.. Can't open connection to %s via service %s.\n",
 		       server_name, service);
-	  HTErrorAdd(request, ERR_FATAL, NO, HTERR_WAIS_NO_CONNECT,
+	  HTRequest_addError(request, ERR_FATAL, NO, HTERR_WAIS_NO_CONNECT,
 		     (void *) host, (int) strlen(host), "HTLoadWAIS");
 	  goto cleanup;
       }
@@ -878,7 +878,7 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 				HTMaxWAISLines) == NULL) {
 	    if (PROT_TRACE)
 		TTYPrint(TDEST, "WAIS Search. Too many lines in response\n");
-	    HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+	    HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
 	}
 
@@ -891,7 +891,7 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 				)) {
 	    if (PROT_TRACE)
 		TTYPrint(TDEST, "WAIS Search. Too many lines in response\n");
-	    HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+	    HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
         } else {	/* returned message ok */
 	    SearchResponseAPDU  *query_response = 0;
@@ -957,7 +957,7 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 					      document_length),
 					type,
 					wais_database) == 0) {
-		HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+		HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 			   NULL, 0, "HTLoadWAIS");
 	    }
 	    FREE(type);
@@ -970,7 +970,7 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 				  connection,
 				  false /* true verbose */	
 				  ) == 0) {
-		HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+		HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 			   NULL, 0, "HTLoadWAIS");
 	    }
 	    
@@ -983,11 +983,11 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 		    if (searchres->Diagnostics && *searchres->Diagnostics &&
 			(*searchres->Diagnostics)->ADDINFO) {
 			char *errmsg = (*searchres->Diagnostics)->ADDINFO;
-			HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
+			HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
 				   (void *) errmsg, (int) strlen(errmsg),
 				   "HTLoadWAIS");
 		    } else {
-			HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
+			HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
 				   NULL, 0, "HTLoadWAIS");
 		    }
 		    (*target->isa->_free)(target);
@@ -1023,7 +1023,7 @@ PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 	char *unescaped = NULL;
 	StrAllocCopy(unescaped, arg);
 	HTUnEscape(unescaped);
-	HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL, (void *) unescaped,
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERNAL, (void *) unescaped,
 		   (int) strlen(unescaped), "HTLoadWAIS");
 	free(unescaped);
     }

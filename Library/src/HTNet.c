@@ -332,7 +332,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 	if (net->sockfd != INVSOC) {
 	    if (HTDNS_socket(net->dns) == INVSOC) {
 		if ((status = NETCLOSE(net->sockfd)) < 0)
-		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
+		    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 				  "NETCLOSE");
 		if (THD_TRACE)
 		    TTYPrint(TDEST, "HTNet_delete closing %d\n", net->sockfd);

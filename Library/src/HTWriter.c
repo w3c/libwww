@@ -160,7 +160,7 @@ PRIVATE int HTWriter_free (HTStream * me)
     return status;
 }
 
-PRIVATE int HTWriter_abort (HTStream * me, HTError e)
+PRIVATE int HTWriter_abort (HTStream * me, HTList * e)
 {
     if (!me->leave_open)
 	NETCLOSE(me->sockfd);

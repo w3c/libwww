@@ -751,7 +751,7 @@ PUBLIC int HTML_free ARGS1(HTStructured *, me)
 }
 
 
-PRIVATE int HTML_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int HTML_abort ARGS2(HTStructured *, me, HTList *, e)
 
 {
     if (me->target) {

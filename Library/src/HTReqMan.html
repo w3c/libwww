@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -54,6 +54,7 @@ struct _HTRequest {
     HTReload		reload;
 
     char *		redirect;			  /* Location or URI */
+    char *		boundary;		  /* MIME multipart boundary */
     int			retrys;       	      /* Number of automatic reloads */
     time_t		retry_after;		 /* Absolut time for a retry */
     HTNet *		net;		    /* Information about socket etc. */

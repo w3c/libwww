@@ -520,7 +520,7 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
 **	Returns		HT_ERROR	Error has occured or we quit
 **			HT_OK		Call back was OK
 */
-PRIVATE int parse_command (char* choice, SOCKET s, HTRequest * req, SockOps ops)
+PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 { 
     char * the_choice=NULL;		           /* preserved user command */
     char * token=NULL;        	   	    	    /* First word of command */
@@ -533,7 +533,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest * req, SockOps ops)
     int status = YES;
 
     StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
-    if (the_choice[strlen(the_choice)-1] == '\n')            /* The final \n */
+    if (*the_choice && the_choice[strlen(the_choice)-1] == '\n') /* final \n */
 	the_choice[strlen(the_choice)-1] = '\0';
     
     token = strtok (choice, " \t\n\r");	      /* Tokenize user input */
@@ -1018,14 +1018,17 @@ PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps o
 
 PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 {
-    static char buf[RESPONSE_LENGTH]; /* happens to == eatText's buffer but not neccesary */
+    /* buf happens to == eatText's buffer but not neccesary */
+    static char buf[RESPONSE_LENGTH];
     int red;
     int ret;
-#if 0 /* how it used to work with blocking console input - EGP */
+
+#ifndef _CONSOLE
     if (!fgets(buf, sizeof(buf), stdin))		  /* Read User Input */
 	return HT_ERROR;				      /* Exit if EOF */
     return (parse_command(buf, s, req, ops));
-#endif
+#else
+
     while(1) {
 #ifdef _CONSOLE
 	if (!readConsole((HANDLE)s, buf, sizeof(buf), &red)) {
@@ -1052,6 +1055,7 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	if (ret != HT_OK)
 	    return (ret);
     }
+#endif
 }
 
 /*	terminate_handler
@@ -1074,9 +1078,7 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 	if (!HText_canScrollDown(HTMainText) &&
 	    !HTAnchor_hasChildren(HTMainAnchor) && !is_index &&
 	    (!HTHistory_canBacktrack(hist))) {
-	    if (SHOW_MSG)
-		TTYPrint(TDEST, "No way out of here, so I exit!\n");
-	    return HT_ERROR;
+	    return HT_OK;
 	}
 	HText_setStale(HTMainText);		   /* We corrupt the display */
 	MakeCommandLine(is_index);

@@ -439,7 +439,7 @@ PRIVATE int HTTeXGen_free ARGS1(HTStructured *, me)
 }
 
 
-PRIVATE int HTTeXGen_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int HTTeXGen_abort ARGS2(HTStructured *, me, HTList *, e)
 {
     HTTeXGen_free(me);
     return HT_ERROR;

@@ -154,7 +154,7 @@ PRIVATE int NewsPost_free (HTStream * me)
     return status;
 }
 
-PRIVATE int NewsPost_abort (HTStream * me, HTError e)
+PRIVATE int NewsPost_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HTChunkFree(me->buffer);

@@ -581,7 +581,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
     else
 	host = fullhost;
     if (!*host) {
-	HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_HOST,
+	HTRequest_addError(net->request, ERR_FATAL, NO, HTERR_NO_HOST,
 		   NULL, 0, "HTDoConnect");
 	free(fullhost);
 	return HT_ERROR;
@@ -622,7 +622,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if ((status = HTParseInet(net, host)) < 0) {
 		if (PROT_TRACE)
 		    TTYPrint(TDEST, "HTDoConnect. Can't locate `%s\'\n", host);
-		HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
+		HTRequest_addError(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
 			   (void *) host, strlen(host), "HTDoConnect");
 		net->tcpstate = TCP_ERROR;
 		break;
@@ -657,7 +657,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
 #endif
 	    {
-		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "socket");
+		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "socket");
 		net->tcpstate = TCP_ERROR;
 		break;
 	    }
@@ -839,12 +839,12 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 
 	    /* Do we have more homes to try? */
 	    if (--net->retry > 0) {
-	        HTErrorSysAdd(net->request, ERR_NON_FATAL, socerrno, NO,
+	        HTRequest_addSystemError(net->request, ERR_NON_FATAL, socerrno, NO,
 			      "connect");
 		net->tcpstate = TCP_DNS;
 		break;
 	    }
-	    HTErrorSysAdd(net->request, ERR_FATAL, socerrno,NO, "connect");
+	    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno,NO, "connect");
 	    HTDNS_delete(host);
 	    net->retry = 0;
 	    free (fullhost);
@@ -896,7 +896,7 @@ PUBLIC int HTDoAccept (HTNet * net, SOCKFD * newfd)
 			     net->cbf, net->priority);
 	    return HT_WOULD_BLOCK;
 	}
-	HTErrorSysAdd(net->request, ERR_WARN, socerrno, YES, "accept");
+	HTRequest_addSystemError(net->request, ERR_WARN, socerrno, YES, "accept");
 	if (PROT_TRACE) TTYPrint(TDEST, "HTDoAccept.. Accept failed\n");
 	if (HTDNS_socket(net->dns) != INVSOC) {	 	 /* Inherited socket */
 	    HTDNS_setSocket(net->dns, INVSOC);
@@ -936,7 +936,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 		if (master != INVSOC) {
 		    int len = sizeof(SockA);
 		    if (getsockname(master, (struct sockaddr *) sin, &len)<0) {
-			HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
+			HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 				      "getsockname");
 			net->tcpstate = TCP_ERROR;
 			break;
@@ -958,7 +958,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
 #endif
 	    {
-		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "socket");
+		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "socket");
 		net->tcpstate = TCP_ERROR;
 		break;
 	    }
@@ -1066,7 +1066,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 	  case TCP_DNS:
 	  case TCP_ERROR:
 	    if (PROT_TRACE) TTYPrint(TDEST, "HTDoListen.. Connect failed\n");
-	    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "HTDoListen");
+	    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "HTDoListen");
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_ERROR;
 	    break;

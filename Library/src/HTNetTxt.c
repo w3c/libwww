@@ -93,7 +93,7 @@ PRIVATE int Net_free (HTStream * me)
     return status;
 }
 
-PRIVATE int Net_abort (HTStream * me, HTError e)
+PRIVATE int Net_abort (HTStream * me, HTList * e)
 {
     if (me->target)
 	(*me->target->isa->abort)(me->target, e);

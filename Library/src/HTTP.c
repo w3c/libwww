@@ -108,6 +108,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
 	else
 	    (*req->input_stream->isa->_free)(req->input_stream);
+	req->input_stream = NULL;
     }
 
     /* Remove the request object and our own context structure for http */
@@ -138,7 +139,7 @@ PRIVATE BOOL HTTPAuthentication (HTRequest * request)
 	    }
 	    scheme_specifics[scheme] = HTAA_parseArgList(request->WWWAARealm);
 	} else if (PROT_TRACE) {
-	    HTErrorAdd(request, ERR_INFO, NO, HTERR_UNKNOWN_AA,
+	    HTRequest_addError(request, ERR_INFO, NO, HTERR_UNKNOWN_AA,
 		       (void *) request->WWWAAScheme, 0, "HTTPAuthentication");
 	    return NO;
 	}
@@ -193,79 +194,79 @@ PRIVATE void HTTPNextState (HTStream * me)
 	break;
 	
       case 400:						      /* Bad Request */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 401:
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_AA;
 	break;
 	
       case 402:						 /* Payment required */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 403:							/* Forbidden */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 404:							/* Not Found */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 405:						      /* Not Allowed */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 406:						  /* None Acceptable */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NONE_ACCEPTABLE,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NONE_ACCEPTABLE,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 407:			       	    /* Proxy Authentication Required */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PROXY,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PROXY,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 408:						  /* Request Timeout */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 500:
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 501:
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 502:
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 503:
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_DOWN,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_DOWN,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 
 	/* If Retry-After header is found then return HT_RETRY else HT_ERROR */
@@ -276,13 +277,13 @@ PRIVATE void HTTPNextState (HTStream * me)
 	break;
 
       case 504:
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
         me->http->next = HTTP_ERROR;
 	break;
 
       default:						       /* bad number */
-	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 		   (void *) me->buffer, me->buflen, "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
@@ -324,7 +325,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	
     if (strncasecomp(me->buffer, "http/", 5)) {
 	int status;
-	HTErrorAdd(req, ERR_INFO, NO, HTERR_HTTP09,
+	HTRequest_addError(req, ERR_INFO, NO, HTERR_HTTP09,
 		   (void *) me->buffer, me->buflen, "HTTPStatusStream");
 	me->target = HTGuess_new(req, NULL, WWW_UNKNOWN,
 				 req->output_format, req->output_stream);
@@ -438,7 +439,7 @@ PRIVATE int HTTPStatus_free (HTStream * me)
     return status;
 }
 
-PRIVATE int HTTPStatus_abort (HTStream * me, HTError e)
+PRIVATE int HTTPStatus_abort (HTStream * me, HTList * e)
 {
     if (me->target)
 	ABORT_TARGET;
@@ -547,7 +548,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		/* Check the protocol class */
 		char *s_class = HTDNS_serverClass(net->dns);
 		if (s_class && strcasecomp(s_class, "http")) {
-		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_CLASS,
+		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
 			       NULL, 0, "HTLoadHTTP");
 		    http->state = HTTP_ERROR;
 		    break;
@@ -637,11 +638,11 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    /* If we found a new URL in the response */
 	    if (request->redirect) {
 		if (status == 301) {
-		    HTErrorAdd(request, ERR_INFO, NO, HTERR_MOVED,
+		    HTRequest_addError(request, ERR_INFO, NO, HTERR_MOVED,
 			       (void *) request->redirect,
 			       (int) strlen(request->redirect), "HTLoadHTTP");
 		} else if (status == 302) {
-		    HTErrorAdd(request, ERR_INFO, NO, HTERR_FOUND,
+		    HTRequest_addError(request, ERR_INFO, NO, HTERR_FOUND,
 			       (void *) request->redirect,
 			       (int) strlen(request->redirect), "HTLoadHTTP");
 		}
@@ -680,7 +681,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			    HT_OK : HT_ERROR;
 		    }
 		} else {
-		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
+		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
 			       NULL, 0, "HTLoadHTTP");
 		    if (HTRequest_isPostWeb(request)) {
 			BOOL main = HTRequest_isMainDestination(request);
@@ -696,7 +697,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    return HT_OK;
 		}
 	    } else {
-		HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 			   NULL, 0, "HTLoadHTTP");
 		return HT_OK;
 	    }
@@ -727,7 +728,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    return ret ? HT_OK : HT_ERROR;
 		}
 	    } else {				   /* If the guy said no :-( */
-		HTErrorAdd(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
 			   NULL, 0, "HTLoadHTTP");
 		if (HTRequest_isPostWeb(request)) {
 		    BOOL main = HTRequest_isMainDestination(request);

@@ -360,14 +360,14 @@ PRIVATE int PlainToHTML_free ARGS1(HTStructured *, me)
 
 
 
-PRIVATE int HTMLGen_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int HTMLGen_abort ARGS2(HTStructured *, me, HTList *, e)
 {
     HTMLGen_free(me);
     return HT_ERROR;
 }
 
 
-PRIVATE int PlainToHTML_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int PlainToHTML_abort ARGS2(HTStructured *, me, HTList *, e)
 {
     PlainToHTML_free(me);
     return HT_ERROR;

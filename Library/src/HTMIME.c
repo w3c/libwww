@@ -412,18 +412,22 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		char *lc = value;
 		while ((*lc = TOLOWER(*lc))) lc++; 
 		anchor->content_type = HTAtom_for(value);
-		while ((value = HTNextField(&ptr)) != NULL) {	  /* Charset */
+		while ((value = HTNextField(&ptr)) != NULL) {
 		    if (!strcasecomp(value, "charset")) {
 			if ((value = HTNextField(&ptr)) != NULL) {
 			    lc = value;
 			    while ((*lc = TOLOWER(*lc))) lc++;
 			    anchor->charset = HTAtom_for(value);
 			}
-		    } else if (!strcasecomp(value, "level")) {	    /* Level */
+		    } else if (!strcasecomp(value, "level")) {
 			if ((value = HTNextField(&ptr)) != NULL) {
 			    lc = value;
 			    while ((*lc = TOLOWER(*lc))) lc++;
 			    anchor->level = HTAtom_for(value);
+			}
+		    } else if (!strcasecomp(value, "boundary")) {
+			if ((value = HTNextField(&ptr)) != NULL) {
+			    StrAllocCopy(request->boundary, value);
 			}
 		    }
 		}
@@ -501,7 +505,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		int status;
 		BOOL override;
 		if (STREAM_TRACE)
-		    TTYPrint(TDEST,"MIMEParser.. Unknown token `%s\'\n",header);
+		    TTYPrint(TDEST,"MIMEParser.. Unknown `%s\'\n", header);
 		if ((list = HTRequest_parser(request, &override)) &&
 		    (cbf = HTParser_find(list, value)) &&
 		    (status = (*cbf)(request, value) != HT_OK)) {
@@ -696,7 +700,7 @@ PRIVATE int HTMIME_free (HTStream * me)
 
 /*	End writing
 */
-PRIVATE int HTMIME_abort (HTStream * me, HTError e)
+PRIVATE int HTMIME_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target)

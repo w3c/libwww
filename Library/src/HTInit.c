@@ -24,10 +24,6 @@
 */
 PUBLIC void HTConverterInit (HTList * c)
 {
-    HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
-
-#if 0
     /*
     ** This set of converters uses the HTML/HText interface.
     ** If you do not want this interface then replace them!
@@ -42,6 +38,8 @@ PUBLIC void HTConverterInit (HTList * c)
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */
+    HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTConversion_add(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
 
@@ -55,7 +53,7 @@ PUBLIC void HTConverterInit (HTList * c)
 #endif
     HTConversion_add(c,"text/x-nntp-list",	"www/present",	HTNewsList,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-nntp-over",	"www/present",	HTNewsGroup,	1.0, 0.0, 0.0);
-#endif
+
     /*
     ** This dumps all other formats to local disk without any further
     ** action taken

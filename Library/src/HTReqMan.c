@@ -118,8 +118,9 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 {
     if (request) {
 	FREE(request->redirect);
+	FREE(request->boundary);
 	FREE(request->authenticate);
-	HTErrorFree(request);
+	if (request->error_stack) HTError_deleteAll(request->error_stack);
 	HTAACleanup(request);
 
 	if (request->net)			/* Break connection to HTNet */
@@ -485,14 +486,48 @@ PUBLIC BOOL HTRequest_kill(HTRequest * request)
     return request ? HTNet_kill(request->net) : NO;
 }
 
-/*
-**	Error stack
-**	-----------
+/*	Error Management
+**	----------------
 **	Returns the error stack if a stream is 
 */
-PUBLIC HTList *HTRequest_errorStack (HTRequest *request)
+PUBLIC HTList * HTRequest_error (HTRequest * request)
 {
     return request ? request->error_stack : NULL;
+}
+
+PUBLIC void HTRequest_setError (HTRequest * request, HTList * list)
+{
+    if (request) request->error_stack = list;
+}
+
+PUBLIC BOOL HTRequest_addError (HTRequest * 	request,
+				HTSeverity	severity,
+				BOOL		ignore,
+				int		element,
+				void *		par,
+				unsigned int	length,
+				char *		where)
+{
+    if (request) {
+	if (!request->error_stack) request->error_stack = HTList_new();
+	return HTError_add(request->error_stack, severity, ignore, element,
+			   par, length, where);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_addSystemError (HTRequest * 	request,
+				      HTSeverity 	severity,
+				      int		errornumber,
+				      BOOL		ignore,
+				      char *		syscall)
+{
+    if (request) {
+	if (!request->error_stack) request->error_stack = HTList_new();
+	return HTError_addSystem(request->error_stack, severity, errornumber,
+				 ignore, syscall);
+    }
+    return NO;
 }
 
 /*
@@ -855,19 +890,18 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
     if (request->method == METHOD_INVALID)
 	request->method = METHOD_GET;
 
-    if (!recursive)
-	HTErrorFree(request);
+    if (!recursive) HTError_deleteAll(request->error_stack);
 
     if ((status = get_physical(request)) < 0) {
 	if (status == HT_FORBIDDEN) {
 	    char *url = HTAnchor_address((HTAnchor *) request->anchor);
 	    if (url) {
 		HTUnEscape(url);
-		HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 			   (void *) url, (int) strlen(url), "HTLoad");
 		free(url);
 	    } else {
-		HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 			   NULL, 0, "HTLoad");
 	    }
 	} 
@@ -898,7 +932,7 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
     ** about what has been going on in the library (not only errors)
     */
     if (!HTImProxy && request->error_stack)
-	HTErrorMsg(request);
+	HTError_print(request, request->error_stack);
 
     switch (status) {
       case HT_LOADED:
@@ -924,7 +958,7 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 
       case HT_ERROR:
 	if (HTImProxy)
-	    HTErrorMsg(request);		     /* Only on a real error */
+	    HTError_print(request, request->error_stack);
 	if (PROT_TRACE)
 	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
 	break;

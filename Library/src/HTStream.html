@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>The Generic Stream Class Definition</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -56,6 +56,8 @@ situation has stopped.
 #ifndef HTSTREAM_H
 #define HTSTREAM_H
 
+#include "HTList.h"
+
 typedef struct _HTStream HTStream;
 
 typedef struct _HTStreamClass {
@@ -87,7 +89,7 @@ stream. When the <CODE>free</CODE> method has been called, the
 any more data.
 
 <PRE>
-    int (*abort)	(HTStream * me, HTError e);
+    int (*abort)	(HTStream * me, HTList * errorlist);
 </PRE>
 
 The <CODE>abort</CODE> method should only be used if a stream is

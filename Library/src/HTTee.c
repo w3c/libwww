@@ -75,7 +75,7 @@ PRIVATE int HTTee_free ARGS1(HTStream *, me)
 	    HT_WOULD_BLOCK);
 }
 
-PRIVATE int HTTee_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTTee_abort ARGS2(HTStream *, me, HTList *, e)
 {
     (*me->s1->isa->abort)(me->s1, e);
     (*me->s2->isa->abort)(me->s2, e);

@@ -421,7 +421,7 @@ PRIVATE int WSRCParser_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int WSRCParser_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int WSRCParser_abort ARGS2(HTStream *, me, HTList *, e)
 {
     WSRCParser_free(me);
     return HT_ERROR;

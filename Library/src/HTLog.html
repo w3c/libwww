@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Log Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -18,9 +18,8 @@
 This module maintaines logs of request to a file.<P>
 
 This module is implemented by <A HREF="HTLog.c">HTLog.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTLIBLOG_H
@@ -35,8 +34,7 @@ Open the log file and start doing log. The time used in the log file
 is either GMT or local dependent on <CODE>local</CODE>.
 
 <PRE>
-extern BOOL HTLog_enable	PARAMS((CONST char * filename, BOOL local,
-					BOOL append));
+extern BOOL HTLog_enable (CONST char * filename, BOOL local, BOOL append);
 </PRE>
 
 <H2>Disable the log</H2>
@@ -44,7 +42,7 @@ extern BOOL HTLog_enable	PARAMS((CONST char * filename, BOOL local,
 Close the log file and do more log
 
 <PRE>
-extern BOOL HTLog_disable NOPARAMS;
+extern BOOL HTLog_disable (void);
 </PRE>
 
 <H2>Log a Request</H2>
@@ -52,7 +50,7 @@ extern BOOL HTLog_disable NOPARAMS;
 This functions logs the result of a request.
 
 <PRE>
-extern BOOL HTLog_request	PARAMS((HTRequest * request, int status));
+extern BOOL HTLog_request (HTRequest * request, int status);
 
 #endif
 </PRE>

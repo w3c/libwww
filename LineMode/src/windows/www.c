@@ -6,6 +6,7 @@
 #include "scroll.h"
 #include "wwwrc.h"
 #include "WWWLib.h"
+#include "../HTBrowse.h"
 
 #define VERSIONSTR "v0.1 beta"	//update this version for each release
 
@@ -157,7 +158,7 @@ static int recursing = 0;
 #else
 			BYTE bOut = LOBYTE(wParam);
 #endif
-			if (eatText(&bOut, 1, 0, 0, 0) == -1)
+			if (bufferInput(&bOut, 1, 0, 0, 0) == -1)
 				PostMessage(hWnd, WM_QUIT, 0, 0);
 			Scroll_WriteBlock(&ScrollInfo, hWnd, &bOut, 1);
 			}

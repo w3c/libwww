@@ -30,8 +30,7 @@ PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
 **	file or overwriting an exsisting file.
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_enable ARGS3(CONST char *, filename, BOOL, local,
-			       BOOL, append)
+PUBLIC BOOL HTLog_enable (CONST char * filename, BOOL local, BOOL append)
 {
     if (!filename || !*filename) {
 	if (WWWTRACE) TTYPrint(TDEST, "Log......... No log file given\n");
@@ -60,7 +59,7 @@ PUBLIC BOOL HTLog_enable ARGS3(CONST char *, filename, BOOL, local,
 **	------------------
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_disable NOARGS
+PUBLIC BOOL HTLog_disable (void)
 {
     if (WWWTRACE)
 	TTYPrint(TDEST, "Log......... Closing log file\n");
@@ -83,7 +82,7 @@ PUBLIC BOOL HTLog_disable NOARGS
 **
 **	BUG: No result code is produced :-( Should be taken from HTError.c
 */
-PUBLIC BOOL HTLog_request ARGS2(HTRequest *, request, int, status)
+PUBLIC BOOL HTLog_request (HTRequest * request, int status)
 {
     if (HTlogfile) {
 	time_t now = time(NULL);	

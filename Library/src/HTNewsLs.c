@@ -162,7 +162,7 @@ PRIVATE int HTNewsList_free (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int HTNewsList_abort (HTStream * me, HTError e)
+PRIVATE int HTNewsList_abort (HTStream * me, HTList * e)
 {
     if (PROT_TRACE) TTYPrint(TDEST, "News Dir.... ABORTING...\n");
     HTNewsList_free(me);
