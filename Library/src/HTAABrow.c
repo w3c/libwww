@@ -118,7 +118,7 @@ PRIVATE BOOL basic_credentials (HTRequest * request, HTBasic * basic)
 	char * cleartext = NULL;
 	char * cipher = NULL;
 	int cl_len = strlen(basic->uid ? basic->uid : "") +
-	    strlen(basic->pw ? basic->pw : "") + 2;
+	    strlen(basic->pw ? basic->pw : "") + 5;
 	int ci_len = 4 * (((cl_len+2)/3) + 1);
 	if ((cleartext = (char *) HT_CALLOC(1, cl_len)) == NULL)
 	    HT_OUTOFMEM("basic_credentials");
@@ -189,19 +189,26 @@ PRIVATE int prompt_user (HTRequest * request, const char * realm,
 PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
 { 
     HTBasic * basic = (HTBasic *) context;
+    BOOL proxy = status==HT_NO_PROXY_ACCESS ? YES : NO;
     if (request) {
 	const char * realm = HTRequest_realm(request);
 
 	/*
 	** If we don't have a basic context then add a new one to the tree.
-	** As we don't know whether this is for a proxy or not then try
-	** normal and hope for the best. This should normal not happen!
+	** We use different trees for normal and proxy authentication
 	*/
 	if (!basic) {
-	    char *url = HTAnchor_address((HTAnchor*)HTRequest_anchor(request));
-	    basic = HTBasic_new();
-	    HTAA_updateNode(NO, BASIC_AUTH, realm, url, basic);
-	    HT_FREE(url);
+	    if (proxy) {
+		char * url = HTRequest_proxy(request);
+		basic = HTBasic_new();
+		basic->proxy = YES;
+		HTAA_updateNode(proxy, BASIC_AUTH, realm, url, basic);
+	    } else {
+		char * url = HTAnchor_address((HTAnchor*)HTRequest_anchor(request));
+		basic = HTBasic_new();
+		HTAA_updateNode(proxy, BASIC_AUTH, realm, url, basic);
+		HT_FREE(url);
+	    }
 	}
 
 	/*
@@ -249,6 +256,7 @@ PUBLIC int HTBasic_parse (HTRequest * request, void * context, int status)
 	    */
 	    if (proxy) {
 		char * url = HTRequest_proxy(request);
+		if (AUTH_TRACE) HTTrace("Basic Parse. Proxy authentication\n");
 		basic = (HTBasic *) HTAA_updateNode(proxy, BASIC_AUTH, rm,
 						    url, NULL);
 	    } else {
@@ -271,15 +279,9 @@ PUBLIC int HTBasic_parse (HTRequest * request, void * context, int status)
 	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
 
 	    /*
-	    ** Check if the reason for being here is because of lack of proxy
-	    ** credentials or "normal" credentials
+	    ** Do we haev a method registered for prompting the user whether
+	    ** we should retry
 	    */
-	    if (proxy) {
-		if (AUTH_TRACE) HTTrace("Basic Parse. Proxy authentication\n");
-		basic->proxy = YES;			    /* Remember this */
-	    }
-
-	    /* Can we ask the user? */
 	    if (prompt) {
 		int code = proxy ?
 		    HT_MSG_RETRY_PROXY_AUTH : HT_MSG_RETRY_AUTHENTICATION;

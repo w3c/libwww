@@ -374,6 +374,7 @@ PRIVATE char *HTCache_wwwName  (char * name)
 #ifdef WIN32
 	{
 	    char * p = name;					  /* a colon */
+	    StrAllocCat(result, "/");	/* <== */
 	    while( *p != 0 ) { 
 		if (*p == '\\')		         /* change to one true slash */
 		    *p = '/' ;

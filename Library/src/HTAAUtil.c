@@ -174,8 +174,8 @@ PRIVATE HTAAElement * HTAA_newElement (const char * scheme, void * context)
 }
 
 /*
-**	If the new scheme differs from the existing one then use the
-**	new context, otherwise only override the old context if new
+**	If the new context differs from the existing one then use the
+**	new one, otherwise only override the old context if new
 **	one differs from NULL
 */
 PRIVATE BOOL HTAA_updateElement (HTAAElement * element,
@@ -183,10 +183,10 @@ PRIVATE BOOL HTAA_updateElement (HTAAElement * element,
 {
     if (element && scheme) {
 	/*
-	** If the old scheme differs from the new one then delete our
-	** context by calling the gc provided by the caller
+	** If the old context differs from the new one then 
+	** call the gc provided by the caller
 	*/
-	if (strcmp(element->scheme, scheme)) {
+	if (context && context != element->context) {
 	    HTAAModule * module = HTAA_findModule(element->scheme);
 	    if (module && module->gc && element->context)
 		(*module->gc)(element->context);
@@ -195,8 +195,7 @@ PRIVATE BOOL HTAA_updateElement (HTAAElement * element,
 	    */
 	    StrAllocCopy(element->scheme, scheme);
 	    element->context = context;
-	} else if (context && context != element->context)
-	    element->context = context;
+	}
 	return YES;
     }
     return NO;
@@ -370,12 +369,13 @@ PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
 {
     const char * scheme = HTRequest_scheme(request);
     HTAAModule * module = NULL;
+    if (AUTH_TRACE) HTTrace("Auth Engine. After filter status %d\n", status);
     /*
     **	If we don't have a scheme then the server has made an error. We
     **  try to make up for it by creating our own "noop" realm and use basic.
     */
     if (!scheme) {
-	HTRequest_addChallenge(request, "basic", "realm UNKNOWN");
+	HTRequest_addChallenge(request, "basic", "realm LIBWWW-UNKNOWN");
 	scheme = "basic";
     }
     if ((module = HTAA_findModule(scheme)) != NULL) {
@@ -397,19 +397,27 @@ PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
 PUBLIC int HTAA_proxyBeforeFilter (HTRequest * request, void * param, int status)
 {
     char * url = HTRequest_proxy(request);
-    const char * realm = HTRequest_realm(request);
-    HTAAElement * element = HTAA_findElement(YES, realm, url); 
 
-    /* If we have an element then call the before filter with this scheme */
-    if (element) {
-	HTAAModule * module = HTAA_findModule(element->scheme);
-	if (module) {
+    /*
+    **  We may not have a proxy - for example if it has been disabled for this
+    **  request or it isn't a proxied access method.
+    */
+    if (url) {
+	const char * realm = HTRequest_realm(request);
+	HTAAElement * element = HTAA_findElement(YES, realm, url); 
 
-	    /* Delete any old challenges if any */
-	    HTRequest_deleteChallenge(request);
-	    if (AUTH_TRACE) HTTrace("Auth Engine. Found BEFORE filter %p\n",
-				   module->before);
-	    return (*module->before)(request, element->context,status);
+	/* If we have an element then call the before filter with the scheme */
+	if (element) {
+	    HTAAModule * module = HTAA_findModule(element->scheme);
+	    if (module) {
+
+		/* Delete any old challenges if any */
+		HTRequest_deleteChallenge(request);
+		if (AUTH_TRACE)
+		    HTTrace("Auth Engine. Found Proxy BEFORE filter %p with context %p\n",
+			    module->before, element->context);
+		return (*module->before)(request, element->context, HT_NO_PROXY_ACCESS);
+	    }
 	}
     }
     return HT_OK;

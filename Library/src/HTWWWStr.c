@@ -522,15 +522,16 @@ PUBLIC char * HTLocalToWWW (const char * local)
 #else  /* not VMS */
 #ifdef WIN32
 	{
-	    char * p;
-	    StrAllocCat(result, "/");
-	    StrAllocCat(result, local);	    
-	    p = result;
+	    char * p = NULL;
+	    StrAllocCopy(p, local);
+	    /* StrAllocCat(result, "/");  */	/* extra slash removed */
 	    while (*p) { 
 		if (*p == '\\')		         /* change to one true slash */
 		    *p = '/';
-		p++;
-	    }
+		ap++;
+	    }	
+	    StrAllocCat(result, p);
+	    HT_FREE(p);
 	}
 #else /* not WIN32 */
 	StrAllocCat (result, local);

@@ -96,8 +96,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	char * addr = HTAnchor_physical(anchor);
 	int status = HT_OK;
 	if (HTRequest_fullURI(request)) {
-	    me->url = addr;
-	    status = PUTS(me->url);
+	    status = PUTS(addr);
 	} else {
 	    if (method == METHOD_OPTIONS) {
 		/*

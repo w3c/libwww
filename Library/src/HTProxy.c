@@ -25,6 +25,7 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWHTTP.h"
+#include "WWWApp.h"
 #include "HTProxy.h"					 /* Implemented here */
 
 /* Variables and typedefs local to this module */
@@ -167,12 +168,13 @@ PUBLIC BOOL HTProxy_add (const char * access, const char * proxy)
 {
     /*
     **  If this is the first time here then also add a before filter to handle
-    **  proxy authentication. This filter will be removed if we remove all
-    **  proxies again
+    **  proxy authentication and the normal AA after filter as well.
+    **  These filters will be removed if we remove all proxies again.
     */
     if (!proxies) {
 	proxies = HTList_new();
 	HTNetCall_addBefore(HTAA_proxyBeforeFilter, NULL, 0);
+	HTNetCall_addAfter(HTAuthFilter, NULL, HT_NO_PROXY_ACCESS);
     }
     return add_object(proxies, access, proxy);
 }
@@ -187,7 +189,8 @@ PUBLIC BOOL HTProxy_deleteAll (void)
 
 	/*
 	** If we have no more proxies then there is no reason for checking
-	** proxy authentication. We therefore unregister the filter
+	** proxy authentication. We therefore unregister the filters for
+	** handling proxy authentication
 	*/
 	HTNetCall_deleteBefore(HTAA_proxyBeforeFilter);
 

@@ -572,7 +572,7 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 		HTTrace("Posting Data. Target returns %d\n", status);
 	    return status;
 	} else {				     /* we have a real error */
-	    if (PROT_TRACE) HTTrace("Posting Data Target ERROR\n");
+	    if (PROT_TRACE) HTTrace("Posting Data Target ERROR %d\n", status);
 	    return status;
 	}
     }

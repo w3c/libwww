@@ -42,6 +42,7 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
     if ((physical = HTProxy_find(addr))) {
 	HTRequest_setFullURI(request, YES);			  /* For now */
 	HTRequest_setProxy(request, physical);
+	HT_FREE(physical);
 #if 0
 	/* Don't paste the URLs together anymore */
 	StrAllocCat(physical, addr);
