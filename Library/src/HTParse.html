@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
 <TITLE>URI Parsing</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Nov-1995 -->
 <NEXTID N="1">
 </HEAD>
 <BODY>
 
-<H1>HTParse</H1>
+<H1>URI Parsing</H1>
 
 <PRE>
 /*
@@ -23,10 +23,9 @@ This module contains code to parse URIs and various related things such as:
 <LI><A HREF="#secure">Search a URI for illigal characters in order to prevent security holes</A>
 </UL>
 
-This module is implemented by <A HREF="HTParse.c">HTParse.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+This module is implemented by <A HREF="HTParse.c">HTParse.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTPARSE_H
@@ -73,9 +72,8 @@ between the tokens above.
 The string returned by the function must be freed by the caller.
 
 <PRE>
-extern char * HTParse  PARAMS((	const char * aName,
-				const char * relatedName,
-				int wanted));
+extern char * HTParse  (const char * aName, const char * relatedName,
+			int wanted);
 </PRE>
 
 <H3>Create a Relative (Partial) URI</H3>
@@ -94,7 +92,7 @@ will yield aName. The caller is responsible
 for freeing the resulting name later.
 
 <PRE>
-extern char * HTRelative PARAMS((const char * aName, const char *relatedName));
+extern char * HTRelative (const char * aName, const char *relatedName);
 </PRE>
 
 <A NAME="canon"><H2>Canonicalization</H2></A>
@@ -127,7 +125,7 @@ In the same manner, the following prefixed are preserved:
 In order to avoid empty URIs the following URIs become:
 
 <UL>
-<LI> /fred/..		becomes /fred/..
+<LI> /fred/..			becomes /fred/..
 <LI> /fred/././..		becomes /fred/..
 <LI> /fred/.././junk/.././	becomes /fred/..
 </UL>
@@ -136,7 +134,7 @@ If more than one set of `://' is found (several proxies in cascade) then
 only the part after the last `://' is simplified.
 
 <PRE>
-extern char *HTSimplify PARAMS((char **filename));
+extern char *HTSimplify (char **filename);
 </PRE>
 
 <A NAME="secure"><H2>Prevent Security Holes</H2></A>
@@ -160,7 +158,7 @@ inclusive.
 </DL>
 
 <PRE>
-extern BOOL HTCleanTelnetString PARAMS((char * str));
+extern BOOL HTCleanTelnetString (char * str);
 </PRE>
 
 <PRE>

@@ -74,16 +74,16 @@ PUBLIC void HTPresenterInit (HTList * c)
     /* The following needs the GIF previewer -- you might not have it. */
 
     HTPresentation_add(c,"image/gif", 		"open %s", 	NULL, 0.3, 2.0, 0.0);
-    HTPresentation_add(c,"image/x-tiff", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
+    HTPresentation_add(c,"image/tiff", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
     HTPresentation_add(c,"audio/basic", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
     HTPresentation_add(c,"*/*", 		"open %s", 	NULL, 0.05, 0.0, 0.0); 
 #else
     if (getenv("DISPLAY")) {	/* Must have X11 */
 	HTPresentation_add(c,"application/postscript", "ghostview %s",	NULL, 1.0, 3.0, 0.0);
 	HTPresentation_add(c,"image/gif", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
-	HTPresentation_add(c,"image/x-tiff", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
+	HTPresentation_add(c,"image/tiff", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
 	HTPresentation_add(c,"image/jpeg", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
- 	HTPresentation_add(c,"image/x-png",	"xv %s",	NULL, 1.0, 3.0, 0.0);
+ 	HTPresentation_add(c,"image/png",	"xv %s",	NULL, 1.0, 3.0, 0.0);
     }
 #endif
 }
@@ -181,7 +181,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("aif",    "audio/x-aiff",		"binary", NULL, 1.0);
     HTBind_add("wav",    "audio/x-wav",			"binary", NULL, 1.0);	/* Windows+ WAVE format	*/
     HTBind_add("gif",    "image/gif",			"binary", NULL, 1.0);	/* GIF			*/
-    HTBind_add("png",    "image/x-png",			"binary", NULL, 1.0);	/* PNG			*/
+    HTBind_add("png",    "image/png",			"binary", NULL, 1.0);	/* PNG			*/
     HTBind_add("ief",    "image/ief",			"binary", NULL, 1.0);	/* Image Exchange fmt	*/
     HTBind_add("jpg",    "image/jpeg",			"binary", NULL, 1.0);	/* JPEG			*/
     HTBind_add("JPG",    "image/jpeg",			"binary", NULL, 1.0);

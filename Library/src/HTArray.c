@@ -76,11 +76,10 @@ PUBLIC BOOL HTArray_addObject (HTArray * array, void * object)
 /*	Sort an array
 **	-------------
 */
-PUBLIC BOOL HTArray_sort (HTArray * array,
-			  int (*compar) (CONST void *, CONST void *))
+PUBLIC BOOL HTArray_sort (HTArray * array, HTComparer * comp)
 {
-    if (array && compar) {
-	qsort(array->data, array->size, sizeof (void *), compar);
+    if (array && comp) {
+	qsort(array->data, array->size, sizeof (void *), comp);
 	return YES;
     }
     return NO;

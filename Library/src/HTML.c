@@ -81,11 +81,11 @@ struct _HTStream {
 
 /*		Forward declarations of routines
 */
-PRIVATE void get_styles NOPARAMS;
+PRIVATE void get_styles (void);
 
 
-PRIVATE void actually_set_style PARAMS((HTStructured * me));
-PRIVATE void change_paragraph_style PARAMS((HTStructured * me, HTStyle * style));
+PRIVATE void actually_set_style (HTStructured * me);
+PRIVATE void change_paragraph_style (HTStructured * me, HTStyle * style);
 
 /*	Style buffering avoids dummy paragraph begin/ends.
 */

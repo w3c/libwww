@@ -18,29 +18,42 @@
 
 #define MAXIMUM(a,b) ((a)>(b)?(a):(b))
 
+struct _HTBTree_element {
+    void			*object;	/* User object */
+    struct _HTBTree_element	*up;
+    struct _HTBTree_element	*left;
+    int				left_depth;
+    struct _HTBTree_element	*right;
+    int				right_depth;
+};
 
+struct _HTBTree {
+    HTComparer *		compare;
+    struct _HTBTree_element *	top;   
+};
 
+PUBLIC void * HTBTree_object (HTBTElement * element)
+{
+    return element ? element->object : NULL;
+}
 
-
-PUBLIC HTBTree * HTBTree_new ARGS1(HTComparer, comp)
+PUBLIC HTBTree * HTBTree_new (HTComparer * comp)
     /*********************************************************
     ** This function returns an HTBTree with memory allocated 
     ** for it when given a mean to compare things
     */
 {
-    HTBTree * tree = (HTBTree *)malloc(sizeof(HTBTree));
+    HTBTree * tree = (HTBTree *) calloc(1, sizeof(HTBTree));
     if (tree==NULL) outofmem(__FILE__, "HTBTree_new");
-
     tree->compare = comp;
     tree->top = NULL;
-
     return tree;
 }
 
 
 
 
-PRIVATE void HTBTElement_free ARGS1(HTBTElement*, element)
+PRIVATE void HTBTElement_free (HTBTElement*  element)
     /**********************************************************
     ** This void will free the memory allocated for one element
     */
@@ -52,7 +65,7 @@ PRIVATE void HTBTElement_free ARGS1(HTBTElement*, element)
     }
 }
 
-PUBLIC void HTBTree_free ARGS1(HTBTree*, tree)
+PUBLIC void HTBTree_free (HTBTree*  tree)
     /**************************************************************
     ** This void will free the memory allocated for the whole tree
     */
@@ -64,7 +77,7 @@ PUBLIC void HTBTree_free ARGS1(HTBTree*, tree)
 
 
 
-PRIVATE void HTBTElementAndObject_free ARGS1(HTBTElement*, element)
+PRIVATE void HTBTElementAndObject_free (HTBTElement*  element)
     /**********************************************************
     ** This void will free the memory allocated for one element
     */
@@ -78,7 +91,7 @@ PRIVATE void HTBTElementAndObject_free ARGS1(HTBTElement*, element)
     }
 }
 
-PUBLIC void HTBTreeAndObject_free ARGS1(HTBTree*, tree)
+PUBLIC void HTBTreeAndObject_free (HTBTree*  tree)
     /**************************************************************
     ** This void will free the memory allocated for the whole tree
     */
@@ -87,18 +100,13 @@ PUBLIC void HTBTreeAndObject_free ARGS1(HTBTree*, tree)
     free(tree);
 }
 
-
-
-
-PUBLIC void HTBTree_add ARGS2(
-		    HTBTree*,  tree,
-		    void*,     object)
-    /**********************************************************************
-    ** This void is the core of HTBTree.c . It will
-    **       1/ add a new element to the tree at the right place
-    **          so that the tree remains sorted
-    **       2/ balance the tree to be as fast as possible when reading it
-    */
+/*
+** This void is the core of HTBTree.c . It will
+**       1/ add a new element to the tree at the right place
+**          so that the tree remains sorted
+**       2/ balance the tree to be as fast as possible when reading it
+*/
+PUBLIC void HTBTree_add (HTBTree * tree, void * object)
 {
     HTBTElement * father_of_element;
     HTBTElement * added_element;
@@ -488,22 +496,16 @@ PUBLIC void HTBTree_add ARGS2(
     }
 }
 
-
-
-PUBLIC HTBTElement * HTBTree_next ARGS2(
-                               HTBTree*,       tree,
-                               HTBTElement*,   ele)
-    /**************************************************************************
-    ** this function returns a pointer to the leftmost element if ele is NULL,
-    ** and to the next object to the right otherways.
-    ** If no elements left, returns a pointer to NULL.
-    */
+/*
+** this function returns a pointer to the leftmost element if ele is NULL,
+** and to the next object to the right otherways.
+** If no elements left, returns a pointer to NULL.
+*/
+PUBLIC HTBTElement * HTBTree_next(HTBTree * tree, HTBTElement * element)
 {
     HTBTElement * father_of_element;
     HTBTElement * father_of_forefather;
-
-    if (ele == NULL)
-    {
+    if (!element) {
         father_of_element = tree->top;
         if (father_of_element != NULL)
             while (father_of_element->left != NULL)
@@ -511,7 +513,7 @@ PUBLIC HTBTElement * HTBTree_next ARGS2(
     }
     else
     {
-        father_of_element = ele;
+        father_of_element = element;
         if (father_of_element->right != NULL)
 	{
             father_of_element = father_of_element->right;

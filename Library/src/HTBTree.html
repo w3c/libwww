@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Balanced Binary Tree</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -17,83 +18,71 @@ Tree creation, traversal and freeing. User-supplied comparison
 routine.<P>
 
 This module is implemented by <A HREF="HTBTree.c">HTBTree.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTBTTEE_H
 #define HTBTREE_H
 
+#include "HTArray.h"
 </PRE>
 
-<H2>Data structures</H2>
-<PRE>typedef struct _HTBTree_element {
-    void			*object;	/* User object */
-    struct _HTBTree_element	*up;
-    struct _HTBTree_element	*left;
-    int				left_depth;
-    struct _HTBTree_element	*right;
-    int				right_depth;
-} HTBTElement;
-
-typedef int (*HTComparer) PARAMS((void * a, void * b));
-
-typedef struct _HTBTree_top {
-    HTComparer			compare;
-    struct _HTBTree_element	*top;   
-} HTBTree;
-
-
-</PRE>
-<H2>Create a binary tree given its discrimination
-routine</H2>
-<PRE>extern HTBTree * HTBTree_new PARAMS((HTComparer comp));
-
-
-
-</PRE>
-<H2>Free storage of the tree but not
-of the objects</H2>
-<PRE>extern void HTBTree_free PARAMS((HTBTree* tree));
-
-
-
-</PRE>
-<H2>Free storage of the tree and of the
-objects</H2>
-<PRE>extern void HTBTreeAndObject_free PARAMS((HTBTree* tree));
-
-
-
-</PRE>
-<H2>Add an object to a binary tree</H2>
 <PRE>
-extern void HTBTree_add PARAMS((HTBTree* tree, void * object));
+typedef struct _HTBTree HTBTree;
 
-
+typedef struct _HTBTree_element HTBTElement;
 </PRE>
-<H2>Find user object for element</H2>
-<PRE>#define HTBTree_object(element)  ((element)->object)
 
+<H2>Create a Binary Tree</H2>
 
+This function creates a new binary tree and uses the comparison
+function when building the tree.
+
+<PRE>
+extern HTBTree * HTBTree_new (HTComparer * comp);
 </PRE>
-<H2>Find next element in depth-first
-order</H2>
+
+<H2>Free storage of the tree but not of the objects</H2>
+
+<PRE>
+extern void HTBTree_free (HTBTree * tree);
+</PRE>
+
+<H2>Free storage of the tree and of the objects</H2>
+
+<PRE>
+extern void HTBTreeAndObject_free (HTBTree * tree);
+</PRE>
+
+<H2>Add an object to a binary tree</H2>
+
+<PRE>
+extern void HTBTree_add (HTBTree* tree, void * object);
+</PRE>
+
+<H2>Return an Object</H2>
+
+<PRE>
+extern void * HTBTree_object (HTBTElement * element);
+</PRE>
+
+<H2>Find next element in depth-first order</H2>
+
 <H3>On entry,</H3>
-<DL>
-<DT>ele
-<DD>if NULL, start with leftmost element.
-if != 0 give next object to the right.
-<DT>returns
-<DD>Pointer to element ot NULL
-if none left.
-</DL>
 
-<PRE>extern HTBTElement * HTBTree_next PARAMS((HTBTree* tree, HTBTElement * ele));
+If <CODE>element</CODE> is NULL then start with leftmost element. if
+not NULL then give next object to the right. The function returns a
+pointer to element or NULL if none left.
 
+<PRE>
+extern HTBTElement * HTBTree_next (HTBTree * tree, HTBTElement * element);
+</PRE>
+
+<PRE>
 #endif
 </PRE>
-end
+
+End of declaration of BTree
 </BODY>
 </HTML>

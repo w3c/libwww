@@ -18,12 +18,15 @@
 #include "HTString.h"
 #include "HTStream.h"
 #include "HTFormat.h"
+#include "HTParse.h"
 #include "HTSocket.h"
+#include "HTReq.h"
 #include "HTNDir.h"
 #include "HTNews.h"
 #include "HTNewsLs.h"					 /* Implemented here */
 
 #define DELIMITER		'\t'
+#define ATSIGN			'@'
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
@@ -36,7 +39,7 @@ struct _HTStream {
     int				buflen;
 };
 
-PRIVATE HTNewsDirKey		dir_key = HT_NDK_THREAD;
+PRIVATE HTNewsDirKey		dir_key = HT_NDK_NONE;
 
 /* ------------------------------------------------------------------------- */
 
@@ -51,7 +54,7 @@ PRIVATE BOOL ParseList (HTNewsDir *dir, char * line)
     char *ptr = line;
     while (*ptr && !WHITE(*ptr)) ptr++;
     *ptr = '\0';
-    return HTNewsDir_addElement(dir, line, 0, NULL, NULL, 0);
+    return HTNewsDir_addElement(dir, 0, line, NULL, (time_t) 0, line, 0);
 }
 
 
@@ -68,31 +71,48 @@ PRIVATE BOOL ParseGroup (HTNewsDir *dir, char * line)
 {
     int index;
     int refcnt=0;
-    char *msgid;
+    time_t t=0;
+    char *subject = line;
     char *from;
-    char *ptr;
-    char *subject = line;				/* Index */
+    char *date;
+    char *msgid;
+    char *ptr=NULL;
     while (*subject && *subject != DELIMITER) subject++;
-    *subject++ = '\0';
+    *subject++ = '\0';					/* Index */
     index = atoi(line);
-    from = subject;					/* Subject */
+    from = subject;
     while (*from && *from != DELIMITER) from++;
-    *from++ = '\0';
-    ptr = from;						/* Date */
-    while (*ptr && *ptr != DELIMITER) ptr++;
-    *ptr++ = '\0';
-    msgid = ptr;					/* Msg-ID */
+    *from++ = '\0';					/* Subject */
+    date = from;
+    while (*date && *date != DELIMITER) {
+	if (*date=='<' || *date=='(') {
+	    ptr = date+1;
+	    *date = '\0';
+	}
+	if (*date=='>' || *date==')') *date = '\0';
+	date++;
+    }
+    *date++ = '\0';
+    if (strchr(from, ATSIGN) && ptr) from = ptr;	/* From */
+    msgid = date;
     while (*msgid && *msgid != DELIMITER) msgid++;
-    *msgid++ = '\0';
-    ptr = msgid;					/* Bytes or ref */
-    while (*ptr && *ptr != DELIMITER) ptr++;
-    *ptr++ = '\0';
+    *msgid++ = '\0';					/* Date */
+    if (*msgid=='<') msgid++;
+#if 0
+    t = HTParseTime(date);
+#endif
+    ptr = msgid;
+    while (*ptr && *ptr != DELIMITER) {
+	if (*ptr=='>') *ptr = '\0';
+	ptr++;
+    }
+    *ptr++ = '\0';					/* MsgId */
     while (!isdigit(*ptr)) {
 	while (*ptr && *ptr != DELIMITER) ptr++;
 	*ptr++ = '\0';
 	refcnt++;
     }
-    return HTNewsDir_addElement(dir, msgid, index, subject, from, refcnt);
+    return HTNewsDir_addElement(dir, index, subject, from, t, msgid, refcnt);
 }
 
 /*
@@ -202,13 +222,21 @@ PUBLIC HTStream *HTNewsGroup (HTRequest *	request,
 			      HTFormat		output_format,
 			      HTStream *	output_stream)
 {
+    char * url = HTAnchor_physical(HTRequest_anchor(request));
+    char * title = NULL;
     HTStream *me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTNewsList_new");
+    StrAllocCopy(title, "Newsgroup: ");
+    if (!strncasecomp(url, "news:", 5))
+	StrAllocCat(title, url+5);
+    else
+	StrAllocCat(title, HTParse(url, "", PARSE_PATH));
     me->isa = &HTNewsListClass;
     me->request = request;
     me->state = EOL_BEGIN;
     me->group = YES;
-    me->dir = HTNewsDir_new(request, "Newsgroup", dir_key);
+    me->dir = HTNewsDir_new(request, title, dir_key);
     if (me->dir == NULL) FREE(me);
+    free(title);
     return me;
 }

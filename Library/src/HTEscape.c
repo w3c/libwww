@@ -90,14 +90,14 @@ PUBLIC char * HTEscape (CONST char * str, HTURIEncoding mask)
 **	The string is converted in place, as it will never grow.
 */
 
-PRIVATE char from_hex ARGS1(char, c)
+PRIVATE char from_hex (char c)
 {
     return  c >= '0' && c <= '9' ?  c - '0' 
     	    : c >= 'A' && c <= 'F'? c - 'A' + 10
     	    : c - 'a' + 10;	/* accept small letters just in case */
 }
 
-PUBLIC char * HTUnEscape ARGS1( char *, str)
+PUBLIC char * HTUnEscape (char * str)
 {
     char * p = str;
     char * q = str;

@@ -47,17 +47,16 @@ struct _HTNewsDir {
     HTStructured *	target;
     HTRequest *		request;
     HTArray *		array;			/* Array for sorted listings */
-    char *		line;
     BOOL		top;				/* YES if first line */
     HTNewsDirKey	key;				  /* Key for sorting */
 };
 
 typedef struct _HTNewsNode {
-    char *	key;
     int		index;
     char *	name;
     char *	subject;
     char *	from;
+    time_t	date;
     int		refs;				     /* Number of references */
     BOOL	filter;			      /* Is this entry filtered out? */
 } HTNewsNode;
@@ -100,107 +99,23 @@ PRIVATE BOOL HTNewsNode_free (HTNewsNode *node)
 */
 PRIVATE BOOL HTNewsNode_print (HTNewsDir *dir, HTNewsNode *node)
 {
-    char *tp = NULL;
     HTStructured *target = dir->target;
-#if 1
-    TTYPrint(TDEST, "%s\n", node->name);
-#else
-    if (dir->show & HT_DS_ICON) {
-	HTFormat format = NULL;
-	HTEncoding encoding = NULL;
-	double q=1.0;
-	HTIconNode *icon;
-	HTHrefNode *href;
-	if (node->mode == HT_IS_FILE)
-	    HTBind_getFormat(node->fname, &format, &encoding, NULL, &q);
-	icon = HTGetIcon(node->mode, format, encoding);
-	href = HTGetHref(node->fname);
+    START(HTML_LI);
 
-	/* Are we having a hot or a cold icon? */
-	if (!(dir->show & HT_DS_HOTI)) {
-	    HTMLPutImg(target, icon->icon_url,
-		       HTIcon_alt_string(icon->icon_alt, YES), NULL);
-	    PUTC(' ');
-	}
-
-	/* Start the anchor element */
-	if (dir->base) {
-	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
-	    char *full = malloc(strlen(escaped)+strlen(dir->base)+1);
-	    if (!full) outofmem(__FILE__, "HTNewsNode_print");
-	    strcpy(full, dir->base);
-	    strcat(full, escaped);
-	    HTStartAnchor(target, NULL, full);
-	    free(escaped);
-	    free(full);
-	} else {
-	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
-	    HTStartAnchor(target, NULL, escaped);
-	    free(escaped);
-	}
-
-	if (dir->show & HT_DS_HOTI) {
-	    HTMLPutImg(target, icon->icon_url,
-		       HTIcon_alt_string(icon->icon_alt, YES), NULL);
-	    PUTC(' ');
-	}
-    } else {
-	if (dir->base) {
-	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
-	    char *full = malloc(strlen(escaped)+strlen(dir->base)+1);
-	    if (!full) outofmem(__FILE__, "HTNewsNode_print");
-	    strcpy(full, dir->base);
-	    strcat(full, escaped);
-	    HTStartAnchor(target, NULL, escaped);
-	    free(escaped);
-	    free(full);
-	} else {
-	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
-	    HTStartAnchor(target, NULL, escaped);
-	    free(escaped);
-	}
-    }
-    
-    /* Insert the anchor text and end anchor */
-    {
-	char *in = node->fname;
-	char *out = dir->fnbuf;
-	int l = dir->curfw;
-	while (l-- > 0 && *in && (*out++ = *in++));
-	if (*in)
-	    *(out-1) = '>';
-	else if (node->mode == HT_IS_DIR) {
-	    *out++ = '/';
-	    l--;
-	}
-	*out = '\0';
-	PUTS(dir->fnbuf);
+    /* Start the anchor and put the subject as anchor text */
+    if (node->name && node->subject) {
+	char *escaped = HTEscape(node->name, URL_XPALPHAS);
+	HTStartAnchor(target, NULL, escaped);
+	PUTS(node->subject);
 	END(HTML_A);
-	out = dir->fnbuf;
-	while (l-- >= 0) *out++ = ' ';
-	LeftStr(&out, " ", HT_DLEN_SPACE);
-	*out = '\0';
-	PUTS(dir->fnbuf);
+	free(escaped);
     }
 
-    /* Print the rest of it */
-    tp = dir->lnbuf;
-    if (node->date) {
-	RightStr(&tp, node->date, HT_DLEN_DATE);
-	LeftStr(&tp, " ", HT_DLEN_SPACE);
+    /* From field */
+    if (node->from) {
+	PUTC(' ');
+	PUTS(node->from);
     }
-    if (node->size) {
-	RightStr(&tp, node->size, HT_DLEN_SIZE);
-	LeftStr(&tp, " ", HT_DLEN_SPACE);
-    }
-    if (node->note) {
-	LeftStr(&tp, node->note, HT_DLEN_DES);
-	LeftStr(&tp, " ", HT_DLEN_SPACE);
-    }
-    *tp = '\0';
-    PUTS(dir->lnbuf);
-    PUTC('\n');
-#endif
     return YES;
 }
 
@@ -216,42 +131,10 @@ PRIVATE BOOL HTNewsNode_print (HTNewsDir *dir, HTNewsNode *node)
 PRIVATE BOOL HTNewsDir_headLine (HTNewsDir *dir)
 {
     if (dir) {
-	char *tp;
 	HTStructured *target = dir->target;
-#if 0
-	START(HTML_PRE);
-	if (dir->show & HT_DS_ICON) {
-	    HTIconNode *icon = HTGetIcon(HT_IS_BLANK, NULL, NULL);
-	    HTMLPutImg(target, icon->icon_url,
-		       HTIcon_alt_string(icon->icon_alt, YES), NULL);
-	    PUTC(' ');
-	}
-
-	tp = dir->fnbuf;
-	LeftStr(&tp, "Name", dir->curfw);
-	LeftStr(&tp, " ", HT_DLEN_SPACE);
-	*tp = '\0';
-	PUTS(dir->fnbuf);
-
-	tp = dir->lnbuf;
-	if (dir->show & HT_DS_DATE) {
-	    LeftStr(&tp, "Last Modified", HT_DLEN_DATE);
-	    LeftStr(&tp, " ", HT_DLEN_SPACE);
-	}
-	if (dir->show & HT_DS_SIZE) {
-	    RightStr(&tp, "Size", HT_DLEN_SIZE);
-	    LeftStr(&tp, " ", HT_DLEN_SPACE);
-	}
-	if (dir->show & HT_DS_DES) {
-	    LeftStr(&tp, "Description", HT_DLEN_DATE);
-	    LeftStr(&tp, " ", HT_DLEN_SPACE);
-	}
-	*tp = '\0';
-	PUTS(dir->lnbuf);
-	START(HTML_HR);
-	PUTC('\n');
-#endif
+	PUTS("HERE WE CAN PUT INFORMATION AND EXTRA LINKS\n");
 	return YES;
+	START(HTML_UL);
     }
     return NO;
 }
@@ -280,8 +163,7 @@ PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
     if (!request) return NULL;
 
     /* Create object */
-    if ((dir = (HTNewsDir *) calloc(1, sizeof (HTNewsDir))) == NULL ||
-	(dir->line = (char *) malloc(MaxLineW)) == NULL)
+    if ((dir = (HTNewsDir *) calloc(1, sizeof (HTNewsDir))) == NULL)
 	outofmem(__FILE__, "HTNewsDir_new");
     dir->target = HTMLGenerator(request, NULL, WWW_HTML,
 				HTRequest_outputFormat(request),
@@ -289,7 +171,7 @@ PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
     dir->request = request;
     dir->top = YES;
     dir->key = key;
-    if (key != HT_NDK_THREAD) {
+    if (key != HT_NDK_NONE) {			       /* Thread is unsorted */
 	int total = HTNews_maxArticles();
 	dir->array = HTArray_new(total > 0 ? total : 128);
     }
@@ -297,7 +179,7 @@ PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
     /* Start the HTML stuff */
     {
 	HTStructured *target = dir->target;
-	char *msg = title ? title : "News Listing";
+	CONST char *msg = title ? title : "News Listing";
 	START(HTML_HTML);
 	START(HTML_HEAD);
 	START(HTML_TITLE);
@@ -314,19 +196,21 @@ PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
 
 /*	HTNewsDir_addElement
 **	--------------------
-**    	This function accepts a news line. Everything except dir and nama can
+**    	This function accepts a news line. Everything except dir and name can
 **	can be 0 or NULL.
 **	Returns YES if OK, else NO
 */
-PUBLIC BOOL HTNewsDir_addElement (HTNewsDir * dir, char * name, int  index,
-				  char * subject, char * from, int refs)
+PUBLIC BOOL HTNewsDir_addElement (HTNewsDir * dir, int index, char * subject,
+				  char * from, time_t date, char * name,
+				  int refs)
 {
     HTNewsNode *node = HTNewsNode_new();
     if (!dir || !name) return NO;
     StrAllocCopy(node->name, name);				/* Mandatory */
     if (subject) StrAllocCopy(node->subject, subject);
     if (from) StrAllocCopy(node->from, from);
-    if (dir->key == HT_NDK_THREAD) {
+    node->date = date;
+    if (dir->key == HT_NDK_NONE) {
 	if (dir->top) {
 	    HTNewsDir_headLine(dir);
 	    dir->top = NO;
@@ -338,27 +222,51 @@ PUBLIC BOOL HTNewsDir_addElement (HTNewsDir * dir, char * name, int  index,
     return YES;
 }
 
-#if 0
-PRIVATE int DirSort (CONST void *a, CONST void *b)
+PRIVATE int NDirIndexSort (CONST void *a, CONST void *b)
 {
-    HTNewsNode *aa = *(HTNewsNode **) a;
-    HTNewsNode *bb = *(HTNewsNode **) b;
-    return strcmp(aa->fname, bb->fname);
-#if 0
-    return strcmp((*(HTNewsNode**)a)->fname, (*(HTNewsNode**)a)->fname);
-#endif
+    int aa = (*((HTNewsNode **)a))->index;
+    int bb = (*((HTNewsNode **)b))->index;
+    return aa-bb;
 }
 
-PRIVATE int DirCaseSort (CONST void *a, CONST void *b)
+PRIVATE int NDirSubjectSort (CONST void *a, CONST void *b)
 {
+#if 0
+    char *aa = (*((HTNewsNode **)a))->subject;
+    char *bb = (*((HTNewsNode **)b))->subject;
+#endif
+    return 0;
+}
+
+PRIVATE int NDirFromSort (CONST void *a, CONST void *b)
+{
+#if 0
     HTNewsNode *aa = *(HTNewsNode **) a;
     HTNewsNode *bb = *(HTNewsNode **) b;
     return strcasecomp(aa->fname, bb->fname);
-#if 0
     return strcasecomp((*(HTNewsNode**)a)->fname, (*(HTNewsNode**)a)->fname);
+
+    char *aa = (*((HTNewsNode **)a))->name;
+    char *bb = (*((HTNewsNode **)b))->name;
 #endif
+    return 1;
 }
-#endif
+
+PRIVATE int NDirDateSort (CONST void *a, CONST void *b)
+{
+    time_t aa = (*((HTNewsNode **)a))->date;
+    time_t bb = (*((HTNewsNode **)b))->date;
+    return bb-aa;
+}
+
+PRIVATE int NDirGroupSort (CONST void *a, CONST void *b)
+{
+    char *aa = (*((HTNewsNode **)a))->name;
+    char *bb = (*((HTNewsNode **)b))->name;
+    while (*aa && *bb && TOLOWER(*aa)==TOLOWER(*bb)) aa++, bb++;
+    return (*aa=='.' && *bb) ? -1 : (*aa && *bb=='.') ?
+	1 : TOLOWER(*aa)-TOLOWER(*bb);
+}
 
 /*	HTNewsDir_free
 **	--------------
@@ -368,34 +276,46 @@ PRIVATE int DirCaseSort (CONST void *a, CONST void *b)
 PUBLIC BOOL HTNewsDir_free (HTNewsDir * dir)
 {
     if (!dir) return NO;
-#if 0
-    if (dir->key != HT_DK_THREAD) {
+    if (dir->key != HT_NDK_NONE) {
 	HTArray *array = dir->array;
-	void **data;
-	HTNewsNode *node;
+	HTComparer * comp = NULL;
 	HTNewsDir_headLine(dir);	
-	HTArray_sort(array, (dir->key==HT_DK_CINS ? DirCaseSort : DirSort));
-	node = (HTNewsNode *) HTArray_firstObject(array, data);
-	while (node) {
-	    HTNewsNode_print(dir, node);
-	    HTNewsNode_free(node);
-	    node = (HTNewsNode *) HTArray_nextObject(array, data);
+	if (dir->key == HT_NDK_INDEX)		   /* Sort by Message Number */
+	    comp = NDirIndexSort;
+	if (dir->key == HT_NDK_DATE)		       	     /* Sort by Date */
+	    comp = NDirDateSort;
+	if (dir->key == HT_NDK_SUBJECT)		       /* Sort after Subject */
+	    comp = NDirSubjectSort;
+	else if (dir->key == HT_NDK_FROM)		  /* Sort after From */
+	    comp = NDirFromSort;
+	else if (dir->key == HT_NDK_GROUP)	  /* Sort as group hierarchi */
+	    comp = NDirGroupSort;
+	else {
+	    if (STREAM_TRACE) TTYPrint(TDEST,"NewsListing. Invalid sortkey\n");
+	    return NO;
 	}
-	dir->size = HTArray_size(array);
+	HTArray_sort(array, comp);
+	{
+	    void **data;
+	    HTNewsNode *node = (HTNewsNode *) HTArray_firstObject(array, data);
+	    while (node) {
+		HTNewsNode_print(dir, node);
+		HTNewsNode_free(node);
+		node = (HTNewsNode *) HTArray_nextObject(array, data);
+	    }
+	}
     	HTArray_delete(array);	
     }
-#endif
 
     /* Put out the end of the HTML stuff */
     {
 	HTStructured *target = dir->target;
+	END(HTML_UL);
 	START(HTML_HR);
 	END(HTML_BODY);
 	END(HTML_HTML);
 	FREE_TARGET;
     }
-
-    FREE(dir->line);
     free(dir);
     return YES;
 }

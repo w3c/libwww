@@ -549,7 +549,7 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
     }
     if (rep_out == WWW_SOURCE || rep_out == rep_in) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST, "StreamStack. Identical in/out format: %s\n",
+	    TTYPrint(TDEST, "StreamStack. Source requested or identical in/out format: %s\n",
 		     HTAtom_name(rep_in));
 	return output_stream ? output_stream : HTBlackHole();
     }

@@ -41,6 +41,10 @@ PUBLIC BOOL HTProtocol_add (CONST char *       	name,
 	HTProtocol *newProt = (HTProtocol *) calloc(1, sizeof(HTProtocol));
 	if (newProt == NULL) outofmem(__FILE__, "HTProtocol_add");
 	StrAllocCopy(newProt->name, name);
+	{
+	    char *ptr = newProt->name;
+	    while ((*ptr = TOLOWER(*ptr))) ptr++;
+	}
 	newProt->preemtive = preemtive;
 	newProt->callback = callback;
 	if (!protocols) protocols = HTList_new();
@@ -108,24 +112,23 @@ PUBLIC BOOL HTProtocol_deleteAll (void)
 **	Search registered protocols to find suitable one.
 **	Return YES if found, else NO
 */
-PUBLIC BOOL HTProtocol_find (HTParentAnchor * anchor)
+PUBLIC BOOL HTProtocol_find (HTRequest * request, HTParentAnchor * anchor)
 {
-    if (anchor) {
+    if (anchor && request) {
 	char *access = HTParse(HTAnchor_physical(anchor), "", PARSE_ACCESS);
 	HTList *cur = protocols;
 	HTProtocol *p;
-	if (!cur) {
-	    if (WWWTRACE)
-		TTYPrint(TDEST, "HTProtocol.. NO PROTOCOL MODULES INITIATED\n");
-	} else {
+	if (cur) {
 	    while ((p = (HTProtocol *) HTList_nextObject(cur))) {
-		if (strcasecomp(p->name, access)==0) {
+		if (!strcmp(p->name, access)) {
 		    HTAnchor_setProtocol(anchor, p);
 		    free(access);
 		    return YES;
 		}
 	    }
 	}
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
+			   access, (int) strlen(access), "HTProtocol_find");
 	free(access);
     }
     return NO;

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access Scheme Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -91,7 +91,7 @@ This function finds the access scheme that is bound to the anchor's
 type of URL. Returns YES if found, else NO
 
 <PRE>
-extern BOOL HTProtocol_find		(HTParentAnchor * anchor);
+extern BOOL HTProtocol_find (HTRequest * request, HTParentAnchor * anchor);
 </PRE>
 
 <H3Finds the Callback Function</H3>

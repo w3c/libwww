@@ -34,7 +34,7 @@ PRIVATE char *method_names[] =
 /*	Get method enum value
 **	---------------------
 */
-PUBLIC HTMethod HTMethod_enum ARGS1(CONST char *, name)
+PUBLIC HTMethod HTMethod_enum (CONST char * name)
 {
     if (name) {
 	if (!strcasecomp(name, *(method_names+1)))
@@ -60,7 +60,7 @@ PUBLIC HTMethod HTMethod_enum ARGS1(CONST char *, name)
 **	---------------
 **	Returns pointer to entry in static table in memory
 */
-PUBLIC CONST char * HTMethod_name ARGS1(HTMethod, method)
+PUBLIC CONST char * HTMethod_name (HTMethod method)
 {
     if (method & METHOD_GET)
 	return *(method_names+1);

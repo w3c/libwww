@@ -69,7 +69,7 @@ PRIVATE char *mailaddress = NULL;		     /* Current mail address */
 **	We can't use errno directly as we have both errno and socerrno. The
 **	result is a static buffer.
 */
-PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
+PUBLIC CONST char * HTErrnoString (int errornumber)
 {
 
 #ifdef HAVE_STRERROR
@@ -95,7 +95,7 @@ PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
 
 /*	Debug error message
 */
-PUBLIC int HTInetStatus ARGS2(int, errnum, char *, where)
+PUBLIC int HTInetStatus (int errnum, char * where)
 {
 #if ! (defined(VMS) || defined(WINDOWS))
 
@@ -142,10 +142,9 @@ PUBLIC int HTInetStatus ARGS2(int, errnum, char *, where)
 **	*pstatus    points to status updated iff bad
 */
 
-PUBLIC unsigned int HTCardinal ARGS3
-	(int *,		pstatus,
-	char **,	pp,
-	unsigned int,	max_value)
+PUBLIC unsigned int HTCardinal (int *		pstatus,
+				char **		pp,
+				unsigned int	max_value)
 {
     unsigned int n=0;
     if ( (**pp<'0') || (**pp>'9')) {	    /* Null string is error */
@@ -197,7 +196,7 @@ PUBLIC void HTSetSignal (void)
 **	returns	a pointer to a static string which must be copied if
 **		it is to be kept.
 */
-PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
+PUBLIC CONST char * HTInetString (SockA * sin)
 {
 #ifndef DECNET  /* Function only used below for a trace message */
 #if 0
@@ -302,7 +301,7 @@ PUBLIC CONST char *HTGetDomainName (void)
 **	If this is not set then the default approach is used using
 **	HTGetHostname().
 */
-PUBLIC void HTSetHostName ARGS1(char *, host)
+PUBLIC void HTSetHostName (char * host)
 {
     if (host && *host) {
 	char *strptr;
@@ -445,7 +444,7 @@ PUBLIC void HTFreeHostName (void)
 **	HTGetMailAddress(). If the argument is NULL or "" then HTGetMailAddress
 **	returns NULL on a succeding request.
 */
-PUBLIC void HTSetMailAddress ARGS1(char *, address)
+PUBLIC void HTSetMailAddress (char * address)
 {
     if (!address || !*address)
 	StrAllocCopy(mailaddress, "");

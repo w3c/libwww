@@ -851,7 +851,7 @@ PRIVATE int get_physical (HTRequest *req)
     FREE(addr);
 
     /* Set the access scheme on our way out */
-    return (HTProtocol_find(req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
+    return (HTProtocol_find(req, req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
 }
 
 /* --------------------------------------------------------------------------*/

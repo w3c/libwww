@@ -49,7 +49,7 @@
 #define SERVER_FILE		"/usr/local/lib/rn/server"
 #endif
 
-#define MAX_NEWS_ARTICLES	100		   /* Max number of articles */
+#define MAX_NEWS_ARTICLES	0 	/* No default max number of articles */
 
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)	     (me->target, b, l)
 #define ABORT_TARGET    (*me->target->isa->abort)            (me->target, e)
@@ -62,7 +62,7 @@ typedef enum _HTNewsState {
     NEWS_NEED_GREETING,
     NEWS_NEED_SWITCH,
     NEWS_NEED_ARTICLE,
-#if 0
+#if HT_LISTGROUP
     NEWS_NEED_LGRP,
 #endif
     NEWS_NEED_LIST,
@@ -103,7 +103,7 @@ struct _HTStream {
 };
 
 PRIVATE char *HTNewsHost = NULL;
-PRIVATE int HTNewsMaxArticles = MAX_NEWS_ARTICLES;
+PRIVATE int MaxArt = MAX_NEWS_ARTICLES;
 
 /* ------------------------------------------------------------------------- */
 /*			       NEWS INPUT STREAM			     */
@@ -263,8 +263,8 @@ PUBLIC HTStream *HTNewsStatus_new (HTRequest * request, news_info * news)
 */
 PUBLIC BOOL HTNews_setMaxArticles (int new_max)
 { 
-    if (new_max > 0) {
-	HTNewsMaxArticles = new_max;
+    if (new_max >= 0) {
+	MaxArt = new_max;
 	return YES;
     }
     return NO;
@@ -275,7 +275,7 @@ PUBLIC BOOL HTNews_setMaxArticles (int new_max)
 */
 PUBLIC int HTNews_maxArticles (void)
 { 
-    return HTNewsMaxArticles;
+    return MaxArt;
 }
 
 /*
@@ -612,7 +612,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    }
 	    break;
 
-#if 0
+#if HT_LISTGROUP
 	  case NEWS_NEED_LGRP:
 	    if (!news->sent) {
 		status = SendCommand(request, news, "LIST", "NEWSGROUPS");
@@ -636,7 +636,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->sent = NO;
 	    }
 	    break;
-#endif
+#endif /* HT_LISTGROUP */
 
 	  case NEWS_NEED_LIST:
 	    if (!news->sent) {
@@ -678,8 +678,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (news->repcode/100 == 2) {
 			if (sscanf(news->reply, "%d%d%d", &news->total,
 				   &news->first, &news->last) == 3) {
-			    if (news->total > HTNewsMaxArticles)
-				news->last = news->first-HTNewsMaxArticles;
+			    if (MaxArt && news->total>MaxArt)
+				news->last = news->first-MaxArt;
 			    news->current = news->first;
 			    news->state = NEWS_NEED_XOVER;
 			} else

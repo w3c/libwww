@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Dynamic Array Pointer Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -90,12 +90,19 @@ Fast macros to traverse a macro ending in a NULL element.
 
 <H2>Sort an Array</H2>
 
-Arrays are ment to be sorted :-) Here's a function using qsort. It
-returns YES if sorting OK, else NO.
+An array can be sorted in any way you like, for example with
+qsort(). This module provides an easy interface to the qsort()
+function using where you can define you own comparison routine as a
+function of the type:
 
 <PRE>
-extern BOOL HTArray_sort (HTArray * array,
-			  int (*compar) (CONST void *, CONST void *));
+typedef int HTComparer (CONST void * a, CONST void * b);
+</PRE>
+
+The sort function returns YES if sorting OK, else NO.
+
+<PRE>
+extern BOOL HTArray_sort (HTArray * array, HTComparer * comp);
 </PRE>
 
 <H2>Returns Data Vector</H2>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -26,9 +26,8 @@ etc. The main topics of functions in this module are:
 </UL>
 
 This module is implemented by <A HREF="HTTCP.c">HTTCP.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTTCP_H
@@ -80,8 +79,8 @@ pass the error number as a parameter as we on some platforms get
 different codes from sockets and local file access.
 
 <PRE>
-extern CONST char * HTErrnoString	PARAMS((int errnum));
-extern int HTInetStatus			PARAMS((int errnum, char * where));
+extern CONST char * HTErrnoString	(int errnum);
+extern int HTInetStatus			(int errnum, char * where);
 </PRE>
 
 <H3>Parse a Cardinal Value</H3>
@@ -101,9 +100,9 @@ extern int HTInetStatus			PARAMS((int errnum, char * where));
 ** 	*pstatus points to status updated iff bad
 */
 
-extern unsigned int HTCardinal PARAMS((int *		pstatus,
-				       char **		pp,
-				       unsigned int	max_value));
+extern unsigned int HTCardinal (int *		pstatus,
+				char **		pp,
+				unsigned int	max_value);
 </PRE>
 
 <A NAME="DNS"><H2>Internet Name Server Functions</H2></A>
@@ -119,7 +118,7 @@ pointer returned points to static memory which must be copied if it is to be
 kept.
 
 <PRE>
-extern CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
+extern CONST char * HTInetString (struct sockaddr_in * sin);
 </PRE>
 
 <A NAME="HTGetHostName"><H3>Get Name of This Machine</H3></A>
@@ -141,7 +140,7 @@ the change is done before the first call to HTGetMailAddress() then this
 function will use the new host and domain name.
 
 <PRE>
-extern void HTSetHostName PARAMS((char * host));
+extern void HTSetHostName (char * host);
 </PRE>
 
 <H3>Cleanup Memory</H3>
@@ -181,7 +180,7 @@ This function overwrites any other value of current mail address. This might
 be set by the user to change the value in the  <A HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A> in the <A HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTTP2.html">HTTP Protocol</A>.
 
 <PRE>
-extern void HTSetMailAddress PARAMS((char * address));
+extern void HTSetMailAddress (char * address);
 </PRE>
 
 <H3>Free Memory</H3>

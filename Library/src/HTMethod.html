@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Method Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -54,7 +54,7 @@ typedef enum {
 Gives the enumeration value of the method as a function of the (char *) name.
 
 <PRE>
-extern HTMethod HTMethod_enum PARAMS((CONST char * name));
+extern HTMethod HTMethod_enum (CONST char * name);
 </PRE>
 
 <H3>Get Method String</H3>
@@ -62,7 +62,7 @@ extern HTMethod HTMethod_enum PARAMS((CONST char * name));
 The reverse of <I>HTMethod_enum()</I>
 
 <PRE>
-extern CONST char * HTMethod_name PARAMS((HTMethod method));
+extern CONST char * HTMethod_name (HTMethod method);
 </PRE>
 
 <PRE>

@@ -93,7 +93,7 @@ PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {
     { 0,   "WAIS-server doesn't return any data", 	"wais.multi" },
     { 0,   "Can't connect to WAIS-server",		"wais.multi" },
     { 0,   "System replies",				"system.multi" },
-    { 0,   "Wrong Protocol Class",			"class.multi" }
+    { 0,   "Wrong or unknown access scheme",		"class.multi" }
 };
 
 /* ------------------------------------------------------------------------- */

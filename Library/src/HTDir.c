@@ -428,21 +428,25 @@ PUBLIC BOOL HTDir_addElement (HTDir *dir, char *name, char *date, char *size,
 
 PRIVATE int DirSort (CONST void *a, CONST void *b)
 {
+#if 0
     HTDirNode *aa = *(HTDirNode **) a;
     HTDirNode *bb = *(HTDirNode **) b;
     return strcmp(aa->fname, bb->fname);
-#if 0
-    return strcmp((*(HTDirNode**)a)->fname, (*(HTDirNode**)a)->fname);
+#else
+    return strcmp((char *) (*((HTDirNode**)a))->fname,
+		  (char *) (*((HTDirNode**)a))->fname);
 #endif
 }
 
 PRIVATE int DirCaseSort (CONST void *a, CONST void *b)
 {
+#if 0
     HTDirNode *aa = *(HTDirNode **) a;
     HTDirNode *bb = *(HTDirNode **) b;
     return strcasecomp(aa->fname, bb->fname);
-#if 0
-    return strcasecomp((*(HTDirNode**)a)->fname, (*(HTDirNode**)a)->fname);
+#else
+    return strcasecomp((char *) (*((HTDirNode**)a))->fname,
+		       (char *) (*((HTDirNode**)a))->fname);
 #endif
 }
 
