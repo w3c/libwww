@@ -15,6 +15,7 @@ HTLink.c
 HTMethod.c
 HTMemLog.c
 HTNet.c
+HTNoFree.c
 HTParse.c
 HTProt.c
 HTReqMan.c
