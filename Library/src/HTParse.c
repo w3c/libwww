@@ -511,7 +511,8 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
 	path = host + strlen(host);
     if ((strptr = strchr(host, '@')) != NULL && strptr<path)	   /* UserId */
 	host = strptr;
-    port = strchr(host, ':');				      /* Port number */
+    if ((port = strchr(host, ':')) != NULL && port>path)      /* Port number */
+	port = NULL;
 
     strptr = host;				    /* Convert to lower-case */
     while (strptr<path) {
