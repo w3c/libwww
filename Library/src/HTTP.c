@@ -5,7 +5,7 @@
 **	Please first read the full copyright statement in the file COPYRIGH.
 **	@(#) $Id$
 **
-**	This module implments the HTTP protocol as a state machine
+**	This module implements the HTTP protocol as a state machine
 **
 ** History:
 **    < May 24 94 ??	Unknown - but obviously written
