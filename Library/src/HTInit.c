@@ -144,9 +144,9 @@ PUBLIC void HTTransferEncoderInit (HTList * c)
 */
 PUBLIC void HTContentEncoderInit (HTList * c)
 {
-#ifdef ZLIB
+#ifdef HT_ZLIB
     HTCoding_add(c, "deflate", NULL, HTZLib_inflate, 1.0);
-#endif /* ZLIB */
+#endif /* HT_ZLIB */
 }
 
 /*	REGISTER BEFORE FILTERS

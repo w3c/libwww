@@ -68,8 +68,8 @@
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 #undef WORDS_BIGENDIAN
 
-/* Define to enable ZLIB compression / decompression support. */
-#undef ZLIB
+/* Define to enable HT_ZLIB compression / decompression support. */
+#undef HT_ZLIB
 
 /* Define to enable SOCKS firewall-breaching code. */
 #undef SOCKS

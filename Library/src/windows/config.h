@@ -10,8 +10,8 @@
 /* Define to be the version. */
 #define W3C_VERSION "5.1"
 
-/* Define to enable ZLIB compression / decompression support. */
-#define ZLIB 1
+/* Define to enable HT_ZLIB compression / decompression support. */
+#define HT_ZLIB 1
 
 /* Define to enable SOCKS firewall-breaching code. */
 /* #undef SOCKS */

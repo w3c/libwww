@@ -112,7 +112,7 @@ AC_ARG_WITH(zlib,
       withval="-lz"
     fi
     LIBS="$withval $LIBS"
-    AC_DEFINE(ZLIB)
+    AC_DEFINE(HT_ZLIB)
     AC_TRY_LINK([],
                 [ zlibVersion(); ],
 		[],

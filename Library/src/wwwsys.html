@@ -139,8 +139,6 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #define WWW_MSWINDOWS
 #endif
 
-#include "windows/config.h"
-
 #if defined(_WINDOWS) &amp;&amp; !defined (_CONSOLE)
 #define WWW_WIN_WINDOW
 #endif
@@ -150,6 +148,9 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #endif
 
 #ifdef WWW_MSWINDOWS
+
+#include "windows/config.h"
+
 #include &lt;windows.h&gt;
 #include &lt;fcntl.h&gt;
 #include &lt;sys\types.h&gt;
