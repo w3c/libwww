@@ -401,6 +401,8 @@ PUBLIC BOOL HTCookie_terminate (void)
 
     /* Delete all pending cookies */
     HTCookieHolder_deleteAll();
+
+    baking_cookies = NO;
     return YES;
 }
 
