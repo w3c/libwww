@@ -666,7 +666,7 @@ set_error_state_hyperdoc(HyperDoc * hd, HTRequest *request)
     }
 }
 
-
+#if 0
 PRIVATE int
 test_for_blank_spaces(char *uri)
 {
@@ -676,7 +676,7 @@ test_for_blank_spaces(char *uri)
       return 1;
   return 0;
 }
-
+#endif
 
 /*	Create a Command Line Object
 **	----------------------------
@@ -1240,9 +1240,20 @@ PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 
 	match = check_constraints(mr,mr->prefix, uri);
 
+#ifdef HT_POSIX_REGEX
+	/* See if we should do a HEAD or a GET on this URI */
+        if (match && mr->check) {
+            check = regexec(mr->check, uri, 0, NULL, 0) ? NO : YES;
+	}
+#endif
+
+#if 0
+	/* This is already checked in HTParse.c */
 	if(uri && test_for_blank_spaces(uri))
 	  follow = NO;
-	else if (mr->ndoc == 0) /* Number of Documents is reached */
+	else
+#endif
+	if (mr->ndoc == 0) /* Number of Documents is reached */
 	  follow = NO;
 
 	/* Test whether we already have a hyperdoc for this document */
