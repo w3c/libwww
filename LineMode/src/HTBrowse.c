@@ -437,41 +437,39 @@ int main
 	    
 	    /* Page size */
 	    } else if (!strncmp(argv[arg], "-p", 2)) {
-		if (*(argv[arg]+2) &&
-		    sscanf(argv[arg]+2, "%d", &HTScreenHeight) < 1) {
-		    HTScreenHeight = -1;
+		if (arg+1 < argc && *argv[arg+1] != '-') {
+		    if (sscanf(argv[++arg], "%d", &HTScreenHeight) < 1)
+			HTScreenHeight = -1;
+		    else {
+			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
+			    HTScreenHeight = MIN_SCREEN_HEIGHT;
+			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
+			    HTScreenHeight = MAX_SCREEN_HEIGHT;
+		    }
+		} else {
+		    if (sscanf(argv[arg]+2, "%d", &HTScreenHeight) < 1)
+			HTScreenHeight = -1;		
+		    else {
+			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
+			    HTScreenHeight = MIN_SCREEN_HEIGHT;
+			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
+			    HTScreenHeight = MAX_SCREEN_HEIGHT;
+		    }
 		}
-#if 0
-	        else if (arg+1 >= argc || *argv[arg+1] == '-' ||
-		    sscanf(argv[arg+1], "%d", &HTScreenHeight) < 1)
-		    HTScreenHeight = -1;		/* undefined */
-		else {
-		    arg++;
-		    if(HTScreenHeight < MIN_SCREEN_HEIGHT)
-			HTScreenHeight = MIN_SCREEN_HEIGHT;
-		    if(HTScreenHeight > MAX_SCREEN_HEIGHT)
-			HTScreenHeight = MAX_SCREEN_HEIGHT;
-		}
-#endif
 
 	    /* Page width */
 	    } else if (!strncmp(argv[arg], "-w", 2)) {
-		if (*(argv[arg]+2) &&
-		    sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1) {
-		    HTScreenWidth = SCREEN_WIDTH;    	/* undefined */
-		}
-#if 0
-                else if (arg+1 >= argc || *argv[arg+1] == '-' ||
-		    sscanf(argv[arg+1], "%d", &HTScreenWidth) < 1)
-		    HTScreenWidth = SCREEN_WIDTH;    	/* undefined */
-		else {
-		    arg++;
-		    if(HTScreenWidth < MIN_SCREEN_WIDTH)
-			HTScreenWidth = MIN_SCREEN_WIDTH;
-		    if(HTScreenWidth > MAX_SCREEN_WIDTH)
-		        HTScreenWidth = MAX_SCREEN_WIDTH;
-	        }
-#endif
+		if (arg+1 < argc && *argv[arg+1] != '-') {
+		    if (sscanf(argv[++arg], "%d", &HTScreenWidth) < 1)
+			HTScreenWidth = SCREEN_WIDTH;
+		} else {
+		    if (sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1)
+		    HTScreenWidth = SCREEN_WIDTH;
+		}		    
+		if(HTScreenWidth < MIN_SCREEN_WIDTH)
+		    HTScreenWidth = MIN_SCREEN_WIDTH;
+		if(HTScreenWidth > MAX_SCREEN_WIDTH)
+		    HTScreenWidth = MAX_SCREEN_WIDTH;
 		    
 	    /* to -- Final represntation */
 	    } else if (!strcmp(argv[arg], "-to")) {
