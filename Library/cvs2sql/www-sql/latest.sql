@@ -22,12 +22,12 @@
 Find all the documents that have changed after a certain
 date/time.
 
-<! SQL setdefault o3 0 >
+<! SQL setdefault cnt 0 >
 <! SQL setdefault hours 0 >
 <! SQL setdefault days 0 >
 <! SQL setdefault offset 0 >
 
-<form action=latest.sql#lm>
+<form action=latest.sql#z1>
 <TABLE CELLSPACING=0 CELLPADDING=0>
     <TR>
       <TD>
@@ -66,11 +66,12 @@ date/time.
 <! SQL endif >
 
 <HR>
-<! SQL query "select trim('/sources/public' from locations.location), users.username, logs.date, logs.operation, comments.comment from locations, users, comments, logs where logs.date > from_unixtime(unix_timestamp(now())-$offset) and locations.id=logs.location and users.id=logs.username and comments.id=logs.comment order by logs.date DESC limit $o3,20" q1 >
+<A NAME="z1">
+<! SQL query "select trim('/sources/public' from locations.location), users.username, logs.date, logs.operation, comments.comment from locations, users, comments, logs where logs.date > from_unixtime(unix_timestamp(now())-$offset) and locations.id=logs.location and users.id=logs.username and comments.id=logs.comment order by logs.date DESC limit $cnt,10" q1 >
 
 <!-- Put in table -->
 <table width="100%">
-<tr> <th>Location</th> <th>User</th> <th>Last Check-in Time</th> <th>Operation</th> <th>Comment</th></tr>
+<tr> <th>Location</th> <th>User</th> <th>Last Checkin&nbsp;Time</th> <th>Operation</th> <th>Comment</th></tr>
 <! sql print_rows q1 "<tr> <td><a href=\"$root@q1.0\">@q1.0</a></td> <td>@q1.1</td> <td>@q1.2</td> <td>@q1.3</td><td>@q1.4</td></tr>\n" >
 </table>
 
@@ -79,17 +80,17 @@ date/time.
 No match found.
 <! sql else >
 <center>
-<! sql if 19 < $o3 >
-<! sql print "<a href=\"latest.sql\?lm=#lm&o3=" >
-<! sql eval $o3 - 20 >
-<! sql print "\#lm\">Prev</a>" >
+<! sql if 9 < $cnt >
+<! sql print "<a href=\"latest.sql\?hours=#hours&days=#days&cnt=" >
+<! sql eval $cnt - 10 >
+<! sql print "\#z1\">Prev</a>" >
 <! sql else >
 Prev
 <! sql endif >
-<! sql if $NUM_ROWS = 20 >
-<! sql print "<a href=\"latest.sql\?lm=#lm&o3=" >
-<! sql eval $o3 + 20 >
-<! sql print "\#lm\">Next</a>" >
+<! sql if $NUM_ROWS = 10 >
+<! sql print "<a href=\"latest.sql\?hours=#hours&days=#days&cnt=" >
+<! sql eval $cnt + 10 >
+<! sql print "\#z1\">Next</a>" >
 <! sql else >
 Next
 <! sql endif >

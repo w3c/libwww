@@ -1,1 +1,1 @@
-*.h .www_browsable .deps Makefile.in Makefile
+HT*.h WWW*.h SGML.h wwwsys.h .deps Makefile.in Makefile
