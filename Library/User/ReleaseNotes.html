@@ -1,5 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-                      "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
 <head>
   <title>W3C Sample Code Library Release Notes</title>
@@ -20,76 +18,48 @@ href="../cvs.html">committed to and available from CVS </a>but not yet <a
 href="../cvs.html#Releases">in a release</a>. See also the <a
 href="History.html">full libwww release history</a>.</p>
 
-<h2><a name="5.3.1">Release 5.3.1, Aug 4, 2000</a></h2>
+<h2><a name="5.3.11">Release 5.3.2, Dec 14, 2000</a></h2>
 
-<p>This is the proper first 5.3 release. We changed the minor release number
-as many people had started to refer to the previous release as 5.3.0.</p>
+<p>This is a minor release that mainly provides bug fixes and small
+enhancements that have been commited to CVS since the last release. Special
+thanks to Wayne Davison, Art Barstow,  Peter Stamfest, Zhu Qun-Ying, Jens
+Meggers,  Ken Olum for their contributions.</p>
 <ul>
-<li>What's new
-<ul>
-    <li>Art Barstow (barstow@w3.org): fixed a bug with the handling of 
-        parseType="Literal" by the RDF parser.  None of the elements 
-        [and attributes if there were any] were added to the literal. 
-        The only string that was added to the literal was the elements' 
-        content (aka CDATA).</li>
-    <li>Changed the Makefile so that .html-&gt;.h file conversion will only be
-      done with Perl. This is faster than using the www tool.</li>
-    <li>Updated the latest autoconf, automake, and libtools scripts. Now using
-      the separate <a
-      href="http://subversions.gnu.org/cgi-bin/cvsweb/config/">config.guess
-      and config.sub</a> scripts.</li>
-    <li>Extended the libwww/SSL API with HTSSL_setProtocol () and
-      HTSSL_verifyDepth () functions to allow to change the TSL/SSL default
-      protocol and the certificate verification depth. The wwwssl application
-      was updated accordingly.</li>
-    <li>Diverse documentation updates provided by Fox One.</li>
-  </ul>
-<li>Fixed bugs
-<ul>
-    <li>The www wasn't able to convert .html files into .h ones anymore.</li>
-    <li>the <a href="Extrnals.html">Extrnals.html</a> file wasn't being
-      generated on all platforms.</li>
-    <li>Applied diverse patches for libwww/SSL which should correct the
-      multiple request and Post problems that people had signaled. Many thanks
-      to Heiner Kallweit and Gertjan van Winger for their contributions.</li>
-    <li>Other patches I (unfortunately) forgot to note down and am too lazy to
-      get them out from CVS... (sorry, will keep better notes next time!)</li>
+  <li>Summary of principal changes
+    <ul>
+      <li>When retrieving an object from the cache, the HTTP headers
+        associated with the object weren't stored in the HTResponse
+      object.</li>
+      <li>The cache garbage collector could go into an endless loop.</li>
+      <li>The HTResponse object now returns the HTTP reason.</li>
+      <li>Update of expat to version 19990728.</li>
+      <li>Optimization, enhancements, and bugs fixes to the  HTRDF module</li>
+      <li>Some memory leaks and compiler warning  fixes.</li>
+      <li>The robot could hang when accessing local files.</li>
+      <li>Optimization of the HTChunk and HTHash modules.</li>
+    </ul>
+  </li>
+  <li>Outstanding bugs
+    <ul>
+      <li>Interpretation of <a
+        href="http://lists.w3.org/Archives/Public/www-lib/2000JulSep/0050.html">FD_CLOSE</a>
+        under Windows.</li>
+      <li>The FTP implementation has memory leaks and doesn't remember the
+        path or authentication information correctly.</li>
+      <li>Compiling with -O2 and -Wall reveals some unitialized variables in
+        HTDIR and HTFTP.</li>
+    </ul>
+  </li>
+  <li>To do
+    <ul>
+      <li>Compile the answers to the libwww survey.</li>
+    </ul>
+  </li>
 </ul>
-<li>Outstanding bugs
-<ul>
-    <li>Interpretation of <a
-      href="http://lists.w3.org/Archives/Public/www-lib/2000JulSep/0050.html">FD_CLOSE</a>
-      under Windows.</li>
-    <li>The FTP implementation has memory leaks and doesn't remember the path
-      or authentication information correctly.</li>
-</ul>
-</ul>
-
-<h2><a name="5.3.0pre">Release 5.3.0pre, Jun 9, 2000</a></h2>
-
-<p>This is the first release done after Henrik's depart from W3C. We're
-calling it a pre-release, as we're not sure if we prepared it correctly.
-Special thanks to Henrik Frystik, Fox One, Vladimir Koslov, Rafaelle Sena, and
-all the other libwww User's Community for their patches and continuous
-support.</p>
-<ul>
-<li>What's new
-<ul>
-    <li>Included all the patches commited to CVS since the last release. It's
-      been over a year since the last release and we don't have an exact count
-      of what was commited. Many of them consisted of memory leak fixes and
-      fixup with the asynchronous event handlers and timers under Win32.</li>
-    <li>Integrated the libwww-SSL code back into libwww (the US export
-      restriction doesn't apply anymore to source code).</li>
-    <li>Upgraded expat to v1.1.</li>
-    <li>Merged the outstanding Amaya libwww changes into the main tree.</li>
-</ul>
-</ul>
-
 <hr>
 <address>
   <a href="/People/Jose/">Jose Kahan</a>,<br>
-  @(#) $Id$ 
+  @(#) $Id$
 </address>
 </body>
 </html>
