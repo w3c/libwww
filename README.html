@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Read Me</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -19,11 +20,13 @@ applications and related reference applications. In its full contents
 it contains the source code for the following modules:
 
 <UL>
-<LI><A HREF="/hypertext/WWW/Library/">Library of Common Code</A>
-<LI><A HREF="/hypertext/WWW/Daemon/Status.html">CERN HTTPD</A>
-<LI><A HREF="/hypertext/WWW/LineMode/">Line Mode Browser</A>
-<LI><A HREF="/hypertext/WWW/NextStep/Status.html">Next Browser/Editor</A>
+<LI><A HREF="Library/">W3C Reference Library</A>
+<LI><A HREF="Daemon/">CERN HTTPD</A>
+<LI><A HREF="LineMode/">Line Mode Browser</A>
+<LI><A HREF="NextStep/Status.html">Next Browser/Editor</A>
 </UL>
+
+At the bottom of this file, you will find pointers to more information.
 
 <H2>Handling the Distribution Files</H2>
 
@@ -33,18 +36,28 @@ anonymous FTP from <A HREF="ftp://ftp.w3.org/">ftp.w3.org</A> or
 directly via HTTP from the status page mentioned under each
 module. <P>
 
-First uncompress and untar the file <CODE>&lt;dist.tar.Z&gt;</CODE> is
-the specific distribution file:
+All of the distribution packets are available as compressed tar files,
+and some are also available as zip files. For the compressed tar
+files, first uncompress and untar the file
+<CODE>&lt;dist&gt;.tar.Z</CODE> where <CODE>&lt;dist&gt;</CODE> is the
+name of the specific distribution:
 
 <PRE>
-	uncompress &lt;dist.tar.Z&gt;
+	uncompress &lt;dist&gt;.tar.Z
 </PRE>
 
 Then untar the file by typing
 
 <PRE>
-	tar xf &lt;dist.tar&gt;
+	tar xf &lt;dist&gt;.tar
 </PRE>
+
+For the zip files, type the following:
+
+<PRE>
+	unzip &lt;dist&gt;.zip
+</PRE>
+
 
 <A NAME="dirstruc"><H2>Generated Directory structure</H2></A>
 
@@ -60,7 +73,7 @@ follows (directories):
 
 	WWW/All/*/Makefile.include	Platform dependent make files
 
-	WWW/Library			Library of Common Code
+	WWW/Library			W3C Reference Library
 	WWW/Library/Implementation	Source Code
 	WWW/Library/&lt;platform&gt;/*	Platform dependent object files
 
@@ -114,28 +127,29 @@ in order to BUILD all applications
 
 <H3>Compilation on Non-Supported Platforms</H3>
 
-This will require some more work, but please read the online
-documentation at <A
-HREF="/hypertext/WWW/Library/User/Platform/Porting.html">
-http://www.w3.org/hypertext/WWW/Library/User/Platform/Porting.html</A>
+This will require some more work, but please read the <A
+HREF="Library/User/Platform/Porting.html">online
+documentation</A> <B>[1]</B>. <P>
 
+For Windows NT we have a special <A
+HREF="README-WinNT">README-WinNT</A> file provided by Charlie Brooks.
 
-<H2>Library of Common Code</H2>
+<H2>W3C Reference Library</H2>
 
-The World-Wide Web Library of Common Code is a general code base that
+The W3C Reference Library is a general code base that
 can be used to build clients and servers. It contains code for
 accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local
 file system. Furthermore it provides modules for parsing, managing and
 presenting hypertext objects to the user and a wide spectra of generic
 programming utilities. The Library is the basis for many <A
-HREF="/hypertext/WWW/TheProject.html">World-Wide Web</A> applications and all the W3C
+HREF="TheProject.html">World-Wide Web</A> applications and all the W3C
 software is build on top of it. The Library is a required part of all
 other W3C applications in this distribution. <P>
 
-Online documentation is available <A HREF="/hypertext/WWW/Library/">
-http://www.w3.org/hypertext/WWW/Library/Status.html</A>. If you don't
-have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
-or password required) and you will get the Line Mode Browser.
+You can get more information from the <A HREF="Library/">online
+documentation</A> <B>[2]</B> and if you don't have a WWW client then
+telnet to <CODE>telnet.w3.org</CODE> (no userid or password required)
+and you will get the Line Mode Browser.
 
 <H2>LineMode Browser</H2>
 
@@ -153,8 +167,8 @@ particular seup. You can specify your own <EM>HOME PAGE</EM> using the
 <CODE>NNTPSERVER</CODE> environment variable before you try to access
 a news server. <P>
 
-Online documentation is available <A HREF="/hypertext/WWW/LineMode/">
-http://www.w3.org/hypertext/WWW/LineMode/Status.html</A>. If you don't
+You can get more information from the is available at <A
+HREF="LineMode/">online documentation</A> <B>[3]</B> and if you don't
 have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
 or password required) and you will get the Line Mode Browser.
 
@@ -169,11 +183,11 @@ may be configured to do caching of documents resulting in faster
 response times. <P>
 
 Follow instructions above for compiling and then go on to "<A
-NAME="z9" HREF="/hypertext/WWW/Daemon/User/Installation/Installation.html">
+NAME="z9" HREF="Daemon/User/Installation/Installation.html">
 Installing the basic W3 server</A>". <P>
 
-Online documentation is available <A HREF="/hypertext/WWW/Daemon/Status.html">
-http://www.w3.org/hypertext/WWW/Daemon/Status.html</A>. If you don't
+You can get more information from the is available at <A
+HREF="Daemon/">online documentation</A> <B>[4]</B> and if you don't
 have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
 or password required) and you will get the Line Mode Browser.
 
@@ -193,13 +207,14 @@ should set up the address of your local news server with
 </PRE>
 
 replacing the last word with the actual address of your news host.
-See <A NAME="6" HREF="/hypertext/WWW/NextStep/Installation.html">Installation
+See <A NAME="6" HREF="NextStep/Installation.html">Installation
 instructions</A>. <P>
 
-Online documentation is available at <A HREF="/hypertext/WWW/NextStep/Status.html">
-http://www.w3.org/hypertext/WWW/NextStep/Status.html</A>. If you don't
-have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
-or password required) and you will get the Line Mode Browser.
+You can get more information from the is available at is available at
+<A HREF="NextStep/Status.html">online documentation</A> <B>[5]</B> and
+if you don't have a WWW client then telnet to
+<CODE>telnet.w3.org</CODE> (no userid or password required) and you
+will get the Line Mode Browser.
 
 <H2>Places to contact</H2>
 
@@ -207,11 +222,35 @@ If you encounter problems, would like to feed back suggestions good
 ideas etc. then please contact the following addresses:
 
 <UL>
-<LI><B><A HREF="mailto:libwww@w3.org">libwww@w3.org</A></B> regarding the Library of Common Code
+<LI><B><A HREF="mailto:libwww@w3.org">libwww@w3.org</A></B> regarding the W3C Reference Library
 <LI><B><A HREF="mailto:httpd@w3.org">httpd@w3.org</A></B> regarding the CERN HTTPD
 <LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the Line Mode Browser
 <LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the Next Browser/Editor
 </UL>
+
+<H2>Useful Pointers</H2>
+
+These are the locations where you can get more information.
+
+<H3>W3C Members</H3>
+
+<OL>
+<LI><A HREF="http://www.w3.org/member/WWW/Library/User/Platform/Porting.html">http://www.w3.org/member/WWW/Library/User/Platform/Porting.html</A>
+<LI><A HREF="http://www.w3.org/member/WWW/Library/">http://www.w3.org/member/WWW/Library/</A>
+<LI><A HREF="http://www.w3.org/member/WWW/LineMode/">http://www.w3.org/member/WWW/LineMode/</A>
+<LI><A HREF="http://www.w3.org/member/WWW/Daemon/">http://www.w3.org/member/WWW/Daemon/</A>
+<LI><A HREF="http://www.w3.org/member/WWW/NextStep/Status.html">http://www.w3.org/member/WWW/NextStep/Status.html</A>
+</OL>
+
+<H3>Other</H3>
+
+<OL>
+<LI><A HREF="http://www.w3.org/hypertext/WWW/Library/User/Platform/Porting.html">http://www.w3.org/hypertext/WWW/Library/User/Platform/Porting.html</A>
+<LI><A HREF="http://www.w3.org/hypertext/WWW/Library/">http://www.w3.org/hypertext/WWW/Library/</A>
+<LI><A HREF="http://www.w3.org/hypertext/WWW/LineMode/">http://www.w3.org/hypertext/WWW/LineMode/</A>
+<LI><A HREF="http://www.w3.org/hypertext/WWW/Daemon/">http://www.w3.org/hypertext/WWW/Daemon/</A>
+<LI><A HREF="http://www.w3.org/hypertext/WWW/NextStep/Status.html">http://www.w3.org/hypertext/WWW/NextStep/Status.html</A>
+</OL>
 
 <EM>Have fun!</EM>
 
