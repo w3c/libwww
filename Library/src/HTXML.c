@@ -84,7 +84,12 @@ PRIVATE int HTXML_write (HTStream * me, const char * buf, int len)
 	    me->state = HT_ERROR;
 	}
     }
-    return me->state;
+
+    /* 
+    **  We don't want to return an error here as this kills
+    **  a potential pipeline of requests we might have
+    */
+    return HT_OK;
 }
 
 PRIVATE int HTXML_putCharacter (HTStream * me, char c)
