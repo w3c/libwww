@@ -165,7 +165,7 @@ SPECIFIC = \
 	$(DOC)/Patch/*.fix \
 	$(WIN)/Makefile \
 	$(WIN)/*.pl \
-	$(EXP)/*.c
+	$(EXP)/*.c \
 	$(WIN)/*.mak \
 	$(WIN)/*.def \
 	$(WIN)/*.c \

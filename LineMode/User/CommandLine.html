@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Command Line Syntax for the Line Mode browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
 <NEXTID N="z29">
 </HEAD>
 
@@ -19,9 +19,11 @@ The generic syntax is:
 	www [ <A HREF="#z19" NAME="z20">options</A> ]  [ <A HREF="#z16"NAME="z14">docaddress</A> [ <A HREF="#z17" NAME="z18">keywords</A> ]]
 </PRE>
 
-With no arguments, and if the <A HREF="../" >Line Mode
-Browser</A> has not been <A HREF="Customisation.html">customized</A>
-then it automatically tries the following locations:
+<IMG ALT="NOTE" SRC="../../Icons/32x32/warning.gif"> Please note that some of the command line
+options have been moved to the new <A HREF="../../ComLine/">Command Line Tool</A>. <P>
+
+With no arguments, and if the <A HREF="../" >Line Mode Browser</A> has not been <A
+HREF="Customisation.html">customized</A> then it automatically tries the following locations:
 
 <OL>
 <LI>~/WWW/default.html
@@ -86,13 +88,6 @@ input from the standard input. This allows www to be used as a filter
 from html to plain text for example. Relative links in the input are
 parsed as though the address of the document was that of the home page
 (or docaddress if specified). Implies non-interactive mode.
-
-<DT><B>-cl</B>
-
-<DD>Counting content length of the output. This flag appends the
-Content-Length counter stream to the output stream so that everything
-is counted. This works exactly like piping the output into
-<EM>wc</EM>.
 
 <DT><B>-h</B> host
 <DD>Establish a telnet connection to the remote host specified. This
@@ -267,13 +262,8 @@ other aspects of the behavior of the browser. Many rule files may be
 given with successive -r options, and a default rule file name may be
 given using the <B>WWW_CONFIG</B> environment variable.
 
-<DT><B>-nt</B>
-
-<DD>In interactive mode the default behavior is to register a timeout
-function so that the user can see if a the Library actively is
-handling a request. The timeout handler is called every second and
-prints out a "." on the command line. If you don't want this feature
-then use the <B>-nt</B> (no timeout) flag.
+<DT><B>-timeout</B> &lt;n&gt;
+<DD>Timeout in seconds on sockets
 
 </DL>
 
