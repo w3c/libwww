@@ -8,82 +8,158 @@
 <A HREF="../"><IMG ALT="libwww" SRC="../../Icons/WWW/Lib48x" BORDER="0"></A>
 <IMG BORDER="0" SRC="../../Icons/WWW/relnotes48x" ALT="RELEASE">
 <H1>
-  Library 5.1 Release Notes
+  Libwww Release Notes
 </H1>
 <P>
-If you are reading the text version of this document then you can find a
-HTML version in
-<PRE>Library/User/ReleaseNotes.html
-</PRE>
-<P>
-The main features in this release are:
-<UL>
-  <LI>
-    Full HTTP/1.1 sample implementation
-  <LI>
-    Advanced use of HTTP/1.1 Pipelining and persistent connections
-  <LI>
-    Persistent cache manager
-</UL>
-<P>
-The focus for version 5.1 was to implement a high-performance HTTP/1.1 client
-used as a testbed for the
-"<A HREF="../../Protocols/HTTP/Performance/Pipeline.html">Network Performance
-Effects of HTTP/1.1, CSS1, and PNG</A>" paper. Note that this code is sample
-code so please take it as that and nothing more!
-<P>
-<IMG BORDER="0" SRC="../../Icons/32x32/caution" ALT="NOTE"> <B>Check out
-the latest &nbsp;<A HREF="Guide/">WWW APIs</A> and &nbsp;a complete
-<A HREF="Extrnals.html">list of public functions</A></B>
-<P>
-  <HR>
+This page describes the new features and bug fixes for all libwww releases.
+The list also includes the <A HREF="#latest">latest</A> changes that are
+<A HREF="../cvs.html">committed to and available from CVS </A>but not yet
+<A HREF="../cvs.html#Releases">in a release</A>.
 <H2>
   Release 5.1n (To be released)
 </H2>
-These are the things that are upcoming in the next release
-
+<P>
+These are the things that are upcoming in the next release.
 <H3>
   New Features
 </H3>
-
+<UL>
+  <LI>
+    Added support for version conflict detection in <A HREF="../../WinCom/">Web
+    Commander</A> (update all of WinCom area)
+  <LI>
+    The <A HREF="../../WinCom/">Web Commander</A> - the Win32 GUI PUT sample
+    application has been updated from the ground up - try it out!
+</UL>
 <H3>
   Bug Fixes
 </H3>
 <UL>
   <LI>
-    A close socket event wasn't registered on Windows. This is now
-    done in <A HREF="../src/HTHost.c">HTHost.c</A>.
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTTP.c?r1=1.163&amp;r2=1.164">Added
+    interrupt alert message</A> to <A HREF="../../src/HTTP.c">HTTP.c</A>
   <LI>
-    On some platforms, it is not possible to refer to function
-    addresses accrosss shared libraries. The result is that the libwww
-    API that uses function addresses don't always work. I have added
-    an opcode version of the <A HREF="../src/HTAlert.html">HTAlert
-    API</A> to handle this for user messages and progress
-    notifications.
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTFilter.c?r1=2.27&amp;r2=2.28">Added
+    alert message when status is 503 Retry</A> to the information filter in
+    <A HREF="../../src/HTFilter.c">HTFilter.c</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTFile.c?r1=1.146&amp;r2=1.147">The
+    last modified time is now stored in the anchor object when opening a local
+    file</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.143&amp;r2=1.144">Added
+    support for preconditions in the save document calls in HTAccess</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTBufWrt.c?r1=2.22&amp;r2=2.23">Deleted
+    unused variable in HTBufWrt.c</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTResponse.html?r1=2.8&amp;r2=2.9">Fixed
+    typo in function prototype in HTResponse.html</A>
+  <LI>
+    Made <TT>WWW_TraceFlag</TT> unsigned integer in
+    <A HREF="../src/HTUtils.html">HTUtils.html</A> (was signed) and changed order
+    in wwwsys.html so that netinet/in.h now is included before netinet/tcp.h
+    in wwwsys.html. This was a problem on RC6000.
+  <LI>
+    Put in a few checks for invalid function arguments (NULL etc.) in
+    <A HREF="../src/HTEscape.c">HTEscape.c</A> and
+    <A HREF="../src/HTParse.c">HTParse.c</A>
+  <LI>
+    Added explicit support for HTTP preconditions (the if-* headers) so that
+    they can now be turned on and off on a pr request basis. This affects
+    <A HREF="../src/HTReqMan.c">HTReqMan.c</A>
+    <A HREF="../src/HTReq.html">HTReq.html</A> and
+    <A HREF="../src/HTReqMan.html">HTReqMan.html</A>
+  <LI>
+    Changed the <A HREF="../src/HTFormat.html#encoding">encoding streamstack
+    builder</A> to support <EM>best matching</EM> (wildcard matching) capabilities.
+    This means that you now can register a default decoder like this:
+    <CODE>HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding, 0.3)</CODE>,
+    for example where <CODE>HTIdentityCoding</CODE> is a coder provided by libwww.
+    The quality indicates how much you like it (between 0.0 and 1.0)
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTProxy.c?r1=2.15&amp;r2=2.16">Now
+    also removes the after authentication filter is all proxies are
+    unregistered</A>
+  <LI>
+    Changed the progress notifications in HTAlert to also include
+    <B>Interrupted!</B> This affects
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTCache.c?r1=2.50&amp;r2=2.51">HTCache.c</A>
+    (a little),
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAlert.html?r1=2.51&amp;r2=2.52">HTAlert.html</A>
+    (and .h), and
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTDialog.c?r1=2.27&amp;r2=2.28">HTDialog.c</A>
+  <LI>
+    Moved the increment of bytes written (used in PUT) from the
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTBufWrt.c?r1=2.21&amp;r2=2.22">buffered
+    output steam </A>to the
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWriter.c?r1=2.50&amp;r2=2.51">unbuffered
+    output stream</A> which gives a more accurate reading.
+  <LI>
+    Bad typo bug when deleting before filters in
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTNet.c?r1=2.93&amp;r2=2.94">HTNetCall_addBefore</A>
+    which caused deletion problems in the Filter list
+  <LI>
+    Fixed a problem when PUT'ing to a non-existent host (or invalid portnumber)
+    in the
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.142&amp;r2=1.143">Save
+    Filter</A>. The cleanup is now made more cleanly.
+  <LI>
+    Moved the <B>Done!</B> progress notification into
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.87&amp;r2=2.88">HTMIME.c</A>
+    instead of in
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTReader.c?r1=2.24&amp;r2=2.25">HTReader.c</A>
+    as it no longer has much to do with closing the TCP connection.
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTChannl.c?r1=2.17&amp;r2=2.18">Made
+    sure that local files are closed when using ANSI C file descriptors</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWWWStr.c?r1=2.26&amp;r2=2.27">Fixed
+    bug in the conversion from URI to local Windows file in HTWWWToLocal()</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47">Fixed
+    problem in the template generation in the access authentication module</A>.
+    This can cause the authentication module to not find the credentials already
+    given.
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTHost.c?r1=2.46&amp;r2=2.47">Fixed
+    strange deletion of semaphore control for non-persistent connections</A>
+  <LI>
+    A close socket event wasn't registered on Windows. This is now done in
+    <A HREF="../src/HTHost.c">HTHost.c</A>.
+  <LI>
+    On some platforms, it is not possible to refer to function addresses across
+    shared libraries. The result is that the libwww API that uses function addresses
+    don't always work. I have added an opcode version of the
+    <A HREF="../src/HTAlert.html">HTAlert API</A> to handle this for user messages
+    and progress notifications.
 </UL>
-
 <H2>
   Release 5.1m May 21, 1998
 </H2>
-<P>
 <H3>
   New Features
 </H3>
 <UL>
   <LI>
+    Changed the <A HREF="../src/HTFormat.html#encoding">encoding
+    streamstack builder</A> to support <EM>best matching</EM>
+    capabilities. This means that you now can register a default
+    decoder like this: <CODE>HTFormat_addCoding("*", HTIdentityCoding,
+    HTIdentityCoding, 0.3)</CODE>, for example where
+    <CODE>HTIdentityCoding</CODE> is a coder provided by libwww.
+  <LI>
     Added support for <A HREF="../src/HTMIMERq.html">writing out <TT>Link:</TT>
     header fields</A> when <A HREF="../src/HTAccess.html">uploading a document</A>.
     The <TT>Link:</TT> header field is use to represent link relationship between
-    documents 
+    documents
   <LI>
     Changed <A HREF="../src/HTEscape.html">HTEscape</A> to deal with silly MSDos
     file type escaping of &nbsp;the drive name (using ":").
   <LI>
-    Added support for <A
-    HREF="../../ComLine/User/CommandLine.html#auth">automatic
-    authentication (!)</A> in the <a HREF="../../ComLine/">Command
-    Line</A> Tool so that it is now possile to authenticate from
-    scipts etc.
+    Added support for <A HREF="../../ComLine/User/CommandLine.html#auth">automatic
+    authentication (!)</A> in the <A HREF="../../ComLine/">Command Line</A> Tool
+    so that it is now possible to authenticate from scripts etc.
   <LI>
     <A HREF="../cvs.html">Direct access to the CVS repository</A> - checkout
     libwww and work with the latest version!
@@ -129,11 +205,11 @@ These are the things that are upcoming in the next release
 <UL>
   <LI>
     Fixed a bug in the <A href="../src/HTParse.html">generation of relative
-    URIs</A> which caused the creation of incorrecte relative URIs. Libwww uses
+    URIs</A> which caused the creation of incorrect relative URIs. Libwww uses
     relative URIs in the HTTP referer field and other places to save (often
     significant) amount of bandwidth.
   <LI>
-    Decreased mdefault max number of outstanding (pipelined) requests from 100
+    Decreased default max number of outstanding (pipelined) requests from 100
     to 50
   <LI>
     Does now check whether we get a broken pipe when writing to the network from
@@ -186,7 +262,7 @@ fixes that was discovered while working with the latest
 </H3>
 <UL>
   <LI>
-    <A HREF="Patch/5.1j/">These are the patches</A> that I have recieved for
+    <A HREF="Patch/5.1j/">These are the patches</A> that I have received for
     the current release. They will be applied to this upcoming release.
   <LI>
     Fixed a few bugs that make
@@ -211,8 +287,8 @@ fixes that was discovered while working with the latest
     The reason for this is that there are several places in the stram stack building
     algorithm where we might want to save the file to local file: when there
     is a content type that we don't understand, a content-encoding, or a
-    transfer-encoding (or a combiunation of these) that we don't understand.
-    Now we can make sure that the <CODE>SaveLocally</CODE> stream is only called
+    transfer-encoding (or a combination of these) that we don't understand. Now
+    we can make sure that the <CODE>SaveLocally</CODE> stream is only called
     once
   <LI>
     Added support for "<B>identity</B>" transfer-coding and content-coding
@@ -224,7 +300,7 @@ fixes that was discovered while working with the latest
 </H3>
 <UL>
   <LI>
-    Fixed a problem handling wrong HTTP responses from NCSA HTTPD dereived servers
+    Fixed a problem handling wrong HTTP responses from NCSA HTTPD derived servers
     (they don't include a version number when responding to an HTTP/1.1 request)
   <LI>
     PUT now works much more reliable, and it also works on Windows (at least

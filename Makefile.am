@@ -96,35 +96,35 @@ inc:
 #	Hypertext supplied in text format
 #
 $(top_srcdir)/WELCOME : $(top_srcdir)/WELCOME.html
-	-www -p -na $(top_srcdir)/WELCOME.html \
-		 -o $(top_srcdir)/WELCOME
+	  $(WWW) -p -na $(top_srcdir)/WELCOME.html \
+		   -o $(top_srcdir)/WELCOME
 
 $(top_srcdir)/README : $(top_srcdir)/README.html
-	-www -p -na $(top_srcdir)/README.html \
-		 -o $(top_srcdir)/README
+	  $(WWW) -p -na $(top_srcdir)/README.html \
+		   -o $(top_srcdir)/README
 
 $(top_srcdir)/INSTALL : $(top_srcdir)/INSTALL.html
-	-www -p -na $(top_srcdir)/INSTALL.html \
-		 -o $(top_srcdir)/INSTALL
+	  $(WWW) -p -na $(top_srcdir)/INSTALL.html \
+		   -o $(top_srcdir)/INSTALL
 
 $(top_srcdir)/TODO : $(top_srcdir)/Library/User/ToDo.html
-	-cp $(top_srcdir)/Library/User/ToDo.html $(top_srcdir)/TODO.html
-	-www -p -na $(top_srcdir)/TODO.html \
-		 -o $(top_srcdir)/TODO
+	  -$(CP) $(top_srcdir)/Library/User/ToDo.html $(top_srcdir)/TODO.html
+	  $(WWW) -p -na $(top_srcdir)/TODO.html \
+		   -o $(top_srcdir)/TODO
 
 $(top_srcdir)/NEWS : $(top_srcdir)/Library/User/ReleaseNotes.html
-	-cp $(top_srcdir)/Library/User/ReleaseNotes.html $(top_srcdir)/NEWS.html
-	-www -p -na $(top_srcdir)/NEWS.html \
-		 -o $(top_srcdir)/NEWS
+	  -$(CP) $(top_srcdir)/Library/User/ReleaseNotes.html $(top_srcdir)/NEWS.html
+	  $(WWW) -p -na $(top_srcdir)/NEWS.html \
+		   -o $(top_srcdir)/NEWS
 
 $(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
-	-www -p -na $(top_srcdir)/COPYRIGHT.html \
-		 -o $(top_srcdir)/COPYRIGH
+	  $(WWW) -p -na $(top_srcdir)/COPYRIGHT.html \
+		   -o $(top_srcdir)/COPYRIGH
 
 $(top_srcdir)/PATCHES : $(top_srcdir)/PATCHES.html
-	-www -p -na $(top_srcdir)/PATCHES.html \
-		 -o $(top_srcdir)/PATCHES
+	  $(WWW) -p -na $(top_srcdir)/PATCHES.html \
+		   -o $(top_srcdir)/PATCHES
 
 $(top_srcdir)/CERN : $(top_srcdir)/CERN.html
-	-www -p -na $(top_srcdir)/CERN.html \
-		 -o $(top_srcdir)/CERN
+	  $(WWW) -p -na $(top_srcdir)/CERN.html \
+		   -o $(top_srcdir)/CERN

@@ -17,18 +17,14 @@
  	Please first read the full copyright statement in the file COPYRIGH.
  
 </PRE>
+<UL>
+  <LI>
+    <A HREF="#Windows">Building on Windows</A>
+  <LI>
+    <A HREF="#Unix">Building on Unix</A>
+</UL>
 <P>
-These installation instructions are based on the suggested instructions provided
-with <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU Autoconf</A>.
-<P>
-The <I>configure</I> shell script attempts to guess correct values for various
-system-dependent variables used during compilation. It uses those values
-to create a `Makefile' and a `wwwconf.h' file containing system-dependent
-definitions. <B></B>Finally, it creates a shell script `config.status' that
-you can run in the future to recreate the current configuration, a file
-`config.cache' that saves the results of its tests to speed up reconfiguring,
-and a file `config.log' containing compiler output (useful mainly for debugging
-<I>configure</I>).
+  <HR>
 <H2>
   <A NAME="Windows">Building on Windows</A>
 </H2>
@@ -38,26 +34,10 @@ have a separate set of directions for doing this. We maintain a set of Microsoft
 Visual C make files which can be used directly if you want to use this compiler.
 We do not support help on any type of Windows based compiler including msvc,
 so be warned!
-<UL>
-  <LI>
-    <A HREF="Library/src/windows/libwww.mak">Libwww make file</A>
-  <LI>
-    <A HREF="PICS-client/src/windows/pics.mak">PICS Library make file</A>
-  <LI>
-    <A HREF="Robot/src/windows/webbot.mak">Robot Makefile</A>
-  <LI>
-    <A HREF="WinCom/WinCom.dsp">WinCom Makefile</A>
-  <LI>
-    <A HREF="ComLine/src/windows/comline.mak">Command Line Tool Makefile</A>
-  <LI>
-    <A HREF="LineMode/src/windows/www.mak">Line Mode Browser Makefile</A>
-</UL>
 <P>
-Stop here and jump to the <A HREF="Library/User/Patch/">Known Bugs and
-Patches</A> page to see if you need to apply any patches before you compile.
 You can find some options determining how libwww is going to be compiled
 in the special <A HREF="Library/src/windows/config.h">windows config.h
-file</A>.
+file</A>. Some of the important options are listed below:
 <H3>
   Zlib Support
 </H3>
@@ -114,6 +94,26 @@ can use a <A HREF="http://www.tcx.se/">MySQL database</A> for handling
 <A HREF="Robot/User/CommandLine.html#Logging">logging</A> instead of plain
 text files. This has a <A HREF="Robot/www-sql/">huge set of advantages</A>.
 <H3>
+  Compiling
+</H3>
+<P>
+The make files below can be loaded as MSVC <I>Work Spaces</I>. Open them
+and compile them in the order below.
+<UL>
+  <LI>
+    <A HREF="Library/src/windows/libwww.mak">Libwww make file</A>
+  <LI>
+    <A HREF="WinCom/WinCom.dsp">WinCom Makefile</A>
+  <LI>
+    <A HREF="Robot/src/windows/webbot.mak">Robot Makefile</A>
+  <LI>
+    <A HREF="ComLine/src/windows/comline.mak">Command Line Tool Makefile</A>
+  <LI>
+    <A HREF="PICS-client/src/windows/pics.mak">PICS Library make file</A>
+  <LI>
+    <A HREF="LineMode/src/windows/www.mak">Line Mode Browser Makefile</A>
+</UL>
+<H3>
   Detailed Installation
 </H3>
 <P>
@@ -128,14 +128,24 @@ please continue by reading the special documentation on
 You probably need the <A HREF="http://www.delorie.com/gnu/docs/make/">GNU
 version of make</A> in order to build libwww. The reason is that some of
 the make files contain some syntax that most other makefiles don't understand.
+These installation instructions are based on the suggested instructions provided
+with <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU Autoconf</A>.
 <P>
-Libwww uses <A
-HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
-Libtool</A> in order to build shared libraries on a variety of
-systems. While this is very nice for making usable binaries, it can be
-a pain when trying to debug a program. For that reason, compilation of
-shared libraries can be turned off by specifying the
-<CODE>--disable-shared</CODE> option to <CODE>configure</CODE>.
+The <I>configure</I> shell script attempts to guess correct values for various
+system-dependent variables used during compilation. It uses those values
+to create a `Makefile' and a `wwwconf.h' file containing system-dependent
+definitions. Finally, it creates a shell script `config.status' that you
+can run in the future to recreate the current configuration, a file
+`config.cache' that saves the results of its tests to speed up reconfiguring,
+and a file `config.log' containing compiler output (useful mainly for debugging
+<I>configure</I>).
+<P>
+Libwww uses <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
+Libtool</A> in order to build shared libraries on a variety of systems. While
+this is very nice for making usable binaries, it can be a pain when trying
+to debug a program. For that reason, compilation of shared libraries can
+be turned off by specifying the <CODE>--disable-shared</CODE> option to
+<CODE>configure</CODE>.
 <P>
 The simplest way to compile this package on a Unix platform is:
 <P>
