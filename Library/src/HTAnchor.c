@@ -139,7 +139,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
 */
 PUBLIC HTAnchor * HTAnchor_findAddress (const char * address)
 {
-    char *tag = HTParse (address, "", PARSE_ANCHOR);	        /* Any tags? */
+    char *tag = HTParse (address, "", PARSE_VIEW);	        /* Any tags? */
     
     /* If the address represents a sub-anchor, we recursively load its parent,
        then we create a child anchor within that document. */

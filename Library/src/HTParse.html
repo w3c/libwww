@@ -52,11 +52,15 @@ following are flag bits which may be OR'ed together to form a number to give
 the 'wanted' argument to HTParse. As an example we have the URL:
 "<CODE>http://www.w3.org/pub/WWW/TheProject.html#news</CODE>"
 <PRE>
-#define PARSE_ACCESS		16		/* Access scheme, e.g. "HTTP" */
-#define PARSE_HOST		 8		/* Host name, e.g. "www.w3.org" */
-#define PARSE_PATH		 4		/* URL Path, e.g. "pub/WWW/TheProject.html" */
-#define PARSE_ANCHOR		 2		/* Fragment identifier, e.g. "news" */
-#define PARSE_PUNCTUATION	 1		/* Include delimiters, e.g, "/" and ":" */
+#define PARSE_ACCESS		16	/* Access scheme, e.g. "HTTP" */
+#define PARSE_HOST		 8	/* Host name, e.g. "www.w3.org" */
+#define PARSE_PATH		 4	/* URL Path, e.g. "pub/WWW/TheProject.html" */
+
+#define PARSE_VIEW               2      /* Fragment identifier, e.g. "news" */
+#define PARSE_FRAGMENT           PARSE_VIEW
+#define PARSE_ANCHOR		 PARSE_VIEW
+
+#define PARSE_PUNCTUATION	 1	/* Include delimiters, e.g, "/" and ":" */
 #define PARSE_ALL		31
 </PRE>
 <P>

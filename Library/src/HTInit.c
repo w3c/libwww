@@ -259,7 +259,7 @@ PUBLIC void HTProtocolInit (void)
     HTProtocol_add("news",	"tcp",	NEWS_PORT,	NO, 	HTLoadNews,	NULL);
     HTProtocol_add("gopher",	"tcp",	GOPHER_PORT,	NO, 	HTLoadGopher,	NULL);
 #ifdef HT_DIRECT_WAIS
-    HTProtocol_add("wais",	"",	WAIS_PORT,	YES, 	HTLoadWAIS,	NULL);
+    HTProtocol_add("wais",	"tcp",	WAIS_PORT,	YES, 	HTLoadWAIS,	NULL);
 #endif
 #endif /* DECNET */
 #ifdef HT_MUX

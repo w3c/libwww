@@ -193,7 +193,7 @@ PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
 	}
     }
 		
-    if (wanted & PARSE_ANCHOR)
+    if (wanted & PARSE_VIEW)
 	if(given.fragment || related.fragment) {
 	    if(given.absolute && given.fragment) {   /*Fixes for relURLs...*/
 		if(wanted & PARSE_PUNCTUATION) strcat(result, "#");
