@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Command Line Syntax for the W3C Command Line Tool</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
 <NEXTID N="z29">
 </HEAD>
 
@@ -30,13 +30,10 @@ The order of the options is not important and options can in fact be specified o
 <DT><B>-help</B> or <B>-?</B>
 <DD>Load this file from directly into the browser
 <DT><B>-v [ a | b | c | g | p | s | t | u ] </B>
-<DD>Verbose mode: Gives a running commentary on the program's attempts
-to read data in various ways. This can also be turned on and off
-during normal execution, see <A HREF="Commands.html"
-NAME="z21">Existing Commands</A>. As the amount of verbose output from
-the Browser and the Library is substantial, the <CODE>-v</CODE> option
-can now be followed by zero, one or more of the following flags (without space) in
-order to differentiate the verbose output generated:
+<DD>Verbose mode: Gives a running commentary on the program's attempts to read data in various
+ways. As the amount of verbose output is substantial, the <CODE>-v</CODE> option can now be followed
+by zero, one or more of the following flags (without space) in order to differentiate the verbose
+output generated:
 
 <UL>
 <LI><B>a</B>: Anchor relevant information
@@ -111,17 +108,30 @@ non-interactive execution.
 
 <DL>
 <DT><B>-get</B> 
-<DD>Being implemented
+<DD>Gets a document. This is the default operation!
+
 <DT><B>-head</B> 
 <DD>Returns the header information (if any) but not the document
+
+<DT><B>-delete</B> 
+<DD>Deletes a resource (or makes it unavailable) for future references.
+
 <DT><B>-put</B>
-<DD>Being implemented
+<DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
+server (destination) using <B>PUT</B> method. You must indicate the destination using the
+<CODE>-dest</CODE> command line option.
+
 <DT><B>-post</B> 
-<DD>Being implemented
+<DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
+server (destination) using <B>POST</B> method. You must indicate the destination using the
+<CODE>-dest</CODE> command line option.
+
 <DT><B>-link</B> 
 <DD>Being implemented
+
 <DT><B>-unlink</B> 
 <DD>Being implemented
+
 </DL>
 
 <H3>Data format conversions (non-interactive)</H3>
@@ -184,6 +194,19 @@ makes selective directory listings and places a README file at the top
 
 </DL>
 
+<H3>Destination URL</H3>
+
+<DL>
+<DT><B>-dest</B>
+<DD>You can specify a (relative) destination URL, for example for the operations <CODE>PUT</CODE>
+and <CODE>POST</CODE> using this flag. For example:
+
+<PRE>
+	-dest http://myserver/newfiles/foo.html
+</PRE>
+
+</DL>
+
 <H3>Configuration Options</H3>
 
 <DL>
@@ -193,11 +216,10 @@ makes selective directory listings and places a README file at the top
 value is "www-log"
 
 <DT><B>-r</B> &lt;file&gt;
-<DD>Rule file, a.k.a. <A HREF="Config.html">configuration file</A>. If
-this is specified, a rule file may be used to map URLs, and to set up
-other aspects of the behavior of the browser. Many rule files may be
-given with successive -r options, and a default rule file name may be
-given using the <B>WWW_CONFIG</B> environment variable.
+<DD>Rule file, a.k.a. configuration file. If this is specified, a rule file may be used to map URLs,
+and to set up other aspects of the behavior of the browser. Many rule files may be given with
+successive -r options, and a default rule file name may be given using the <B>WWW_CONFIG</B>
+environment variable.
 
 <DT><B>-timeout</B>
 <DD>
@@ -206,14 +228,12 @@ given using the <B>WWW_CONFIG</B> environment variable.
 
 <H2><A NAME="z16">docaddress</A></H2>
 
-If present, the next argument (docaddress) is the <A
-HREF="../../Addressing/Addressing.html">hypertext address</A> , of the
-document at which you want to start browsing. You may want to define
-an alias for www followed by name of your favorite index. <H2><A
-NAME="z17">keywords</A></H2>Any further command line arguments are
-taken as keywords. The first argument must refer to an index in this
-case. The index is searched for entries matching the keywords, and a
-list of matching entries is displayed. 
+If present, the next argument (docaddress) is the <A HREF="../../Addressing/Addressing.html">
+hypertext address</A> , of the document at which you want to start browsing. You may want to define
+an alias for www followed by name of your favorite index. <H2><A NAME="z17">keywords</A></H2>Any
+further command line arguments are taken as keywords. The first argument must refer to an index in
+this case. The index is searched for entries matching the keywords, and a list of matching entries
+is displayed.
 
 <P>
 <HR>

@@ -40,14 +40,14 @@ OBJ = $(WTMP)/ComLine/$(WWW_MACH)
 LIB = $(WTMP)/Library/$(WWW_MACH)
 CMN = $(WWW)/Library/Implementation
 CL  = $(WWW)/ComLine/Implementation
-DOC = $(WWW)/ComLine/Defaults
+DOC = $(WWW)/ComLine/User
 ICON= $(WWW)/Icons
 VMS = $(CL)/vms
 WIN = $(CL)/windows
 BIN = $(WWW)/ComLine/$(WWW_MACH)
 LIBWWW = $(LIB)/libwww.a
 PROD= w3c
-FTP = /afs/w3.org/devel/Dist/ComLine
+FTP = /afs/w3.org/devel/Dist/comline
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(CL)
 LFLAGS2 = $(LFLAGS) -L$(LIB) $(WAISLIB) $(MATHLIB) -lwww
@@ -98,10 +98,7 @@ SPECIFIC = \
 	$(WIN)/*.mak \
 	$(WIN)/*.def \
 	$(WIN)/*.c \
-	$(WIN)/*.h \
-	$(VMS)/descrip.mms \
-	$(VMS)/build_multinet.com \
-	$(VMS)/setup.com
+	$(WIN)/*.h
 
 TOTAL =	$(LEGAL) \
 	$(SOURCES) \
