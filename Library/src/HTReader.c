@@ -235,8 +235,9 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	{
 	    int remaining = HTHost_remainingRead(host);
 	    if (remaining > 0) {
-		HTTrace("Read Socket. DIDN'T CONSUME %d BYTES: `%s\'\n",
-			remaining, me->read);
+		if (PROT_TRACE)
+		    HTTrace("Read Socket. DIDN'T CONSUME %d BYTES: `%s\'\n",
+			    remaining, me->read);
 		HTHost_setConsumed(host, remaining);
 	    }
 	}

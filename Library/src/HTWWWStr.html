@@ -54,6 +54,18 @@ Returns a pointer to the first word or NULL on error
 <PRE>
 extern char * HTNextPair (char ** pstr);
 </PRE>
+
+<H3>
+  Find next "/" Delimied Segment
+</H3>
+
+This is the same as HTNextField but it includes "/" as a delimiter.
+Returns	a pointer to the first segment or NULL on error
+
+<PRE>
+extern char * HTNextSegment (char ** pstr);
+</PRE>
+
 <H2>
   Next S-expression
 </H2>

@@ -845,7 +845,9 @@ PUBLIC BOOL HTHost_isIdle (HTHost * host)
 PRIVATE BOOL _roomInPipe (HTHost * host)
 {
     int count;
-    if (!host || host->reqsPerConnection && host->reqsMade >= host->reqsPerConnection)
+    if (!host ||
+	(host->reqsPerConnection && host->reqsMade >= host->reqsPerConnection) ||
+	HTHost_closeNotification(host))
 	return NO;
     count = HTList_count(host->pipeline);
     switch (host->mode) {

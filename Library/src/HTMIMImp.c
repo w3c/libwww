@@ -258,7 +258,21 @@ PUBLIC int HTMIME_link (HTRequest * request, HTResponse * response,
 PUBLIC int HTMIME_location (HTRequest * request, HTResponse * response,
 			    char * token, char * value)
 {
-    HTAnchor * redirection = HTAnchor_findAddress(HTStrip(value));
+    HTAnchor * redirection = NULL;
+    char * location = HTStrip(value);
+
+    /*
+    **  If not absolute URI (Error) then find the base
+    */
+    if (!HTURL_isAbsolute(location)) {
+	char * base = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
+	location = HTParse(location, base, PARSE_ALL);
+	redirection = HTAnchor_findAddress(location);
+	HT_FREE(base);
+	HT_FREE(location);
+    } else {
+	redirection = HTAnchor_findAddress(location);
+    }
     HTResponse_setRedirection(response, redirection);
     return HT_OK;
 }

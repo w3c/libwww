@@ -151,7 +151,7 @@ ones used by the line mode browser but you can just register something else.
 extern HTNetAfter HTAuthFilter;
 </PRE>
 <H3>
-  Request Logging filter
+  Request Common Log File Filter
 </H3>
 <P>
 Default Logging filter using the log manager provided by the
@@ -159,6 +159,17 @@ Default Logging filter using the log manager provided by the
 <PRE>
 extern HTNetAfter HTLogFilter;
 </PRE>
+
+<H3>
+  Request Referer Log File Filter
+</H3>
+<P>
+Default Referer Log filter using the log manager provided by the
+<A HREF="HTLog.html">Log Manager</A>.
+<PRE>
+extern HTNetAfter HTRefererFilter;
+</PRE>
+
 <PRE>
 #endif /* HTFILTER_H */
 </PRE>

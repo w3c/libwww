@@ -129,6 +129,50 @@ PUBLIC char * HTNextPair (char ** pstr)
     return start;
 }
 
+/*	Find next "/" delimied segment
+**	------------------------------
+**	This is the same as HTNextField but it includes "/" as a delimiter.
+**	Returns	a pointer to the first segment or NULL on error
+*/
+PUBLIC char * HTNextSegment (char ** pstr)
+{
+    char * p = *pstr;
+    char * start = NULL;
+    if (!pstr || !*pstr) return NULL;
+    while (1) {
+	/* Strip white space and other delimiters */
+	while (*p && (WHITE(*p) || *p==',' || *p==';' || *p=='=' || *p=='/')) p++;
+	if (!*p) {
+	    *pstr = p;
+	    return NULL;				   	 /* No field */
+	}
+
+	if (*p == '"') {				     /* quoted field */
+	    start = ++p;
+	    for(;*p && *p!='"'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
+	} else if (*p == '<') {				     /* quoted field */
+	    start = ++p;
+	    for(;*p && *p!='>'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
+	} else if (*p == '(') {					  /* Comment */
+	    for(;*p && *p!=')'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    p++;
+	} else {					      /* Spool field */
+	    start = p;
+	    while(*p && !WHITE(*p) && *p!=',' && *p!=';' && *p!='=' && *p!='/')
+		p++;
+	    break;						   /* Got it */
+	}
+    }
+    if (*p) *p++ = '\0';
+    *pstr = p;
+    return start;
+}
+
 /*
 **	Find the next s-expression token from a string of characters.
 **	We return the name of this expression and the param points to the

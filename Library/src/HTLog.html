@@ -54,6 +54,14 @@ be used on client side to track user behavior.
 extern BOOL HTLog_addCLF (HTLog * log, HTRequest * request, int status);
 </PRE>
 
+<H2>Log Referer Fields</H2>
+
+This functions logs the referer logs of where the user has been.
+
+<PRE>
+extern BOOL HTLog_addReferer (HTLog * log, HTRequest * request, int status);
+</PRE>
+
 <H2>Log the following line</H2>
 
 A generic logger - logs whatever you put in as the line. The caller

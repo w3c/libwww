@@ -617,8 +617,8 @@ PUBLIC int HTAuthFilter (HTRequest * request, HTResponse * response,
 }
 
 /*
-**	Request Loggin AFTER filter
-**	---------------------------
+**	Request Logging AFTER filter
+**	----------------------------
 **	Default Logging filter using the log manager provided by HTLog.c
 */
 PUBLIC int HTLogFilter (HTRequest * request, HTResponse * response,
@@ -627,6 +627,22 @@ PUBLIC int HTLogFilter (HTRequest * request, HTResponse * response,
     if (request) {
 	HTLog * log = (HTLog *) param;
 	if (log) HTLog_addCLF(log, request, status);
+	return HT_OK;
+    }
+    return HT_ERROR;
+}
+
+/*
+**	Request Referer AFTER filter
+**	----------------------------
+**	Default Referer Log filter using the log manager provided by HTLog.c
+*/
+PUBLIC int HTRefererFilter (HTRequest * request, HTResponse * response,
+			    void * param, int status)
+{
+    if (request) {
+	HTLog * log = (HTLog *) param;
+	if (log) HTLog_addReferer(log, request, status);
 	return HT_OK;
     }
     return HT_ERROR;

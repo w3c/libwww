@@ -33,6 +33,7 @@
 #define DEFAULT_RULE_FILE	"robot.conf"
 #define DEFAULT_LOG_FILE       	"robot.log"
 #define DEFAULT_HIT_FILE       	"robot.hit"
+#define DEFAULT_REFERER_FILE   	"robot.ref"
 #define DEFAULT_MEMLOG		"robot.mem"
 #define DEFAULT_PREFIX		""
 #define DEFAULT_DEPTH		0
@@ -74,6 +75,8 @@ typedef struct _Robot {
     char *		prefix;
     char *		logfile;
     HTLog *             log;
+    char *		reffile;
+    HTLog *             ref;
     char *		outputfile;
     FILE *	        output;
     char *		hitfile;
@@ -298,6 +301,7 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	    HTList_delete(me->htext);
 	}
 	if (me->log) HTLog_close(me->log);
+	if (me->ref) HTLog_close(me->ref);
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	if (me->flags & MR_TIME) {
 	    time_t local = time(NULL);
@@ -642,6 +646,11 @@ int main (int argc, char ** argv)
 		mr->hitfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_HIT_FILE;
 
+  	    /* referer file */
+	    } else if (!strcmp(argv[arg], "-referer")) {
+		mr->reffile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_REFERER_FILE;
+
             /* rule file */
 	    } else if (!strcmp(argv[arg], "-r")) {
 		mr->rules = (arg+1 < argc && *argv[arg+1] != '-') ?
@@ -800,10 +809,17 @@ int main (int argc, char ** argv)
 	if (flush) HTCache_flushAll();
     }
 
-    /* Log file specifed? */
+    /* CLF Log file specifed? */
     if (mr->logfile) {
         mr->log = HTLog_open(mr->logfile, YES, YES);
         if (mr->log) HTNet_addAfter(HTLogFilter, NULL, mr->log, HT_ALL, HT_FILTER_LATE);
+    }
+
+    /* Referer Log file specifed? */
+    if (mr->reffile) {
+        mr->ref = HTLog_open(mr->reffile, YES, YES);
+        if (mr->ref)
+	    HTNet_addAfter(HTRefererFilter, NULL, mr->ref, HT_ALL, HT_FILTER_LATE);
     }
 
     /* Register our own someterminater filter */

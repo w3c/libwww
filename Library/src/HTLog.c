@@ -88,15 +88,45 @@ PUBLIC BOOL HTLog_addCLF (HTLog * log, HTRequest * request, int status)
 	time_t now = time(NULL);	
 	HTParentAnchor * anchor = HTRequest_anchor(request);
 	char * uri = HTAnchor_address((HTAnchor *) anchor);
-	if (WWWTRACE) HTTrace("Log......... Writing log\n");
+	if (WWWTRACE) HTTrace("Log......... Writing CLF log\n");
 	fprintf(log->fp, "localhost - - [%s] %s %s %d %ld\n",
 		HTDateTimeStr(&now, log->localtime),
 		HTMethod_name(HTRequest_method(request)),
 		uri ? uri : "<null>",			/* Bill Rizzi */
-		status,
+		abs(status),
 		HTAnchor_length(anchor));
 	HT_FREE(uri);
 	return (fflush(log->fp) != EOF); /* Actually update it on disk */
+    }
+    return NO;
+}
+
+/*	Add entry to the referer log file
+**	---------------------------------
+**	
+**	which is almost equivalent to Common Logformat. Permissions on UNIX
+**	are modified by umask.
+**
+**	Returns YES if OK, NO on error
+*/
+PUBLIC BOOL HTLog_addReferer (HTLog * log, HTRequest * request, int status)
+{
+    if (log && log->fp && request) {
+	HTParentAnchor * parent_anchor = HTRequest_parent(request);
+	if (parent_anchor) {
+	    char * me = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
+	    char * parent = HTAnchor_address((HTAnchor *) parent_anchor);
+	    char * relative = HTParse(parent, me ? me : "",
+				      PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	    if (WWWTRACE) HTTrace("Log......... Writing Referer log\n");
+	    if (me && relative && *relative) {
+		fprintf(log->fp, "%s -> %s\n", parent, me);
+	    }
+	    HT_FREE(me);
+	    HT_FREE(parent);
+	    HT_FREE(relative);
+	    return (fflush(log->fp) != EOF); /* Actually update it on disk */
+	}
     }
     return NO;
 }
@@ -113,3 +143,5 @@ PUBLIC BOOL HTLog_addLine (HTLog * log, const char * line)
     }
     return NO;
 }
+
+

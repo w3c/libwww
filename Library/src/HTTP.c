@@ -314,7 +314,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -400;
 	break;
 
       case 401:
@@ -328,7 +328,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -402;
 	break;
 	
       case 403:							/* Forbidden */
@@ -342,14 +342,14 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -404;
 	break;
 	
       case 405:						      /* Not Allowed */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -405;
 	break;
 
       case 406:						  /* None Acceptable */
@@ -370,7 +370,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -408;
 	break;
 
       case 409:						  	 /* Conflict */
@@ -384,7 +384,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_GONE,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -410;
 	break;
 
       case 411:						  /* Length Required */
@@ -398,77 +398,77 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PRECON_FAILED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -412;
 	break;
 
       case 413:					 /* Request entity too large */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_TOO_BIG,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -413;
 	break;
 
       case 414:					     /* Request-URI too long */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_URI_TOO_BIG,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -414;
 	break;
 
       case 415:						      /* Unsupported */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_UNSUPPORTED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -415;
 	break;
 
       case 416:				    /* Request Range not satisfiable */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_RANGE,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -416;
 	break;
 
       case 417:				               /* Expectation Failed */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_EXPECTATION_FAILED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -417;
 	break;
 
       case 418:				        /* Reauthentication required */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_REAUTH,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -418;
 	break;
 
       case 419:				  /* Proxy Reauthentication required */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PROXY_REAUTH,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -419;
 	break;
 
       case 500:
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -500;
 	break;
 	
       case 501:
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -501;
 	break;
 
       case 502:
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -502;
 	break;
 
       case 503:
@@ -485,7 +485,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	    if (HTResponse_retryTime(response))
 		http->result = HT_RETRY;
 	    else
-		http->result = HT_ERROR;
+		http->result = -500;
 	}
 	break;
 
@@ -493,7 +493,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
         http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -504;
 	break;
 
       case 505:				     /* Unsupported protocol version */
@@ -514,7 +514,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 		   (void *) me->buffer, me->buflen, "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_ERROR;
+	http->result = -(me->status);
 	break;
     }
 }
@@ -567,11 +567,7 @@ PRIVATE int stream_pipe (HTStream * me)
     ** Thanks to Markku Savela <msa@msa.tte.vtt.fi>
 
     */
-#if 0
-    if (strncasecomp(me->buffer, "http/", 5)) {
-#else
     if (strncasecomp(me->buffer, "http", 4)) {
-#endif
 	int status;
 	HTRequest_addError(request, ERR_INFO, NO, HTERR_HTTP09,
 		   (void *) me->buffer, me->buflen, "HTTPStatusStream");
@@ -586,20 +582,33 @@ PRIVATE int stream_pipe (HTStream * me)
 	return status;
     } else {
 	HTResponse * response = HTRequest_response(request);
-	char *ptr = me->buffer+4;		       /* Skip the HTTP part */
-	me->version = HTNextField(&ptr);
+	char * ptr = me->buffer+5;		       /* Skip the HTTP part */
+	char * vptr = NULL;
+	int major = 0;
+	int minor = 0;
+	me->version = vptr = HTNextField(&ptr);
+	if (vptr) {
+	    major = (int) strtol(me->version, &vptr, 10);
+	    if (vptr++) minor = strtol(vptr, NULL, 10);
+	}
 
 	/* Here we want to find out when to use persistent connection */
-	if (!strncasecomp(me->version, "/1.0", 4)) {
-	    if (PROT_TRACE)HTTrace("HTTP Status. This is a HTTP/1.0 server\n");
+	if (major > 1) {
+	    if (PROT_TRACE)HTTrace("HTTP Status. Major version number is %d\n", major);
+	    me->target = HTErrorStream();
+	    me->status = 999999;
+	    HTTPNextState(me);					   /* Get next state */
+	    return HT_OK;
+	} else if (minor <= 0) {
+	    if (PROT_TRACE)HTTrace("HTTP Status. This is an HTTP/1.0 server\n");
 	    HTHost_setVersion(host, HTTP_10);
-	} else if (!strncasecomp(me->version, "/1.", 3)) {     /* 1.x family */
-	    HTHost_setVersion(host, HTTP_11);
+	} else {					/* 1.x, x>0 family */
+	    HTHost_setVersion(host, HTTP_11);		/* Best we can do */
 #ifdef HT_MUX
 	    HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);
 #else
 	    if (ConnectionMode & HTTP_NO_PIPELINING) {
-		if (PROT_TRACE) HTTrace("HTTP........ Mode is HTTP/1.1 WITH NO PIPELINING\n");
+		if (PROT_TRACE) HTTrace("HTTP........ Mode is HTTP/1.x WITH NO PIPELINING\n");
 		HTNet_setPersistent(net, YES, HT_TP_SINGLE);
 	    } else if (ConnectionMode & HTTP_FORCE_10) {
 		if (PROT_TRACE) HTTrace("HTTP........ Mode is FORCE HTTP/1.0\n");
@@ -608,9 +617,6 @@ PRIVATE int stream_pipe (HTStream * me)
 	    } else
 		HTNet_setPersistent(net, YES, HT_TP_PIPELINE);
 #endif /* HT_MUX */
-	} else { 
-	    if (PROT_TRACE)HTTrace("HTTP Status. No 1.x version number - treat it as a HTTP/1.0 server\n");
-	    HTHost_setVersion(host, HTTP_10);
 	}
 
 	me->status = atoi(HTNextField(&ptr));
