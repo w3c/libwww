@@ -1,7 +1,7 @@
 <HTML>
 <HEADER>
 <TITLE>Architecture - Anchors</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 30-Jun-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Jul-1995 -->
 <NEXTID N="5">
 </HEADER>
 <BODY>
@@ -25,16 +25,17 @@ one, or many links and it may be the destination of zero, one, or many
 links. That is, any anchor can point to and be pointed to by any
 number of links. Having an anchor being the source of many links is
 often used in the POST method, where for example the same data object
-is to posted to a News group, a mailing list and a HTTP server. This
-is explained in the section "<A HREF="PostWeb.html">Building a POST
-Web, an API for PUT and POST</A>"<P>
+is to be posted to a News group, a mailing list and a HTTP
+server. This is explained in the section "<A
+HREF="PostWeb.html">Building a POST Web, an API for PUT and
+POST</A>"<P>
 
-Every request and hence every data object has an anchor associated
-with it. Anchors exist throughout the lifetime of the application, but
-as this generally is not the case for data objects, it is possible to
-have an anchor without a data object. If the data object is stored in
-the file cache or in memory, the parent anchor contains a link to it
-so the applications can access it either directly or through the <A
+Every data object has an anchor associated with it. Anchors exist
+throughout the lifetime of the application, but as this generally is
+not the case for data objects, it is possible to have an anchor
+without a data object. If the data object is stored in the file cache
+or in memory, the parent anchor contains a link to it so the
+application can access it either directly or through the <A
 HREF="Overview.html#ClientCache">file cache manager</A>. There are two
 types of anchors in the Library:<P>
 
@@ -43,15 +44,13 @@ types of anchors in the Library:<P>
 
 <DD>Represents whole data objects. That is, the destination of a link
 pointing to a parent anchor is the full contents of the data object.
-A parent anchor is made the destination of a link by making a HREF
-without any "#" and a tag appended to the URI. Parent anchors are used
-to store all information about a data object, for example the content
-type, language, and length.
+Parent anchors are used to store all information about a data object,
+for example the content type, language, and length.
 
 <DT><EM>child anchors</EM>
 
-<DD>Represents subparts of a data object. A subpart is declared by
-making a NAME tag in the anchor declaration. A child anchor is the
+<DD>Represents a subpart of a data object. A subpart is declared by
+making a NAME tag in the anchor declaration and a child anchor is the
 destination of a link if the HREF link declaration contains a "#" and
 a tag appended to the URI. Child anchors do not contain any
 information about the data object itself. They only keep a handle (or
