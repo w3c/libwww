@@ -407,7 +407,6 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	if (ptr) *ptr = '\0';
 #endif
         PUTS("Host: ");
-#ifdef LIBWWW_USEIDN
     /****** still have to check UTF8toACE with port number */
     if (!HTACEfromUTF8 (host, hostace, 255)) {
 	    PUTS(hostace);
@@ -416,9 +415,6 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTS(host); /* this may be dangerous, but helps server side debugging */
         HTTRACE(PROT_TRACE, "HTTP........ Error: Cannot convert to ACE: `%s\'\n", host);
 	}
-#else
-	PUTS(host);
-#endif
 	PUTBLOCK(crlf, 2);
 	HT_FREE(orig);
 	HT_FREE(host);
