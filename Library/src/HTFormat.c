@@ -200,23 +200,27 @@ PRIVATE BOOL wild_match ARGS2(HTAtom *,	template,
     char *t, *a, *st, *sa;
     BOOL match = NO;
 
-    if (template && actual &&
-	(t = HTAtom_name(template)) && strchr(t, '*') &&
-	(a = HTAtom_name(actual)) &&
-	(st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
-	
-	*sa = 0;
-	*st = 0;
+    if (template && actual && (t = HTAtom_name(template))) {
+	if (!strcmp(t, "*"))
+	    return YES;
 
-	if ((*(st-1)=='*' &&
-	     (*(st+1)=='*' || !strcasecomp(st+1, sa+1))) ||
-	    (*(st+1)=='*' && !strcasecomp(t,a)))
-	    match = YES;
+	if (strchr(t, '*') &&
+	    (a = HTAtom_name(actual)) &&
+	    (st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
 
-	*sa = '/';
-	*st = '/';
-    }    
-    return match;
+	    *sa = 0;
+	    *st = 0;
+
+	    if ((*(st-1)=='*' &&
+		 (*(st+1)=='*' || !strcasecomp(st+1, sa+1))) ||
+		(*(st+1)=='*' && !strcasecomp(t,a)))
+		match = YES;
+
+	    *sa = '/';
+	    *st = '/';
+	}    
+	return match;
+    }
 }
 
 
