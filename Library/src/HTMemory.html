@@ -126,7 +126,8 @@ diretly from this function. Otherwise, the default behavior is to
 write a small message to stderr and then exit.
 
 <PRE>
-#define HT_OUTOFMEM(name) HTMemory_outofmem(name, __FILE__, __LINE__)
+#define outofmem(file, name)	HT_OUTOFMEM(name)
+#define HT_OUTOFMEM(name)	HTMemory_outofmem((name), __FILE__, __LINE__)
 
 extern void HTMemory_outofmem(char * name, char * file, unsigned long line);
 </PRE>

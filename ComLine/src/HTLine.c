@@ -416,6 +416,7 @@ int main (int argc, char ** argv)
 		      case 'b': WWWTRACE |= SHOW_BIND_TRACE; break;
 		      case 'c': WWWTRACE |= SHOW_CACHE_TRACE; break;
 		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
+		      case 'm':	WWWTRACE |= SHOW_MEM_TRACE; break;
 		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
 		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
 		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;
