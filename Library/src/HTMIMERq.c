@@ -105,13 +105,14 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
-    if (EntityMask & HT_E_CONTENT_TYPE && entity->content_type &&
-	entity->content_type != WWW_UNKNOWN) {
+    if (EntityMask & HT_E_CONTENT_TYPE && entity->content_type) {
+	HTFormat format = entity->content_type != WWW_UNKNOWN ?
+	    entity->content_type : WWW_BINARY;
 	HTAssocList * parameters = HTAnchor_formatParam(entity);
 
 	/* Output the content type */
 	PUTS("Content-Type: ");
-	PUTS(HTAtom_name(entity->content_type));
+	PUTS(HTAtom_name(format));
 
 	/* Add all parameters */
 	if (parameters) {
@@ -181,7 +182,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	HTList * cc = HTAnchor_encoding(entity);
 	if (cc) {
 	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
-	    me->target = HTContentDecodingStack(cc, me->target, request, NULL);
+	    me->target = HTContentEncodingStack(cc, me->target, request, NULL);
 	}
     }
 

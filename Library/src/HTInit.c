@@ -264,8 +264,13 @@ PUBLIC void HTProtocolInit (void)
 #else
     HTProtocol_add("http", 	"buffered_tcp", HTTP_PORT,	NO,	HTLoadHTTP,	NULL);
 #endif /* !HT_MUX */
-    HTProtocol_add("file", 	"local", 	0, 		NO, 	HTLoadFile, 	NULL);
-    HTProtocol_add("cache", 	"local", 	0, 		NO, 	HTLoadCache, 	NULL);
+#ifndef NO_UNIX_IO
+    HTProtocol_add("file", 	"local", 	0, 	NO, 	HTLoadFile, 	NULL);
+    HTProtocol_add("cache", 	"local", 	0, 	NO, 	HTLoadCache, 	NULL);
+#else
+    HTProtocol_add("file", 	"local", 	0, 	YES, 	HTLoadFile, 	NULL);
+    HTProtocol_add("cache", 	"local", 	0, 	YES, 	HTLoadCache, 	NULL);
+#endif
     HTProtocol_add("telnet", 	"", 		0,	YES, 	HTLoadTelnet, 	NULL);
     HTProtocol_add("tn3270", 	"", 		0,	YES, 	HTLoadTelnet, 	NULL);
     HTProtocol_add("rlogin", 	"", 		0,	YES, 	HTLoadTelnet, 	NULL);

@@ -286,7 +286,8 @@ int main (int argc, char ** argv)
 		    argv[++arg] : DEFAULT_LOG_FILE;
 
 	    /* Max forward hops in case of TRACE request */
-	    } else if (!strcmp(argv[arg], "-hops")) {
+	    } else if (!strcmp(argv[arg], "-hops") ||
+		       !strcmp(argv[arg], "-maxforwards")) {
 		int hops = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_HOPS;
 		if (hops >= 0) HTRequest_setMaxForwards(cl->request, hops);

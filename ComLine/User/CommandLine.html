@@ -153,7 +153,7 @@ execution.
     <B>-trace</B>
   <DD>
     Ask for trace messages for this URL. You can supply the number of hop counts
-    with the additional <B>-hops</B> command line option
+    with the additional <A HREF="#mf"><B>-maxforwards</B></A> command line option
 </DL>
 <H3>
   Data format conversions (non-interactive)
@@ -235,6 +235,10 @@ execution.
   <DD>
     Specifies a log file with a list of visited documents. The default value
     is "www-log"
+  <DT>
+    <A NAME="mf"><B>-maxforwards</B></A> &lt;n&gt;
+  <DD>
+    Max forwards to be used with the TRACE method
   <DT>
     <B>-r</B> &lt;file&gt;
   <DD>

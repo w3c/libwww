@@ -7,8 +7,6 @@ w3c_LDADD = ../../Library/src/libwww.a -lm
 w3c_DEPENDENCIES = \
 	../../Library/src/libwww.a
 
-AUTOMAKE_OPTIONS = foreign
-
 SUBDIRS = windows
 
 INCLUDES = -I$(srcdir)/../../Library/src
@@ -35,5 +33,9 @@ PURIFY_CACHE = @PURIFY_CACHE@
 
 purify: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \
+	$(LINK) $(w3c_OBJECTS) $(w3c_LDADD) $(LIBS)
+
+insure: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
+	insure -static \
 	$(LINK) $(w3c_OBJECTS) $(w3c_LDADD) $(LIBS)
 

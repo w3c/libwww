@@ -56,6 +56,7 @@ typedef struct _file_info {
     char *		local;		/* Local representation of file name */
     struct stat		stat_info;	      /* Contains actual file chosen */
     HTNet *		net;
+    HTTimer *		timer;
 } file_info;
 
 struct _HTStream {
@@ -300,6 +301,14 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 	HTRequest_setInputStream(req, NULL);
     }
 
+    /*
+    **  Remove if we have registered an upload function as a callback
+    */
+    if (file->timer) {
+	HTTimer_delete(file->timer);
+	file->timer = NULL;
+    }
+
     if (file) {
 	HT_FREE(file->local);
 	HT_FREE(file);
@@ -336,8 +345,26 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request)
     HTNet_setEventCallback(net, FileEvent);
     HTNet_setEventParam(net, file);  /* callbacks get http* */
 
-    return FileEvent(soc, file, HTEvent_BEGIN);		/* get it started - ops is ignored */
+    return FileEvent(soc, file, HTEvent_BEGIN);	    /* get it started - ops is ignored */
 }
+
+PRIVATE int ReturnEvent (HTTimer * timer, void * param, HTEventType type)
+{
+    file_info * file = (file_info *) param;
+    if (timer != file->timer) HTDebugBreak();
+    if (PROT_TRACE) HTTrace("HTLoadFile.. Continuing %p with timer %p\n", file, timer);
+
+    /*
+    **  Delete the timer
+    */
+    file->timer = NULL;
+
+    /*
+    **  Now call the event again
+    */
+    return FileEvent(INVSOC, file, HTEvent_READ);
+}
+
 
 PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 {
@@ -492,19 +519,24 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 				   "HTLoadFile");
 		file->state = FS_NEED_BODY;
 
-#ifndef NO_UNIX_IO
 		/* If we are _not_ using preemptive mode and we are Unix fd's
 		** then return here to get the same effect as when we are
 		** connecting to a socket. That way, HTFile acts just like any
 		** other protocol module even though we are in fact doing
 		** blocking connect
 		*/
-		if (!HTNet_preemptive(net)) {
-		    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
+		if (HTNet_preemptive(net)) {
+		    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
+		    if (!file->timer) {
+			ms_t exp = HTGetTimeInMillis() + 1;
+			file->timer = HTTimer_new(NULL, ReturnEvent, file, exp, NO);
+		    }
+		    return HT_OK;
+		} else {
+		    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
 		    HTHost_register(HTNet_host(net), net, HTEvent_READ);
 		    return HT_OK;
 		}
-#endif
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else {

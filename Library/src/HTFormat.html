@@ -453,7 +453,8 @@ We also define a macro to find out whether a content encoding is really
 an encoding or whether it is a unity encoder.
 <PRE>
 #define HTFormat_isUnityContent(me) \
-	((me)==NULL)
+	((me)==NULL \
+	|| (me)==WWW_CTE_BINARY || (me)==WWW_CTE_7BIT || (me)==WWW_CTE_8BIT)
 </PRE>
 <H3>
   Global Transfer Codings
@@ -473,7 +474,7 @@ binary.
 <PRE>
 #define HTFormat_isUnityTransfer(me) \
 	((me)==NULL \
-	|| (me)==WWW_CTE_BINARY ||  (me)==WWW_CTE_7BIT || (me)==WWW_CTE_8BIT)
+	|| (me)==WWW_CTE_BINARY || (me)==WWW_CTE_7BIT || (me)==WWW_CTE_8BIT)
 </PRE>
 <H3>
   Global Content Languages

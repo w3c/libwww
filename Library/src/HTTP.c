@@ -188,6 +188,8 @@ PRIVATE BOOL HTTPInformation (HTStream * me)
     return NO;
 }
 
+
+
 /*
 **	This is a big switch handling all HTTP return codes. It puts in any
 **	appropiate error message and decides whether we should expect data
@@ -196,342 +198,365 @@ PRIVATE BOOL HTTPInformation (HTStream * me)
 PRIVATE void HTTPNextState (HTStream * me)
 {
     http_info * http = me->http;
-    switch (me->status) {
+    int error_class = me->status / 100;
+    switch (error_class) {
 
-      case 0:						     /* 0.9 response */
-      case 200:							       /* OK */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_OK,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_LOADED;
-	break;
+    case 0:							     /* 0.9 response */
+    case 2:
 
-      case 201:							  /* Created */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CREATED,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_CREATED;
-	break;
+	switch (me->status) {
 
-      case 202:							 /* Accepted */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_ACCEPTED,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_ACCEPTED;
-	break;
+	case 201:							  /* Created */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CREATED,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_CREATED;
+	    break;
 
-      case 203:				    /* Non-authoritative information */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NON_AUTHORITATIVE,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_LOADED;
-	break;
+	case 202:							 /* Accepted */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_ACCEPTED,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_ACCEPTED;
+	    break;
 
-      case 204:						      /* No Response */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NO_CONTENT,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_NO_DATA;
-	break;
+	case 203:				    /* Non-authoritative information */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NON_AUTHORITATIVE,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_LOADED;
+	    break;
 
-      case 205:						    /* Reset Content */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_RESET,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_RESET_CONTENT;
-	break;
+	case 204:						      /* No Response */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NO_CONTENT,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_NO_DATA;
+	    break;
 
-      case 206:						  /* Partial Content */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_PARTIAL_CONTENT;
-	break;
+	case 205:						    /* Reset Content */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_RESET,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_RESET_CONTENT;
+	    break;
 
-      case 207:						/* Partial Update OK */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL_OK,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_PARTIAL_CONTENT;
-	break;
+	case 206:						  /* Partial Content */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_PARTIAL_CONTENT;
+	    break;
 
-      case 300:						 /* Multiple Choices */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_MULTIPLE,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_LOADED;
-	break;
+	case 207:						/* Partial Update OK */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL_OK,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_PARTIAL_CONTENT;
+	    break;
 
-      case 301:						   	    /* Moved */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_MOVED,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_PERM_REDIRECT;
-	break;
-
-      case 302:							    /* Found */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_FOUND,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_FOUND;
-	break;
-	
-      case 303:							   /* Method */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_METHOD,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_SEE_OTHER;
-	break;
-
-      case 304:						     /* Not Modified */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NOT_MODIFIED,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_OK;
-	http->result = HT_NOT_MODIFIED;
-	break;
-	
-      case 305:						        /* Use proxy */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_USE_PROXY,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_USE_PROXY;
-	break;
-	
-#if 0
-      case 306:						        /* Use proxy */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PROXY_REDIRECT,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_USE_PROXY;
-	break;
-#endif
-
-      case 307:						        /* Use proxy */
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_TEMP_REDIRECT,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_TEMP_REDIRECT;
-	break;
-	
-      case 400:						      /* Bad Request */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -400;
-	break;
-
-      case 401:
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_NO_ACCESS;
-	break;
-	
-      case 402:						 /* Payment required */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -402;
-	break;
-	
-      case 403:							/* Forbidden */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_FORBIDDEN;
-	break;
-	
-      case 404:							/* Not Found */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -404;
-	break;
-	
-      case 405:						      /* Not Allowed */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -405;
-	break;
-
-      case 406:						  /* None Acceptable */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NONE_ACCEPTABLE,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_NOT_ACCEPTABLE;
-	break;
-
-      case 407:			       	    /* Proxy Authentication Required */
-	HTRequest_addError(me->request, ERR_FATAL, NO,HTERR_PROXY_UNAUTHORIZED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_NO_PROXY_ACCESS;
-	break;
-
-      case 408:						  /* Request Timeout */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -408;
-	break;
-
-      case 409:						  	 /* Conflict */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_CONFLICT,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_CONFLICT;
-	break;
-
-      case 410:						  	     /* Gone */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_GONE,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -410;
-	break;
-
-      case 411:						  /* Length Required */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_LENGTH_REQUIRED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = HT_LENGTH_REQUIRED;
-	break;
-
-      case 412:					      /* Precondition failed */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PRECON_FAILED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -412;
-	break;
-
-      case 413:					 /* Request entity too large */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_TOO_BIG,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -413;
-	break;
-
-      case 414:					     /* Request-URI too long */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_URI_TOO_BIG,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -414;
-	break;
-
-      case 415:						      /* Unsupported */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_UNSUPPORTED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -415;
-	break;
-
-      case 416:				    /* Request Range not satisfiable */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_RANGE,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -416;
-	break;
-
-      case 417:				               /* Expectation Failed */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_EXPECTATION_FAILED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -417;
-	break;
-
-      case 418:				        /* Reauthentication required */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_REAUTH,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -418;
-	break;
-
-      case 419:				  /* Proxy Reauthentication required */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PROXY_REAUTH,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -419;
-	break;
-
-      case 500:
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -500;
-	break;
-	
-      case 501:
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -501;
-	break;
-
-      case 502:
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-	http->result = -502;
-	break;
-
-      case 503:
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_DOWN,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	http->next = HTTP_ERROR;
-
-	/*
-	** If Retry-After header is found then return HT_RETRY else HT_ERROR.
-	** The caller may want to reissue the request at a later point in time.
-	*/
-	{
-	    HTResponse * response = HTRequest_response(me->request);
-	    if (HTResponse_retryTime(response))
-		http->result = HT_RETRY;
-	    else
-		http->result = -500;
+	default:
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_OK,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_LOADED;
+	    break;
 	}
 	break;
 
-      case 504:
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-        http->next = HTTP_ERROR;
-	http->result = -504;
+    case 3:
+
+	switch (me->status) {
+
+	case 301:						   	    /* Moved */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_MOVED,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_PERM_REDIRECT;
+	    break;
+
+	case 302:							    /* Found */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_FOUND,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_FOUND;
+	    break;
+	
+	case 303:							   /* Method */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_METHOD,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_SEE_OTHER;
+	    break;
+
+	case 304:						     /* Not Modified */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NOT_MODIFIED,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_NOT_MODIFIED;
+	    break;
+	
+	case 305:						        /* Use proxy */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_USE_PROXY,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_USE_PROXY;
+	    break;
+	
+#if 0
+	case 306:						        /* Use proxy */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PROXY_REDIRECT,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_USE_PROXY;
+	    break;
+#endif
+
+	case 307:						        /* Use proxy */
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_TEMP_REDIRECT,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_TEMP_REDIRECT;
+	    break;
+
+	default:
+	    HTRequest_addError(me->request, ERR_INFO, NO, HTERR_MULTIPLE,
+			       me->reason, (int) strlen(me->reason),
+			       "HTTPNextState");
+	    http->next = HTTP_OK;
+	    http->result = HT_LOADED;
+	    break;
+	}	
 	break;
 
-      case 505:				     /* Unsupported protocol version */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_VERSION,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-        http->next = HTTP_ERROR;
-	http->result = HT_BAD_VERSION;
+    case 4:
+
+	switch (me->status) {
+	case 401:
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_NO_ACCESS;
+	    break;
+	
+	case 402:						 /* Payment required */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -402;
+	    break;
+	
+	case 403:							/* Forbidden */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_FORBIDDEN;
+	    break;
+	
+	case 404:							/* Not Found */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -404;
+	    break;
+	
+	case 405:						      /* Not Allowed */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -405;
+	    break;
+
+	case 406:						  /* None Acceptable */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NONE_ACCEPTABLE,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_NOT_ACCEPTABLE;
+	    break;
+
+	case 407:			       	    /* Proxy Authentication Required */
+	    HTRequest_addError(me->request, ERR_FATAL, NO,HTERR_PROXY_UNAUTHORIZED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_NO_PROXY_ACCESS;
+	    break;
+
+	case 408:						  /* Request Timeout */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -408;
+	    break;
+
+	case 409:						  	 /* Conflict */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_CONFLICT,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_CONFLICT;
+	    break;
+
+	case 410:						  	     /* Gone */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_GONE,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -410;
+	    break;
+
+	case 411:						  /* Length Required */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_LENGTH_REQUIRED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_LENGTH_REQUIRED;
+	    break;
+
+	case 412:					      /* Precondition failed */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PRECON_FAILED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -412;
+	    break;
+
+	case 413:					 /* Request entity too large */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_TOO_BIG,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -413;
+	    break;
+
+	case 414:					     /* Request-URI too long */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_URI_TOO_BIG,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -414;
+	    break;
+
+	case 415:						      /* Unsupported */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_UNSUPPORTED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -415;
+	    break;
+
+	case 416:				    /* Request Range not satisfiable */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_RANGE,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -416;
+	    break;
+
+	case 417:				               /* Expectation Failed */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_EXPECTATION_FAILED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -417;
+	    break;
+
+	case 418:				        /* Reauthentication required */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_REAUTH,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -418;
+	    break;
+
+	case 419:				  /* Proxy Reauthentication required */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PROXY_REAUTH,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -419;
+	    break;
+
+	default:
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -400;
+	    break;
+	}
 	break;
 
-      case 506:				   /* Partial update Not Implemented */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NO_PARTIAL_UPDATE,
-		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-        http->next = HTTP_ERROR;
-	http->result = HT_BAD_VERSION;
+    case 5:
+
+	switch (me->status) {
+	case 501:
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -501;
+	    break;
+
+	case 502:
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -502;
+	    break;
+
+	case 503:
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_DOWN,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+
+	    /*
+	    ** If Retry-After header is found then return HT_RETRY else HT_ERROR.
+	    ** The caller may want to reissue the request at a later point in time.
+	    */
+	    {
+		HTResponse * response = HTRequest_response(me->request);
+		if (HTResponse_retryTime(response))
+		    http->result = HT_RETRY;
+		else
+		    http->result = -500;
+	    }
+	    break;
+
+	case 504:
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -504;
+	    break;
+
+	case 505:				     /* Unsupported protocol version */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_VERSION,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_BAD_VERSION;
+	    break;
+
+	case 506:				   /* Partial update Not Implemented */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NO_PARTIAL_UPDATE,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = HT_BAD_VERSION;
+	    break;
+
+	default:						       /* bad number */
+	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
+			       me->reason, (int) strlen(me->reason), "HTTPNextState");
+	    http->next = HTTP_ERROR;
+	    http->result = -500;
+	    break;
+	}
 	break;
 
-      default:						       /* bad number */
+    default:
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
-		   (void *) me->buffer, me->buflen, "HTTPNextState");
+			   (void *) me->buffer, me->buflen, "HTTPNextState");
 	http->next = HTTP_ERROR;
 	http->result = -(me->status);
 	break;
@@ -604,10 +629,9 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	if (major > 1) {
 	    if (PROT_TRACE)HTTrace("HTTP Status. Major version number is %d\n", major);
 	    me->target = HTErrorStream();
-	    me->status = 999999;
+	    me->status = 9999;
 	    HTTPNextState(me);					   /* Get next state */
-	    if (length > 0) HTHost_setConsumed(host, length);
-	    return HT_OK;
+	    return HT_ERROR;
 	} else if (minor <= 0) {
 	    if (PROT_TRACE)HTTrace("HTTP Status. This is an HTTP/1.0 server\n");
 	    HTHost_setVersion(host, HTTP_10);
@@ -630,9 +654,6 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	}
 
 	me->status = atoi(HTNextField(&ptr));
-	/* Kludge to fix the NCSA server version bug */
-	if (me->status == 0) me->status = atoi(me->version);
-
 	me->reason = ptr;
 	if ((ptr = strchr(me->reason, '\r')) != NULL)	  /* Strip \r and \n */
 	    *ptr = '\0';
