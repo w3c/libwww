@@ -1146,4 +1146,6 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
     return HT_LOADED;
 }
 
-GLOBALDEF PUBLIC HTProtocol HTNews = { "news", HTLoadNews, NULL, NULL};
+GLOBALDEF PUBLIC HTProtocol HTNews = {
+    "news", SOC_BLOCK, HTLoadNews, NULL, NULL
+};

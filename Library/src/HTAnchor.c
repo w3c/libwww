@@ -111,8 +111,10 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
     parent->children = HTList_new ();
 
   child = HTChildAnchor_new ();
-  if (ANCH_TRACE) fprintf(stderr, "AnchorChild. New Anchor %p named `%s' is child of %p\n",
-       (void*)child, (int)tag ? tag : (CONST char *)"" , (void*)parent); /* int for apollo */
+  /* int for apollo */
+  if (ANCH_TRACE)
+      fprintf(stderr, "AnchorChild. New Anchor %p named `%s' is child of %p\n",
+	      (void *) child, tag ? tag : (CONST char *) "", (void *) parent);
   HTList_addObject (parent->children, child);
   child->parent = parent;
   StrAllocCopy(child->tag, tag);

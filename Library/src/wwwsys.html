@@ -782,6 +782,19 @@ See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
 #endif
 </PRE>
 
+<H3>Definition of Standard File Descriptors</H3>
+<PRE>
+#ifndef STDIN_FILENO
+#define STDIN_FILENO	0
+#endif
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO	1
+#endif
+#ifndef STDERR_FILENO
+#define STDERR_FILENO	2
+#endif
+</PRE>
+
 <H3>Definition of Max Domain Name Length</H3>
 <PRE>
 #ifndef MAXHOSTNAMELEN

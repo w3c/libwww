@@ -9,7 +9,8 @@ implement the actual effect of the text read. When these functions are
 called, the attribute structures pointed to by the DTD are valid,
 and the function is parsed a pointer to the curent tag structure, and
 an "element stack" which represents the state of nesting within SGML
-elements.<P>
+elements. See also the <A HREF="HTStream.html">the generic Stream
+definition</A><P>
 
 The following aspects are from Dan
 Connolly's suggestions:  Binary search,
@@ -112,17 +113,23 @@ Superclass: HTStream<P>
 The creation methods will vary on
 the type of Structured Object.Maybe
 the callerData is enough info to
-pass along.
+pass along. <P>
+
+<B>NOTE: </B>The <CODE>put_block</CODE> method was <CODE>write</CODE>,
+but this upset systems which had macros for <CODE>write()</CODE>. See
+<A HREF="HTStream.html">the generic stream definition</A> for valid
+return codes.<P>
+
 <PRE>typedef struct _HTStructured HTStructured;
 
 typedef struct _HTStructuredClass{
 
 	char*  name;				/* Just for diagnostics */
 
-	void (*_free) PARAMS((
+	int (*_free) PARAMS((
 		HTStructured*	me));
 
-	void (*abort) PARAMS((
+	int (*abort) PARAMS((
 		HTStructured*	me,
 		HTError		e));
 		
@@ -134,7 +141,7 @@ typedef struct _HTStructuredClass{
 		HTStructured*	me,
 		CONST char *	str));
 		
-	void (*write) PARAMS((
+	void (*put_block) PARAMS((
 		HTStructured*	me,
 		CONST char *	str,
 		int		len));
@@ -153,7 +160,7 @@ typedef struct _HTStructuredClass{
 		HTStructured*	me,
 		int		entity_number));
 		
-}HTStructuredClass;
+} HTStructuredClass;
 
 </PRE>
 <H2>Find a Tag by Name</H2>Returns a pointer to the tag within

@@ -136,7 +136,7 @@ typedef enum _HTFTPServerType {
     WINDOWS_NT
 } HTFTPServerType;
 
-typedef enum _HTFTPMainState {
+typedef enum _HTFTPState {
     FTP_ERROR = -2,
     FTP_FAILURE = -1,
     FTP_IDLE = 0,
@@ -156,40 +156,46 @@ typedef struct _user_info {
 /* The ftp_ctrl_info and ftp_data_info are both subclasses of the HTNetInfo
    structure defined in HTAccess.html */
 typedef struct _ftp_ctrl_info {
-    int				sockfd;	  /* Socket number for communication */
-    HTInputSocket *             isoc;			     /* Input buffer */
-    int 			addressCount;	  /* Attempts if multi-homed */
-    BOOL			CRLFdotCRLF;   /* Transmission end like this */
-    HTRequest *			request;	      /* Link to the request */
+    int			sockfd;				/* Socket descripter */
+    SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    HTStream *		target;			            /* Output stream */
+    HTChunk *		transmit;			  /* Line to be send */
+    int 		addressCount;	     /* Attempts if multi-homed host */
+    time_t		connecttime;		 /* Used on multihomed hosts */
+    struct _HTRequest *	request;	   /* Link back to request structure */
 
-    u_long			serv_node;           /* IP address of server */
-    u_short			serv_port;	    /* Port number on server */
-    char *			location;        /* Current escaped position */
-    user_info *			user;           /* Userid, passwd and domain */
-    HTChunk *			welcome;	      /* The welcome message */
-    HTChunk *			reply;	           /* Last reply from server */
-    HTFTPServerType		server;		           /* Type of server */
-    BOOL			unsure_type;         /* Sure about the type? */
-    BOOL			use_list;	  	  /* Can we use LIST */
-    HTFTPState     		state;		  /* State of the connection */
-    HTList *			data_cons;           /* The data connections */
+    u_long		serv_node;          	     /* IP address of server */
+    u_short		serv_port;	    	    /* Port number on server */
+    char *		location;        	 /* Current escaped position */
+    user_info *		user;		        /* Userid, passwd and domain */
+    HTChunk *		welcome;		      /* The welcome message */
+    HTChunk *		reply;	           	   /* Last reply from server */
+    HTFTPServerType	server;		         	   /* Type of server */
+    BOOL		unsure_type;		     /* Sure about the type? */
+    BOOL		use_list;	  		  /* Can we use LIST */
+    HTFTPState     	state;			  /* State of the connection */
+    HTList *		data_cons;  	             /* The data connections */
 } ftp_ctrl_info;
 
 /* We assume that the data connection is established between the same hosts
    as the control connection */
 typedef struct _ftp_data_info {
-    int				sockfd;	  /* Socket number for communication */
-    HTInputSocket *             isoc;			     /* Input buffer */
-    int 			addressCount;	  /* Attempts if multi-homed */
-    BOOL			CRLFdotCRLF;   /* Transmission end like this */
-    HTRequest *			request;	          /* Link to request */
+    int			sockfd;				/* Socket descripter */
+    SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    HTStream *		target;			            /* Output stream */
+    HTChunk *		transmit;			  /* Line to be send */
+    int 		addressCount;	     /* Attempts if multi-homed host */
+    time_t		connecttime;		 /* Used on multihomed hosts */
+    struct _HTRequest *	request;	   /* Link back to request structure */
 
-    char *			host;		 /* host to contact for data */
-    HTFormat			fileformat;   /* File format of current file */
-    char			passive; 	 /* Have we opened passively */
-    BOOL 			directory;	         /* Yes if directory */
-    char *			datatype;  /* See rfc959 p.48, but NO SPACE! */
-    ftp_ctrl_info *		ctrl;		   /* Controlling connection */
+    char *		host;			 /* host to contact for data */
+    HTFormat		fileformat;	      /* File format of current file */
+    char		passive;	 	 /* Have we opened passively */
+    BOOL 		directory;		         /* Yes if directory */
+    char *		datatype;	   /* See rfc959 p.48, but NO SPACE! */
+    ftp_ctrl_info *	ctrl;			   /* Controlling connection */
 } ftp_data_info;
 
 PRIVATE user_info *old_user;	    /* Only used if HT_REUSE_USER_INFO is on */
@@ -1017,6 +1023,7 @@ PRIVATE int HTFTP_close_data_con ARGS1(ftp_data_info *, data)
 	}
 	FREE(data->host);
 	FREE(data->datatype);
+	data->request->net_info = NULL;
 	free(data);
     } else {
 	if (PROT_TRACE) fprintf(stderr, "HTFTP_close_data_con: bad argument!");
@@ -1057,6 +1064,7 @@ PRIVATE int HTFTP_close_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
 	if (ctrl->reply)
 	    HTChunkFree(ctrl->reply);
 	HTList_delete(ctrl->data_cons);
+	ctrl->request->net_info = NULL;
 	free(ctrl);
     }
     return status;
@@ -3098,7 +3106,9 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 }
 
 /* Protocol descriptors */
-GLOBALDEF PUBLIC HTProtocol HTFTP  = { "ftp", HTLoadFTP, 0 , 0 };
+GLOBALDEF PUBLIC HTProtocol HTFTP = {
+    "ftp", SOC_BLOCK, HTLoadFTP, NULL, NULL
+};
 
 /* END OF MODULE */
 

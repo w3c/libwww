@@ -1,27 +1,30 @@
-
 /*		Manage different file formats			HTFormat.c
 **		=============================
 **
 ** Bugs:
-**	Not reentrant.
-**
 **	Assumes the incoming stream is ASCII, rather than a local file
 **	format, and so ALWAYS converts from ASCII on non-ASCII machines.
 **	Therefore, non-ASCII machines can't read local files.
 **
 ** HISTORY:
-**	 8 Jul 94  FM	Insulate free() from _free structure element.
-**
+**	8 Jul 94  FM	Insulate free() from _free structure element.
+**	8 Nov 94  HFN	Changed a lot to make reentrant
 */
 
+/* Implementation dependent include files */
+#include "HTUtils.h"
+#include "tcp.h"
 
-/* Implements:
-*/
-#include "HTFormat.h"
+/* Library Include files */
+#include "HTTCP.h"
+#include "HTFWriter.h"
+#include "HTGuess.h"
+#include "HTThread.h"
+#include "HTError.h"
+#include "HTFormat.h"					 /* Implemented here */
 
-PUBLIC float HTMaxSecs = 1e10;		/* No effective limit */
-PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
-
+/* Macsor and other defines */
+#if 0 /* IS THIS USED??? */
 #ifdef unix
 #ifdef NeXT
 #define PRESENT_POSTSCRIPT "open %s; /bin/rm -f %s\n"
@@ -30,93 +33,68 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 	/* Full pathname would be better! */
 #endif
 #endif
-
-
-#include "HTUtils.h"
-#include "tcp.h"
-
-#include "HTML.h"
-#include "HTMLPDTD.h"
-#include "HTAlert.h"
-#include "HTList.h"
-#include "HTInit.h"
-/*	Streams and structured streams which we use:
-*/
-#include "HTFWriter.h"
-#include "HTPlain.h"
-#include "SGML.h"
-#include "HTML.h"
-#include "HTMLGen.h"
-#include "HTTCP.h"
-#include "HTGuess.h"
-#include "HTError.h"
-
-
-PUBLIC	BOOL HTOutputSource = NO;	/* Flag: shortcut parser to stdout */
-
-#ifdef ORIGINAL
-struct _HTStream {
-      CONST HTStreamClass*	isa;
-      /* ... */
-};
 #endif
 
-/* this version used by the NetToText stream */
+/* Public variables */
+PUBLIC float HTMaxSecs = 1e10;		/* No effective limit */
+PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
+PUBLIC HTList * HTConversions = NULL;
+
+/* Typedefs and global variable local to thid module */
 struct _HTStream {
 	CONST HTStreamClass *		isa;
 	BOOL			had_cr;
 	HTStream * 		sink;
 };
 
-
-/*
-** Accept-Encoding and Accept-Language
-*/
+/* Accept-Encoding and Accept-Language */
 typedef struct _HTAcceptNode {
     HTAtom *	atom;
     float	quality;
 } HTAcceptNode;
 
+/* ------------------------------------------------------------------------- */
 
-
-
-/*	Presentation methods
-**	--------------------
+/*
+**   This function replaces the code in HTRequest_delete() in order to keep
+**   the data structure hidden (it is NOT a joke!)
+**   Henrik 14/03-94
 */
-
-PUBLIC HTList * HTConversions = NULL;
-
-/* -------------------------------------------------------------------------
-   This function replaces the code in HTRequest_delete() in order to keep
-   the data structure hidden (it is NOT a joke!)
-   Henrik 14/03-94
-   ------------------------------------------------------------------------- */
-PUBLIC void HTFormatDelete ARGS1(HTList *, me)
+PUBLIC void HTFormatDelete ARGS1(HTRequest *, request)
 {
-    HTList *cur = me;
+    HTList *cur;
     HTPresentation *pres;
-    if (!me)
+    if (!request || !request->conversions)
 	return;
+    cur = request->conversions;
     while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
 	FREE(pres->command);			 /* Leak fixed AL 6 Feb 1994 */
 	free(pres);
     }
-    HTList_delete(me);				 /* Leak fixed AL 6 Feb 1994 */
+    HTList_delete(request->conversions);
+    request->conversions = NULL;
 }
 
 
 /*	Define a presentation system command for a content-type
 **	-------------------------------------------------------
+** INPUT:
+**	conversions:	The list of conveters and presenters
+**	representation:	the MIME-style format name
+**	command:	the MAILCAP-style command template
+**	quality:	A degradation faction [0..1]
+**	maxbytes:	A limit on the length acceptable as input (0 infinite)
+**	maxsecs:	A limit on the time user will wait (0 for infinity)
 */
 PUBLIC void HTSetPresentation ARGS7(
 	HTList *,	conversions,
 	CONST char *, 	representation,
 	CONST char *, 	command,
-	CONST char *, 	test_command,    /* HWL 27/9/94: mailcap functionality */
+	CONST char *, 	test_command,  /* HWL 27/9/94: mailcap functionality */
 	float,		quality,
 	float,		secs, 
-	float,		secs_per_byte
-){
+	float,		secs_per_byte)
+{
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
     
@@ -131,15 +109,6 @@ PUBLIC void HTSetPresentation ARGS7(
     StrAllocCopy(pres->command, command);
     pres->test_command = NULL;
     StrAllocCopy(pres->test_command, test_command);
-    
-/*    if (!HTPresentations) HTPresentations = HTList_new(); */
-    
-#ifdef OLD_CODE
-    if (strcmp(representation, "*")==0) {
-        if (default_presentation) free(default_presentation);
-	default_presentation = pres;
-    } else 
-#endif
     HTList_addObject(conversions, pres);
 }
 
@@ -154,9 +123,8 @@ PUBLIC void HTSetConversion ARGS7(
 	HTConverter*,	converter,
 	float,		quality,
 	float,		secs, 
-	float,		secs_per_byte
-){
-
+	float,		secs_per_byte)
+{
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
     
@@ -168,19 +136,8 @@ PUBLIC void HTSetConversion ARGS7(
     pres->quality = quality;
     pres->secs = secs;
     pres->secs_per_byte = secs_per_byte;
-/*    pres->command = 0; */
-    
-/*    if (!HTPresentations) HTPresentations = HTList_new();  */
-    
-#ifdef OLD_CODE
-    if (strcmp(representation_in, "*")==0) {
-        if (default_presentation) free(default_presentation);
-	default_presentation = pres;
-    } else 
-#endif
     HTList_addObject(conversions, pres);
 }
-
 
 
 PUBLIC void HTAcceptEncoding ARGS3(HTList *,	list,
@@ -476,10 +433,9 @@ PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 {
     int ch;
     do {
-	if (isoc-> input_pointer >= isoc->input_limit) {
-	    int status = NETREAD(
-		   isoc->input_file_number,
-		   isoc->input_buffer, INPUT_BUFFER_SIZE);
+	if (isoc->input_pointer >= isoc->input_limit) {
+	    int status = NETREAD(isoc->input_file_number,
+				 isoc->input_buffer, INPUT_BUFFER_SIZE);
 	    if (status <= 0) {
 		if (status == 0)
 		    return EOF;
@@ -658,134 +614,6 @@ PUBLIC char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
 }
 
 
-/*
-** Read HTTP status line (if there is one).
-**
-** Kludge to trap binary responses from illegal HTTP0.9 servers.
-** First look at the stub in ASCII and check if it starts "HTTP/".
-**
-** Bugs: A HTTP0.9 server returning a document starting "HTTP/"
-**	 will be taken as a HTTP 1.0 server.  Failure.
-*/
-#define STUB_LENGTH 20
-PUBLIC char * HTInputSocket_getStatusLine ARGS1(HTInputSocket *, isoc)
-{
-    if (!isoc) {
-	return NULL;
-    }
-    else {
-	char buf[STUB_LENGTH + 1];
-	int i;
-	char server_version[STUB_LENGTH+1];
-	int server_status;
-
-	/*
-	** Read initial buffer
-	*/
-	if (isoc->input_pointer >= isoc->input_limit &&
-	    fill_in_buffer(isoc) <= 0) {
-	    return NULL;
-        }
-
-	for (i=0; i < STUB_LENGTH; i++)
-	    buf[i] = FROMASCII(isoc->input_buffer[i]);
-	buf[STUB_LENGTH] = 0;
-
-	if (0 != strncmp(buf, "HTTP/", 5) ||
-	    sscanf(buf, "%20s%d", server_version, &server_status) < 2)
-	    return NULL;
-	else
-	    return get_some_line(isoc, NO);
-    }
-}
-
-
-/*
-** Do heuristic test to see if this is binary.
-**
-** We check for characters above 128 in the first few bytes, and
-** if we find them we forget the html default.
-** Kludge to trap binary responses from illegal HTTP0.9 servers.
-**
-** Bugs: An HTTP 0.9 server returning a binary document with
-**	 characters < 128 will be read as ASCII.
-*/
-PUBLIC BOOL HTInputSocket_seemsBinary ARGS1(HTInputSocket *, isoc)
-{
-    if (isoc &&
-	(isoc->input_pointer < isoc->input_limit ||
-	 fill_in_buffer(isoc) > 0)) {
-	char *p = isoc->input_buffer;
-	int i = STUB_LENGTH;
-
-	for( ; i && p < isoc->input_limit; p++, i++)
-	    if (((int)*p)&128)
-		return YES;
-    }
-    return NO;
-}
-
-
-
-/*	Stream the data to an ouput file as binary
-*/
-PUBLIC int HTOutputBinary ARGS3(HTInputSocket *,isoc,
-				int, 		input,
-				FILE *, 	output)
-{
-    do {
-	    int status = NETREAD(
-		    input, isoc->input_buffer, INPUT_BUFFER_SIZE);
-	    if (status <= 0) {
-		if (status == 0) return 0;
-		if (TRACE) fprintf(stderr,
-		    "Out Binary.. Socket read error %d\n", status);
-		return 2;			/* Error */
-	    }
-	    fwrite(isoc->input_buffer, sizeof(char), status, output);
-    } while (YES);
-}
-
-
-/*
- * Normal HTTP headers are never bigger than 2K.
- */
-#define S_BUFFER_SIZE 2000
-
-PUBLIC void HTInputSocket_startBuffering ARGS1(HTInputSocket *,	isoc)
-{
-    if (isoc) {
-	isoc->s_do_buffering = YES;
-	if (!isoc->s_buffer) {
-	    isoc->s_buffer = (char*)malloc(S_BUFFER_SIZE + 1);
-	    isoc->s_buffer_size = S_BUFFER_SIZE;
-	}
-	isoc->s_buffer_cur = isoc->s_buffer;
-    }
-}
-
-PUBLIC void HTInputSocket_stopBuffering ARGS1(HTInputSocket *, isoc)
-{
-    if (isoc) {
-	isoc->s_do_buffering = NO;
-	if (isoc->s_buffer_cur)
-	    *isoc->s_buffer_cur = 0;
-    }
-}
-
-PUBLIC int HTInputSocket_getBuffer ARGS2(HTInputSocket *,	isoc,
-					 char **,		buffer_ptr)
-{
-    if (!isoc || !isoc->s_buffer || !isoc->s_buffer_cur)
-	return 0;
-    else {
-	*isoc->s_buffer_cur = 0;
-	if (buffer_ptr)
-	    *buffer_ptr = isoc->s_buffer;
-	return (int) (isoc->s_buffer_cur - isoc->s_buffer);
-    }
-}
-
 PRIVATE BOOL better_match ARGS2(HTFormat, f,
 				HTFormat, g)
 {
@@ -816,11 +644,12 @@ PRIVATE BOOL better_match ARGS2(HTFormat, f,
 **	On succes, request->error_block is set to YES so no more error
 **	messages to the stream as the stream might be of any format.
 */
-PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
+PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
+				      HTFormat,		rep_out,
+				      HTStream *,	output_stream,
 				      HTRequest *,	request,
 				      BOOL,		guess)
 {
-    HTFormat rep_out = request->output_format;	/* Could be a param */
     HTList * conversion[2];
     int which_list;
     float best_quality = -1e30;		/* Pretty bad! */
@@ -834,11 +663,11 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 
     if (guess  &&  rep_in == WWW_UNKNOWN) {
 	CTRACE(stderr, "Returning... guessing stream\n");
-	return HTGuess_new(request);
+	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
     }
 
     if (rep_out == WWW_SOURCE || rep_out == rep_in) {
-	return request->output_stream;
+	return output_stream;
     }
 
     conversion[0] = request->conversions;
@@ -873,9 +702,8 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 			       HTAtom_name(match->rep), 
 			       HTAtom_name(rep_out));
 	}
-	return (*match->converter)(
-	request, match->command, rep_in, rep_out,
-	request->output_stream);
+	return (*match->converter)(request, match->command, rep_in, rep_out,
+				   output_stream);
     }
     {
 	char *msg = NULL;
@@ -918,8 +746,6 @@ PUBLIC float HTStackValue ARGS5(
     if (rep_out == WWW_SOURCE ||
     	rep_out == rep_in) return 0.0;
 
- /*   if (!HTPresentations) HTFormatInit();	 set up the list */
-    
     conversion[0] = theseConversions;
     conversion[1] = HTConversions;
     
@@ -1082,32 +908,6 @@ PUBLIC void HTCopyNoCR ARGS2(
 }
 
 
-/* To be replaced by a stream */
-PUBLIC void HTCopyDot ARGS2(int,	file_number,
-			    HTStream *,	sink)
-{
-    HTStreamClass targetClass;
-    HTInputSocket * isoc;   
-    int ch;
-    int state=3;
-    
-    /* Push the data, ignoring CRLF, down the stream */
-    targetClass = *(sink->isa);		      /* Copy pointers to procedures */
-    isoc = HTInputSocket_new(file_number);
-    while (state && (ch = HTInputSocket_getCharacter(isoc)) >= 0) {
-	if (ch == '\n')
-	    state--;
-	else if (state==2 && ch=='.')
-	    state--;
-	else
-	    state = 3;
-	(*targetClass.put_character)(sink, ch);
-    }
-    HTInputSocket_free(isoc);
-}
-
-
-
 /*	Parse a socket given format and file number
 **
 **   This routine is responsible for creating and PRESENTING any
@@ -1136,7 +936,9 @@ PUBLIC int HTParseSocket ARGS3(
     }
 
     /* Set up stream stack */
-    if ((stream = HTStreamStack(rep_in, request, YES)) == NULL)
+    if ((stream = HTStreamStack(rep_in, request->output_format,
+				request->output_stream,
+				request, YES)) == NULL)
 	return -1;
     
 /*	Push the data, ignoring CRLF if necessary, down the stream
@@ -1147,18 +949,14 @@ PUBLIC int HTParseSocket ARGS3(
 **   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
-    if (request->output_format == WWW_SOURCE && request->net_info->CRLFdotCRLF)
-	HTCopyDot(file_number, stream);
-    else if (rep_in == WWW_BINARY || rep_in == WWW_UNKNOWN || HTOutputSource
+    if (rep_in == WWW_BINARY || rep_in == WWW_UNKNOWN
 	|| (request->content_encoding &&
 	    request->content_encoding != HTAtom_for("8bit") &&
 	    request->content_encoding != HTAtom_for("7bit"))
         || strstr(HTAtom_name(rep_in), "image/")
 	|| strstr(HTAtom_name(rep_in), "video/")) { /* @@@@@@ */
 	HTCopy(file_number, stream);
-    } else if (request->net_info->CRLFdotCRLF)
-        HTCopyDot(file_number, stream);
-    else
+    } else
         HTCopyNoCR(file_number, stream);
     (*targetClass._free)(stream);
     
@@ -1191,7 +989,8 @@ PUBLIC int HTParseFile ARGS3(
     }
 
     /* Set up stream stack */
-    if ((stream = HTStreamStack(rep_in, request, YES)) == NULL)
+    if ((stream = HTStreamStack(rep_in, request->output_format,
+				request->output_stream, request, YES)) == NULL)
 	return -1;
     
 /*	Push the data down the stream
@@ -1212,57 +1011,86 @@ PUBLIC int HTParseFile ARGS3(
 /*	Converter stream: Network Telnet to internal character text
 **	-----------------------------------------------------------
 **
-**	The input is assumed to be in ASCII, with lines delimited
-**	by (13,10) pairs, These pairs are converted into (CR,LF)
-**	pairs in the local representation.  The (CR,LF) sequence
-**	when found is changed to a '\n' character, the internal
-**	C representation of a new line.
+**	The input is assumed to be in local representation with lines
+**	delimited by (CR,LF) pairs in the local representation.
+**	The (CR,LF) sequenc when found is changed to a '\n' character,
+**	the internal C representation of a new line.
 */
-
-
-PRIVATE void NetToText_put_character ARGS2(HTStream *, me, char, net_char)
+PRIVATE void NetToText_put_character ARGS2(HTStream *, me, char, c)
 {
-    char c = FROMASCII(net_char);
     if (me->had_cr) {
         if (c==LF) {
-	    me->sink->isa->put_character(me->sink, '\n');	/* Newline */
+	    me->sink->isa->put_character(me->sink, '\n');	  /* Newline */
 	    me->had_cr = NO;
 	    return;
         } else {
-	    me->sink->isa->put_character(me->sink, CR);	/* leftover */
+	    me->sink->isa->put_character(me->sink, CR);		 /* leftover */
 	}
     }
     me->had_cr = (c==CR);
     if (!me->had_cr)
-	me->sink->isa->put_character(me->sink, c);		/* normal */
+	me->sink->isa->put_character(me->sink, c);		   /* normal */
 }
 
 PRIVATE void NetToText_put_string ARGS2(HTStream *, me, CONST char *, s)
-{
-    CONST char * p;
-    for(p=s; *p; p++) NetToText_put_character(me, *p);
+{    
+    CONST char *p=s;
+    while (*p) {
+	if (me->had_cr) {
+	    if (*p==LF) {
+		me->sink->isa->put_character(me->sink, '\n');	  /* Newline */
+		s++;
+	    } else
+		me->sink->isa->put_character(me->sink, CR);	 /* leftover */
+	}
+	me->had_cr = (*p==CR);
+	if (me->had_cr) {
+	    me->sink->isa->put_block(me->sink, s, p-s);
+	    s=p+1;
+	}
+	p++;
+    }
+    if (p-s)
+	me->sink->isa->put_block(me->sink, s, p-s);
 }
+
 
 PRIVATE void NetToText_put_block ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
-    CONST char * p;
-    for(p=s; p<(s+l); p++) NetToText_put_character(me, *p);
+    CONST char *p=s;
+    while (l-- > 0) {
+	if (me->had_cr) {
+	    if (*p==LF) {
+		me->sink->isa->put_character(me->sink, '\n');	  /* Newline */
+		s++;
+	    } else
+		me->sink->isa->put_character(me->sink, CR);	 /* leftover */
+	}
+	me->had_cr = (*p==CR);
+	if (me->had_cr) {
+	    me->sink->isa->put_block(me->sink, s, p-s);
+	    s=p+1;
+	}
+	p++;
+    }
+    if (p-s)
+	me->sink->isa->put_block(me->sink, s, p-s);
 }
 
-PRIVATE void NetToText_free ARGS1(HTStream *, me)
+PRIVATE int NetToText_free ARGS1(HTStream *, me)
 {
     me->sink->isa->_free(me->sink);		/* Close rest of pipe */
     free(me);
+    return 0;
 }
 
-PRIVATE void NetToText_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int NetToText_abort ARGS2(HTStream *, me, HTError, e)
 {
     me->sink->isa->abort(me->sink,e);		/* Abort rest of pipe */
     free(me);
+    return 0;
 }
 
-/*	The class structure
-*/
 PRIVATE HTStreamClass NetToTextClass = {
     "NetToText",
     NetToText_free,
@@ -1272,11 +1100,9 @@ PRIVATE HTStreamClass NetToTextClass = {
     NetToText_put_block
 };
 
-/*	The creation method
-*/
 PUBLIC HTStream * HTNetToText ARGS1(HTStream *, sink)
 {
-    HTStream* me = (HTStream*)malloc(sizeof(*me));
+    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "NetToText");
     me->isa = &NetToTextClass;
     
@@ -1284,5 +1110,75 @@ PUBLIC HTStream * HTNetToText ARGS1(HTStream *, sink)
     me->sink = sink;
     return me;
 }
+
+/* ------------------------------------------------------------------------- */
+/* MULTI THREADED IMPLEMENTATIONS					     */
+/* ------------------------------------------------------------------------- */
+
+/*	Push data from a socket down a stream
+**	-------------------------------------
+**
+**   This routine is responsible for creating and PRESENTING any
+**   graphic (or other) objects described by the file.
+**
+**
+** Returns      HT_LOADED	if finished reading
+**	      	EOF		if error,
+**    		HT_INTERRUPTED 	if interrupted
+**     		HT_WOULD_BLOCK  if read would block
+*/
+PUBLIC int HTInputSocket_read ARGS2(HTInputSocket *, isoc, HTStream *, target)
+{
+    int b_read;
+
+    if (!isoc || isoc->input_file_number < 0) {
+	if (PROT_TRACE) fprintf(stderr, "Read Socket. Bad argument\n");
+	return EOF;
+    }
+
+    /*	Push binary from socket down sink */
+    for(;;) {
+	if (HTThreadIntr(isoc->input_file_number))	      /* Interrupted */
+	    return HT_INTERRUPTED;
+
+	if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
+			      INPUT_BUFFER_SIZE)) < 0) {
+#ifdef EAGAIN
+	    if (errno == EAGAIN || errno == EWOULDBLOCK) 
+#else
+	    if (errno == EWOULDBLOCK)
+#endif
+	    {
+		if (THD_TRACE)
+		    fprintf(stderr, "Read Socket. WOULD BLOCK soc %d\n",
+			    isoc->input_file_number);
+		HTThreadState(isoc->input_file_number, THD_SET_READ);
+		return HT_WOULD_BLOCK;
+	    } else {				     /* We have a real error */
+		if (PROT_TRACE)
+		    fprintf(stderr, "Read Socket. READ ERROR %d\n", errno);
+		return EOF;
+	    }
+	} else if (!b_read) {
+	    HTThreadState(isoc->input_file_number, THD_CLR_READ);
+	    return HT_LOADED;
+	}
+
+#ifdef NOT_ASCII
+	isoc->input_limit = isoc->input_buffer + b_read;
+	{
+	    char *p;
+	    for(p = isoc->input_buffer; p < isoc->input_limit; p++)
+		*p = FROMASCII(*p);
+	}
+#endif
+
+	/* This is based on the assumption that we actually get rid of ALL
+	   the bytes we have read. Maybe more feedback! */
+	(*target->isa->put_block)(target, isoc->input_buffer, b_read);
+	isoc->input_pointer += b_read;
+    }
+}
+
 
 

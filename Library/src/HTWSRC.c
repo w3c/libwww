@@ -214,6 +214,7 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 	return;
 
     } /* switch me->state */
+    return;
 }
 
 
@@ -387,7 +388,7 @@ PRIVATE void WSRCParser_write ARGS3(
 }
 
 
-PRIVATE void WSRCParser_free ARGS1(HTStream *, me)
+PRIVATE int WSRCParser_free ARGS1(HTStream *, me)
 {
     WSRC_gen_html(me, YES);
 #ifdef CACHE_FILE_PREFIX
@@ -402,11 +403,13 @@ PRIVATE void WSRCParser_free ARGS1(HTStream *, me)
 	}
     }
     free(me);
+    return 0;
 }
 
-PRIVATE void WSRCParser_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int WSRCParser_abort ARGS2(HTStream *, me, HTError, e)
 {
     WSRCParser_free(me);
+    return EOF;
 }
 
 

@@ -5,12 +5,14 @@
 <NEXTID N="z4">
 </HEAD>
 <BODY>
-<H1>C File Writer</H1>It is useful to have both FWriter
-and Writer for environments in which
-fdopen() doesn't exist for example.<P>
-Part of <A
-NAME="z1" HREF="Overview.html">libwww</A> . Implemented by <A
-NAME="z0" HREF="HTFWriter.c">HTFWriter.c</A>
+
+<H1>C File Writer</H1>
+
+It is useful to have both FWriter and Writer for environments in which
+fdopen() doesn't exist for example.<P> Part of <A NAME="z1"
+HREF="Overview.html">libwww</A> . Implemented by <A NAME="z0"
+HREF="HTFWriter.c">HTFWriter.c</A>
+
 <PRE>
 #ifndef HTFWRITE_H
 #define HTFWRITE_H
@@ -44,6 +46,13 @@ extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack,
        HTThroughLine;
 #endif
 </PRE>
+
+<H2>Black Hole Stream</H2>
+
+<PRE>
+extern HTStream * HTBlackHole NOPARAMS;
+</PRE>
+
 
 <H2>Get Local File Name</H2>
 

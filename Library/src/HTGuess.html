@@ -27,7 +27,11 @@ HREF="HTGuess.c"><CODE>HTGuess.c</CODE></A>. <P>
 #define	HTGuess_new	HTGuessN
 #endif
 
-PUBLIC HTStream * HTGuess_new PARAMS((HTRequest * req));
+PUBLIC HTStream * HTGuess_new	PARAMS((HTRequest *	req,
+					void *		param,
+					HTFormat	input_format,
+					HTFormat	output_format,
+					HTStream *	output_stream));
 
 
 #endif	/* !HTGUESS_H */

@@ -18,7 +18,6 @@
 #include "HTParse.h"
 #include "HTUtils.h"
 #include "HTAnchor.h"
-#include "HTTP.h"
 #include "HTFile.h"
 #include "HTAccess.h"
 #include "HTAlert.h"
@@ -281,8 +280,16 @@ PRIVATE int HTLoadTelnet ARGS1(HTRequest *, request)
 }
 
 
-GLOBALDEF PUBLIC HTProtocol HTTelnet = { "telnet", HTLoadTelnet, NULL };
-GLOBALDEF PUBLIC HTProtocol HTRlogin = { "rlogin", HTLoadTelnet, NULL };
-GLOBALDEF PUBLIC HTProtocol HTTn3270 = { "tn3270", HTLoadTelnet, NULL };
+GLOBALDEF PUBLIC HTProtocol HTTelnet = {
+    "telnet", SOC_BLOCK, HTLoadTelnet, NULL, NULL
+};
+
+GLOBALDEF PUBLIC HTProtocol HTRlogin = {
+    "rlogin", SOC_BLOCK, HTLoadTelnet, NULL, NULL
+};
+
+GLOBALDEF PUBLIC HTProtocol HTTn3270 = {
+    "tn3270", SOC_BLOCK, HTLoadTelnet, NULL, NULL
+};
 
 

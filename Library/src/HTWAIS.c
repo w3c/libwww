@@ -935,7 +935,9 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	  0 != strcmp(doctype, "HTML") ;
 
 	/* Guess on TEXT format as it might be HTML */
-	if ((target = HTStreamStack(format_in, request, YES)) == NULL) {
+	if ((target = HTStreamStack(format_in, request->output_format,
+				    request->output_stream,
+				    request, YES)) == NULL) {
 	    status = -1;
 	    goto cleanup;
 	}
@@ -1030,6 +1032,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     return status;
 }
 
-GLOBALDEF PUBLIC HTProtocol HTWAIS = { "wais", HTLoadWAIS, NULL };
+GLOBALDEF PUBLIC HTProtocol HTWAIS = {
+    "wais", SOC_BLOCK, HTLoadWAIS, NULL, NULL
+};
 
 

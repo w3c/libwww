@@ -202,11 +202,8 @@ PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 */
 PRIVATE void HTMLGen_output_string ARGS2(HTStructured *, me, CONST char*, s)
 {
-    CONST char * p;
-    for(p=s; *p; p++) HTMLGen_output_character(me, *p);
+    while (*s) HTMLGen_output_character(me, *s++);
 }
-
-
 
 
 /*			INPUT FUNCTIONS
@@ -233,14 +230,12 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 
 PRIVATE void HTMLGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
-    CONST char * p;
-    for(p=s; *p; p++) HTMLGen_put_character(me, *p);
+    while (*s) HTMLGen_put_character(me, *s++);
 }
 
 PRIVATE void HTMLGen_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 {
-    CONST char * p;
-    for(p=s; p<s+l; p++) HTMLGen_put_character(me, *p);
+    while (l-- > 0) HTMLGen_put_character(me, *s++);
 }
 
 
@@ -311,7 +306,7 @@ PRIVATE void HTMLGen_start_element ARGS4(
 **	See comment also about PRE above.
 */
 PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
-			int , element_number)
+				      int , element_number)
 {
     if (element_number == HTML_PRE) {
         HTMLGen_output_character(me, '\n');
@@ -344,34 +339,38 @@ PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 **	--------------
 **
 */
-PRIVATE void HTMLGen_free ARGS1(HTStructured *, me)
+PRIVATE int HTMLGen_free ARGS1(HTStructured *, me)
 {
     HTMLGen_flush(me);
     (*me->targetClass.put_character)(me->target, '\n');
     (*me->targetClass._free)(me->target);	/* ripple through */
     free(me);
+    return 0;
 }
 
 
-PRIVATE void PlainToHTML_free ARGS1(HTStructured *, me)
+PRIVATE int PlainToHTML_free ARGS1(HTStructured *, me)
 {
     HTMLGen_end_element(me, HTML_PRE);
     HTMLGen_end_element(me, HTML_BODY);
     HTMLGen_end_element(me, HTML_HTML);
     HTMLGen_free(me);
+    return 0;
 }
 
 
 
-PRIVATE void HTMLGen_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int HTMLGen_abort ARGS2(HTStructured *, me, HTError, e)
 {
     HTMLGen_free(me);
+    return EOF;
 }
 
 
-PRIVATE void PlainToHTML_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int PlainToHTML_abort ARGS2(HTStructured *, me, HTError, e)
 {
     PlainToHTML_free(me);
+    return EOF;
 }
 
 

@@ -64,8 +64,8 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
     fprintf(stderr, "WWW: %s", Msg);
     if (deflt) fprintf(stderr, " (RETURN for [%s]) ", deflt);
     if (!HTInteractive || !fgets(Tmp, 200, stdin))
-	return NULL;		       	/* NULL string on error, Henrik */
-    Tmp[strlen(Tmp)-1] = (char)0;	/* Overwrite newline */
+	return NULL;		       	     /* NULL string on error, Henrik */
+    Tmp[strlen(Tmp)-1] = (char) 0;			/* Overwrite newline */
    
     StrAllocCopy(rep, *Tmp ? Tmp : deflt);
     return rep;

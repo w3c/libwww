@@ -79,13 +79,16 @@ struct _HTStructured {
 
 /* This is the local definition of HTRequest->net_info */
 typedef struct _gopher_info {
-    int                         sockfd;   /* Socket number for communication */
-    HTInputSocket *		isoc;			     /* Input buffer */
-    int 			addressCount;	  /* Attempts if multi-homed */
-    BOOL			CRLFdotCRLF;   /* Transmission end like this */
-    HTRequest *		   	request;		/* Request structure */
+    int			sockfd;				/* Socket descripter */
+    SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    HTStream *		target;			            /* Output stream */
+    HTChunk *		transmit;			  /* Line to be send */
+    int 		addressCount;	     /* Attempts if multi-homed host */
+    time_t		connecttime;		 /* Used on multihomed hosts */
+    struct _HTRequest *	request;	   /* Link back to request structure */
 
-    HTGopherType	        type; 	                 /* Gopher item type */
+    HTGopherType	type; 		                 /* Gopher item type */
 } gopher_info;
 
 /* ------------------------------------------------------------------------- */
@@ -936,6 +939,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 		   "HTLoadGopher");
     }
     FREE(command);
+    gopher->request->net_info = NULL;
     free(gopher);
 
     if (status < 0 && status != HT_INTERRUPTED) {
@@ -950,5 +954,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
     return status;
 }
 
-GLOBALDEF PUBLIC HTProtocol HTGopher = { "gopher", HTLoadGopher, NULL, NULL };
+GLOBALDEF PUBLIC HTProtocol HTGopher = {
+    "gopher", SOC_BLOCK, HTLoadGopher, NULL, NULL
+};
 

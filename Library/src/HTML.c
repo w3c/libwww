@@ -719,7 +719,7 @@ PRIVATE void HTML_put_entity ARGS2(HTStructured *, me, int, entity_number)
 **	If non-interactive, everything is freed off.   No: crashes -listrefs
 **	Otherwise, the interactive object is left.	
 */
-PUBLIC void HTML_free ARGS1(HTStructured *, me)
+PUBLIC int HTML_free ARGS1(HTStructured *, me)
 {
     UPDATE_STYLE;		/* Creates empty document here! */
     if (me->comment_end)
@@ -731,10 +731,11 @@ PUBLIC void HTML_free ARGS1(HTStructured *, me)
     }
     HTChunkClear(&me->title);	/* Henrik 18/02-94 */
     free(me);
+    return 0;
 }
 
 
-PRIVATE void HTML_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int HTML_abort ARGS2(HTStructured *, me, HTError, e)
 
 {
     if (me->target) {
@@ -742,6 +743,7 @@ PRIVATE void HTML_abort ARGS2(HTStructured *, me, HTError, e)
     }
     HTChunkClear(&me->title);	/* Henrik 18/02-94 */
     free(me);
+    return EOF;
 }
 
 
@@ -811,7 +813,8 @@ PUBLIC HTStructured* HTML_new ARGS5(
     if (output_format != WWW_PLAINTEXT
     	&& output_format != WWW_PRESENT
 	&& output_format != HTAtom_for("text/x-c")) {
-        HTStream * intermediate = HTStreamStack(WWW_HTML, request, NO);
+        HTStream * intermediate = HTStreamStack(WWW_HTML, output_format,
+						output_stream, request, NO);
 	if (intermediate) return HTMLGenerator(intermediate);
         fprintf(stderr, "** Internal error: can't parse HTML to %s\n",
        		HTAtom_name(output_format));

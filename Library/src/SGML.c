@@ -282,7 +282,7 @@ PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, CONST char *, string)
 
 /*	Could check that we are back to bottom of stack! @@  */
 
-PUBLIC void SGML_free  ARGS1(HTStream *, context)
+PUBLIC int SGML_free  ARGS1(HTStream *, context)
 {
     int cnt;
 
@@ -300,9 +300,10 @@ PUBLIC void SGML_free  ARGS1(HTStream *, context)
 	if(context->value[cnt])
 	    free(context->value[cnt]);
     free(context);
+    return 0;
 }
 
-PUBLIC void SGML_abort  ARGS2(HTStream *, context, HTError, e)
+PUBLIC int SGML_abort  ARGS2(HTStream *, context, HTError, e)
 {
     int cnt;
 
@@ -320,6 +321,7 @@ PUBLIC void SGML_abort  ARGS2(HTStream *, context, HTError, e)
 	if(context->value[cnt])
 	    free(context->value[cnt]);
     free(context);
+    return EOF;
 }
 
 

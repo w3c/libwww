@@ -1,160 +1,147 @@
 <HTML>
 <HEAD>
-<TITLE>HTFormat: The format manager in the WWW Library</TITLE>
-<!-- Changed by: , 12-Oct-1994 -->
+<TITLE>The Format Manager in the WWW Library</TITLE>
 <NEXTID N="z18">
 </HEAD>
+
 <BODY>
-<H1>Manage different document formats</H1>Here we describe the functions of
-the HTFormat module which handles conversion between different data
-representations.  (In MIME parlance, a representation is known as a content-
-type. In WWW  the term "format" is often used as it is shorter).<P>
-This module is implemented by <A NAME="z0" HREF="HTFormat.c">HTFormat.c</A>.
 
-The module is a part of the <A NAME="z10" HREF="Overview.html">WWW library</A>.
+<H1>The Format Manager</H1>
 
-<H2>Preamble</H2>
-<PRE>#ifndef HTFORMAT_H
+Here we describe the functions of the HTFormat module which handles
+conversion between different data representations. (In MIME parlance,
+a representation is known as a content-type. In <A
+HREF="http://info.cern.ch/hypertext/WWW/TheProject.html">WWW</A> the
+term <EM>format</EM> is often used as it is shorter). The content of
+this module is:
+
+<UL>
+<LI><A HREF="#z15">Buffering for I/O</A>
+<LI><A HREF="#Read">Read from the Network</A>
+<LI><A HREF="#FormatTypes">Predefined Format Types</A>
+<LI><A HREF="#Encoding">Registration of Accepted Content Encodings</A>
+<LI><A HREF="#Language">Registration of Accepted Content Languages</A>
+<LI><A HREF="#Type">Registration of Accepted Converters and Presenters</A>
+<LI><A HREF="#Rank">Ranking of Accepted Formats</A>
+<LI><A HREF="#z3">The Stream Stack</A>
+</UL>
+
+This module is implemented by <A HREF="HTFormat.c">HTFormat.c</A>, and
+it is a part of the <A NAME="z10"
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+of Common Code</A>.
+
+<PRE>
+#ifndef HTFORMAT_H
 #define HTFORMAT_H
 
-#include "HTUtils.h"
-#include <A
-NAME="z7" HREF="HTStream.html">"HTStream.h"</A>
-#include "HTAtom.h"
-#include "HTList.h"
+#include <A HREF="HTUtils.html">"HTUtils.h"</A>
+#include <A HREF="HTStream.html">"HTStream.h"</A>
+#include <A HREF="HTAtom.html">"HTAtom.h"</A>
+#include <A HREF="HTList.html">"HTList.h"</A>
 
 #ifdef SHORT_NAMES
 #define HTOutputSource HTOuSour
 #define HTOutputBinary HTOuBina
 #endif
-
-
-typedef struct _HTContentDescription {
-    char *	filename;
-    HTAtom *	content_type;
-    HTAtom *	content_language;
-    HTAtom *	content_encoding;
-    int		content_length;
-    float	quality;
-} HTContentDescription;
-
-PUBLIC void HTAcceptEncoding PARAMS((HTList *	list,
-				     char *	enc,
-				     float	quality));
-
-PUBLIC void HTAcceptLanguage PARAMS((HTList *	list,
-				     char *	lang,
-				     float	quality));
-
-PUBLIC BOOL HTRank PARAMS((HTList * possibilities,
-			   HTList * accepted_content_types,
-			   HTList * accepted_content_languages,
-			   HTList * accepted_content_encodings));
-
-
 </PRE>
-<H2>HT<A
-NAME="z15"> Input Socket: Buffering for network
-in</A></H2>This routines provide simple character
-input from sockets. These are used
-for parsing input in arbitrary IP
-protocols (Gopher, NNTP, FTP).
-<PRE>#define INPUT_BUFFER_SIZE 4096		/* Tradeoff spped vs memory*/
+
+<H2><A NAME="z15">Buffering for network I/O</A></H2>
+
+This routines provide buffering for READ (and future WRITE) to the
+network. It is used by all the protocol modules. The size of the
+buffer, <CODE>INPUT_BUFFER_SIZE</CODE>, is a compromis between speed
+and memory.
+
+<PRE>
+#define INPUT_BUFFER_SIZE 8192
+
 typedef struct _socket_buffer {
 	char input_buffer[INPUT_BUFFER_SIZE];
 	char * input_pointer;
 	char * input_limit;
 	int input_file_number;
-	BOOL	s_do_buffering;
-	char *	s_buffer;
-	int	s_buffer_size;
-	char *	s_buffer_cur;
 } HTInputSocket;
-
-</PRE>
-<H3>Create input buffer and set file
-number</H3>
-<PRE>extern HTInputSocket* HTInputSocket_new PARAMS((int file_number));
-
-</PRE>
-<H3>Get next character from buffer</H3>
-<PRE>extern int HTInputSocket_getCharacter PARAMS((HTInputSocket* isoc));
-
-</PRE>
-<H3>Read block from input socket</H3>Read *len characters and return a
-buffer (don't free) containing *len
-characters ( *len may have changed).
-Buffer is not NULL-terminated.
-<PRE>extern char * HTInputSocket_getBlock PARAMS((HTInputSocket * isoc,
-						  int *           len));
-
-</PRE>
-<H3>Free input socket buffer</H3>
-<PRE>extern void HTInputSocket_free PARAMS((HTInputSocket * isoc));
-
-
-PUBLIC char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
-PUBLIC char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
-PUBLIC char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
-PUBLIC BOOL   HTInputSocket_seemsBinary PARAMS((HTInputSocket * isoc));
-
 </PRE>
 
+<H3>Create an Input Buffer</H3>
 
-<H3>Security Buffering</H3>
+This function allocates a input buffer and binds it to the socket
+descriptor given as parameter.
 
-When it's necessary to get e.g. the header section, or part of it,
-exactly as it came from the client to calculate the message digest,
-these functions turn buffering on and off.  All the material returned
-by <CODE>HTInputSocket_getStatusLine()</CODE>,
-<CODE>HTInputSocket_getUnfoldedLine()</CODE> and
-<CODE>HTInputSocket_getLine()</CODE> gets buffered after a call to
-<CODE>HTInputSocket_startBuffering()</CODE> until either
-<CODE>HTInputSocket_stopBuffering()</CODE> is called, or an empty line is
-returned by any of these functions (end of body section).
-<CODE>HTInputSocket_getBuffer()</CODE> returns the number of
-characters buffered, and sets the given buffer pointer to point to
-internal buffer.  This buffer exists until <CODE>HTInputSocket</CODE>
-object is freed.
 <PRE>
-
-PUBLIC void HTInputSocket_startBuffering PARAMS((HTInputSocket * isoc));
-PUBLIC void HTInputSocket_stopBuffering PARAMS((HTInputSocket * isoc));
-PUBLIC int HTInputSocket_getBuffer PARAMS((HTInputSocket * isoc,
-					   char ** buffer_ptr));
+extern HTInputSocket* HTInputSocket_new PARAMS((int file_number));
 </PRE>
 
-<H2>The HTFormat type</H2>We use the HTAtom object for holding
-representations. This allows faster
-manipulation (comparison and copying)
-that if we stayed with strings.<P>
-The following have to be defined
-in advance of the other include files
-because of circular references.
-<PRE>typedef HTAtom * HTFormat;
+<H3>Free an Input Buffer</H3>
 
-#include <A
-NAME="z14" HREF="HTAccess.html">"HTAccess.h"</A>   /* Required for HTRequest definition */
-		
+<PRE>
+extern void HTInputSocket_free PARAMS((HTInputSocket * isoc));
 </PRE>
 
-These macros (which used to be constants) define some basic internally
-referenced representations.
+<A NAME="Read"><H2>Read from the Network</H2></A>
+
+This function has replaced many other functions for doing read from
+the network. It automaticly converts from ASCII if we are on a
+NON-ASCII machine. This assumes that we do <B>not</B> use this
+function to read a local file on a NON-ASCII machine. The following
+type definition is to make life easier when having a state machine
+looking for a <CODE>&lt;CRLF&gt;</CODE> sequence.
+
+<PRE>
+typedef enum _HTSocketEOL {
+    EOL_ERR = -1,
+    EOL_BEGIN = 0,
+    EOL_FCR,
+    EOL_FLF,
+    EOL_DOT,
+    EOL_SCR,
+    EOL_SLF
+} HTSocketEOL;
+
+PUBLIC int HTInputSocket_read	PARAMS((HTInputSocket * isoc,
+					HTStream * target));
+</PRE>
+
+<H2><A NAME="z11">Convert Net ASCII to local representation</A></H2>
+
+This is a filter stream suitable for taking text from a socket and
+passing it into a stream which expects text in the local C
+representation.  It does newline conversion.  As usual, pass its
+output stream to it when creating it.
+
+<PRE>
+extern HTStream * HTNetToText PARAMS ((HTStream * sink));
+</PRE>
+
+<A NAME="FormatTypes"><H2>The HTFormat types</H2></A>
+
+We use the <A HREF="HTAtom.html">HTAtom</A> object for holding
+representations. This allows faster manipulation (comparison and
+copying) that if we stayed with strings. These macros (which used to
+be constants) define some basic internally referenced
+representations.<P>
+
+<PRE>
+typedef HTAtom * HTFormat;
+</PRE>
 
 <H3>Internal ones</H3>
 
-The www/xxx ones are of course not MIME standard.<P>
+The <CODE>www/xxx</CODE> ones are of course not MIME
+standard. <P>
 
-star/star is an output format which leaves the input untouched. It is
-useful for diagnostics, and for users who want to see the original,
-whatever it is.
+<CODE>star/star</CODE> is an output format which leaves the input
+untouched. It is useful for diagnostics, and for users who want to see
+the original, whatever it is.
 
 <PRE>
 #define WWW_SOURCE	HTAtom_for("*/*")      /* Whatever it was originally */
 </PRE>
 
-www/present represents the user's perception of the document.  If you
-convert to www/present, you present the material to the user.
+<CODE>www/present</CODE> represents the user's perception of the
+document.  If you convert to www/present, you present the material to
+the user.
 
 <PRE>
 #define WWW_PRESENT	HTAtom_for("www/present")   /* The user's perception */
@@ -167,25 +154,24 @@ with no MIME header. This is what is returned by an HTTP server.
 #define WWW_MIME	HTAtom_for("www/mime")		   /* A MIME message */
 </PRE>
 
-www/print is like www/present except it represents a printed copy.
+<CODE>www/print</CODE> is like www/present except it represents a
+printed copy.
 
 <PRE>
 #define WWW_PRINT	HTAtom_for("www/print")		   /* A printed copy */
 </PRE>
 
-www/unknown is a really unknown type.  Some default action is
-appropriate.
+<CODE>www/unknown</CODE> is a really unknown type.  Some default
+action is appropriate.
 
 <PRE>
 #define WWW_UNKNOWN     HTAtom_for("www/unknown")
 </PRE>
 
 
-<H3>MIME ones (a few)</H3>
+<H3>MIME ones</H3>
 
-These are regular MIME types.  HTML is assumed to be added by the W3
-code. application/octet-stream was mistakenly application/binary in
-earlier libwww versions (pre 2.11).
+These are regular MIME types defined. Others can be added!
 
 <PRE>
 #define WWW_PLAINTEXT 	HTAtom_for("text/plain")
@@ -197,7 +183,7 @@ earlier libwww versions (pre 2.11).
 #define WWW_VIDEO 	HTAtom_for("video/mpeg")
 </PRE>
 
-Extra types used in the library
+Extra types used in the library (EXPERIMENT)
 
 <PRE>
 #define WWW_NEWSLIST 	HTAtom_for("text/newslist")
@@ -207,175 +193,258 @@ We must include the following file after defining HTFormat, to which
 it makes reference.
 
 <H2>The HTEncoding type</H2>
-<PRE>typedef HTAtom* HTEncoding;
 
-</PRE>The following are values for the
-MIME types:
-<PRE>#define WWW_ENC_7BIT		HTAtom_for("7bit")
+<PRE>
+typedef HTAtom* HTEncoding;
+</PRE>
+
+The following are values for the MIME types:
+
+<PRE>
+#define WWW_ENC_7BIT		HTAtom_for("7bit")
 #define WWW_ENC_8BIT		HTAtom_for("8bit")
 #define WWW_ENC_BINARY		HTAtom_for("binary")
-
-</PRE>We also add
-<PRE>#define WWW_ENC_COMPRESS	HTAtom_for("compress")
-
-#include "HTAnchor.h"
-
 </PRE>
 
-<H2>The HTPresentation and HTConverter types</H2>
-
-This HTPresentation structure represents a possible conversion
-algorithm from one format to annother.  It includes a pointer to a
-conversion routine.  The conversion routine returns a stream to which
-data should be fed.  See also <A NAME="z5"
-HREF="#z3">HTStreamStack</A> which scans the list of registered
-converters and calls one. See the <A NAME="z6"
-HREF="HTInit.html">initialisation module</A> for a list of conversion
-routines.
+We also add
 
 <PRE>
-typedef struct _HTPresentation HTPresentation;
+#define WWW_ENC_COMPRESS	HTAtom_for("compress")
+</PRE>
 
-typedef HTStream * <A NAME="z12">HTConverter</A> PARAMS((
-	HTRequest *		request,
-	void *			param,
-	HTFormat		input_format,
-	HTFormat		output_format,
-	HTStream *		output_stream));
-	
-struct _HTPresentation {
-	HTAtom* rep;		/* representation name atomized */
-	HTAtom* rep_out;	/* resulting representation */
-	HTConverter *converter;	/* The routine to gen the stream stack */
-	char *  command;	/* MIME-format string */
-	char *  test_command;	/* MIME-format string */
-	float	quality;	/* Between 0 (bad) and 1 (good) */
+<A NAME="Encoding"><H2>Registration of Accepted Content Encodings</H2></A>
+
+This function is not currently used.
+
+<PRE>
+typedef struct _HTContentDescription {
+    char *	filename;
+    HTAtom *	content_type;
+    HTAtom *	content_language;
+    HTAtom *	content_encoding;
+    int		content_length;
+    float	quality;
+} HTContentDescription;
+
+PUBLIC void HTAcceptEncoding PARAMS((HTList *	list,
+				     char *	enc,
+				     float	quality));
+</PRE>
+
+<A NAME="Language"><H2>Registration of Accepted Content Languages</H2></A>
+
+This function is not currently used.
+
+<PRE>
+PUBLIC void HTAcceptLanguage PARAMS((HTList *	list,
+				     char *	lang,
+				     float	quality));
+</PRE>
+
+<A NAME="Type"><H2>Registration of Accepted Converters and
+Presenters</H2></A>
+
+A <CODE><A NAME="z12">converter</A></CODE> is a stream with a special
+set of parameters and which is registered as capable of converting
+from a MIME type to something else (maybe another MIME-type). A
+<CODE>presenter</CODE> is a module (possibly an external program)
+which can present a graphic object of a certain MIME type to the
+user. That is, <CODE>presenters</CODE> are normally used to present
+graphic objects that the <CODE>converters</CODE> are not able to
+handle. Data is transferred to the external program using the <A
+HREF="HTFWriter.html">HTSaveAndExecute</A> stream which writes to a
+local file. This stream is actually a normal <CODE>converter</CODE>,
+e.g., at strem having the following set of parameters:<P>
+
+<PRE>
+#include "HTAccess.h"			/* Required for HTRequest definition */
+
+typedef HTStream * HTConverter	PARAMS((HTRequest *	request,
+					void *		param,
+					HTFormat	input_format,
+					HTFormat	output_format,
+					HTStream *	output_stream));
+</PRE>
+
+Both <CODE>converters</CODE> and <CODE>presenters</CODE> are set up in
+a list which is used by the <A HREF="#z3">StreamStack</A> module to
+find the best way to pass the information to the user. <P>
+
+The <CODE>HTPresentation</CODE> structure contains both
+<CODE>converters</CODE> and <CODE>presenters</CODE>, and it is defined
+as:
+
+<PRE>
+typedef struct _HTPresentation {
+	HTAtom* rep;			     /* representation name atomized */
+	HTAtom* rep_out;			 /* resulting representation */
+	HTConverter *converter;	      /* The routine to gen the stream stack */
+	char *  command;			       /* MIME-format string */
+	char *  test_command;			       /* MIME-format string */
+	float	quality;		     /* Between 0 (bad) and 1 (good) */
 	float   secs;
 	float   secs_per_byte;
-};
+} HTPresentation;
 </PRE>
 
-A global list of converters is kept by this module.  It is also
-scanned by modules which want to know the set of formats supported.
-for example.  Note there is also an additional list associated with
-each <A NAME="z16" HREF="HTAccess.html#z5">request</A>.
 
-<PRE>extern HTList * <A
-NAME="z17">HTConversions</A> ;
+<A NAME="z17"><H3>Global List of Converters</H3>
 
+This module keeps a global list of converters. This can be used to get
+the set of supported formats. <P>
 
+<B>NOTE:</B> There is also a conversion list associated with each
+request in the <A HREF="HTAccess.html#z1">HTRequest structure</A>.
+
+<PRE>
+extern HTList * HTConversions;
 </PRE>
-<H2>HTSetPresentation: Register a system
-command to present a format</H2>
-<H3>On entry,</H3>
+
+<H3>Register a Presenter</H3>
+
 <DL>
-<DT>rep
-<DD> is the MIME - style format name
+<DT>conversions
+<DD>The list of <CODE>conveters</CODE> and <CODE>presenters</CODE>
+<DT>representation
+<DD>the <A HREF="#Type">MIME-style</A> format name
 <DT>command
-<DD> is the MAILCAP - style command
-template
+<DD>the MAILCAP-style command template
 <DT>quality
-<DD> A degradation faction 0..1
+<DD>A degradation faction [0..1]
 <DT>maxbytes
-<DD> A limit on the length acceptable
-as input (0 infinite)
+<DD>A limit on the length acceptable as input (0 infinite)
 <DT>maxsecs
-<DD> A limit on the time user
-will wait (0 for infinity)
-</DL>
-
-<PRE>extern void HTSetPresentation PARAMS((
-	HTList *	conversions,
-	CONST char * 	representation,
-	CONST char * 	command,
-	CONST char * 	test_command,
-	float		quality,
-	float		secs, 
-	float		secs_per_byte
-));
-
-
-</PRE>
-<H2>HTSetConversion:   Register a converstion
-routine</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>rep_in
-<DD> is the content-type input
-<DT>rep_out
-<DD> is the resulting content-type
-<DT>converter
-<DD> is the routine to make
-the stream to do it
+<DD>A limit on the time user will wait (0 for infinity)
 </DL>
 
 <PRE>
-extern void HTSetConversion PARAMS((
-	HTList *	conversions,
-	CONST char * 	rep_in,
-	CONST char * 	rep_out,
-	HTConverter *	converter,
-	float		quality,
-	float		secs, 
-	float		secs_per_byte
-));
-
-
+extern void HTSetPresentation	PARAMS((HTList *	conversions,
+					CONST char * 	representation,
+					CONST char * 	command,
+					CONST char * 	test_command,
+					float		quality,
+					float		secs, 
+					float		secs_per_byte));
 </PRE>
-<H2><A
-NAME="z3">HTStreamStack:   Create a stack of
-streams</A></H2>This is the routine which actually
-sets up the conversion. It currently
-checks only for direct conversions,
-but multi-stage conversions are forseen.
-It takes a stream into which the
-output should be sent in the final
-format, builds the conversion stack,
-and returns a stream into which the
-data in the input format should be
-fed.  The anchor is passed because
-hypertxet objects load information
-into the anchor object which represents
-them. <P>
-If <CODE>guess</CODE> is true and input format is
-<CODE>www/unknown</CODE>, try to guess the format
-by looking at the first few butes of the stream. <P>
-<PRE>extern HTStream * HTStreamStack PARAMS((
-	HTFormat		format_in,
-	HTRequest *		request,
-	BOOL			guess));
 
-</PRE>
-<H2>HTStackValue: Find the cost of a
-filter stack</H2>Must return the cost of the same
-stack which HTStreamStack would set
-up.
-<H3>On entry,</H3>
+<H3>Register a Converter</H3>
+
 <DL>
-<DT>format_in
-<DD> The fomat of the data to
-be converted
-<DT>format_out
-<DD> The format required
-<DT>initial_value
-<DD> The intrinsic "value"
-of the data before conversion on
-a scale from 0 to 1
-<DT>length
-<DD> The number of bytes expected
-in the input format
+<DT>conversions
+<DD>The list of <CODE>conveters</CODE> and <CODE>presenters</CODE>
+<DT>rep_in
+<DD>the <A HREF="#Type">MIME-style</A> format name
+<DT>rep_out
+<DD>is the resulting content-type after the conversion
+<DT>converter
+<DD>is the routine to call which actually does the conversion
+<DT>quality
+<DD>A degradation faction [0..1]
+<DT>maxbytes
+<DD>A limit on the length acceptable as input (0 infinite)
+<DT>maxsecs
+<DD>A limit on the time user will wait (0 for infinity)
 </DL>
 
-<PRE>extern float HTStackValue PARAMS((
-	HTList *		conversions,
-	HTFormat		format_in,
-	HTFormat		format_out,
-	float			initial_value,
-	long int		length));
+<PRE>
+extern void HTSetConversion	PARAMS((HTList *	conversions,
+					CONST char * 	rep_in,
+					CONST char * 	rep_out,
+					HTConverter *	converter,
+					float		quality,
+					float		secs, 
+					float		secs_per_byte));
+</PRE>
 
+<H3>Set up Default Presenters and Converters</H3>
+
+A default set of <CODE>converters</CODE> and <CODE>presenters</CODE>
+are defined in <A HREF="HTInit.c">HTInit.c</A> (or <A
+HREF="../../Daemon/Inplementation/HTSUtils.c">HTSInit.c</A> in the
+server). <P>
+
+<B>NOTE: </B> No automatic initialization is done in the Library, so
+this is for the application to do
+
+<PRE>
+extern void HTFormatInit	PARAMS((HTList * conversions));
+</PRE>
+
+This function also exists in a version where no
+<CODE>presenters</CODE> are initialized. This is intended for Non
+Interactive Mode, e.g., in the Line Mode Browser.
+
+<PRE>
+extern void HTFormatInitNIM	PARAMS((HTList * conversions));
+</PRE>
+
+<H3>Remove presentations and conversions</H3>
+
+This function deletes the list of <CODE>converters</CODE> and
+<CODE>presenters</CODE>.
+
+<PRE>
+extern void HTFormatDelete	PARAMS((HTRequest * request));
+</PRE>
+
+
+<A NAME="Rank"><H2>Ranking of Accepted Formats</H2></A>
+
+This function is not currently used.
+
+<PRE>
+PUBLIC BOOL HTRank PARAMS((HTList * possibilities,
+			   HTList * accepted_content_types,
+			   HTList * accepted_content_languages,
+			   HTList * accepted_content_encodings));
+</PRE>
+
+<H2><A NAME="z3">HTStreamStack</A></H2>
+
+This is the routine which actually sets up the conversion. It
+currently checks only for direct conversions, but multi-stage
+conversions are forseen.  It takes a stream into which the output
+should be sent in the final format, builds the conversion stack, and
+returns a stream into which the data in the input format should be
+fed.<P>
+
+If <CODE>guess</CODE> is true and input format is
+<CODE>www/unknown</CODE>, try to guess the format by looking at the
+first few bytes of the stream. <P>
+
+<PRE>
+PUBLIC HTStream * HTStreamStack PARAMS((HTFormat	rep_in,
+					HTFormat	rep_out,
+					HTStream *	output_stream,
+					HTRequest *	request,
+					BOOL		guess));
+</PRE>
+
+<H3>Find the cost of a filter stack</H3>
+
+Must return the cost of the same stack which HTStreamStack would set
+up.
+
+<PRE>
 #define NO_VALUE_FOUND	-1e20		/* returned if none found */
 
+extern float HTStackValue	PARAMS((HTList *	conversions,
+					HTFormat	format_in,
+					HTFormat	format_out,
+					float		initial_value,
+					long int	length));
 </PRE>
+
+<HR>
+
+<B><IMG
+ALIGN=middle SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/caution.gif"> ATTENTION <IMG ALIGN=middle SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/caution.gif"> <P>
+
+THE REST OF THE FUNCTION DEFINED IN THIS MODULE ARE GOING TO BE
+OBSOLETE SO DO NOT USE THEM - THEY ARE NOT REENTRANT.</B>
+
+<HR>
+
 <H2><A
 NAME="z1">HTCopy:  Copy a socket to a stream</A></H2>This is used by the protocol engines
 to send data down a stream, typically
@@ -437,53 +506,31 @@ if succesful, &lt;0 if not.
 	HTRequest *	request));
 
 </PRE>
-<H2><A
-NAME="z11">HTNetToText: Convert Net ASCII to
-local representation</A></H2>This is a filter stream suitable
-for taking text from a socket and
-passing it into a stream which expects
-text in the local C representation.
-It does ASCII and newline conversion.
-As usual, pass its output stream
-to it when creating it.
-<PRE>extern HTStream *  HTNetToText PARAMS ((HTStream * sink));
 
-</PRE>
-<H2>HTFormatInit: Set up default presentations
-and conversions</H2>These are defined in HTInit.c or
-HTSInit.c if these have been replaced.
-If you don't call this routine, and
-you don't define any presentations,
-then this routine will automatically
-be called the first time a conversion
-is needed. However, if you explicitly
-add some conversions (eg using HTLoadRules)
-then you may want also to explicitly
-call this to get the defaults as
-well.
-<PRE>
-extern void HTFormatInit PARAMS((HTList * conversions));
 
-</PRE>
-<H2>HTFormatInitNIM: Set up default presentations
-and conversions</H2>This is a slightly different version
-of HTFormatInit, but without any
-conversions that might use third
-party programs. This is intended
-for Non Interactive Mode.
-<PRE>extern void HTFormatInitNIM PARAMS((HTList * conversions));
+<H3>Get next character from buffer</H3>
 
-</PRE>
-<H2>HTFormatDelete: Remove presentations
-and conversions</H2>Deletes the list from HTFormatInit
-or HTFormatInitNIM
-<PRE>extern void HTFormatDelete PARAMS((HTList * conversions));
-
+<PRE>extern int HTInputSocket_getCharacter PARAMS((HTInputSocket* isoc));
 </PRE>
 
-<H2>Epilogue</H2>
-<PRE>extern BOOL HTOutputSource;	/* Flag: shortcut parser */
+<H3>Read block from input socket</H3>Read *len characters and return a
+buffer (don't free) containing *len
+characters ( *len may have changed).
+Buffer is not NULL-terminated.
+<PRE>extern char * HTInputSocket_getBlock PARAMS((HTInputSocket * isoc,
+						  int *           len));
+
+PUBLIC char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
+PUBLIC char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
+PUBLIC char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
+PUBLIC BOOL   HTInputSocket_seemsBinary PARAMS((HTInputSocket * isoc));
+
 #endif
 
-</PRE>end</BODY>
+</PRE>
+
+
+End of definition module
+
+</BODY>
 </HTML>

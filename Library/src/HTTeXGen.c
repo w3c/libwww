@@ -278,9 +278,9 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 
     /* Flush buffer out when full */
     if (me->write_pointer >= me->buffer+BUFFER_SIZE-3) {
-#if 0
+#ifdef OLD_CODE
 	if (me->markup || me->preformatted) {
-#endif
+#endif /* OLD_CODE */
 	if (me->preformatted) {
 	    *me->write_pointer = '\n';
 	    (*me->targetClass.put_block)(me->target,
@@ -305,6 +305,7 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 	}	    
 	me->line_break = me->buffer;
     }
+    return;
 }
 
 
@@ -374,7 +375,7 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 **	Does no assumptions of WHAT element is ended...
 */
 PRIVATE void HTTeXGen_end_element ARGS2(HTStructured *, me,
-					int , element_number)
+				       int , element_number)
 {
     if (me->preformatted && element_number != HTML_PRE) {
 	if (TRACE)
@@ -420,19 +421,21 @@ PRIVATE void HTTeXGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 **	-------------------
 **
 */
-PRIVATE void HTTeXGen_free ARGS1(HTStructured *, me)
+PRIVATE int HTTeXGen_free ARGS1(HTStructured *, me)
 {
     HTTeXGen_flush(me);
     (*me->targetClass.put_string)(me->target, "\n\\end{document}\n");
     HTTeXGen_flush(me);
     (*me->targetClass._free)(me->target);	/* ripple through */
     free(me);
+    return 0;
 }
 
 
-PRIVATE void HTTeXGen_abort ARGS2(HTStructured *, me, HTError, e)
+PRIVATE int HTTeXGen_abort ARGS2(HTStructured *, me, HTError, e)
 {
     HTTeXGen_free(me);
+    return EOF;
 }
 
 

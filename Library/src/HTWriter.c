@@ -43,20 +43,17 @@ PRIVATE void flush ARGS1(HTStream *, me)
     }
 #endif
     while (read_pointer < write_pointer) {
-        int status;
-#ifdef OLD_CODE
-	status = NETWRITE(me->soc, me->buffer,  /* Put timeout? @@@ */
-			write_pointer - read_pointer);
-#endif /* OLD_CODE */
-	status = NETWRITE(me->soc, read_pointer, write_pointer - read_pointer);
-	if (status<0) {
-	    if(TRACE) fprintf(stderr,
-	    "HTWrite: Error: write() on socket returns %d !!!\n", status);
+        int status = NETWRITE(me->soc, read_pointer,
+			      write_pointer - read_pointer);
+	if (status < 0) {
+	    if (PROT_TRACE)
+		fprintf(stderr, "WriteStream.. Error writing to target\n");
 	    return;
 	}
 	read_pointer += status;
     }
     me->write_pointer = me->buffer;
+    return;
 }
 
 
@@ -130,17 +127,19 @@ PRIVATE void HTWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 **	Note that the SGML parsing context is freed, but the created object is not,
 **	as it takes on an existence of its own unless explicitly freed.
 */
-PRIVATE void HTWriter_free ARGS1(HTStream *, me)
+PRIVATE int HTWriter_free ARGS1(HTStream *, me)
 {
     flush(me);
     if (!me->leave_open)
 	NETCLOSE(me->soc);
     free(me);
+    return 0;
 }
 
-PRIVATE void HTWriter_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
     HTWriter_free(me);
+    return EOF;
 }
 
 
@@ -164,7 +163,7 @@ PRIVATE CONST HTStreamClass HTWriter = /* As opposed to print etc */
 PUBLIC HTStream* HTWriter_new ARGS1(int, soc)
 {
     HTStream* me = (HTStream*)calloc(1,sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "HTML_new");
+    if (me == NULL) outofmem(__FILE__, "HTWriter_new");
     me->isa = &HTWriter;       
     
 #ifdef NOT_ASCII

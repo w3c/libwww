@@ -514,11 +514,9 @@ PRIVATE char *compose_Basic_auth ARGS1(HTRequest *, req)
 */
 PRIVATE HTAAScheme HTAA_selectScheme ARGS1(HTAASetup *, setup)
 {
-    int  scheme;
+    HTAAScheme scheme;
     if (setup && setup->valid_schemes) {
-	for (scheme = (HTAAScheme) HTAA_BASIC;
-	     scheme < (HTAAScheme) HTAA_MAX_SCHEMES;
-	     scheme++)
+	for (scheme = HTAA_BASIC; scheme < HTAA_MAX_SCHEMES; scheme++)
 	    if (-1 < HTList_indexOf(setup->valid_schemes, (void *) scheme))
 		return (HTAAScheme) scheme;
     }
@@ -671,27 +669,21 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
 **			up according to server reply, especially the
 **			req->valid_shemes list must have been set up
 **			according to WWW-Authenticate: headers.
-**	req->retry_callback
-**			function to call when username and password
-**			have been entered.
 ** ON EXIT:
 **
-**	returns	nothing.
-**		Calls (*req->retry_callback)(req).
+**	returns	YES or NO
 **
 */
-PUBLIC void HTPasswordDialog ARGS1(HTRequest *,	req)
+PUBLIC int HTPasswordDialog ARGS1(HTRequest *,	req)
 {
-    if (!req || !req->setup || !req->realm || !req->dialog_msg ||
-	!req->retry_callback) {
+    if (!req || !req->setup || !req->realm || !req->dialog_msg) {
 	HTAlert("HTPasswordDialog() called with an illegal parameter");
-	return;
+	return NO;
     }
     if (req->setup->reprompt &&
-	NO == HTConfirm("Authorization failed.  Retry?")) {
-	return;
-    } /* HTConfirm(...) == NO */
-    else { /* re-ask username+password (if misspelled) */
+	HTConfirm("Authorization failed. Retry?") != YES) {
+	return NO;
+    } else {
 	char *username = req->realm->username;
 	char *password = NULL;
 
@@ -701,12 +693,12 @@ PUBLIC void HTPasswordDialog ARGS1(HTRequest *,	req)
 	if (req->realm->password) free(req->realm->password);
 	req->realm->username = username;
 	req->realm->password = password;
-
 	if (!req->realm->username)
-	    return;		/* Suggested by marca; thanks! */
-	else
-	    (*req->retry_callback)(req);	/* Callback */
+	    return NO;			      /* Suggested by marca; thanks! */
+
+	return YES;
     }
+    return NO;
 }
 
 
@@ -738,8 +730,7 @@ PUBLIC void HTPasswordDialog ARGS1(HTRequest *,	req)
 **	returns		YES, if dialog box was popped up.
 **			NO, on failure.
 */
-PUBLIC BOOL HTAA_retryWithAuth ARGS2(HTRequest *,	  req,
-				     HTRetryCallbackType, callback)
+PUBLIC BOOL HTAA_retryWithAuth ARGS1(HTRequest *,	req)
 {
     int len;
     char *realmname;
@@ -837,10 +828,7 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS2(HTRequest *,	  req,
 		 req->realm->realmname,
 		 req->setup->server->hostname
 		 ? req->setup->server->hostname : "??");
-
-    req->retry_callback = callback;	/* Set callback function */
-    HTPasswordDialog(req);
-    return YES;
+    return (HTPasswordDialog(req));
 }
 
 

@@ -224,7 +224,7 @@ PRIVATE void ItoA ARGS3(unsigned int, n, char *, start, char, len)
     char *sptr = start+len-1;
     do {
 	*sptr-- = n%10 + '0';
-    } while (n /= 10);
+    } while ((n /= 10));
 }
 
 

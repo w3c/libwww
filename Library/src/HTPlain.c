@@ -75,17 +75,19 @@ PRIVATE void HTPlain_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 **	Note that the SGML parsing context is freed, but the created object is not,
 **	as it takes on an existence of its own unless explicitly freed.
 */
-PRIVATE void HTPlain_free ARGS1(HTStream *, me)
+PRIVATE int HTPlain_free ARGS1(HTStream *, me)
 {
     free(me);
+    return 0;
 }
 
 /*	End writing
 */
 
-PRIVATE void HTPlain_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTPlain_abort ARGS2(HTStream *, me, HTError, e)
 {
     HTPlain_free(me);
+    return EOF;
 }
 
 

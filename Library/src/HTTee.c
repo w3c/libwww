@@ -41,17 +41,19 @@ PRIVATE void HTTee_write ARGS3(HTStream *, me, CONST char*, s, int, l)
     (*me->s1->isa->put_block)(me->s1, s, l);
     (*me->s2->isa->put_block)(me->s2, s, l);
 }
-PRIVATE void HTTee_free ARGS1(HTStream *, me)
+PRIVATE int HTTee_free ARGS1(HTStream *, me)
 {
     (*me->s1->isa->_free)(me->s1);
     (*me->s2->isa->_free)(me->s2);
     free(me);
+    return 0;
 }
-PRIVATE void HTTee_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTTee_abort ARGS2(HTStream *, me, HTError, e)
 {
     (*me->s1->isa->abort)(me->s1, e);
     (*me->s2->isa->abort)(me->s2, e);
     free(me);
+    return EOF;
 }
 
 

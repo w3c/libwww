@@ -28,7 +28,9 @@ struct _HTStream {
 	CONST HTStreamClass *	isa;
 
 	HTRequest *		req;
+	HTFormat		output_format;
 	HTStream *		output_stream;
+	HTStream *		target;
 
 	BOOL			discard;
 	int			cnt;
@@ -60,11 +62,11 @@ PRIVATE BOOL is_html ARGS1(char *, buf)
 
 
 #define PUT_CHAR(c)	\
-    (*me->output_stream->isa->put_character)(me->output_stream,c)
+    (*me->target->isa->put_character)(me->target,c)
 #define PUT_STRING(s)	\
-    (*me->output_stream->isa->put_string)(me->output_stream,s)
+    (*me->target->isa->put_string)(me->target,s)
 #define PUT_BLOCK(b,l)	\
-    (*me->output_stream->isa->put_block)(me->output_stream,b,l)
+    (*me->target->isa->put_block)(me->target,b,l)
 
 #define CONTENT_TYPE(t)	\
     me->req->content_type = HTAtom_for(t)
@@ -140,8 +142,9 @@ PRIVATE BOOL header_and_flush ARGS1(HTStream *, me)
     CTRACE(stderr,"Guessed..... %s\n", HTAtom_name(me->req->content_type));
     CTRACE(stderr,"Encoding.... %s\n", HTAtom_name(me->req->content_encoding));
 
-    me->output_stream = HTStreamStack(me->req->content_type, me->req, NO);
-    if (!me->output_stream) {
+    me->target = HTStreamStack(me->req->content_type, me->output_format,
+			       me->output_stream, me->req, NO);
+    if (!me->target) {
 	me->discard = YES;	/* Turning into a black hole */
 	return NO;
     }
@@ -155,7 +158,7 @@ PRIVATE BOOL header_and_flush ARGS1(HTStream *, me)
 PRIVATE void HTGuess_put_character ARGS2(HTStream *, me, char, c)
 {
     if (me->discard) return;
-    if (me->output_stream) PUT_CHAR(c);
+    if (me->target) PUT_CHAR(c);
     else {
 	me->cnt++;
 #if 0
@@ -177,7 +180,7 @@ PRIVATE void HTGuess_put_character ARGS2(HTStream *, me, char, c)
 PRIVATE void HTGuess_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
     if (me->discard) return;
-    if (me->output_stream) PUT_STRING(s);
+    if (me->target) PUT_STRING(s);
     else {
 	while (*s) {
 	    HTGuess_put_character(me,*s);
@@ -189,7 +192,7 @@ PRIVATE void HTGuess_put_string ARGS2(HTStream *, me, CONST char*, s)
 PRIVATE void HTGuess_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 {
     if (me->discard) return;
-    while (!me->output_stream && l > 0) {
+    while (!me->target && l > 0) {
 	HTGuess_put_character(me, *b);
 	b++;
 	l--;
@@ -197,20 +200,22 @@ PRIVATE void HTGuess_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
     if (l > 0) PUT_BLOCK(b,l);
 }
 
-PRIVATE void HTGuess_free ARGS1(HTStream *, me)
+PRIVATE int HTGuess_free ARGS1(HTStream *, me)
 {
-    if (!me->discard && !me->output_stream)
+    if (!me->discard && !me->target)
 	header_and_flush(me);
-    if (me->output_stream)
-	(*me->output_stream->isa->_free)(me->output_stream);
+    if (me->target)
+	(*me->target->isa->_free)(me->target);
     free(me);
+    return 0;
 }
 
-PRIVATE void HTGuess_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTGuess_abort ARGS2(HTStream *, me, HTError, e)
 {
-    if (me->output_stream)
-	(*me->output_stream->isa->abort)(me,e);
+    if (me->target)
+	(*me->target->isa->abort)(me,e);
     free(me);
+    return EOF;
 }
 
 
@@ -229,14 +234,21 @@ PRIVATE CONST HTStreamClass HTGuessClass =
 
 
 
-PUBLIC HTStream * HTGuess_new ARGS1(HTRequest *, req)
+PUBLIC HTStream * HTGuess_new ARGS5(HTRequest *,	req,
+				    void *,		param,
+				    HTFormat,		input_format,
+				    HTFormat,		output_format,
+				    HTStream *,		output_stream)
 {
     HTStream * me = (HTStream*)calloc(1,sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTGuess_new");
 
     me->isa = &HTGuessClass;
-    me->req =req;
+    me->req = req;
+    me->output_format = output_format;
+    me->output_stream = output_stream;
     me->write_ptr = me->buffer;
     return me;
 }
+
 

@@ -1,26 +1,21 @@
 <HTML>
 <HEAD>
-<TITLE>HTTP module for libwww</TITLE></HEAD>
+<TITLE>Multi Threaded HTTP module for libwww</TITLE></HEAD>
 <BODY>
-<H1>HyperText Tranfer Protocol Module</H1>
 
-This is the module that handles all communication with HTTP servers. The module
-is a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.
+<H1>Multi Threaded HyperText Tranfer Protocol Module</H1>
+
+This is actually a very small definition file as almost everything is
+set up elsewhere. <P>
+
+This module is implemented by <A HREF="HTTP.c">HTTP.c</A>, and it is a
+part of the <A NAME="z10"
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+of Common Code</A>. <P>
 
 <PRE>
 #ifndef HTTP_H
 #define HTTP_H
-#include "HTAccess.h"
-</PRE>
-
-<H2>Public Functions</H2>
-
-Theese are the public functions...
-
-<H3>Accessing HTTP-Server</H3>
-
-<PRE>
-extern int HTLoadHTTP PARAMS((HTRequest * request));
 </PRE>
 
 <H2>Controlling Flags</H2>
@@ -29,7 +24,7 @@ The following variables can change the behaviour of the module.
 
 <H3>Cache control flag</H3>
 
-<EM>Note: This variable is now replaced by the (char *) HTCacheDir in 
+<EM>Note: This variable is now replaced by the (char *) HTCacheDir in
 <A HREF="HTAccess.html">HTAccess Module</A></EM> <P>
 
 Turn this off if you don't want HTTP protocol fetches to leave cache files.
@@ -37,8 +32,9 @@ Turn this off if you don't want HTTP protocol fetches to leave cache files.
 
 <H3>Redirections</H3>
 
-The maximum number of redirections is pr. default 10 and is set in the module.
-This prevents the library from going into an infinite loop.
+The maximum number of redirections is pr. default 10 and is set in the
+module. This prevents the library from going into an infinite loop
+which is kind of nice :-)
 
 <PRE>
 extern int HTMaxRedirections;
@@ -46,11 +42,13 @@ extern int HTMaxRedirections;
 
 <H3>Disable/Enable User Identification in HTTP Request</H3>
 
-If a client want the user's email address to be send in the HTTP request
-as a <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A>
-then turn this flag on. The default is off because it might cause security
-problems from within a firewall. When enabled, the format used is
-<EM>user@host.domain</EM>. The value can be changed, see <A HREF="HTTCP.html#Mailaddress">HTTCP Module</A>.
+If a client want the user's email address to be send in the HTTP
+request as a <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">
+From field</A> then turn this flag on. The default is off because it
+might cause security problems from within a firewall. When enabled,
+the format used is <EM>user@host.domain</EM>. The value can be
+changed, see <A HREF="HTTCP.html#Mailaddress">HTTCP Module</A>.
 
 <PRE>
 extern BOOL HTEnableFrom;

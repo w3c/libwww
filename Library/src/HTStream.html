@@ -1,9 +1,14 @@
 <HTML>
 <HEAD>
-<TITLE>The Stream class definition -- libwww</TITLE></HEAD>
+<TITLE>The Generic Stream Class Definition</TITLE></HEAD>
 <BODY>
-<H1>Stream Object definition</H1>A Stream object is something which
-accepts a stream of text.<P>
+<H1>Stream Object definition</H1>
+
+A Stream object is something which accepts a stream of text. This
+module is a part on the <A HREF="Overview.html">Library of Common
+Code</A>. See also the <A HREF="SGML.html">Structured stream
+definition.</A><P>
+
 The creation methods will vary on
 the type of Stream Object.   All
 creation methods return a pointer
@@ -24,17 +29,31 @@ except for end_document which must
 be called before free.  It should
 be merged with free in fact:  it
 should be dummy for new streams.<P>
-The put_block method was write, but
-this upset systems whiuch had macros
-for write().
+
+<B>NOTE: </B>The <CODE>put_block</CODE> method was <CODE>write</CODE>, but this
+upset systems which had macros for <CODE>write()</CODE><P>
+
+<B>NOTE: </B>The methods <CODE>_free</CODE> and <CODE>abort</CODE> in
+the stream are now integers and not void anymore. The general return
+codes from the methods are:
+
+<UL>
+<LI>Error: EOF
+<LI>OK: &gt;=0
+</UL>
+
+The positive return codes can be used freely by the streams.  An
+explanation on an error occured can be parsed using the <A
+HREF="HTError.html">Error Module</A>.
+
 <PRE>typedef struct _HTStreamClass {
 
 	char*  name;				/* Just for diagnostics */
 		
-	void (*_free) PARAMS((
+	int (*_free) PARAMS((
 		HTStream*	me));
 
-	void (*abort) PARAMS((
+	int (*abort) PARAMS((
 		HTStream*	me,
 		HTError		e));
 		
@@ -52,7 +71,7 @@ for write().
 		int		len));
 		
 		
-}HTStreamClass;
+} HTStreamClass;
 
 #endif /* HTSTREAM_H */
 

@@ -52,18 +52,21 @@ PRIVATE void HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 }
 
 
-PRIVATE void HTExtParse_free ARGS1(HTStream *, me)
+PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
 {
     if (TRACE) printf("HTExtParse_free\n");
     me->eps->finished = YES;
     (*me->eps->call_client)(me->eps);         /* client will free buffer */
     free(me->eps);
     free(me);
+    return 0;
 }
 
-PRIVATE void HTExtParse_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTError, e)
 {
     printf("HTExtParse_abort\n");
+    HTExtParse_free(me);				  /* Henrik Nov 2 94 */
+    return EOF;
 }
 
 

@@ -5,7 +5,14 @@
 
 This module has the common code for handling TCP/IP and DECnet connections
 etc. The module is a part of the <A HREF="Overview.html">CERN Common WWW
-Library</A>.
+Library</A>. The main topics of functions in this module are:
+
+<UL>
+<LI><A HREF="#ConEst">Connection establishment</A>
+<LI><A HREF="#hostcache">Cache of host names</A>
+<LI><A HREF="#DNS">Host and mail addresses</A>
+<LI><A HREF="#Signals">Signal Handling</A>
+</UL>
 
 <PRE>
 #ifndef HTTCP_H
@@ -23,15 +30,18 @@ Library</A>.
 
 <H2>Connection Management</H2>
 
-All connections are established through these two functions.
+All connections are established through the following functions.
 
-<H3>Active Connection Establishment</H3>
+<A NAME="ConEst"><H3>Active Connection Establishment</H3></A>
 
-This makes an active connect to the specified host. The <A HREF="HTAccess.html#HTNetInfo">HTNetInfo structure</A> is
-parsed in order to handle errors. Default port might be overwritten by any
-port indication in the <A HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/Overview.html">URL</A> specified as &lt;host&gt;:&lt;port&gt; If it is
-a multihomed host then HTDoConnect measures the time to do the connection and
-updates the calculated weights in the cache of visited hosts. 
+This makes an active connect to the specified host. The <A
+HREF="HTAccess.html#HTNetInfo">HTNetInfo structure</A> is parsed in
+order to handle errors. Default port might be overwritten by any port
+indication in the <A
+HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/Overview.html">URL</A>
+specified as &lt;host&gt;:&lt;port&gt; If it is a multihomed host then
+HTDoConnect measures the time to do the connection and updates the
+calculated weights in the cache of visited hosts.
 
 <PRE>
 PUBLIC int HTDoConnect PARAMS((	HTNetInfo  	*net,
@@ -40,7 +50,6 @@ PUBLIC int HTDoConnect PARAMS((	HTNetInfo  	*net,
 			    	u_long 		*addr,
 				BOOL		use_cur));
 </PRE>
-
 
 <H3>Passive Connection Establishment</H3>
 
@@ -51,7 +60,7 @@ until MAX_ACCEPT_POLL is reached.
 PUBLIC int HTDoAccept PARAMS((HTNetInfo *net));
 </PRE>
 
-<H2>Caching Hosts Names</H2>
+<A NAME="hostcache"><H2>Caching Hosts Names</H2></A>
 
 This part of the HTTCP module maintains a cache of all visited hosts so that
 subsequent connects to the same host doesn't imply a new request to the DNS
@@ -131,7 +140,7 @@ PUBLIC unsigned int HTCardinal PARAMS((int *		pstatus,
 				       unsigned int	max_value));
 </PRE>
 
-<H2>Internet Name Server Functions</H2>
+<A NAME="DNS"><H2>Internet Name Server Functions</H2></A>
 
 The following functions are available to get information about a
 specified host.
@@ -241,10 +250,19 @@ be set by the user to change the value in the  <A HREF="http://info.cern.ch/hype
 PUBLIC void HTSetMailAddress PARAMS((char * address));
 </PRE>
 
+<H2>Signal Handling</H2>
+
+This is only necessary to compile on a few platforms and only if the
+application does not have its own signal handling.
 
 <PRE>
+#ifdef LIB_SIG
+PUBLIC void HTSetSignal NOPARAMS
+#endif
+
 #endif   /* HTTCP_H */
 </PRE>
+
 End of file
 </BODY>
 </HTML>

@@ -41,10 +41,12 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
     /* This check is only necessary if the error message is put down the
        stream, because we have to know if a stream has been put up and/or
        taken down again. Here it is only put as an example */
+#if 0
     if (request->error_block) {
 	if (TRACE) fprintf(stderr, "HTErrorMsg.. No messages are printed as no stream is available.\n");
 	return;
     }
+#endif
 
     /* Output messages */
     chunk = HTChunkCreate(128);

@@ -4,26 +4,41 @@
 <NEXTID N="z11">
 </HEAD>
 <BODY>
+
 <H1>Access Manager</H1>
-This module keeps a list of valid
-protocol (naming scheme) specifiers
-with associated access code.  It
-allows documents to be loaded given
-various combinations of parameters.
-New access protocols may be registered
-at any time.<P>
 
-<B>Note:</B> HTRequest defined and request parameter added to almost all calls
-18 Nov 1993.<P>
+This module keeps a list of valid protocol (naming scheme) specifiers
+with associated access code.  It allows documents to be loaded given
+various combinations of parameters.  New access protocols may be
+registered at any time.<P>
 
-This document is a part of the <A NAME="z0" HREF="Overview.html">
-libwww library</A>. The code is implemented in <A NAME="z8" HREF="HTAccess.c">
-HTAcces.c</A>
+<B>Note:</B> HTRequest defined and request parameter added to almost
+all calls 18 Nov 1993.<P>
+
+This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and
+it is a part of the <A NAME="z10"
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+of Common Code</A>. <P>
+
+The module contains a lot of stuff but the main topics are:
+
+<UL>
+<LI><A HREF="#Methods">Management of access methods</A>
+<LI><A HREF="#Addresses">A lot of hard coded addresses</A>
+<LI><A HREF="#z1">The HTRequest structure</A>
+<LI><A HREF="#z100">Management of the HTRequest structure</A>
+<LI><A HREF="#LoadDoc">Functions for loading a document</A>
+<LI><A HREF="#ClientHelp">Help functions for clients to get started</A>
+<LI><A HREF="#PostDoc">Functions for posting a document</A>
+<LI><A HREF="#ProtReg">Access Method Registration</H2></A>
+</UL>
+
 
 <PRE>
 #ifndef HTACCESS_H
 #define HTACCESS_H
 #include "HTList.h"
+#include "HTChunk.h"
 </PRE>
 
 <B>Short Names</B>
@@ -49,9 +64,11 @@ extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
 extern BOOL HTForceReload;		/* Force reload from cache or net */
 </PRE>
 
-<H2>Method Management</H2>
+<A NAME="Methods"><H2>Method Management</H2></A>
 
-Thesse are the valid methods, see <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP Methods</A>
+Thesse are the valid methods, see <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP
+Methods</A>
 
 <PRE>
 typedef enum {
@@ -135,13 +152,12 @@ in advance of the other include files
 because of circular references.
 <PRE>
 typedef struct _HTRequest HTRequest;
+typedef struct _HTNetInfo HTNetInfo;
 
 /*
-** Callback to call when username and password
-** have been prompted.
+** Callback to a protocol module
 */
-typedef int (*HTRetryCallbackType) PARAMS((HTRequest * req));
-
+typedef int (*HTLoadCallBack)	PARAMS((HTRequest *	req));
 
 #include "HTAnchor.h"
 #include <A
@@ -150,7 +166,7 @@ NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
 #include "HTAABrow.h"		/* HTAASetup */
 </PRE>
 
-<H2>Default WWW Addresses</H2>
+<A NAME="Addresses"><H2>Default WWW Addresses</H2></A>
 
 These control the home page selection. To mess with these for normal browses
 is asking for user confusion.
@@ -204,13 +220,16 @@ modules and is the refenrence point for introducing multi threaded execution
 into the library, see specifications on <A HREF="http://info.cern.ch/hypertext/WWW/Library/User/Multithread/multithread.html">Multiple Threads</A>.
 
 <PRE>
-typedef struct _HTNetInfo {
-    int			sockfd;				/* Socket descriptor */
+struct _HTNetInfo {
+    int			sockfd;				/* Socket descripter */
+    SockA 		sock_addr;		/* SockA is defined in tcp.h */
     HTInputSocket *	isoc;				     /* Input buffer */
+    HTStream *		target;			            /* Output stream */
+    HTChunk *		transmit;			  /* Line to be send */
     int 		addressCount;	     /* Attempts if multi-homed host */
-    BOOL		CRLFdotCRLF;  /* Does the transmission end like this */
+    time_t		connecttime;		 /* Used on multihomed hosts */
     struct _HTRequest *	request;	   /* Link back to request structure */
-} HTNetInfo;
+};
 </PRE>
 
 <EM><B>Note:</B> The AddressCount varaible is used to count the number
@@ -228,94 +247,111 @@ HTRequest structure. <P>
 request then make sure that the request is re-initialized, so that no `old'
 data is reused, see <A HREF="#z100">functions to manipulate HTRequest
 Structure</A>. The library handles its own internal information from request
-to request but the information set by the caller is untouched.
+to request but the information set by the caller is untouched. <P>
 
-<PRE>struct _HTRequest {
+The elements of the request structure are as follows.
 
-</PRE>The elements of the request structure
-are as follows.
+<PRE>
+struct _HTRequest {
+</PRE>
+
 <H3>Set by the caller of HTaccess:</H3>
-<H4>Conditions of the request itself:</H4>
-<PRE>	HTMethod	method;
 
-</PRE>An atom for the name of the operation
-using HTTP <A
-NAME="z7" HREF="../../Protocols/HTTP/Methods.html">method names</A> .
-<PRE>	HTList * 	conversions ;
-</PRE>NULL, or a list of conversions which
-the format manager can do in order
-to fulfill the request.  This is
-set by the caller of HTAccess. Typically
-points to a list set up an initialisation
-time for example by HTInit.
-<PRE>	HTList *	encodings;	/* allowed content-encodings	  */
-
-</PRE>The list of encodings acceptablein
-the output stream.
-<PRE>	HTList *	languages;	/* accepted content-languages	  */
-
-</PRE>The list of (human) language values
-acceptable in the response
-<PRE>	BOOL (*<A
-NAME="z9"> callback</A> ) PARAMS((
-				struct _HTRequest* request,
-				void *param));
-
-</PRE>A function to be called back in the
-event that a file has been saved
-to disk by HTSaveAndCallBack for
-example.
-<PRE>	void *		context;	/* caller data -- HTAccess unaware */
-
-</PRE>An arbitrary pointer passed to HTAccess
-and passed back as a parameter to
-the <A
-NAME="z10" HREF="#z9">callback</A> .
-<PRE>	HTStream*	output_stream; 
-
-</PRE>NULL in the case of display to the
-user, or if a specific output stream
-is required, the stream.
-<PRE>	HTAtom * 	output_format;
-
-</PRE>The output format required, or a
-generic format such as www/present
-(present to user). 
-<H4>Information about the requester</H4>
-<PRE>	char *		from;
+<PRE>
+    <A HREF="#Methods">HTMethod</A>	method;
 </PRE>
 
-Email format address of person responible for request, see <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field in
-HTTP Protocol</A>. The default address used is the current location, but that
-can be changed, see <A HREF="HTTCP.html#HTGetHostName">HTTCP module</A>.
+An enum used to specify the HTTP <A NAME="z7"
+HREF="../../Protocols/HTTP/Methods.html">method</A> used. The default
+value is <CODE>GET</CODE>
 
-<H4>The URI from which this request was obtained</H4>
-<PRE>	HTParentAnchor *parentAnchor;
+<PRE>
+    HTList * 	conversions;
 </PRE>
-If this parameter is set then a `Referer: &lt;parent address&gt; is generated
-in the request to the server, see <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">Referer field in a HTTP Request</A>
 
-<H3>Set by HTAccess</H3>None of the bits below may be looked
-at by a client application except
-in the callback routine, when the
-anchor may be picked out.
-<PRE>	HTParentAnchor*	anchor;
+NULL, or a list of conversions which the format manager can do in
+order to fulfill the request.  It typically points to a list set up an
+initialisation time for example by <A HREF="HTInit.html">HTInit().</A>
 
-</PRE>The anchor for the object in question.
-Set immediately by HTAcesss.  Used
-by the protocol and parsing modules.
-Valid thoughout the access.
-<PRE>	HTChildAnchor *	childAnchor;	/* For element within the object  */
+<PRE>
+    HTList *	encodings;
+</PRE>
 
-</PRE>The anchor for the sub object if
-any.  The object builder should ensure
-that htis is selected, highlighted,
-etc when the object is loaded. NOTE:
-Set by HTAccess.
-<PRE>	void *		using_cache;
+The list of encodings acceptable in the output stream.
 
-</PRE>pointer to cache element if cache
-hit
+<PRE>
+    HTList *	languages;
+</PRE>
+
+The list of (human) language values acceptable in the response. The default
+is all languages.
+
+<PRE>
+    BOOL (*<A NAME="z9"> callback</A> ) PARAMS((struct _HTRequest* request,
+						void *param));
+</PRE>
+
+A function to be called back in the event that a file has been saved
+to disk by HTSaveAndCallBack for example.
+
+<PRE>
+    void *	context;
+</PRE>
+
+An arbitrary pointer passed to HTAccess and passed back as a parameter
+to the <A NAME="z10" HREF="#z9">callback</A> .
+
+<PRE>
+    HTStream*	output_stream; 
+</PRE>
+
+The output stream to be used to put data down to as they come in from the
+network. The default value is <CODE>NULL</CODE> which means that the stream
+goes to the user (display).
+
+<PRE>
+    HTAtom * 	output_format;
+</PRE>
+
+The output format of the stream. This can be used to get unconverted
+data etc. from the library. If <CODE>NULL</CODE>, then WWW_PRESENT is
+default value.
+
+<PRE>
+    HTParentAnchor *parentAnchor;
+</PRE>
+
+If this parameter is set then a `Referer: &lt;parent address&gt; is
+generated in the request to the server, see <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">
+Referer field in a HTTP Request</A>
+
+<H3>Set by HTAccess</H3>
+
+None of the bits below may be looked at by a client application except
+in the callback routine, when the anchor may be picked out.
+
+<PRE>
+    HTParentAnchor*	anchor;
+</PRE>
+
+The anchor for the object in question.  Set immediately by HTAcesss.
+Used by the protocol and parsing modules.  Valid thoughout the access.
+
+<PRE>
+    HTChildAnchor *	childAnchor;	/* For element within the object  */
+</PRE>
+
+The anchor for the sub object if any.  The object builder should
+ensure that htis is selected, highlighted, etc when the object is
+loaded.
+
+<PRE>
+    void *		using_cache;
+</PRE>
+
+Pointer to cache element if cache hit
+
 <H3>Error Diagnostics</H3>
 <PRE>
 	BOOL		error_block;	/* YES if stream has been used	  */
@@ -327,6 +363,15 @@ hit
 	HTNetInfo *	net_info;	/* Information about socket etc. */
 	int		redirections;	/* Number of redirections */
 </PRE>
+
+<H3>Temporary until we get a good MIME parser</H3>
+<PRE>
+	char *		redirect;		       /* Location or URI */
+	char *		WWWAAScheme;	       /* WWW-Authenticate scheme */
+	char *		WWWAARealm;	        /* WWW-Authenticate realm */
+	char *		WWWprotection;	       /* WWW-Protection-Template */
+</PRE>
+
 <H3>Server Side</H3>
 <PRE>
 	HTAtom *	content_type;	/* Content-Type:		  */
@@ -341,12 +386,11 @@ hit
 <PRE>
 	HTList *	valid_schemes;	/* Valid auth.schemes		  */
 	HTAssocList **	scheme_specifics;/* Scheme-specific parameters	  */
+	char *		authenticate;	/* WWW-authenticate: field */
 	char *		prot_template;	/* WWW-Protection-Template: field */
 	HTAASetup *	setup;		/* Doc protection info		  */
 	HTAARealm *	realm;		/* Password realm		  */
 	char *		dialog_msg;	/* Authentication prompt (client) */
-	HTRetryCallbackType
-			retry_callback;	/* Called when password entered	  */
 };
 
 </PRE>
@@ -377,201 +421,172 @@ Clears a request structure so that it can be reused. The only thing that differs
 extern void HTRequest_clear PARAMS((HTRequest * req));
 </PRE>
 
-<H2>Load a document from relative name</H2>
-<H3>On Entry,</H3>
+<A NAME="LoadDoc"><H2>Functions for Loading a Document</H2></A>
+
+There are several different ways of loading a document. However, the
+major difference between them is whether the document is referenced by
+
+<UL>
+<LI><A HREF="#Relative">Relative URI</A>
+<LI><A HREF="#Absolute">Absolute URI</A>
+<LI><A HREF="#Anchor">Anchor element</A> or
+<LI>Contains keywords for <A HREF="#RelSearch">searching an relative URI</A>
+<LI>Contains keywords for <A HREF="#AbsSearch">searching an absolute URI</A>
+</UL>
+
+<B>NOTE:</B> From release 3.0 of the Library, the return codes from
+the loading functions are no mode <CODE>BOOL</CODE>, that is
+<CODE>YES</CODE> or <CODE>NO</CODE>. Insted they have been replaced
+with the following set of return codes defined in the <A
+HREF="HTUtils.html#ReturnCodes">Utility module</A>:
+
 <DL>
-<DT>relative_name
-<DD> The relative address
-of the file to be accessed.
-<DT>here
-<DD> The anchor of the object being
-searched
-<DT>request->anchor
-<DD> not filled in yet
+<DT>HT_WOULD_BLOCK
+<DD>An I/O operation would block
+
+<DT>HT_ERROR
+<DD>Error has occured
+
+<DT>HT_LOADED
+<DD>Success
+
+<DT>HT_NO_DATA
+<DD>Success, but no document loaded. This might be the situation when a 
+telnet sesssion is started etc.
 </DL>
 
-<H3>On Exit,</H3>
-<DL>
-<DT>returns    YES
-<DD> Success in opening
-file
-<DT>NO
-<DD> Failure 
-</DL>
+However, a general rule about the return codes is that <B>ERRORS</B>
+have a <EM>negative</EM> value whereas <B>SUCCESS</B> has a
+<EM>positive</EM> value. <P>
 
-<PRE>extern  BOOL HTLoadRelative PARAMS((
-		CONST char * 		relative_name,
-		HTParentAnchor *	here,
-		HTRequest *		request));
+There are also some functions to help the client getting started with
+<A HREF="#ClientHelp">the first URI</A>.
 
-
-</PRE>
-<H2>Load a document from absolute name</H2>
-<H3>On Entry,</H3>
-<DL>
-<DT>addr
-<DD> The absolute address of the
-document to be accessed.
-<DT>filter
-<DD> if YES, treat document as
-HTML
-<DT>request->anchor
-<DD> not filled in yet
-</DL>
+<A NAME="Relative"><H3>Load a document from relative name</H3></A>
 
 <PRE>
+extern int HTLoadRelative	PARAMS((CONST char * 	relative_name,
+					HTParentAnchor*	here,
+					HTRequest *	request));
 </PRE>
-<H3>On Exit,</H3>
-<PRE>
-</PRE>
-<DL>
-<DT>returns YES
-<DD> Success in opening document
-<DT>NO
-<DD> Failure 
-</DL>
 
-<PRE>extern BOOL HTLoadAbsolute PARAMS((CONST char * addr,
-		HTRequest *		request));
-
-
-</PRE>
-<H2>Load a document from absolute name
-to a stream</H2>
-<H3>On Entry,</H3>
-<DL>
-<DT>addr
-<DD> The absolute address of the
-document to be accessed.
-<DT>filter
-<DD> if YES, treat document as
-HTML
-<DT>request->anchor
-<DD> not filled in yet
-</DL>
-
-<H3>On Exit,</H3>
-<DL>
-<DT>returns YES
-<DD> Success in opening document
-<DT>NO
-<DD> Failure 
-</DL>
-Note: This is equivalent to HTLoadDocument
-<PRE>extern BOOL HTLoadToStream PARAMS((
-		CONST char * 		addr,
-		BOOL 			filter,
-		HTRequest *		request));
-
-
-</PRE>
-<H2>Load if necessary, and select an
-anchor</H2>The anchor parameter may be a child
-anchor. The anchor in the request
-is set to the parent anchor. The recursive function keeps the error stack in 
-the request structure so that no information is lost having more than one
-call. 
-<H3>On Entry,</H3>
-<DL>
-<DT>anchor
-<DD> may be a child or parenet
-anchor or 0 in which case there is
-no effect.
-<DT>request->anchor      
-<DD>    Not set
-yet.
-</DL>
-
-<H3>On Exit,</H3>
-<PRE>
-</PRE>
-<DL>
-<DT>returns YES
-<DD> Success
-<DT>returns NO
-<DD> Failure 
-<DT>request->anchor
-<DD> The parenet anchor.
-</DL>
+<A NAME="Absolute"></A><H3>Load a document from absolute name</H3>
 
 <PRE>
-extern BOOL HTLoadAnchor PARAMS((HTAnchor  * a,
-				 HTRequest *		request));
-extern BOOL HTLoadAnchorRecursive PARAMS((HTAnchor  * a,
-				 	  HTRequest *		request));
+extern int HTLoadAbsolute	PARAMS((CONST char *	addr,
+					HTRequest *	request));
 </PRE>
 
-<H2>Load a Document</H2>
+<H3>Load a document from absolute name to a stream</H3>
+
+<PRE>
+extern int HTLoadToStream	PARAMS((CONST char * 	addr,
+					BOOL 		filter,
+					HTRequest *	request));
+</PRE>
+
+<A NAME="Anchor"><H3>Load if necessary, and select an anchor</H3></A>
+
+The anchor parameter may be a child anchor. The anchor in the request
+is set to the parent anchor. The recursive function keeps the error
+stack in the request structure so that no information is lost having
+more than one call. See also <A HREF="#BindAnchor">HTBindAnchor()</A>.
+
+<PRE>
+extern int HTLoadAnchor	PARAMS((HTAnchor  * 	a,
+				HTRequest *	request));
+extern int HTLoadAnchorRecursive PARAMS((HTAnchor *	a,
+					HTRequest *	request));
+</PRE>
+
+<H3>Load a Document</H3>
+
 This is an internal routine, which has an address AND a matching
-anchor.  (The public routines are called with one OR the other.)
-This is recursively called from file load module to try ftp (though this
-will be obsolete in the next major release).
+anchor.  (The public routines are called with one OR the other.)  This
+is recursively called from file load module to try ftp (though this
+will be obsolete in the next major release).<P>
 
-<H3>On entry,</H3>
-<DL> 
-<DT> request->
-<DD>
-<DL>
-	<DT> anchor		<DD> a parent anchor with fully qualified
-				     hypertext reference as its address set
-	<DT> output_format	<DD> valid
-	<DT> output_stream	<DD> valid on NULL
-</DL>
-<DT> keep_error_stack 
-<DD> If this is set to YES then the error (or info) stack is not cleared from
-the previous call. 
-</DL> 
-<H3>On exit,</H3>
-returns
-<DL>
-	<DT> <0		<DD> Error has occured.
-	<DT> HT_LOADED	<DD> Success
-	<DT> HT_NO_DATA	<DD> Success, but no document loaded.
-					(telnet sesssion started etc)
-</DL>
+If <CODE>keep_error_stack</CODE> is YES then the error (or info) stack
+is not cleared from the previous call.
 
 <PRE>
 PUBLIC int HTLoad PARAMS((HTRequest * request, BOOL keep_error_stack));
 </PRE>
 
+<A NAME="RelSearch"><H3>Search Using Relative URI</H3></A>
 
-<H2>Bind an anchor to a request structure
-without loading</H2>The anchor parameter may be a child
-anchor. The anchor in the request
-is set to the parent anchor. This
-is useful in non-interactive mode
-if no home-anchor is known. Actually
-the same as HTLoadAnchor(), but without
-loading
-<H3>On Entry,</H3>
-<DL>
-<DT>anchor
-<DD> may be a child or parenet
-anchor or 0 in which case there is
-no effect.
-<DT>request->anchor      
-<DD> Not set yet.
-</DL>
+Performs a search on word given by the user. Adds the search words to
+the end of the current address and attempts to open the new address.
 
-<H3>On Exit,</H3>
 <PRE>
-</PRE>returns YES	 Success<P>
-returns NO	 Failure <P>
-request->anchor	 The parenet anchor.
+extern int HTSearch		PARAMS((CONST char *	keywords,
+					HTParentAnchor*	here,
+					HTRequest *	request));
+</PRE>
+
+<A NAME="AbsSearch"><H3>Search using Absolute URI</H3></A>
+
+Performs a keyword search on word given by the user. Adds the keyword
+to the end of the current address and attempts to open the new
+address.
+
+<PRE>
+PUBLIC int HTSearchAbsolute	PARAMS((CONST char *	keywords,
+					CONST char * 	indexname,
+					HTRequest *	request));
+</PRE>
+
+
+<A NAME="ClientHelp"><H2>Help Function for Clients to get started</H2></A>
+
+These function helps the client to load the first document. They are
+not mandatory to use - but they make life easier!
+
+<A NAME="BindAnchor"><H3>Bind an anchor to a request structure without
+loading</H3></A>
+
 <PRE>
 extern BOOL HTBindAnchor PARAMS((HTAnchor *anchor, HTRequest *request));
-
-
 </PRE>
-<H2>Make a stream for Saving object back</H2>
-<H3>On Entry,</H3>
+
+<A NAME="HomePage"><H3>Generate the Anchor for the Home Page</H3></A>
+
+As it involves file access, this should only be done once when the
+program first runs. This is a default algorithm using the
+<CODE>WWW_HOME</CODE> environment variable.
+
+<PRE>
+PUBLIC HTParentAnchor * HTHomeAnchor NOPARAMS;
+</PRE>
+
+<H3>Find Related Name</H3>
+
+Creates a local file URI that can be used as a relative name when
+calling HTParse() to expand a relative file name to an absolute
+one. <P>
+
+The code for this routine originates from the Linemode browser and was
+moved here by howcome@dxcern.cern.ch in order for all clients to take
+advantage. <P>
+
+<PRE>
+extern char *  HTFindRelatedName NOPARAMS;
+</PRE>
+
+<A NAME="PostDoc"><H2>Functions for Posting a Document</H2></A>
+
+This is not quite finished yet but more to come!
+
+<H3>Get a Save Stream</H3>
+
+<H4>On Entry,</H4>
 <DL>
 <DT>request->anchor
 <DD> is valid anchor which
 has previously beeing loaded
 </DL>
 
-<H3>On exit,</H3>
+<H4>On exit,</H4>
 <DL>
 <DT>returns
 <DD> 0 if error else a stream
@@ -579,104 +594,53 @@ to save the object to.
 </DL>
 
 <PRE>
-
-extern HTStream * HTSaveStream PARAMS((HTRequest * request));
-
-
-</PRE>
-<H2>Search</H2>Performs a search on word given by
-the user. Adds the search words to
-the end of the current address and
-attempts to open the new address.
-<H3>On Entry,</H3>
-<DL>
-<DT>*keywords
-<DD> space-separated keyword
-list or similar search list
-<DT>here
-<DD> The anchor of the object being
-searched
-</DL>
-
-<PRE>extern BOOL HTSearch PARAMS((
-		CONST char *		keywords,
-		HTParentAnchor*		here,
-		HTRequest *		request));
-
-
-</PRE>
-<H2>Search Given Indexname</H2>Performs a keyword search on word
-given by the user. Adds the keyword
-to  the end of the current address
-and attempts to open the new address.
-<H3>On Entry,</H3>
-<DL>
-<DT>*keywords
-<DD> space-separated keyword
-list or similar search list
-<DT>*indexname
-<DD> is name of object search
-is to be done on.
-</DL>
-
-<PRE>extern BOOL HTSearchAbsolute PARAMS((
-	CONST char * 		keywords,
-	CONST char * 		indexname,
-	HTRequest *		request));
-
-
+PUBLIC HTStream * HTSaveStream PARAMS((HTRequest * request));
 </PRE>
 
-<H2>Find Related Name</H2>Creates a string that can be used as a
-related name when calling HTParse initially. <P>The code for this
-routine originates from the Linemode browser and was moved here by
-howcome@dxcern.cern.ch in order for all clients to take advantage. <P>
+
+<A NAME="ProtReg"><H2>Access Method Registration</H2></A>
+
+An access method is defined by an HTProtocol structure which point to
+the routines for performing the various logical operations on an
+object: in HTTP terms, GET, PUT, and POST. The access methods
+supported in the Library are initiated automaticly using the private
+function <CODE>HTAccessInit()</CODE> <B>if not</B> defined
+<CODE>NO_INIT</CODE> <P>
+
+Each of these routine takes as a parameter a <A NAME="z2"
+HREF="#z1">request structure</A> containing details of the request.
+When the protocol class routine is called, the anchor element in the
+request is already valid (made valid by HTAccess).
 
 <PRE>
-extern char *  HTFindRelatedName NOPARAMS;
-</PRE>
+typedef enum _HTSocBlock {
+    SOC_BLOCK,
+    SOC_NON_BLOCK,
+    SOC_WAS_NON_BLOCK
+} HTSocBlock;
 
-<H2>Register an access method</H2>An access method is defined by an
-HTProtocol structure which point
-to the routines for performing the
-various logical operations on an
-object: in HTTP terms,  GET, PUT,
-and POST.<P>
-Each of these routine takes as a
-parameter a <A
-NAME="z2" HREF="#z1">request structure</A> containing
-details ofthe request.  When the
-protocol class routine is called,
-the anchor elemnt in the request
-is already valid (made valid by HTAccess).
-<PRE>typedef struct _HTProtocol {
-	char * name;
-	
-	int (*load)PARAMS((HTRequest *	request));
-		
-	HTStream* (*saveStream)PARAMS((HTRequest *	request));
-
-	HTStream* (*postStream)PARAMS((
-				HTRequest *	request,
-				HTParentAnchor* postTo));
-
+typedef struct _HTProtocol {
+    char *	name;
+    HTSocBlock	block;	
+    int		(*load)		PARAMS((HTRequest *	request));
+    HTStream*	(*saveStream)	PARAMS((HTRequest *	request));
+    HTStream* 	(*postStream)	PARAMS((HTRequest *	request,
+					HTParentAnchor* postTo));
 } HTProtocol;
 
-extern BOOL HTRegisterProtocol PARAMS((HTProtocol * protocol));
-
-
+PUBLIC BOOL HTRegisterProtocol PARAMS((HTProtocol * protocol));
 </PRE>
-<H2>Generate the anchor for the home
-page</H2>
+
+<H3>Uses Protocol Blocking IO</H3>
+
+A small function to make life easier. Returns <CODE>YES</CODE> or
+<CODE>NO</CODE>.
+
 <PRE>
-</PRE>As it involves file access, this
-should only be done once when the
-program first runs. This is a default
-algorithm -- browser don't HAVE to
-use this.
-<PRE>
-extern HTParentAnchor * HTHomeAnchor NOPARAMS;
+PUBLIC BOOL HTProtocolBlocking	PARAMS((HTRequest *	request));
 </PRE>
+
+end
 
 <PRE>
 #endif /* HTACCESS_H */

@@ -48,6 +48,7 @@
 #include "HTTee.h"
 #include "HTError.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
+#include "HTThread.h"
 
 /* These flags may be set to modify the operation of this module */
 PUBLIC char * HTCacheDir = NULL;  /* Root for cached files or 0 for no cache */
@@ -77,10 +78,13 @@ struct _HTStream {
 	/* ... */
 };
 
+/* --------------------------------------------------------------------------*/
+/*			Management of the HTRequest structure		     */
+/* --------------------------------------------------------------------------*/
+
 /*	Create  a request structure
 **	---------------------------
 */
-
 PUBLIC HTRequest * HTRequest_new NOARGS
 {
     HTRequest * me = (HTRequest*) calloc(1, sizeof(*me));  /* zero fill */
@@ -110,7 +114,6 @@ PUBLIC void HTRequest_clear ARGS1(HTRequest *, req)
     conversions = req->conversions;		     /* Save the conversions */
     HTErrorFree(req);
     HTAACleanup(req);
-    FREE(req->from);
     memset(req, '\0', sizeof(HTRequest));
 
     /* Now initialize as from scratch but with the old list of conversions */
@@ -125,14 +128,18 @@ PUBLIC void HTRequest_clear ARGS1(HTRequest *, req)
 PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 {
     if (req) {
-	HTFormatDelete(req->conversions);
+	FREE(req->redirect);
+	FREE(req->authenticate);
+	HTFormatDelete(req);
 	HTErrorFree(req);
 	HTAACleanup(req);
-	FREE(req->from);
 	FREE(req);
     }
 }
 
+/* --------------------------------------------------------------------------*/
+/*			Management of HTTP Methods			     */
+/* --------------------------------------------------------------------------*/
 
 PRIVATE char * method_names[(int)MAX_METHODS + 1] =
 {
@@ -197,16 +204,27 @@ PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
 }
 
 
+/* --------------------------------------------------------------------------*/
+/*		      Management of the HTProtocol structure		     */
+/* --------------------------------------------------------------------------*/
 
 /*	Register a Protocol				HTRegisterProtocol
 **	-------------------
 */
-
 PUBLIC BOOL HTRegisterProtocol ARGS1(HTProtocol *, protocol)
 {
     if (!protocols) protocols = HTList_new();
-    HTList_addObject(protocols, protocol);
+    HTList_addObject(protocols, (void *) protocol);
     return YES;
+}
+
+PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
+{
+    if (me && me->anchor && me->anchor->protocol &&
+	((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK)
+	return YES;
+    else
+	return NO;
 }
 
 
@@ -224,16 +242,22 @@ PUBLIC BOOL HTRegisterProtocol ARGS1(HTProtocol *, protocol)
 #ifndef NO_INIT
 PRIVATE void HTAccessInit NOARGS			/* Call me once */
 {
-GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
+    GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
 #ifndef DECNET
 #ifdef NEW_CODE
-GLOBALREF  HTProtocol HTFTP, HTNews, HTNNTP, HTGopher;
+    GLOBALREF  HTProtocol HTFTP, HTNews, HTNNTP, HTGopher;
 #endif
-GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
-
+    GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
 #ifdef DIRECT_WAIS
-GLOBALREF  HTProtocol HTWAIS;
+    GLOBALREF  HTProtocol HTWAIS;
 #endif
+
+    HTThreadInit();			  /* Initialize bit arrays and stdin */
+
+#ifdef LIB_SIG					   /* Set signals in library */
+    HTSetSignal();
+#endif
+
     HTRegisterProtocol(&HTFTP);
     HTRegisterProtocol(&HTNews);
 #ifdef NEW_CODE
@@ -254,7 +278,9 @@ GLOBALREF  HTProtocol HTWAIS;
 }
 #endif
 
-
+/* --------------------------------------------------------------------------*/
+/*			Physical Anchor Address Manager			     */
+/* --------------------------------------------------------------------------*/
 
 /*							override_proxy()
 **
@@ -344,8 +370,9 @@ PRIVATE BOOL override_proxy ARGS1(CONST char *, addr)
 **	addr		must point to the fully qualified hypertext reference.
 **	anchor		a pareent anchor with whose address is addr
 **
-** On exit,
-**	returns		HT_NO_ACCESS		Error has occured.
+** On exit,    
+**	returns		HT_NO_ACCESS		no protocol module found
+**			HT_FORBIDDEN		Error has occured.
 **			HT_OK			Success
 **
 */
@@ -480,63 +507,9 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     return HT_NO_ACCESS;
 }
 
-
-/*		Load a document
-**		---------------
-**
-**	This is an internal routine, which has an address AND a matching
-**	anchor.  (The public routines are called with one OR the other.)
-**
-** On entry,
-**	request->
-**	    anchor		a parent anchor with fully qualified
-**				hypertext reference as its address set
-**	    output_format	valid
-**	    output_stream	valid on NULL
-**
-** On exit,
-**	returns		<0		Error has occured.
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**
-*/
-PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
-{
-    char	*arg = NULL;
-    HTProtocol	*p;
-    int 	status;
-
-    if (request->method == METHOD_INVALID)
-	request->method = METHOD_GET;
-    if (!keep_error_stack) {
-	HTErrorFree(request);
-	request->error_block = NO;
-    }
-
-    status = get_physical(request);
-    if (status == HT_FORBIDDEN) {
-	char *url = HTAnchor_address((HTAnchor *) request->anchor);
-	if (url) {
-	    HTUnEscape(url);
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       (void *) url, (int) strlen(url), "HTLoad");
-	    free(url);
-	} else {
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       NULL, 0, "HTLoad");
-	}
-	return -1;
-    }
-    if (status < 0) return status;	/* Can't resolve or forbidden */
-
-    if(!(arg = HTAnchor_physical(request->anchor)) || !*arg) 
-    	return (-1);
-
-    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
-    return (*(p->load))(request);
-}
-
+/* --------------------------------------------------------------------------*/
+/*				Document Poster 			     */
+/* --------------------------------------------------------------------------*/
 
 /*		Get a save stream for a document
 **		--------------------------------
@@ -570,6 +543,68 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 }
 
 
+/* --------------------------------------------------------------------------*/
+/*				Document Loader 			     */
+/* --------------------------------------------------------------------------*/
+
+/*		Load a document
+**		---------------
+**
+**	This is an internal routine, which has an address AND a matching
+**	anchor.  (The public routines are called with one OR the other.)
+**
+** On entry,
+**	request->
+**	    anchor		a parent anchor with fully qualified
+**				hypertext reference as its address set
+**	    output_format	valid
+**	    output_stream	valid on NULL
+**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
+**
+*/
+PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
+{
+    char	*arg = NULL;
+    HTProtocol	*p;
+    int 	status;
+
+    if (request->method == METHOD_INVALID)
+	request->method = METHOD_GET;
+    if (!keep_error_stack) {
+	HTErrorFree(request);
+	request->error_block = NO;
+    }
+
+    if ((status = get_physical(request)) < 0) {
+	if (status == HT_FORBIDDEN) {
+	    char *url = HTAnchor_address((HTAnchor *) request->anchor);
+	    if (url) {
+		HTUnEscape(url);
+		HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+			   (void *) url, (int) strlen(url), "HTLoad");
+		free(url);
+	    } else {
+		HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+			   NULL, 0, "HTLoad");
+	    }
+	} 
+	return HT_ERROR;		       /* Can't resolve or forbidden */
+    }
+
+    if(!(arg = HTAnchor_physical(request->anchor)) || !*arg) 
+    	return HT_ERROR;
+
+    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
+    return (*(p->load))(request);
+}
+
+
 /*		Load a document - with logging etc
 **		----------------------------------
 **
@@ -587,22 +622,24 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 **	  request->anchor   is the node_anchor for the document
 **	  request->output_format is valid
 **
-**    On Exit,
-**        returns    YES     Success in opening document
-**                   NO      Failure 
-**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
-PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
-				  BOOL,			keep_error_stack)
+PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
+				 BOOL,		keep_error_stack)
 
 {
     int	        status;
     HText *	text;
     char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
 
-    if (TRACE) fprintf (stderr, "HTAccess.... Loading document %s\n",
-			full_address);
+    if (PROT_TRACE) fprintf (stderr, "HTAccess.... Loading document %s\n",
+			     full_address);
 
     request->using_cache = NULL;
     
@@ -610,14 +647,15 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 
     if (!HTForceReload && (text=(HText *)HTAnchor_document(request->anchor)))
     {	/* Already loaded */
-        if (TRACE) fprintf(stderr, "HTAccess: Document already in memory.\n");
+        if (PROT_TRACE)
+	    fprintf(stderr, "HTAccess.... Document already in memory.\n");
 	if (request->childAnchor) {
 	    HText_selectAnchor(text, request->childAnchor);
 	} else {
 	    HText_select(text);	
 	}
 	free(full_address);
-	return YES;
+	return HT_LOADED;
     }
     
     /* Check the Cache */
@@ -633,10 +671,11 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 	    
 	    request->using_cache = item;
 	    
-	    s = HTStreamStack(item->format, request, NO);
+	    s = HTStreamStack(item->format, request->output_format,
+			      request->output_stream, request, NO);
 	    if (s) {		/* format was suitable */
 	        FILE * fp = fopen(item->filename, "r");
-	    	if (TRACE) 
+	    	if (PROT_TRACE) 
 		    fprintf(stderr, "Cache: HIT file %s for %s\n",
 				   item->filename, 
 				   full_address);
@@ -645,7 +684,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 		    (*s->isa->_free)(s);	/* close up pipeline */
 		    fclose(fp);
 		    free(full_address);
-		    return YES;
+		    return HT_LOADED;
 		} else {
 		    fprintf(stderr, "***** Can't read cache file %s !\n",
 			    item->filename);
@@ -656,8 +695,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
     
     status = HTLoad(request, keep_error_stack);
 
-/*	Log the access if necessary
-*/
+    /* Log the access if necessary */
     if (HTlogfile) {
 	time_t theTime;
 	time(&theTime);
@@ -667,7 +705,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 	    status<0 ? "FAIL" : "GET",
 	    full_address);
 	fflush(HTlogfile);	/* Actually update it on disk */
-	if (TRACE) fprintf(stderr, "Log: %24.24s %s %s %s\n",
+	if (PROT_TRACE) fprintf(stderr, "Log: %24.24s %s %s %s\n",
 	    ctime(&theTime),
 	    HTClientHost ? HTClientHost : "local",
 	    status<0 ? "FAIL" : "GET",
@@ -679,63 +717,67 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
     if (!HTImProxy && request->error_stack)
 	HTErrorMsg(request);
 
-    if (status == HT_LOADED) {
-	if (TRACE) {
-	    fprintf(stderr, "HTAccess.... `%s' has been accessed.\n",
-	    full_address);
+    switch (status) {
+      case HT_LOADED:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... OK: `%s' has been accessed.\n",
+		    full_address);
 	}
-	free(full_address);
-	return YES;
-    }
-    
-    if (status == HT_NO_DATA) {
-	if (TRACE) {
-	    fprintf(stderr, 
-	    "HTAccess.... `%s' has been accessed, No data left.\n",
-	    full_address);
+	break;
+
+      case HT_NO_DATA:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... OK BUT NO DATA: `%s'\n",
+		    full_address);
 	}
-	free(full_address);
-	return NO;
-    }
-    
-    /* Bug fix thanks to Lou Montulli. Henrik 10/03-94 */
-    if (status <= 0) {		          /* Failure in accessing a document */
+	break;
+
+      case HT_WOULD_BLOCK:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... WOULD BLOCK: `%s'\n",
+		    full_address);
+	}
+	break;
+
+      case HT_ERROR:
 	if (HTImProxy)
 	    HTErrorMsg(request);		     /* Only on a real error */
-	if (PROT_TRACE)
-	    fprintf(stderr, "HTAccess.... Can't access `%s'\n", full_address);
-	free(full_address);
-	return NO;
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... ERROR: Can't access `%s'\n",
+		    full_address);
+	}
+	break;
+
+      default:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... Internal software error in CERN WWWLib version %s ****\n\nPlease mail www-bug@info.cern.ch quoting what software and what version you are using\nand the URL: %s that caused the problem, thanks!\n",
+		    HTLibraryVersion,
+		    full_address);
+	}
+	status = HT_ERROR;
+	break;
     }
- 
-    /* If you get this, then please find which routine is returning
-       a positive unrecognised error code! */
-    fprintf(stderr,
-    "**** HTAccess: Internal software error in CERN WWWLib version %s ****\n\nPlease mail www-bug@info.cern.ch quoting what software and what version you are using\nand the URL: %s that caused the problem, thanks!\n",
-	    HTLibraryVersion,
-	    full_address);
     free(full_address);
-   
-    exit(-6996);
-    return NO;		/* For gcc :-( */
+    return status;
 }
 
 
 /*		Load a document from absolute name
 **		---------------
 **
-**    On Entry,
+** On Entry,
 **        addr     The absolute address of the document to be accessed.
 **        filter   if YES, treat document as HTML
 **
-**    On Exit,
-**        returns    YES     Success in opening document
-**                   NO      Failure 
-**
-**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
-PUBLIC BOOL HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
+PUBLIC int HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
 {
    HTAnchor * anchor = HTAnchor_findAddress(addr);
    request->anchor = HTAnchor_parent(anchor);
@@ -748,21 +790,21 @@ PUBLIC BOOL HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
 /*		Load a document from absolute name to stream
 **		--------------------------------------------
 **
-**    On Entry,
+** On Entry,
 **        addr     The absolute address of the document to be accessed.
 **        request->output_stream     if non-NULL, send data down this stream
 **
-**    On Exit,
-**        returns    YES     Success in opening document
-**                   NO      Failure 
-**
-**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
-PUBLIC BOOL HTLoadToStream ARGS3(
-		CONST char *,	addr,
-		BOOL, 		filter,
-		HTRequest*,	request)
+PUBLIC int HTLoadToStream ARGS3(CONST char *,	addr,
+				BOOL, 		filter,
+				HTRequest*,	request)
 {
    HTAnchor * anchor = HTAnchor_findAddress(addr);
    request->anchor = HTAnchor_parent(anchor);
@@ -773,26 +815,24 @@ PUBLIC BOOL HTLoadToStream ARGS3(
 }
 
 
-
-
 /*		Load a document from relative name
 **		---------------
 **
-**    On Entry,
+** On Entry,
 **        relative_name     The relative address of the document
 **	  		    to be accessed.
 **
-**    On Exit,
-**        returns    YES     Success in opening document
-**                   NO      Failure 
-**
-**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
-PUBLIC BOOL HTLoadRelative ARGS3(
-		CONST char *,		relative_name,
-		HTParentAnchor *,	here,
-		HTRequest *,		request)
+PUBLIC int HTLoadRelative ARGS3(CONST char *,		relative_name,
+				HTParentAnchor *,	here,
+				HTRequest *,		request)
 {
     char * 		full_address = 0;
     BOOL       		result;
@@ -818,26 +858,26 @@ PUBLIC BOOL HTLoadRelative ARGS3(
 /*		Load if necessary, and select an anchor
 **		--------------------------------------
 **
-**    On Entry,
+** On Entry,
 **        destination      	    The child or parenet anchor to be loaded.
 **
-**    On Exit,
-**        returns    YES     Success
-**                   NO      Failure 
-**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
-PUBLIC BOOL HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
+PUBLIC int HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 {
-    if (!anchor) return NO;	/* No link */
+    if (!anchor) return HT_ERROR;				  /* No link */
     
     request->anchor  = HTAnchor_parent(anchor);
-    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
-    					: (HTChildAnchor*) anchor;
-    
-    return HTLoadDocument(request, NO) ? YES : NO;
-	
-} /* HTLoadAnchor */
+    request->childAnchor = ((HTAnchor *) request->anchor == anchor) ?
+	NULL : (HTChildAnchor*) anchor;
+    return HTLoadDocument(request, NO);
+}
 
 
 /*		Load if necessary, and select an anchor
@@ -846,27 +886,28 @@ PUBLIC BOOL HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 **	This function is almost identical to HTLoadAnchor, but it doesn't
 **	clear the error stack so that the information in there is kept.
 **
-**    On Entry,
+** On Entry,
 **        destination      	    The child or parenet anchor to be loaded.
 **
-**    On Exit,
-**        returns    YES     Success
-**                   NO      Failure 
-**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
-PUBLIC BOOL HTLoadAnchorRecursive ARGS2(HTAnchor*, anchor,
-					HTRequest *, request)
+PUBLIC int HTLoadAnchorRecursive ARGS2(HTAnchor*,	anchor,
+				       HTRequest *,	request)
 {
-    if (!anchor) return NO;	/* No link */
+    if (!anchor) return HT_ERROR;				  /* No link */
     
     request->anchor  = HTAnchor_parent(anchor);
-    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
-    					: (HTChildAnchor*) anchor;
+    request->childAnchor = ((HTAnchor *) request->anchor == anchor) ?
+	NULL : (HTChildAnchor*) anchor;
     
-    return HTLoadDocument(request, YES) ? YES : NO;
-	
-} /* HTLoadAnchor */
+    return HTLoadDocument(request, YES);
+}
 
 
 /*		Search
@@ -877,6 +918,13 @@ PUBLIC BOOL HTLoadAnchorRecursive ARGS2(HTAnchor*, anchor,
 **  On Entry,
 **       *keywords  	space-separated keyword list or similar search list
 **	here		is anchor search is to be done on.
+**
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
 PRIVATE char hex ARGS1(int, i)
@@ -885,10 +933,9 @@ PRIVATE char hex ARGS1(int, i)
     return hexchars[i];
 }
 
-PUBLIC BOOL HTSearch ARGS3(
-	CONST char *, 		keywords,
-	HTParentAnchor *, 	here,
-	HTRequest *,		request)
+PUBLIC int HTSearch ARGS3(CONST char *,        	keywords,
+			  HTParentAnchor *, 	here,
+			  HTRequest *,		request)
 {
 
 #define acceptable \
@@ -950,15 +997,20 @@ PUBLIC BOOL HTSearch ARGS3(
 **  Performs a keyword search on word given by the user. Adds the keyword to 
 **  the end of the current address and attempts to open the new address.
 **
-**  On Entry,
+** On Entry,
 **       *keywords  	space-separated keyword list or similar search list
 **	*addres		is name of object search is to be done on.
+** On exit,
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 */
 
-PUBLIC BOOL HTSearchAbsolute ARGS3(
-	CONST char *, 	keywords,
-	CONST char *, 	indexname,
-	HTRequest *,	request)
+PUBLIC int HTSearchAbsolute ARGS3(CONST char *, 	keywords,
+				  CONST char *, 	indexname,
+				  HTRequest *,		request)
 {
     HTParentAnchor * anchor =
     	(HTParentAnchor*) HTAnchor_findAddress(indexname);
@@ -976,28 +1028,32 @@ PUBLIC BOOL HTSearchAbsolute ARGS3(
 **  browser and was moved here by howcome@dxcern.cern.ch
 **  in order for all clients to take advantage.
 **
+**  The string returned must be freed by the caller
 */
-
-
 PUBLIC char * HTFindRelatedName NOARGS
 {
-    char* default_default=0;	 /* Parse home relative to this */
-
+    char* default_default = NULL;	      /* Parse home relative to this */
+    CONST char *host = HTGetHostName(); 
     StrAllocCopy(default_default, "file://");
-    StrAllocCat(default_default, HTGetHostName()); /*eg file://dxcern.cern.ch*/
-
-#ifndef MAXPATHLEN
-#define NO_GETWD		/* Assume no  getwd() if no MAXPATHLEN */
-#endif
-
-#ifdef NO_GETWD  		/* No getwd() on this machine */
-#ifdef HAS_GETCWD		/* System V variant SIGN CHANGED TBL 921006 !! */
-
+    if (host)
+	StrAllocCat(default_default, host);
+    else
+	StrAllocCat(default_default, "localhost");
     {
-	char wd[1024];			/*!! Arbitrary*/
-	char * result = getcwd(wd, sizeof(wd)); 
-	if (result) {
+	char wd[HT_MAX_PATH+1];
 
+#ifdef NO_GETWD
+#ifdef HAS_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
+	char *result = (char *) getcwd(wd, sizeof(wd)); 
+#else
+	char *result = NULL;
+	HTAlert("This platform does not support neither getwd nor getcwd\n");
+#endif
+#else
+	char *result = (char *) getwd(wd);
+#endif
+	*(wd+HT_MAX_PATH) = '\0';
+	if (result) {
 #ifdef VMS 
             /* convert directory name to Unix-style syntax */
 	    char * disk = strchr (wd, ':');
@@ -1017,30 +1073,9 @@ PUBLIC char * HTFindRelatedName NOARGS
 	    }
 #else  /* not VMS */
 	    StrAllocCat (default_default, wd);
-#endif  /* not VMS */
-	    } else {
-	        fprintf(stderr,"Can't read working directory (getcwd)", NULL);
-	    }
-	}  /* end if good getcwd result */
-	
-#else   /* has NO getcwd */
-
-	fprintf(stderr,"This platform does not support getwd() or getcwd()", NULL);
-
-#endif	/* has no getcwd */
-
-#else   /* has getwd */
-	{
-      	    char wd[MAXPATHLEN];
-      	    char * result = (char *) getwd(wd);
-	    if (result) {
-	        StrAllocCat(default_default, wd);
-	    } else {
-	        fprintf(stderr,"Can't read working directory.");
-	    }
+#endif /* not VMS */
 	}
-#endif
-		
+    }
     StrAllocCat(default_default, "/default.html");
     return default_default;
 }
@@ -1074,13 +1109,12 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
     
 /* 	Someone telnets in, they get a special home.
 */
-#define MAX_FILE_NAME 1024					/* @@@ */
     } else  if (HTClientHost) {			/* Telnet server */
     	FILE * fp = fopen(REMOTE_POINTER, "r");
 	char * status;
 	if (fp) {
-	    my_home_document = (char*) malloc(MAX_FILE_NAME);
-	    status = fgets(my_home_document, MAX_FILE_NAME, fp);
+	    my_home_document = (char*) malloc(HT_MAX_PATH);
+	    status = fgets(my_home_document, HT_MAX_PATH, fp);
 	    if (!status) {
 	        free(my_home_document);
 		my_home_document = NULL;
@@ -1161,4 +1195,5 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 	
     return YES;
 } /* HTBindAnchor */
+
 

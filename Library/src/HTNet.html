@@ -1,0 +1,133 @@
+<HTML>
+<HEAD>
+<TITLE>Multi-Threaded Management</TITLE>
+<NEXTID N="z100">
+</HEAD>
+<BODY>
+<H1>Multi Threaded Sockets</H1>
+
+This module contains the routines for handling the set of active
+sockets currently in use by the multi-threaded clients. Look for more
+information in the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Multithread/multithread.html">
+Multi-Thread Specifications</A>. <P>
+
+This module is implemented by <A HREF="HTThread.c">HTThread.c</A>, and
+it is a part of the <A NAME="z10"
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+of Common Code</A>.
+
+<PRE>
+#ifndef HTTHREAD_H
+#define HTTHREAD_H
+#include "HTAccess.h"
+</PRE>
+
+<A NAME="Init"><H2>Initiation</H2></A>
+
+This function initiates the arrays of socket descriptors used in the
+Library. It is currently done in the private <A
+HREF="HTAccess.html#ProtReg">HTAccessInit</A> function. <P>
+
+<B>Note:</B> It is <B>VERY</B> important that this one is called
+before the first request.
+
+<PRE>
+PUBLIC BOOL HTThreadInit	NOPARAMS;
+</PRE>
+
+<H2>Registration of a Thread</H2>
+
+These two functions put a <A HREF="HTAccess.html#HTNetInfo">HTNetInfo
+object</A> into the list of threads and takes it out again
+respectively. A normal place to call these functions would be on
+creation and deletion of the data objects.
+
+<PRE>
+PUBLIC void HTThread_new	PARAMS((HTNetInfo * new_net));
+PUBLIC int  HTThread_clear	PARAMS((HTNetInfo * old_net));
+</PRE>
+
+<H2>Get Bit-arrays for Select()</H2>
+
+This function returns a copy of the current bit-arrays contaning the
+active sockets registered for <CODE>READ</CODE> and
+<CODE>WRITE</CODE>.
+
+<PRE>
+PUBLIC int HTThreadGetFDInfo 	PARAMS((fd_set * read, fd_set * write));
+</PRE>
+
+
+
+<H2>Registration of the State of a Socket</H2>
+
+When a new request is initiated from the client and a socket has been
+created, is gets registered in a linked list of <A
+HREF="HTAccess.html#HTNetInfo">HTNetInfo objects</A>. The object stays
+in this list until the request has ended (either having an error or
+success as result). Every time the program execution gets to a point
+where a socket operation would normally block the program, this
+function is called in order to register the socket as waiting for the
+actual operation.
+
+<PRE>
+
+extern int 	HTMaxfdpl;
+
+typedef enum _HTThreadAction {
+    THD_SET_WRITE,
+    THD_CLR_WRITE,
+    THD_SET_READ,
+    THD_CLR_READ,
+    THD_INTR,
+    THD_CLOSE
+} HTThreadAction;
+</PRE>
+
+<PRE>
+PUBLIC void HTThreadState PARAMS((int sockfd, HTThreadAction action));
+</PRE>
+
+This function makes life easier if you want to mark all sockets as
+interrupted.
+
+<PRE>
+PUBLIC void HTThreadMarkIntrAll		NOPARAMS;
+</PRE>
+
+<H2>Is a Thread Interrupted?</H2>
+
+This function returns YES if the socket is registered as interrupted
+
+<PRE>
+PUBLIC BOOL HTThreadIntr PARAMS((int sockfd));
+</PRE>
+
+<H2>Any Threads Registered?</H2>
+
+This function returns YES if any HTTP sockets are still registered in the
+set of active sockets. Otherwise it returns NO.
+
+<PRE>
+PUBLIC BOOL HTThreadActive NOPARAMS;
+</PRE>
+
+<H2>Select an Active Thread</H2>
+
+When the <CODE>select</CODE> function has returned a set of pending
+sockets this functions selects one of them and finds the
+correseponding request structure.
+
+<PRE>
+PUBLIC HTRequest *HTThread_getRequest	PARAMS((CONST fd_set * fd_read,
+						CONST fd_set * fd_write));
+
+#endif
+</PRE>
+
+End of HTThread module
+</BODY>
+</HTML>
+
+

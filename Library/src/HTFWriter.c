@@ -274,15 +274,29 @@ struct _HTStream {
 **	they just absorb data.
 */
 PRIVATE void HTBlackHole_put_character ARGS2(HTStream *, me, char, c)
-{}
+{
+    return;
+}
+
 PRIVATE void HTBlackHole_put_string ARGS2(HTStream *, me, CONST char*, s)
-{}
+{
+    return;
+}
+
 PRIVATE void HTBlackHole_write ARGS3(HTStream *, me, CONST char*, s, int, l)
-{}
-PRIVATE void HTBlackHole_free ARGS1(HTStream *, me)
-{}
-PRIVATE void HTBlackHole_abort ARGS2(HTStream *, me, HTError, e)
-{}
+{
+    return;
+}
+
+PRIVATE int HTBlackHole_free ARGS1(HTStream *, me)
+{
+    return 0;
+}
+
+PRIVATE int HTBlackHole_abort ARGS2(HTStream *, me, HTError, e)
+{
+    return EOF;
+}
 
 
 /*	Black Hole stream
@@ -315,6 +329,8 @@ PRIVATE HTStream HTBlackHoleInstance =
 /* Black hole creation */
 PUBLIC HTStream * HTBlackHole NOARGS
 {
+    if (TRACE)
+	fprintf(stderr, "BlackHole... Created\n");
     return &HTBlackHoleInstance;
 }
 
@@ -393,7 +409,7 @@ PUBLIC char *HTFWriter_filename ARGS5(char *, path, char *, url,
 	    StrAllocCat(filename, "/");
 	if (limit) {					  /* Use hash method */
 	    unsigned int residue = limit;
-	    while (residue /= 10)		    /* Find number of digits */
+	    while ((residue /= 10))		    /* Find number of digits */
 		digits++;
 	    if ((hashstr = (char *) malloc(digits+1)) == NULL)
 		outofmem(__FILE__, "HTFWriter_filename");
@@ -495,7 +511,7 @@ PRIVATE void HTFWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
 */
 PRIVATE void HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
-    fwrite(s, 1, l, me->fp); 
+    fwrite(s, 1, l, me->fp);
 }
 
 
@@ -508,7 +524,7 @@ PRIVATE void HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 **	object is not,
 **	as it takes on an existence of its own unless explicitly freed.
 */
-PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
+PRIVATE int HTFWriter_free ARGS1(HTStream *, me)
 {
     if (me->cache) {
         time_t finish_time;
@@ -533,12 +549,13 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
     }
     if (me->filename) free(me->filename);
     free(me);
+    return 0;
 }
 
 /*	End writing
 */
 
-PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
     if (me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
@@ -553,6 +570,7 @@ PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 
     if (me->filename) free(me->filename);
     free(me);
+    return EOF;
 }
 
 
