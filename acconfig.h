@@ -16,6 +16,9 @@
 /* Define to be the location of the W3C Icons */
 #undef W3C_ICONS
 
+/* Define to be the location of the W3C Icons */
+#undef TCL
+
 /* Define this to be the prefix for cache files. */
 #undef CACHE_FILE_PREFIX
 
