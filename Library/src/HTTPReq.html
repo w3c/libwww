@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+<TITLE>HTTP Request Stream</TITLE>
+</HEAD>
+<BODY>
+
+<H1>HTTP Request Stream</H1>
+
+The HTTP Request stream generates a HTTP request header and writes it
+to the target which is normally a HTWriter stream.<P>
+
+This module is implemented by <A HREF="HTTPReq.c">HTTPReq.c</A>, and
+it is a part of the <A
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTTPREQ_H
+#define HTTPREQ_H
+
+#include "HTStream.h"
+#include "HTAccess.h"
+</PRE>
+
+<H3>Streams Definition</H3>
+
+This stream makes a HTTP request header before it goes into
+transparent mode.
+
+<PRE>
+extern HTStream * HTTPRequest_new	PARAMS((HTRequest *	request,
+						HTStream *	target));
+
+#endif
+</PRE>
+
+End of HTTPReq
+</BODY>
+</HTML>
+
