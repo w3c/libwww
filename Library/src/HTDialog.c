@@ -267,10 +267,7 @@ PUBLIC BOOL HTConfirm (HTRequest * request, HTAlertOpcode op,
     HTPrint("%s", HTDialogs[msgnum]);
     if (input) HTPrint(" (%s)", (char *) input);
     HTPrint(" (y/n) ");
-#ifndef NO_STDIO
-    if (fgets(response, 4, stdin)) 		   /* get reply, max 3 chars */
-#endif
-    {
+    if (fgets(response, 4, stdin)) { 		   /* get reply, max 3 chars */
 	char *ptr = response;
 	while (*ptr) {
 	    if (*ptr == '\n') {
@@ -296,7 +293,6 @@ PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
     if (input) HTPrint(" (%s) ", (char *) input);
     if (dfault) HTPrint("(RETURN for [%s]) ", (char *) dfault);
     if (reply && msgnum>=0) {
-#ifndef NO_STDIO
         char buffer[200];
 	if (!fgets(buffer, 200, stdin)) return NO;
 	buffer[strlen(buffer)-1] = '\0';	        /* Overwrite newline */
@@ -307,7 +303,6 @@ PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
 	else
 	    return NO;
 	return YES;
-#endif
     }
     return NO;
 }
