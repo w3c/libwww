@@ -1,42 +1,36 @@
 <HTML>
 <HEAD>
 <TITLE>Getting the W3C Source Code Distribution</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Aug-1995 -->
+<!-- Changed by: Karen MacArthur, 20-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Oct-1995 -->
 </HEAD>
 <BODY>
 
-<A HREF="./"><IMG alt="WWW" SRC="./Icons/WWW/WWWlogo48"></A>
-<a href="./Consortium/"><img alt="W3C" src="./Icons/WWW/w3c_48x48"></a>
+<a href="./"><img alt="W3C" src="./Icons/WWW/w3c_48x48"></a>
 
 <H1>Getting the W3C Source Code Distribution</H1>
 
-There are several ways of down loading the W3C source code
-distribution packages, but the two most important are:
+W3C distributes source code and in some cases precompiled binaries of
+the W3C applications.
 
-<UL>
-<LI>Using your <A HREF="Clients.html">Web client</A>
-<LI>Using a FTP client
-</UL>
+<H2>Using HTTP</H2>
 
-If you are using a Web client then you can get the source code from
-the following places:
+The easiest is simply to go to the home page of the module that you
+want to download. Each homepage contains links directly pointing to
+the distributions files:
 
 <UL>
 <LI><A HREF="Library/">W3C Reference Library</A>
-<LI><A HREF="Daemon/">CERN HTTPD</A>
+<LI><A HREF="Arena/">Arena</A>
 <LI><A HREF="LineMode/">Line Mode Browser</A>
-<LI><A HREF="NextStep/Status.html">Next Browser/Editor</A>
-<LI><A HREF="../Dist/">Directly to our software archives</A>
+<LI><A HREF="Daemon/">CERN HTTPD</A>
 </UL>
 
-<P>
-<img src="./Icons/32x32/warning.gif" ALT="WARNING">
-The FTP server at w3.org is temporarily offline.
-All information which would be available via FTP is still
-available through HTTP.  When FTP is available, this notice
-will be removed.  Thank you for your patience.
+You can also simply jump directly to our <A HREF="../Dist/">distribution archives</A>.
 
-<P>
+
+<H2>Using Anonymous FTP</H2>
+
 If you are using a FTP client then you can FTP anonymously to <A
 HREF="ftp://ftp.w3.org">ftp.w3.org</A> by doing the following:
 
@@ -44,11 +38,9 @@ HREF="ftp://ftp.w3.org">ftp.w3.org</A> by doing the following:
 	> ftp ftp.w3.org
 	Enter user name: <B>anonymous</B>
 	Password: <B>me@myhost.edu</B>
-	ftp> cd /pub/www/src
+	ftp> cd /pub/&lt;MODULE&gt;
 	ftp> binary
-	ftp> get WWWLibrary.tar.Z
-	ftp> get WWWLineMode.tar.Z
-	ftp> get WWWDaemon.tar.Z
+	ftp> get &lt;MODULE&gt;
 	ftp> quit
 	>
 </PRE>
@@ -58,6 +50,6 @@ You are now ready to <A HREF="README.html">install the software</A>!
 <P>
 <HR>
 <A HREF="./Consortium/"><img alt="W3C" src="./Icons/WWW/w3c_48x48"></A>
-<ADDRESS><A HREF="People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+<ADDRESS><A HREF="People.html#Frystyk">Henrik Frystyk</A>, October 1995</ADDRESS>
 </BODY>
 </HTML>
