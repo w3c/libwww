@@ -77,6 +77,14 @@ this host. If not then we return NULL.
 extern HTHost * HTHost_find (char * host);
 </PRE>
 <H3>
+  Delete the Host table
+</H3>
+<P>
+Cleanup and delete the host table.
+<PRE>
+extern void HTHost_deleteAll (void);
+</PRE>
+<H3>
   Is Host Idle?
 </H3>
 <P>

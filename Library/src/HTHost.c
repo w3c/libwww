@@ -449,6 +449,32 @@ PUBLIC HTHost * HTHost_find (char * host)
 }
 
 /*
+**	Cleanup the host list
+*/
+PUBLIC void HTHost_deleteAll (void)
+{
+    HTList * list;
+    HTHost * host;
+    int i;
+
+    if (!HostTable)
+	return;
+
+    for (i=0; i < HOST_HASH_SIZE; i++) {
+	list = HostTable[i];
+	if (!list) continue;
+
+	while ((host = (HTHost *) HTList_removeFirstObject(list)) != NULL)
+	    free_object(host);
+
+	HTList_delete(list);
+    }
+
+    HT_FREE(HostTable);
+    HostTable = NULL;
+}
+
+/*
 **	Get and set the hostname of the remote host
 */
 PUBLIC char * HTHost_name (HTHost * host)
@@ -1054,6 +1080,7 @@ PRIVATE BOOL HTHost_free (HTHost * host, int status)
 				host->reqsMade _ piped _ host->reqsPerConnection);
 		    host->do_recover = YES;
 		    HTChannel_delete(host->channel, status);
+		    host->channel = NULL;
 		} else {
 		    HTChannel_setSemaphore(host->channel, 0);
 		    HTHost_clearChannel(host, status);
@@ -1072,9 +1099,10 @@ PRIVATE BOOL HTHost_free (HTHost * host, int status)
             } else {
                 HTTRACE(CORE_TRACE, "Host Object. keeping persistent socket %d\n" _ 
 					HTChannel_socket(host->channel));
-                if (HTChannel_delete(host->channel, status))
+                if (HTChannel_delete(host->channel, status)) {
 		    HTDEBUGBREAK("Host Event.. Channel unexpected deleted from host %p (%s)\n" _ host _ host->hostname);
-                
+		    host->channel = NULL;
+                }
                 /*
                 **  If connection is idle then set a timer so that we close the 
                 **  connection if idle too long
@@ -1107,6 +1135,7 @@ PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net, int status)
 	}
 
 	HTList_removeObjectAll(host->pending, net); /* just to make sure */
+	host->lock = HTList_firstObject(host->pending);
 	return YES;
     }
     return NO;

@@ -188,6 +188,7 @@ PUBLIC BOOL HTLibTerminate (void)
     HTTRACE(CORE_TRACE, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
 
     HTNet_killAll();
+    HTHost_deleteAll();		/* Delete remaining hosts */
     HTChannel_deleteAll();			/* Delete remaining channels */
 
     HT_FREE(HTAppName);	        /* Freed thanks to Wade Ogden <wade@ebt.com> */
