@@ -11,9 +11,10 @@
 </PRE>
 <H3>Cache control flag</H3>Turn this off if you don't want HTTP
 protocol fetches to leave cache files.
-<PRE>extern	BOOL  HTCacheHTTP;
+	extern	BOOL  HTCacheHTTP;
+This variable is now replaced by the (char *) HTCacheDir in HTAccess.html
+Henrik 09/03-94
 
-</PRE>
 <H3>Protocol</H3>
 <PRE>GLOBALREF HTProtocol HTTP;
 

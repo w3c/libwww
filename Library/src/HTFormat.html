@@ -418,8 +418,22 @@ call this to get the defaults as
 well.
 <PRE>
 extern void HTFormatInit PARAMS((HTList * conversions));
+</PRE>
+
+<H2>HTFormatInitNIM: Set up default presentations and conversions</H2>
+Basicly the same as HTFormatInit but without any calls to third party programs
+that might pop up on the screen. This is, e.g., for Non-Interactive Mode
+execution of a browser.
+<PRE>
 extern void HTFormatInitNIM PARAMS((HTList * conversions));
 </PRE>
+
+<H2>HTFormatDelete: Remove presentations and conversions</H2>
+This function cleans up the list of presentations and conversions.
+<PRE>
+extern void HTFormatDelete PARAMS((HTList * conversions));
+</PRE>
+
 <H2>Epilogue</H2>
 <PRE>extern BOOL HTOutputSource;	/* Flag: shortcut parser */
 #endif

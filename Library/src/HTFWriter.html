@@ -76,6 +76,13 @@ by writing into this variable.
 <PRE>extern void HTCacheClear PARAMS((HTList * cache));
 
 </PRE>
+
+</PRE>
+<H3>To remove All cache files known to this session</H3>
+<PRE>
+extern void HTCacheDeleteAll NOPARAMS;
+</PRE>
+
 <H3>Stream for writing to cache</H3>Note that HTSaveAndCallBack will
 also generate a cache file.
 <PRE>extern HTConverter HTCacheWriter;

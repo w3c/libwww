@@ -80,6 +80,24 @@ typedef struct _HTAcceptNode {
 
 PUBLIC HTList * HTConversions = NULL;
 
+/* -------------------------------------------------------------------------
+   This function replaces the code in HTRequest_delete() in order to keep
+   the data structure hidden (it is NOT a joke!)
+   Henrik 14/03-94
+   ------------------------------------------------------------------------- */
+PUBLIC void HTFormatDelete ARGS1(HTList *, me)
+{
+    HTList *cur = me;
+    HTPresentation *pres;
+    if (!me)
+	return;
+    while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
+	FREE(pres->command);			 /* Leak fixed AL 6 Feb 1994 */
+	free(pres);
+    }
+    HTList_delete(me);				 /* Leak fixed AL 6 Feb 1994 */
+}
+
 
 /*	Define a presentation system command for a content-type
 **	-------------------------------------------------------

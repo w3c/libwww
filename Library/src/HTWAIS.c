@@ -753,7 +753,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	long count;
 	any   doc_chunk;
 	any * docid = &doc_chunk;
-	if (TRACE) printf(
+	if (TRACE) fprintf(stderr, 
 		"HTWAIS: Retrieve document id `%s' type `%s' length %ld\n",
 		docname, doctype, document_length);
 		

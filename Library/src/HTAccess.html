@@ -171,6 +171,17 @@ is asking for user confusion.
 #define LAST_RESORT	"http://info.cern.ch/default.html"
 #endif
 
+/*	This is the default cache directory:
+*/
+#ifndef CACHE_HOME_DIR
+#define CACHE_HOME_DIR		"/tmp/"
+#endif
+
+/*	The default directory for "save locally" and "save and execute" files:
+*/
+#ifndef SAVE_LOCALLY_HOME_DIR
+#define SAVE_LOCALLY_HOME_DIR	"/tmp/"
+#endif
 
 </PRE>
 <H2><A
@@ -304,12 +315,14 @@ PUBLIC void HTRequest_delete PARAMS((HTRequest * req));
 <H2>Flags which may be set to control
 this module</H2>
 <PRE>
+extern char * HTSaveLocallyDir;		/* Dir home for "save locally" files */
+extern char * HTCacheDir;		/* Cache dir, default NULL: no cache */
 extern char * HTClientHost;		/* Name or number of telnetting host */
 extern FILE * logfile;			/* File to output one-liners to */
 extern BOOL HTSecure;			/* Disable security holes? */
 extern BOOL HTImServer;			/* If I'm cern_httpd */
 extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
-PUBLIC BOOL HTForceReload;		/* Force reload from cache or net */
+extern BOOL HTForceReload;		/* Force reload from cache or net */
 
 </PRE>
 <H2>Load a document from relative name</H2>

@@ -718,17 +718,17 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 	
 	if ((fp=fopen(filename, "r"))) {		/* File exists */
 	    fclose(fp);
-	    if (TRACE) printf("File `%s' exists\n", filename);
+	    if (TRACE) fprintf(stderr, "File `%s' exists\n", filename);
 	    if (remove(backup_filename)) {
-		if (TRACE) printf("Backup file `%s' removed\n",
-			 backup_filename);
+		if (TRACE) fprintf(stderr, "Backup file `%s' removed\n",
+				   backup_filename);
 	    }
 	    if (rename(filename, backup_filename)) {	/* != 0 => Failure */
-		if (TRACE) printf("Rename `%s' to `%s' FAILED!\n",
-				    filename, backup_filename);
+		if (TRACE) fprintf(stderr, "Rename `%s' to `%s' FAILED!\n",
+				   filename, backup_filename);
 	    } else {					/* Success */
-		if (TRACE) printf("Renamed `%s' to `%s'\n", filename,
-				backup_filename);
+		if (TRACE) fprintf(stderr, "Renamed `%s' to `%s'\n", filename,
+				   backup_filename);
 	    }
 	}
     	free(backup_filename);
@@ -1207,7 +1207,7 @@ open_file:
 */
     {
     	if (TRACE)
-	    printf("Can't open `%s', errno=%d\n", addr, errno);
+	    fprintf(stderr, "Can't open `%s', errno=%d\n", addr, errno);
 	return HTLoadError(request, 403, "Can't access requested file.");
     }
     

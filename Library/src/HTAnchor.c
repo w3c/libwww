@@ -95,7 +95,8 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
   HTList *kids;
 
   if (! parent) {
-    if (TRACE) printf ("HTAnchor_findChild called with NULL parent.\n");
+    if (TRACE)
+	fprintf(stderr, "HTAnchor_findChild called with NULL parent.\n");
     return NULL;
   }
   if ((kids = parent->children)) {  /* parent has children : search them */
@@ -200,8 +201,9 @@ HTAnchor * HTAnchor_findAddress
     grownups = adults;
     while ((foundAnchor = HTList_nextObject (grownups))) {
        if (equivalent(foundAnchor->address, address)) {
-	if (TRACE) fprintf(stderr, "Anchor %p with address `%s' already exists.\n",
-			  (void*) foundAnchor, address);
+	if (TRACE)
+	    fprintf(stderr, "Anchor %p with address `%s' already exists.\n",
+		    (void*) foundAnchor, address);
 	return (HTAnchor *) foundAnchor;
       }
     }
@@ -209,7 +211,7 @@ HTAnchor * HTAnchor_findAddress
     /* Node not found : create new anchor */
     foundAnchor = HTParentAnchor_new ();
     if (TRACE) fprintf(stderr, "New anchor %p has hash %d and address `%s'\n",
-    	(void*)foundAnchor, hash, address);
+		       (void*)foundAnchor, hash, address);
     StrAllocCopy(foundAnchor->address, address);
     HTList_addObject (adults, foundAnchor);
     return (HTAnchor *) foundAnchor;
@@ -429,7 +431,9 @@ BOOL HTAnchor_link
 {
   if (! (source && destination))
     return NO;  /* Can't link to/from non-existing anchor */
-  if (TRACE) printf ("Linking anchor %p to anchor %p\n", source, destination);
+  if (TRACE)
+      fprintf(stderr, "Linking anchor %p to anchor %p\n",
+	      (void *) source, (void *) destination);
   if (! source->mainLink.dest) {
     source->mainLink.dest = destination;
     source->mainLink.type = type;

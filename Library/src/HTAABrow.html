@@ -174,8 +174,21 @@ PUBLIC BOOL HTAA_composeAuth PARAMS((HTRequest * req));
 PUBLIC BOOL HTAA_retryWithAuth PARAMS((HTRequest *		req,
 				       HTRetryCallbackType	callback));
 
-</PRE>
 
+/* PUPLIC						HTAA_cleanup()
+**
+**	Free the memory used by the entries concerning Access Authorization
+**	in the request structure and put all pointers to NULL
+**	Henrik 14/03-94.
+**
+** ON ENTRY:
+**	req		the request structure
+**
+** ON EXIT:
+**	returns		nothing.
+*/
+PUBLIC void HTAACleanup PARAMS((HTRequest *req));
+</PRE>
 
 <H2>Enabling Gateway httpds to Forward Authorization</H2>
 These functions should only be called from daemon code, and

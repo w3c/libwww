@@ -79,8 +79,6 @@ PUBLIC int HTUU_encode ARGS3(unsigned char *,	bufin,
    register char *outptr = bufcoded;
    unsigned int i;
 
-   fprintf(stderr, " ** DEBUG bufin: \"%s\"\n", bufin);
-
    for (i=0; i<nbytes; i += 3) {
       *(outptr++) = ENC(*bufin >> 2);            /* c1 */
       *(outptr++) = ENC(((*bufin << 4) & 060) | ((bufin[1] >> 4) & 017)); /*c2*/

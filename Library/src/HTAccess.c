@@ -49,8 +49,11 @@
 
 /*	These flags may be set to modify the operation of this module
 */
+PUBLIC char * HTCacheDir = 0;	/* Root for cached files or 0 for no cache */
+PUBLIC char * HTSaveLocallyDir = SAVE_LOCALLY_HOME_DIR;	/* Save & exe files */
 PUBLIC char * HTClientHost = 0;	/* Name of remote login host if any */
 PUBLIC FILE * logfile = 0;	/* File to which to output one-liners */
+PUBLIC BOOL HTForceReload = NO;	/* Force reload from cache or net */
 PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
 PUBLIC BOOL using_proxy = NO;	/* are we using a proxy gateway? */
 PUBLIC BOOL HTImServer = NO;	/* cern_httpd sets this */
@@ -93,18 +96,9 @@ PUBLIC HTRequest * HTRequest_new NOARGS
 PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 {
     if (req) {
-	if (req->conversions) {
-	    HTList *cur = req->conversions;
-	    HTPresentation *pres;
-
-	    while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
-		FREE(pres->command);		/* Leak fixed AL 6 Feb 1994 */
-		free(pres);
-	    }
-	    HTList_delete(req->conversions);	/* Leak fixed AL 6 Feb 1994 */
-	}
-	FREE(req->authorization);
-	free(req);
+	HTFormatDelete(req->conversions);
+	HTAACleanup(req);
+	FREE(req);
     }
 }
 
@@ -251,7 +245,7 @@ PRIVATE BOOL override_proxy ARGS1(CONST char *, addr)
 	return NO;
     if (!*host) { free(host); return NO; }
 
-    if (p = strchr(host, ':')) {	/* Port specified */
+    if ((p = strchr(host, ':')) != NULL) {	/* Port specified */
 	*p++ = 0;			/* Chop off port */
 	port = atoi(p);
     }
@@ -554,11 +548,11 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	return YES;
     }
     
-    /* Check the Cache
-    */
+    /* Check the Cache */
+    /* Caching is ONLY done if (char*) HTCacheDir is set. Henrik 09/03-94 */
     /* Bug: for each format, we only check whether it is ok, we
        don't check them all and chose the best */
-    if (request->anchor->cacheItems) {
+    if (HTCacheDir && request->anchor->cacheItems) {
         HTList * list = request->anchor->cacheItems;
 	HTList * cur = list;
 	HTCacheItem * item;
@@ -629,7 +623,8 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	return NO;
     }
     
-    if (status<0) {		      /* Failure in accessing a document */
+    /* Bug fix thanks to Lou Montulli. Henrik 10/03-94 */
+    if (status<=0) {		      /* Failure in accessing a document */
 #ifdef CURSES
         user_message("Can't access `%s'", full_address);
 #else

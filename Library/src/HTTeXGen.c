@@ -47,7 +47,7 @@ struct _HTStructured {
 	BOOL				startup;      /* To skip MIME header */
 };
 
-PRIVATE char *TeX_names[][2] = {
+PRIVATE char *TeX_names[HTMLP_ELEMENTS][2] = {
     { "",       	""		},	/* HTML_A		*/
     { "",		""		},	/* HTML_ABBREV		*/
     { "\n\\begin{abstract}\n","\n\\end{abstract}\n"},  /* HTML_ABSTRACT	*/

@@ -638,6 +638,7 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     if (!auth_string)
 	return NO;
     
+    FREE(req->authorization);	 /* Free from previous call, Henrik 14/03-94 */
     if (!(req->authorization =
 	  (char*)malloc(sizeof(char) * (strlen(auth_string)+40))))
 	outofmem(__FILE__, "HTAA_composeAuth");
@@ -820,6 +821,8 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS2(HTRequest *,	  req,
     len = strlen(realmname) + 100;
     if (req->setup->server->hostname)
 	len += strlen(req->setup->server->hostname);
+
+    FREE(req->dialog_msg);	 /* Free from previous call, Henrik 14/03-94 */
     if (!(req->dialog_msg = (char*)malloc(len)))
 	outofmem(__FILE__, "HTAA_retryWithAuth");
     if (!req->realm->username)
@@ -837,6 +840,41 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS2(HTRequest *,	  req,
     req->retry_callback = callback;	/* Set callback function */
     HTPasswordDialog(req);
     return YES;
+}
+
+
+/* PUPLIC						HTAA_cleanup()
+**
+**	Free the memory used by the entries concerning Access Authorization
+**	in the request structure and put all pointers to NULL
+**	Henrik 14/03-94.
+**
+** ON ENTRY:
+**	req		the request structure
+**
+** ON EXIT:
+**	returns		nothing.
+*/
+PUBLIC void HTAACleanup ARGS1(HTRequest *, req)
+{
+    if (req) {
+	FREE(req->authorization);
+	FREE(req->prot_template);
+	FREE(req->dialog_msg);
+	if (req->valid_schemes) {
+	    HTList_delete(req->valid_schemes);
+	    req->valid_schemes = NULL;
+	}
+	if (req->scheme_specifics) {
+	    int cnt;
+	    for (cnt=0; cnt<HTAA_MAX_SCHEMES; cnt++) {
+		if (req->scheme_specifics[cnt])
+		    HTAssocList_delete(req->scheme_specifics[cnt]);
+	    }
+	    FREE(req->scheme_specifics);
+	}
+    }
+    return;
 }
 
 

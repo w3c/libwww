@@ -49,7 +49,6 @@ struct _HTStream {
 extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
-PUBLIC BOOL HTCacheHTTP = YES;	/* Enable caching of HTTP-retrieved files */
 PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
 extern BOOL using_proxy;	/* are we using a proxy gateway? */
 PUBLIC char * HTProxyHeaders = NULL;	/* Headers to pass as-is */
@@ -147,7 +146,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     int status;				/* tcp return */
     char crlf[3];			/* A CR LF equivalent string */
     HTStream *	target = NULL;		/* Unconverted data */
-    
+    BOOL cache_http = YES;	   /* Enable caching of HTTP-retrieved files */
+
     CONST char* gate = 0;		/* disable this feature */
     SockA soc_address;			/* Binary network address */
     SockA * sin = &soc_address;
@@ -397,7 +397,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	HTFormat format_in;		/* Format arriving in the message */
 	HTInputSocket *isoc = HTInputSocket_new(s);
 	char * status_line = HTInputSocket_getStatusLine(isoc);
-	BOOL HTCache_old = HTCacheHTTP;	/* Save initial cache conditions */
 
 /* Kludge to trap binary responses from illegal HTTP0.9 servers.
 ** First time we have enough, look at the stub in ASCII
@@ -420,7 +419,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    else {
 		format_in = WWW_HTML;
 	    }
-	    HTCacheHTTP = NO;	/* Do not cache */
+	    cache_http = NO;	/* Do not cache */
 	    goto copy;
 	} /* end kludge */
 
@@ -545,7 +544,7 @@ copy:
         /* @@ Bug: The decision of whether or not to cache should also be
 	** made contingent on a IP address match or non match.
 	*/
-        if (HTCacheHTTP) {
+        if (cache_http) {
 	    target = HTTee(target, HTCacheWriter(request, NULL, format_in,
 						 request->output_format,
 						 request->output_stream));
@@ -577,7 +576,6 @@ clean_up:
 	    HTInputSocket_free(isoc);	    
 	if (status_line)
 	    free(status_line);		/* Leak fix Henrik 18/02-94 */
-	HTCacheHTTP = HTCache_old;	/* Reestablish cache conditions */
 	return status;			/* Good return  */
     
     } /* read response */
