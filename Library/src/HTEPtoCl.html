@@ -1,31 +1,30 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww callback stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
-<!-- Changed by: Hakon Lie,  5-Dec-1995 -->
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z2">
+  <!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
+  <!-- Changed by: Hakon Lie,  5-Dec-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Sample Code Library libwww Callback Stream Callbacks</TITLE>
 </HEAD>
 <BODY>
-
-<H1>EPtoClient: interface between the XParse module and the Client</H1>
-
+<H1>
+  External Parser Callbacks
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module contains the interface between the XParse module and
-the client. The dummy function is only here so that clients that use
-the XParse module can overwrite it. See also <A NAME="z0"
-HREF="HTXParse.html">HTXParse</A><P>
-
-This module is implemented by <A HREF="HTEPtoCl.c">HTEPtoCl.c</A>,
-and it is a part of the <A HREF="http://www.w3.org/Library/">
-W3C Sample Code Library</A>.
-
+<P>
+An interface between the <A HREF="HTXParse.html">XParse module</A> and the
+Application. This module contains the interface between the XParse module
+and the client. The dummy function is only here so that clients that use
+the XParse module can overwrite it. See also
+<A NAME="z0" HREF="HTXParse.html">HTXParse</A>
+<P>
+This module is implemented by <A HREF="HTEPtoCl.c">HTEPtoCl.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
+Library</A>.
 <PRE>
 #ifndef HTEPTOCLIENT_H
 #define HTEPTOCLIENT_H
@@ -37,10 +36,9 @@ extern CallClient HTCallClient;
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

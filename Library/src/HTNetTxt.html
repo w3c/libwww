@@ -1,29 +1,28 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww CRLF STRIPPER STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z18">
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <NEXTID N="z18">
+  <TITLE>W3C Sample Code Library libwww CRLF Stripper Stream</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Network Telnet To Internal Character Text</H1>
-
+<H1>
+  Network Telnet To Internal Character Text
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is a filter stream suitable for taking text from a socket and
-passing it into a stream which expects text in the local C
-representation.  It does newline conversion.  As usual, pass its
-output stream to it when creating it. <P>
-
-This module is implemented by <A HREF="HTNetTxt.c">HTNetTxt.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/Library/"> W3C
-Sample Code Library</A>.
-
+<P>
+This is a filter stream suitable for taking text from a socket and passing
+it into a stream which expects text in the local C representation. It does
+newline conversion. As usual, pass its output stream to it when creating
+it.
+<P>
+This module is implemented by <A HREF="HTNetTxt.c">HTNetTxt.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
+Library</A>.
 <PRE>
 #ifndef HTNETTXT_H
 #define HTNETTXT_H
@@ -32,10 +31,9 @@ extern HTStream * HTNetToText (HTStream * target);
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

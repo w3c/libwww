@@ -116,6 +116,16 @@ necessary. This buffer is handed over to the client in
 <CODE>HTXParse_free</CODE>.
 <PRE>
 #include "<A HREF="HTXParse.html">HTXParse.h</A>"			/* External parse stream */
+#include "<A HREF="HTEPtoCl.html">HTEPtoCl.h</A>"			/* Client callbacks */
+</PRE>
+<H3>
+  Network Telnet To Internal Character Text
+</H3>
+<P>
+This is a filter stream suitable for taking text from a socket and passing
+it into a stream which expects text in the local C representation.
+<PRE>
+#include "<A HREF="HTNetTxt.html">HTNetTxt.h</A>"
 </PRE>
 <PRE>
 #ifdef __cplusplus

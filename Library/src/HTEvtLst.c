@@ -406,7 +406,8 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     newset = EventList_remaining(sockp);
 #ifdef WWW_WIN_ASYNC
     if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, HTEvent_BITS(newset)) < 0) {
-        if (THD_TRACE) HTTrace("Event....... WSAAsyncSelect returned error!");
+        if (THD_TRACE)
+	    HTTrace("Event....... WSAAsyncSelect returned `%s'!", HTErrnoString(socerrno));
 	return HT_ERROR;
     }
 #else /* WWW_WIN_ASYNC */

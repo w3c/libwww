@@ -1,8 +1,10 @@
 HTConLen.c
+HTEPtoCl.c
 HTFSave.c
 HTFWrite.c
 HTGuess.c
 HTMerge.c
+HTNetTxt.c
 HTSChunk.c
 HTTee.c
 HTXParse.c

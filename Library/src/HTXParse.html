@@ -1,36 +1,35 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww CALLBACK STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+  <TITLE>W3C Sample Code Library libwww Callback Stream</TITLE>
 </HEAD>
 <BODY>
-
-<H1>XParse: Module to get unparsed stream from libwww</H1>
-
+<H1>
+  XParse: Module to get Unparsed Stream from libwww
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This version of the stream object is a hook for clients that want an
-unparsed stream from libwww. The HTXParse_put_* and HTXParse_write
-routines copy the content of the incoming buffer into a buffer that is
-realloced whenever necessary. This buffer is handed over to the client
-in HTXParse_free. See also <A HREF="HTFWrite.html">HTFWriter</A>
-for writing to C files.<P>
-
-<H3>Bugs:</H3>
-
+<P>
+This version of the stream object is a hook for clients that want an unparsed
+stream from libwww. The HTXParse_put_* and HTXParse_write routines copy the
+content of the incoming buffer into a buffer that is realloced whenever
+necessary. This buffer is handed over to the client in HTXParse_free. See
+also <A HREF="HTFWrite.html">HTFWriter</A> for writing to C files.
+<H3>
+  Bugs:
+</H3>
 <UL>
-<LI>strings written must be less than buffer size.
+  <LI>
+    strings written must be less than buffer size.
 </UL>
-
-This module is implemented by <A HREF="HTXParse.c">HTXParse.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/Library/"> W3C
-Sample Code Library</A>.
-
+<P>
+This module is implemented by <A HREF="HTXParse.c">HTXParse.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
+Library</A>.
 <PRE>
 #ifndef HTXPARSE_H
 #define HTXPARSE_H
@@ -57,6 +56,6 @@ extern HTConverter HTXParse;
 
 #endif
 </PRE>
+<P>
 End of declaration
-</BODY>
-</HTML>
+</BODY></HTML>
