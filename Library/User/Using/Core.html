@@ -1,0 +1,34 @@
+<HTML>
+<HEAD>
+<TITLE>User Guide - The Library Core</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>The Library Core</H1>
+
+As mentioned earlier in this guide, the Core of the W3C Reference Library is the set of modules that
+must be included in every application. However, the core does not contain any functionality for
+neither requesting a HTML document using HTTP, not to parse it or present it to the user. All this
+functionality is dynamically registered in the core using an open set of application modules which
+we will describe later. <P>
+
+The Core is basically a set of registration mechanisms that glue together the application modules,
+and in the following chapter we will look how to configure the core to contain exactly the
+functionality we want for our application. If you are interested in a more detailed description of
+the architecture of the core to see how the glue is designed then please read the <A
+HREF="../Architecture/ControlFlow.html">chapter on the model behind the Core of the Library</A> in
+the Architecture document. In this section we will concentrate on the APIs defined by the <A
+HREF="../../Implementation/WWWCore.html">WWWCore.h</A> include file and how to use the Core in a
+real application.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>

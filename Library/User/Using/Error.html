@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>User Guide - Error Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<TITLE>User Guide - Error Messages and Dialogs</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -10,7 +10,7 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
-<H1>The Error Manager</H1>
+<H1>Error Messages and Dialogs</H1>
 
 The Library deals with two categories of errors: user errors and application errors. The former are
 all the errors that can occur when the Library is used in a "real" environment where network
@@ -188,19 +188,6 @@ BOOL HTReadDir (HTRequest * request, const * directory)
 }
 </PRE>
 
-<H2>Error URLs</H2>
-
-Each error message can point to a URL with extended description of what went wrong. This can for
-example also be used by a server in order to send back a error URL to the client. The file names of
-the URLs are given in the error message table but the prefix where to find them can be handled with
-the following functions
-
-<PRE>
-extern void HTError_setPrefix		(CONST char * path);
-extern CONST char *HTError_prefix	(void);
-extern void HTError_freePrefix		(void);
-</PRE>
-
 <H2>Error Messages</H2>
 
 Until now we have concentrated on how to register a set of errors in a list and how to associate
@@ -250,8 +237,7 @@ not intended to describe every single public function, so here we will only pres
 extern BOOL HTError_doShow		(HTError * info);
 extern BOOL HTError_ignoreLast		(HTList * list);
 extern BOOL HTError_setIgnore		(HTError * info);
-extern int HTError_code			(HTError * info);
-extern CONST char * HTError_message	(HTError * info);
+extern int HTError_index		(HTError * info);
 extern HTSeverity HTError_severity	(HTError * info);
 extern int HTError_parameter		(HTError * info, void *parameter);
 extern CONST char * HTError_location	(HTError * info);

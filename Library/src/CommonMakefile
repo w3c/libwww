@@ -155,7 +155,7 @@ LEGAL =	$(WWW)/README \
 	$(WWW)/CERN
 
 DOCS =	$(CMN)*.html \
-	`find $(DOC) \( -name \*.html -o -name \*.gif \) -print`
+	`find $(DOC) -follow \( -name \*.html -o -name \*.gif \) -print`
 
 SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
@@ -249,7 +249,7 @@ snapshot : inc $(LEGAL) $(SOURCES)
 	@echo Snapshot of Library version $(VC) up to date.
 
 $(FTP)/$(PROD)_$(VC)_src.tar.Z : $(SOURCES)
-	tar cvf $(FTP)/$(PROD)_$(VC)_src.tar $(TOTAL)
+	tar cvhf $(FTP)/$(PROD)_$(VC)_src.tar $(TOTAL)
 	cp $(FTP)/$(PROD)_$(VC)_src.tar $(FTP)/temp.tar
 	compress -f $(FTP)/$(PROD)_$(VC)_src.tar
 	mv $(FTP)/temp.tar $(FTP)/$(PROD)_$(VC)_src.tar
