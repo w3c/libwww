@@ -16,6 +16,7 @@
 /* Library include files */
 #include "WWWLib.h"
 #include "WWWApp.h"
+#include "WWWHTTP.h"
 #include "HTReqMan.h"
 #include "HTDialog.h"					 /* Implemented here */
 
@@ -339,3 +340,81 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
     return YES;
 }
 
+/*	HTError_response
+**	----------------
+**	Default function that creates an error message using HTAlert() to
+**	put out the contents of the error_stack messages. Furthermore, the
+**	error_info structure contains a name of a help file that might be put
+**	up as a link. This file can then be multi-linguistic.
+*/
+PUBLIC BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
+			      int msgnum, CONST char * dfault, void * input,
+			      HTAlertPar * reply)
+{
+    HTList * cur = (HTList *) input;
+    HTError * pres;
+    HTErrorShow showmask = HTError_show();
+    HTChunk * msg = NULL;
+    int code;
+    if (WWWTRACE) TTYPrint(TDEST, "HTError..... Generating HTTP response\n");
+    if (!request || !cur || !reply) return NO;
+    while ((pres = (HTError *) HTList_nextObject(cur))) {
+	int index = HTError_index(pres);
+	if (HTError_doShow(pres)) {
+	    if (!msg) {
+		msg = HTChunk_new(128);
+		if ((code = HTErrors[index].code) > 0) {
+		    char * reason = HTErrors[index].msg;
+		    char * buf = (char *) malloc(20 + strlen(reason));
+		    if (!buf) outofmem(__FILE__, "HTError_response");
+		    sprintf(buf,"%s %d %s%c%c",HTTP_VERSION,code,reason,CR,LF);
+		    HTAlert_assignReplyMessage(reply, buf);
+		}
+	    } else {
+		HTChunk_puts(msg, "\nReason: ");
+		HTChunk_puts(msg, HTErrors[index].msg);	    /* Error message */
+	    }
+
+	    if (showmask & HT_ERR_SHOW_PARS) {		 /* Error parameters */
+		int length;
+		int cnt;		
+		char *pars = (char *) HTError_parameter(pres, &length);
+		if (length && pars) {
+		    HTChunk_puts(msg, " (");
+		    for (cnt=0; cnt<length; cnt++) {
+			char ch = *(pars+cnt);
+			if (ch < 0x20 || ch >= 0x7F)
+			    HTChunk_putc(msg, '#');
+			else
+			    HTChunk_putc(msg, ch);
+		    }
+		    HTChunk_puts(msg, ") ");
+		}
+	    }
+
+	    if (showmask & HT_ERR_SHOW_LOCATION) {	   /* Error Location */
+		HTChunk_puts(msg, "This occured in ");
+		HTChunk_puts(msg, HTError_location(pres));
+		HTChunk_putc(msg, '\n');
+	    }
+
+	    /*
+	    ** Make sure that we don't get this error more than once even
+	    ** if we are keeping the error stack from one request to another
+	    */
+	    HTError_setIgnore(pres);
+	    
+	    /* If we only are show the most recent entry then break here */
+	    if (showmask & HT_ERR_SHOW_FIRST)
+		break;
+	}
+    }
+    if (msg) {
+	HTChunk_putc(msg, '\n');
+#if 0
+	TTYPrint(TDEST, "WARNING: %s\n", HTChunk_data(msg));
+#endif
+	HTChunk_delete(msg);
+    }
+    return YES;
+}

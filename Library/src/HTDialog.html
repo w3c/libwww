@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>MESSAGES AND DIALOGS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Feb-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -97,7 +97,7 @@ additional information to be passed.
 extern HTAlertCallback HTProgress;
 </PRE>
 
-<H3>Generating an Error Message of a request</H3>
+<H3>Generating a User Error Message of a request</H3>
 
 This function outputs the content of the error list to standard output
 (used in Line Mode Browser), but smart clients and servers might
@@ -107,6 +107,19 @@ implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
 
 <PRE>
 extern HTAlertCallback HTError_print;
+</PRE>
+
+<H3>Generating a Server Error Message of a request</H3>
+
+Default function that creates an error message using HTAlert() to
+put out the contents of the error_stack messages. Furthermore, the
+error_info structure contains a name of a help file that might be put
+up as a link. This file can then be multi-linguistic.
+
+<PRE>
+extern BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
+			      int msgnum, CONST char * dfault, void * input,
+			      HTAlertPar * reply);
 </PRE>
 
 <PRE>

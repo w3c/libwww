@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Dynamic Array Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -126,8 +126,8 @@ function is to increment the size counter with one corresponding to
 the zero.
 
 <PRE>
-#define HTChunkTerminate(ch) HTChunk_terminate(ch)
-extern void HTChunk_terminate (HTChunk * ch);
+#define HTChunkTerminate(ch)	HTChunk_terminate(ch)
+#define HTChunk_terminate(ch)	HTChunk_putc((ch), '\0')
 </PRE>
 
 <H2>Return Pointer to Data</H2>

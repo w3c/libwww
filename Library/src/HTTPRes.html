@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTTP Response Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 30-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -19,16 +19,18 @@ Reference Library</A>.
 #define HTTPRES_H
 
 #include "HTStream.h"
-#include "HTFormat.h"
+#include "HTReq.h"
 </PRE>
 
 <H3>Streams Definition</H3>
 
-This stream makes a HTTP response header before it goes into
-transparent mode.
+This stream makes a server specific HTTP header before it goes into
+transparent mode. If <CODE>endHeader</CODE> is YES then we send an
+empty <CODE>CRLF</CODE> in order to end the header.
 
 <PRE>
-extern HTConverter HTTPResponse_new;
+extern HTStream * HTTPResponse_new (HTRequest *	request, HTStream * target,
+				    BOOL endHeader);
 </PRE>
 
 <PRE>

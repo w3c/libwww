@@ -6,6 +6,7 @@ HTPrompt		@ 103
 HTPromptPassword	@ 104
 HTPromptUsernameAndPassword @ 105
 HTError_print		@ 106
+HTError_response	@ 107
 
 ;HTHist.c		@ 200
 HTHistory_new		@ 201

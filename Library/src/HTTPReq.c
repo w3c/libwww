@@ -86,7 +86,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
 	free(fullurl);
     }
-    PUTS(" HTTP/1.0");
+    PUTC(' ');
+    PUTS(HTTP_VERSION);
     PUTBLOCK(crlf, 2);
 
     /* Request Headers */

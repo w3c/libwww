@@ -15,7 +15,7 @@
 #include "HTReq.h"
 #include "HTConLen.h"					 /* Implemented here */
 
-#define HT_MIN_BLOCK 	0x200
+#define HT_MIN_BLOCK 	0x100
 #define HT_MAX_BLOCK	0x2000
 #define HT_MAX_SIZE	0x10000
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)	     (me->target, b, l)

@@ -25,7 +25,9 @@
 #include "HTWriter.h"
 #include "HTChunk.h"
 #include "HTReqMan.h"
+#include "HTConLen.h"
 #include "HTNetMan.h"
+#include "HTMIMERq.h"
 #include "HTTPUtil.h"
 #include "HTTPRes.h"
 #include "HTTPServ.h"					       /* Implements */
@@ -48,6 +50,7 @@ typedef enum _HTTPState {
 /* This is the context object for the this module */
 typedef struct _https_info {
     HTTPState	state;			  /* Current State of the connection */
+    char *	version;			    /* Version for the reply */
 } https_info;
 
 /* The HTTP Receive Stream */
@@ -55,6 +58,8 @@ struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
+    https_info *		http;
+    HTRequest *			client;
     HTSocketEOL			state;
     HTChunk *			buffer;
     BOOL			transparent;
@@ -82,6 +87,7 @@ PRIVATE int ServerCleanup (HTRequest * req, HTNet * net, int status)
 
     /* Remove the net object and our own context structure for http */
     HTNet_delete(net, req->internal ? HT_IGNORE : status);
+    FREE(http->version);
     FREE(http);
     return YES;
 }
@@ -92,44 +98,118 @@ PRIVATE int ServerCleanup (HTRequest * req, HTNet * net, int status)
 
 /*
 **	This is our handle to the server reply stream when data is coming
-**	back from our request
+**	back from our "client" request. It is responsible for setting up the
+**	remaining streams in order to produce a complete HTTP output.
+**	If we have a HTTP 1.x response then forward untouched.
+**
+**	BUG: We should look at the version string before generating response!
 */
+PRIVATE int MakeReplyPipe (HTStream *me, HTRequest *server, HTRequest *client)
+{
+    char * response_line = NULL;
+    me->transparent = YES;
 
-/*
-**	Searches for HTTP Request Line before going into transparent mode
-*/
+    /* Check if we can forward the response untouched */
+    if (client->net) {
+	HTdns * cdns = client->net->dns;
+	char * s_class = HTDNS_serverClass(cdns);
+	int version = HTDNS_serverVersion(cdns);
+	/* We are not using the version info for the moment */
+	if (s_class && !strcasecomp(s_class, "http")) {
+	    if (STREAM_TRACE) TTYPrint(TDEST, "HTTP Reply.. Direct output\n");
+	    return HT_OK;
+	}
+    }
+
+    /* Set up a small buffer for the response headers */
+    me->target = HTBuffer_new(me->target, server, 256);
+
+    /* Generate the Response line */
+    {
+	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+	if (cbf) {
+	    HTAlertPar * reply = HTAlert_newReply();
+	    if ((*cbf)(client, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+		       client->error_stack, reply))
+		response_line = HTAlert_replyMessage(reply);
+	    HTAlert_deleteReply(reply);
+	}
+
+	/* Output the response */
+	if (response_line) {
+	    PUTS(response_line);
+	    free(response_line);
+	} else {	
+	    PUTS("500 Internal");
+	    PUTC(CR);
+	    PUTC(LF);
+	}
+    }
+
+    /*
+    ** We now have to create the rest of the response stream. We see whether
+    ** there is a data object or not by looking at the Content Type of the
+    ** client anchor.
+    */
+    me->target = (HTAnchor_format(client->anchor) == WWW_UNKNOWN) ?
+	HTTPResponse_new(server, me->target, YES) :
+	HTMIMERequest_new(server, HTTPResponse_new(server,me->target,NO), YES);
+
+    /* Here we should put out any BODY for the error message */
+
+    return (*me->target->isa->flush)(me->target);
+}
+
 PRIVATE int HTTPReply_put_block (HTStream * me, CONST char * b, int l)
 {
-    return PUTBLOCK(b, l);
+    if (me->transparent)
+	return b ? PUTBLOCK(b, l) : HT_OK;
+    else {
+	MakeReplyPipe(me, me->request, me->client);
+	return b ? PUTBLOCK(b, l) : HT_OK;
+    }
 }
 
 PRIVATE int HTTPReply_put_string (HTStream * me, CONST char * s)
 {
-    return PUTBLOCK(s, strlen(s));
+    return HTTPReply_put_block(me, s, strlen(s));
 }
 
 PRIVATE int HTTPReply_put_character (HTStream * me, char c)
 {
-    return PUTBLOCK(&c, 1);
+    return HTTPReply_put_block(me, &c, 1);
 }
 
 PRIVATE int HTTPReply_flush (HTStream * me)
 {
-    return (*me->target->isa->flush)(me->target);
+    int status = HTTPReply_put_block(me, NULL, 0);
+    return status==HT_OK ? (*me->target->isa->flush)(me->target) : status;
 }
 
 PRIVATE int HTTPReply_free (HTStream * me)
 {
-    HTNet * net = me->request->net;
-    if (me->target) FREE_TARGET;
-    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPReply... Freing server stream\n");
-    if (net) {
-	if (HTDNS_socket(net->dns) == INVSOC) {
-	    ServerCleanup(me->request, net, HT_IGNORE);
+    int status = HTTPReply_flush(me);
+    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPReply... Freeing server stream\n");
+    if (status != HT_WOULD_BLOCK) {
+	HTNet * snet = me->request->net;
+	if ((status = FREE_TARGET) == HT_WOULD_BLOCK) return HT_WOULD_BLOCK;
+#if 0
+	/* We can't do this until we get a better event loop */
+	if (snet->persistent) {
+	    if (STREAM_TRACE)
+		TTYPrint(TDEST, "HTTPReply... Persistent conenction\n");
+	    HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
+			     snet->cbf, snet->priority);
+	    HTRequest_clear(me->request);
+	} else {
+	    ServerCleanup(me->request, snet, HT_IGNORE);
 	    HTRequest_delete(me->request);
-	} else
-	    HTEvent_Register(net->sockfd, me->request, (SockOps) FD_READ,
-			     net->cbf, net->priority);
+	    HTRequest_removeDest(me->client);
+	}
+#else
+	ServerCleanup(me->request, snet, HT_IGNORE);
+	HTRequest_delete(me->request);
+#endif
     }
     free(me);
     return HT_OK;
@@ -137,9 +217,32 @@ PRIVATE int HTTPReply_free (HTStream * me)
 
 PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
 {
+    HTNet * snet = me->request->net;
+    if (!me->transparent) {
+	HTRequest_addError(me->client, ERR_FATAL, NO, HTERR_INTERNAL,
+			   NULL, 0, "HTTPReply_abort");
+	MakeReplyPipe(me, me->request, me->client);
+    }
+    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPReply... ABORTING\n");
     if (me->target) ABORT_TARGET;
+#if 0
+    /* We can't do this until we get a better event loop */
+    if (snet->persistent) {
+	if (STREAM_TRACE)
+	    TTYPrint(TDEST, "HTTPReply... Persistent conenction\n");
+	HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
+			 snet->cbf, snet->priority);
+	HTRequest_clear(me->request);
+    } else {
+	ServerCleanup(me->request, snet, HT_IGNORE);
+	HTRequest_delete(me->request);
+	HTRequest_removeDest(me->client);
+    }
+#else
+    ServerCleanup(me->request, snet, HT_IGNORE);
+    HTRequest_delete(me->request);
+#endif
     free(me);
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTPReply... ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -157,13 +260,15 @@ PRIVATE CONST HTStreamClass HTTPReplyClass =
     HTTPReply_put_block
 };
 
-PRIVATE HTStream * HTTPReply_new (HTRequest * request, HTStream * target)
+PRIVATE HTStream * HTTPReply_new (HTRequest * request, HTRequest * client,
+				  HTStream * target)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTTPReply_new");
     me->isa = &HTTPReplyClass;
     me->target = target;
     me->request = request;
+    me->client = client;
     return me;
 }
 
@@ -184,10 +289,6 @@ PRIVATE int ParseRequest (HTStream * me)
     char * method_str = HTNextField(&line);
     char * request_uri = HTNextField(&line);
     char * version_str = HTNextField(&line);
-
-    /* Set up an aouput stream */
-    request->output_stream =
-	HTTPReply_new(request,HTWriter_new(request->net, YES));
 
     /* Check if method is allowed */
     if (!method_str || (request->method=HTMethod_enum(method_str))==METHOD_INVALID) {
@@ -211,6 +312,7 @@ PRIVATE int ParseRequest (HTStream * me)
     if (version_str) {
 	me->target = HTStreamStack(WWW_MIME_HEAD, request->debug_format,
 				   request->debug_stream, request, NO);
+	StrAllocCopy(me->http->version, version_str);
 	return HT_OK;
     } else {
 	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is formatted as 0.9\n");
@@ -299,6 +401,7 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
     if (!me) outofmem(__FILE__, "HTTPReceive_new");
     me->isa = &HTTPReceiveClass;
     me->request = request;
+    me->http = http;
     me->state = EOL_BEGIN;    
     me->buffer = HTChunk_new(128);		 /* Sufficiant for most URLs */
     return me;
@@ -363,13 +466,27 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    return HT_OK;
 		else if (status == HT_PAUSE) {
 		    HTRequest * newreq = HTRequest_dup(request);
+
+		    /* Set the right client headers */
+		    HTRequest_setGnHd(newreq, DEFAULT_GENERAL_HEADERS);
+
 		    /*
 		    ** If we have a data object in the request then link the
 		    ** two request objects together
 		    */
 		    if (HTMethod_hasEntity(request->method))
 			HTRequest_addDestination(request, newreq);
-		    return HTLoad(newreq, NO)==YES ? HT_OK : HT_ERROR;
+
+		    /*
+		    ** Set up our reply stream. This is responsible for
+		    ** generating a HTTP reply
+		    */
+		    newreq->output_stream = request->output_stream =
+			HTTPReply_new(request, newreq,
+				      HTWriter_new(request->net,YES));
+
+		    /* Start the load of the "client" request */
+		    return HTLoad(newreq, NO) == YES ? HT_OK : HT_ERROR;
 		} else if (status == HT_CLOSED)
 		    http->state = HTTPS_OK;
 		else

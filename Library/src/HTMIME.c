@@ -115,6 +115,10 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	  case BEGINNING_OF_LINE:
 	    header = ++ptr;
 	    switch (TOLOWER(*ptr)) {
+	      case '\0':
+		state = BEGINNING_OF_LINE;		       /* Empty line */
+		continue;
+
 	      case 'a':
 		state = FIRSTLETTER_A;
 		break;
@@ -407,6 +411,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		if (!strcasecomp(value, "keep-alive")) {
 		    if (STREAM_TRACE)
 			TTYPrint(TDEST,"MIMEParser.. Persistent Connection\n");
+		    me->net->persistent = YES;
 		    HTDNS_setSocket(me->net->dns, me->net->sockfd);
 		}
 	    }
@@ -556,6 +561,9 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	}
     }
     me->transparent = YES;		  /* Pump rest of data right through */
+#if 0
+    HTChunk_clear(me->buffer);			/* Get ready for next header */
+#endif
 
     /* If this request us a source in PostWeb then pause here */
     if (me->head_only || HTRequest_isSource(request)) return HT_PAUSE;
@@ -597,7 +605,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    } else {						 /* New line */
 		me->EOLstate = EOL_BEGIN;
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putb(me->buffer, b, 1);
+		HTChunk_putc(me->buffer, *b);
 	    }
 	} else if (me->EOLstate == EOL_FLF) {
 	    if (*b == CR)				/* LF CR or CR LF CR */
@@ -613,7 +621,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putb(me->buffer, b, 1);
+		HTChunk_putc(me->buffer, *b);
 	    }
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
@@ -627,14 +635,14 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putb(me->buffer, b, 1);
+		HTChunk_putc(me->buffer, *b);
 	    }
 	} else if (*b == CR) {
 	    me->EOLstate = EOL_FCR;
 	} else if (*b == LF) {
 	    me->EOLstate = EOL_FLF;			       /* Line found */
 	} else
-	    HTChunk_putb(me->buffer, b, 1);
+	    HTChunk_putc(me->buffer, *b);
 	b++;
     }
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Library Interface for Displaying and Promting Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Feb-1996 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -153,12 +153,26 @@ extern HTAlertPar * HTAlert_newReply	(void);
 extern void HTAlert_deleteReply		(HTAlertPar * old);
 </PRE>
 
-Access the data:
+<H3>Handle the Reply Message</H3>
+
+These methods provide the API for handling the reply message. There
+are two ways of assigning a message to the reply message - either by
+copying the buffer or by reusing the same buffer. In the latter case,
+the caller must make sure <B>not</B> to free the reply message before
+it has been used.
+
+<PRE>
+extern BOOL HTAlert_setReplyMessage	(HTAlertPar * me, CONST char *message);
+extern BOOL HTAlert_assignReplyMessage	(HTAlertPar * me, char * message);
+</PRE>
+
+You can get the data back again by using this method:
 
 <PRE>
 extern char * HTAlert_replyMessage	(HTAlertPar * me);
-extern BOOL HTAlert_setReplyMessage	(HTAlertPar * me, CONST char *message);
+</PRE>
 
+<PRE>
 extern char * HTAlert_replySecret	(HTAlertPar * me);
 extern BOOL HTAlert_setReplySecret	(HTAlertPar * me, CONST char * secret);
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Feb-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -66,6 +66,17 @@ methods in this module, but it will work as is for a simple request.
 
 <PRE>
 extern HTRequest * HTRequest_new (void);
+</PRE>
+
+<H3>Clear a Request Object</H3>
+
+Clears all protocol specific information so that the request object
+can be used for another request. It should be use with care as
+application specific information is <B>not</B> re-initialized. Returns
+YES if OK, else NO.
+
+<PRE>
+extern BOOL HTRequest_clear (HTRequest * me);
 </PRE>
 
 <H3>Create a duplicate</H3>

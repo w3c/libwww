@@ -93,6 +93,30 @@ PUBLIC HTRequest * HTRequest_new (void)
     return me;
 }
 
+/*	HTRequest_clear
+**	---------------
+**	Clears all protocol specific information so that the request object
+**	can be used for another request.
+**	Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTRequest_clear (HTRequest * me)
+{
+    if (me) {
+	me->boundary = NULL;
+	me->authenticate = NULL;
+	me->error_stack = NULL;
+	me->authorization = NULL;
+	me->prot_template = NULL;
+	me->dialog_msg = NULL;
+	me->net = NULL;
+	me->WWWAAScheme = NULL;
+	me->WWWAARealm = NULL;
+	me->WWWprotection = NULL;
+	return YES;
+    }
+    return NO;
+}
+
 /*	HTRequest_dup
 **	-------------
 **	Creates a new HTRequest object as a duplicate of the src request.
@@ -123,17 +147,7 @@ PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
     if ((me = (HTRequest *) malloc(sizeof(HTRequest))) == NULL)
 	outofmem(__FILE__, "HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
-    me->internal = YES;
-    me->boundary = NULL;
-    me->authenticate = NULL;
-    me->error_stack = NULL;
-    me->authorization = NULL;
-    me->prot_template = NULL;
-    me->dialog_msg = NULL;
-    me->net = NULL;
-    me->WWWAAScheme = NULL;
-    me->WWWAARealm = NULL;
-    me->WWWprotection = NULL;
+    HTRequest_clear(me);
     return me;
 }
 

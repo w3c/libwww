@@ -26,7 +26,6 @@ HTChunk_putc		@ 404
 HTChunk_puts		@ 405
 HTChunk_putb		@ 406
 HTChunk_ensure		@ 407
-HTChunk_terminate	@ 408
 
 ;HTList.c		@ 500
 HTList_new		@ 501

@@ -16,6 +16,7 @@
 #include "HTWWWStr.h"
 #include "HTAccess.h"
 #include "HTWriter.h"
+#include "HTError.h"
 #include "HTFWrite.h"
 #include "HTEvntrg.h"
 #include "HTNetMan.h"
@@ -24,6 +25,8 @@
 #include "HTTPUtil.h"
 #include "HTTPRes.h"					       /* Implements */
 
+#define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
+#define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
@@ -43,24 +46,34 @@ struct _HTStream {
 */
 PRIVATE int HTTPMakeResponse (HTStream * me, HTRequest * request)
 {
-    char linebuf[256];
-    if (request->error_stack) {
+    char crlf[3];
+    *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
-	/* @@@ WRITE A SMALL HTError_response() function */
-	sprintf(linebuf, "HTTP/1.0 404 Not Found%c%c", CR, LF);
-	
-	PUTBLOCK(linebuf, (int) strlen(linebuf));
-    } else {
-	sprintf(linebuf, "HTTP/1.0 200 OK%c%c", CR, LF);
-	PUTBLOCK(linebuf, (int) strlen(linebuf));
+    if (request->ResponseMask & HT_S_LOCATION) {		/* @@@ */
 
-	/* Response Headers */
-	if (request->ResponseMask & HT_S_SERVER) {
-	    sprintf(linebuf, "Server: %s/%s %s/%s%c%c",
-		    HTLib_appName(), HTLib_appVersion(),
-		    HTLib_name(), HTLib_version(), CR, LF);
-	    PUTBLOCK(linebuf, (int) strlen(linebuf));
-	}
+    }
+    if (request->ResponseMask & HT_S_PROXY_AUTH) {		/* @@@ */
+
+    }
+    if (request->ResponseMask & HT_S_PUBLIC) {			/* @@@ */
+
+    }
+    if (request->ResponseMask & HT_S_RETRY_AFTER) {		/* @@@ */
+
+    }
+    if (request->ResponseMask & HT_S_SERVER) {
+	PUTS("Server: ");
+	PUTS(HTLib_appName());
+	PUTC('/');
+	PUTS(HTLib_appVersion());
+	PUTC(' ');
+	PUTS(HTLib_name());
+	PUTC('/');
+	PUTS(HTLib_version());
+	PUTBLOCK(crlf, 2);
+    }
+    if (request->ResponseMask & HT_S_WWW_AUTH) {		/* @@@ */
+
     }
     if(PROT_TRACE)TTYPrint(TDEST,"HTTP........ Generating Response Headers\n");
     return HT_OK;
@@ -107,7 +120,6 @@ PRIVATE int HTTPResponse_flush (HTStream * me)
 */
 PRIVATE int HTTPResponse_free (HTStream * me)
 {
-    TTYPrint(TDEST, "TESTTESTTEST FREEING RESPONSE STREAM\n");
     if (me->target) {
 	int status;
 	if (!me->transparent)
@@ -141,40 +153,16 @@ PRIVATE CONST HTStreamClass HTTPResponseClass =
 };
 
 /*
-**	This stream is responsible for generating a full HTTP/1.x response. It
-**	may either do so by forwarding a response directly from an origin 
-**	server (if we are proxying) - or it can generate the response itself.
+**	This stream generates server specific headers
 */
-PUBLIC HTStream * HTTPResponse_new (HTRequest *		request,
-				    void *		param,
-				    HTFormat		input_format,
-				    HTFormat		output_format,
-				    HTStream *		output_stream)
+PUBLIC HTStream * HTTPResponse_new (HTRequest *	request, HTStream * target,
+				    BOOL endHeader)
 {
-    HTStream * me = NULL;
-    HTdns * dns;
-    if (!request || !request->net) return HTErrorStream();
-    /*
-    ** If we have a HTTP 1.x response then forward untouched
-    */
-    if ((dns = request->net->dns)) {
-	char * s_class = HTDNS_serverClass(dns);
-	int version = HTDNS_serverVersion(dns);
-	/* We are not using the version info for the moment */
-	if (s_class && !strcasecomp(s_class, "http")) {
-	    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPResponse Direct output\n");
-	    return output_stream;
-	}
-    }
-    if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
-	outofmem(__FILE__, "HTTPResponse_new");
+    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
+    if (!me) outofmem(__FILE__, "HTTPResponse_new");
     me->isa = &HTTPResponseClass;
-    me->target = output_stream;    
+    me->target = target;
     me->request = request;
-
-    TTYPrint(TDEST, "TESTTESTTEST CREATING RESPONSE STREAM\n");
-
-    /* Here we should also check whether we have content length etc. */
-
-    return me;
+    me->transparent = NO;
+    return HTTPGen_new(request, me, endHeader);
 }

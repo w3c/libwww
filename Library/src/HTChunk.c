@@ -29,22 +29,15 @@ PUBLIC HTChunk * HTChunk_new (int grow)
 
 /*	Clear a chunk of all data
 **	--------------------------
+**	Zero the space but do NOT free it. We zero because we promise to have
+**	a NUL terminated string at all times.
 */
 PUBLIC void HTChunk_clear (HTChunk * ch)
 {
     if (ch) {
 	ch->size = 0;
-	/* We zero the space we some apps expect chunks to be NUL terminated */
 	memset((void *) ch->data, '\0', ch->allocated);
     }
-#if 0
-    /* We don't want to free the data as we often must reallocated it */
-    if (ch) {
-	FREE(ch->data);
-	ch->size = 0;
-	ch->allocated = 0;
-    }
-#endif
 }
 
 
@@ -65,20 +58,20 @@ PUBLIC void HTChunk_delete (HTChunk * ch)
 */
 PUBLIC void HTChunk_putc (HTChunk * ch, char c)
 {
-    HTChunk_putb(ch, &c, 1);
-#if 0
-    if (ch->size >= ch->allocated-1) {
-	if (ch->data) {
-	    ch->data = (char *) realloc(ch->data, ch->allocated + ch->growby);
-	    memset((void *) (ch->data + ch->allocated), '\0', ch->growby);
-	} else {
-	    ch->data = (char *) calloc(1, ch->allocated + ch->growby);
+    if (ch) {
+	if (ch->size >= ch->allocated-1) {
+	    if (ch->data) {
+		ch->data = (char *) realloc(ch->data,ch->allocated+ch->growby);
+	        if (!ch->data) outofmem(__FILE__, "HTChunk_putc");
+		memset((void *) (ch->data + ch->allocated), '\0', ch->growby);
+	    } else {
+		ch->data = (char *) calloc(1, ch->allocated+ch->growby);
+	        if (!ch->data) outofmem(__FILE__, "HTChunk_putc");
+	    }
+	    ch->allocated += ch->growby;
 	}
-	ch->allocated = ch->allocated + ch->growby;
-	if (!ch->data) outofmem(__FILE__, "HTChunk_putc");
+	*(ch->data+ch->size++) = c;
     }
-    ch->data[ch->size++] = c;
-#endif
 }
 
 /*	Append a string
@@ -142,14 +135,3 @@ PUBLIC void HTChunk_ensure (HTChunk * ch, int len)
     if (ch->data == NULL) outofmem(__FILE__, "HTChunk_ensure");
 #endif
 }
-
-
-/*	Terminate a chunk
-**	-----------------
-*/
-PUBLIC void HTChunk_terminate (HTChunk * ch)
-{
-    char zero = '\0';
-    HTChunk_putb(ch, &zero, 1);
-}
-

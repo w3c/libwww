@@ -198,6 +198,12 @@ PUBLIC BOOL HTAlert_setReplyMessage (HTAlertPar * me, CONST char * message)
     return NO;
 }
 
+PUBLIC BOOL HTAlert_assignReplyMessage (HTAlertPar * me, char * message)
+{
+    if (me) me->message = message;
+    return YES;
+}
+
 PUBLIC char * HTAlert_replySecret (HTAlertPar * me)
 {
     return me ? me->secret : NULL;

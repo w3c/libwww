@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -67,6 +67,7 @@ struct _HTNet {
     long		bytes_read;		  /* Bytes read from network */
     long		bytes_written;		 /* Bytes written to network */
     BOOL		preemptive;  /* Eff result from Request and Protocol */
+    BOOL		persistent;	  /* YES if persistent, otherwise NO */
     HTPriority		priority;	 /* Priority of this request (event) */
     HTEventCallback *	cbf;			     /* Library load routine */
     HTRequest *		request;	   /* Link back to request structure */
