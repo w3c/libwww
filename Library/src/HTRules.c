@@ -59,17 +59,13 @@ PRIVATE rule * rule_tail = 0;	/* Pointer to last on list */
 **  On exit,
 **	returns		0 if success, -1 if error.
 */
-
-PUBLIC int HTAddRule ARGS3(HTRuleOp,		op,
-			   CONST char *,	pattern,
-			   CONST char *,	equiv)
-{ /* BYTE_ADDRESSING removed and memory check - AS - 1 Sep 93 */
+PUBLIC int HTAddRule (HTRuleOp op, CONST char * pattern, CONST char * equiv)
+{
     rule *      temp;
     char *      pPattern;
 
     temp = (rule *)malloc(sizeof(*temp));
-    if (temp==NULL) 
-	outofmem(__FILE__, "HTAddRule"); 
+    if (!temp)  outofmem(__FILE__, "HTAddRule"); 
     pPattern = (char *)malloc(strlen(pattern)+1);
     if (pPattern==NULL) 
 	outofmem(__FILE__, "HTAddRule"); 
@@ -118,7 +114,7 @@ PUBLIC int HTAddRule ARGS3(HTRuleOp,		op,
 ** See also
 **	HTAddRule()
 */
-PUBLIC int HTClearRules NOARGS
+PUBLIC int HTClearRules (void)
 {
     while (rules) {
     	rule * temp = rules;
@@ -148,7 +144,7 @@ PUBLIC int HTClearRules NOARGS
 **			the heap which the CALLER MUST FREE. If no translation
 **			occured, then it is a copy of te original.
 */
-PUBLIC char * HTTranslate ARGS1(CONST char *, required)
+PUBLIC char * HTTranslate (CONST char * required)
 {
     rule * r;
     char *current = NULL;
@@ -242,7 +238,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 **
 ** returns	0 OK, < 0 syntax error.
 */
-PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
+PUBLIC int HTSetConfiguration (CONST char * config)
 {
     HTRuleOp op;
     char * line = NULL;
@@ -343,7 +339,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 ** Bugs:
 **	The strings may not contain spaces.
 */
-int HTLoadRules ARGS1(CONST char *, filename)
+PUBLIC int HTLoadRules (CONST char * filename)
 {
     if (filename) {
 	char line[LINE_LENGTH+1];

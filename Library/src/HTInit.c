@@ -55,6 +55,11 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"text/x-nntp-over",	"www/present",	HTNewsGroup,	1.0, 0.0, 0.0);
 
     /*
+    ** We also register a special content type guess stream that can figure out
+    ** the content type by reading the first bytes of the stream
+    */
+    HTConversion_add(c,"www/unknown",		"*/*",		HTGuess_new,	1.0, 0.0, 0.0);
+    /*
     ** This dumps all other formats to local disk without any further
     ** action taken
     */

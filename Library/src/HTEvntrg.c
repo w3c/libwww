@@ -38,8 +38,8 @@
 
 #ifdef WWW_WIN_ASYNC
 #define TIMEOUT	1 /* WM_TIMER id */
-extern PUBLIC HWND HTsocketWin;
-extern PUBLIC unsigned long HTwinMsg;
+PRIVATE HWND HTsocketWin;
+PRIVATE unsigned long HTwinMsg;
 #endif
 
 /* Type definitions and global variables etc. local to this module */
@@ -140,6 +140,29 @@ PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallbac
 PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 
 /* ------------------------------------------------------------------------- */
+
+#ifdef WWW_WIN_ASYNC
+/*	HTEvent_winHandle
+**	-----------------
+**	Managing the windows handle on Windows
+*/
+PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
+{
+    if (request) {
+	request->hwnd = HTsocketWin;
+	request->winMsg = HTwinMsg;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTEvent_setWinHandle (HWND window, unsigned long message)
+{
+    HTsocketWin = window;
+    HTwinMsg = message;
+    return YES;
+}
+#endif /* WWW_WIN_ASYNC */
 
 /*	HTEvent_registerTimeout 
 **	-----------------------

@@ -35,6 +35,8 @@
 #include "HTWriter.h"
 #include "HTFWrite.h"
 #include "HTFormat.h"
+#include "HTWWWStr.h"
+#include "HTAccess.h"
 #include "HTMulti.h"
 #include "HTIcons.h"
 #include "HTDir.h"
@@ -416,7 +418,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
     while (1) {
 	switch (file->state) {
 	  case FS_BEGIN:
-	    if (HTSecure) {
+	    if (HTLib_secure()) {
 		if (PROT_TRACE)
 		    TTYPrint(TDEST, "LoadFile.... No access to local file system\n");
 		file->state = FS_TRY_FTP;

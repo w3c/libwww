@@ -41,32 +41,14 @@
 #include "HTBind.h"
 #include "HTProt.h"
 #include "HTProxy.h"
-
-#ifndef NO_RULES
-#include "HTRules.h"
-#endif
-
 #include "HTReqMan.h"					 /* Implemented here */
 
-/* These flags may be set to modify the operation of this module */
-PUBLIC char * HTClientHost = NULL;	 /* Name of remote login host if any */
-PUBLIC BOOL HTSecure = NO;		 /* Disable access for telnet users? */
-
-PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
-PUBLIC BOOL HTImProxy = NO;			   /* cern_httpd as a proxy? */
-
-/* Private flags */
 #ifndef HT_MAX_RELOADS
 #define HT_MAX_RELOADS	6
 #endif
+
 PRIVATE int HTMaxRetry = HT_MAX_RELOADS;
 
-#ifdef _WINDOWS 
-PUBLIC HWND HTsocketWin = 0;
-PUBLIC unsigned long HTwinMsg = 0;
-#endif 
-
-/* Variables and typedefs local to this module */
 struct _HTStream {
 	HTStreamClass * isa;
 	/* ... */
@@ -102,11 +84,9 @@ PUBLIC HTRequest * HTRequest_new (void)
     /* Content negotiation */
     me->ContentNegotiation = NO;		       /* Do this by default */
 
-#ifdef _WINDOWS
-    me->hwnd = HTsocketWin;
-    me->winMsg = HTwinMsg;
+#ifdef WWW_WIN_ASYNC
+    HTEvent_winHandle(me);
 #endif
-
     return me;
 }
 
@@ -121,7 +101,10 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	FREE(request->boundary);
 	FREE(request->authenticate);
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
-	HTAACleanup(request);
+
+	FREE(request->authorization);
+	FREE(request->prot_template);
+	FREE(request->dialog_msg);
 
 	if (request->net)			/* Break connection to HTNet */
 	    request->net->request = NULL;
@@ -798,7 +781,7 @@ PRIVATE int get_physical (HTRequest *req)
 {    
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
 
-#ifndef HT_NO_RULES
+#if 0
     if (HTImServer) {	/* cern_httpd has already done its own translations */
 	HTAnchor_setPhysical(req->anchor, HTImServer);
 	StrAllocCopy(addr, HTImServer);	/* Oops, queries thru many proxies */
@@ -815,7 +798,7 @@ PRIVATE int get_physical (HTRequest *req)
     }
 #else
     HTAnchor_setPhysical(req->anchor, addr);
-#endif /* HT_NO_RULES */
+#endif
 
     /*
     ** Check local Disk Cache (if we are not forced to reload), then
@@ -926,18 +909,10 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
 PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 {
     char * uri = HTAnchor_address((HTAnchor*)request->anchor);
-
-    /*
-    ** The error stack might contain general information to the client
-    ** about what has been going on in the library (not only errors)
-    */
-    if (!HTImProxy && request->error_stack)
-	HTError_print(request, request->error_stack);
-
     switch (status) {
       case HT_LOADED:
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... OK: `%s\' has been accessed.\n", uri);
+	    TTYPrint(TDEST, "Load End.... OK: `%s\' has been accessed\n", uri);
 	break;
 
       case HT_NO_DATA:
@@ -957,8 +932,7 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 	break;
 
       case HT_ERROR:
-	if (HTImProxy)
-	    HTError_print(request, request->error_stack);
+	HTError_print(request, request->error_stack);
 	if (PROT_TRACE)
 	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
 	break;

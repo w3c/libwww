@@ -18,6 +18,7 @@
 #include "HTDNS.h"
 #include "HTTCP.h"
 #include "HTAccess.h"
+#include "HTWWWStr.h"
 #include "HTWriter.h"
 #include "HTReqMan.h"
 #include "HTChunk.h"
@@ -227,12 +228,9 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    free(relative);
     }
     if (request->RequestMask & HT_USER_AGENT) {
-	CONST char *appname = HTLib_appName();
-	CONST char *appversion = HTLib_appVersion();
-	sprintf(linebuf, "User-Agent: %s/%s libwww/%s%c%c",
-		appname ? appname : "unknown",
-		appversion ? appversion : "0.0",
-		HTLibraryVersion, CR, LF);
+	sprintf(linebuf, "User-Agent: %s/%s %s/%s%c%c",
+		HTLib_appName(), HTLib_appVersion(),
+		HTLib_name(), HTLib_version(), CR, LF);
 	HTChunkPuts(header, linebuf);
     }
     if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", header->data);

@@ -146,8 +146,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 	char *newaddr = NULL;
 	StrAllocCopy(newaddr, address);		         /* Get our own copy */
 	free(tag);
-	if (!HTImProxy)
-	    newaddr = HTSimplify(&newaddr);  /* Proxy has already simplified */
+	newaddr = HTSimplify(&newaddr);
 
 	/* Select list from hash table */
 	for(p=newaddr, hash=0; *p; p++)

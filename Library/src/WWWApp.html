@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>Application Specific Include File for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
+<TITLE>Non-Mandatory Application Include File</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<H1>Application Specific Include File for W3C Reference Library</H1>
+<H1>Non-Mandatory Application Include File</H1>
 
 <PRE>
 /*
@@ -51,7 +51,18 @@ using the files in the <A HREF="HTInit.html">HTInit</A> module. You
 can modify this module as you like to fit your particular needs.
 
 <PRE>
-#include "HTInit.h"			/* Initialization functions */
+#include "<A HREF="HTInit.html">HTInit.h</A>"
+</PRE>
+
+<H2>Generating the First Anchor</H2>
+
+This module provides some "make life easier" functions in order to get
+the application going. They help you generate the first anchor, also
+called the <EM>home anchor</EM>. It also contains a nice set of
+default WWW addresses.
+
+<PRE>
+#include "<A HREF="HTHome.html">HTHome.h</A>"
 </PRE>
 
 <H2>Logging</H2>
@@ -62,7 +73,7 @@ be useful in a client application. This module provides a simple
 logging mechanism which can be enabled if needed.
 
 <PRE>
-#include "HTLog.h"
+#include "<A HREF="HTLog.html">HTLog.h</A>"
 </PRE>
 
 <H2>History Management</H2>
@@ -73,8 +84,21 @@ provides a basic set of functionality to keep track of a linear
 history list.
 
 <PRE>
-#include "HTHist.h"			/* Navigational aids */
+#include "<A HREF="HTHist.html">HTHist.h</A>"
 </PRE>
+
+<H2>Rule File Management</H2>
+
+Another way to initialize applications is to use a rule file, also
+known as a configuration file. This is for example the case with the
+W3C httpd and the W3C Line Mode Browser. This module provides basic
+support for configuration file management and the application can use
+this is desired. The module is not referred to by the Library.
+
+<PRE>
+#include "<A HREF="HTRules.html">HTRules.h</A>"
+</PRE>
+
 
 End of application specific modules
 

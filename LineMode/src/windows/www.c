@@ -35,7 +35,11 @@ FontInfo_t FontInfo = {
 	0 //DWORD   rgbFGColor ;
 	};
 
+#ifdef WWW_WIN_DLL
+int AppTTYPrint(unsigned int target, const char* fmt, ...)
+#else
 int TTYPrint(unsigned int target, const char* fmt, ...)
+#endif
 	{
 	int len;
 	char space[513];
@@ -49,6 +53,12 @@ int TTYPrint(unsigned int target, const char* fmt, ...)
 
 #ifndef _WIN32
 	typedef MINMAXINFO FAR* LPMINMAXINFO;
+#endif
+
+#ifdef _WIN32
+#define WINCALLBACK CALLBACK
+#else
+#define WINCALLBACK CALLBACK _export
 #endif
 
 LRESULT WINCALLBACK monitorWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -187,6 +197,7 @@ static int recursing = 0;
 	} // end of monitorWndProc()
 
 extern int main(int, char**);
+extern int RegisterTTYPrint(int (*pTTYPrint)(unsigned int target, const char* fmt, ...));
 int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
 	{
 	WNDCLASS wc = {
@@ -208,6 +219,10 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, HInstance, 0);
 	if (!MonitorWindow)
 		return (0);
+#ifdef WWW_WIN_DLL
+	RegisterTTYPrint(&AppTTYPrint);
+//	*PTTYPrint = &AppTTYPrint;
+#endif
 	main(0, 0);
 	if (MonitorWindow)	//if we don't kill monitor window, Windows will cause app ended
 		if (DestroyWindow(MonitorWindow))

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -312,8 +312,8 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 #include &lt;stdlib.h&gt;
 #include &lt;winsock.h&gt;
 
-#ifdef _WINDLL
-#define NO_STDIO				/* If we are making a DLL */
+#ifndef _CONSOLE
+#define NO_STDIO
 #endif
 
 #define NO_PASSWD

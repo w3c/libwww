@@ -24,6 +24,7 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
+#include "HTAccess.h"
 #include "HTBind.h"
 #include "HTList.h"
 #include "HTParse.h"
@@ -334,7 +335,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     char *fnam;
     HTStream* me;
     
-    if (HTSecure) {
+    if (HTLib_secure()) {
         HTAlert(request, "Can't save data to file -- please run WWW locally");
 	return HTBlackHole();
     }
@@ -399,7 +400,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
     char *answer = NULL;
     HTStream* me;
     
-    if (HTSecure) {
+    if (HTLib_secure()) {
         HTAlert(request, "Can't save data to file -- please run WWW locally");
 	return HTBlackHole();
     }

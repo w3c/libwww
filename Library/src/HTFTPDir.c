@@ -19,6 +19,7 @@
 #include "HTParse.h"
 #include "HTSocket.h"
 #include "HTStream.h"
+#include "HTWWWStr.h"
 #include "HTDir.h"
 #include "HTIcons.h"
 #include "HTFTPDir.h"					 /* Implemented here */

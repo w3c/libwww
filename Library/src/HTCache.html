@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Disk Cache Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 <NEXTID N="z4">
 </HEAD>
 <BODY>
@@ -21,9 +21,8 @@ HREF="HTAnchor.html#z1">list of cache items for each URL</A> in its
 anchor object. <P>
 
 This module is implemented by <A HREF="HTCache.c">HTCache.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
-Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTCACHE_H
@@ -96,7 +95,7 @@ for the cached object. It does not verify whether the object is valid
 or not, for example it might have been expired.
 
 <PRE>
-extern char * HTCache_getReference	PARAMS((char * url));
+extern char * HTCache_getReference	(char * url);
 </PRE>
 
 <H2>Verify if an Object is Valid</H2>
@@ -106,7 +105,7 @@ is based on the metainformation passed in the anchor object The
 function returns YES or NO.
 
 <PRE>
-extern BOOL HTCache_isValid		PARAMS((HTParentAnchor * anchor));
+extern BOOL HTCache_isValid		(HTParentAnchor * anchor);
 </PRE>
 
 <H2>Enable Cache</H2>
@@ -116,7 +115,7 @@ If <EM>cache_root</EM> is NULL then reuse old value or use
 root.
 
 <PRE>
-extern BOOL HTCache_enable		PARAMS((CONST char * cache_root));
+extern BOOL HTCache_enable		(CONST char * cache_root);
 </PRE>
 
 <H2>Disable Cache</H2>
@@ -126,7 +125,7 @@ at any time. The cache root is kept and can be reused during the
 execution.
 
 <PRE>
-extern BOOL HTCache_disable		NOPARAMS;
+extern BOOL HTCache_disable		(void);
 </PRE>
 
 <H2>Is Cache Enabled</H2>
@@ -135,7 +134,7 @@ Returns YES or NO. Also makes sure that we have a root value (even
 though it might be invalid)
 
 <PRE>
-extern BOOL HTCache_isEnabled		NOPARAMS;
+extern BOOL HTCache_isEnabled		(void);
 </PRE>
 
 <H2>Set Cache Root</H2>
@@ -144,13 +143,13 @@ If <EM>cache_root</EM> is NULL then the current value (might be a define)
 Should we check if the cache_root is actually OK? I think not!
 
 <PRE>
-extern BOOL HTCache_setRoot		PARAMS((CONST char * cache_root));
+extern BOOL HTCache_setRoot		(CONST char * cache_root);
 </PRE>
 
 <H2>Get Cache Root</H2>
 
 <PRE>
-extern CONST char *HTCache_getRoot	NOPARAMS;
+extern CONST char *HTCache_getRoot	(void);
 </PRE>
 
 <H2>Clean up memory</H2>
@@ -160,8 +159,8 @@ HREF="HTReq.html#Library">HTLibTerminate()</A>. None of these
 functions tourches the disk cache itself - they only manages memory.
 
 <PRE>
-extern void HTCache_freeRoot		NOPARAMS;
-extern void HTCache_clearMem		NOPARAMS;
+extern void HTCache_freeRoot		(void);
+extern void HTCache_clearMem		(void);
 </PRE>
 
 <H2>To remove All cache files known to this session</H2>
@@ -169,7 +168,7 @@ extern void HTCache_clearMem		NOPARAMS;
 This function also cleans the entries on disk
 
 <PRE>
-extern void HTCache_deleteAll		NOPARAMS;
+extern void HTCache_deleteAll		(void);
 
 #endif
 </PRE>

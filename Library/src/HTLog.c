@@ -89,8 +89,7 @@ PUBLIC BOOL HTLog_request (HTRequest * request, int status)
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * uri = HTAnchor_address((HTAnchor *) anchor);
 	if (WWWTRACE) TTYPrint(TDEST, "Log......... Writing log\n");
-	fprintf(HTlogfile, "%s - - [%s] %s %s %d %ld\n",
-		HTClientHost ? HTClientHost : "localhost",
+	fprintf(HTlogfile, "localhost - - [%s] %s %s %d %ld\n",
 		HTDateTimeStr(&now, HTloglocal),
 		HTMethod_name(HTRequest_method(request)),
 		uri,

@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>Global Include File for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+<TITLE>Include file for W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<H1>Global Include File for W3C Reference Library</H1>
+<H1>Include file for W3C Reference Library</H1>
 
 <PRE>
 /*
@@ -19,7 +19,7 @@ This is the basic include files and the core include files necessary
 in order to use the W3C Reference Library. It contains all core
 specific modules which are required to compile and build the
 Library. No converter streams or protocol modules are included in this
-file as they are for teh application to set up. The Library has a
+file as they are for the application to set up. The Library has a
 special include file called <A HREF="WWWApp.html">WWWApp.h</A> which
 contains all converters and protocol modules known to the Library. You
 can include this one if the application is to use all the
@@ -30,14 +30,6 @@ functionality of the Library.
 #define WWWLIB_H
 </PRE>
 
-<H2>System dependencies</H2>
-
-<PRE>
-#include "tcp.h"
-</PRE>
-
-<H2>Library Includes</H2>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
@@ -46,72 +38,15 @@ extern "C" {
 
 <H2>General Utilities</H2>
 
-This is the basic layer of functionality
-
 <PRE>
-#include "HTUtils.h"			/* Macros and other stuff */
-#include "HTString.h"			/* Generic string utilities */
-#include "HTList.h"			/* Linked lists */
-#include "HTChunk.h"			/* Dynamic strings */
-#include "HTArray.h"			/* Dynamic arrays */
-#include "HTAtom.h"			/* Pointer referenced strings */
-#include "HTParse.h"			/* Parse URLs */
+#include "WWWUtil.h"			/* Basic utility modules */
 </PRE>
 
 <H2>Core Modules</H2>
 
-These are always required to be included
-
 <PRE>
-#include "HTMethod.h"			/* Request methods like PUT, GET */
-#include "HTFormat.h"			/* Stream Stack and content neg. */
-#include "HTReq.h"			/* public part of Request Manager */
-#include "HTAccess.h"			/* Document access network code */
-#include "HTNet.h"			/* public part of Net Manager */
-#include "HTSocket.h"			/* public part of Net Manager */
-#include "HTAnchor.h"			/* Anchor class Definition */
-#include "HTEvntrg.h"			/* Event manager */
-#include "HTError.h"			/* Error manager */
-#include "HTProt.h"			/* Protocol Manager */
-#include "HTAAUtil.h"			/* Access Authentication */
-#include "HTUU.h"			/* uuencode/uudecode */
-#include "HTCache.h"			/* Cache Manager */
-#include "HTDNS.h"			/* Host name cache */
-#include "HTTCP.h"			/* GetXbyY functions */
-#include "HTRules.h"			/* Configuration file manager */
-#include "HTProxy.h"			/* Proxies and gateways registration */
-#include "HTBind.h"			/* Binding to file suffixes */
+#include "WWWCore.h"			/* Core modules */
 </PRE>
-
-<H3>Generic Streams</H3>
-
-<PRE>
-#include "HTWriter.h"			/* Write to a unix file descriptor */
-#include "HTFWrite.h"			/* Write to an ANSI file descriptor */
-#include "HTNetTxt.h"			/* Convert from CRLF to \n */
-#include "HTConLen.h"			/* Content Length Counter */
-</PRE>
-
-<H3>Directory Listings</H3>
-
-<PRE>
-#include "HTIcons.h"
-#include "HTDir.h"
-#include "HTDescpt.h"
-</PRE>
-
-<H3>Application Specific</H3>
-
-There are a few modules that are required by the Library but contains
-application specific code. Depending on the application it may want to
-override these modules with its own versions providing the same
-interface to the Library.
-
-<PRE>
-#include "HTAlert.h"			/* Messages and User prompts */
-</PRE>
-
-End of Core modules
 
 <PRE>
 #ifdef __cplusplus

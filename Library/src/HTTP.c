@@ -33,7 +33,7 @@
 #include "HTError.h"
 #include "HTAccess.h"
 #include "HTChunk.h"
-#include "HTGuess.h"
+#include "HTWWWStr.h"
 #include "HTNetMan.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
@@ -327,8 +327,8 @@ PRIVATE int stream_pipe (HTStream * me)
 	int status;
 	HTRequest_addError(req, ERR_INFO, NO, HTERR_HTTP09,
 		   (void *) me->buffer, me->buflen, "HTTPStatusStream");
-	me->target = HTGuess_new(req, NULL, WWW_UNKNOWN,
-				 req->output_format, req->output_stream);
+	me->target = HTStreamStack(WWW_UNKNOWN, req->output_format,
+				   req->output_stream, req, NO);
 	me->http->next = HTTP_GOT_DATA;
 	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
 	    me->transparent = YES;
@@ -368,8 +368,8 @@ PRIVATE int stream_pipe (HTStream * me)
 	    me->target = HTStreamStack(WWW_MIME, WWW_PRESENT,
 				       HTBlackHole(), req, NO);
 	}
-	if (!me->target) me->target = HTBlackHole();
     }
+    if (!me->target) me->target = HTBlackHole();
     HTTPNextState(me);					   /* Get next state */
     me->transparent = YES;
     return HT_OK;
@@ -577,9 +577,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* Set up stream FROM network and corresponding read buffer */
 		net->isoc = HTInputSocket_new(net->sockfd);
-		net->target = HTImProxy ?
-		    request->output_stream : HTTPStatus_new(request, http);
 
+		/* @@@ USE STREAM STACK @@@ */
+		net->target = HTTPStatus_new(request, http);
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;

@@ -24,6 +24,7 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
+#include "HTAccess.h"
 #include "HTAnchor.h"
 #include "HTChunk.h"
 #include "HTReqMan.h"
@@ -107,7 +108,7 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 	*port++ = '\0';
 
     /* If the person is already telnetting etc, forbid hopping */
-    if (HTClientHost) {
+    if (HTLib_secure()) {
 	HTChunk *msg = HTChunkCreate(256);
 	HTChunkPuts(msg, "Sorry, but the service you have selected is one ");
 	HTChunkPuts(msg, "to which you have to log in. If you were running ");

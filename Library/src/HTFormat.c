@@ -20,7 +20,6 @@
 #include "HTString.h"
 #include "HTTCP.h"
 #include "HTFWrite.h"
-#include "HTGuess.h"
 #include "HTNetMan.h"
 #include "HTError.h"
 #include "HTReqMan.h"
@@ -543,10 +542,14 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
     double best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *best_match=NULL;
     
+#if 0
+    /* The Guess stream is now registered as any other converter */
     if (guess && rep_in == WWW_UNKNOWN) {
 	if (STREAM_TRACE) TTYPrint(TDEST, "StreamStack. Guessing stream\n");
 	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
     }
+#endif
+
     if (rep_out == WWW_SOURCE || rep_out == rep_in) {
 	if (STREAM_TRACE)
 	    TTYPrint(TDEST, "StreamStack. Source requested or identical in/out format: %s\n",
@@ -593,7 +596,7 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 	return (*best_match->converter)(request, best_match->command,
 					rep_in, rep_out, output_stream);
     if (STREAM_TRACE)
-	TTYPrint(TDEST, "StreamStack. No match found, dumping to local file\n");
+	TTYPrint(TDEST,"StreamStack. No match found, dumping to local file\n");
     return HTSaveLocally(request, NULL, rep_in, rep_out, output_stream);
 }
 	

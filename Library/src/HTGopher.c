@@ -27,7 +27,6 @@
 #include "HTReqMan.h"
 #include "HTSocket.h"
 #include "HTFormat.h"
-#include "HTGuess.h"
 #include "HTError.h"
 #include "HTWriter.h"
 #include "HTNetMan.h"
@@ -735,22 +734,15 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* Set up stream FROM network and corresponding read buffer */
 		net->isoc = HTInputSocket_new(net->sockfd);
-		if (gopher->type == GT_MENU) {
-		    if (!HTImProxy && request->output_format == WWW_SOURCE)
-			net->target = request->output_stream;
-		    else
-			net->target = GopherMenu_new(request, url, NO);
-		} else if (gopher->type == GT_CSO) {
-		    if (!HTImProxy && request->output_format == WWW_SOURCE)
-			net->target = request->output_stream;
-		    else
-			net->target = GopherMenu_new(request, url, YES);
-		} else {
-		    /* This is probably better than the gopher types */
-		    net->target = HTGuess_new(request, NULL,WWW_UNKNOWN,
-					      request->output_format,
-					      request->output_stream);
-		}
+		if (gopher->type == GT_MENU)
+		    net->target = GopherMenu_new(request, url, NO);
+		else if (gopher->type == GT_CSO)
+		    net->target = GopherMenu_new(request, url, YES);
+		else
+		    net->target = HTStreamStack(WWW_UNKNOWN,
+						request->output_format,
+						request->output_stream,
+						request, NO);
 		gopher->state = GOPHER_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK)
 		return HT_OK;

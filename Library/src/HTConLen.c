@@ -100,7 +100,7 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
 {
     if (me->conlen >= me->max_size) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"StreamBuffer limit %d reached, going transparent\n",
+	    TTYPrint(TDEST,"StreamBuffer size %d reached, going transparent\n",
 		    me->max_size);
 	return NO;
     } else if (size) {
@@ -120,8 +120,8 @@ PRIVATE int buf_flush (HTStream * me)
     HTBufItem * cur;
     if (me->tmp_buf) append_buf(me);
     while ((cur = me->head)) {
-	int status = PUTBLOCK(cur->buf, cur->len);
-	if (status != HT_OK) return status;
+	int status;
+	if ((status = PUTBLOCK(cur->buf, cur->len)) != HT_OK) return status;
 	me->head = cur->next;
 	free_buf(cur);
     }

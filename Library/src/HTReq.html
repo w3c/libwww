@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -38,41 +38,6 @@ typedef struct _HTRequest HTRequest;
 #include "HTEvntrg.h"
 #include "HTError.h"
 #include "HTNet.h"
-</PRE>
-
-<A NAME="flags"><H2>Global Flags</H2></A>
-
-Flags and variables which may be set to control the Library
-
-<H3>Allow Accss to Local File System</H3>
-
-This flag can be used to deny an application to get access to the
-local file system (through cache, file URLs etc.) It is a good way to
-avoid accitendal access if an application provides telnet service etc.
-
-<PRE>
-extern BOOL HTSecure;			/* Disable security holes? */
-</PRE>
-
-<H3>Name of Remote login Host</H3>
-
-If an application is used for remote access (allowing telnet access,
-like for example the Line Mode Browser), then set this variable to the
-name of the remote host.
-
-<PRE>
-extern char * HTClientHost;		/* Name or number of telnetting host */
-</PRE>
-
-<H3>Server Specific Flags</H3>
-
-These two flags are set by a proxy and a server application
-respectfully. They tell the Library to skip some of the client
-application specific things.
-
-<PRE>
-extern char * HTImServer;		/* If I'm cern_httpd */
-extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
 </PRE>
 
 <H2>Request a resource</H2>

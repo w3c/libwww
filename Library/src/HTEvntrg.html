@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Event Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -28,6 +28,15 @@ Reference Library</A>. <P>
 #define HTEVNTRG_H
 #include "HTReq.h"
 #include "tcp.h"
+</PRE>
+
+<H2>Windows Specific Handles</H2>
+
+<PRE>
+#ifdef WWW_WIN_ASYNC
+extern BOOL HTEvent_winHandle (HTRequest * request);
+extern BOOL HTEvent_setWinHandle (HWND window, unsigned long message);
+#endif
 </PRE>
 
 <H2>Event Handlers</H2>

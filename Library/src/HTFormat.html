@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -112,11 +112,11 @@ the Library but they can't be exported to other apps!
 </PRE>
 
 <CODE>WWW_SOURCE</CODE> is an output format which leaves the input
-untouched. In case we are receiving a MIME like message (like for
-example in HTTP/1.x) the source is only considered to be the raw body
-data. The HTTP status line and all headers are stripped out. It is
-useful for diagnostics, and for users who want to see the original,
-whatever it is.
+untouched <EM>exactly</EM> as it is received by the protocol
+module. For example, in the case of FTP, this format returns raw ASCII
+objects for directory listings; for HTTP, everything including the
+header is returned, for Gopher, a raw ASCII object is returned for a
+menu etc.
 
 <PRE>
 #define WWW_PRESENT	HTAtom_for("www/present")   /* The user's perception */

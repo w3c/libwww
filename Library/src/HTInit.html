@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Initialization Routines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -53,6 +53,7 @@ are initialized separately.
 #include "HTMLGen.h"
 #include "HTMIME.h"
 #include "HTBound.h"
+#include "HTGuess.h"
 #include "HTWSRC.h"
 #include "HTFWrite.h"
 #include "HTNewsLs.h"
@@ -86,6 +87,7 @@ Set up default bindings between access schemes and the set of protocol
 modules in the Library.
 
 <PRE>
+#include "HTIcons.h"
 #include "HTTP.h"
 #include "HTFile.h"
 #include "HTFTP.h"

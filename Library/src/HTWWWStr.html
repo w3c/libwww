@@ -1,0 +1,129 @@
+<HTML>
+<HEAD>
+<TITLE>String Handling</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+</HEAD>
+<BODY>
+
+<H1>WWW Related String Management</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module is like the <A HREF="HTString.html">generic string utility
+module</A> but it contains more Web related string utility functions.
+
+This module is implemented by <A HREF="HTWWWStr.c">HTWWWStr.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
+
+<PRE>
+#ifndef HTWWWSTR_H
+#define HTWWWSTR_H
+</PRE>
+
+<H2>Next word or quoted string</H2>
+
+This function returns a RFC822 word separated by space, comma, or
+semi-colons. <CODE>pstr</CODE> points to a string containing a word
+separated by white white space "," ";" or "=". The word can optionally
+be quoted using <"> or "<" ">" Comments surrrounded by '(' ')' are
+filtered out. On exit, <CODE>pstr</CODE> has been moved to the first
+delimiter past the field THE STRING HAS BEEN MUTILATED by a 0
+terminator.  The function returns a pointer to the first word or NULL
+on error
+
+<PRE>
+extern char * HTNextField (char** pstr);
+</PRE>
+
+<H2>RFC1123 Date/Time Stamp String</H2>
+
+Returns a pointer to a static area!
+
+<PRE>
+extern CONST char *HTDateTimeStr (time_t *calendar, BOOL local);
+</PRE>
+
+<H2>Date used for directory listings</H2>
+
+<PRE>
+extern BOOL HTDateDirStr (time_t * time, char * str, int len);
+</PRE>
+
+<H2>Timezone Offset</H2>
+
+Calculates the offset from GMT in seconds. This is called from <A
+HREF="HTReq.html#Library">HTLibInit()</A>.
+
+<PRE>
+extern long HTGetTimeZoneOffset (void);
+</PRE>
+
+<H2>Parse a Date/Time String</H2>
+
+Converts a string representation in GMT to a local representation of
+localtime <CODE>time_t</CODE>.
+
+<PRE>
+extern time_t HTParseTime (CONST char * str);
+</PRE>
+
+
+<H2>Unique Message-ID String</H2>
+
+<PRE>
+extern CONST char *HTMessageIdStr (void);
+</PRE>
+
+<H2>Converts an Integer to a String using Prefix</H2>
+
+In computer-world 1K is 1024 bytes and 1M is 1024K -- however,
+sprintf() still formats in base-10.  Therefore I output only until
+999, and then start using the next unit.  This doesn't work wrong,
+it's just a feature.  The conversion is done in "str" which must be
+large enough to contain the result.
+
+<PRE>
+extern void HTNumToStr (unsigned long n, char *str, int len);
+</PRE>
+
+<H2>Conversion between URLs and Local File Names</H2>
+
+These are two functions that separate the URL naming syntax from
+platform dependent file naming schemes. If you are porting the code to
+a new platform, you probably have to do some translation here.
+
+<H3>Convert file URLs into a local representation</H3>
+
+The URL has already been translated through the rules in get_physical
+in HTAccess.c and all we need to do now is to map the path to a local
+representation, for example if must translate '/' to the ones that
+turn the wrong way ;-) Returns local file (that must be freed by
+caller) if OK, else NULL.
+
+<PRE>
+extern char * HTWWWToLocal (CONST char * url, CONST char * base);
+</PRE>
+
+<H3>Convert a local file name into a URL</H3>
+
+Generates a WWW URL name from a local file name or NULL if error.
+Returns URL (that must be freed by caller) if OK, else NULL.
+
+<PRE>
+extern char * HTLocalToWWW (CONST char * local);
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+End of declaration module
+
+</BODY>
+</HTML>

@@ -54,7 +54,7 @@
 
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WWWApp.h"			      /* Global Library Include file */
-#include "HTFile.h"				/* Specific protocol modules */
+
 #include "HTBrowse.h"			     /* Things exported, short names */
 #include "GridText.h"				     /* Hypertext definition */
 
@@ -139,6 +139,7 @@ PRIVATE	HTList *	reqlist = NULL;		  /* List of active requests */
 PRIVATE HTParentAnchor*	home_anchor = NULL;	    /* First document anchor */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
 PRIVATE FILE *	        output = stdout;	   /* Destination for output */
+PRIVATE char *		HTClientHost = NULL;
 
 PRIVATE HTList *	converters = NULL;
 PRIVATE HTList *	presenters = NULL;
@@ -405,10 +406,10 @@ PRIVATE void MakeCommandLine (BOOL is_index)
 */
 PRIVATE void VersionInfo (void)
 {
-    TTYPrint(OUTPUT, "\n\nW3C Reference Software\n\n");
-    TTYPrint(OUTPUT, "\tW3C Line Mode Browser version %s.\n", VL);
-    TTYPrint(OUTPUT, "\tW3C Reference Library version %s.\n\n",HTLibraryVersion);
-    TTYPrint(OUTPUT, "Please send feedback to <www-bug@w3.org>\n");
+    TTYPrint(OUTPUT,"\n\nW3C Reference Software\n\n");
+    TTYPrint(OUTPUT,"\tW3C Line Mode Browser version %s.\n", LMB_VERSION);
+    TTYPrint(OUTPUT,"\tW3C Reference Library version %s.\n\n",HTLib_version());
+    TTYPrint(OUTPUT,"Please send feedback to <www-bug@w3.org>\n");
 }
 
 
@@ -486,9 +487,9 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
 	fname = *(This+1) ? (This+1) : Next;
 	if (fname) {				       /* See if file exists */
 	    if ((fp = fopen(fname, "r")) != NULL) {
-		TTYPrint(OUTPUT, "%s: File exists\n", fname);
 		fclose(fp);
-		return NO;
+		if (!HTConfirm(req, "File exists - overwrite?"))
+		    return NO;
 	    }
 	}
     }
@@ -499,10 +500,7 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
 	return NO;
     }
     HTRequest_setOutputStream(req, HTFWriter_new(fp, NO));
-
-    /* Now, file is open and OK: reload the text and put up a stream for it! */
-    if (SHOW_MSG)
-	TTYPrint(TDEST, "Saving to file %s\n", fname);
+    if (SHOW_MSG) TTYPrint(TDEST, "Saving to file `%s\'\n", fname);
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
@@ -1244,6 +1242,7 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-h")) {
 		if (arg+1 < argc && *argv[arg+1] != '-') {
 		    HTClientHost = argv[++arg]; 	    /* Use host name */
+		    HTLib_setSecure(YES);		   /* No easy access */
 		}
 
 	    /* Log file */
@@ -1397,9 +1396,14 @@ int main (int argc, char ** argv)
 		OldTraceFlag = WWW_TraceFlag;		 /* Remember setting */
 #endif
 	    
+	    /* Original output */
+	    } else if (!strcmp(argv[arg], "-raw")) {
+		HTRequest_setOutputFormat(request, WWW_SOURCE);
+		HTPrompt_setInteractive(NO);
+
 	    /* Source please */
 	    } else if (!strcmp(argv[arg], "-source")) {
-		HTRequest_setOutputFormat(request, WWW_SOURCE);
+		HTRequest_setOutputFormat(request, WWW_UNPARSED);
 		HTPrompt_setInteractive(NO);
 
 	    } else {
@@ -1435,7 +1439,6 @@ int main (int argc, char ** argv)
 #ifdef CATCH_SIG
     SetSignal();
 #endif
-    if (HTClientHost) HTSecure = YES;		   /* Access to local files? */
     if (HTScreenHeight == -1) {				/* Default page size */
 	if (HTPrompt_interactive()) {
 #ifdef GET_SCREEN_SIZE

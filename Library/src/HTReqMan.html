@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -177,10 +177,10 @@ This will go into its own structure
 <H3>Windows Specific Information</H3>
 
 <PRE>
-#ifdef _WINDOWS 
-	HWND		hwnd;		/* Windows handle for MSWindows   */
-	unsigned long   winMsg;         /* msg number of Windows eloop    */
-#endif /* _WINDOWS */
+#ifdef WWW_WIN_ASYNC
+    HWND		hwnd;		/* Windows handle for MSWindows   */
+    unsigned long	winMsg;	        /* msg number of Windows eloop    */
+#endif /* WWW_WIN_ASYNC */
 </PRE>
 
 <H3>Temporary until we get a better server</H3>

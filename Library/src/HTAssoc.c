@@ -22,17 +22,16 @@
 /* Library include files */
 #include "tcp.h"
 #include "HTUtils.h"
-#include "HTAAUtil.h"
-#include "HTAssoc.h"
 #include "HTString.h"
+#include "HTAssoc.h"					 /* Implemented here */
 
-PUBLIC HTAssocList *HTAssocList_new NOARGS
+PUBLIC HTAssocList *HTAssocList_new (void)
 {
     return HTList_new();
 }
 
 
-PUBLIC void HTAssocList_delete ARGS1(HTAssocList *, alist)
+PUBLIC BOOL HTAssocList_delete (HTAssocList * alist)
 {
     if (alist) {
 	HTAssocList *cur = alist;
@@ -42,38 +41,35 @@ PUBLIC void HTAssocList_delete ARGS1(HTAssocList *, alist)
 	    if (assoc->value) free(assoc->value);
 	    free(assoc);
 	}
-	HTList_delete(alist);
+	return HTList_delete(alist);
     }
+    return NO;
 }
 
 
-PUBLIC void HTAssocList_add ARGS3(HTAssocList *,	alist,
-				  CONST char *,		name,
-				  CONST char *,		value)
+PUBLIC BOOL HTAssocList_add (HTAssocList * alist,
+			     CONST char * name, CONST char * value)
 {
     HTAssoc *assoc;
-
     if (alist) {
-	if (!(assoc = (HTAssoc*)malloc(sizeof(HTAssoc))))
+	if ((assoc = (HTAssoc *) calloc(1, sizeof(HTAssoc))) == NULL)
 	    outofmem(__FILE__, "HTAssoc_add");
-	assoc->name = NULL;
-	assoc->value = NULL;
-
 	if (name) StrAllocCopy(assoc->name, name);
 	if (value) StrAllocCopy(assoc->value, value);
-	HTList_addObject(alist, (void*)assoc);
+	return HTList_addObject(alist, (void *) assoc);
+    } else {
+	if (WWWTRACE)
+	    TTYPrint(TDEST, "HTAssoc_add: ERROR: assoc list NULL!!\n");
     }
-    else if (WWWTRACE) TTYPrint(TDEST, "HTAssoc_add: ERROR: assoc list NULL!!\n");
+    return NO;
 }
 
 
-PUBLIC char *HTAssocList_lookup ARGS2(HTAssocList *,	alist,
-				      CONST char *,	name)
+PUBLIC char *HTAssocList_lookup (HTAssocList * alist, CONST char * name)
 {
     HTAssocList *cur = alist;
     HTAssoc *assoc;
-
-    while (NULL != (assoc = (HTAssoc*)HTList_nextObject(cur))) {
+    while ((assoc = (HTAssoc *) HTList_nextObject(cur))) {
 	if (!strncasecomp(assoc->name, name, strlen(name)))
 	    return assoc->value;
     }

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>UU Encoding and Decoding</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -23,22 +24,19 @@ bytes to 4 ASCII characters).  However, RFC 1113 does not use the same
 mapping to printable characters as uuencode. <P>
 
 This module is implemented by <A HREF="HTUU.c">HTUU.c</A>, and it is a
-part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTUU_H
 #define HTUU_H
 
 
-extern int HTUU_encode PARAMS((unsigned char *bufin,
-			       unsigned int nbytes,
-			       char *bufcoded));
+extern int HTUU_encode (unsigned char * bufin, unsigned int nbytes,
+			char * bufcoded);
 
-extern int HTUU_decode PARAMS((char *bufcoded,
-			       unsigned char *bufplain,
-			       int outbufsize));
+extern int HTUU_decode (char * bufcoded, unsigned char * bufplain,
+			int outbufsize);
 
 #endif
 </PRE>

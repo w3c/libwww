@@ -19,6 +19,7 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTFWrite.h"
+#include "HTAccess.h"
 #include "HTBind.h"
 #include "HTList.h"
 #include "HTReqMan.h"
@@ -76,7 +77,7 @@ PRIVATE HTMemoryCacheHandler *HTMemoryCache = NULL;  /* Memory cache handler */
 /*
 **  Removes cache item from disk and corresponding object from list in memory
 */
-PRIVATE void HTCache_remove ARGS1(HTCache *, item)
+PRIVATE void HTCache_remove (HTCache * item)
 {
     if (HTCacheList && item) {
 	if (CACHE_TRACE)
@@ -105,7 +106,7 @@ PRIVATE void HTCache_remove ARGS1(HTCache *, item)
 /*
 **  Remove a file from the cache to prevent too many files from being cached
 */
-PRIVATE void limit_cache ARGS1(HTList * , list)
+PRIVATE void limit_cache (HTList * list)
 {
     HTList * cur = list;
     HTCache * item;
@@ -127,7 +128,7 @@ PRIVATE void limit_cache ARGS1(HTList * , list)
 **	Check that the name we're about to generate doesn't
 **	clash with anything used by the caching system.
 */
-PRIVATE BOOL reserved_name ARGS1(char *, url)
+PRIVATE BOOL reserved_name (char * url)
 {
     char * name = strrchr(url, '/');
     char * suff = NULL;
@@ -154,7 +155,7 @@ PRIVATE BOOL reserved_name ARGS1(char *, url)
 /*
 **  Removes all cache entries in memory
 */
-PUBLIC void HTCache_clearMem NOARGS
+PUBLIC void HTCache_clearMem (void)
 {
     HTList *cur=HTCacheList;
     HTCache *pres;
@@ -171,7 +172,7 @@ PUBLIC void HTCache_clearMem NOARGS
 /*
 **  Removes all cache entries in memory and on disk
 */
-PUBLIC void HTCache_deleteAll NOARGS
+PUBLIC void HTCache_deleteAll (void)
 {
     HTList *cur=HTCacheList;
     HTCache * pres;
@@ -190,7 +191,7 @@ PUBLIC void HTCache_deleteAll NOARGS
 /*
 **	Map url to cache file name.
 */
-PRIVATE char * cache_file_name ARGS1(char *, url)
+PRIVATE char * cache_file_name (char * url)
 {
     char * access = NULL;
     char * host = NULL;
@@ -265,7 +266,7 @@ PRIVATE char * cache_file_name ARGS1(char *, url)
 **		can rely on fopen(cfn,"w") succeeding.
 **
 */
-PRIVATE BOOL create_cache_place ARGS1(char *, cfn)
+PRIVATE BOOL create_cache_place (char * cfn)
 {
     struct stat stat_info;
     char * cur = NULL;
@@ -332,7 +333,7 @@ PRIVATE BOOL create_cache_place ARGS1(char *, cfn)
 **	HWL 22/9/94
 **	HWL added support for hierachical structure
 */
-PRIVATE char *HTCache_getName ARGS1(char *, url)
+PRIVATE char *HTCache_getName (char * url)
 {
     char *filename = cache_file_name(url);
     if (!filename)
@@ -348,7 +349,7 @@ PRIVATE char *HTCache_getName ARGS1(char *, url)
 **  We keep this function private as we might change the naming scheme for
 **  cache files. Right now it follows the file hierarchi.
 */
-PRIVATE char *HTCache_wwwName ARGS1 (char *, name)
+PRIVATE char *HTCache_wwwName  (char * name)
 {
     char * result = NULL;
     if (name && *name) {
@@ -399,13 +400,17 @@ PRIVATE char *HTCache_wwwName ARGS1 (char *, name)
 **	------------
 **	If `cache_root' is NULL then reuse old value or use HT_CACHE_ROOT.
 **	An empty string will make '/' as cache root
+**	We can only enable the cache if the HTSecure flag is not set. This
+**	is for example the case if using an application as a telnet shell.
 */
-PUBLIC BOOL HTCache_enable ARGS1(CONST char *, cache_root)
+PUBLIC BOOL HTCache_enable (CONST char * cache_root)
 {
-    if (cache_root)
+    if (!HTLib_secure()) {
 	HTCache_setRoot(cache_root);
-    HTCacheEnable = YES;
-    return YES;
+	HTCacheEnable = YES;
+	return YES;
+    }
+    return NO;
 }
 
 
@@ -415,7 +420,7 @@ PUBLIC BOOL HTCache_enable ARGS1(CONST char *, cache_root)
 **	at any time. The cache root is kept and can be reused during the
 **	execution.
 */
-PUBLIC BOOL HTCache_disable NOARGS
+PUBLIC BOOL HTCache_disable (void)
 {
     HTCacheEnable = NO;
     return YES;
@@ -426,14 +431,9 @@ PUBLIC BOOL HTCache_disable NOARGS
 **	Returns YES or NO. Also makes sure that we have a root value
 **	(even though it might be invalid)
 */
-PUBLIC BOOL HTCache_isEnabled NOARGS
+PUBLIC BOOL HTCache_isEnabled (void)
 {
-    if (!HTSecure && HTCacheEnable) {
-	if (!HTCacheRoot)
-	    HTCache_setRoot(NULL);
-	return YES;
-    }
-    return NO;
+    return HTCacheEnable;
 }
 
 
@@ -442,7 +442,7 @@ PUBLIC BOOL HTCache_isEnabled NOARGS
 **	If `cache_root' is NULL then the current value (might be a define)
 **	Should we check if the cache_root is actually OK? I think not!
 */
-PUBLIC BOOL HTCache_setRoot ARGS1(CONST char *, cache_root)
+PUBLIC BOOL HTCache_setRoot (CONST char * cache_root)
 {
     StrAllocCopy(HTCacheRoot, cache_root ? cache_root : HT_CACHE_ROOT);
     if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
@@ -456,7 +456,7 @@ PUBLIC BOOL HTCache_setRoot ARGS1(CONST char *, cache_root)
 /*	Get Cache Root
 **	--------------
 */
-PUBLIC CONST char * HTCache_getRoot NOARGS
+PUBLIC CONST char * HTCache_getRoot (void)
 {
     return HTCacheRoot;
 }
@@ -465,7 +465,7 @@ PUBLIC CONST char * HTCache_getRoot NOARGS
 **	--------------
 **	For clean up memory
 */
-PUBLIC void HTCache_freeRoot NOARGS
+PUBLIC void HTCache_freeRoot (void)
 {
     FREE(HTCacheRoot);
 }
@@ -504,13 +504,13 @@ PUBLIC int HTMemoryCache_check (HTRequest * request)
 **
 **  The notify only makes sense when HT_EXPIRES_NOTIFY. NULL is valid.
 */
-PUBLIC void HTCache_setExpiresMode ARGS2(HTExpiresMode, mode, char *, notify)
+PUBLIC void HTCache_setExpiresMode (HTExpiresMode mode, char * notify)
 {
     HTExpMode = mode;
     HTExpNotify = notify;
 }
 
-PUBLIC HTExpiresMode HTCache_expiresMode ARGS1(char **, notify)
+PUBLIC HTExpiresMode HTCache_expiresMode (char ** notify)
 {
     *notify = HTExpNotify ? HTExpNotify : "This version has expired!";
     return HTExpMode;
@@ -528,7 +528,7 @@ PUBLIC HTExpiresMode HTCache_expiresMode ARGS1(char **, notify)
 **  Returns: file name	If OK (must be freed by caller)
 **	     NULL	If no cache object found
 */
-PUBLIC char * HTCache_getReference ARGS1(char *, url)
+PUBLIC char * HTCache_getReference (char * url)
 {
     if (url && HTCache_isEnabled()) {
 	char *fnam = cache_file_name(url);
@@ -553,7 +553,7 @@ PUBLIC char * HTCache_getReference ARGS1(char *, url)
 **  The check is based on the metainformation passed in the anchor object
 **  The function returns YES or NO.
 */
-PUBLIC BOOL HTCache_isValid ARGS1(HTParentAnchor *, anchor)
+PUBLIC BOOL HTCache_isValid (HTParentAnchor * anchor)
 {
     time_t cur = time(NULL);
     time_t expires = HTAnchor_expires(anchor);
@@ -564,12 +564,12 @@ PUBLIC BOOL HTCache_isValid ARGS1(HTParentAnchor *, anchor)
 /*  			     CACHE WRITER STREAM			     */
 /* ------------------------------------------------------------------------- */
 
-PRIVATE int HTCache_flush ARGS1(HTStream *, me)
+PRIVATE int HTCache_flush (HTStream * me)
 {
     return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
 }
 
-PRIVATE int HTCache_putBlock ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTCache_putBlock (HTStream * me, CONST char * s, int  l)
 {
     int status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK;
     if (l > 1 && status == HT_OK)
@@ -577,17 +577,17 @@ PRIVATE int HTCache_putBlock ARGS3(HTStream *, me, CONST char*, s, int, l)
     return status;
 }
 
-PRIVATE int HTCache_putChar ARGS2(HTStream *, me, char, c)
+PRIVATE int HTCache_putChar (HTStream * me, char c)
 {
     return HTCache_putBlock(me, &c, 1);
 }
 
-PRIVATE int HTCache_putString ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTCache_putString (HTStream * me, CONST char * s)
 {
     return HTCache_putBlock(me, s, (int) strlen(s));
 }
 
-PRIVATE int HTCache_free ARGS1(HTStream *, me)
+PRIVATE int HTCache_free (HTStream * me)
 {
     me->cache->load_delay = time(NULL) - me->cache->start_time;
     fclose(me->fp);
@@ -595,7 +595,7 @@ PRIVATE int HTCache_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int HTCache_abort ARGS2(HTStream *, me, HTList *, e)
+PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 {
     if (CACHE_TRACE)
 	TTYPrint(TDEST, "Cache....... ABORTING\n");
@@ -623,19 +623,16 @@ PRIVATE CONST HTStreamClass HTCacheClass =
 **	------------------
 **
 */
-PUBLIC HTStream* HTCacheWriter ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
-
+PUBLIC HTStream* HTCacheWriter (HTRequest *	request,
+				void *		param,
+				HTFormat	input_format,
+				HTFormat	output_format,
+				HTStream *	output_stream)
 {
     char *fnam;
     HTStream *me;
-    if (HTSecure) {
-	if (CACHE_TRACE)
-	    TTYPrint(TDEST, "Cache....... No caching in secure mode.\n");
+    if (!HTCacheEnable) {
+	if (CACHE_TRACE) TTYPrint(TDEST, "Cache....... Not enabled\n");
 	return HTBlackHole();
     }
 

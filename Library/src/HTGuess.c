@@ -59,7 +59,7 @@ struct _HTStream {
 
 /* ------------------------------------------------------------------------- */
 
-PRIVATE BOOL is_html ARGS1(char *, buf)
+PRIVATE BOOL is_html (char * buf)
 {
     char * p = strchr(buf,'<');
 
@@ -74,12 +74,12 @@ PRIVATE BOOL is_html ARGS1(char *, buf)
 	return NO;
 }
 
-PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
+PRIVATE int HTGuess_flush (HTStream * me)
 {
     if (!me->transparent) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"GUESSING.... text=%d newlines=%d ctrl=%d high=%d\n",
-		    me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
+	    TTYPrint(TDEST,"GUESSING.... text=%d newline=%d ctrl=%d high=%d\n",
+		     me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
 	if (me->cnt) {
 	    if (STREAM_TRACE) TTYPrint(TDEST,
 				    "Percentages. text=%d%% newlines=%d%% ctrl=%d%% high=%d%%\n",
@@ -147,8 +147,10 @@ PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
 		CONTENT_TYPE("application/octet-stream");
 	}
 	
-	if (!me->anchor->content_type)  CONTENT_TYPE("www/unknown");
-	if (!me->anchor->content_encoding)  CONTENT_ENCODING("binary");
+	if (!me->anchor->content_type)
+	    CONTENT_TYPE("application/octet-stream");
+	if (!me->anchor->content_encoding)
+	    CONTENT_ENCODING("binary");
 	
 	if (STREAM_TRACE) TTYPrint(TDEST,"Guessed..... %s\n",
 				HTAtom_name(me->anchor->content_type));
@@ -166,7 +168,7 @@ PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
 }
 
 
-PRIVATE int HTGuess_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
+PRIVATE int HTGuess_put_block (HTStream * me, CONST char * b, int l)
 {
     while (!me->transparent && l-- > 0) {
 	int status;
@@ -203,17 +205,17 @@ PRIVATE int HTGuess_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
     return HT_OK;
 }
 
-PRIVATE int HTGuess_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTGuess_put_character (HTStream * me, char c)
 {
     return HTGuess_put_block(me, &c, 1);
 }
 
-PRIVATE int HTGuess_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTGuess_put_string (HTStream * me, CONST char * s)
 {
     return HTGuess_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int HTGuess_free ARGS1(HTStream *, me)
+PRIVATE int HTGuess_free (HTStream * me)
 {
     int status;
     if (!me->transparent && (status = HTGuess_flush(me)) != HT_OK)
@@ -226,10 +228,9 @@ PRIVATE int HTGuess_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int HTGuess_abort ARGS2(HTStream *, me, HTList *, e)
+PRIVATE int HTGuess_abort (HTStream * me, HTList * e)
 {
-    if (me->target)
-	(*me->target->isa->abort)(me,e);
+    if (me->target) (*me->target->isa->abort)(me,e);
     free(me);
     return HT_ERROR;
 }
@@ -249,16 +250,14 @@ PRIVATE CONST HTStreamClass HTGuessClass =
 	HTGuess_put_block
 };
 
-
-PUBLIC HTStream * HTGuess_new ARGS5(HTRequest *,	req,
-				    void *,		param,
-				    HTFormat,		input_format,
-				    HTFormat,		output_format,
-				    HTStream *,		output_stream)
+PUBLIC HTStream * HTGuess_new (HTRequest *	req,
+			       void *		param,
+			       HTFormat		input_format,
+			       HTFormat		output_format,
+			       HTStream *	output_stream)
 {
     HTStream * me = (HTStream *) calloc(1,sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTGuess_new");
-
     me->isa = &HTGuessClass;
     me->req = req;
     me->anchor = HTRequest_anchor(req);

@@ -25,6 +25,7 @@
 #include "HTString.h"
 #include "HTList.h"
 #include "HTParse.h"
+#include "HTWWWStr.h"
 #include "HTProxy.h"					 /* Implemented here */
 
 /* Variables and typedefs local to this module */

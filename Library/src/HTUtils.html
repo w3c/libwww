@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -77,15 +77,20 @@ extern FILE *WWWTrace;
 #if WWWTRACE_MODE == WWWTRACE_TTY
 #if defined(_WINDOWS) && !defined(_CONSOLE) /* EGP */
 /* standard windows 3.x and non-console WIN32 programs */
-#define TDEST	 0
+#define TDEST    0
+#ifdef _DLL
+typedef int TTYPrint_t(unsigned int target, const char* fmt, ...);
+extern TTYPrint_t** PTTYPrint;
+#define TTYPrint (**PTTYPrint)
+#else
 int TTYPrint(unsigned int target, const char* fmt, ...);
+#endif
 #else
 /* if there is a real console, us it */
-#define TDEST	 stderr
+#define TDEST    stderr
 int TTYPrint(FILE* target, const char* fmt, ...);
 #endif
 #endif
-
 
 typedef enum _HTTraceFlags {
     SHOW_CACHE_TRACE	= 0x2,				/*		  10 */

@@ -1139,10 +1139,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
 	    {
 		dnet->isoc = HTInputSocket_new(dnet->sockfd);
 		if (FTP_DIR(data)) {
-		    dnet->target =
-			(!HTImProxy && request->output_format==WWW_SOURCE) ?
-			    request->output_stream :
-				HTFTPDir_new(request, ctrl->server,data->type);
+		    dnet->target=HTFTPDir_new(request,ctrl->server,data->type);
 		} else {
 		    dnet->target =
 			HTStreamStack(HTAnchor_format(request->anchor),

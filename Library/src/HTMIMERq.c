@@ -12,6 +12,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
+#include "HTWWWStr.h"
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTNetMan.h"

@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>Browser side Access Auth</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -172,29 +172,16 @@ extern BOOL HTAA_composeAuth PARAMS((HTRequest * req));
 **			NO, on failure.
 */
 extern BOOL HTAA_retryWithAuth PARAMS((HTRequest *	req));
-
-
-/* PUPLIC						HTAA_cleanup()
-**
-**	Free the memory used by the entries concerning Access Authorization
-**	in the request structure and put all pointers to NULL
-**	Henrik 14/03-94.
-**
-** ON ENTRY:
-**	req		the request structure
-**
-** ON EXIT:
-**	returns		nothing.
-*/
-extern void HTAACleanup PARAMS((HTRequest *req));
 </PRE>
 
 <H2>Enabling Gateway httpds to Forward Authorization</H2>
+
 These functions should only be called from daemon code, and
 <CODE>HTAAForwardAuth_reset()</CODE> must be called before the next
-request is handled to make sure that authorization string
-isn't cached in daemon so that other people can access private
-files using somebody elses previous authorization information.
+request is handled to make sure that authorization string isn't cached
+in daemon so that other people can access private files using somebody
+elses previous authorization information.
+
 <PRE>
 extern void HTAAForwardAuth_set PARAMS((CONST char * scheme_name,
 					CONST char * scheme_specifics));

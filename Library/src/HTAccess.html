@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -34,9 +34,8 @@ Reference Library</A>. <P>
 #include "HTAnchor.h"
 </PRE>
 
-<A NAME="Library"><H2>Initializing and Terminating the Library</H2></A>
+<A NAME="Library"><H2><IMG SRC="http://www.w3.org/pub/WWW/Icons/32x32/warning.gif"> Initializing and Terminating the Library</H2></A>
 
-<IMG SRC="http://www.w3.org/pub/WWW/Icons/32x32/warning.gif">
 These two functions initiates memory and settings for the Library and
 cleans up memory kept by the Library when about to exit the
 application. They <B>must</B> be used!
@@ -44,6 +43,16 @@ application. They <B>must</B> be used!
 <PRE>
 extern BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion);
 extern BOOL HTLibTerminate (void);
+</PRE>
+
+<H2>Library Name and Version</H2>
+
+You can get the generic name of the Library and the version by using
+the following functions:
+
+<PRE>
+extern CONST char * HTLib_name (void);
+extern CONST char * HTLib_version (void);
 </PRE>
 
 <H2>Application Name and Version</H2>
@@ -56,61 +65,17 @@ extern CONST char * HTLib_appName (void);
 extern CONST char * HTLib_appVersion (void);
 </PRE>
 
-<H2>Client Get Started Help</H2>
+<H2>Accessing the Local File System</H2>
 
-Two small functions that make life easier for client apps
-
-<H3>Generate the Anchor for the Home Page</H3>
-
-As it involves file access, this should only be done once when the
-program first runs. This is a default algorithm using the
-<CODE>WWW_HOME</CODE> environment variable.
+The Library does normally use the local file system for dumping
+unknown data objects, file cache etc. In some situations this is not
+desired and we can therefore turn it off. This mode also prevents you
+from being able to access other resources where you have to log in, fr
+example telnet.
 
 <PRE>
-extern HTParentAnchor * HTHomeAnchor (void);
-</PRE>
-
-<H3>Find Related Name</H3>
-
-Creates a local file URI that can be used as a relative name when
-calling HTParse() to expand a relative file name to an absolute
-one. The code for this routine originates from the Line Mode Browser
-and was moved here by <EM>howcome@w3.org</EM> in order for all clients
-to take advantage.<P>
-
-<PRE>
-extern char *  HTFindRelatedName (void);
-</PRE>
-
-<A NAME="Addresses"><H2>Default WWW Addresses</H2></A>
-
-These control the home page selection. To mess with these for normal browses
-is asking for user confusion.
-<PRE>
-#define LOGICAL_DEFAULT "WWW_HOME"	      /* Defined to be the home page */
-
-#ifndef PERSONAL_DEFAULT
-#define PERSONAL_DEFAULT "WWW/default.html"		/* in home directory */
-#endif
-
-/* If the home page isn't found, use this file: */
-#ifndef LAST_RESORT
-#define LAST_RESORT	"http://www.w3.org/"
-#endif
-
-/* If one telnets to an access point it will look in this file for home page */
-#ifndef REMOTE_POINTER
-#define REMOTE_POINTER  "/etc/www-remote.url"		    /* can't be file */
-#endif
-
-/* and if that fails it will use this. */
-#ifndef REMOTE_ADDRESS
-#define REMOTE_ADDRESS  "http://www.w3.org/"		    /* can't be file */
-#endif
-
-#ifndef LOCAL_DEFAULT_FILE
-#define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
-#endif
+extern BOOL HTLib_secure (void);
+extern void HTLib_setSecure (BOOL mode);
 </PRE>
 
 <A NAME="LoadDoc"><H2>Functions for Requesting an Object</H2></A>

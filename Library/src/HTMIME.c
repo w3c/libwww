@@ -29,6 +29,7 @@
 #include "HTMethod.h"
 #include "HTHeader.h"
 #include "HTSocket.h"
+#include "HTWWWStr.h"
 #include "HTFWrite.h"
 #include "HTNetMan.h"
 #include "HTReqMan.h"
@@ -642,8 +643,8 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	if (me->target) {
 	    int status = (*me->target->isa->put_block)(me->target, b, l);
 	    if (status == HT_OK)
-		/* Check is CL at all - thanks to jwei@hal.com (John Wei) */
-		return (me->anchor->content_length &&
+		/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
+		return (me->anchor->content_length >= 0 &&
 			me->net->bytes_read >= me->anchor->content_length) ?
 			    HT_LOADED : HT_OK;
 	    else
