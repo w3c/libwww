@@ -1,0 +1,163 @@
+<HTML>
+<HEAD>
+<TITLE>SGML fix</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Jan-1996 -->
+</HEAD>
+<BODY>
+
+<H1>SGML Fix</H1>
+
+I have a proposition to improve a little the SGML module. A small patch I send here improves the
+error recovery in parsing ill-formed HTML documents. I have a proposition to improve a little the
+SGML module. A small patch I send here improves the error recovery in parsing ill-formed HTML
+documents. <P>
+
+The end_element function in sgml.c hanles ill-nested tags pretty well, ignoring bad end tags or
+assuming corresponding start tags. The rule used now states that if we encounter an ending tag
+without the corresponding start tag on the top of the element=20 stack, we do one of the following:
+
+<OL>
+<LI>If we are on the last level (that is there is only &lt;HTML&gt; on the element stack), we ignore
+the bad ending tag.
+<LI>If there are some other elements (start tags) on the stack, we assume the corresponding end tags
+(except &lt;/HTML&gt;), free the stack from those elements, and=20 then check again the tag which
+caused the whole problem against the rules 1 and 2.
+</OL>
+
+In some cases this algorithm doesn't work well. Consider the example:
+
+<PRE>
+	&lt;HTML>
+	&lt;BODY>
+	&lt;UL>
+	&lt;LI> &lt;A...> &lt;B> ... &lt;/A> &lt;/I> &lt;/B>
+	&lt;LI> ...
+	&lt;/UL>
+	&lt;/BODY>
+	&lt;/HTML>
+</PRE>
+
+There are two errors in this example:
+
+<OL>
+<LI>&lt;A> and &lt;B> are overlapping
+<LI>There is an &lt;/I> without any &lt;I>
+</OL>
+
+According to the rules given above, this is parsed exactly as shown below:
+
+<PRE>
+	&lt;HTML>
+	&lt;BODY>
+	&lt;UL>
+	&lt;LI> &lt;A...> &lt;B> ... &lt;/B> &lt;/A>
+	&lt;/UL>
+	&lt;/BODY>
+	&lt;LI> ...
+	&lt;/HTML>
+</PRE>
+
+This is because:
+
+<OL>
+<LI>When the parser encounters &lt;/A> (line 4 of the original example) it assumes &lt;/B> and then goes
+to &lt;/A>, which is now nested perfectly.
+
+<LI>Next it encounters &lt;/I>, so it assumes all open start tags (except &lt;HTML>); this gives
+&lt;/UL> &lt;/BODY>.
+
+<LI> Again with &lt;/I>, the parser is now on the last level (only &lt;HTML> hasn't been closed), so it
+ignores &lt;/I>.
+
+<LI> Now the parser encounters &lt;LI>. Note that it's a &lt;LI> outside &lt;UL>!  What=20 happen next
+depends on the quality of the HTML module (my version of html.c was crashing until I corrected it).
+</OL>
+
+The problem is that too many ending tags are assumed. I propose to ignore all the ill-nested end
+tags which doesn't have a corresponding opening tag on the element stack (on the whole stack, not
+only on its top). Considering the example, after seeing=20 &lt;/I> we simply ignore it (and not
+assume all pending tags and then ignore it). <P>
+
+So, after this modification the example is parsed as:
+
+<PRE>
+	&lt;HTML>
+	&lt;BODY>
+	&lt;UL>
+	&lt;LI> &lt;A...> &lt;B> ... &lt;/B> &lt;/A>
+	&lt;LI> ...
+	&lt;/UL>
+	&lt;/BODY>
+	&lt;/HTML>
+</PRE>
+
+Here's the patch:
+
+<PRE>
+/*
+**	Helper function to check if the tag is on the stack
+*/
+PRIVATE BOOL lookup_element_stack (HTElement* stack, HTTag *tag)
+{
+    HTElement* elem;
+    for (elem = stack; elem != NULL; elem = elem->next)
+    {
+        if (elem->tag == tag)  return TRUE;
+    }
+    return FALSE;
+}
+
+/* 
+** Modified end_element function
+** Only one line is added, it's marked with &lt;==
+*/
+PRIVATE void end_element (HTStream * context, HTTag * old_tag)
+{
+    if (SGML_TRACE) TTYPrint(TDEST, "SGML: End   &lt;/%s>\n", old_tag->name);
+    if (old_tag->contents == SGML_EMPTY) {
+        if (SGML_TRACE) TTYPrint(TDEST,"SGML: Illegal end tag &lt;/%s> found.\n",
+                old_tag->name);
+        return;
+    }
+    while (context->element_stack)      {/* Loop is error path only */
+        HTElement * N = context->element_stack;
+        HTTag * t = N->tag;
+
+        if (old_tag != t) {             /* Mismatch: syntax error */
+            if (context->element_stack->next    /* This is not the last level */
+                    && lookup_element_stack(context->element_stack, old_tag)) {  /* &lt;== */
+                if (SGML_TRACE) TTYPrint(TDEST,
+                "SGML: Found &lt;/%s> when expecting &lt;/%s>. &lt;/%s> assumed.\n",
+                    old_tag->name, t->name, t->name);
+            } else {                    /* last level */
+                if (SGML_TRACE) TTYPrint(TDEST,
+                    "SGML: Found &lt;/%s> when expecting &lt;/%s>. &lt;/%s> Ignored.\n",
+                    old_tag->name, t->name, old_tag->name);
+                return;                 /* Ignore */
+            }
+        }
+
+        context->element_stack = N->next;               /* Remove from stack */
+        free(N);
+        (*context->actions->end_element)(context->target,
+                 t - context->dtd->tags);
+        if (old_tag == t) return;  /* Correct sequence */
+
+        /* Syntax error path only */
+
+    }
+    if (SGML_TRACE) TTYPrint(TDEST,
+        "SGML: Extra end tag &lt;/%s> found and ignored.\n", old_tag->name);
+}
+
+</PRE>
+
+Tha't all for now. I have also another proposition concerning SGML module (better handling of &lt;P>
+tags), but in my opinion it will need some discussion, and I don't know if you are interested in
+this.
+
+<P>
+<HR>
+<ADDRESS>Maciej Puzio, puzio@laser.mimuw.edu.pl</ADDRESS>
+</BODY>
+</HTML>

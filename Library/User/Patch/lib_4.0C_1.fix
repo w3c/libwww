@@ -1,0 +1,4068 @@
+diff -c Library/Repository/Implementation/HTAABrow.c:2.28.4.1 Library/Repository/Implementation/HTAABrow.c:2.28
+*** Library/Repository/Implementation/HTAABrow.c:2.28.4.1	Tue Jan 23 16:31:15 1996
+--- Library/Repository/Implementation/HTAABrow.c	Tue Jan 23 16:31:15 1996
+***************
+*** 768,810 ****
+      return (HTPasswordDialog(req));
+  }
+  
+- /*
+- **	Setup HTTP access authentication
+- */
+- PUBLIC BOOL HTAA_authentication (HTRequest * request)
+- {
+-     HTAAScheme scheme;
+-     HTList *valid_schemes = HTList_new();
+-     HTAssocList **scheme_specifics = NULL;
+-     char *tmplate = NULL;
+- 
+-     if (request->WWWAAScheme) {
+- 	if ((scheme = HTAAScheme_enum(request->WWWAAScheme)) != HTAA_UNKNOWN) {
+- 	    HTList_addObject(valid_schemes, (void *) scheme);
+- 	    if (!scheme_specifics) {
+- 		int i;
+- 		scheme_specifics = (HTAssocList**)
+- 		    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
+- 		if (!scheme_specifics)
+- 		    outofmem(__FILE__, "HTTPAuthentication");
+- 		for (i=0; i < HTAA_MAX_SCHEMES; i++)
+- 		    scheme_specifics[i] = NULL;
+- 	    }
+- 	    scheme_specifics[scheme] = HTAA_parseArgList(request->WWWAARealm);
+- 	} else if (PROT_TRACE) {
+- 	    HTRequest_addError(request, ERR_INFO, NO, HTERR_UNKNOWN_AA,
+- 		       (void *) request->WWWAAScheme, 0, "HTTPAuthentication");
+- 	    return NO;
+- 	}
+-     }
+-     if (request->WWWprotection) {
+- 	if (PROT_TRACE)
+- 	    TTYPrint(TDEST, "Protection template set to `%s'\n",
+- 		    request->WWWprotection);
+- 	StrAllocCopy(tmplate, request->WWWprotection);
+-     }
+-     request->valid_schemes = valid_schemes;
+-     request->scheme_specifics = scheme_specifics;
+-     request->prot_template = tmplate;
+-     return YES;
+- }
+--- 768,770 ----
+diff -c Library/Repository/Implementation/HTAABrow.html:2.20.4.1 Library/Repository/Implementation/HTAABrow.html:2.20
+*** Library/Repository/Implementation/HTAABrow.html:2.20.4.1	Tue Jan 23 16:31:16 1996
+--- Library/Repository/Implementation/HTAABrow.html	Tue Jan 23 16:31:16 1996
+***************
+*** 1,6 ****
+  <HEAD>
+  <TITLE>Browser side Access Auth</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 20-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+--- 1,6 ----
+  <HEAD>
+  <TITLE>Browser side Access Auth</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+  </HEAD>
+  <BODY>
+  
+***************
+*** 186,197 ****
+  extern void HTAAForwardAuth_set (CONST char * scheme_name,
+  				 CONST char * scheme_specifics);
+  extern void HTAAForwardAuth_reset (void);
+- </PRE>
+- 
+- <H2>Setup HTTP access authentication</H2>
+- 
+- <PRE>
+- extern BOOL HTAA_authentication (HTRequest * request);
+  </PRE>
+  
+  <PRE>
+--- 186,191 ----
+diff -c Library/Repository/Implementation/HTAccess.c:1.108.2.1 Library/Repository/Implementation/HTAccess.c:1.108
+*** Library/Repository/Implementation/HTAccess.c:1.108.2.1	Tue Jan 23 16:31:17 1996
+--- Library/Repository/Implementation/HTAccess.c	Tue Jan 23 16:31:17 1996
+***************
+*** 423,443 ****
+  **	to NNTP and puts into the "newsgroups" header
+  **	Returns YES if request accepted, else NO
+  */
+! PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
+  { 
+      HTRequest * src_req;
+      HTList * cur;
+!     if (!src_anchor || !main_dest) {
+! 	if (WWWTRACE) TTYPrint(TDEST, "Copy........ BAD ARGUMENT\n");
+  	return NO;
+-     }
+  
+      /* Build the POST web if not already there */
+!     if (!main_dest->source) {
+! 	src_req = HTRequest_dupInternal(main_dest);	  /* Get a duplicate */
+  	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
+- 	src_req->method = METHOD_GET;
+  	src_req->reload = HT_MEM_REFRESH;
+  	src_req->output_stream = NULL;
+  	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
+  
+--- 423,441 ----
+  **	to NNTP and puts into the "newsgroups" header
+  **	Returns YES if request accepted, else NO
+  */
+! PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
+  { 
+      HTRequest * src_req;
+      HTList * cur;
+!     if (!src_anchor || !main_req)
+  	return NO;
+  
+      /* Build the POST web if not already there */
+!     if (!main_req->source) {
+! 	src_req = HTRequest_dup(main_req);	  /* First set up the source */
+  	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
+  	src_req->reload = HT_MEM_REFRESH;
++ 	src_req->source = src_req;			  /* Point to myself */
+  	src_req->output_stream = NULL;
+  	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
+  
+***************
+*** 448,470 ****
+  	    HTMethod method = HTLink_method(main_link);
+  	    if (!main_link || method==METHOD_INVALID) {
+  		if (WWWTRACE)
+! 		    TTYPrint(TDEST, "Copy Anchor. No destination found or unspecified method\n");
+  		HTRequest_delete(src_req);
+  		return NO;
+  	    }
+! 	    main_dest->GenMask |= HT_G_DATE;		 /* Send date header */
+! 	    main_dest->reload = HT_CACHE_REFRESH;
+! 	    main_dest->method = method;
+! 	    main_dest->input_format = WWW_SOURCE;
+! 	    HTRequest_addDestination(src_req, main_dest);
+! 	    if (HTLoadAnchor(main_anchor, main_dest) == NO)
+! 		return NO;
+  	}
+  
+  	/* For all other links in the source anchor */
+  	if ((cur = HTAnchor_subLinks(src_anchor))) {
+  	    HTLink * pres;
+! 	    while ((pres = (HTLink *) HTList_nextObject(cur))) {
+  		HTAnchor *dest = HTLink_destination(pres);
+  		HTMethod method = HTLink_method(pres);
+  		HTRequest *dest_req;
+--- 446,472 ----
+  	    HTMethod method = HTLink_method(main_link);
+  	    if (!main_link || method==METHOD_INVALID) {
+  		if (WWWTRACE)
+! 		    TTYPrint(TDEST, "Copy Anchor. No destination found or unspecified method");
+  		HTRequest_delete(src_req);
+  		return NO;
+  	    }
+! 	    if (HTLink_result(main_link) == HT_LINK_NONE) {
+! 		main_req->GenMask |= HT_G_DATE;		 /* Send date header */
+! 		main_req->source = src_req;
+! 		main_req->reload = HT_CACHE_REFRESH;
+! 		main_req->method = method;
+! 		HTRequest_addDestination(src_req, main_req);
+! 		main_req->input_format = WWW_SOURCE;
+! 		if (HTLoadAnchor(main_anchor, main_req) == NO)
+! 		    return NO;
+! 	    }
+  	}
+  
+  	/* For all other links in the source anchor */
+  	if ((cur = HTAnchor_subLinks(src_anchor))) {
+  	    HTLink * pres;
+! 	    while ((pres = (HTLink *) HTList_nextObject(cur)) &&
+! 		   HTLink_result(pres) == HT_LINK_NONE) {
+  		HTAnchor *dest = HTLink_destination(pres);
+  		HTMethod method = HTLink_method(pres);
+  		HTRequest *dest_req;
+***************
+*** 474,495 ****
+  				dest);
+  		    return NO;
+  		}
+! 		dest_req = HTRequest_dupInternal(main_dest);
+  		dest_req->GenMask |= HT_G_DATE;		 /* Send date header */
+  		dest_req->reload = HT_CACHE_REFRESH;
+  		dest_req->method = method;
+  		dest_req->output_stream = NULL;
+  		dest_req->output_format = WWW_SOURCE;
+- 		HTRequest_addDestination(src_req, dest_req);
+  
+  		if (HTLoadAnchor(dest, dest_req) == NO)
+  		    return NO;
+  	    }
+  	}
+      } else {			 /* Use the existing Post Web and restart it */
+! 	src_req = main_dest->source;
+  	if (src_req->mainDestination)
+! 	    if (HTLoadDocument(main_dest, NO) == NO)
+  		return NO;
+  	if (src_req->destinations) {
+  	    HTRequest * pres;
+--- 476,499 ----
+  				dest);
+  		    return NO;
+  		}
+! 		dest_req = HTRequest_dup(main_req);
+  		dest_req->GenMask |= HT_G_DATE;		 /* Send date header */
++ 		dest_req->source = src_req;
+  		dest_req->reload = HT_CACHE_REFRESH;
+  		dest_req->method = method;
++ 		HTRequest_addDestination(src_req, dest_req);
++ 
+  		dest_req->output_stream = NULL;
+  		dest_req->output_format = WWW_SOURCE;
+  
+  		if (HTLoadAnchor(dest, dest_req) == NO)
+  		    return NO;
+  	    }
+  	}
+      } else {			 /* Use the existing Post Web and restart it */
+! 	src_req = main_req->source;
+  	if (src_req->mainDestination)
+! 	    if (HTLoadDocument(main_req, NO) == NO)
+  		return NO;
+  	if (src_req->destinations) {
+  	    HTRequest * pres;
+***************
+*** 519,528 ****
+  			    HTRequest *		dest_req)
+  {
+      HTMethod allowed = HTAnchor_methods(dest_anchor);
+!     if (!src_anchor || !dest_anchor || !dest_req) {
+! 	if (WWWTRACE) TTYPrint(TDEST, "Upload...... BAD ARGUMENT\n");
+  	return NO;
+-     }
+      if (!(allowed & dest_req->method)) {
+  	BOOL confirm = NO;
+  	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
+--- 523,530 ----
+  			    HTRequest *		dest_req)
+  {
+      HTMethod allowed = HTAnchor_methods(dest_anchor);
+!     if (!src_anchor || !dest_anchor || !dest_req)
+  	return NO;
+      if (!(allowed & dest_req->method)) {
+  	BOOL confirm = NO;
+  	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
+diff -c Library/Repository/Implementation/HTConLen.c:2.4.4.1 Library/Repository/Implementation/HTConLen.c:2.4
+*** Library/Repository/Implementation/HTConLen.c:2.4.4.1	Tue Jan 23 16:31:18 1996
+--- Library/Repository/Implementation/HTConLen.c	Tue Jan 23 16:31:18 1996
+***************
+*** 125,131 ****
+  	me->head = cur->next;
+  	free_buf(cur);
+      }
+-     me->give_up = YES;
+      return HT_OK;
+  }
+  
+--- 125,130 ----
+***************
+*** 187,201 ****
+  
+  PRIVATE int buf_abort (HTStream * me, HTList * e)
+  {
+-     HTBufItem * cur;
+      if (!me->give_up)
+  	free_buf_all(me);
+      if (me->target)
+  	(*me->target->isa->abort)(me->target,e);
+-     while ((cur = me->head)) {
+- 	me->head = cur->next;
+- 	free_buf(cur);
+-     }
+      free(me);
+      if (PROT_TRACE) TTYPrint(TDEST, "Length...... ABORTING...\n");
+      return HT_ERROR;
+--- 186,195 ----
+diff -c Library/Repository/Implementation/HTDialog.c:2.3.2.1 Library/Repository/Implementation/HTDialog.c:2.3
+*** Library/Repository/Implementation/HTDialog.c:2.3.2.1	Tue Jan 23 16:31:19 1996
+--- Library/Repository/Implementation/HTDialog.c	Tue Jan 23 16:31:20 1996
+***************
+*** 136,153 ****
+  	break;
+  
+        case HT_PROG_WRITE:
+! 	if (HTRequest_isPostWeb(request)) {
+! 	    HTParentAnchor *anchor=HTRequest_anchor(HTRequest_source(request));
+! 	    long cl = HTAnchor_length(anchor);
+! 	    if (cl > 0) {
+! 		long b_write = HTRequest_bytesWritten(request);
+! 		double pro = (double) b_write/cl*100;
+! 		char buf[10];
+! 		HTNumToStr((unsigned long) cl, buf, 10);
+! 		TTYPrint(TDEST, "Written (%d%% of %s)\n", (int) pro, buf);
+! 	    } else
+! 		TTYPrint(TDEST, "Writing...\n");
+! 	}
+  	break;
+  
+        case HT_PROG_DONE:
+--- 136,142 ----
+  	break;
+  
+        case HT_PROG_WRITE:
+! 	TTYPrint(TDEST, "Writing...\n");
+  	break;
+  
+        case HT_PROG_DONE:
+diff -c Library/Repository/Implementation/HTEvntrg.c:2.24.2.1 Library/Repository/Implementation/HTEvntrg.c:2.24
+*** Library/Repository/Implementation/HTEvntrg.c:2.24.2.1	Tue Jan 23 16:31:20 1996
+--- Library/Repository/Implementation/HTEvntrg.c	Tue Jan 23 16:31:20 1996
+***************
+*** 431,437 ****
+      	TTYPrint(TDEST, "Req Update.. updating for socket %u\n", s) ;
+      rqp->unregister = (ops & FD_UNREGISTER) ? YES : NO;
+      rqp->actions[0].rq = rq ;
+!     rqp->actions[0].ops |= ops ;
+      rqp->actions[0].cbf = cbf ;
+      rqp->actions[0].p = p ;
+      return;
+--- 431,437 ----
+      	TTYPrint(TDEST, "Req Update.. updating for socket %u\n", s) ;
+      rqp->unregister = (ops & FD_UNREGISTER) ? YES : NO;
+      rqp->actions[0].rq = rq ;
+!     rqp->actions[0].ops = ops ;
+      rqp->actions[0].cbf = cbf ;
+      rqp->actions[0].p = p ;
+      return;
+***************
+*** 459,466 ****
+      }
+  
+      if (THD_TRACE)
+!     	TTYPrint(TDEST, "UnRegister.. %s entry for socket %d with ops %x\n",
+! 		 (found) ? "Found" : "Didn't find", s, (unsigned) ops);
+      if (! found) 
+          return 0;
+  
+--- 459,466 ----
+      }
+  
+      if (THD_TRACE)
+!     	TTYPrint(TDEST, "UnRegister.. %s entry for socket %d\n",
+! 		(found) ? "Found" : "Didn't find", s);
+      if (! found) 
+          return 0;
+  
+***************
+*** 844,853 ****
+      HTRequest * rqp = NULL;
+      HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
+      /* although it makes no sense, callbacks can be null */
+!     if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) {
+! 	if (THD_TRACE) TTYPrint(TDEST, "Callback.... No callback found\n");
+          return (0);
+-     }
+      return (*cbf)(s, rqp, ops);
+  }
+  
+--- 844,851 ----
+      HTRequest * rqp = NULL;
+      HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
+      /* although it makes no sense, callbacks can be null */
+!     if (!cbf || rqp->priority == HT_PRIORITY_OFF)
+          return (0);
+      return (*cbf)(s, rqp, ops);
+  }
+  
+***************
+*** 860,869 ****
+      HTRequest * rqp = NULL;
+      HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
+      /* although it makes no sense, callbacks can be null*/
+!     if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) {
+! 	if (THD_TRACE) TTYPrint(TDEST, "UserCallback No callback found\n");
+          return (0);
+-     }
+      return (*cbf)(s, rqp, ops);
+  }
+  
+--- 858,865 ----
+      HTRequest * rqp = NULL;
+      HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
+      /* although it makes no sense, callbacks can be null*/
+!     if (!cbf || rqp->priority == HT_PRIORITY_OFF)
+          return (0);
+      return (*cbf)(s, rqp, ops);
+  }
+  
+***************
+*** 966,972 ****
+              s = all_fds.fd_array[ui] ;
+  #else 
+          for (s = 0 ; s <= max_sock; s++) { 
+!             if (FD_ISSET(s, fdp))
+  #endif
+  	    {
+  	        TTYPrint(TDEST, "%4d\n", s);
+--- 962,968 ----
+              s = all_fds.fd_array[ui] ;
+  #else 
+          for (s = 0 ; s <= max_sock; s++) { 
+!             if (FD_ISSET(s, &all_fds))
+  #endif
+  	    {
+  	        TTYPrint(TDEST, "%4d\n", s);
+diff -c Library/Repository/Implementation/HTFile.c:1.106.2.1 Library/Repository/Implementation/HTFile.c:1.106
+*** Library/Repository/Implementation/HTFile.c:1.106.2.1	Tue Jan 23 16:31:21 1996
+--- Library/Repository/Implementation/HTFile.c	Tue Jan 23 16:31:21 1996
+***************
+*** 119,125 ****
+  **	Reads the directory "path"
+  **	Returns:
+  **		HT_ERROR	Error
+! **		HT_FORBIDDEN	Directory reading not allowed
+  **		HT_LOADED	Successfully read the directory
+  */
+  PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
+--- 119,125 ----
+  **	Reads the directory "path"
+  **	Returns:
+  **		HT_ERROR	Error
+! **		HT_NO_ACCESS	Directory reading not allowed
+  **		HT_LOADED	Successfully read the directory
+  */
+  PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
+***************
+*** 136,142 ****
+      if (dir_access == HT_DIR_FORBID) {
+  	HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+  		   NULL, 0, "HTFile_readDir");
+! 	return HT_FORBIDDEN;
+      }
+      
+      /* Initialize path name for stat() */
+--- 136,142 ----
+      if (dir_access == HT_DIR_FORBID) {
+  	HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+  		   NULL, 0, "HTFile_readDir");
+! 	return HT_NO_ACCESS;
+      }
+      
+      /* Initialize path name for stat() */
+***************
+*** 160,166 ****
+  			"Read dir.... `%s\' not found\n", DEFAULT_DIR_FILE);
+  	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+  		       NULL, 0, "HTFile_readDir");
+! 	    return HT_FORBIDDEN;
+  	}
+      }
+  
+--- 160,166 ----
+  			"Read dir.... `%s\' not found\n", DEFAULT_DIR_FILE);
+  	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+  		       NULL, 0, "HTFile_readDir");
+! 	    return HT_NO_ACCESS;
+  	}
+      }
+  
+***************
+*** 363,371 ****
+      file_info *file = (file_info *) net->context;
+  
+      /* Free stream with data TO Local file system */
+!     if (HTRequest_isDestination(req))
+! 	HTRequest_removeDestination(req);
+!     else  if (req->input_stream) {
+  	if (status == HT_INTERRUPTED)
+  	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+  	else
+--- 363,369 ----
+      file_info *file = (file_info *) net->context;
+  
+      /* Free stream with data TO Local file system */
+!     if (!HTRequest_isDestination(req) && req->input_stream) {
+  	if (status == HT_INTERRUPTED)
+  	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+  	else
+***************
+*** 384,390 ****
+  	FREE(file->local);
+  	free(file);
+      }
+!     HTNet_delete(net, req->internal ? HT_IGNORE : status);
+      return YES;
+  }
+  
+--- 382,388 ----
+  	FREE(file->local);
+  	free(file);
+      }
+!     HTNet_delete(net, status);
+      return YES;
+  }
+  
+***************
+*** 418,426 ****
+  	file->state = FS_BEGIN;
+  	net->context = file;
+      } if (ops == FD_CLOSE) {				      /* Interrupted */
+! 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
+! 			   NULL, 0, "HTLoadHTTP");
+! 	FileCleanup(request, HT_INTERRUPTED);
+  	return HT_OK;
+      } else
+  	file = (file_info *) net->context;		/* Get existing copy */
+--- 416,425 ----
+  	file->state = FS_BEGIN;
+  	net->context = file;
+      } if (ops == FD_CLOSE) {				      /* Interrupted */
+! 	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
+! 	    FileCleanup(request, HT_IGNORE);
+! 	else
+! 	    FileCleanup(request, HT_INTERRUPTED);
+  	return HT_OK;
+      } else
+  	file = (file_info *) net->context;		/* Get existing copy */
+***************
+*** 560,565 ****
+--- 559,573 ----
+  		TTYPrint(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
+  			file->local, file->fp);
+  #endif /* !NO_UNIX_IO */
++ 	    file->state = FS_NEED_TARGET;
++ 	    break;
++ 
++ 	  case FS_NEED_TARGET:
++ 	    /*
++ 	    ** We need to wait for the destinations to get ready
++ 	    */
++ 	    if (HTRequest_isSource(request) && !request->output_stream)
++ 		return HT_OK;
+  
+  	    /* Set up stream TO local file system */
+  	    request->input_stream = HTBufWriter_new(net, YES, 512);
+***************
+*** 570,586 ****
+  	    ** before all destinations are ready. If destination then
+  	    ** register the input stream and get ready for read
+  	    */
+! 	    if (HTRequest_isDestination(request)) {
+  		HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+  				 HTLoadFile, net->priority);
+  		HTRequest_linkDestination(request);
+  	    }
+- 	    file->state = FS_NEED_TARGET;
+- 	    if (HTRequest_isSource(request) && !HTRequest_destinationsReady(request))
+- 		return HT_OK;
+- 	    break;
+  
+- 	  case FS_NEED_TARGET:
+  	    /*
+  	    ** Set up read buffer and streams.
+  	    ** If cache element, we know that it's MIME, so call MIME parser
+--- 578,589 ----
+  	    ** before all destinations are ready. If destination then
+  	    ** register the input stream and get ready for read
+  	    */
+! 	    if (HTRequest_isPostWeb(request)) {
+  		HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+  				 HTLoadFile, net->priority);
+  		HTRequest_linkDestination(request);
+  	    }
+  
+  	    /*
+  	    ** Set up read buffer and streams.
+  	    ** If cache element, we know that it's MIME, so call MIME parser
+***************
+*** 636,690 ****
+  
+  	  case FS_GOT_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 	    }
+! 	    FileCleanup(request, HT_LOADED);
+  	    return HT_OK;
+  	    break;
+  
+  	  case FS_NO_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 	    }
+! 	    FileCleanup(request, HT_NO_DATA);
+  	    return HT_OK;
+  	    break;
+  
+  	  case FS_RETRY:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_killPostWeb(request);
+! 	    }
+! 	    FileCleanup(request, HT_RETRY);
+  	    return HT_OK;
+  	    break;
+  
+  	  case FS_ERROR:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_killPostWeb(request);
+! 	    }
+! 	    FileCleanup(request, HT_ERROR);
+  	    return HT_OK;
+  	    break;
+  	}
+--- 639,706 ----
+  
+  	  case FS_GOT_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
++ 		FileCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_LOADED : HT_IGNORE);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		FileCleanup(request, HT_LOADED);
+  	    return HT_OK;
+  	    break;
+  
+  	  case FS_NO_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
++ 		FileCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_NO_DATA : HT_IGNORE);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		FileCleanup(request, HT_NO_DATA);
+  	    return HT_OK;
+  	    break;
+  
+  	  case FS_RETRY:
+  	    if (HTRequest_isPostWeb(request)) {
++ 		FileCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_RETRY : HT_IGNORE);
++ 		HTRequest_killPostWeb(request);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		FileCleanup(request, HT_RETRY);
+  	    return HT_OK;
+  	    break;
+  
+  	  case FS_ERROR:
++ 	    /* Clean up the other connections or just this one */
+  	    if (HTRequest_isPostWeb(request)) {
++ 		FileCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_ERROR : HT_IGNORE);
++ 		HTRequest_killPostWeb(request);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+  					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		FileCleanup(request, HT_ERROR);
+  	    return HT_OK;
+  	    break;
+  	}
+diff -c Library/Repository/Implementation/HTInit.html:2.28.2.1 Library/Repository/Implementation/HTInit.html:2.28
+*** Library/Repository/Implementation/HTInit.html:2.28.2.1	Tue Jan 23 16:31:22 1996
+--- Library/Repository/Implementation/HTInit.html	Tue Jan 23 16:31:22 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Initialization Routines</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 22-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  <H1>Initialization Module</H1>
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Initialization Routines</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+  </HEAD>
+  <BODY>
+  <H1>Initialization Module</H1>
+***************
+*** 36,42 ****
+  
+  <IMG SRC="../../Icons/32x32/warning.gif"> <B>PLEASE SEE THE <A
+  HREF="HTBInit.html">HTBInit MODULE</A> FOR STANDARD BINDINGS BETWEEN
+! FILE EXTENSIONS AND MEDIA TYPES.</B>
+  
+  <PRE>
+  #ifndef HTINIT_H
+--- 36,42 ----
+  
+  <IMG SRC="../../Icons/32x32/warning.gif"> <B>PLEASE SEE THE <A
+  HREF="HTBInit.html">HTBInit MODULE</A> FOR STANDARD BINDINGS BETWEEN
+! FILE EXTENSIONS AND MEDIA TYPES.
+  
+  <PRE>
+  #ifndef HTINIT_H
+***************
+*** 95,101 ****
+  
+  <PRE>
+  #include "HTIcons.h"
+! #include "WWWHTTP.h"
+  #include "HTFile.h"
+  #include "HTFTP.h"
+  #include "HTGopher.h"
+--- 95,101 ----
+  
+  <PRE>
+  #include "HTIcons.h"
+! #include "HTTP.h"
+  #include "HTFile.h"
+  #include "HTFTP.h"
+  #include "HTGopher.h"
+diff -c Library/Repository/Implementation/HTMIME.c:2.45.2.1 Library/Repository/Implementation/HTMIME.c:2.45
+*** Library/Repository/Implementation/HTMIME.c:2.45.2.1	Tue Jan 23 16:31:23 1996
+--- Library/Repository/Implementation/HTMIME.c	Tue Jan 23 16:31:23 1996
+***************
+*** 499,505 ****
+  	    break;
+  
+  	  case LOCATION:
+! 	    request->redirectionAnchor = HTAnchor_findAddress(HTStrip(ptr));
+  	    state = JUNK_LINE;
+  	    break;
+  
+--- 499,513 ----
+  	    break;
+  
+  	  case LOCATION:
+! #if 0
+! 	    /*
+! 	    ** Doesn't work as a redirection header might contain a '='
+! 	    ** Thanks to mitch@tam.net (Mitch DeShields)
+! 	    */
+! 	    if ((value = HTNextField(&ptr)) != NULL)
+! 		StrAllocCopy(request->redirect, value);
+! #endif
+! 	    StrAllocCopy(request->redirect, ptr);
+  	    state = JUNK_LINE;
+  	    break;
+  
+***************
+*** 586,592 ****
+  	if (me->EOLstate == EOL_FCR) {
+  	    if (*b == CR) {				    /* End of header */
+  		int status = parseheader(me, me->request, me->anchor);
+! 		HTNet_setBytesRead(me->net, l);
+  		if (status != HT_OK)
+  		    return status;
+  	    } else if (*b == LF)			   	     /* CRLF */
+--- 594,600 ----
+  	if (me->EOLstate == EOL_FCR) {
+  	    if (*b == CR) {				    /* End of header */
+  		int status = parseheader(me, me->request, me->anchor);
+! 		me->net->bytes_read = l;
+  		if (status != HT_OK)
+  		    return status;
+  	    } else if (*b == LF)			   	     /* CRLF */
+***************
+*** 604,610 ****
+  		me->EOLstate = EOL_SCR;
+  	    else if (*b == LF) {			    /* End of header */
+  		int status = parseheader(me, me->request, me->anchor);
+! 		HTNet_setBytesRead(me->net, l);
+  		if (status != HT_OK)
+  		    return status;
+  	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
+--- 612,618 ----
+  		me->EOLstate = EOL_SCR;
+  	    else if (*b == LF) {			    /* End of header */
+  		int status = parseheader(me, me->request, me->anchor);
+! 		me->net->bytes_read = l;
+  		if (status != HT_OK)
+  		    return status;
+  	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
+***************
+*** 618,624 ****
+  	} else if (me->EOLstate == EOL_SCR) {
+  	    if (*b==CR || *b==LF) {			    /* End of header */
+  		int status = parseheader(me, me->request, me->anchor);
+! 		HTNet_setBytesRead(me->net, l);
+  		if (status != HT_OK)
+  		    return status;
+  	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
+--- 626,632 ----
+  	} else if (me->EOLstate == EOL_SCR) {
+  	    if (*b==CR || *b==LF) {			    /* End of header */
+  		int status = parseheader(me, me->request, me->anchor);
+! 		me->net->bytes_read = l;
+  		if (status != HT_OK)
+  		    return status;
+  	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
+***************
+*** 643,662 ****
+      ** that we get the correct content length of data
+      */
+      if (l > 0) {
+- 	HTParentAnchor * anchor = me->anchor;
+  	if (me->target) {
+  	    int status = (*me->target->isa->put_block)(me->target, b, l);
+  	    if (status == HT_OK)
+  		/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
+  		return (me->request->method == METHOD_HEAD ||
+! 			(anchor->content_length >= 0 &&
+! 			 HTNet_bytesRead(me->net) >= anchor->content_length)) ?
+  			     HT_LOADED : HT_OK;
+  	    else
+  		return status;
+! 	} else if (anchor->header_parsed)
+! 	    return HT_LOADED;
+! 	else
+  	    return HT_WOULD_BLOCK;
+      }
+      return HT_OK;
+--- 651,667 ----
+      ** that we get the correct content length of data
+      */
+      if (l > 0) {
+  	if (me->target) {
+  	    int status = (*me->target->isa->put_block)(me->target, b, l);
+  	    if (status == HT_OK)
+  		/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
+  		return (me->request->method == METHOD_HEAD ||
+! 			(me->anchor->content_length >= 0 &&
+! 			 me->net->bytes_read >= me->anchor->content_length)) ?
+  			     HT_LOADED : HT_OK;
+  	    else
+  		return status;
+! 	} else
+  	    return HT_WOULD_BLOCK;
+      }
+      return HT_OK;
+diff -c Library/Repository/Implementation/HTMIMERq.c:2.8.2.1 Library/Repository/Implementation/HTMIMERq.c:2.8
+*** Library/Repository/Implementation/HTMIMERq.c:2.8.2.1	Tue Jan 23 16:31:24 1996
+--- Library/Repository/Implementation/HTMIMERq.c	Tue Jan 23 16:31:24 1996
+***************
+*** 197,207 ****
+  	return b ? PUTBLOCK(b, l) : HT_OK;
+      else {
+  	MIMEMakeRequest(me, me->request);
+! 	if (HTRequest_isDestination(me->request)) {
+! 	    (*me->target->isa->flush)(me->target);
+! 	    HTNet_setBytesWritten(me->request->net, 0);
+  	}
+! 	me->transparent = YES;	
+  	return b ? PUTBLOCK(b, l) : HT_OK;
+      }
+  }
+--- 197,210 ----
+  	return b ? PUTBLOCK(b, l) : HT_OK;
+      else {
+  	MIMEMakeRequest(me, me->request);
+! #if 0
+! 	if ((status = PUTBLOCK(HTChunk_data(me->buffer),
+! 			       HTChunk_size(me->buffer))) == HT_OK) {
+! 	    me->transparent = YES;
+! 	    return b ? PUTBLOCK(b, l) : HT_OK;
+  	}
+! #endif
+! 	me->transparent = YES;
+  	return b ? PUTBLOCK(b, l) : HT_OK;
+      }
+  }
+diff -c Library/Repository/Implementation/HTNet.c:2.44.2.1 Library/Repository/Implementation/HTNet.c:2.44
+*** Library/Repository/Implementation/HTNet.c:2.44.2.1	Tue Jan 23 16:31:25 1996
+--- Library/Repository/Implementation/HTNet.c	Tue Jan 23 16:31:25 1996
+***************
+*** 503,520 ****
+  
+  	/* Close socket */
+  	if (net->sockfd != INVSOC) {
+- 	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
+  	    if (HTDNS_socket(net->dns) == INVSOC) {
+  		if ((status = NETCLOSE(net->sockfd)) < 0)
+  		    HTRequest_addSystemError(net->request, ERR_FATAL,
+  					     socerrno, NO, "NETCLOSE");
+  		if (WWWTRACE)
+  		    TTYPrint(TDEST, "HTNet_delete closing %d\n", net->sockfd);
+  	    } else {
+  		if (WWWTRACE)
+  		    TTYPrint(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
+  		HTDNS_clearActive(net->dns);
+  		/* Here we should probably use a low priority */
+  		HTEvent_Register(net->sockfd, net->request, (SockOps) FD_READ,
+  				 HTDNS_closeSocket, net->priority);
+  	    }
+--- 503,521 ----
+  
+  	/* Close socket */
+  	if (net->sockfd != INVSOC) {
+  	    if (HTDNS_socket(net->dns) == INVSOC) {
+  		if ((status = NETCLOSE(net->sockfd)) < 0)
+  		    HTRequest_addSystemError(net->request, ERR_FATAL,
+  					     socerrno, NO, "NETCLOSE");
+  		if (WWWTRACE)
+  		    TTYPrint(TDEST, "HTNet_delete closing %d\n", net->sockfd);
++ 		HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
+  	    } else {
+  		if (WWWTRACE)
+  		    TTYPrint(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
+  		HTDNS_clearActive(net->dns);
+  		/* Here we should probably use a low priority */
++ 		HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
+  		HTEvent_Register(net->sockfd, net->request, (SockOps) FD_READ,
+  				 HTDNS_closeSocket, net->priority);
+  	    }
+diff -c Library/Repository/Implementation/HTNetMan.html:2.5.4.1 Library/Repository/Implementation/HTNetMan.html:2.6
+*** Library/Repository/Implementation/HTNetMan.html:2.5.4.1	Tue Jan 23 16:31:26 1996
+--- Library/Repository/Implementation/HTNetMan.html	Tue Jan 23 16:31:26 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Asyncronous Socket Management</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 21-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Asyncronous Socket Management</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 23-Sep-1995 -->
+  </HEAD>
+  <BODY>
+  
+***************
+*** 65,85 ****
+      int 		home;			 /* Current home if multiple */
+      time_t		connecttime;		 /* Used on multihomed hosts */
+      long		bytes_read;		  /* Bytes read from network */
+!     long		bytes_written;		 /* Bytes written to network */
+!     BOOL		preemtive;   /* Eff result from Request and Protocol */
+      HTPriority		priority;	 /* Priority of this request (event) */
+      HTEventCallback *	cbf;			     /* Library load routine */
+      HTRequest *		request;	   /* Link back to request structure */
+      void *		context;		/* Protocol Specific context */
+  };
+  
+! #define HTNet_bytesRead(me)		((me) ? (me)-&gt;bytes_read : -1)
+! #define HTNet_bytesWritten(me)		((me) ? (me)-&gt;bytes_written : -1)
+! 
+! #define HTNet_setBytesRead(me,l)	((me) ? (me-&gt;bytes_read=(l)) : -1)
+! #define HTNet_setBytesWritten(me,l)	((me) ? (me-&gt;bytes_written=(l)) :-1)
+! 
+! #define HTNet_dns(me)			((me) ? (me)-&gt;dns : NULL)
+  </PRE>
+  
+  <PRE>
+--- 65,79 ----
+      int 		home;			 /* Current home if multiple */
+      time_t		connecttime;		 /* Used on multihomed hosts */
+      long		bytes_read;		  /* Bytes read from network */
+!     BOOL		preemptive;   /* Eff result from Request and Protocol */
+      HTPriority		priority;	 /* Priority of this request (event) */
+      HTEventCallback *	cbf;			     /* Library load routine */
+      HTRequest *		request;	   /* Link back to request structure */
+      void *		context;		/* Protocol Specific context */
+  };
+  
+! #define HTNet_bytesRead(me)	((me) ? (me)-&gt;bytes_read : -1)
+! #define HTNet_dns(me)		((me) ? (me)-&gt;dns : NULL)
+  </PRE>
+  
+  <PRE>
+diff -c Library/Repository/Implementation/HTProt.html:2.11 Library/Repository/Implementation/HTProt.html:2.12
+*** Library/Repository/Implementation/HTProt.html:2.11	Tue Jan 23 16:31:27 1996
+--- Library/Repository/Implementation/HTProt.html	Tue Jan 23 16:31:27 1996
+***************
+*** 59,69 ****
+  access acheme. For example HTTP.c is bound to http URLs. The call back
+  function is the function to be called for loading. The reason why it
+  is of type HTEventCallback is that it then can be used directly in the
+! event loop when used in non-preemtive mode.
+  
+  <PRE>
+  extern BOOL HTProtocol_add (CONST char *       	name,
+! 			    BOOL		preemtive,
+  			    HTEventCallback *	client,
+  			    HTEventCallback *	server);
+  </PRE>
+--- 59,69 ----
+  access acheme. For example HTTP.c is bound to http URLs. The call back
+  function is the function to be called for loading. The reason why it
+  is of type HTEventCallback is that it then can be used directly in the
+! event loop when used in non-preemptive mode.
+  
+  <PRE>
+  extern BOOL HTProtocol_add (CONST char *       	name,
+! 			    BOOL		preemptive,
+  			    HTEventCallback *	client,
+  			    HTEventCallback *	server);
+  </PRE>
+***************
+*** 106,118 ****
+  extern HTEventCallback * HTProtocol_server (HTProtocol * protocol);
+  </PRE>
+  
+! <H3>Is Access Scheme Preemtive</H3>
+  
+  Returns YES if the implementation of the access scheme supports
+! preemtive access only.
+  
+  <PRE>
+! extern BOOL HTProtocol_preemtive (HTProtocol * protocol);
+  </PRE>
+  
+  <PRE>
+--- 106,118 ----
+  extern HTEventCallback * HTProtocol_server (HTProtocol * protocol);
+  </PRE>
+  
+! <H3>Is Access Scheme Preemptive</H3>
+  
+  Returns YES if the implementation of the access scheme supports
+! preemptive access only.
+  
+  <PRE>
+! extern BOOL HTProtocol_preemptive (HTProtocol * protocol);
+  </PRE>
+  
+  <PRE>
+diff -c Library/Repository/Implementation/HTReq.html:2.17.2.1 Library/Repository/Implementation/HTReq.html:2.18
+*** Library/Repository/Implementation/HTReq.html:2.17.2.1	Tue Jan 23 16:31:28 1996
+--- Library/Repository/Implementation/HTReq.html	Tue Jan 23 16:31:28 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Public Declaration of Request Manager</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 23-Jan-1996 -->
+  <NEXTID N="z11">
+  </HEAD>
+  <BODY>
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Public Declaration of Request Manager</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 18-Dec-1995 -->
+  <NEXTID N="z11">
+  </HEAD>
+  <BODY>
+***************
+*** 85,102 ****
+  extern HTRequest * HTRequest_dup (HTRequest * src);
+  </PRE>
+  
+- <H4>Create a duplicate for Internal use</H4>
+- 
+- Creates a new HTRequest object as a duplicate of the src request.  The
+- difference to the HTRequest_dup function is that we don't copy the
+- error_stack and other information that the application keeps in its
+- copy of the request object. Otherwise it will be freed multiple times.
+- Returns YES if OK, else NO
+- 
+- <PRE>
+- extern HTRequest * HTRequest_dupInternal (HTRequest * src);
+- </PRE>
+- 
+  <H3>Delete Object</H3>
+  
+  This function deletes the object and cleans up the memory.
+--- 85,90 ----
+***************
+*** 164,182 ****
+  extern HTReload HTRequest_reloadMode (HTRequest *request);
+  </PRE>
+  
+- <H2>Redirections</H2>
+- 
+- When a redirection response is returned to the Library, for example
+- from a remote HTTP server, this code is passed back to the
+- application. The application can then decide whether a new request
+- should be established or not. These two methods return the redirection
+- information required to issue a new request, that is the new anchor
+- and any list of keywords associated with this anchor.
+- 
+- <PRE>
+- extern HTAnchor * HTRequest_redirection (HTRequest * request);
+- </PRE>
+- 
+  <H2>Max number of Retrys for a Down Load</H2>
+  
+  Automatic reload can happen in two situations:
+--- 152,157 ----
+***************
+*** 499,507 ****
+  extern void *HTRequest_context (HTRequest *request);
+  </PRE>
+  
+! <H2>Preemtive or Non-preemtive Access</H2>
+  
+! A access scheme is defined with a default for using either preemtive
+  (blocking I/O) or non-premitve (non-blocking I/O). This is basically a
+  result of the implementation of the protocol module itself. However,
+  if non-blocking I/O is the default then some times it is nice to be
+--- 474,482 ----
+  extern void *HTRequest_context (HTRequest *request);
+  </PRE>
+  
+! <H2>Preemptive or Non-preemptive Access</H2>
+  
+! A access scheme is defined with a default for using either preemptive
+  (blocking I/O) or non-premitve (non-blocking I/O). This is basically a
+  result of the implementation of the protocol module itself. However,
+  if non-blocking I/O is the default then some times it is nice to be
+***************
+*** 510,517 ****
+  non-blocking.
+  
+  <PRE>
+! extern void HTRequest_setPreemtive (HTRequest *request, BOOL mode);
+! extern BOOL HTRequest_preemtive (HTRequest *request);
+  </PRE>
+  
+  <H2>Priority Management</H2>
+--- 485,492 ----
+  non-blocking.
+  
+  <PRE>
+! extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
+! extern BOOL HTRequest_preemptive (HTRequest *request);
+  </PRE>
+  
+  <H2>Priority Management</H2>
+***************
+*** 586,602 ****
+  				      char *		syscall);
+  </PRE>
+  
+! <H2>Bytes Read or Written in a Request</H2>
+  
+  This function returns the bytes read in the current request. For a
+  deeper description of what the current request is, please read the
+  user's guide. This function can be used in for example the <A
+  HREF="HTAlert.html">HTAlert module</A> to give the number of bytes
+! read or written in a progress message.
+  
+  <PRE>
+! extern long HTRequest_bytesRead (HTRequest * request);
+! extern long HTRequest_bytesWritten (HTRequest * request);
+  </PRE>
+  
+  <H2>Kill a Request</H2>
+--- 561,576 ----
+  				      char *		syscall);
+  </PRE>
+  
+! <H2>Bytes Read in Current Request</H2>
+  
+  This function returns the bytes read in the current request. For a
+  deeper description of what the current request is, please read the
+  user's guide. This function can be used in for example the <A
+  HREF="HTAlert.html">HTAlert module</A> to give the number of bytes
+! read in a progress message.
+  
+  <PRE>
+! extern long HTRequest_bytesRead(HTRequest * request);
+  </PRE>
+  
+  <H2>Kill a Request</H2>
+diff -c Library/Repository/Implementation/HTReqMan.c:2.22.2.1 Library/Repository/Implementation/HTReqMan.c:2.22
+*** Library/Repository/Implementation/HTReqMan.c:2.22.2.1	Tue Jan 23 16:31:29 1996
+--- Library/Repository/Implementation/HTReqMan.c	Tue Jan 23 16:31:29 1996
+***************
+*** 108,149 ****
+      return me;
+  }
+  
+- /*	HTRequest_dupInternal
+- **	---------------------
+- **	Creates a new HTRequest object as a duplicate of the src request.
+- **	The difference to the HTRequest_dup function is that we don't copy the
+- **	error_stack and other information that the application keeps in its
+- **	copy of the request object. Otherwise it will be freed multiple times
+- **	Returns YES if OK, else NO
+- */
+- PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
+- {
+-     HTRequest * me;
+-     if (!src) return NO;
+-     if ((me = (HTRequest *) malloc(sizeof(HTRequest))) == NULL)
+- 	outofmem(__FILE__, "HTRequest_dup");
+-     memcpy(me, src, sizeof(HTRequest));
+-     me->internal = YES;
+-     me->boundary = NULL;
+-     me->authenticate = NULL;
+-     me->error_stack = NULL;
+-     me->access = NULL;
+-     me->authorization = NULL;
+-     me->prot_template = NULL;
+-     me->dialog_msg = NULL;
+-     me->net = NULL;
+-     me->WWWAAScheme = NULL;
+-     me->WWWAARealm = NULL;
+-     me->WWWprotection = NULL;
+-     return me;
+- }
+- 
+  /*  Delete a request structure
+  **  --------------------------
+  */
+  PUBLIC void HTRequest_delete (HTRequest * request)
+  {
+      if (request) {
+  	FREE(request->boundary);
+  	FREE(request->authenticate);
+  	if (request->error_stack) HTError_deleteAll(request->error_stack);
+--- 108,120 ----
+      return me;
+  }
+  
+  /*  Delete a request structure
+  **  --------------------------
+  */
+  PUBLIC void HTRequest_delete (HTRequest * request)
+  {
+      if (request) {
++ 	FREE(request->redirect);
+  	FREE(request->boundary);
+  	FREE(request->authenticate);
+  	if (request->error_stack) HTError_deleteAll(request->error_stack);
+***************
+*** 158,163 ****
+--- 129,135 ----
+  	    request->net->request = NULL;
+  
+  	/* These are temporary until we get a MIME thingy */
++ 	FREE(request->redirect);
+  	FREE(request->WWWAAScheme);
+  	FREE(request->WWWAARealm);
+  	FREE(request->WWWprotection);
+***************
+*** 534,547 ****
+  }
+  
+  /*
+- **	Bytes written in this request
+- */
+- PUBLIC long HTRequest_bytesWritten (HTRequest * request)
+- {
+-     return request ? HTNet_bytesWritten(request->net) : -1;
+- }
+- 
+- /*
+  **	Kill this request
+  */
+  PUBLIC BOOL HTRequest_kill(HTRequest * request)
+--- 506,511 ----
+***************
+*** 603,616 ****
+  }
+  
+  /*
+- **    Redirection informantion
+- */
+- PUBLIC HTAnchor * HTRequest_redirection (HTRequest * request)
+- {
+-     return (request ? request->redirectionAnchor : NULL);
+- }
+- 
+- /*
+  **  Set max number of automatic reload. Default is HT_MAX_RELOADS
+  */
+  PUBLIC BOOL HTRequest_setMaxRetry (int newmax)
+--- 567,572 ----
+***************
+*** 682,705 ****
+  **  build the internal request representation of the POST web
+  **  Returns YES if OK, else NO
+  */
+! PUBLIC BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest)
+  {
+      if (src && dest) {
+- 	dest->source = src->source = src;
+  	if (!src->mainDestination) {
+  	    src->mainDestination = dest;
+  	    src->destRequests = 1;
+- 	    if (WWWTRACE)
+- 		TTYPrint(TDEST,"POSTWeb..... Adding dest %p to src %p\n",
+- 			 dest, src);
+  	    return YES;
+  	} else {
+! 	    if (!src->destinations) src->destinations = HTList_new();
+  	    if (HTList_addObject(src->destinations, (void *) dest)==YES) {
+  		src->destRequests++;
+- 		if (WWWTRACE)
+- 		    TTYPrint(TDEST,"POSTWeb..... Adding dest %p to src %p\n",
+- 			     dest, src);
+  		return YES;
+  	    }
+  	}
+--- 638,655 ----
+  **  build the internal request representation of the POST web
+  **  Returns YES if OK, else NO
+  */
+! PUBLIC BOOL HTRequest_addDestination (HTRequest *src, HTRequest *dest)
+  {
+      if (src && dest) {
+  	if (!src->mainDestination) {
+  	    src->mainDestination = dest;
+  	    src->destRequests = 1;
+  	    return YES;
+  	} else {
+! 	    if (!src->destinations)
+! 		src->destinations = HTList_new();
+  	    if (HTList_addObject(src->destinations, (void *) dest)==YES) {
+  		src->destRequests++;
+  		return YES;
+  	    }
+  	}
+***************
+*** 709,719 ****
+  
+  /*
+  **  Remove a destination request from this source request structure
+! **  Remember only to delete the internal request objects as the other
+! **  comes from the application!
+  **  Returns YES if OK, else NO
+  */
+! PUBLIC BOOL HTRequest_removeDestination (HTRequest * dest)
+  {
+      BOOL found=NO;
+      if (dest && dest->source) {
+--- 659,669 ----
+  
+  /*
+  **  Remove a destination request from this source request structure
+! **  Remember not to delete the main destination as it comes from the
+! **  application!
+  **  Returns YES if OK, else NO
+  */
+! PUBLIC BOOL HTRequest_removeDestination (HTRequest *dest)
+  {
+      BOOL found=NO;
+      if (dest && dest->source) {
+***************
+*** 723,773 ****
+  	    src->mainDestination = NULL;
+  	    src->destRequests--;
+  	    found = YES;
+! 	} else if (src->destinations) {
+  	    if (HTList_removeObject(src->destinations, (void *) dest)) {
+  		src->destRequests--;
+  		found = YES;
+  	    }
+  	}
+  	if (found) {
+- 	    if (dest->internal) HTRequest_delete(dest);
+  	    if (WWWTRACE)
+! 	    	TTYPrint(TDEST, "POSTWeb..... Deleting dest %p from src %p\n",
+! 			 dest, src);
+  	}
+! 	if (src->destRequests <= 0) {
+  	    if (WWWTRACE)
+! 		TTYPrint(TDEST, "POSTWeb..... terminated\n");
+! 	    if (src->internal) HTRequest_delete(src);
+  	}
+      }
+      return found;
+  }
+  
+  /*
+! **  Check to see whether all destinations are ready. If so then enable the
+! **  source as ready for reading.
+! **  Returns YES if all dests are ready, NO otherwise
+! */
+! PUBLIC BOOL HTRequest_destinationsReady (HTRequest * me)
+! {
+!     HTRequest * source = me ? me->source : NULL;
+!     if (source) {
+! 	if (source->destStreams == source->destRequests) {
+! 	    HTNet * net = source->net;
+! 	    if (WWWTRACE)
+! 		TTYPrint(TDEST, "POSTWeb..... All destinations are ready!\n");
+! 	    if (net)			      /* Might already have finished */
+! 		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
+! 				 net->cbf, net->priority);
+! 	    return YES;
+! 	}
+!     }
+!     return NO;
+! }
+! 
+! /*
+! **  Find the source request object and make the link between the 
+  **  source output stream and the destination input stream. There can be
+  **  a conversion between the two streams!
+  **  Returns YES if link is made, NO otherwise
+--- 673,701 ----
+  	    src->mainDestination = NULL;
+  	    src->destRequests--;
+  	    found = YES;
+! 	} if (src->destinations) {
+  	    if (HTList_removeObject(src->destinations, (void *) dest)) {
++ 		HTRequest_delete(dest);
+  		src->destRequests--;
+  		found = YES;
+  	    }
+  	}
+  	if (found) {
+  	    if (WWWTRACE)
+! 		TTYPrint(TDEST, "Destination. %p removed from %p\n",
+! 			dest, src);
+  	}
+! 	if (!src->destRequests) {
+  	    if (WWWTRACE)
+! 		TTYPrint(TDEST, "Destination. PostWeb terminated\n");
+! 	    HTRequest_delete(src);
+  	}
+      }
+      return found;
+  }
+  
+  /*
+! **  Find the source request structure and make the link between the 
+  **  source output stream and the destination input stream. There can be
+  **  a conversion between the two streams!
+  **  Returns YES if link is made, NO otherwise
+***************
+*** 782,801 ****
+  				       dest, YES);
+  
+  	/* Check if we are the only one - else spawn off T streams */
+  	/* @@@ We don't do this yet @@@ */
+  
+- 	/* Now set up output stream of the source */
+- 	if (source->output_stream)
+- 	    (*source->output_stream->isa->_free)(source->output_stream);
+  	source->output_stream = pipe ? pipe : dest->input_stream;
+  
+! 	if (WWWTRACE)
+! 	    TTYPrint(TDEST,"POSTWeb..... Linking dest %p to src %p\n",
+! 		     dest, source);
+  	if (++source->destStreams == source->destRequests) {
+  	    HTNet *net = source->net;
+! 	    if (WWWTRACE)
+! 		TTYPrint(TDEST, "POSTWeb..... All destinations ready!\n");
+  	    if (net)			      /* Might already have finished */
+  		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
+  				 net->cbf, net->priority);
+--- 710,726 ----
+  				       dest, YES);
+  
+  	/* Check if we are the only one - else spawn off T streams */
++ 
+  	/* @@@ We don't do this yet @@@ */
+  
+  	source->output_stream = pipe ? pipe : dest->input_stream;
+  
+! 	if (STREAM_TRACE)
+! 	    TTYPrint(TDEST,"Destination. Linked %p to source %p\n",dest,source);
+  	if (++source->destStreams == source->destRequests) {
+  	    HTNet *net = source->net;
+! 	    if (STREAM_TRACE)
+! 		TTYPrint(TDEST, "Destination. All destinations ready!\n");
+  	    if (net)			      /* Might already have finished */
+  		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
+  				 net->cbf, net->priority);
+***************
+*** 828,836 ****
+  	}	
+  	if (found) {
+  	    src->destStreams--;
+! 	    if (WWWTRACE)
+! 		TTYPrint(TDEST, "POSTWeb..... Unlinking dest %p from src %p\n",
+! 			 dest, src);
+  	    return YES;
+  	}
+      }
+--- 753,761 ----
+  	}	
+  	if (found) {
+  	    src->destStreams--;
+! 	    if (STREAM_TRACE)
+! 		TTYPrint(TDEST, "Destination. Unlinked %p from source %p\n",
+! 			dest, src);
+  	    return YES;
+  	}
+      }
+***************
+*** 866,872 ****
+  
+  /*
+  **  Kills all threads in a POST WEB connected to this request but
+! **  NOT this request itself. We also keep the request structures.
+  **  Some requests might be preemtive, for example a SMTP request (when
+  **  that has been implemented). However, this will be handled internally
+  **  in the load function.
+--- 791,797 ----
+  
+  /*
+  **  Kills all threads in a POST WEB connected to this request but
+! **  keep the request structures.
+  **  Some requests might be preemtive, for example a SMTP request (when
+  **  that has been implemented). However, this will be handled internally
+  **  in the load function.
+***************
+*** 875,902 ****
+  {
+      if (me && me->source) {
+  	HTRequest *source = me->source;
+- 	if (WWWTRACE) TTYPrint(TDEST, "POSTWeb..... Killing\n");
+  
+! 	/*
+! 	** Kill source. The stream tree is now freed so we have to build
+! 	** that again. This is done in HTRequest_linkDestination()
+! 	*/
+! 	if (me != source) {
+! 	    HTNet_kill(source->net);
+! 	    source->output_stream = NULL;
+! 	}
+  
+  	/* Kill all other destinations */
+  	if (source->destinations) {
+  	    HTList *cur = source->destinations;
+  	    HTRequest *pres;
+  	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
+! 		if (me != pres) HTNet_kill(pres->net);
+  	}
+! 
+! 	/* Kill main destination */
+! 	if (source->mainDestination && me != source->mainDestination)
+! 	    HTNet_kill(source->mainDestination->net);
+  	return YES;
+      }
+      return NO;
+--- 800,823 ----
+  {
+      if (me && me->source) {
+  	HTRequest *source = me->source;
+  
+! 	/* Kill main destination */
+! 	if (source->mainDestination)
+! 	    HTNet_kill(source->mainDestination->net);
+  
+  	/* Kill all other destinations */
+  	if (source->destinations) {
+  	    HTList *cur = source->destinations;
+  	    HTRequest *pres;
+  	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
+! 		HTNet_kill(pres->net);
+  	}
+! 	/*
+! 	** Kill source. The stream tree is now freed so we have to build
+! 	** that again. This is done in HTRequest_linkDestination()
+! 	*/
+! 	HTNet_kill(source->net);
+! 	source->output_stream = NULL;
+  	return YES;
+      }
+      return NO;
+diff -c Library/Repository/Implementation/HTReqMan.html:2.12.2.1 Library/Repository/Implementation/HTReqMan.html:2.13
+*** Library/Repository/Implementation/HTReqMan.html:2.12.2.1	Tue Jan 23 16:31:31 1996
+--- Library/Repository/Implementation/HTReqMan.html	Tue Jan 23 16:31:31 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Request Object</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 23-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Request Object</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+  </HEAD>
+  <BODY>
+  
+***************
+*** 49,60 ****
+  
+  <PRE>
+  struct _HTRequest {
+- 
+-     BOOL		internal;      /* Does the app knows about this one? */
+- 
+      HTMethod		method;
+      HTReload		reload;
+  
+      char *		boundary;		  /* MIME multipart boundary */
+      int			retrys;       	      /* Number of automatic reloads */
+      time_t		retry_after;		 /* Absolut time for a retry */
+--- 49,58 ----
+  
+  <PRE>
+  struct _HTRequest {
+      HTMethod		method;
+      HTReload		reload;
+  
++     char *		redirect;			  /* Location or URI */
+      char *		boundary;		  /* MIME multipart boundary */
+      int			retrys;       	      /* Number of automatic reloads */
+      time_t		retry_after;		 /* Absolut time for a retry */
+***************
+*** 103,117 ****
+      HTParentAnchor *	parentAnchor;			/* For referer field */
+  </PRE>
+  
+- <H4>Redirection</H4>
+- 
+- If we get a redirection back then we return the new destination for
+- this request to the application using this anchor.
+- 
+- <PRE>
+-     HTAnchor *		redirectionAnchor;		  /* Redirection URL */
+- </PRE>
+- 
+  <H3>Streams From Network to Application</H3>
+  
+  <PRE>
+--- 101,106 ----
+***************
+*** 145,151 ****
+  <H3>Other Flags</H3>
+  
+  <PRE>
+!     BOOL		preemtive;
+      BOOL		ContentNegotiation;
+      BOOL		using_proxy;
+  </PRE>
+--- 134,140 ----
+  <H3>Other Flags</H3>
+  
+  <PRE>
+!     BOOL		preemptive;
+      BOOL		ContentNegotiation;
+      BOOL		using_proxy;
+  </PRE>
+***************
+*** 210,216 ****
+  <PRE>
+  extern BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest);
+  extern BOOL HTRequest_removeDestination	(HTRequest * dest);
+- extern BOOL HTRequest_destinationsReady (HTRequest * me);
+  
+  extern BOOL HTRequest_linkDestination (HTRequest * dest);
+  extern BOOL HTRequest_unlinkDestination (HTRequest * dest);
+--- 199,204 ----
+diff -c Library/Repository/Implementation/HTSocket.c:2.19.2.1 Library/Repository/Implementation/HTSocket.c:2.19
+*** Library/Repository/Implementation/HTSocket.c:2.19.2.1	Tue Jan 23 16:31:32 1996
+--- Library/Repository/Implementation/HTSocket.c	Tue Jan 23 16:31:33 1996
+***************
+*** 114,121 ****
+  				     net->cbf, net->priority);
+  		    return HT_WOULD_BLOCK;
+  		} else { /* We have a real error */
+! 		    HTRequest_addSystemError(request,  ERR_FATAL, socerrno, NO,
+! 					     "NETREAD");
+  		    return HT_ERROR;
+  		}
+  	    } else if (!b_read) {
+--- 114,122 ----
+  				     net->cbf, net->priority);
+  		    return HT_WOULD_BLOCK;
+  		} else { /* We have a real error */
+! 		    if (PROT_TRACE)
+! 			TTYPrint(TDEST, "Read Socket. READ ERROR %d\n",
+! 				socerrno);
+  		    return HT_ERROR;
+  		}
+  	    } else if (!b_read) {
+diff -c Library/Repository/Implementation/HTTP.c:1.111.2.1 Library/Repository/Implementation/HTTP.c:1.111
+*** Library/Repository/Implementation/HTTP.c:1.111.2.1	Tue Jan 23 16:31:34 1996
+--- Library/Repository/Implementation/HTTP.c	Tue Jan 23 16:31:34 1996
+***************
+*** 61,69 ****
+      HTTP_BEGIN		= 0,
+      HTTP_NEED_CONNECTION,
+      HTTP_NEED_REQUEST,
+!     HTTP_PERM_REDIRECT,
+!     HTTP_TEMP_REDIRECT,
+      HTTP_NOT_MODIFIED,
+      HTTP_AA
+  } HTTPState;
+  
+--- 61,69 ----
+      HTTP_BEGIN		= 0,
+      HTTP_NEED_CONNECTION,
+      HTTP_NEED_REQUEST,
+!     HTTP_REDIRECTION,
+      HTTP_NOT_MODIFIED,
++     HTTP_EXPIRED,
+      HTTP_AA
+  } HTTPState;
+  
+***************
+*** 104,112 ****
+      http_info *http = (http_info *) net->context;
+  
+      /* Free stream with data TO network */
+!     if (HTRequest_isDestination(req))
+! 	HTRequest_removeDestination(req);
+!     else if (req->input_stream) {
+  	if (status == HT_INTERRUPTED)
+  	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+  	else
+--- 104,110 ----
+      http_info *http = (http_info *) net->context;
+  
+      /* Free stream with data TO network */
+!     if (!HTRequest_isDestination(req) && req->input_stream) {
+  	if (status == HT_INTERRUPTED)
+  	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+  	else
+***************
+*** 114,129 ****
+  	req->input_stream = NULL;
+      }
+  
+-     /* Free user part of stream pipe if error */
+-     if (!net->target && req->output_stream)
+- 	(*req->output_stream->isa->abort)(req->output_stream, NULL);
+- 
+      /* Remove the request object and our own context structure for http */
+!     HTNet_delete(net, req->internal ? HT_IGNORE : status);
+      FREE(http);
+      return YES;
+  }
+  
+  /*
+  **	This is a big switch handling all HTTP return codes. It puts in any
+  **	appropiate error message and decides whether we should expect data
+--- 112,163 ----
+  	req->input_stream = NULL;
+      }
+  
+      /* Remove the request object and our own context structure for http */
+!     HTNet_delete(net, status);
+      FREE(http);
+      return YES;
+  }
+  
++ 
++ PRIVATE BOOL HTTPAuthentication (HTRequest * request)
++ {
++     HTAAScheme scheme;
++     HTList *valid_schemes = HTList_new();
++     HTAssocList **scheme_specifics = NULL;
++     char *tmplate = NULL;
++ 
++     if (request->WWWAAScheme) {
++ 	if ((scheme = HTAAScheme_enum(request->WWWAAScheme)) != HTAA_UNKNOWN) {
++ 	    HTList_addObject(valid_schemes, (void *) scheme);
++ 	    if (!scheme_specifics) {
++ 		int i;
++ 		scheme_specifics = (HTAssocList**)
++ 		    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
++ 		if (!scheme_specifics)
++ 		    outofmem(__FILE__, "HTTPAuthentication");
++ 		for (i=0; i < HTAA_MAX_SCHEMES; i++)
++ 		    scheme_specifics[i] = NULL;
++ 	    }
++ 	    scheme_specifics[scheme] = HTAA_parseArgList(request->WWWAARealm);
++ 	} else if (PROT_TRACE) {
++ 	    HTRequest_addError(request, ERR_INFO, NO, HTERR_UNKNOWN_AA,
++ 		       (void *) request->WWWAAScheme, 0, "HTTPAuthentication");
++ 	    return NO;
++ 	}
++     }
++     if (request->WWWprotection) {
++ 	if (PROT_TRACE)
++ 	    TTYPrint(TDEST, "Protection template set to `%s'\n",
++ 		    request->WWWprotection);
++ 	StrAllocCopy(tmplate, request->WWWprotection);
++     }
++     request->valid_schemes = valid_schemes;
++     request->scheme_specifics = scheme_specifics;
++     request->prot_template = tmplate;
++     return YES;
++ }
++ 
++ 
+  /*
+  **	This is a big switch handling all HTTP return codes. It puts in any
+  **	appropiate error message and decides whether we should expect data
+***************
+*** 135,183 ****
+  
+        case 0:						     /* 0.9 response */
+        case 200:
+- 	me->http->next = HTTP_GOT_DATA;
+- 	break;
+- 
+        case 201:
+- 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CREATED,
+- 			   me->reason, (int) strlen(me->reason),
+- 			   "HTTPNextState");
+- 	me->http->next = HTTP_GOT_DATA;
+- 	break;
+- 
+        case 202:
+- 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_ACCEPTED,
+- 			   me->reason, (int) strlen(me->reason),
+- 			   "HTTPNextState");
+- 	me->http->next = HTTP_GOT_DATA;
+- 	break;
+- 
+        case 203:
+- 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL,
+- 			   me->reason, (int) strlen(me->reason),
+- 			   "HTTPNextState");
+  	me->http->next = HTTP_GOT_DATA;
+  	break;
+  
+        case 204:						      /* No Response */
+- 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NO_CONTENT,
+- 			   me->reason, (int) strlen(me->reason),
+- 			   "HTTPNextState");
+  	me->http->next = HTTP_NO_DATA;
+  	break;
+  
+        case 301:						   	    /* Moved */
+- 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_MOVED,
+- 			   me->reason, (int) strlen(me->reason),
+- 			   "HTTPNextState");
+- 	me->http->next = HTTP_PERM_REDIRECT;
+- 	break;
+- 
+        case 302:							    /* Found */
+! 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_FOUND,
+! 			   me->reason, (int) strlen(me->reason),
+! 			   "HTTPNextState");
+! 	me->http->next = HTTP_TEMP_REDIRECT;
+  	break;
+  	
+        case 303:							   /* Method */
+--- 169,187 ----
+  
+        case 0:						     /* 0.9 response */
+        case 200:
+        case 201:
+        case 202:
+        case 203:
+  	me->http->next = HTTP_GOT_DATA;
+  	break;
+  
+        case 204:						      /* No Response */
+  	me->http->next = HTTP_NO_DATA;
+  	break;
+  
+        case 301:						   	    /* Moved */
+        case 302:							    /* Found */
+! 	me->http->next = HTTP_REDIRECTION;
+  	break;
+  	
+        case 303:							   /* Method */
+***************
+*** 188,196 ****
+  	break;
+  
+        case 304:						     /* Not Modified */
+- 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_MODIFIED,
+- 			   me->reason, (int) strlen(me->reason),
+- 			   "HTTPNextState");
+  	me->http->next = HTTP_NOT_MODIFIED;
+  	break;
+  	
+--- 192,197 ----
+***************
+*** 350,356 ****
+  	    *ptr = '\0';
+  
+  	/* Set up the streams */
+! 	if (me->status==200) {
+  	    HTStream *s;
+  	    me->target = HTStreamStack(WWW_MIME, req->output_format,
+  				       req->output_stream, req, NO);
+--- 351,357 ----
+  	    *ptr = '\0';
+  
+  	/* Set up the streams */
+! 	if (me->status==200 && req->method==METHOD_GET) {
+  	    HTStream *s;
+  	    me->target = HTStreamStack(WWW_MIME, req->output_format,
+  				       req->output_stream, req, NO);
+***************
+*** 492,499 ****
+      int status = HT_ERROR;
+      HTNet *net = request->net;		     /* Generic protocol information */
+      http_info *http;			    /* Specific protocol information */
+!     HTParentAnchor *anchor = HTRequest_anchor(request);
+! 
+      /*
+      ** Initiate a new http structure and bind to request structure
+      ** This is actually state HTTP_BEGIN, but it can't be in the state
+--- 493,499 ----
+      int status = HT_ERROR;
+      HTNet *net = request->net;		     /* Generic protocol information */
+      http_info *http;			    /* Specific protocol information */
+!     
+      /*
+      ** Initiate a new http structure and bind to request structure
+      ** This is actually state HTTP_BEGIN, but it can't be in the state
+***************
+*** 501,516 ****
+      */
+      if (ops == FD_NONE) {
+  	if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Looking for `%s\'\n",
+! 				HTAnchor_physical(anchor));
+  	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
+  	    outofmem(__FILE__, "HTLoadHTTP");
+  	http->state = HTTP_BEGIN;
+  	http->next = HTTP_ERROR;
+  	net->context = http;
+      } else if (ops == FD_CLOSE) {			      /* Interrupted */
+! 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
+! 			   NULL, 0, "HTLoadHTTP");
+! 	HTTPCleanup(request, HT_INTERRUPTED);
+  	return HT_OK;
+      } else
+  	http = (http_info *) net->context;		/* Get existing copy */
+--- 501,521 ----
+      */
+      if (ops == FD_NONE) {
+  	if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Looking for `%s\'\n",
+! 				HTAnchor_physical(request->anchor));
+  	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
+  	    outofmem(__FILE__, "HTLoadHTTP");
+  	http->state = HTTP_BEGIN;
+  	http->next = HTTP_ERROR;
+  	net->context = http;
+      } else if (ops == FD_CLOSE) {			      /* Interrupted */
+! #if 1
+! 	if (HTRequest_isPostWeb(request))
+! #else
+! 	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
+! #endif
+! 	    HTTPCleanup(request, HT_IGNORE);
+! 	else
+! 	    HTTPCleanup(request, HT_INTERRUPTED);
+  	return HT_OK;
+      } else
+  	http = (http_info *) net->context;		/* Get existing copy */
+***************
+*** 538,544 ****
+  	    break;
+  	    
+  	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
+! 	    status = HTDoConnect(net, HTAnchor_physical(anchor),
+  				 HTTP_PORT);
+  	    if (status == HT_OK) {
+  
+--- 543,549 ----
+  	    break;
+  	    
+  	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
+! 	    status = HTDoConnect(net, HTAnchor_physical(request->anchor),
+  				 HTTP_PORT);
+  	    if (status == HT_OK) {
+  
+***************
+*** 566,572 ****
+  		** before all destinations are ready. If destination then
+  		** register the input stream and get ready for read
+  		*/
+! 		if (HTRequest_isDestination(request)) {
+  		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+  				     HTLoadHTTP, net->priority);
+  		    HTRequest_linkDestination(request);
+--- 571,577 ----
+  		** before all destinations are ready. If destination then
+  		** register the input stream and get ready for read
+  		*/
+! 		if (HTRequest_isPostWeb(request)) {
+  		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+  				     HTLoadHTTP, net->priority);
+  		    HTRequest_linkDestination(request);
+***************
+*** 574,581 ****
+  
+  		/* Set up stream FROM network and corresponding read buffer */
+  		net->isoc = HTInputSocket_new(net->sockfd);
+- 		net->target = HTTPStatus_new(request, http);
+  
+  		http->state = HTTP_NEED_REQUEST;
+  	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
+  		return HT_OK;
+--- 579,587 ----
+  
+  		/* Set up stream FROM network and corresponding read buffer */
+  		net->isoc = HTInputSocket_new(net->sockfd);
+  
++ 		/* @@@ USE STREAM STACK @@@ */
++ 		net->target = HTTPStatus_new(request, http);
+  		http->state = HTTP_NEED_REQUEST;
+  	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
+  		return HT_OK;
+***************
+*** 588,599 ****
+  	    if (ops == FD_WRITE || ops == FD_NONE) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTNet *srcnet = request->source->net;
+! 		    if (srcnet) {
+! 			HTEvent_Register(srcnet->sockfd, request->source,
+! 					 (SockOps) FD_READ,
+! 					 srcnet->cbf, srcnet->priority);
+! 			HTEvent_UnRegister(net->sockfd, FD_WRITE);
+! 		    }
+  		    return HT_OK;
+  		}
+  		status = request->PostCallback ?
+--- 594,603 ----
+  	    if (ops == FD_WRITE || ops == FD_NONE) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTNet *srcnet = request->source->net;
+! 		    TTYPrint(TDEST,"File Serve. HERE!\n");		
+! 		    HTEvent_Register(srcnet->sockfd, request->source,
+! 				     (SockOps) FD_READ,
+! 				     srcnet->cbf, srcnet->priority);
+  		    return HT_OK;
+  		}
+  		status = request->PostCallback ?
+***************
+*** 609,614 ****
+--- 613,620 ----
+  		    return HT_OK;
+  		else if (status == HT_LOADED)
+  		    http->state = http->next;	       /* Jump to next state */
++ 		else if (status == HT_RELOAD)
++ 		    http->state = HTTP_EXPIRED;
+  		else
+  		    http->state = HTTP_ERROR;
+  	    } else {
+***************
+*** 620,719 ****
+  	    http->state = HTTP_ERROR;
+  	    break;
+  
+! 	  case HTTP_PERM_REDIRECT:
+! 	    if (HTRequest_isPostWeb(request)) {
+! 		if (HTRequest_isDestination(request)) {
+! 		    HTLink *link =
+! 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) anchor);
+! 		    HTLink_setResult(link, HT_LINK_ERROR);
+! 		}
+  		HTRequest_killPostWeb(request);
+! 	    }
+! 	    HTTPCleanup(request, HT_PERM_REDIRECT);
+! 	    return HT_OK;
+! 	    break;
+! 
+  
+! 	  case HTTP_TEMP_REDIRECT:
+! 	    if (HTRequest_isPostWeb(request)) {
+! 		if (HTRequest_isDestination(request)) {
+! 		    HTLink *link =
+! 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) anchor);
+! 		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_killPostWeb(request);
+  	    }
+- 	    HTTPCleanup(request, HT_TEMP_REDIRECT);
+- 	    return HT_OK;
+  	    break;
+! 
+  	  case HTTP_AA:
+! 	    if (HTRequest_isPostWeb(request)) {
+! 		if (HTRequest_isDestination(request)) {
+! 		    HTLink *link =
+! 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) anchor);
+! 		    HTLink_setResult(link, HT_LINK_ERROR);
+! 		}
+  		HTRequest_killPostWeb(request);
+  	    }
+- 	    HTTPCleanup(request, HT_NO_ACCESS);
+- 	    return HT_OK;
+  	    break;
+! 
+  	  case HTTP_GOT_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 	    }
+! 	    HTTPCleanup(request, HT_LOADED);
+  	    return HT_OK;
+  	    break;
+  	    
+  	  case HTTP_NO_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 	    }
+! 	    HTTPCleanup(request, HT_NO_DATA);
+  	    return HT_OK;
+  	    break;
+  	    
+  	  case HTTP_RETRY:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link = 
+  			HTAnchor_findLink((HTAnchor*) request->source->anchor,
+! 					  (HTAnchor*) anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_killPostWeb(request);
+! 	    }
+! 	    HTTPCleanup(request, HT_RETRY);
+  	    return HT_OK;
+  	    break;
+  
+  	  case HTTP_ERROR:
+  	    if (HTRequest_isPostWeb(request)) {
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_killPostWeb(request);
+! 	    }
+! 	    HTTPCleanup(request, HT_ERROR);
+  	    return HT_OK;
+  	    break;
+  	}
+--- 626,821 ----
+  	    http->state = HTTP_ERROR;
+  	    break;
+  
+! 	  case HTTP_EXPIRED:
+! #if 0
+! 	    /* Dirty hack and fall through */
+! 	    if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Expired\n");
+! 	    request->redirect = request->anchor->address;
+! #endif
+! 
+! 	  case HTTP_REDIRECTION:
+! 	    /* Clean up the other connections or just this one */
+! 	    if (HTRequest_isPostWeb(request))
+  		HTRequest_killPostWeb(request);
+! 	    else
+! 		HTTPCleanup(request, HT_IGNORE);
+  
+! 	    /* If we found a new URL in the response */
+! 	    if (request->redirect) {
+! 		if (status == 301) {
+! 		    HTRequest_addError(request, ERR_INFO, NO, HTERR_MOVED,
+! 			       (void *) request->redirect,
+! 			       (int) strlen(request->redirect), "HTLoadHTTP");
+! 		} else if (status == 302) {
+! 		    HTRequest_addError(request, ERR_INFO, NO, HTERR_FOUND,
+! 			       (void *) request->redirect,
+! 			       (int) strlen(request->redirect), "HTLoadHTTP");
+! 		}
+! 
+! 		/* If we haven't reached the limit for redirection */
+! 		if (HTRequest_retry(request)) {
+! 		    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
+! 		    HTAnchor *anchor = HTAnchor_findAddress(request->redirect);
+! 
+! 		    /* Make sure that we don't get this from cache */
+! 		    HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+! 		    
+! 		    if (HTRequest_isPostWeb(request)) {
+! 			HTRequest *dest = HTRequest_mainDestination(request);
+! 			if (cbf && (*cbf)(request, HT_A_CONFIRM, HT_MSG_MOVED,
+! 					  NULL, request->redirect, NULL)) {
+! 
+! 			    /* The new anchor inherits the Post Web */
+! 			    HTAnchor_moveAllLinks((HTAnchor *) request->anchor,
+! 						  anchor);
+! 			    if (HTRequest_isSource(request))
+! 				HTRequest_delete(request);
+! 			    return HTCopyAnchor((HTAnchor *) anchor, dest) ?
+! 				HT_OK : HT_ERROR;
+! 			}
+! 			return HT_OK;
+! 		    } if (request->PostCallback) {
+! #if 0
+! 			return HTUploadAnchor((HTAnchor*) anchor, request) ?
+! 			    HT_OK : HT_ERROR;
+! #endif
+! 		    } else {
+! 			return HTLoadAnchor((HTAnchor *) anchor, request) ?
+! 			    HT_OK : HT_ERROR;
+! 		    }
+! 		} else {
+! 		    HTRequest_addError(request, ERR_FATAL, NO,
+! 				       HTERR_MAX_REDIRECT,NULL,0,"HTLoadHTTP");
+! 		    if (HTRequest_isPostWeb(request)) {
+! 			BOOL main = HTRequest_isMainDestination(request);
+! 			if (HTRequest_isDestination(request)) {
+! 			    HTLink *link =
+! 				HTAnchor_findLink((HTAnchor *)request->source->anchor,
+! 						  (HTAnchor *)request->anchor);
+! 			    HTLink_setResult(link, HT_LINK_ERROR);
+! 			}
+! 			HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
+! 			HTRequest_removeDestination(request);
+! 		    }
+! 		    return HT_OK;
+  		}
+! 	    } else {
+! 		HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+! 			   NULL, 0, "HTLoadHTTP");
+! 		return HT_OK;
+  	    }
+  	    break;
+! 	    
+  	  case HTTP_AA:
+! 	    /* Clean up the other connections or just this one */
+! 	    if (HTRequest_isPostWeb(request))
+  		HTRequest_killPostWeb(request);
++ 	    else
++ 		HTTPCleanup(request, HT_IGNORE);
++ 
++ 	    /* Ask the user for a UserID and a passwd */
++ 	    if (HTTPAuthentication(request) && HTAA_retryWithAuth(request)) {
++ 		int ret;
++ 
++ 		/* Make sure that we don't get this from cache */
++ 		HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
++ 
++ 		if (HTRequest_isPostWeb(request)) {
++ 		    HTRequest *dest = HTRequest_mainDestination(request);
++ 		    HTAnchor_appendMethods(request->anchor, request->method);
++ 		    ret=HTCopyAnchor((HTAnchor*)request->source->anchor, dest);
++ 		    return ret ? HT_OK : HT_ERROR;
++ 		} else if (request->PostCallback) {
++ #if 0
++ 		    ret = HTUploadAnchor((HTAnchor*) request->anchor,request);
++ 		    return ret ? HT_OK : HT_ERROR;
++ #endif
++ 		} else {
++ 		    ret = HTLoadAnchor((HTAnchor *) request->anchor, request);
++ 		    return ret ? HT_OK : HT_ERROR;
++ 		}
++ 	    } else {				   /* If the guy said no :-( */
++ 		HTRequest_addError(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
++ 			   NULL, 0, "HTLoadHTTP");
++ 		if (HTRequest_isPostWeb(request)) {
++ 		    BOOL main = HTRequest_isMainDestination(request);
++ 		    if (HTRequest_isDestination(request)) {
++ 			HTLink *link =
++ 			    HTAnchor_findLink((HTAnchor *) request->source->anchor,
++ 					      (HTAnchor *) request->anchor);
++ 			HTLink_setResult(link, HT_LINK_ERROR);
++ 		    }
++ 		    HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
++ 		    HTRequest_removeDestination(request);
++ 		}
++ 		return HT_OK;
+  	    }
+  	    break;
+! 	    
+  	  case HTTP_GOT_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
++ 		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_LOADED : HT_IGNORE);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) request->anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		HTTPCleanup(request, HT_LOADED);
+  	    return HT_OK;
+  	    break;
+  	    
+  	  case HTTP_NO_DATA:
+  	    if (HTRequest_isPostWeb(request)) {
++ 		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_NO_DATA : HT_IGNORE);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) request->anchor);
+  		    HTLink_setResult(link, HT_LINK_OK);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		HTTPCleanup(request, HT_NO_DATA);
+  	    return HT_OK;
+  	    break;
+  	    
+  	  case HTTP_RETRY:
+  	    if (HTRequest_isPostWeb(request)) {
++ 		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_RETRY : HT_IGNORE);
++ 		HTRequest_killPostWeb(request);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link = 
+  			HTAnchor_findLink((HTAnchor*) request->source->anchor,
+! 					  (HTAnchor*) request->anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		HTTPCleanup(request, HT_RETRY);
+  	    return HT_OK;
+  	    break;
+  
+  	  case HTTP_ERROR:
++ 	    /* Clean up the other connections or just this one */
+  	    if (HTRequest_isPostWeb(request)) {
++ 		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
++ 			    HT_ERROR : HT_IGNORE);
++ 		HTRequest_killPostWeb(request);
+  		if (HTRequest_isDestination(request)) {
+  		    HTLink *link =
+  			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+! 					  (HTAnchor *) request->anchor);
+  		    HTLink_setResult(link, HT_LINK_ERROR);
+  		}
+! 		HTRequest_removeDestination(request);
+! 	    } else
+! 		HTTPCleanup(request, HT_ERROR);
+  	    return HT_OK;
+  	    break;
+  	}
+diff -c Library/Repository/Implementation/HTTPRes.c:2.2.2.1 Library/Repository/Implementation/HTTPRes.c:2.2
+*** Library/Repository/Implementation/HTTPRes.c:2.2.2.1	Tue Jan 23 16:31:36 1996
+--- Library/Repository/Implementation/HTTPRes.c	Tue Jan 23 16:31:36 1996
+***************
+*** 76,81 ****
+--- 76,82 ----
+  PRIVATE void HTTPMakeResponse (HTStream * me, HTRequest * request)
+  {
+      char linebuf[256];
++     HTParentAnchor *anchor = HTRequest_anchor(request);
+  
+      /* Generate the HTTP/1.0 ResponseLine */
+      if (request->error_stack) {
+diff -c Library/Repository/Implementation/HTTPServ.c:2.4.2.1 Library/Repository/Implementation/HTTPServ.c:2.4
+*** Library/Repository/Implementation/HTTPServ.c:2.4.2.1	Tue Jan 23 16:31:37 1996
+--- Library/Repository/Implementation/HTTPServ.c	Tue Jan 23 16:31:37 1996
+***************
+*** 102,108 ****
+  PRIVATE int ParseRequest (HTStream * me)
+  {
+      HTRequest * request = me->request;
+!     HTRequest * newreq = me->http->serve = HTRequest_dupInternal(request);
+      char * line = HTChunk_data(me->buffer);
+      char * method;
+      char * request_uri;
+--- 102,108 ----
+  PRIVATE int ParseRequest (HTStream * me)
+  {
+      HTRequest * request = me->request;
+!     HTRequest * newreq = me->http->serve = HTRequest_dup(request);
+      char * line = HTChunk_data(me->buffer);
+      char * method;
+      char * request_uri;
+diff -c Library/Repository/Implementation/HTUtils.html:2.51.2.1 Library/Repository/Implementation/HTUtils.html:2.51
+*** Library/Repository/Implementation/HTUtils.html:2.51.2.1	Tue Jan 23 16:31:37 1996
+--- Library/Repository/Implementation/HTUtils.html	Tue Jan 23 16:31:37 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Utility macros</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 20-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Utility macros</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 14-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+***************
+*** 277,287 ****
+  #define HT_OK			0	/* Generic success */
+  #define HT_ALL			1	/* Used by Net Manager */
+  
+! #define HT_PERSISTENT		29993	/* Wait for persistent connection */
+! #define HT_IGNORE		29994	/* Ignore this in the Net manager */
+! #define HT_NO_DATA		29995	/* OK but no data was loaded */
+! #define HT_PERM_REDIRECT	29997	/* Redo the retrieve with a new URL */
+! #define HT_TEMP_REDIRECT	29998	/* Redo the retrieve with a new URL */
+  #define HT_LOADED		29999	/* Instead of a socket */
+  
+  #define HT_ERROR		-1	/* Generic failure */
+--- 277,287 ----
+  #define HT_OK			0	/* Generic success */
+  #define HT_ALL			1	/* Used by Net Manager */
+  
+! #define HT_PERSISTENT		29995	/* Wait for persistent connection */
+! #define HT_IGNORE		29996	/* Ignore this in the Net manager */
+! #define HT_NO_DATA		29997	/* OK but no data was loaded */
+! #define HT_REDIRECTION_ON_FLY   29998	/* Redo the retrieve with a new URL */
+! #define HT_REDIRECT		29998	/* Redo the retrieve with a new URL */
+  #define HT_LOADED		29999	/* Instead of a socket */
+  
+  #define HT_ERROR		-1	/* Generic failure */
+diff -c Library/Repository/Implementation/HTWriter.c:2.27.4.1 Library/Repository/Implementation/HTWriter.c:2.27
+*** Library/Repository/Implementation/HTWriter.c:2.27.4.1	Tue Jan 23 16:31:38 1996
+--- Library/Repository/Implementation/HTWriter.c	Tue Jan 23 16:31:38 1996
+***************
+*** 18,24 ****
+  #include "HTReq.h"
+  #include "HTNetMan.h"
+  #include "HTConLen.h"
+- #include "HTAlert.h"
+  #include "HTWriter.h"					 /* Implemented here */
+  
+  struct _HTStream {
+--- 18,23 ----
+***************
+*** 69,76 ****
+  {
+      int b_write;
+      CONST char *limit = buf+len;
+-     HTRequest * request = me->net->request;
+-     HTNet * net = me->net;
+  
+  #ifdef NOT_ASCII
+      if (me->make_ascii && len && !me->ascbuf) {	      /* Generate new buffer */
+--- 68,73 ----
+***************
+*** 104,116 ****
+  #endif
+  	    {
+  		if (PROT_TRACE)
+! 		    TTYPrint(TDEST,"Write Socket WOULD BLOCK %d\n",me->sockfd);
+! 		HTEvent_Register(me->sockfd, request, (SockOps) FD_WRITE,
+! 				 net->cbf, net->priority);
+  		return HT_WOULD_BLOCK;
+  	    } else {
+! 		HTRequest_addSystemError(request,  ERR_FATAL, socerrno, NO,
+! 					 "NETWRITE");
+  		return HT_ERROR;
+  	    }
+  	}
+--- 101,113 ----
+  #endif
+  	    {
+  		if (PROT_TRACE)
+! 		    TTYPrint(TDEST,"Write Socket WOULD BLOCK %d\n", me->sockfd);
+! 		HTEvent_Register(me->sockfd,me->net->request,(SockOps)FD_WRITE,
+! 				 me->net->cbf, me->net->priority);
+  		return HT_WOULD_BLOCK;
+  	    } else {
+! 		if (PROT_TRACE)
+! 		    TTYPrint(TDEST, "Write Socket WRITE ERROR %d\n", socerrno);
+  		return HT_ERROR;
+  	    }
+  	}
+***************
+*** 120,130 ****
+  	if (PROT_TRACE)
+  	    TTYPrint(TDEST, "Write Socket %d bytes written to socket %d\n",
+  		    b_write, me->sockfd);
+- 	net->bytes_written += b_write;
+- 	{
+- 	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
+- 	    if (cbf) (*cbf)(request, HT_PROG_WRITE,HT_MSG_NULL,NULL,NULL,NULL);
+- 	}
+      }
+  #ifdef NOT_ASCII
+      FREE(me->ascbuf);
+--- 117,122 ----
+diff -c Library/Repository/Implementation/Version.make:1.47.2.1 Library/Repository/Implementation/Version.make:1.47
+*** Library/Repository/Implementation/Version.make:1.47.2.1	Tue Jan 23 16:31:39 1996
+--- Library/Repository/Implementation/Version.make	Tue Jan 23 16:31:39 1996
+***************
+*** 1 ****
+! VC = 4.0C
+--- 1 ----
+! VC = 4.0B
+diff -c Library/Repository/Implementation/windows/wwwcore.def:1.5.2.2 Library/Repository/Implementation/windows/wwwcore.def:1.5
+*** Library/Repository/Implementation/windows/wwwcore.def:1.5.2.2	Tue Jan 23 16:31:41 1996
+--- Library/Repository/Implementation/windows/wwwcore.def	Tue Jan 23 16:31:42 1996
+***************
+*** 190,208 ****
+  HTEvent_getWinHandle	@ 1003
+  HTEvent_winHandle	@ 1004
+  HTEvent_setWinHandle	@ 1005
+! HTEvent_getWinHandle	@ 1006
+! HTEvent_registerTimeout	@ 1007
+! HTEvent_unregisterTimeout @ 1008
+! HTEvent_RegisterTTY	@ 1009
+! HTEvent_UnRegisterTTY	@ 1010
+! HTEvent_Register	@ 1011
+! HTEvent_UnRegister	@ 1012
+! HTEvent_Retrieve	@ 1013
+! HTEvent_UnregisterAll	@ 1014
+! AsyncWindowProc		@ 1015
+  HTEvent_Loop		@ 1016
+- AsyncWindowProc		@ 1017
+- HTEvent_Loop		@ 1018
+  
+  ;HTFormat.c		@ 1100
+  HTPresentation_add	@ 1101
+--- 190,206 ----
+  HTEvent_getWinHandle	@ 1003
+  HTEvent_winHandle	@ 1004
+  HTEvent_setWinHandle	@ 1005
+! HTEvent_registerTimeout	@ 1006
+! HTEvent_unregisterTimeout @ 1007
+! HTEvent_RegisterTTY	@ 1008
+! HTEvent_UnRegisterTTY	@ 1009
+! HTEvent_Register	@ 1010
+! HTEvent_UnRegister	@ 1011
+! HTEvent_Retrieve	@ 1012
+! HTEvent_UnregisterAll	@ 1013
+! AsyncWindowProc		@ 1014
+! HTEvent_Loop		@ 1015
+  HTEvent_Loop		@ 1016
+  
+  ;HTFormat.c		@ 1100
+  HTPresentation_add	@ 1101
+***************
+*** 295,377 ****
+  ;HTReqMan.c		@ 1700
+  HTRequest_new		@ 1701
+  HTRequest_dup		@ 1702
+! HTRequest_dupInternal	@ 1703
+! HTRequest_delete	@ 1704
+! HTRequest_setMethod	@ 1705
+! HTRequest_method	@ 1706
+! HTRequest_setReloadMode	@ 1707
+! HTRequest_reloadMode	@ 1708
+! HTRequest_setConversion	@ 1709
+! HTRequest_conversion	@ 1710
+! HTRequest_setEncoding	@ 1711
+! HTRequest_encoding	@ 1712
+! HTRequest_setLanguage	@ 1713
+! HTRequest_language	@ 1714
+! HTRequest_setCharset	@ 1715
+! HTRequest_charset	@ 1716
+! HTRequest_setGenerator	@ 1717
+! HTRequest_generator	@ 1718
+! HTRequest_setParser	@ 1719
+! HTRequest_parser	@ 1720
+! HTRequest_setGnHd	@ 1721
+! HTRequest_addGnHd	@ 1722
+! HTRequest_gnHd		@ 1723
+! HTRequest_setRqHd	@ 1724
+! HTRequest_addRqHd	@ 1725
+! HTRequest_rqHd		@ 1726
+! HTRequest_setRsHd	@ 1727
+! HTRequest_addRsHd	@ 1728
+! HTRequest_rsHd		@ 1729
+! HTRequest_setEnHd	@ 1730
+! HTRequest_addEnHd	@ 1731
+! HTRequest_enHd		@ 1732
+! HTRequest_setAccess	@ 1733
+! HTRequest_access	@ 1734
+! HTRequest_setAnchor	@ 1735
+! HTRequest_anchor	@ 1736
+! HTRequest_setParent	@ 1737
+! HTRequest_parent	@ 1738
+! HTRequest_setOutputStream @ 1739
+! HTRequest_outputStream	@ 1740
+! HTRequest_setOutputFormat @ 1741
+! HTRequest_outputFormat	@ 1742
+! HTRequest_setDebugStream @ 1743
+! HTRequest_debugStream	@ 1744
+! HTRequest_setDebugFormat @ 1745
+! HTRequest_debugFormat	@ 1746
+! HTRequest_setCallback	@ 1747
+! HTRequest_callback	@ 1748
+! HTRequest_setContext	@ 1749
+! HTRequest_context	@ 1750
+! HTRequest_setPreemtive	@ 1751
+! HTRequest_preemtive	@ 1752
+! HTRequest_setNegotiation @ 1753
+! HTRequest_negotiation	@ 1754
+! HTRequest_bytesRead	@ 1755
+! HTRequest_bytesWritten	@ 1756
+! HTRequest_kill		@ 1757
+! HTRequest_error		@ 1758
+! HTRequest_setError	@ 1759
+! HTRequest_addError	@ 1760
+! HTRequest_addSystemError @ 1761
+! HTRequest_retryTime	@ 1762
+! HTRequest_redirection	@ 1763
+! HTRequest_setMaxRetry	@ 1764
+! HTRequest_maxRetry	@ 1765
+! HTRequest_retry		@ 1766
+! HTRequest_setPriority	@ 1767
+! HTRequest_priority	@ 1768
+! HTRequest_setNet	@ 1769
+! HTRequest_net		@ 1770
+! HTRequest_addDestination @ 1771
+! HTRequest_removeDestination @ 1772
+! HTRequest_destinationsReady @ 1773
+! HTRequest_linkDestination @ 1774
+! HTRequest_unlinkDestination @ 1775
+! HTRequest_removePostWeb	@ 1776
+! HTRequest_killPostWeb	@ 1777
+! HTLoad			@ 1778
+! HTServ			@ 1779
+  
+  ;HTSocket.c		@ 1800
+  HTInputSocket_new	@ 1801
+--- 293,371 ----
+  ;HTReqMan.c		@ 1700
+  HTRequest_new		@ 1701
+  HTRequest_dup		@ 1702
+! HTRequest_delete	@ 1703
+! HTRequest_setMethod	@ 1704
+! HTRequest_method	@ 1705
+! HTRequest_setReloadMode	@ 1706
+! HTRequest_reloadMode	@ 1707
+! HTRequest_setConversion	@ 1708
+! HTRequest_conversion	@ 1709
+! HTRequest_setEncoding	@ 1710
+! HTRequest_encoding	@ 1711
+! HTRequest_setLanguage	@ 1712
+! HTRequest_language	@ 1713
+! HTRequest_setCharset	@ 1714
+! HTRequest_charset	@ 1715
+! HTRequest_setGenerator	@ 1716
+! HTRequest_generator	@ 1717
+! HTRequest_setParser	@ 1718
+! HTRequest_parser	@ 1719
+! HTRequest_setGnHd	@ 1720
+! HTRequest_addGnHd	@ 1721
+! HTRequest_gnHd		@ 1722
+! HTRequest_setRqHd	@ 1723
+! HTRequest_addRqHd	@ 1724
+! HTRequest_rqHd		@ 1725
+! HTRequest_setRsHd	@ 1726
+! HTRequest_addRsHd	@ 1727
+! HTRequest_rsHd		@ 1728
+! HTRequest_setEnHd	@ 1729
+! HTRequest_addEnHd	@ 1730
+! HTRequest_enHd		@ 1731
+! HTRequest_setAccess	@ 1732
+! HTRequest_access	@ 1733
+! HTRequest_setAnchor	@ 1734
+! HTRequest_anchor	@ 1735
+! HTRequest_setParent	@ 1736
+! HTRequest_parent	@ 1737
+! HTRequest_setOutputStream @ 1738
+! HTRequest_outputStream	@ 1739
+! HTRequest_setOutputFormat @ 1740
+! HTRequest_outputFormat	@ 1741
+! HTRequest_setDebugStream @ 1742
+! HTRequest_debugStream	@ 1743
+! HTRequest_setDebugFormat @ 1744
+! HTRequest_debugFormat	@ 1745
+! HTRequest_setCallback	@ 1746
+! HTRequest_callback	@ 1747
+! HTRequest_setContext	@ 1748
+! HTRequest_context	@ 1749
+! HTRequest_setPreemtive	@ 1750
+! HTRequest_preemtive	@ 1751
+! HTRequest_setNegotiation @ 1752
+! HTRequest_negotiation	@ 1753
+! HTRequest_bytesRead	@ 1754
+! HTRequest_kill		@ 1755
+! HTRequest_error		@ 1756
+! HTRequest_setError	@ 1757
+! HTRequest_addError	@ 1758
+! HTRequest_addSystemError @ 1759
+! HTRequest_retryTime	@ 1760
+! HTRequest_setMaxRetry	@ 1761
+! HTRequest_maxRetry	@ 1762
+! HTRequest_retry		@ 1763
+! HTRequest_setPriority	@ 1764
+! HTRequest_priority	@ 1765
+! HTRequest_setNet	@ 1766
+! HTRequest_net		@ 1767
+! HTRequest_addDestination @ 1768
+! HTRequest_removeDestination @ 1769
+! HTRequest_linkDestination @ 1770
+! HTRequest_unlinkDestination @ 1771
+! HTRequest_removePostWeb	@ 1772
+! HTRequest_killPostWeb	@ 1773
+! HTLoad			@ 1774
+! HTServ			@ 1775
+  
+  ;HTSocket.c		@ 1800
+  HTInputSocket_new	@ 1801
+diff -c Library/Repository/Implementation/windows/wwwhttp.def:1.3.2.1 Library/Repository/Implementation/windows/wwwhttp.def:1.3
+*** Library/Repository/Implementation/windows/wwwhttp.def:1.3.2.1	Tue Jan 23 16:31:42 1996
+--- Library/Repository/Implementation/windows/wwwhttp.def	Tue Jan 23 16:31:43 1996
+***************
+*** 3,9 ****
+  HTAA_composeAuth	@ 101
+  HTPasswordDialog	@ 102
+  HTAA_retryWithAuth	@ 103
+- HTAA_authentication	@ 104
+  
+  ;HTAAUtil.c		@ 200
+  HTAAScheme_enum		@ 201
+--- 3,8 ----
+diff -c Library/Repository/Implementation/windows/wwwutils.def:1.4.2.1 Library/Repository/Implementation/windows/wwwutils.def:1.4
+*** Library/Repository/Implementation/windows/wwwutils.def:1.4.2.1	Tue Jan 23 16:31:43 1996
+--- Library/Repository/Implementation/windows/wwwutils.def	Tue Jan 23 16:31:43 1996
+***************
+*** 23,32 ****
+  HTChunk_clear		@ 402
+  HTChunk_delete		@ 403
+  HTChunk_putc		@ 404
+! HTChunk_ensure		@ 405
+! HTChunk_terminate	@ 406
+! HTChunk_puts		@ 407
+! HTChunk_putb		@ 408
+  
+  ;HTList.c		@ 500
+  HTList_new		@ 501
+--- 23,32 ----
+  HTChunk_clear		@ 402
+  HTChunk_delete		@ 403
+  HTChunk_putc		@ 404
+! HTChunk_puts		@ 405
+! HTChunk_putb		@ 406
+! HTChunk_ensure		@ 407
+! HTChunk_terminate	@ 408
+  
+  ;HTList.c		@ 500
+  HTList_new		@ 501
+diff -c Library/Repository/User/ReleaseNotes.html:1.20 Library/Repository/User/ReleaseNotes.html:1.21
+*** Library/Repository/User/ReleaseNotes.html:1.20	Tue Jan 23 16:31:44 1996
+--- Library/Repository/User/ReleaseNotes.html	Tue Jan 23 16:31:44 1996
+***************
+*** 88,94 ****
+  HREF="../Implementation/WWWMIME.html">WWWMIME.html</A>, and <A
+  HREF="../Implementation/WWWFTP.html">WWWFTP.html</A> include files to be used by applications.
+  
+! <LI>Changed functions with the name <CODE>preemtive</CODE> to <CODE>preemptive</CODE> it was a spelling mistake
+  </UL>
+  
+  <H2>Alpha Release 6, November 20 1995</H2>
+--- 88,94 ----
+  HREF="../Implementation/WWWMIME.html">WWWMIME.html</A>, and <A
+  HREF="../Implementation/WWWFTP.html">WWWFTP.html</A> include files to be used by applications.
+  
+! <LI>Changed functions with the name <CODE>preemptive</CODE> to <CODE>preemptive</CODE> it was a spelling mistake
+  </UL>
+  
+  <H2>Alpha Release 6, November 20 1995</H2>
+diff -c Library/Repository/User/Architecture/Events.html:1.4 Library/Repository/User/Architecture/Events.html:1.5
+*** Library/Repository/User/Architecture/Events.html:1.4	Tue Jan 23 16:31:46 1996
+--- Library/Repository/User/Architecture/Events.html	Tue Jan 23 16:31:46 1996
+***************
+*** 23,31 ****
+  
+  <DL>
+  
+! <DT><B>Base Mode (preemtive)</B>
+  
+! <DD>In this mode all requests are handled in a preemtive way that does
+  not allow for any events to pause the execution of a thread or kill
+  it. This mode is in other words strictly single threaded and the major
+  difference between this mode and the next two modes is that all
+--- 23,31 ----
+  
+  <DL>
+  
+! <DT><B>Base Mode (preemptive)</B>
+  
+! <DD>In this mode all requests are handled in a preemptive way that does
+  not allow for any events to pause the execution of a thread or kill
+  it. This mode is in other words strictly single threaded and the major
+  difference between this mode and the next two modes is that all
+diff -c Library/Repository/User/Architecture/Threads.html:1.8 Library/Repository/User/Architecture/Threads.html:1.9
+*** Library/Repository/User/Architecture/Threads.html:1.8	Tue Jan 23 16:31:47 1996
+--- Library/Repository/User/Architecture/Threads.html	Tue Jan 23 16:31:47 1996
+***************
+*** 66,74 ****
+  the same TCP socket. Net objects can be used in three different ways:
+  
+  <OL>
+! <LI>All requests are preemtive and all I/O is blocking
+! <LI>Requests are non-preemtive managed by an <EM>internal</EM> event loop
+! <LI>Requests are non-preemtive managed by an <EM>external</EM> event loop
+  </OL>
+  
+  The three modes are described in more detail in the section on <A HREF="Events.html">Internal and
+--- 66,74 ----
+  the same TCP socket. Net objects can be used in three different ways:
+  
+  <OL>
+! <LI>All requests are preemptive and all I/O is blocking
+! <LI>Requests are non-preemptive managed by an <EM>internal</EM> event loop
+! <LI>Requests are non-preemptive managed by an <EM>external</EM> event loop
+  </OL>
+  
+  The three modes are described in more detail in the section on <A HREF="Events.html">Internal and
+diff -c Library/Repository/User/Architecture/choppy.html:1.17 Library/Repository/User/Architecture/choppy.html:1.18
+*** Library/Repository/User/Architecture/choppy.html:1.17	Tue Jan 23 16:31:48 1996
+--- Library/Repository/User/Architecture/choppy.html	Tue Jan 23 16:31:48 1996
+***************
+*** 747,755 ****
+  the same TCP socket. Net objects can be used in three different ways:
+  
+  <OL>
+! <LI>All requests are preemtive and all I/O is blocking
+! <LI>Requests are non-preemtive managed by an <EM>internal</EM> event loop
+! <LI>Requests are non-preemtive managed by an <EM>external</EM> event loop
+  </OL>
+  
+  The three modes are described in more detail in the section on <A HREF="Events.html">Internal and
+--- 747,755 ----
+  the same TCP socket. Net objects can be used in three different ways:
+  
+  <OL>
+! <LI>All requests are preemptive and all I/O is blocking
+! <LI>Requests are non-preemptive managed by an <EM>internal</EM> event loop
+! <LI>Requests are non-preemptive managed by an <EM>external</EM> event loop
+  </OL>
+  
+  The three modes are described in more detail in the section on <A HREF="Events.html">Internal and
+***************
+*** 1048,1056 ****
+  
+  <DL>
+  
+! <DT><B>Base Mode (preemtive)</B>
+  
+! <DD>In this mode all requests are handled in a preemtive way that does
+  not allow for any events to pause the execution of a thread or kill
+  it. This mode is in other words strictly single threaded and the major
+  difference between this mode and the next two modes is that all
+--- 1048,1056 ----
+  
+  <DL>
+  
+! <DT><B>Base Mode (preemptive)</B>
+  
+! <DD>In this mode all requests are handled in a preemptive way that does
+  not allow for any events to pause the execution of a thread or kill
+  it. This mode is in other words strictly single threaded and the major
+  difference between this mode and the next two modes is that all
+diff -c Library/Repository/User/Patch/Overview.html:1.17.2.1 Library/Repository/User/Patch/Overview.html:1.17
+*** Library/Repository/User/Patch/Overview.html:1.17.2.1	Tue Jan 23 16:31:51 1996
+--- Library/Repository/User/Patch/Overview.html	Tue Jan 23 16:31:51 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Known Bugs in W3C Reference Library</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 18-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Known Bugs in W3C Reference Library</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen,  8-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+***************
+*** 41,48 ****
+  <H2>Library 4.0</H2>
+  
+  <UL>
+- 
+- <LI><A HREF="lib_4.0_1.fix">SGML fix from Maciej Puzio for better error handling</A>
+  
+  <LI><A HREF="lib_4.0_bug_3.html">Generating DLLs under Windows using Borland compilers</A>
+  
+--- 41,46 ----
+diff -c Library/Repository/User/Using/Methods.html:1.6 Library/Repository/User/Using/Methods.html:1.7
+*** Library/Repository/User/Using/Methods.html:1.6	Tue Jan 23 16:31:54 1996
+--- Library/Repository/User/Using/Methods.html	Tue Jan 23 16:31:54 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Using - Access Modules</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+  </HEAD>  
+  <BODY>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Using - Access Modules</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+  </HEAD>  
+  <BODY>
+  
+***************
+*** 36,42 ****
+  
+  <PRE>
+  extern BOOL HTProtocol_add (CONST char *       	scheme,
+! 			    BOOL		preemtive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+--- 36,42 ----
+  
+  <PRE>
+  extern BOOL HTProtocol_add (CONST char *       	scheme,
+! 			    BOOL		preemptive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+***************
+*** 48,58 ****
+  with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
+  <B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
+  
+! The next argument describes to the Library whether it is capable of handling non-blocking sockets or
+! not. This is normally a design decision when implementing the protocol module, and we will not
+! stretch this argument anymore in this guide. The <A HREF="../Architecture/">Library Architecture</A>
+! document discusses in more detail how a protocol module can be designed to support non-blocking
+! sockets. <P>
+  
+  The last argument is the actual function name to call when a request has been issued and a protocol
+  module has been found associated with the access scheme used. Even though it is not clear at this
+--- 48,61 ----
+  with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
+  <B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
+  
+! <A NAME="preemptive"></A>The <CODE>preemptive</CODE> argument describes to the Library whether it is
+! capable of handling non-blocking sockets or not. This is normally a design decision when
+! implementing the protocol module in that a module implemented for using blocking sockets normally
+! can't use non-blocking sockets. However, the other way is often possible, and in some situations it
+! is advantageous to use blocking sockets. The Library allows this to happen on a pr request basic as
+! explained in the section <A HREF="Request.html#preemptive">"The Request Object"</A>. The <A
+! HREF="../Architecture/">Library Architecture</A> document discusses in more detail how a protocol
+! module can be designed to support non-blocking sockets. <P>
+  
+  The last argument is the actual function name to call when a request has been issued and a protocol
+  module has been found associated with the access scheme used. Even though it is not clear at this
+diff -c Library/Repository/User/Using/Net.html:1.2.2.1 Library/Repository/User/Using/Net.html:1.2
+*** Library/Repository/User/Using/Net.html:1.2.2.1	Tue Jan 23 16:31:54 1996
+--- Library/Repository/User/Using/Net.html	Tue Jan 23 16:31:55 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>User Guide - Request Callback functions</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 21-Jan-1996 -->
+  <NEXTID N="z78">
+  </HEAD>
+  <BODY>
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>User Guide - Request Callback functions</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
+  <NEXTID N="z78">
+  </HEAD>
+  <BODY>
+***************
+*** 55,74 ****
+  <DL>
+  <DT>HT_ERROR
+  <DD>An error occured
+- <DT>HT_INTERRUPTED
+- <DD>The request was interrupted
+  <DT>HT_LOADED
+  <DD>The document was loaded
+  <DT>HT_NO_DATA
+  <DD>OK, but no data
+  <DT>HT_RETRY
+  <DD>Retry request after at a later time
+! <DT>HT_PERM_REDIRECT
+! <DD>The request has been permanently redirected and we send back the new URL
+! <DT>HT_TEMP_REDIRECT
+! <DD>The request has been temporarily redirected and we send back the new URL
+! <DT>HT_NO_ACCESS
+! <DD>The request could not be fulfilled because it didn't contain sufficient credentials
+  </DL>
+  
+  When a callback function is registered, it may be registered with a status code for which it is to
+--- 55,68 ----
+  <DL>
+  <DT>HT_ERROR
+  <DD>An error occured
+  <DT>HT_LOADED
+  <DD>The document was loaded
+  <DT>HT_NO_DATA
+  <DD>OK, but no data
+  <DT>HT_RETRY
+  <DD>Retry request after at a later time
+! <DT>HT_REDIRECT
+! <DD>The request has been redirected and we send back the new URL
+  </DL>
+  
+  When a callback function is registered, it may be registered with a status code for which it is to
+diff -c Library/Repository/User/Using/Request.html:1.8 Library/Repository/User/Using/Request.html:1.9
+*** Library/Repository/User/Using/Request.html:1.8	Tue Jan 23 16:31:55 1996
+--- Library/Repository/User/Using/Request.html	Tue Jan 23 16:31:55 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Using the W3C Reference Library</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  </HEAD>  
+  <BODY>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Using the W3C Reference Library</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+  </HEAD>  
+  <BODY>
+  
+***************
+*** 382,400 ****
+  extern void *HTRequest_context (HTRequest *request);
+  </PRE>
+  
+! <H2>Preemtive or Non-preemtive Access</H2>
+  
+! A access scheme is defined with a default for using either preemtive
+! (blocking I/O) or non-premitve (non-blocking I/O). This is basically a
+! result of the implementation of the protocol module itself. However,
+! if non-blocking I/O is the default then some times it is nice to be
+! able to set the mode to blocking instead. For example when loading the
+! first document (the home page) then blocking can be used instead of
+! non-blocking.
+  
+  <PRE>
+! extern void HTRequest_setPreemtive (HTRequest *request, BOOL mode);
+! extern BOOL HTRequest_preemtive (HTRequest *request);
+  </PRE>
+  
+  <H2>Format Negotiation</H2>
+--- 382,399 ----
+  extern void *HTRequest_context (HTRequest *request);
+  </PRE>
+  
+! <A NAME="preemptive"><H2>Preemptive or Non-preemptive Access</H2></A>
+  
+! A access scheme is registered with a default for using either preemptive (blocking I/O) or
+! non-premitve (non-blocking I/O). This is basically a result of the implementation of the protocol
+! module itself and is explained in the section <A HREF="Methods.html#preemptive">Registering Access
+! Schemes</A>. However, if non-blocking I/O is the default then some times it is nice to be able to
+! set the mode to blocking instead. For example when loading the first document (the home page) then
+! blocking can be used instead of non-blocking.
+  
+  <PRE>
+! extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
+! extern BOOL HTRequest_preemptive (HTRequest *request);
+  </PRE>
+  
+  <H2>Format Negotiation</H2>
+diff -c Library/Repository/User/Using/Startup.html:1.10 Library/Repository/User/Using/Startup.html:1.11
+*** Library/Repository/User/Using/Startup.html:1.10	Tue Jan 23 16:31:56 1996
+--- Library/Repository/User/Using/Startup.html	Tue Jan 23 16:31:56 1996
+***************
+*** 200,206 ****
+  
+  <PRE>
+  extern BOOL HTProtocol_add (const char *       	name,
+! 			    BOOL		preemtive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+--- 200,206 ----
+  
+  <PRE>
+  extern BOOL HTProtocol_add (const char *       	name,
+! 			    BOOL		preemptive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+diff -c Library/Repository/User/Using/choppy.html:1.15 Library/Repository/User/Using/choppy.html:1.16
+*** Library/Repository/User/Using/choppy.html:1.15	Tue Jan 23 16:31:57 1996
+--- Library/Repository/User/Using/choppy.html	Tue Jan 23 16:31:57 1996
+***************
+*** 269,275 ****
+  
+  <PRE>
+  extern BOOL HTProtocol_add (const char *       	name,
+! 			    BOOL		preemtive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+--- 269,275 ----
+  
+  <PRE>
+  extern BOOL HTProtocol_add (const char *       	name,
+! 			    BOOL		preemptive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+***************
+*** 841,847 ****
+  
+  <PRE>
+  extern BOOL HTProtocol_add (CONST char *       	scheme,
+! 			    BOOL		preemtive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+--- 841,847 ----
+  
+  <PRE>
+  extern BOOL HTProtocol_add (CONST char *       	scheme,
+! 			    BOOL		preemptive,
+  			    HTEventCallBack *	callback);
+  </PRE>
+  
+***************
+*** 2169,2177 ****
+  extern void *HTRequest_context (HTRequest *request);
+  </PRE>
+  
+! <H2>Preemtive or Non-preemtive Access</H2>
+  
+! A access scheme is defined with a default for using either preemtive
+  (blocking I/O) or non-premitve (non-blocking I/O). This is basically a
+  result of the implementation of the protocol module itself. However,
+  if non-blocking I/O is the default then some times it is nice to be
+--- 2169,2177 ----
+  extern void *HTRequest_context (HTRequest *request);
+  </PRE>
+  
+! <H2>Preemptive or Non-preemptive Access</H2>
+  
+! A access scheme is defined with a default for using either preemptive
+  (blocking I/O) or non-premitve (non-blocking I/O). This is basically a
+  result of the implementation of the protocol module itself. However,
+  if non-blocking I/O is the default then some times it is nice to be
+***************
+*** 2180,2187 ****
+  non-blocking.
+  
+  <PRE>
+! extern void HTRequest_setPreemtive (HTRequest *request, BOOL mode);
+! extern BOOL HTRequest_preemtive (HTRequest *request);
+  </PRE>
+  
+  <H2>Format Negotiation</H2>
+--- 2180,2187 ----
+  non-blocking.
+  
+  <PRE>
+! extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
+! extern BOOL HTRequest_preemptive (HTRequest *request);
+  </PRE>
+  
+  <H2>Format Negotiation</H2>
+diff -c LineMode/Repository/Defaults/Commands.html:1.9 LineMode/Repository/Defaults/Commands.html:1.10
+*** LineMode/Repository/Defaults/Commands.html:1.9	Tue Jan 23 16:31:59 1996
+--- LineMode/Repository/Defaults/Commands.html	Tue Jan 23 16:31:59 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Line Mode Browser Commands</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 14-Oct-1995 -->
+  <NEXTID N="z17">
+  </HEAD>
+  <BODY>
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Line Mode Browser Commands</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 19-Jan-1996 -->
+  <NEXTID N="z17">
+  </HEAD>
+  <BODY>
+***************
+*** 122,127 ****
+--- 122,142 ----
+  server. The syntax is the same as for PUT.
+  
+  </DL>
++ 
++ <H3>Delete a Document on a remote server</H3>
++ 
++ You can also use the DELETE method i the Line Mode browser to remove a
++ document on a remote HTTP server.
++ 
++ <DL>
++ <DT><A NAME="delete"><B>delete</B></A>
++ 
++ <DD>Deletes a document (DELETE) on remote HTTP server. Example
++ 
++ <PRE>
++ 	delete
++ 	URL to delete: http://www.w3.org
++ </PRE>
+  
+  <H3>Killer Features</H3>
+  
+diff -c LineMode/Repository/Implementation/HTBrowse.c:1.107.2.1 LineMode/Repository/Implementation/HTBrowse.c:1.107
+*** LineMode/Repository/Implementation/HTBrowse.c:1.107.2.1	Tue Jan 23 16:32:01 1996
+--- LineMode/Repository/Implementation/HTBrowse.c	Tue Jan 23 16:32:01 1996
+***************
+*** 137,142 ****
+--- 137,143 ----
+  typedef struct _LineMode {
+      HTRequest *		request;
+      HTParentAnchor *	anchor;
++     HTParentAnchor *	dest;			 /* Destination for PUT etc. */
+      struct timeval *	tv;				/* Timeout on socket */
+      HTList *		active;			  /* List of acitve contexts */
+      HTList *		converters;
+***************
+*** 163,169 ****
+      LMState		state;
+      HTRequest *		request;
+      LineMode *		lm;
+-     HTParentAnchor *	source;	   /* The source if we are using PUT or POST */
+  } Context;
+  
+  #ifndef WWW_WIN_WINDOW
+--- 164,169 ----
+***************
+*** 544,558 ****
+  		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
+  	    doit = confirm(req, msg);
+  	    free(msg);
+! 	} else {
+! 	    HTAnchor_removeAllLinks((HTAnchor *) src);
+  	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+- 	}
+  	if (doit) {
+! 	    HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
+! 	    Context * new_context = (Context *) HTRequest_context(new_request);
+! 	    new_context->source = src;
+! 	    status = HTCopyAnchor((HTAnchor *) src, new_request);
+  	}
+  	free(fd);
+  	free(fs);
+--- 544,554 ----
+  		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
+  	    doit = confirm(req, msg);
+  	    free(msg);
+! 	} else
+  	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+  	if (doit) {
+! 	    req = Thread_new(lm, YES, LM_UPDATE);
+! 	    status = HTCopyAnchor((HTAnchor *) src, req);
+  	}
+  	free(fd);
+  	free(fs);
+***************
+*** 564,590 ****
+  }
+  
+  /*
+- **  Delete a URL
+- */
+- PRIVATE int DeleteURL (LineMode * lm, HTRequest * request)
+- {
+-     char * base = HTAnchor_address((HTAnchor*) HTMainAnchor);
+-     char * url = NULL;
+-     int status = HT_INTERNAL;
+-     if ((url = AskUser(request, "URL to delete:", base)) != NULL) {
+- 	char * full = HTParse(HTStrip(url), base, PARSE_ALL);
+- 	HTParentAnchor * anchor=(HTParentAnchor *) HTAnchor_findAddress(full);
+- 	request = Thread_new(lm, YES, LM_UPDATE);
+- 	HTRequest_setMethod(request, METHOD_DELETE);
+- 	status = HTLoadAnchor((HTAnchor *) anchor, request);
+- 	free(full);
+-     }
+-     FREE(base);
+-     FREE(url);
+-     return status;
+- }
+- 
+- /*
+  **  This function puts up a stream to a file in order to save a document. This
+  **  is activated by '>', '>>' or '>!' from the prompt line.
+  */
+--- 560,565 ----
+***************
+*** 735,743 ****
+  	break;
+  	
+        case 'D':
+! 	if (CHECK_INPUT("DELETE", token)) {	    		   /* DELETE */
+! 	    status = DeleteURL(lm, req);
+! 	} else if (CHECK_INPUT("DOWN", token)) {    /* Scroll down one page  */
+  	  down:
+  	    if (HText_canScrollDown(HTMainText))
+  		HText_scrollDown(HTMainText);
+--- 710,716 ----
+  	break;
+  	
+        case 'D':
+! 	if (CHECK_INPUT("DOWN", token)) {	    /* Scroll down one page  */
+  	  down:
+  	    if (HText_canScrollDown(HTMainText))
+  		HText_scrollDown(HTMainText);
+***************
+*** 1211,1285 ****
+  #endif
+  }
+  
+- /*	authentication_handler
+- **	----------------------
+- **	This function is registered to handle access authentication,
+- **	for example for HTTP
+- */
+- PRIVATE int authentication_handler (HTRequest * request, int status)
+- {
+-     Context * context = (Context *) HTRequest_context(request);
+-     LineMode * lm = context->lm;
+- 
+-     /* Ask the authentication module for getting credentials */
+-     if (HTAA_authentication(request) && HTAA_retryWithAuth(request)) {
+- 	HTMethod method = HTRequest_method(request);
+- 
+- 	/* Make sure we do a reload from cache */
+- 	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+- 
+- 	/* Log current request */
+- 	if (HTLog_isOpen()) HTLog_add(request, status);
+- 
+- 	/* Start request with new credentials */
+- 	if (HTMethod_hasEntity(method)) {		   /* PUT, POST etc. */
+- 	    HTCopyAnchor((HTAnchor *) context->source, request);
+- 	} else					   /* GET, HEAD, DELETE etc. */
+- 	    HTLoadAnchor((HTAnchor *) HTRequest_anchor(request), request);
+-     } else {
+- 	TTYPrint(OUTPUT, "Access denied\n");
+- 	if (!HTAlert_interactive()) Cleanup(lm, -1);
+-     }
+-     return HT_ERROR;	  /* Make sure this is the last callback in the list */
+- }
+- 
+- /*	redirection_handler
+- **	-------------------
+- **	This function is registered to handle permanent and temporary
+- **	redirections
+- */
+- PRIVATE int redirection_handler (HTRequest * request, int status)
+- {
+-     Context * context = (Context *) HTRequest_context(request);
+-     HTMethod method = HTRequest_method(request);
+-     LineMode * lm = context->lm;
+-     HTAnchor * new_anchor = HTRequest_redirection(request);
+- 
+-     /* Make sure we do a reload from cache */
+-     HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+- 
+-     /* If destination specified then bind source anchor with new destination */
+-     if (HTMethod_hasEntity(method)) {
+- 	HTAnchor_removeAllLinks((HTAnchor *) context->source);
+- 	HTAnchor_link((HTAnchor *) context->source, new_anchor, NULL, method);
+-     }
+- 
+-     /* Log current request */
+-     if (HTLog_isOpen()) HTLog_add(request, status);
+- 
+-     /* Start new request */
+-     if (HTRequest_retry(request)) {
+- 	if (HTMethod_hasEntity(method))			   /* PUT, POST etc. */
+- 	    HTCopyAnchor((HTAnchor *) context->source, request);
+- 	else					   /* GET, HEAD, DELETE etc. */
+- 	    HTLoadAnchor(new_anchor, request);
+-     } else {
+- 	TTYPrint(OUTPUT, "Too many redirections detected\n");
+- 	if (!HTAlert_interactive()) Cleanup(lm, -1);
+-     }
+-     return HT_ERROR;	  /* Make sure this is the last callback in the list */
+- }
+- 
+  /*	terminate_handler
+  **	-----------------
+  **	This function is registered to handle the result of the request
+--- 1184,1189 ----
+***************
+*** 1386,1396 ****
+      arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
+  #endif
+  
+-     /* Create a new Line Mode object */
+      lm = LineMode_new();
+- 
+      /* Initiate W3C Reference Library */
+      HTLibInit(APP_NAME, APP_VERSION);
+  
+      /* Initialize the protocol modules */
+      HTAccessInit();
+--- 1290,1299 ----
+      arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
+  #endif
+  
+      lm = LineMode_new();
+      /* Initiate W3C Reference Library */
+      HTLibInit(APP_NAME, APP_VERSION);
++     lm = LineMode_new();
+  
+      /* Initialize the protocol modules */
+      HTAccessInit();
+***************
+*** 1748,1758 ****
+      }
+  
+      /* Register a call back function for the Net Manager */
+!     HTNetCall_addBefore(HTLoadStart, 0);
+!     HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
+!     HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
+!     HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
+!     HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
+      HTNetCall_addAfter(terminate_handler, HT_ALL);
+  
+      /* Register our own MIME header handler for extra headers */
+--- 1651,1657 ----
+      }
+  
+      /* Register a call back function for the Net Manager */
+!     HTNetInit();
+      HTNetCall_addAfter(terminate_handler, HT_ALL);
+  
+      /* Register our own MIME header handler for extra headers */
+diff -c LineMode/Repository/Implementation/Version.make:1.35.2.1 LineMode/Repository/Implementation/Version.make:1.35
+*** LineMode/Repository/Implementation/Version.make:1.35.2.1	Tue Jan 23 16:32:02 1996
+--- LineMode/Repository/Implementation/Version.make	Tue Jan 23 16:32:02 1996
+***************
+*** 1 ****
+! VL = 4.0C
+--- 1 ----
+! VL = 4.0B
+diff -c ComLine/Repository/Implementation/HTLine.c:1.8.2.1 ComLine/Repository/Implementation/HTLine.c:1.8
+*** ComLine/Repository/Implementation/HTLine.c:1.8.2.1	Tue Jan 23 16:32:04 1996
+--- ComLine/Repository/Implementation/HTLine.c	Tue Jan 23 16:32:05 1996
+***************
+*** 65,71 ****
+      HTRequest *		request;
+      HTParentAnchor *	anchor;
+      HTParentAnchor *	dest;			 /* Destination for PUT etc. */
+-     HTMethod		method;		      /* What method are we envoking */
+      struct timeval *	tv;				/* Timeout on socket */
+      char *		cwd;				  /* Current dir URL */
+      char *		rules;
+--- 65,70 ----
+***************
+*** 155,226 ****
+      TTYPrint(OUTPUT,"Please send feedback to <libwww@w3.org>\n");
+  }
+  
+- /*	authentication_handler
+- **	----------------------
+- **	This function is registered to handle access authentication,
+- **	for example for HTTP
+- */
+- PRIVATE int authentication_handler (HTRequest * request, int status)
+- {
+-     ComLine * cl = (ComLine *) HTRequest_context(request);
+- 
+-     /* Ask the authentication module for getting credentials */
+-     if (HTAA_authentication(request) && HTAA_retryWithAuth(request)) {
+- 
+- 	/* Make sure we do a reload from cache */
+- 	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+- 
+- 	/* Log current request */
+- 	if (HTLog_isOpen()) HTLog_add(request, status);
+- 
+- 	/* Start request with new credentials */
+- 	if (cl->dest)					   /* PUT, POST etc. */
+- 	    HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
+- 	else					   /* GET, HEAD, DELETE etc. */
+- 	    HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
+-     } else {
+- 	TTYPrint(OUTPUT, "Access denied\n");
+- 	Cleanup(cl, -1);
+-     }
+-     return HT_ERROR;	  /* Make sure this is the last callback in the list */
+- }
+- 
+- /*	redirection_handler
+- **	-------------------
+- **	This function is registered to handle permanent and temporary
+- **	redirections
+- */
+- PRIVATE int redirection_handler (HTRequest * request, int status)
+- {
+-     BOOL result = YES;
+-     ComLine * cl = (ComLine *) HTRequest_context(request);
+-     HTAnchor * new_anchor = HTRequest_redirection(request);
+- 
+-     /* Make sure we do a reload from cache */
+-     HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+- 
+-     /* If destination specified then bind together anchors */
+-     if (cl->dest) {
+- 	HTAnchor_removeAllLinks((HTAnchor *) cl->anchor);
+- 	HTAnchor_link((HTAnchor *) cl->anchor, new_anchor, NULL, cl->method);
+-     }
+- 
+-     /* Log current request */
+-     if (HTLog_isOpen()) HTLog_add(request, status);
+- 
+-     /* Start new request */
+-     if (HTRequest_retry(request)) {
+- 	if (cl->dest)					   /* PUT, POST etc. */
+- 	    result = HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
+- 	else					   /* GET, HEAD, DELETE etc. */
+- 	    result = HTLoadAnchor(new_anchor, cl->request);
+-     } else {
+- 	TTYPrint(OUTPUT, "Too many redirections detected\n");
+- 	Cleanup(cl, -1);
+-     }
+-     return HT_ERROR;	  /* Make sure this is the last callback in the list */
+- }
+- 
+  /*	terminate_handler
+  **	-----------------
+  **	This function is registered to handle the result of the request
+--- 154,159 ----
+***************
+*** 234,247 ****
+  		TTYPrint(OUTPUT, "Content Length found to be %ld\n",
+  			 HTAnchor_length(cl->anchor));
+  	    }
+  	}
+-     } else {
+- 	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+- 	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+- 			HTRequest_error(request), NULL);
+      }
+      if (HTLog_isOpen()) HTLog_add(request, status);
+-     Cleanup(cl, status == HT_LOADED ? 0 : -1);
+      return HT_OK;
+  }
+  
+--- 167,176 ----
+  		TTYPrint(OUTPUT, "Content Length found to be %ld\n",
+  			 HTAnchor_length(cl->anchor));
+  	    }
++ 	    Cleanup(cl, status == HT_LOADED ? 0 : -1);
+  	}
+      }
+      if (HTLog_isOpen()) HTLog_add(request, status);
+      return HT_OK;
+  }
+  
+***************
+*** 300,306 ****
+  
+      /* Initiate W3C Reference Library */
+      HTLibInit(APP_NAME, APP_VERSION);
+-     HTAlert_setInteractive(YES);
+  
+      /* Initialize the protocol modules */
+      HTProtocol_add("http", NO, HTLoadHTTP, NULL);
+--- 229,234 ----
+***************
+*** 445,467 ****
+  	    } else if (!strcasecomp(argv[arg], "-delete")) {
+  		HTRequest_setMethod(cl->request, METHOD_DELETE);
+  
+- 	    /*
+- 	    ** Note that we for PUT and POST still use the GET method as we
+- 	    ** store methods in a POST web in the link relationship between
+- 	    ** anchors. This allows us to have multiple destinations each
+- 	    ** with their own method as described in the POST web in the online
+- 	    ** documentation of the Library
+- 	    */
+- 
+  	    /* POST Method */
+  	    } else if (!strcasecomp(argv[arg], "-post")) {
+! 		cl->method = METHOD_POST;
+! 		HTRequest_setMethod(cl->request, METHOD_GET);
+  
+  	    /* PUT Method */
+  	    } else if (!strcasecomp(argv[arg], "-put")) {
+! 		cl->method = METHOD_PUT;
+! 		HTRequest_setMethod(cl->request, METHOD_GET);
+  
+  	    } else {
+  		if (SHOW_MSG) TTYPrint(TDEST,"Bad Argument (%s)\n", argv[arg]);
+--- 373,385 ----
+  	    } else if (!strcasecomp(argv[arg], "-delete")) {
+  		HTRequest_setMethod(cl->request, METHOD_DELETE);
+  
+  	    /* POST Method */
+  	    } else if (!strcasecomp(argv[arg], "-post")) {
+! 		HTRequest_setMethod(cl->request, METHOD_POST);
+  
+  	    /* PUT Method */
+  	    } else if (!strcasecomp(argv[arg], "-put")) {
+! 		HTRequest_setMethod(cl->request, METHOD_PUT);
+  
+  	    } else {
+  		if (SHOW_MSG) TTYPrint(TDEST,"Bad Argument (%s)\n", argv[arg]);
+***************
+*** 493,501 ****
+  	Cleanup(cl, -1);
+      }
+  
+!     /* If destination specified then bind together anchors */
+!     if (cl->dest) HTAnchor_link((HTAnchor*)cl->anchor,
+! 				(HTAnchor*)cl->dest, NULL, cl->method);
+  
+      /* Output file specified? */
+      if (cl->outputfile) {
+--- 411,421 ----
+  	Cleanup(cl, -1);
+      }
+  
+!     /* Destination specified? */
+!     if (cl->dest) {
+! 	HTMethod method = HTRequest_method(cl->request);
+! 	HTAnchor_link((HTAnchor*)cl->anchor, (HTAnchor*)cl->dest, NULL,method);
+!     }
+  
+      /* Output file specified? */
+      if (cl->outputfile) {
+***************
+*** 530,545 ****
+  
+      /* Register our User Prompts etc in the Alert Manager */
+      if (HTAlert_interactive()) {
+- 	HTAlert_add(HTProgress, HT_A_PROGRESS);
+  	HTAlert_add(HTError_print, HT_A_MESSAGE);
+  	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
+- 	
+      }
+  
+      /* Register a call back function for the Net Manager */
+-     HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
+-     HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
+-     HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
+      HTNetCall_addAfter(terminate_handler, HT_ALL);
+      
+      /* Register our own MIME header handler for extra headers */
+--- 450,460 ----
+***************
+*** 569,580 ****
+      if (cl->dest)					   /* PUT, POST etc. */
+  	status = HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
+      else if (keywords)						   /* Search */
+- 	/*
+- 	** Note that a search also can be done by creating a URL with the '?'
+- 	** and the set of keywords embedded and then use HTLoadAnchor directly
+- 	*/
+  	status = HTSearch(HTChunk_data(keywords), cl->anchor, cl->request);
+!     else					   /* GET, HEAD, DELETE etc. */
+  	status = HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
+  
+      if (keywords) HTChunk_delete(keywords);
+--- 484,491 ----
+      if (cl->dest)					   /* PUT, POST etc. */
+  	status = HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
+      else if (keywords)						   /* Search */
+  	status = HTSearch(HTChunk_data(keywords), cl->anchor, cl->request);
+!     else						   /* GET, HEAD etc. */
+  	status = HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
+  
+      if (keywords) HTChunk_delete(keywords);
+diff -c ComLine/Repository/Implementation/Version.make:1.8.2.1 ComLine/Repository/Implementation/Version.make:1.8
+*** ComLine/Repository/Implementation/Version.make:1.8.2.1	Tue Jan 23 16:32:06 1996
+--- ComLine/Repository/Implementation/Version.make	Tue Jan 23 16:32:06 1996
+***************
+*** 1 ****
+! VT = 4.0C
+--- 1 ----
+! VT = 4.0B
+diff -c ComLine/Repository/User/CommandLine.html:1.3 ComLine/Repository/User/CommandLine.html:1.4
+*** ComLine/Repository/User/CommandLine.html:1.3	Tue Jan 23 16:32:09 1996
+--- ComLine/Repository/User/CommandLine.html	Tue Jan 23 16:32:09 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Command Line Syntax for the W3C Command Line Tool</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
+  <NEXTID N="z29">
+  </HEAD>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Command Line Syntax for the W3C Command Line Tool</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 19-Jan-1996 -->
+  <NEXTID N="z29">
+  </HEAD>
+  
+***************
+*** 119,130 ****
+  <DT><B>-put</B>
+  <DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
+  server (destination) using <B>PUT</B> method. You must indicate the destination using the
+! <CODE>-dest</CODE> command line option.
+  
+  <DT><B>-post</B> 
+  <DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
+  server (destination) using <B>POST</B> method. You must indicate the destination using the
+! <CODE>-dest</CODE> command line option.
+  
+  <DT><B>-link</B> 
+  <DD>Being implemented
+--- 119,130 ----
+  <DT><B>-put</B>
+  <DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
+  server (destination) using <B>PUT</B> method. You must indicate the destination using the
+! <B>-dest</B> command line option.
+  
+  <DT><B>-post</B> 
+  <DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
+  server (destination) using <B>POST</B> method. You must indicate the destination using the
+! <B>-dest</B> command line option.
+  
+  <DT><B>-link</B> 
+  <DD>Being implemented
+diff -c Robot/Repository/Implementation/HTRobot.c:1.6.2.2 Robot/Repository/Implementation/HTRobot.c:1.6
+*** Robot/Repository/Implementation/HTRobot.c:1.6.2.2	Tue Jan 23 16:32:12 1996
+--- Robot/Repository/Implementation/HTRobot.c	Tue Jan 23 16:32:13 1996
+***************
+*** 32,42 ****
+  #define DEFAULT_OUTPUT_FILE	"robot.out"
+  #define DEFAULT_RULE_FILE	"robot.conf"
+  #define DEFAULT_LOG_FILE       	"robot.log"
+- #define DEFAULT_DEPTH		0
+  
+  #define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
+  
+! #define DEFAULT_TIMEOUT		10		       /* timeout in seconds */
+  
+  #if defined(__svr4__)
+  #define CATCH_SIG
+--- 32,41 ----
+  #define DEFAULT_OUTPUT_FILE	"robot.out"
+  #define DEFAULT_RULE_FILE	"robot.conf"
+  #define DEFAULT_LOG_FILE       	"robot.log"
+  
+  #define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
+  
+! #define DEFAULT_TIMEOUT		60		       /* timeout in seconds */
+  
+  #if defined(__svr4__)
+  #define CATCH_SIG
+***************
+*** 50,56 ****
+  
+  typedef struct _Robot {
+      HTRequest *		request;
+-     HTRequest *		timeout;	  /* Until we get a server eventloop */
+      HTParentAnchor *	anchor;
+      int			depth;			     /* How deep is our tree */
+      HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
+--- 49,54 ----
+***************
+*** 116,121 ****
+--- 114,123 ----
+      /* Add this HyperDoc object to our list */
+      if (!mr->hyperdoc) mr->hyperdoc = HTList_new();
+      HTList_addObject(mr->hyperdoc, (void *) hd);
++ 
++     if (SHOW_MSG)
++ 	TTYPrint(TDEST, "HyperDoc.... %p bound to anchor %p with depth %d\n",
++ 		 hd, anchor, depth);
+      return hd;
+  }
+  
+***************
+*** 146,155 ****
+      me->cwd = HTFindRelatedName();
+      me->output = OUTPUT;
+  
+-     /* We keep an extra timeout request object for the timeout_handler */
+-     me->timeout = HTRequest_new();
+-     HTRequest_setContext (me->timeout, me);
+- 
+      /* Bind the Robot object together with the Request Object */
+      me->request = HTRequest_new();
+      HTRequest_setContext (me->request, me);
+--- 148,153 ----
+***************
+*** 270,288 ****
+  /*	timeout_handler
+  **	---------------
+  **	This function is registered to handle timeout in select eventloop
+- **
+- **	BUG: This doesn't work as we don't get the right request object
+- **	back from the event loop
+  */
+  PRIVATE int timeout_handler (HTRequest * request)
+  {
+      Robot * mr = (Robot *) HTRequest_context(request);
+      if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Request timeout...\n");
+- #if 0
+      HTRequest_kill(request);
+      Thread_delete(mr, request);
+! #endif
+!     Cleanup(mr, -1);
+      return HT_OK;
+  }
+  
+--- 268,281 ----
+  /*	timeout_handler
+  **	---------------
+  **	This function is registered to handle timeout in select eventloop
+  */
+  PRIVATE int timeout_handler (HTRequest * request)
+  {
+      Robot * mr = (Robot *) HTRequest_context(request);
+      if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Request timeout...\n");
+      HTRequest_kill(request);
+      Thread_delete(mr, request);
+!     if (HTNet_isEmpty()) Cleanup(mr, -1);
+      return HT_OK;
+  }
+  
+***************
+*** 317,327 ****
+  	Robot * mr = (Robot *) HTRequest_context(text->request);
+  	HTAnchor * dest = HTAnchor_followMainLink((HTAnchor *) anchor);
+  	HTParentAnchor * dest_parent = HTAnchor_parent(dest);
+- 	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
+  	HyperDoc * hd = HTAnchor_document(dest_parent);
+  
+- 	if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Found `%s\' - ", uri ? uri : "NULL");
+- 	
+  	/* Test whether we already have a hyperdoc for this document */
+  	if (mr->flags & MR_LINK && dest_parent && !hd) {
+  	    HTParentAnchor * parent = HTRequest_parent(text->request);
+--- 310,317 ----
+***************
+*** 329,351 ****
+  	    int depth = last ? last->depth+1 : 0;
+  	    HTRequest * newreq = Thread_new(mr, METHOD_GET);
+  	    HyperDoc_new(mr, dest_parent, depth);
+! 	    HTRequest_setParent(newreq, HTRequest_anchor(text->request));
+! 	    if (depth >= mr->depth) {
+! 		if (SHOW_MSG)
+! 		    TTYPrint(TDEST, "loading at depth %d using HEAD\n", depth);
+! 		HTRequest_setMethod(newreq, METHOD_HEAD);
+! 		HTRequest_setOutputFormat(newreq, WWW_MIME);
+! 	    } else {
+! 		if (SHOW_MSG) TTYPrint(TDEST, "loading at depth %d\n", depth);
+  	    }
+  	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
+! 		if (SHOW_MSG) TTYPrint(TDEST, "not tested!\n");
+  		Thread_delete(mr, newreq);
+  	    }
+- 	} else {
+- 	    if (SHOW_MSG) TTYPrint(TDEST, "duplicate\n");
+  	}
+- 	FREE(uri);
+      }
+  }
+  
+--- 319,334 ----
+  	    int depth = last ? last->depth+1 : 0;
+  	    HTRequest * newreq = Thread_new(mr, METHOD_GET);
+  	    HyperDoc_new(mr, dest_parent, depth);
+! 	    if (SHOW_MSG) {
+! 		char * uri = HTAnchor_address((HTAnchor *) dest_parent);
+! 		TTYPrint(TDEST, "Robot....... Loading `%s\'\n", uri);
+! 		free(uri);
+  	    }
+  	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
+! 		if (SHOW_MSG) TTYPrint(TDEST, "Robot...... URI Not tested!\n");
+  		Thread_delete(mr, newreq);
+  	    }
+  	}
+      }
+  }
+  
+***************
+*** 479,486 ****
+  	    /* load anchors */
+  	    } else if (!strcmp(argv[arg], "-link")) {
+  		mr->flags |= MR_LINK;
+- 		mr->depth = (arg+1 < argc && *argv[arg+1] != '-') ?
+- 		    atoi(argv[++arg]) : DEFAULT_DEPTH;
+  
+  	    /* preemtive or non-preemtive access */
+  	    } else if (!strcmp(argv[arg], "-single")) {
+--- 462,467 ----
+***************
+*** 523,529 ****
+      	    if (!keycnt) {
+  		char * ref = HTParse(argv[arg], mr->cwd, PARSE_ALL);
+  		mr->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
+- 		HyperDoc_new(mr, mr->anchor, 0);
+  		keycnt = 1;
+  		FREE(ref);
+  	    } else {		   /* Check for successive keyword arguments */
+--- 504,509 ----
+***************
+*** 591,597 ****
+      HTNetCall_addAfter(terminate_handler, HT_ALL);
+      
+      /* Set timeout on sockets */
+!     HTEvent_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
+  
+      /* Start the request */
+      if (keywords)						   /* Search */
+--- 571,577 ----
+      HTNetCall_addAfter(terminate_handler, HT_ALL);
+      
+      /* Set timeout on sockets */
+!     HTEvent_registerTimeout(mr->tv, mr->request, timeout_handler, NO);
+  
+      /* Start the request */
+      if (keywords)						   /* Search */
+diff -c Robot/Repository/Implementation/Version.make:1.5.2.1 Robot/Repository/Implementation/Version.make:1.5
+*** Robot/Repository/Implementation/Version.make:1.5.2.1	Tue Jan 23 16:32:14 1996
+--- Robot/Repository/Implementation/Version.make	Tue Jan 23 16:32:15 1996
+***************
+*** 1 ****
+! VR = 4.0C
+--- 1 ----
+! VR = 4.0B
+diff -c Robot/Repository/User/CommandLine.html:1.2 Robot/Repository/User/CommandLine.html:1.3
+*** Robot/Repository/User/CommandLine.html:1.2	Tue Jan 23 16:32:17 1996
+--- Robot/Repository/User/CommandLine.html	Tue Jan 23 16:32:17 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
+  <NEXTID N="z29">
+  </HEAD>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+  <NEXTID N="z29">
+  </HEAD>
+  
+***************
+*** 71,78 ****
+  <DD>Specifies a log file with a list of visited documents. The default
+  value is "www-log"
+  
+! <DT><B>-link</B>
+! <DD>Fetch all links from this document
+  
+  <DT><B>-n</B>
+  <DD>Non-interactive mode. Outputs the formatted document to the
+--- 71,82 ----
+  <DD>Specifies a log file with a list of visited documents. The default
+  value is "www-log"
+  
+! <DT><B>-link</B> [ n ]
+! 
+! <DD>Fetch all links from this document. By indicating an integer "n" as the parameter you can
+! specify the depth of which the search should go. The default value is 0 which means that only the
+! start page is searched. Level 1 insicates that the start page <B>and</B> all pages directly linked
+! from the start page are searched.
+  
+  <DT><B>-n</B>
+  <DD>Non-interactive mode. Outputs the formatted document to the
+diff -c Robot/Repository/User/Patch/Overview.html:1.1 Robot/Repository/User/Patch/Overview.html:1.2
+*** Robot/Repository/User/Patch/Overview.html:1.1	Tue Jan 23 16:32:19 1996
+--- Robot/Repository/User/Patch/Overview.html	Tue Jan 23 16:32:19 1996
+***************
+*** 1,7 ****
+  <HTML>
+  <HEAD>
+  <TITLE>Known Bugs in W3C Mini Robot</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
+  </HEAD>
+  <BODY>
+  
+--- 1,7 ----
+  <HTML>
+  <HEAD>
+  <TITLE>Known Bugs in W3C Mini Robot</TITLE>
+! <!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+  </HEAD>
+  <BODY>
+  
+***************
+*** 42,50 ****
+  
+  <HR>
+  
+! <UL>
+! <LI> 
+! </UL>
+  
+  <P>
+  <HR>
+--- 42,55 ----
+  
+  <HR>
+  
+! <H2>Robot 4.0</H2>
+! 
+! <DL>
+! <DT><A HREF="robot_4.0_1.fix">Improvement patch</A>
+! <DD>Fixes two problems in the anchor traversal and adds <B>depth</B> as a valid parameter so that
+! you can specify how many hops to go from the start page.
+! 
+! </DL>
+  
+  <P>
+  <HR>
+diff -c MiniServ/Repository/Implementation/Version.make:1.7.2.1 MiniServ/Repository/Implementation/Version.make:1.7
+*** MiniServ/Repository/Implementation/Version.make:1.7.2.1	Tue Jan 23 16:32:22 1996
+--- MiniServ/Repository/Implementation/Version.make	Tue Jan 23 16:32:22 1996
+***************
+*** 1 ****
+! VS = 4.0C
+--- 1 ----
+! VS = 4.0B
+diff -c MiniServ/Repository/User/CommandLine.html:1.2 MiniServ/Repository/User/CommandLine.html:1.3
+*** MiniServ/Repository/User/CommandLine.html:1.2	Tue Jan 23 16:32:24 1996
+--- MiniServ/Repository/User/CommandLine.html	Tue Jan 23 16:32:25 1996
+***************
+*** 129,136 ****
+  <DT><B>-backlog</B> &lt;n&gt;
+  <DD>Number of connections pending in the <CODE>listen</CODE> queue
+  
+! <DT><B>-preemtive</B> 
+! <DD>Preemtive (blocking) sockets
+  
+  </DL>
+  
+--- 129,136 ----
+  <DT><B>-backlog</B> &lt;n&gt;
+  <DD>Number of connections pending in the <CODE>listen</CODE> queue
+  
+! <DT><B>-preemptive</B> 
+! <DD>Preemptive (blocking) sockets
+  
+  </DL>
+  

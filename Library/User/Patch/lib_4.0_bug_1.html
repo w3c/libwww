@@ -1,0 +1,44 @@
+<HTML>
+<HEAD>
+<TITLE>Bug in Proxy Handling (18-Dec-1995)</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../../Library/"><IMG SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/Bug48x" ALT="BUGS"></A>
+
+<H1>Bug in Proxy Handling</H1>
+
+<H2>Description</H2>
+
+In the 4.0pre6 Library's HTProxy_find() function (version of "4 Jun 95 Written on a rainy day") the
+comparison of port numbers in the "noproxy" case doesn't work when the port is defaulted. The code
+looks for a port number attached to the hostname, but if there is no port attached to the port name
+the code assumes a port number of 0. Seems that the default port should be the default port for the
+access scheme, or perhaps HTParse(url, , PARSE_HOST) should return a host with the default port
+number attached. Or perhaps I'm using HTNoProxy_add() incorrectly; I'm specifying a "no-proxy" for
+access "http" and port 80:
+
+<PRE>
+	HTNoProxy_add("bits.cv.hp.com", "http", 80);
+</PRE>
+
+<ADDRESS><A HREF="mailto:tag@hpcvlx.cv.hp.com">Tom Gaskins</A>, Thu, 30 Nov 1995 15:24:19</ADDRESS>
+
+<H2>Reason</H2>
+
+The problem is that URLs are canonicalized so that for example http URLs don't have a ":80". This
+confuses the comparison routine when looking for if a request should be proxied or not.
+
+<H2>Patch</H2>
+
+No patch yet
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

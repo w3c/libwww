@@ -1,0 +1,241 @@
+/* ************************************************************************* */
+/* HTMulTee.c                                                                */
+/*                                                                           */
+/* Sacha Varma, April 1996                                                   */
+/*                                                                           */
+/* The HTMulTee writes to all the streams in an HTList.                      */
+/*                                                                           */
+/* NOTES:								     */
+/* (23/4/96) The value returned by the methods does NOT depend in any way on */
+/*           the values returned by the methods of the destination streams:  */
+/*           this ought to be fixed                                          */
+/* ************************************************************************* */
+
+
+
+/* ************************************************************************* */
+/* Preprocessor Stuff                                                        */
+/* ************************************************************************* */
+
+#include <stdio.h>
+
+/* Library include files */
+
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTMemory.h"
+#include "HTList.h"
+
+
+#include "HTMulTee.h"
+
+
+
+
+/* ************************************************************************* */
+/* Prototype declarations                                                    */
+/* ************************************************************************* */
+
+PRIVATE int HTMulTee_abort(HTStream* this, HTList* errors_p);
+PRIVATE int HTMulTee_free(HTStream* this);
+PRIVATE int HTMulTee_put_string(HTStream* this, CONST char* str_p);
+PRIVATE int HTMulTee_put_character(HTStream* this, char ch);
+PRIVATE int HTMulTee_put_block(HTStream* this, CONST char* block_p, int len);
+PRIVATE int HTMulTee_flush(HTStream* this);
+
+
+
+
+
+
+/* ************************************************************************* */
+/* HTMulTee data members                                                     */
+/* ************************************************************************* */
+
+struct _HTStream {
+	CONST HTStreamClass* isa;           /* pointer to base class     */
+
+	char*                buffer;        /* buffer to store chars     */
+	char*                buffer_ptr;    /* pointer to next free char */
+	int                  buffer_count;  /* num chars un buffer       */
+	int                  buffer_size;   /* current buffer length     */
+
+	HTList*              dests_p;       /* list of destinations      */
+};
+
+
+
+
+
+
+
+/* ************************************************************************* */
+/* HTMulTee overridden virtual methods                             	     */
+/* ************************************************************************* */
+
+PRIVATE CONST HTStreamClass HTMulTeeClass =
+{		
+	"HTMulTee",
+	HTMulTee_flush,
+	HTMulTee_free,
+	HTMulTee_abort,
+	HTMulTee_put_character,
+ 	HTMulTee_put_string,
+	HTMulTee_put_block
+};
+
+
+
+
+
+
+/* ************************************************************************* */
+/* Stream methods                                                            */
+/* ************************************************************************* */
+
+
+/* ************************************************************************* */
+/* flush                                                                     */
+/* ************************************************************************* */
+
+PRIVATE int HTMulTee_flush(HTStream* this)
+{
+  void* obj_p;
+  HTList* list_p = (this->dests_p);
+
+
+  while (obj_p = HTList_nextObject(list_p))
+    ((HTStream*) obj_p)->isa->flush((HTStream*) obj_p);
+
+  return HT_OK;
+}
+
+
+
+
+/* ************************************************************************* */
+/* put_block                                                                 */
+/* ************************************************************************* */
+
+PRIVATE int HTMulTee_put_block(HTStream* this, CONST char* block_p, int len)
+{
+  int i;
+
+  void* obj_p;
+  HTList* list_p = (this->dests_p);
+
+
+  while (obj_p = HTList_nextObject(list_p))
+    ((HTStream*) obj_p)->isa->put_block(obj_p,block_p,len);
+
+  return HT_OK;
+}
+
+
+
+
+/* ************************************************************************* */
+/* put_character                                                             */
+/* ************************************************************************* */
+
+PRIVATE int HTMulTee_put_character(HTStream* this, char ch)
+{
+  int i;
+
+  void* obj_p;
+  HTList* list_p = (this->dests_p);
+
+
+  while (obj_p = HTList_nextObject(list_p))
+    ((HTStream*) obj_p)->isa->put_character((HTStream*) obj_p,ch);
+
+  return HT_OK;
+}
+
+
+
+
+/* ************************************************************************* */
+/* put_string                                                                */
+/* ************************************************************************* */
+
+PRIVATE int HTMulTee_put_string(HTStream* this, CONST char* str_p)
+{
+  int i;
+
+  void* obj_p;
+  HTList* list_p = (this->dests_p);
+
+
+  while (obj_p = HTList_nextObject(list_p))
+    ((HTStream*) obj_p)->isa->put_string((HTStream*) obj_p,str_p);
+
+  return HT_OK;
+}
+
+
+
+
+/* ************************************************************************* */
+/* free DESTRUCTOR                                                           */
+/* ************************************************************************* */
+
+PRIVATE int HTMulTee_free(HTStream* this)
+{
+  void* obj_p;
+  HTList* list_p = (this->dests_p);
+
+
+  while (obj_p = HTList_nextObject(this->dests_p)) {
+    printf(" freeing %ld\n", obj_p);
+    ((HTStream*) obj_p)->isa->_free((HTStream*) obj_p);
+  }
+
+  HT_FREE(this);
+
+  return HT_OK;
+}
+
+
+
+
+
+/* ************************************************************************* */
+/* abort DESTRUCTOR                                                          */
+/* ************************************************************************* */
+
+PRIVATE int HTMulTee_abort(HTStream* this, HTList* errors_p)
+{
+  void* obj_p;
+  HTList* list_p = (this->dests_p);
+
+
+  while (obj_p = HTList_nextObject(list_p))
+    ((HTStream*) obj_p)->isa->abort((HTStream*) obj_p,errors_p);
+
+  HTMulTee_free(this);
+
+  return HT_ERROR;
+}
+
+
+
+
+
+/* ************************************************************************* */
+/* CONSTRUCTOR                                                               */
+/* ************************************************************************* */
+
+PUBLIC HTStream* HTMulTee_new (HTList* destinations_p)
+{
+  HTStream* this;
+
+
+  if (!(this = (HTStream*) HT_MALLOC(sizeof(HTStream))))
+    HT_OUTOFMEM("HTMulTee_new");
+
+  this->isa     = &HTMulTeeClass;
+  this->dests_p = destinations_p;
+
+  return this;
+}

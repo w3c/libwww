@@ -1,0 +1,32 @@
+<HTML>
+<HEAD>
+<TITLE>Generting DLLs under Windows using Borland compilers</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../../Library/"><IMG SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/Bug48x" ALT="BUGS"></A>
+
+<H1>Generating DLLs under Windows using Borland compilers</H1>
+
+<H2>Description</H2>
+
+When you are generating DLLs with Borland and some versions of Microsoft Visual C++ compiler (at
+least version 1.x) it is required that each exported function or variable must have the
+<CODE>__export</CODE> directive as part of the function definition. Unfortunately this can not be
+combined with the already existing <CODE>PUBLIC</CODE> macro used throughout the Library as the
+<CODE>__export</CODE> directive must be placed directly before the function name.
+
+<H2>Patch</H2>
+
+There is not a specific patch but you can use the <A
+HREF="../../src/windows/makexprt.pl">Perl script </A>produced by Eric Prud'hommeaux to
+insert the <CODE>__export</CODE> directives into the source code. Of course this requires that you
+have a box that runs Perl available.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, January 1996</ADDRESS>
+</BODY>
+</HTML>

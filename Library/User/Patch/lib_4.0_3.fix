@@ -1,0 +1,49 @@
+#include "WWWUtil.h"
+#include "HText.h"
+
+#define PROXY(type,name,args,shortargs) \
+type (*APP_ ## name) args; \
+type name args { return APP_ ## name shortargs; }
+
+#define PROXYVOID(name,args,shortargs) \
+void (*APP_ ## name) args; \
+void name args { APP_ ## name shortargs; }
+
+PROXY(HText *,  HText_new2,      (HTRequest *            request,
+				  HTParentAnchor *       anchor,
+				  HTStream *             output_stream),
+      (request, anchor, output_stream))
+
+PROXYVOID(HText_beginAppend, (HText * text),
+	  (text))
+
+PROXYVOID(HText_endAppend, (HText * text),
+	  (text))
+
+PROXYVOID(HText_setStyle, (HText * text, HTStyle * style),
+	  (text, style))
+
+PROXYVOID(HText_appendCharacter, (HText * text, char ch),
+	  (text, ch))
+
+PROXYVOID(HText_appendText, (HText * text, CONST char * str),
+	  (text, str))
+
+PROXYVOID(HText_appendParagraph, (HText * text),
+	  (text))
+
+PROXYVOID(HText_beginAnchor, (HText * text, HTChildAnchor * anc),
+	  (text, anc))
+
+PROXYVOID(HText_endAnchor, (HText * text),
+	  (text))
+
+PROXYVOID(HText_appendImage, (
+        HText *         text,
+        HTChildAnchor * anc,
+        CONST char *    alternative_text,
+        CONST char *    alignment,
+        BOOL            isMap),
+	  (text, anc, alternative_text, alignment, isMap))
+
+HTStyleSheet * styleSheet;

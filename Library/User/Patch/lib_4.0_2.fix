@@ -1,0 +1,106 @@
+<HTML>
+<HEAD>
+<TITLE>Better Log facilities ( 8-Feb-1996)</TITLE>
+</HEAD>
+<BODY>
+<H1>Better Log facilities</H1>
+
+Kevin Hoogheem wrote this addition to the <A HREF="../../Implementationn/HTLog.html">log
+manager</A>.
+
+<H2><A HREF="../../Implementation/HTLog.html">HTlog.h</A></H2>
+
+<PRE>
+/* Defines for Loging
+** heres the standard way of login looks like.
+**	Format: &lt;HOST> - - &lt;DATE> &lt;METHOD> &lt;URI> &lt;RESULT> &lt;CONTENT_LENTGH>
+*/
+#define LOG_STANDARD 1
+/**	Format: &lt;HOST> - - &lt;DATE> &lt;METHOD>*/
+#define LOG_HDM 2
+/**	Format: &lt;HOST> - - &lt;DATE> &lt;URI>*/
+#define LOG_HDU 3
+/**	Format: &lt;HOST> - - &lt;DATE> &lt;METHOD> &lt;URI>*/
+#define LOG_HDMU 4
+/**	Format: &lt;HOST> - - &lt;DATE> &lt;METHOD> &lt;URI> &lt;RESULT>*/
+#define LOG_HDMUR 5
+/**	Format: &lt;URI>*/
+#define LOG_URI 6
+</PRE>
+
+<H2><A HREF="../../Implementation/HTLog.c">HTlog.c</A></H2>
+
+<PRE>
+/*	Add entry to the log file
+**	-------------------------
+**	Format: &lt;HOST> - - &lt;DATE> &lt;METHOD> &lt;URI> &lt;RESULT> &lt;CONTENT_LENTGH>
+**	which is almost equivalent to Common Logformat. Permissions on UNIX
+**	are modified by umask.
+**
+**	Returns YES if OK, NO on error
+**
+**	BUG: No result code is produced :-( Should be taken from HTError.c
+*/
+PUBLIC BOOL HTLog_add (HTRequest * request, int status, int method)
+{
+    if (HTLogFile) {
+	time_t now = time(NULL);
+	HTParentAnchor *anchor = HTRequest_anchor(request);
+	char * uri = HTAnchor_address((HTAnchor *) anchor);
+	if (WWWTRACE) TTYPrint(TDEST, "Log......... Writing log\n");
+	switch(method){
+	  case LOG_STANDARD:
+	    fprintf(HTLogFile, "localhost - - [%s] %s %s %d %ld\n",
+		  HTDateTimeStr(&now, HTloglocal),
+		  HTMethod_name(HTRequest_method(request)),
+		  uri,
+		  status,
+		  HTAnchor_length(anchor));
+	    FREE(uri);
+	    break;
+	  case LOG_HDM:
+	    fprintf(HTLogFile, "localhost - - [%s] %s\n",
+		  HTDateTimeStr(&now, HTloglocal),
+		  HTMethod_name(HTRequest_method(request));
+		break;
+	  case LOG_HDU:
+	    fprintf(HTLogFile, "localhost - - [%s] %s\n",
+		  HTDateTimeStr(&now, HTloglocal),
+		  uri);
+	    FREE(uri);
+	    break;
+	  case LOG_HDMU:
+	    fprintf(HTLogFile, "localhost - - [%s] %s %s\n",
+		  HTDateTimeStr(&now, HTloglocal),
+		  HTMethod_name(HTRequest_method(request)),
+		  uri);
+	    FREE(uri);
+	    break;
+	  case LOG_HDMUR:
+	    fprintf(HTLogFile, "localhost - - [%s] %s %s %d\n",
+		  HTDateTimeStr(&now, HTloglocal),
+		  HTMethod_name(HTRequest_method(request)),
+		  uri,
+		  status);
+	    FREE(uri);
+	    break;
+	  case LOG_URI:
+	    fprintf(HTLogFile, "%s\n",uri);
+	    FREE(uri);
+	    break;
+	  default:
+	    fprintf(HTLogFile, "[%s] - - Loging Method Not defined\n",
+		  HTDateTimeStr(&now, HTloglocal));
+	    break;
+	}
+	return (fflush(HTLogFile)!=EOF);       /* Actually update it on disk */
+    }
+    return NO;
+}
+</PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, Feb 1996</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,31 @@
+<HTML>
+<HEAD>
+<TITLE>Bug in select timeout management (18-Dec-1995)</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../../Library/"><IMG SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/Bug48x" ALT="BUGS"></A>
+
+<H1>Bug in select timeout management</H1>
+
+<H2>Description</H2>
+
+A problem with the current implementation of the select() based event loop is that it is not
+possible to see which socket descriptor(s) that has timed out when select() returns NULL. Therefore
+it is not posssible to get the right request object associated with the request. This is required
+for example if the application wants to kill the request. The solution is to add a timeout layer
+which keeps count of which sockets have timed out.
+
+<H2>Patch</H2>
+
+No patch yet
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

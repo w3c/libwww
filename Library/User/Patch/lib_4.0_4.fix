@@ -1,0 +1,24 @@
+/* ************************************************************************* */
+/* HTMulTee.h                                                                */
+/*                                                                           */
+/* Sacha Varma, April 1996                                                   */
+/*                                                                           */
+/* The HTMulTee writes to all the streams in an HTList.                      */
+/* ************************************************************************* */
+
+
+#ifndef _HTMULTEE_H
+#define _HTMULTEE_H
+
+
+#include "HTStream.h"
+
+
+
+
+extern HTStream* HTMulTee_new(HTList* list_of_destination_streams_p);
+
+
+
+
+#endif  /* ! _HTMULTEE_H */
