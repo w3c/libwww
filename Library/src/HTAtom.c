@@ -40,9 +40,7 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
     /*		First time around, clear hash table
     */
     if (!initialised) {
-        int i;
-	for (i=0; i<HASH_SIZE; i++)
-	    hash_table[i] = (HTAtom *) 0;
+        memset(hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
 	initialised = YES;
     }
     
@@ -77,6 +75,51 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
 
 
 /*
+**	CASE INSENSITIVE VERSION OF HTAtom_for()
+**	Finds an atom representation for a string. The atom doesn't have to be
+**	a new one but can be an already existing atom.
+*/
+PUBLIC HTAtom * HTAtom_caseFor ARGS1(CONST char *, string)
+{
+    int hash;
+    CONST char * p;
+    HTAtom * a;
+    
+    /*		First time around, clear hash table
+    */
+    if (!initialised) {
+        memset(hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
+	initialised = YES;
+    }
+    
+    /*		Generate hash function
+    */
+    for(p=string, hash=0; *p; p++) {
+        hash = (hash * 3 + *p) % HASH_SIZE;
+    }
+    
+    /*		Search for the string in the list
+    */
+    for (a=hash_table[hash]; a; a=a->next) {
+	if (!strcasecomp(a->name, string)) {
+	    return a;					/* Found: return it */
+	}
+    }
+    
+    /*		Generate a new entry
+    */
+    a = (HTAtom *)malloc(sizeof(*a));
+    if (a == NULL) outofmem(__FILE__, "HTAtom_for");
+    a->name = (char *)malloc(strlen(string)+1);
+    if (a->name == NULL) outofmem(__FILE__, "HTAtom_for");
+    strcpy(a->name, string);
+    a->next = hash_table[hash];		/* Put onto the head of list */
+    hash_table[hash] = a;
+    return a;
+}
+
+
+/*
 **	This function cleans up the memory used by atoms.
 **	Written by Eric Sink, eric@spyglass.com
 */
@@ -97,6 +140,7 @@ PUBLIC void HTAtom_deleteAll NOARGS
 	    }	
 	}
     }
+    initialised = NO;
 }
 
 

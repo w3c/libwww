@@ -49,10 +49,12 @@ The following methods are available for this class:
 
 This function returns a representative value (an <CODE>atom</CODE>)
 such that it will always (within one run of the program) return the
-same value for the same given string.
+same value for the same given string. The former is case sensitive,
+the latter is case insensitive.
 
 <PRE>
-extern HTAtom * HTAtom_for PARAMS((CONST char * string));
+extern HTAtom * HTAtom_for	PARAMS((CONST char * string));
+extern HTAtom * HTAtom_caseFor	PARAMS((CONST char * string));
 </PRE>
 
 <H3>Get Content of an Atom</H3>
