@@ -439,7 +439,7 @@ Library/User/Style/Makefile Library/User/Platform/Makefile
 Library/Test/Makefile Library/Test/User/Makefile Library/Test/src/Makefile
 Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile
 Library/Examples/Makefile
-Library/External
+Library/External/Makefile
 PICS-client/Makefile PICS-client/User/Makefile PICS-client/src/Makefile PICS-client/src/windows/Makefile
 LineMode/Makefile LineMode/User/Makefile
 LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
