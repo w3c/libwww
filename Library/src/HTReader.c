@@ -157,12 +157,6 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    socketClosed:
 		if (STREAM_TRACE)
 		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
-		if (request) {
-		    HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
-		    if (STREAM_TRACE)
-			if (cbf) (*cbf)(request, HT_PROG_DONE,
-					HT_MSG_NULL, NULL, NULL, NULL);
-		}
 		HTHost_unregister(host, net, HTEvent_READ);
 		HTHost_register(host, net, HTEvent_CLOSE);
 		return HT_CLOSED;

@@ -90,6 +90,8 @@ PRIVATE int pumpData (HTStream * me)
     */
     if (me->mode & (HT_MIME_HEADER | HT_MIME_FOOTER) ||
 	HTRequest_method(request) == METHOD_HEAD) {
+        HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
+        if (cbf) (*cbf)(request, HT_PROG_DONE, HT_MSG_NULL, NULL, NULL, NULL);
         return HT_LOADED;
     }
 
@@ -112,6 +114,8 @@ PRIVATE int pumpData (HTStream * me)
 		if (STREAM_TRACE) HTTrace("MIME Parser. BAD - there seems to be a body but no length. This must be an HTTP/1.0 server pretending that it is HTTP/1.1\n");
 		HTHost_setCloseNotification(host, YES);
 	    } else {
+                HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
+                if (cbf) (*cbf)(request, HT_PROG_DONE, HT_MSG_NULL, NULL, NULL, NULL);
 		if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
 		return HT_LOADED;
 	    }
@@ -393,10 +397,14 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		int consume = cl - bodyRead;
 		if ((status = (*me->target->isa->put_block)(me->target, b, consume)) < 0)
 		    return status;	    
-		HTNet_addBytesRead(net, consume);
-		HTHost_setConsumed(HTNet_host(net), consume);
-		return HT_LOADED;
-	    } else {
+                else {
+                    HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
+                    HTNet_addBytesRead(net, consume);
+                    HTHost_setConsumed(HTNet_host(net), consume);
+                    if (cbf) (*cbf)(me->request, HT_PROG_DONE, HT_MSG_NULL, NULL, NULL, NULL);
+                    return HT_LOADED;
+                }
+            } else {
 		if ((status = (*me->target->isa->put_block)(me->target, b, l)) < 0)
 		    return status;
 		HTNet_addBytesRead(net, l);
@@ -405,6 +413,9 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    }
 	}
 	return (*me->target->isa->put_block)(me->target, b, l);
+    } else {
+        HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
+        if (cbf) (*cbf)(me->request, HT_PROG_DONE, HT_MSG_NULL, NULL, NULL, NULL);
     }
     return HT_LOADED;
 }
