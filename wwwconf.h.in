@@ -83,9 +83,6 @@
 /* Define to be the version. */
 #undef W3C_VERSION
 
-/* Define to be the location of the W3C Icons */
-#undef W3C_ICONS
-
 /* Define this to be the prefix for cache files. */
 #undef CACHE_FILE_PREFIX
 
@@ -124,6 +121,9 @@
 
 /* Define this if you have the external variable 'altzone' */
 #undef HAVE_ALTZONE
+
+/* Define this if you have the external variable 'altzone' */
+#undef HAVE_DAYLIGHT
 
 /* Define this if tm structure includes a tm_gmtoff entry. */
 #undef HAVE_TM_GMTOFF
@@ -199,6 +199,9 @@
 
 /* Define if you have the sysinfo function.  */
 #undef HAVE_SYSINFO
+
+/* Define if you have the tempnam function.  */
+#undef HAVE_TEMPNAM
 
 /* Define if you have the timegm function.  */
 #undef HAVE_TIMEGM
@@ -403,6 +406,9 @@
 
 /* Define this if you have the external variable 'altzone' */
 #undef HAVE_ALTZONE
+
+/* Define this if you have the external variable 'altzone' */
+#undef HAVE_DAYLIGHT
 
 /* Define this if you have the uxc$inetdef.h header file. */
 #undef HAVE_UXC_INETDEF_H

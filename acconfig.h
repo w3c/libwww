@@ -79,6 +79,9 @@ its ``extern'' declaration. */
 /* Define this if you have the external variable 'altzone' */
 #undef HAVE_ALTZONE
 
+/* Define this if you have the external variable 'altzone' */
+#undef HAVE_DAYLIGHT
+
 /* Define this if you have the uxc$inetdef.h header file. */
 #undef HAVE_UXC_INETDEF_H
 

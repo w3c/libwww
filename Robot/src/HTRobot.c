@@ -578,7 +578,7 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     if (keywords)						   /* Search */
-	status = HTSearchAnchor(keywords, mr->anchor, mr->request);
+	status = HTSearchAnchor(keywords, (HTAnchor *)mr->anchor, mr->request);
     else
 	status = HTLoadAnchor((HTAnchor *) mr->anchor, mr->request);
 
