@@ -950,7 +950,7 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
             }
             return YES;
         } else {
-            HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
+            if (CORE_TRACE) HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
             
             /* 
             **  By lowering the semaphore we make sure that the channel
@@ -998,6 +998,13 @@ PUBLIC HTNet * HTHost_nextPendingNet (HTHost * host)
 	if ((net = (HTNet *) HTList_removeFirstObject(host->pending)) != NULL) {
 	    if (CORE_TRACE)
 		HTTrace("Host info... Popping %p from pending net queue\n", net);
+#if 0
+	    {
+		HTRequest * request = HTNet_request(net);
+		char * uri = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
+		fprintf(stderr, "Popping '%s'\n", uri);
+	    }
+#endif
 	    host->doit = net;
 	}
     }

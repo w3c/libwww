@@ -40,7 +40,7 @@ PRIVATE void scan (char * name, HTURI * parts)
     memset(parts, '\0', sizeof(HTURI));
 
     /* Look for fragment identifier */
-    if ((p = strrchr(name, '#')) != NULL) {
+    if ((p = strchr(name, '#')) != NULL) {
 	*p++ = '\0';
 	parts->fragment = p;
     }
@@ -411,8 +411,13 @@ PUBLIC char *HTSimplify (char ** url)
 		p++;
 	}
     }
-    if (URI_TRACE)
-	HTTrace("into\n............ `%s'\n", *url);
+
+    /*
+    **  Check for host/../.. kind of things
+    */
+    if (*path=='/' && *(path+1)=='.' && *(path+2)=='.' && (!*(path+3) || *(path+3)=='/'))
+	*(path+1) = '\0';
+    if (URI_TRACE) HTTrace("into\n............ `%s'\n", *url);
     return *url;
 }
 

@@ -122,13 +122,15 @@ PRIVATE int HTMemLog_addTime(void)
     ret = systemTime.wSecond;
     len = sprintf(buff, "%02d:%02d:%02d.%d", systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
 #else /* WWW_MSWINDOWS */
+#ifdef HAVE_GETTIMEOFDAY
     struct timeval tp;
-    struct timezone tz = {300, DST_USA};
+    struct timezone tz;
 
     gettimeofday(&tp, &tz);
     tp.tv_sec = HTMemLog_adjustGMT(tp.tv_sec)%(24*60*60);
     ret = tp.tv_sec;
     len = sprintf(buff, "%02d:%02d:%02d.%d", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
+#endif /* HAVE_GETTIMEOFDAY */
 #endif /* !WWW_MSWINDOWS */
     HTMemLog_add(buff, len);
     return ret;

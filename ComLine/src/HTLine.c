@@ -66,6 +66,7 @@ typedef struct _ComLine {
     char *		cwd;				  /* Current dir URL */
     char *		rules;
     char *		logfile;
+    HTLog *		log;
     char *		outputfile;
     FILE *	        output;
     HTFormat		format;		        /* Input format from console */
@@ -115,7 +116,7 @@ PRIVATE BOOL ComLine_delete (ComLine * me)
 {
     if (me) {
 	HTRequest_delete(me->request);
-	if (me->logfile) HTLog_close();
+	if (me->log) HTLog_close(me->log);
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	HT_FREE(me->cwd);
 	HT_FREE(me);
@@ -429,7 +430,10 @@ int main (int argc, char ** argv)
     HTRequest_setFlush(cl->request, YES);
 
     /* Log file specifed? */
-    if (cl->logfile) HTLog_open(cl->logfile, YES, YES);
+    if (cl->logfile) {
+	cl->log = HTLog_open(cl->logfile, YES, YES);
+        if (cl->log) HTNet_addAfter(HTLogFilter, NULL, cl->log, HT_ALL, HT_FILTER_LATE);
+    }
 
     /* Just convert formats */
     if (cl->flags & CL_FILTER) {

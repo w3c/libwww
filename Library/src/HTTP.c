@@ -1062,13 +1062,14 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			    }
 			}
 		    } else {
+			status = HTRequest_flush(request) ?
+			    HTHost_forceFlush(host) : (*input->isa->flush)(input);
+
 			/*
 			**  Check to see if we can start a new request
 			**  pending in the host object.
 			*/
 			HTHost_launchPending(host);
-			status = HTRequest_flush(request) ?
-			    HTHost_forceFlush(host) : (*input->isa->flush)(input);
 			type = HTEvent_READ;
 		    }
 		    if (status == HT_WOULD_BLOCK) return HT_OK;

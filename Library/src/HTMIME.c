@@ -101,9 +101,13 @@ PRIVATE int pumpData (HTStream * me)
     **  content type then we assume that there is no body part in
     **  the message and we can return HT_LOADED
     */
-    if (length<=0 && format==WWW_UNKNOWN && transfer==NULL) {
-	if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
-	return HT_LOADED;
+    {
+	HTHost * host = HTNet_host(me->net);
+	if (length<=0 && transfer==NULL &&
+	    HTHost_isPersistent(host) && !HTHost_closeNotification(host)) {
+	    if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
+	    return HT_LOADED;
+	}
     }
 
     /*

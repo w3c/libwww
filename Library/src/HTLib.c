@@ -169,6 +169,7 @@ PUBLIC BOOL HTLibTerminate (void)
     if (WWWTRACE) HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
 
     HTNet_killAll();
+    HTChannel_deleteAll();			/* Delete remaining channels */
 
     HT_FREE(HTAppName);	        /* Freed thanks to Wade Ogden <wade@ebt.com> */
     HT_FREE(HTAppVersion);
@@ -183,8 +184,6 @@ PUBLIC BOOL HTLibTerminate (void)
     HTUserProfile_delete(UserProfile);	    /* Free our default User profile */
 
     HTUTree_deleteAll();			     /* Delete all URL Trees */
-
-    HTChannel_deleteAll();			/* Delete remaining channels */
 
     initialized = NO;
     return YES;

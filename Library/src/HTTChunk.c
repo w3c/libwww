@@ -69,20 +69,21 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 {
     while (l > 0) {
 	int length = l;
-	if (me->left <= 0 && !me->lastchunk) {
+	if (me->left <= 0 && !me->trailer) {
 	    while (l > 0) {
 		if (me->state == EOL_FLF) {
 		    if (HTChunkDecode_header(me) == NO) return HT_ERROR;
-		    if (me->lastchunk) {
-			if (*b != CR && *b != LF) me->trailer = YES;
-		    } else {
-			me->state = EOL_DOT;
-		    }
+		    if (me->lastchunk) if (*b != CR && *b != LF) me->trailer = YES;
+		    me->state = EOL_DOT;
 		    break;
+		} else if (me->state == EOL_SLF) {
+		    if (me->lastchunk) break;
+		    me->state = EOL_BEGIN;
+		    HTChunk_putc(me->buf, *b);
 		} else if (*b == CR) {
 		    me->state = me->state == EOL_DOT ? EOL_SCR : EOL_FCR;
 		} else if (*b == LF) {
-		    me->state = me->state == EOL_SCR ? EOL_BEGIN : EOL_FLF;
+		    me->state = me->state == EOL_SCR ? EOL_SLF : EOL_FLF;
 		} else
 		    HTChunk_putc(me->buf, *b);
 		b++, l--;
@@ -93,38 +94,33 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 	** Account for the parts we read in the chunk header +
 	** the chunk that we are reading.
 	*/
-	if (length != l) {
-	    if (me->lastchunk) l -= 2;
+	if (length != l)
 	    HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
-	}
 
 	/*
 	** If we have to read trailers. Otherwise we are done.
 	*/
-	if (me->lastchunk) {
-	    if (me->trailer)
-		me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
-					   me->target, me->request, NO);
-	    else {
-		me->status = HT_LOADED;
-		break;
-	    }
+	if (me->trailer)
+	    me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
+				       me->target, me->request, NO);
+	else if (me->state == EOL_SLF) {
+	    if (me->lastchunk) return HT_LOADED;
+	    me->state = EOL_BEGIN;
 	}
 
 	/*
 	**  Handle the rest of the data including trailers
 	*/
-	if (l > 0) {
-	    int bytes = me->left ? HTMIN(l, me->left) : l;
-	    int status;
-	    if ((status = (*me->target->isa->put_block)(me->target, b, bytes)) != HT_OK)
-		return status;
+	if (l > 0 && me->left) {
+	    int bytes = HTMIN(l, me->left);
+	    int status = (*me->target->isa->put_block)(me->target, b, bytes);
+	    if (status != HT_OK) return status;
 	    HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), bytes);
 	    me->left -= bytes;
 	    l -= bytes, b+= bytes;
 	}
     }
-    return me->lastchunk ? me->status : HT_OK;
+    return HT_OK;
 }
 
 PRIVATE int HTChunkDecode_string (HTStream * me, const char * s)

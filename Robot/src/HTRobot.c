@@ -81,7 +81,7 @@ typedef struct _Robot {
 
     long		total_bytes;	/* Total number of bytes processed */
     long                total_docs;     /* Total number of documents processed */
-    time_t		time;		/* Time of run */
+    ms_t		time;		/* Time of run */
 } Robot;
 
 typedef struct _Finger {
@@ -226,13 +226,14 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 
     /* Calculate efficiency */
     {
-	time_t t = time(NULL) - mr->time;
-	if (t > 0.0) {
-	    double loadfactor = mr->total_bytes / t;
+	ms_t t = HTGetTimeInMillis() - mr->time;
+	if (t > 0) {
+	    double loadfactor = 1000 * (mr->total_bytes / t);
+	    double secs = t / 1000.0;
             char bytes[50];
             HTNumToStr(mr->total_bytes, bytes, 50);
-	    HTTrace("Downloaded %s bytes in %ld document bodies in %ld seconds (%2.1f bytes/sec)\n",
-		    bytes, mr->total_docs, t, loadfactor);
+	    HTTrace("Downloaded %s bytes in %ld document bodies in %.2f seconds (%2.1f bytes/sec)\n",
+		    bytes, mr->total_docs, secs, loadfactor);
 	}
     }
 
@@ -432,7 +433,8 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 
     /* Count the amount of body data that we have read */
     if (status == HT_LOADED && HTRequest_method(request) == METHOD_GET) {
-        mr->total_bytes += HTAnchor_length(HTRequest_anchor(request));
+	int length = HTAnchor_length(HTRequest_anchor(request));
+	if (length > 0) mr->total_bytes += length;
     }
 
     /* Count the number of documents that we have processed */
@@ -743,7 +745,7 @@ int main (int argc, char ** argv)
        } else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!keycnt) {
 		char * ref = HTParse(argv[arg], mr->cwd, PARSE_ALL);
-		startAnchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
+		startAnchor = HTAnchor_parent(HTAnchor_findAddress(ref));
 		HyperDoc_new(mr, startAnchor, 0);
 		keycnt = 1;
 		HT_FREE(ref);
@@ -810,7 +812,7 @@ int main (int argc, char ** argv)
     /* Setting event timeout */
     HTHost_setEventTimeout(mr->timer);
 
-    mr->time = time(NULL);
+    mr->time = HTGetTimeInMillis();
 
     /* Start the request */
     finger = Finger_new(mr, startAnchor, METHOD_GET);

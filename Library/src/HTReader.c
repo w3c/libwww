@@ -95,7 +95,7 @@ char * strnstr(char * haystack, int *pLen, char * needle)
     return NULL;
 }
 
-int DebugBufferSize = INPUT_BUFFER_SIZE;
+/* int DebugBufferSize = INPUT_BUFFER_SIZE; */
 
 PRIVATE int HTReader_read (HTInputStream * me)
 {
@@ -114,7 +114,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
     do {
 	/* don't read if we have to push unwritten data from last call */
 	if (me->write >= me->read) {
-	    if ((me->b_read = NETREAD(soc, me->data, DebugBufferSize)) < 0) {
+	    if ((me->b_read = NETREAD(soc, me->data, INPUT_BUFFER_SIZE)) < 0) {
 #ifdef EAGAIN
 		if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)      /* POSIX */
 #else
@@ -235,7 +235,8 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	{
 	    int remaining = HTHost_remainingRead(host);
 	    if (remaining > 0) {
-		HTTrace("Read Socket. DIDN'T CONSUME %d BYTES\n", remaining);
+		HTTrace("Read Socket. DIDN'T CONSUME %d BYTES: `%s\'\n",
+			remaining, me->read);
 		HTHost_setConsumed(host, remaining);
 	    }
 	}

@@ -153,6 +153,7 @@ struct _LineMode {
     char *		cwd;				  /* Current dir URL */
     char *		rules;
     char *		logfile;
+    HTLog * 		log;
     char *		outputfile;
     char *		host;
     int			trace;
@@ -321,7 +322,7 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 	HTPresentation_deleteAll(lm->presenters);
 	HTHistory_delete(lm->history);
 	HT_FREE(lm->cwd);
-	if (lm->logfile) HTLog_close();
+	if (lm->log) HTLog_close(lm->log);
 	if (lm->pCSUser)
 	    CSLoadedUser_remove(lm->pCSUser);
 	HTView_destroy(lm->pView);
@@ -1840,7 +1841,7 @@ int main (int argc, char ** argv)
 	} else {	   /* If no leading `-' then check for main argument */
     	    if (!keycnt) {
 		char * ref = HTParse(argv[arg], lm->cwd, PARSE_ALL);
-		lm->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
+		lm->anchor = HTAnchor_parent(HTAnchor_findAddress(ref));
 		keycnt = 1;
 		HT_FREE(ref);
 	    } else {		   /* Check for successive keyword arguments */
@@ -1908,7 +1909,10 @@ int main (int argc, char ** argv)
     }
     
      /* Log file specifed? */
-    if (lm->logfile) HTLog_open(lm->logfile, YES, YES);
+    if (lm->logfile) {
+	lm->log = HTLog_open(lm->logfile, YES, YES);
+        if (lm->log) HTNet_addAfter(HTLogFilter, NULL, lm->log, HT_ALL, HT_FILTER_LATE);
+    }
 
     /* Just convert formats */
     if (lm->flags & LM_FILTER) {

@@ -150,6 +150,11 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	int status = HT_OK;
 	if ((status = PUTS(me->url)) != HT_OK) return status;
 	me->state++;
+
+#if 0
+	fprintf(stderr, "Requesting '%s'\n", me->url);
+#endif
+
     }
     PUTC(' ');
 
