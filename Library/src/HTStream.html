@@ -34,8 +34,9 @@ for write().
 	void (*free) PARAMS((
 		HTStream*	me));
 
-	void (*end_document) PARAMS((
-		HTStream*	me));
+	void (*abort) PARAMS((
+		HTStream*	me,
+		HTError		e));
 		
 	void (*put_character) PARAMS((
 		HTStream*	me,
@@ -55,5 +56,5 @@ for write().
 
 #endif /* HTSTREAM_H */
 
-</PRE>end of HTStream.h</BODY>
+</PRE>end of HTStream.h</A></BODY>
 </HTML>

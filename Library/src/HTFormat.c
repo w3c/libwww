@@ -270,7 +270,8 @@ PUBLIC HTStream * HTStreamStack ARGS4(
 		source_wildcard_match;
 	
 	if (match) {
-		HTPresentation temp = *match;	/* Specific instance */
+		HTPresentation temp;
+		temp = *match;			/* Specific instance */
 		temp.rep = rep_in;		/* yuk */
 		temp.rep_out = rep_out;		/* yuk */
 		return (*match->converter)(&temp, anchor, sink);
@@ -575,7 +576,7 @@ PUBLIC int HTParseFile ARGS5(
 */
 
 
-PRIVATE void NetToText_put_character ARGS2(HTStream, * me, char, net_char)
+PRIVATE void NetToText_put_character ARGS2(HTStream *, me, char, net_char)
 {
     char c = FROMASCII(net_char);
     if (me->had_cr) {
@@ -592,13 +593,13 @@ PRIVATE void NetToText_put_character ARGS2(HTStream, * me, char, net_char)
 	me->sink->isa->put_character(me->sink, c);		/* normal */
 }
 
-PRIVATE void NetToText_put_string ARGS2(HTStream, * me, CONST char *, s)
+PRIVATE void NetToText_put_string ARGS2(HTStream *, me, CONST char *, s)
 {
     CONST char * p;
     for(p=s; *p; p++) NetToText_put_character(me, *p);
 }
 
-PRIVATE void NetToText_put_block ARGS3(HTStream, * me, CONST char*, s, int, l)
+PRIVATE void NetToText_put_block ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
     CONST char * p;
     for(p=s; p<(s+l); p++) NetToText_put_character(me, *p);

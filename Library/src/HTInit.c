@@ -67,21 +67,24 @@ PUBLIC void HTFormatInit NOARGS
 
 #ifndef NO_INIT
 PUBLIC void HTFileInit NOARGS
-{
+{	/* 	Suffix     Contenet-Type   Content-Encoding    Quality  */
+    
+    HTSetSuffix(".ai",	"application/postscript", "8bit", 0.5);	/* Adobe illustator */
+    HTSetSuffix(".au",  "audio/basic", "binary", 1.0);
     HTSetSuffix(".mime","www/mime", "8bit", 1.0); /* Internal -- MIME is not recursive? */
     
     HTSetSuffix(".PS",	"application/postscript", "8bit", 0.8);
     HTSetSuffix(".eps",	"application/postscript", "8bit", 0.8);
-    HTSetSuffix(".ai",	"application/postscript", "8bit", 0.5);	/* Adobe illustator */
     HTSetSuffix(".ps",	"application/postscript", "8bit", 0.8);
 
     HTSetSuffix(".execme.csh", "application/x-csh", "7bit", 0.5);
     
-    HTSetSuffix(".html","text/html", "8bit", 1.0);	/* Jumping the gun a little */
-
+    HTSetSuffix(".html","text/html", "8bit", 1.0);
+    
     HTSetSuffix(".c",	"text/plain", "7bit", 0.5);
-    HTSetSuffix(".h",	"text/plain", "7bit", 0.5);		/* html better */
-    HTSetSuffix(".m",	"text/plain", "7bit", 0.5);		/* Objective-C code */
+    HTSetSuffix(".h",	"text/plain", "7bit", 0.5);	/* html better */
+    HTSetSuffix(".m",	"text/plain", "7bit", 0.5);	/* Objective-C code */
+    HTSetSuffix(".f90",	"text/plain", "7bit", 0.5);	/* Fortran 90 */
     HTSetSuffix(".txt", "text/plain", "7bit", 0.5);
 
     HTSetSuffix(".rtf",	"application/x-rtf", "8bit", 1.0);
@@ -90,9 +93,9 @@ PUBLIC void HTFileInit NOARGS
     
     HTSetSuffix(".snd", "audio/basic", "binary", 1.0);
     
-    HTSetSuffix(".bin",	"application/octet-stream", "binary", 1.0);	/* @@@@@@@@@@@@@@@@ */
+    HTSetSuffix(".bin",	"application/octet-stream", "binary", 1.0);
 
-    HTSetSuffix(".Z",	"application/x-compressed", "binary", 1.0);	/* @@@@@@@@@@@@@@@@ */
+    HTSetSuffix(".Z",	"application/x-compressed", "binary", 1.0);
     
     HTSetSuffix(".gif", "image/gif", "binary", 1.0);
 

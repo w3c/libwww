@@ -624,7 +624,9 @@ PUBLIC CONST HTStreamClass SGMLParser =
 	"SGMLParser",
 	SGML_free,
 	SGML_abort,
-	SGML_character, 	SGML_string,  SGML_write,
+	SGML_character, 
+	SGML_string,
+	SGML_write,
 }; 
 
 /*	Create SGML Engine
