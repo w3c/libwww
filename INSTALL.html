@@ -156,15 +156,7 @@ can run in the future to recreate the current configuration, a file
 and a file `config.log' containing compiler output (useful mainly for debugging
 <I>configure</I>).
 <P>
-Libwww uses <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
-Libtool</A> in order to build shared libraries on a variety of systems. While
-this is very nice for making usable binaries, it can be a pain when trying
-to debug a program. For that reason, compilation of shared libraries can
-be turned off by specifying the <CODE>--disable-shared</CODE> option to
-<CODE>configure</CODE>.
-<P>
 The simplest way to compile this package on a Unix platform is:
-<P>
 <OL>
   <LI>
     `cd' to the directory containing the package's source code and type
@@ -173,9 +165,6 @@ The simplest way to compile this package on a Unix platform is:
     ./configure</CODE>' instead to prevent `csh' from trying to execute
     <I>configure</I> itself. Running <I>configure</I> takes awhile. While running,
     it prints some messages telling which features for which it is checking.
-  <LI>
-    Stop here and jump to the <A HREF="Library/User/Patch/">Known Bugs and
-    Patches</A> page to see if you need to apply any patches before you compile.
   <LI>
     Type `make' to compile the package.
   <LI>
@@ -194,15 +183,11 @@ Some systems require unusual options for compilation or linking that the
 <I>configure</I> script does not know about. You can give <I>configure</I>
 initial values for variables by setting them in the environment. Using a
 Bourne-compatible shell, you can do that on the command line like this:
-<PRE>
-      CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
- 
+<PRE>      CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
 </PRE>
 <P>
 Or on systems that have the `env' program, you can do it like this:
-<PRE>
-      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
- 
+<PRE>      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
 </PRE>
 <H3>
   Using a Different Build Directory
@@ -228,12 +213,13 @@ an extra prefix or suffix on its name by giving <I>configure</I> the options
 `<CODE>--program-prefix=PREFIX</CODE>' or
 `<CODE>--program-suffix=SUFFIX</CODE>'.
 <H3>
-  <A NAME="features">Optional Features and Packages</A>
+  <A NAME="features">Extra Features and Packages</A>
 </H3>
 <P>
 There are a set of options you can give to <I>configure</I> in addition to
 those understood by all <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU
-Autoconf <I>configure</I></A> scripts:
+Autoconf <I>configure</I></A> scripts. This is how you can enable, disable,
+include, or exclude them:
 <DL>
   <DT>
     <CODE>--disable-FEATURE</CODE>
@@ -251,17 +237,17 @@ Autoconf <I>configure</I></A> scripts:
     <CODE>--without-PACKAGE</CODE>
   <DD>
     do not use PACKAGE (same as <CODE>--with-PACKAGE=no</CODE>)
-  <DT>
-    <CODE>--x-includes=DIR</CODE>
-  <DD>
-    X include files are in DIR
-  <DT>
-    <CODE>--x-libraries=DIR</CODE>
-  <DD>
-    X library files are in DIR
 </DL>
+<H4>
+  Options for Handling Shared/Static Linking
+</H4>
 <P>
-<CODE>--enable</CODE> and <CODE>--with</CODE> options recognized:
+Libwww uses <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
+Libtool</A> to build shared libraries on a variety of systems. While this
+is very nice for making usable binaries, it can be a pain when trying to
+debug a program. For that reason, compilation of shared libraries can be
+turned off by specifying the <CODE>--disable-shared</CODE> option to
+<CODE>configure</CODE>.
 <DL>
   <DT>
     <CODE>--with-gnu-ld</CODE>
@@ -270,35 +256,43 @@ Autoconf <I>configure</I></A> scripts:
   <DT>
     <CODE>--enable-shared</CODE>
   <DD>
-    build shared libraries [default=yes]
+    Build shared libraries [default=yes]
   <DT>
     <CODE>--enable-static</CODE>
   <DD>
-    3build static libraries [default=yes]
-  <DT>
-    <CODE>--with-x</CODE>
-  <DD>
-    use the X Window System
-  <DT>
-    <CODE>--with-wais[=PATH]</CODE>
-  <DD>
-    Compile with support for <A HREF="Library/User/WAIS.html">direct WAIS
-    access</A>.
+    Build static libraries [default=yes]
+</DL>
+<H4>
+  Highly Recommended Packages!
+</H4>
+<P>
+These provide very useful added functionality in the
+<A HREF="Library/">libwww</A> and the
+<A HREF="Library/User/Applications.html">libwww applications</A>
+<DL>
   <DT>
     <CODE>--with-mysql[=PATH]</CODE>
   <DD>
-    Compile with support for <A HREF="http://www.tcx.se/">MySQL</A>
-    <A HREF="Library/src/HTSQLLog.html">logging</A>, caching, etc.
+    Compile with support for <A HREF="http://www.tcx.se/">MySQL</A> database
+    access used for <A HREF="Robot/User/CommandLine.html#Logging">Webbot
+    logging</A> etc.
   <DT>
     <CODE>--with-zlib[=PATH]</CODE>
   <DD>
     Compile with <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib
-    compress/decompress</A> support.
+    compress/decompress</A> support used for compressing HTML etc.
   <DT>
     <CODE>--with-regex[=PATH]</CODE>
   <DD>
     Compile with <A HREF="http://www.delorie.com/gnu/docs/rx/">POSIX regex
-    library</A> support.
+    library</A> support used for regular expession matching of URIs
+</DL>
+<H4>
+  Other Packages
+</H4>
+<P>
+These are less used packages (or less tested packages, I should say)
+<DL>
   <DT>
     <CODE>--with-socks</CODE>
   <DD>
@@ -312,29 +306,60 @@ Autoconf <I>configure</I></A> scripts:
   <DD>
     Compile with SOCKS4 firewall traversal support.
   <DT>
-    <CODE>--enable-signals</CODE>
+    <CODE>--with-wais[=PATH]</CODE>
   <DD>
-    use internal libwww signal handler.
+    Compile with support for <A HREF="Library/User/WAIS.html">direct WAIS
+    access</A>.
+</DL>
+<H4>
+  Less Used Libwww Configuration Options
+</H4>
+<P>
+Normally, you don't have to change the default settings here
+<DL>
   <DT>
     <CODE>--disable-nagle</CODE>
   <DD>
-    Turning off Nagle's algorithm.
+    Turning off Nagle's algorithm. Nagle is off by default
   <DT>
     <CODE>--disable-pipelining</CODE>
   <DD>
-    Turning off HTTP/1.1 Pipelining.
+    Turning off HTTP/1.1 Pipelining. Pipelining is on by default
   <DT>
     <CODE>--enable-reentrant</CODE>
   <DD>
-    define _REENTRANT to enable reentrant system calls
+    Define <CODE>_REENTRANT</CODE> to enable reentrant system calls. Off by default
+  <DT>
+    <CODE>--enable-signals</CODE>
+  <DD>
+    Use internal libwww signal handler. Off by default
   <DT>
     <CODE>--enable-posix</CODE>
   <DD>
-    define _POSIX_SOURCE
+    Define _POSIX_SOURCE. Off by default
   <DT>
     <CODE>--enable-cyrillic</CODE>
   <DD>
-    include support for Cyrillic in line mode browser
+    Include support for Cyrillic in <A HREF="LineMode/">Line Mode browser</A>
+</DL>
+<H4>
+  Location of X Files
+</H4>
+<P>
+As libwww doesn't use X, this is not really used.
+<DL>
+  <DT>
+    <CODE>--x-includes=DIR</CODE>
+  <DD>
+    X include files are in DIR
+  <DT>
+    <CODE>--x-libraries=DIR</CODE>
+  <DD>
+    X library files are in DIR
+  <DT>
+    <CODE>--with-x</CODE>
+  <DD>
+    Use the X Window System
 </DL>
 <H3>
   Specifying the System Type
@@ -348,7 +373,6 @@ be a short name for the system type, such as `sun4', or a canonical name
 with three fields:
 <PRE>
       CPU-COMPANY-SYSTEM
- 
 </PRE>
 <P>
 See the file `config.sub' for the possible values of each field. If `config.sub'
