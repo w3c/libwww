@@ -14,6 +14,7 @@
 #include "HTFont.h"
 #include "HTBrowse.h"
 #include "HTStream.h"
+#include "GridStyle.h"
 
 
 struct _HTStream {			/* only know it as object */

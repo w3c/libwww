@@ -3,7 +3,7 @@
 **	The dimensions are all in characters!
 */
 
-#include "HTStyle.h"
+#include "GridStyle.h"
 #include "HTFont.h"
 
 /*	Tab arrays:

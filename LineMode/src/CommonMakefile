@@ -64,6 +64,7 @@ PROD = www
 
 SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)GridText.c		$(LM)GridText.h \
+	$(LM)GridStyle.c	$(LM)GridStyle.html \
 	$(LM)HTFont.h 		$(LM)Version.make\
 	$(LM)DefaultStyles.c	$(LM)CommonMakefile
 
@@ -90,19 +91,33 @@ SPECIFIC =  \
 # recursive invocation
 include $(ABS)$(LM)Version.make
 
+
+.html.h:
+	www -w90 -na -to text/x-c $*.html > $*.h
+
+
+
 PURIFY = purify \
 	-logfile=/home2/frystyk/purify-output \
 	-cache-dir=/home2/frystyk/purify-cache
+
 
 $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
 	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(WWWLIB) $(WAISLIB) $(LFLAGS)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
+
+
+$(LM)GridStyle.html : $(LM)GridStyle.h
+	www -w90 -na -to text/x-c $(LM)GridStyle.html > $(LM)GridStyle.h
+
+
 purify : $(OBJS) $(USELIBDIR)/libwww.a
 	$(PURIFY) $(CC) -o $(PROD)_$(VL) $(OBJS) $(WWWLIB) $(WAISLIB) $(LFLAGS)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
+
 
 $(USELIBDIR)/libwww.a :
 	@echo You must get and make the WWWLibrary product first!
@@ -204,7 +219,7 @@ $(OBJ)/HTBrowse.o : $(OE) $(LM)HTBrowse.c $(LM)GridText.h $(LM)Version.make \
 		$(CMN)HTUtils.h $(CMN)HTAccess.h
 	$(CC) -c -o $@ $(CFLAGS2) -DVL=\"$(VL)\" $(LM)HTBrowse.c  
 
-$(OBJ)/GridText.o : $(OE) $(LM)GridText.c $(LM)GridText.h\
+$(OBJ)/GridText.o : $(OE) $(LM)GridText.c $(LM)GridText.h $(LM)GridStyle.h\
 	 $(CMN)HTAnchor.h $(CMN)HTStyle.h
 	$(CC) -c -o $@ $(CFLAGS2) $(LM)GridText.c
 
