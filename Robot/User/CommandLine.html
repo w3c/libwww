@@ -253,26 +253,26 @@ the same database (the default name is "<CODE>webbot</CODE>"):
 The command line options for handling the SQL logging are as follows:
 <DL>
   <DT>
-    <B>-sqlserver</B>
+    <B>-sqlserver [ srvrname ]</B>
   <DD>
     Specify the mysql server. The default is <CODE>"localhost</CODE>".
   <DT>
-    <B>-sqldb</B>
+    <B>-sqldb [ dbname ]</B>
   <DD>
     Specify the database to use. The default is <CODE>webbot</CODE>. Note that
     webbot creates its own set of tables for handling the logs.
   <DT>
-    <B>-sqluser</B>
+    <B>-sqluser [ usrname ]</B>
   <DD>
     Use this to specify the user that we are connection to the database as. The
     default is <CODE>"webbot</CODE>".
   <DT>
-    <B>-sqlpassword</B>
+    <B>-sqlpassword [ usrpswd ]</B>
   <DD>
     Use this to specify the password needed to connect to the database. The default
     is empty string.
   <DT>
-    <B>-sqlrelative</B>
+    <B>-sqlrelative [ relroot ]</B>
   <DD>
     If you want to make the URI entries in the database relative then you can
     specify the root to which they should be made relative. This can for example
@@ -357,12 +357,12 @@ can be drawn directly from the database is very high.
     Specifies a log file of which <STRONG>charsets</STRONG> (content type parameter)
     were encountered in the run and their distribution
   <DT>
-    <B>-hitcount [ file]</B>
+    <B>-hitcount [ file ]</B>
   <DD>
     Specifies a log file of URIs sorted after <STRONG>how many times</STRONG>
     they were referenced in the run
   <DT>
-    <B>-lm [ file]</B>
+    <B>-lm [ file ]</B>
   <DD>
     Specifies a log file of URIs sorted after <STRONG>last modified date</STRONG>.
     This gives a good overview of the dynamics of the web site that you are checking.
@@ -421,7 +421,7 @@ options:
 </H3>
 <DL>
   <DT>
-    <B>-delay [ n]</B>
+    <B>-delay [ n ]</B>
   <DD>
     Specify the write delay in milliseconds for how long we can wait until we
     flush the output buffer when using pipelining. The default value is 50 ms.
@@ -443,13 +443,13 @@ options:
   <DT>
     <B>-q</B>
   <DD>
-    Somewhat quit mode.
+    Somewhat quiet mode.
   <DT>
     <B>-Q</B>
   <DD>
-    Really quit mode.
+    Really quiet mode.
   <DT>
-    <B>-r &lt;file&gt;</B>
+    <B>-r [ file ];</B>
   <DD>
     <A HREF="../../Library/User/Using/Rules.html">Rule file, a.k.a. configuration
     file</A>. If this is specified, a rule file may be used to map URLs, and
@@ -467,7 +467,7 @@ options:
   <DD>
     Print out date and time for start and stop for the job.
   <DT>
-    <B>-timeout &lt;n&gt;</B>
+    <B>-timeout [ n ]</B>
   <DD>
     Timeout in seconds on open connections. If we don't get a reply within n
     secs then about the request. Default timeout is 20 secs.
