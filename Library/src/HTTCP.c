@@ -379,12 +379,12 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
     }
     if (pres && pres->multihomed) {
 	int cnt;
-	const float passive = 0.9; 	  /* Factor for all passive IP_addrs */
+	CONST float passive = 0.9; 	  /* Factor for all passive IP_addrs */
 #if 0
-	const int Neff = 3;
-	const float alpha = exp(-1.0/Neff);
+	CONST int Neff = 3;
+	CONST float alpha = exp(-1.0/Neff);
 #else
-	const float alpha = 0.716531310574;
+	CONST float alpha = 0.716531310574;
 #endif
 	for (cnt=0; cnt<pres->multihomed; cnt++) {
 	    if (cnt == pres->offset) {
