@@ -51,7 +51,7 @@ typedef struct _HTCookieHolder {
 PRIVATE HTList *	cookie_holder = NULL;
 
 /* What should we do with cookies? */
-PRIVATE HTCookieMode	CookieMode = HT_COOKIE_PROMPT;
+PRIVATE HTCookieMode CookieMode = HT_COOKIE_PROMPT | HT_COOKIE_ACCEPT | HT_COOKIE_SEND;
 
 /* ------------------------------------------------------------------------- */
 
@@ -214,7 +214,8 @@ PRIVATE BOOL HTCookieHolder_delete (HTCookieHolder * me)
 	    HTList * cookies = me->cookies;
 	    HTCookie * cookie;
 	    while ((cookie = (HTCookie *) HTList_nextObject(cookies)))
-		HTCookie_delete(cookie);		    
+		HTCookie_delete(cookie);
+	    HTList_delete(me->cookies);
 	}
 	HTList_removeObject(cookie_holder, me);
 	HT_FREE(me);
@@ -292,13 +293,14 @@ PRIVATE int HTCookie_parseSetCookie (HTRequest * request, HTResponse * response,
 */
 PRIVATE int HTCookie_beforeFilter (HTRequest * request, void * param, int mode)
 {
-    if (CookieMode!=HT_COOKIE_TOSS && FindCookie) {
+    if ((CookieMode & HT_COOKIE_SEND) && FindCookie) {
 	HTAssocList * cookies = (*FindCookie)(request, FindCookieContext);
-	if (cookies) {	    
+	if (cookies) {
 	    HTChunk * cookie_header = HTChunk_new(64);
+	    HTAssocList * cur = cookies;
 	    HTAssoc * pres;
 	    BOOL first=YES;
-	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cookies))) {		
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
 		if (!first) HTChunk_putc(cookie_header, ',');
 		HTChunk_puts(cookie_header, HTAssoc_name(pres));
 		HTChunk_putc(cookie_header, '=');
@@ -322,15 +324,40 @@ PRIVATE int HTCookie_beforeFilter (HTRequest * request, void * param, int mode)
 PRIVATE int HTCookie_afterFilter (HTRequest * request, HTResponse * response,
 				  void * param, int status)
 {
-    if (CookieMode!=HT_COOKIE_TOSS && SetCookie) {
+    if ((CookieMode & HT_COOKIE_ACCEPT) && SetCookie) {
 	HTCookieHolder * holder = HTCookieHolder_find(request);
 	if (holder) {
 	    HTList * cookies = holder->cookies;
 	    HTCookie * pres;
 	    while ((pres = (HTCookie *) HTAssocList_nextObject(cookies))) {
 
-		/* check to see if we should prompt user here */
+		/* Should we check to see if hosts match? */
+		if (CookieMode & HT_COOKIE_SAME_HOST) {
+		    char * cookie_host = HTCookie_domain(pres);
+		    if (cookie_host) {
+			char * addr = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
+			char * host = HTParse(addr, "", PARSE_HOST);
+			if (strcasecomp(host, cookie_host)) {
+			    HTTRACE(APP_TRACE, "Cookie...... Host `%s\' doesn't match what is sent in cookie `%s\'\n" _ host _ cookie_host);
+			    HT_FREE(addr);
+			    continue;
+			}
+			HT_FREE(addr);
+		    }
+		}
 
+		/* Should we prompt the user? */
+		if (CookieMode & HT_COOKIE_PROMPT) {
+		    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+		    if (prompt) {
+			if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_ACCEPT_COOKIE,
+				      NULL, NULL, NULL) != YES)
+			    continue;
+		    } else
+			continue;
+		}
+
+		/* Call the application with our new cookie */
 		(*SetCookie)(request, pres, SetCookieContext);
 	    }
 	    
@@ -381,6 +408,11 @@ PUBLIC BOOL HTCookie_setCookieMode (HTCookieMode mode)
 {
     CookieMode = mode;
     return YES;
+}
+
+PUBLIC HTCookieMode HTCookie_cookieMode (void)
+{
+    return CookieMode;
 }
 
 /*

@@ -133,13 +133,14 @@ The application can decide how cookies are to be handled - should they be
 ignored, should the user be asked, etc.
 <PRE>
 typedef enum _HTCookieMode {
-    HT_COOKIE_TOSS = 0,
-    HT_COOKIE_PROMPT,
-    HT_COOKIE_ACCEPT_SAME_DOMAIN,
-    HT_COOKIE_ACCEPT_ALL
+    HT_COOKIE_ACCEPT          = 0x1,   /* Accept cookies */
+    HT_COOKIE_SEND            = 0x2,   /* Send cookies when fit */
+    HT_COOKIE_SAME_HOST       = 0x4,   /* Don't accept cookies for other hosts */
+    HT_COOKIE_PROMPT          = 0x8    /* Prompt before accepting cookies */
 } HTCookieMode;
 
 extern BOOL HTCookie_setCookieMode (HTCookieMode mode);
+extern HTCookieMode HTCookie_cookieMode (void);
 </PRE>
 <PRE>
 #endif /* HTCOOKIE_H */
