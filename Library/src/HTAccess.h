@@ -203,7 +203,7 @@ extern BOOL HTSearchAbsolute PARAMS((
 */
 
 typedef struct _HTProtocol {
-	char * name;
+	CONST char * name;
 	
 	int (*load)PARAMS((
 		CONST char * 	full_address,

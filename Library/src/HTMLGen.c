@@ -72,9 +72,9 @@ PRIVATE void HTMLGen_write ARGS3(HTStructured *, this, CONST char*, s, int, l)
 */
 PRIVATE void HTMLGen_start_element ARGS4(
 	HTStructured *, 	this,
-	int,		element_number,
-	BOOL*,	 	present,
-	char **,	value)
+	int,			element_number,
+	CONST BOOL*,	 	present,
+	CONST char **,		value)
 {
     int i;
 
@@ -151,7 +151,7 @@ PRIVATE void HTMLGen_end_document ARGS1(HTStructured *, this)
 }
 
 
-PRIVATE void PlainToHTML_end_document ARGS1(HTStream *, this)
+PRIVATE void PlainToHTML_end_document ARGS1(HTStructured *, this)
 {
     PUTS("</PRE></BODY>\n");/* Make sure ends with newline for sed etc etc */
     (*this->targetClass.end_document)(this->target);
@@ -192,9 +192,11 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
 /*	Stream Object Class
 **	-------------------
 **
-**	Ok so this object just converts a plain text stream into HTML
+**	This object just converts a plain text stream into HTML
+**	It is officially a structured strem but only the stream bits exist.
+**	This is just the easiest way of typecasting all the routines.
 */
-PUBLIC CONST HTStreamClass PlainToHTMLConversion = /* As opposed to print etc */
+PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
 {		
 	"plaintexttoHTML",
 	HTMLGen_free,	
@@ -202,6 +204,9 @@ PUBLIC CONST HTStreamClass PlainToHTMLConversion = /* As opposed to print etc */
 	HTMLGen_put_character,
 	HTMLGen_put_string,
 	HTMLGen_write,
+	NULL,		/* Structured stuff */
+	NULL,
+	NULL
 }; 
 
 
@@ -216,7 +221,7 @@ PUBLIC HTStream* HTPlainToHTML ARGS3(
 {
     HTStream* this = (HTStream*)malloc(sizeof(*this));
     if (this == NULL) outofmem(__FILE__, "PlainToHTML");
-    this->isa = &PlainToHTMLConversion;       
+    this->isa = (HTStreamClass*) &PlainToHTMLConversion;       
 
     this->target = sink;
     this->targetClass = *this->target->isa;

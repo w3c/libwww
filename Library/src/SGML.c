@@ -150,7 +150,7 @@ PRIVATE void handle_entity(context, term)
 #endif
 {
 
-    char ** entities = context->dtd->entity_names;
+    CONST char ** entities = context->dtd->entity_names;
     CONST char *s = context->string->data;
     
     int high, low, i, diff;
@@ -242,7 +242,7 @@ PRIVATE void start_element(context)
     	context->target,
 	new_tag - context->dtd->tags,
 	context->present,
-	context->value);
+	(CONST char**) context->value);  /* coerce type for think c */
     if (new_tag->contents != SGML_EMPTY) {		/* i.e. tag not empty */
 	HTElement * N = (HTElement *)malloc(sizeof(HTElement));
         if (N == NULL) outofmem(__FILE__, "start_element");
@@ -272,7 +272,7 @@ PRIVATE int find_tag ARGS2(CONST SGML_dtd*, dtd, char *, string)
     		high > low ;
 		diff < 0 ? (low = i+1) : (high = i))   {  /* Binary serach */
 	i = (low + (high-low)/2);
-	diff = strcasecmp(dtd->tags[i].name, string);	/* Case insensitive */
+	diff = strcasecomp(dtd->tags[i].name, string);	/* Case insensitive */
 	if (diff==0) {			/* success: found it */
 	    return i;
 	}

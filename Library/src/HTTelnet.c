@@ -30,6 +30,7 @@
 #include "HText.h"
 
 #include "HTAccess.h"
+#include "HTAlert.h"
 
 #define HT_NO_DATA -9999
 
@@ -201,7 +202,7 @@ ARGS4
 (
  CONST char *,		addr,
  HTParentAnchor *,	anchor,
- int,			diagnostic,
+ HTFormat,		format_out,
  HTStream *,		sink			/* Ignored */
 )
 {

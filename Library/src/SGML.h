@@ -77,7 +77,7 @@ struct _tag{
 typedef struct {
     HTTag *	tags;			/* Must be in strcmp order by name */ 
     int		number_of_tags;
-    char **	entity_names;		/* Must be in strcmp order by name */
+    CONST char **	entity_names;	/* Must be in strcmp order by name */
     int		number_of_entities;
 } SGML_dtd;
 
@@ -134,15 +134,15 @@ typedef struct _HTStructuredClass{
 		CONST char *	str));
 		
 	void (*write) PARAMS((
-		HTStream*	me,
+		HTStructured*	me,
 		CONST char *	str,
 		int		len));
 		
 	void (*start_element) PARAMS((
 		HTStructured*	me,
 		int		element_number,
-		BOOL*		attribute_present,
-		char**		attribute_value));
+		CONST BOOL*	attribute_present,
+		CONST char**	attribute_value));
 		
 	void (*end_element) PARAMS((
 		HTStructured*	me,
@@ -171,7 +171,7 @@ extern HTStream* SGML_new PARAMS((
 	CONST SGML_dtd * 		dtd,
 	HTStructured *		target));
 
-extern HTStreamClass SGMLParser;
+extern CONST HTStreamClass SGMLParser;
 
 
 

@@ -21,6 +21,7 @@
 #include "HText.h"
 #include "HTStyle.h"
 
+#include "HTAlert.h"
 
 extern HTStyleSheet * styleSheet;	/* Application-wide */
 
@@ -427,7 +428,7 @@ PRIVATE void HTML_put_string ARGS2(HTStructured *, this, CONST char*, s)
 
 
 /*	Buffer write
-**
+**	------------
 */
 PRIVATE void HTML_write ARGS3(HTStructured *, this, CONST char*, s, int, l)
 {
@@ -443,8 +444,8 @@ PRIVATE void HTML_write ARGS3(HTStructured *, this, CONST char*, s, int, l)
 PRIVATE void HTML_start_element ARGS4(
 	HTStructured *, 	this,
 	int,		element_number,
-	BOOL*,	 	present,
-	char **,	value)
+	CONST BOOL*,	 	present,
+	CONST char **,	value)
 {
     switch (element_number) {
     case HTML_A:

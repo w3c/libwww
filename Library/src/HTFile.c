@@ -183,6 +183,7 @@ PRIVATE char * vms_name(CONST char * nn, CONST char * fn)
 **  If a README file exists, then it is inserted into the document here.
 */
 
+#ifdef unix
 PRIVATE void do_readme ARGS2(HTStructured *, target, CONST char *, localname)
 { 
     FILE * fp;
@@ -222,7 +223,7 @@ PRIVATE void do_readme ARGS2(HTStructured *, target, CONST char *, localname)
 	fclose(fp);
     } 
 }
-
+#endif
 
 
 /*	Make the cache file name for a W3 document
@@ -765,7 +766,7 @@ forget_multi:
 		
 
 #ifdef SORT
-		HTBTree * bt = HTBTree_new(strcasecmp);
+		HTBTree * bt = HTBTree_new(strcasecomp);
 #endif
 		START(HTML_DIR);		
 
@@ -802,9 +803,11 @@ forget_multi:
 	    
 		    {
 			char * relative = (char*) malloc(
-			    strlen(shortfilename) + strlen(dirbuf->d_name) + 2);
-			if (relative == NULL) outofmem(__FILE__, "sdfghj");
-			sprintf(relative, "%s/%s", shortfilename, dirbuf->d_name);
+			    strlen(shortfilename) + strlen(dirbuf->d_name)+2);
+			if (relative == NULL) outofmem(__FILE__, "DirRead");
+/*		sprintf(relative, "%s/%s", shortfilename, dirbuf->d_name);*/
+/* Won't work for root, or mapped names, so use following line */
+			sprintf(relative, "./%s", dirbuf->d_name);
 			value[HTML_A_HREF] = relative;
 			(*targetClass.start_element)(
 				    target,HTML_A, present, value);

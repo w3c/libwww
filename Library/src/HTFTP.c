@@ -686,7 +686,8 @@ ARGS3 (
   if (strlen (lastpath) > 1) {  /* Current file is not the FTP root */
     strcpy (entry, "..");
     value[HTML_A_HREF] = lastpath;
-    (*targetClass.start_element)(target, HTML_A, present, value);
+    (*targetClass.start_element)(target, HTML_A, present,
+    	(CONST char**) value);	/* typecast for think c */
     PUTS("Up to Parent Directory");
     END(HTML_A);
   }
@@ -713,7 +714,8 @@ ARGS3 (
     *p = 0;
     START(HTML_LI);
     value[HTML_A_HREF] = lastpath;
-    (*targetClass.start_element)(target, HTML_A, present, value);
+    (*targetClass.start_element)(target, HTML_A, present,
+    	(CONST char**)value);	/* typecast for think c */
     PUTS(entry);
     END(HTML_A);
   }
