@@ -140,7 +140,7 @@ lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
 inc :	$(HTMLFILES)
-	@echo "Include files generated from hypertext"
+	@echo "Include files generated from member"
 
 #	Make a copy of the binary and documentation on this machine
 install :	$(PROD)
@@ -293,20 +293,20 @@ $(FTP)/src/WWWLineMode_$(VL).zip : $(SOURCES)
 	    $(SPECIFIC) \
 	    $(LM)*.html
 
-#		Hypertext supplied in text format
+#		Member supplied in text format
 #		---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -p -na http://www.w3.org/hypertext/WWW/README.html -o $(WWW)/README
+	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-	www -p -na http://www.w3.org/hypertext/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
+	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
 $(WWW)/PATCHES : $(WWW)/../PATCHES.html
-	www -p -na http://www.w3.org/hypertext/WWW/PATCHES.html -o $(WWW)/PATCHES
+	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
 
 $(WWW)/CERN : $(WWW)/../CERN.html
-	www -p -na http://www.w3.org/hypertext/WWW/CERN.html -o $(WWW)/CERN
+	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
 
 #	Line Mode Manual
 #
