@@ -14,6 +14,10 @@ HREF="tcp.html">"tcp.h"</A> for system specific information.
 #ifndef HTUTILS_H
 #define HTUTILS_H
 
+#if defined(__STDC__) || defined(__cplusplus)
+#define _STANDARD_CODE_
+#endif
+
 #ifndef DEBUG
 #define DEBUG	/* No one ever turns this off as trace is too important */
 #endif		/* Keep option for really small memory applications too */
@@ -31,6 +35,7 @@ HREF="tcp.html">"tcp.h"</A> for system specific information.
 #include &lt;stdio.h>
 #define STDIO_H
 #endif
+
 </PRE>
 
 <H2>Debug message control</H2>
@@ -78,7 +83,7 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 </PRE>
 
 <EM><B>Note: </B> The CTRACE flag might interfere with other if () else
-constructions in the code</EM>
+constructions in the code. It should not be used but replaced by TRACE</EM>
 
 <PRE>
 #define CTRACE if(TRACE) fprintf
@@ -157,7 +162,7 @@ Macrides).
 <PRE>#define PUBLIC			/* Accessible outside this module     */
 #define PRIVATE static		/* Accessible only within this module */
 
-#ifdef __STDC__
+#ifdef _STANDARD_CODE_
 #define CONST const		/* "const" only exists in STDC */
 #define NOPARAMS (void)
 #define PARAMS(parameter_list) parameter_list
@@ -213,7 +218,7 @@ Macrides).
 		t a; u b; v c; w d; x e; y f; z g; s h; r i; q j;
 		
 	
-#endif /* __STDC__ (ANSI) */
+#endif /* _STANDARD_CODE_ (ANSI) */
 
 #ifndef NULL
 #define NULL ((void *)0)
@@ -277,7 +282,7 @@ failure (&lt;0) codes
 
 #include "HTString.h"  	/* String utilities */
 
-#ifdef __STDC__
+#ifdef _STANDARD_CODE_
 #include &lt;stdarg.h>
 #else
 #include &lt;varargs.h>

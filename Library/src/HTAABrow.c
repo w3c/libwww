@@ -225,15 +225,15 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 			   hostname, portnumber, docname);
 
 	while (NULL != (setup = (HTAASetup*)HTList_nextObject(cur))) {
-	    if (HTAA_templateMatch(setup->template, docname)) {
+	    if (HTAA_templateMatch(setup->tmplate, docname)) {
 		if (TRACE) fprintf(stderr, "%s `%s' %s `%s'\n",
 				   "HTAASetup_lookup:", docname,
-				   "matched template", setup->template);
+				   "matched template", setup->tmplate);
 		return setup;
 	    }
 	    else if (TRACE) fprintf(stderr, "%s `%s' %s `%s'\n",
 				    "HTAASetup_lookup:", docname,
-				    "did NOT match template", setup->template);
+				    "did NOT match template", setup->tmplate);
 	} /* while setups remain */
     } /* if valid parameters and server found */
 
@@ -268,21 +268,21 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 **			part of the HTAAServer given as parameter.
 */
 PRIVATE HTAASetup *HTAASetup_new ARGS4(HTAAServer *,	server,
-				       char *,		template,
+				       char *,		tmplate,
 				       HTList *,	valid_schemes,
 				       HTAssocList **,	scheme_specifics)
 {
     HTAASetup *setup;
 
-    if (!server || !template || !*template) return NULL;
+    if (!server || !tmplate || !*tmplate) return NULL;
 
     if (!(setup = (HTAASetup*)malloc(sizeof(HTAASetup))))
 	outofmem(__FILE__, "HTAASetup_new");
 
     setup->reprompt = NO;
     setup->server = server;
-    setup->template = NULL;
-    if (template) StrAllocCopy(setup->template, template);
+    setup->tmplate = NULL;
+    if (tmplate) StrAllocCopy(setup->tmplate, tmplate);
     setup->valid_schemes = valid_schemes;
     setup->scheme_specifics = scheme_specifics;
 
@@ -307,7 +307,7 @@ PRIVATE void HTAASetup_delete ARGS1(HTAASetup *, killme)
     int scheme;
 
     if (killme) {
-	if (killme->template) free(killme->template);
+	if (killme->tmplate) free(killme->tmplate);
 	if (killme->valid_schemes)
 	    HTList_delete(killme->valid_schemes);
 	for (scheme=0; scheme < HTAA_MAX_SCHEMES; scheme++)
@@ -514,12 +514,13 @@ PRIVATE char *compose_Basic_auth ARGS1(HTRequest *, req)
 */
 PRIVATE HTAAScheme HTAA_selectScheme ARGS1(HTAASetup *, setup)
 {
-    HTAAScheme scheme;
-
+    int  scheme;
     if (setup && setup->valid_schemes) {
-	for (scheme=HTAA_BASIC; scheme < HTAA_MAX_SCHEMES; scheme++)
-	    if (-1 < HTList_indexOf(setup->valid_schemes, (void*)scheme))
-		return scheme;
+	for (scheme = (HTAAScheme) HTAA_BASIC;
+	     scheme < (HTAAScheme) HTAA_MAX_SCHEMES;
+	     scheme++)
+	    if (-1 < HTList_indexOf(setup->valid_schemes, (void *) scheme))
+		return (HTAAScheme) scheme;
     }
     return HTAA_NONE;
 }

@@ -79,7 +79,7 @@ PUBLIC HTList * HTReadDescriptions ARGS1(char *, dirname)
 	    }
 	}
 	if (t && d && *t && *d) {
-	    char * stuff = malloc(strlen(t) + strlen(d) + 2);
+	    char * stuff = (char *) malloc(strlen(t) + strlen(d) + 2);
 	    if (!stuff) outofmem(__FILE__, "HTDirReadDescriptions");
 	    sprintf(stuff, "%s %s", t, d);
 	    HTList_addObject(list, (void*)stuff);

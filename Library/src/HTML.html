@@ -166,7 +166,7 @@ extern void HTRegenCharacter PARAMS((
 extern	void HTNestingChange PARAMS((
 	HTStructured* 	s, 
 	HTNesting*		old, 
-	HTNesting *		new,
+	HTNesting *		newnest,
 	HTChildAnchor *		info,
 	CONST char *		aName));
 
@@ -178,7 +178,10 @@ extern HTNesting * HTNestElement PARAMS((HTNesting * p, int ele));
 extern /* HTStyle * */ void * HTStyleForNesting PARAMS((HTNesting * n));
 
 extern HTNesting* HTMLAncestor PARAMS((HTNesting * old, int depth));
-extern HTNesting* CopyBranch PARAMS((HTNesting * old, HTNesting * new, int depth));
+
+extern HTNesting* CopyBranch PARAMS((HTNesting * old, HTNesting * newnest,
+				     int depth));
+
 extern HTNesting * HTInsertLevel PARAMS((HTNesting * old,
 		int	element_number,
 		int	level));

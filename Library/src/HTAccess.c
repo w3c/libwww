@@ -203,8 +203,7 @@ PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
 **	-------------------
 */
 
-PUBLIC BOOL HTRegisterProtocol(protocol)
-	HTProtocol * protocol;
+PUBLIC BOOL HTRegisterProtocol ARGS1(HTProtocol *, protocol)
 {
     if (!protocols) protocols = HTList_new();
     HTList_addObject(protocols, protocol);
@@ -535,7 +534,7 @@ PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
     if(!(arg = HTAnchor_physical(request->anchor)) || !*arg) 
     	return (-1);
 
-    p = HTAnchor_protocol(request->anchor);
+    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
     return (*(p->load))(request);
 }
 
@@ -564,7 +563,7 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
     }
     if (status < 0) return NULL; /* @@ error. Can't resolve or forbidden */
     
-    p = HTAnchor_protocol(request->anchor);
+    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
     if (!p) return NULL;
     
     return (*p->saveStream)(request);
@@ -883,8 +882,7 @@ PUBLIC BOOL HTLoadAnchorRecursive ARGS2(HTAnchor*, anchor,
 **	here		is anchor search is to be done on.
 */
 
-PRIVATE char hex(i)
-    int i;
+PRIVATE char hex ARGS1(int, i)
 {
     char * hexchars = "0123456789ABCDEF";
     return hexchars[i];
@@ -903,7 +901,7 @@ PUBLIC BOOL HTSearch ARGS3(
     CONST char * p, *s, *e;		/* Pointers into keywords */
     char * address = HTAnchor_address((HTAnchor*)here);
     BOOL result;
-    char * escaped = malloc(strlen(keywords)*3+1);
+    char * escaped = (char *) malloc(strlen(keywords)*3+1);
 
     /* static CONST BOOL isAcceptable[96] = */
     /* static AND const is not good for a gnu compiler! Frystyk 25/02-94 */

@@ -91,10 +91,12 @@ the three blocks required are allocated
 and deallocated as one. This will
 save time and storage, when malloc's
 allocation units are large.
-<PRE>extern int HTAddRule PARAMS((HTRuleOp op, const char * pattern, const char * equiv));
 
-
+<PRE>
+extern int HTAddRule PARAMS((	HTRuleOp op, const char * pattern,
+				const char * equiv));
 </PRE>
+
 <H2>HTClearRules: Clear all rules</H2>
 <H3>On exit,</H3>
 <DL>
@@ -106,18 +108,11 @@ allocation units are large.
 </DL>
 
 <PRE>
-#ifdef __STDC__
-extern int HTClearRules(void);
-#else
-extern int HTClearRules();
-#endif
-
-
+PUBLIC int HTClearRules NOPARAMS;
 </PRE>
-<H2><A
-NAME=z4>HTTranslate: Translate by rules</A></H2>
-<PRE>	
-</PRE>
+
+<H2><A NAME=z4>HTTranslate: Translate by rules</A></H2>
+
 <H3>On entry,</H3>
 <DL>
 <DT>required
@@ -177,11 +172,7 @@ be tried first.
 </DL>
 
 <PRE>
-#ifdef __STDC__
-extern int HTLoadRules(const char * filename);
-#else
-extern int HTLoadRules();
-#endif
+PUBLIC int HTLoadRules PARAMS((const char * filename));
 </PRE>
 
 <PRE>

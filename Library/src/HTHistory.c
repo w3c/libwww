@@ -30,7 +30,8 @@ HTAnchor * HTHistory_backtrack
 {
   if (HTHistory_canBacktrack())
     HTList_removeLastObject (history);
-  return HTList_lastObject (history);  /* is Home if can't backtrack */
+  /* is Home if can't backtrack */
+  return (HTAnchor *) HTList_lastObject (history);
 }
 
 BOOL HTHistory_canBacktrack
@@ -46,16 +47,15 @@ BOOL HTHistory_canBacktrack
 **	Positive offset means go towards most recently added children.
 */
 
-HTAnchor * HTHistory_moveBy
- ARGS1 (int,offset)
+HTAnchor * HTHistory_moveBy ARGS1 (int,offset)
 {
-  HTAnchor * last = HTList_objectAt (history, 1);
+  HTAnchor * last = (HTAnchor *) HTList_objectAt (history, 1);
   if (! last)
     return NULL;  /* No last visited node */
   if (last != (HTAnchor *) last->parent) {  /* Was a child */
     HTList * kids = last->parent->children;
     int i = HTList_indexOf (kids, last); 
-    HTAnchor * nextOne = HTList_objectAt (kids, i - offset);
+    HTAnchor * nextOne = (HTAnchor *) HTList_objectAt (kids, i - offset);
     if (nextOne) {
       HTAnchor * destination = HTAnchor_followMainLink (nextOne);
       if (destination) {
@@ -79,7 +79,7 @@ HTAnchor * HTHistory_moveBy
 BOOL HTHistory_canMoveBy
  ARGS1 (int,offset)
 {
-  HTAnchor * last = HTList_objectAt (history, 1);
+  HTAnchor * last = (HTAnchor *) HTList_objectAt (history, 1);
   if (! last)
     return NO;  /* No last visited node */
   if (last != (HTAnchor *) last->parent) {  /* Was a child */
@@ -100,10 +100,10 @@ BOOL HTHistory_canMoveBy
 **		----------------------------
 */
 
-HTAnchor * HTHistory_read
-  ARGS1 (int,number)
+HTAnchor * HTHistory_read ARGS1 (int, number)
 {
-  return HTList_objectAt (history, HTList_count (history) - number);
+    return (HTAnchor *) (HTList_objectAt(history,
+					 HTList_count(history)-number));
 }
 
 
@@ -112,14 +112,13 @@ HTAnchor * HTHistory_read
 **	This reads the anchor and stores it again in the list, except if last.
 */
 
-HTAnchor * HTHistory_recall
-  ARGS1 (int,number)
+HTAnchor * HTHistory_recall ARGS1 (int,number)
 {
-  HTAnchor * destination =
-    HTList_objectAt (history, HTList_count (history) - number);
-  if (destination && destination != HTList_lastObject (history))
-    HTList_addObject (history, destination);
-  return destination;
+    HTAnchor * destination = (HTAnchor *)
+	HTList_objectAt (history, HTList_count (history) - number);
+    if (destination && destination != HTList_lastObject (history))
+	HTList_addObject (history, destination);
+    return destination;
 }
 
 /*		Number of Anchors stored

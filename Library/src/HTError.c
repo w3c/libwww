@@ -95,7 +95,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
     }
     if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
 	outofmem(__FILE__, "HTErrorAdd");
-    newError->element = element;
+    newError->element = (HTErrorElement) element;
     newError->severity = severity;
     newError->ignore = ignore;
     if (par) {

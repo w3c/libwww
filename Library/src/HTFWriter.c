@@ -156,7 +156,7 @@ PUBLIC char *HTFWriter_filename ARGS4(char *, path, char *, url,
 	    unsigned int residue = limit;
 	    while (residue /= 10)		    /* Find number of digits */
 		digits++;
-	    if ((hashstr = malloc(digits+1)) == NULL)
+	    if ((hashstr = (char *) malloc(digits+1)) == NULL)
 		outofmem(__FILE__, "HTFWriter_filename");
 	    for(ptr=urlfile, hash=0; *ptr; ptr++)          /* Calculate hash */
 		hash = *ptr + *primes * hash;
@@ -425,12 +425,11 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 
 /*	Make command to process file
 */
-    me->end_command = (char *)malloc (
-    			(strlen (param) + 10+ 3*strlen(fnam))
-    			 * sizeof (char));
+    me->end_command = (char *) malloc ((strlen((char *) param) + 10 +
+					3*strlen(fnam)) * sizeof (char));
     if (me == NULL) outofmem(__FILE__, "SaveAndExecute");
     
-    sprintf (me->end_command, param, fnam, fnam, fnam);
+    sprintf (me->end_command, (char *) param, fnam, fnam, fnam);
 
     me->remove_on_close = NO;
 
@@ -527,7 +526,7 @@ PRIVATE void HTCache_remove ARGS2(HTList *, list, HTCacheItem *, item)
 PUBLIC void HTCacheClear ARGS1(HTList *, list)
 {
     HTCacheItem * item;
-    while ((item=HTList_objectAt(list, 0)) != NULL) {
+    while ((item = (HTCacheItem *) HTList_objectAt(list, 0)) != NULL) {
         HTCache_remove(list, item);
     }
 }
@@ -541,7 +540,7 @@ PUBLIC void HTCacheClear ARGS1(HTList *, list)
 PUBLIC void HTCacheDeleteAll NOARGS
 {
     HTCacheItem * item;
-    while ((item=HTList_objectAt(HTCache, 0)) != NULL) {
+    while ((item = (HTCacheItem *) HTList_objectAt(HTCache, 0)) != NULL) {
         HTCache_remove(HTCache, item);
     }
 }

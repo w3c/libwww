@@ -113,7 +113,7 @@ PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 **	 sometimes so hard...)
 **
 ** ON ENTRY:
-**	template	is a template string to match the file name
+**	tmplate		is a template string to match the file name
 **			agaist, may contain a single wildcard
 **			character * which matches zero or more
 **			arbitrary characters.
@@ -124,7 +124,7 @@ PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 **	returns		YES, if filename matches the template.
 **			NO, otherwise.
 */
-PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * template, 
+PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * tmplate, 
 				       CONST char * filename));
 </PRE>
 

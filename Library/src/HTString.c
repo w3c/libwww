@@ -64,13 +64,13 @@ PUBLIC int strncasecomp ARGS3(CONST char*,a, CONST char *,b, int,n)
 PUBLIC char * strcasestr ARGS2(char *,	s1,
 			       char *,	s2)
 {
-    char * try = s1;
+    char * ptr = s1;
 
     if (!s1 || !s2 || !*s2) return s1;
 
-    while (*try) {
-	if (TOUPPER(*try) == TOUPPER(*s2)) {
-	    char * cur1 = try + 1;
+    while (*ptr) {
+	if (TOUPPER(*ptr) == TOUPPER(*s2)) {
+	    char * cur1 = ptr + 1;
 	    char * cur2 = s2 + 1;
 	    while (*cur1 && *cur2 && TOUPPER(*cur1) == TOUPPER(*cur2)) {
 		cur1++;
@@ -79,11 +79,11 @@ PUBLIC char * strcasestr ARGS2(char *,	s1,
 	    if (!*cur2) {
 		CTRACE(stderr,
 	      "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => \"%s\"\n",
-		       s1,s2,try);
-		return try;
+		       s1,s2,ptr);
+		return ptr;
 	    }
 	}
-	try++;
+	ptr++;
     }
     CTRACE(stderr,
 	   "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => No match\n",

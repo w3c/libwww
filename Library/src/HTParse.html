@@ -74,11 +74,9 @@ PUBLIC char * HTParse  PARAMS((	const char * aName,
 character, or to 0 if none.<P>
 All trailing white space is OVERWRITTEN
 with zero.
-<PRE>#ifdef __STDC__
-extern char * HTStrip(char * s);
-#else
-extern char * HTStrip();
-#endif
+
+<PRE>
+PUBLIC char * HTStrip PARAMS((char * s));
 </PRE>
 
 <H2>HTSimplify: Simplify a UTL</H2>
@@ -136,11 +134,9 @@ allocated name which, if parsed by
 HTParse relative to relatedName,
 will yield aName. The caller is responsible
 for freeing the resulting name later.
-<PRE>#ifdef __STDC__
-extern char * HTRelative(const char * aName, const char *relatedName);
-#else
-extern char * HTRelative();
-#endif
+
+<PRE>
+PUBLIC char * HTRelative PARAMS((const char * aName, const char *relatedName));
 </PRE>
 
 <H2>HTExpand: Expand a Local Host Name Into a Full Domain Name</H2>

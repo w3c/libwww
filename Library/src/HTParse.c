@@ -54,13 +54,7 @@ PUBLIC char * HTStrip ARGS1(char *, s)
 **	host, anchor and access may be nonzero if they were specified.
 **	Any which are nonzero point to zero terminated strings.
 */
-#ifdef __STDC__
-PRIVATE void scan(char * name, struct struct_parts *parts)
-#else
-PRIVATE void scan(name, parts)
-    char * name;
-    struct struct_parts *parts;
-#endif
+PRIVATE void scan ARGS2(char *, name, struct struct_parts *, parts)
 {
     char * after_access;
     char * p;
@@ -152,15 +146,8 @@ PRIVATE void scan(name, parts)
 ** On exit,
 **	returns		A pointer to a malloc'd string which MUST BE FREED
 */
-#ifdef __STDC__
-char * HTParse(const char * aName, const char * relatedName, int wanted)
-#else
-char * HTParse(aName, relatedName, wanted)
-    char * aName;
-    char * relatedName;
-    int wanted;
-#endif
-
+char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
+		     int, wanted)
 {
     char * result = 0;
     char * return_value = 0;
@@ -464,13 +451,7 @@ PUBLIC char *HTSimplify ARGS1(char *, filename)
 **	The caller is responsible for freeing the resulting name later.
 **
 */
-#ifdef __STDC__
-char * HTRelative(const char * aName, const char *relatedName)
-#else
-char * HTRelative(aName, relatedName)
-   char * aName;
-   char * relatedName;
-#endif
+char * HTRelative ARGS2(CONST char *, aName, CONST char *, relatedName)
 {
     char * result = 0;
     CONST char *p = aName;
@@ -530,7 +511,7 @@ char * HTRelative(aName, relatedName)
 */
 PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
 {
-    char *new = NULL;
+    char *newname = NULL;
     char *port;
     char *strptr;
     char *path;
@@ -553,15 +534,15 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
     if ((strptr = strchr(host, '.')) == NULL || strptr >= path) {
 	CONST char *domain = HTGetDomainName();
 	if (domain) {
-	    if ((new = (char *) calloc(1, strlen(*filename) +
+	    if ((newname = (char *) calloc(1, strlen(*filename) +
 				       strlen(domain)+2)) == NULL)
 		outofmem(__FILE__, "HTCanon");
 	    if (port)
-		strncpy(new, *filename, (int) (port-*filename));
+		strncpy(newname, *filename, (int) (port-*filename));
 	    else
-		strncpy(new, *filename, (int) (path-*filename));
-	    strcat(new, ".");
-	    strcat(new, domain);
+		strncpy(newname, *filename, (int) (path-*filename));
+	    strcat(newname, ".");
+	    strcat(newname, domain);
 	}
     } else {					  /* Look for a trailing dot */
 	char *dot = port ? port : path;
@@ -581,19 +562,19 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
 	     (*(port+3)=='/' || !*(port+3))) ||
 	    (*(port+1)=='7' && *(port+2)=='0' &&
 	     (*(port+3)=='/' || !*(port+3)))) {
-	    if (!new) {
+	    if (!newname) {
 		char *orig=port, *dest=port+3;
 		while((*orig++ = *dest++));
 	    }
-	} else if (new)
-	    strncat(new, port, (int) (path-port));
+	} else if (newname)
+	    strncat(newname, port, (int) (path-port));
     }
-    if (new) {
-	char *newpath = new+strlen(new);
-	strcat(new, path);
+    if (newname) {
+	char *newpath = newname+strlen(newname);
+	strcat(newname, path);
 	path = newpath;
 	free(*filename);				    /* Free old copy */
-	*filename = new;
+	*filename = newname;
     }
     return path;
 }

@@ -41,6 +41,18 @@ struct _HTElement {
 };
 
 
+typedef enum _sgml_state {
+    S_text, S_literal, S_tag, S_tag_gap, 
+    S_attr, S_attr_gap, S_equals, S_value, S_after_open,
+    S_nl, S_nl_tago,
+    S_ero, S_cro,
+#ifdef ISO_2022_JP
+    S_esc, S_dollar, S_paren, S_nonascii_text,
+#endif
+    S_squoted, S_dquoted, S_end, S_entity, S_junk_tag
+} sgml_state;
+
+
 /*	Internal Context Data Structure
 **	-------------------------------
 */
@@ -56,14 +68,7 @@ struct _HTStream {
     int 		current_attribute_number;
     HTChunk		*string;
     HTElement		*element_stack;
-    enum sgml_state { S_text, S_literal, S_tag, S_tag_gap, 
-		S_attr, S_attr_gap, S_equals, S_value, S_after_open,
-		S_nl, S_nl_tago,
-		S_ero, S_cro,
-#ifdef ISO_2022_JP
- 		S_esc, S_dollar, S_paren, S_nonascii_text,
-#endif
-		  S_squoted, S_dquoted, S_end, S_entity, S_junk_tag} state;
+    sgml_state		state;
 #ifdef CALLERDATA		  
     void *		callerData;
 #endif
@@ -101,13 +106,7 @@ PUBLIC int SGMLFindAttribute ARGS2 (HTTag*, tag, CONST char *, s)
 */
 /* PUBLIC CONST char * SGML_default = "";   ?? */
 
-#ifdef __STDC__
-PRIVATE void handle_attribute_name(HTStream * context, CONST char * s)
-#else
-PRIVATE void handle_attribute_name(context, s)
-    HTStream * context;
-    char *s;
-#endif
+PRIVATE void handle_attribute_name ARGS2(HTStream *, context, CONST char *, s)
 {
 
     HTTag * tag = context->current_tag;
@@ -133,13 +132,7 @@ PRIVATE void handle_attribute_name(context, s)
 /*	Handle attribute value
 **	----------------------
 */
-#ifdef __STDC__
-PRIVATE void handle_attribute_value(HTStream * context, const char * s)
-#else
-PRIVATE void handle_attribute_value(context, s)
-    HTStream * context;
-    char *s;
-#endif
+PRIVATE void handle_attribute_value ARGS2(HTStream *, context, CONST char *, s)
 {
     if (context->current_attribute_number != INVALID) {
 	StrAllocCopy(context->value[context->current_attribute_number], s);
@@ -159,13 +152,7 @@ PRIVATE void handle_attribute_value(context, s)
 **	If the entity name is unknown, the terminator is treated as
 **	a printable non-special character in all cases, even if it is '<'
 */
-#ifdef __STDC__
-PRIVATE void handle_entity(HTStream * context, char term)
-#else
-PRIVATE void handle_entity(context, term)
-    HTStream * context;
-    char term;
-#endif
+PRIVATE void handle_entity ARGS2(HTStream *, context, char, term)
 {
 
     CONST char ** entities = context->dtd->entity_names;
@@ -199,13 +186,7 @@ PRIVATE void handle_entity(context, term)
 /*	End element
 **	-----------
 */
-#ifdef __STDC__
-PRIVATE void end_element(HTStream * context, HTTag * old_tag)
-#else
-PRIVATE void end_element(context, old_tag)
-    HTTag * old_tag;
-    HTStream * context;
-#endif
+PRIVATE void end_element ARGS2(HTStream *, context, HTTag *, old_tag)
 {
     if (SGML_TRACE) fprintf(stderr, "SGML: End   </%s>\n", old_tag->name);
     if (old_tag->contents == SGML_EMPTY) {
@@ -247,12 +228,7 @@ PRIVATE void end_element(context, old_tag)
 /*	Start an element
 **	----------------
 */
-#ifdef __STDC__
-PRIVATE void start_element(HTStream * context)
-#else
-PRIVATE void start_element(context)
-    HTStream * context;
-#endif
+PRIVATE void start_element ARGS1(HTStream *, context)
 {
     HTTag * new_tag = context->current_tag;
     

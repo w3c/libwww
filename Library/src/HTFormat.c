@@ -217,13 +217,13 @@ PUBLIC void HTAcceptLanguage ARGS3(HTList *,	list,
 }
 
 
-PRIVATE BOOL wild_match ARGS2(HTAtom *,	template,
+PRIVATE BOOL wild_match ARGS2(HTAtom *,	tmplate,
 			      HTAtom *,	actual)
 {
     char *t, *a, *st, *sa;
     BOOL match = NO;
 
-    if (template && actual && (t = HTAtom_name(template))) {
+    if (tmplate && actual && (t = HTAtom_name(tmplate))) {
 	if (!strcmp(t, "*"))
 	    return YES;
 
@@ -249,14 +249,14 @@ PRIVATE BOOL wild_match ARGS2(HTAtom *,	template,
 /*
  * Added by takada@seraph.ntt.jp (94/04/08)
  */
-PRIVATE BOOL lang_match ARGS2(HTAtom *,	template,
+PRIVATE BOOL lang_match ARGS2(HTAtom *,	tmplate,
 			      HTAtom *,	actual)
 {
     char *t, *a, *st, *sa;
     BOOL match = NO;
 
-    if (template && actual &&
-	(t = HTAtom_name(template)) && (a = HTAtom_name(actual))) {
+    if (tmplate && actual &&
+	(t = HTAtom_name(tmplate)) && (a = HTAtom_name(actual))) {
 	st = strchr(t, '_');
 	sa = strchr(a, '_');
 	if ((st != NULL) && (sa != NULL)) {

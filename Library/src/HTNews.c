@@ -250,10 +250,10 @@ PRIVATE int response ARGS1(CONST char *,command)
 **	template must be already un upper case.
 **	unknown may be in upper or lower or mixed case to match.
 */
-PRIVATE BOOL match ARGS2 (CONST char *,unknown, CONST char *,template)
+PRIVATE BOOL match ARGS2 (CONST char *,unknown, CONST char *,tmplate)
 {
     CONST char * u = unknown;
-    CONST char * t = template;
+    CONST char * t = tmplate;
     for (;*u && *t && (TOUPPER(*u)==*t); u++, t++) /* Find mismatch or end */ ;
     return (BOOL)(*t==0);		/* OK if end of template */
 }

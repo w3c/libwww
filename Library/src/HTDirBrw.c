@@ -943,8 +943,8 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		if ((nodekey->key =
 		     (void *) malloc(strlen(dirbuf->d_name)+1)) == NULL)
 		    outofmem(__FILE__, "HTFileBrowseDirectory");
-		strcpy(nodekey->key, dirbuf->d_name);
-		nodekey->filename = nodekey->key;
+		strcpy((char *) nodekey->key, dirbuf->d_name);
+		nodekey->filename = (char *) nodekey->key;
 	    }
 
 
@@ -1225,8 +1225,8 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	    if ((nodekey->key =
 		 (void *) malloc(strlen(file_info.f_name)+1)) == NULL)
 		outofmem(__FILE__, "HTFTPBrowseDirectory");
-	    strcpy(nodekey->key, file_info.f_name);
-	    nodekey->filename = nodekey->key;
+	    strcpy((char *) nodekey->key, file_info.f_name);
+	    nodekey->filename = (char *) nodekey->key;
 
 	    /* Update current max filename length */
             {

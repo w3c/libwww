@@ -92,7 +92,7 @@ PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
     int num_schemes = 0;
     HTList *valid_schemes = HTList_new();
     HTAssocList **scheme_specifics = NULL;
-    char *template = NULL;
+    char *tmplate = NULL;
 
     /* Read server reply header lines */
 
@@ -136,7 +136,7 @@ PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 	    else if (0==strcasecomp(fieldname, "WWW-Protection-Template:")) {
 		if (TRACE)
 		    fprintf(stderr, "Protection template set to `%s'\n", arg1);
-		StrAllocCopy(template, arg1);
+		StrAllocCopy(tmplate, arg1);
 	    }
 
 	} /* if a valid header line */
@@ -148,7 +148,7 @@ PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
     FREE(line);
     req->valid_schemes = valid_schemes;
     req->scheme_specifics = scheme_specifics;
-    req->prot_template = template;
+    req->prot_template = tmplate;
 }
 
 
@@ -256,15 +256,15 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 
 	/* Put out referer field if any parent */
 	if (request->parentAnchor) {
-	    char *this = HTAnchor_address((HTAnchor *) request->anchor);
+	    char *me = HTAnchor_address((HTAnchor *) request->anchor);
 	    char *parent = HTAnchor_address((HTAnchor *)request->parentAnchor);
-	    char *relative = HTParse(parent, this,
+	    char *relative = HTParse(parent, me,
                 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	    if (relative && *relative) {
 		sprintf(line, "Referer: %s%c%c", parent, CR, LF);
 		HTChunkPuts(command, line);
 	    }
-	    free(this);
+	    free(me);
 	    free(parent);
 	    free(relative);
 	}

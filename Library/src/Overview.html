@@ -60,8 +60,7 @@ right of the green line.<P>
 The main application module is a platform dependent module called by the
 operating system, and it manages the overall running of the program.  In the
 <A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">CERN Line
-Mode Browser</A>, it is <A NAME="21"
-HREF="http://info.cern.ch/hypertext/WWW/LineMode/Implementation/HTBrowse.c">
+Mode Browser</A>, it is <A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Implementation/HTBrowse.c">
 HTBrowse</A>.  In the <A
 HREF="http://info.cern.ch/hypertext/WWW/Daemon/Status.html">CERN HTTP
 Server</A>, it is <A
@@ -69,37 +68,37 @@ HREF="http://info.cern.ch/hypertext/WWW/Daemon/Implementation/HTDaemon.c">
 HTDaemon</A>.  <P>
 
 On behalf of the user, the client parses a request to the <A
-HREF="HTAccess.html">HTAccess Module</A> that is the main entry node to the
-library. When the request has been fulfilled (either in terms of an load or an
-error message) the data is parsed back to the client through the <A
-HREF="HTML.html">HTML Module</A> and the <A HREF="HText.html">HText
-Module</A>, see also <A HREF="Overview.html#Styles">Information on
-presentation modules</A>.  <P>
+HREF="HTAccess.html">HTAccess Module</A> that is the main entry node
+to the library. When the request has been fulfilled (either in terms
+of an load or an error message) the data is parsed back to the client
+through the <A HREF="HTML.html">HTML Module</A> and the <A
+HREF="HText.html">HText Module</A>, see also <A
+HREF="#Styles">Information on presentation modules</A>.  <P>
 
 <DL>
 
-<DT><A NAME="8" HREF="HTAccess.html">HTAccess</A>
+<DT><A HREF="HTAccess.html">HTAccess</A>
 
 <DD>The Access manager module which actually loads documents is based in
-HTAccess.c. This uses all the <A NAME="3" HREF="#Protocol"> protocol
+HTAccess.c. This uses all the <A HREF="#Protocol"> protocol
 modules</A>.  Given an anchor ID to jump to, it asks the anchor object for the
 address in order to load it.
 
 <DT><A NAME="z29" HREF="HTFormat.html">HTFormat</A>
 
-<DD>The Format Manager uses the <A NAME="15" HREF="#cascade">parser
-modules</A> to load the document as appropriate. It can also decide on the
-format of a file from its name. This module defines the HTConverter type.
+<DD>The Format Manager uses the <A HREF="#cascade">parser modules</A>
+to load the document as appropriate. It can also decide on the format
+of a file from its name. This module defines the HTConverter type.
 
-<DT><A NAME="9" HREF="HTAnchor.html">HTAnchor object</A>
+<DT><A HREF="HTAnchor.html">HTAnchor object</A>
 
-<DD>An anchor exists for very URL or fragment identifier. The <A NAME="22"
-HREF="HTAnchor.html">HTAnchor Module</A> takes care of creating anchors,
-managing the links between them and their attributes.  This module is
-independent of the type of graphics object (text, line drawing etc). It stores
-hypertext addresses of anchors, and ensures that anchors with the same address
-are the same anchor.  See also the <A NAME="13"
-HREF="http://info.cern.ch/hypertext/WWW/Architecture/Anchors.html">Anchor
+<DD>An anchor exists for very URL or fragment identifier. The <A
+HREF="HTAnchor.html">HTAnchor Module</A> takes care of creating
+anchors, managing the links between them and their attributes.  This
+module is independent of the type of graphics object (text, line
+drawing etc). It stores hypertext addresses of anchors, and ensures
+that anchors with the same address are the same anchor.  See also the
+<A HREF="http://info.cern.ch/hypertext/WWW/Architecture/Anchors.html">Anchor
 Description</A> )
 
 <DT><A NAME="z74" HREF="HTHistory.html">HTHistory</A>
@@ -179,12 +178,12 @@ Network communication.
 
 <H3>Communications Interface to the Network</H3>
 
-The functionality of the <A HREF="HTTCP.html">HTTCP Module</A> covers several
-topics but they are all related to TCP/IP communication. All active and
-passive connection establishment from the <A HREF="Overview.html#Protocol">
-Protocol Modules</A> goes through this module. Furthermore, the module manages
-a local host cache of visited hosts so that the Domain Name Server is only
-consulted when necessary.<P>
+The functionality of the <A HREF="HTTCP.html">HTTCP Module</A> covers
+several topics but they are all related to TCP/IP communication. All
+active and passive connection establishment from the <A
+HREF="#Protocol"> Protocol Modules</A> goes through this module.
+Furthermore, the module manages a local host cache of visited hosts so
+that the Domain Name Server is only consulted when necessary.<P>
 
 Other topics includes:
 
@@ -401,10 +400,10 @@ input arrives, it is put into a stream, and any necessary actions then cascade
 off that. Even reading from the Network can in fact be done using a stream
 having the read function pumping data down the input stream.<P>
 
-Stream might be <A HREF="Overview.html#cascade">cascaded</A> so that one
-stream writes into into another stream after having performed some processing
-on the data.  An output stream is often referred to as the "target" or "sink"
-stream.<P>
+Stream might be <A HREF="#cascade">cascaded</A> so that one stream
+writes into into another stream after having performed some processing
+on the data.  An output stream is often referred to as the "target" or
+"sink" stream.<P>
 
 Currently the following specific stream objects are implemented:
 
@@ -421,9 +420,9 @@ function.
 
 <DT><A NAME="z41" HREF="SGML.html">SGML</A>
 
-<DD>Parses the data and generates a <A HREF="Overview.html#z38">structured
-stream</A>. Each parser instance is created with reference to a particular DTD
-structure.
+<DD>Parses the data and generates a <A HREF="#z38">structured
+stream</A>. Each parser instance is created with reference to a
+particular DTD structure.
 
 </DL>
 
@@ -473,7 +472,7 @@ textual data stream.
 <DT><A NAME="z69" HREF="HTMIME.html">HTMIME</A>
 
 <DD>Parse a MIME format message. This module also contains a <A
-HREF="Overview.html#counter">Content Length Counter</A>
+HREF="#counter">Content Length Counter</A>
 
 <DT><A NAME="z36" HREF="HTWSRC.html">HTWSRC</A>
 
@@ -521,7 +520,7 @@ The current structured stream modules are
 
 <DD>This module is an important one as it actually PRESENTS a hypertext
 object to the user.  GUI writers replace this module with your own, or use it
-and replaced the <A NAME="z53" HREF="#12">HText</A> module which it feeds.
+and replaced the <A NAME="z53" HREF="#htext">HText</A> module which it feeds.
 
 <DT><A NAME="z55" HREF="HTMLGen.html">HTMLGen</A>
 
@@ -631,14 +630,15 @@ and displays.
 
 <DL>
 
-<DT><A NAME="12" HREF="HText.html">HText</A>
+<DT><A NAME="htext" HREF="HText.html">HText</A>
 
-<DD>This object is window-system dependent. In the line mode browser, the <A
-NAME="17" HREF="../../Architecture/../LineMode/Internals.html#3"> GridText</A>
-module is the hypertext object, providing the generic functionality of this
-module. Note that this interface is an alternative to the HTML.h interface
-above when you are building a client: you can replace the library code at
-either point depending on the interface you require.
+<DD>This object is window-system dependent. In the <A
+HREF="../../LineMode/Status.html">Line Mode Browser,</A> the <A
+HREF="../../LineMode/Internals.html"> GridText</A> module is the
+hypertext object, providing the generic functionality of this module.
+Note that this interface is an alternative to the HTML.h interface
+above when you are building a client: you can replace the library code
+at either point depending on the interface you require.
 
 </DL>
 

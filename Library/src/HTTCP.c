@@ -316,7 +316,7 @@ PRIVATE void HTTCPCacheGarbage NOARGS
 PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
 					      struct hostent *, element)
 {
-    host_info *new;
+    host_info *newhost;
     char *addr;
     char **index = element->h_addr_list;
     int cnt = 1;
@@ -327,36 +327,38 @@ PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
     }
     while(*index++)
 	cnt++;
-    if ((new = (host_info *) calloc(1, sizeof(host_info))) == NULL ||
-	(new->addrlist = (char **) calloc(1, cnt*sizeof(char*))) == NULL ||
+    if ((newhost = (host_info *) calloc(1, sizeof(host_info))) == NULL ||
+	(newhost->addrlist = (char **) calloc(1, cnt*sizeof(char*))) == NULL ||
 	(addr = (char *) calloc(1, cnt*element->h_length)) == NULL)
 	outofmem(__FILE__, "HTTCPCacheAddElement");
-    new->hostname = host;
+    newhost->hostname = host;
     index = element->h_addr_list;
     cnt = 0;
     while (*index) {
-	*(new->addrlist+cnt) = addr+cnt*element->h_length;
-	memcpy((void *) *(new->addrlist+cnt++), *index++, element->h_length);
+	*(newhost->addrlist+cnt) = addr+cnt*element->h_length;
+	memcpy((void *) *(newhost->addrlist+cnt++), *index++,
+	       element->h_length);
     }
-    new->homes = cnt;
-    if ((new->weight = (float *) calloc(new->homes, sizeof(float))) == NULL)
+    newhost->homes = cnt;
+    if ((newhost->weight = (float *) calloc(newhost->homes,
+					    sizeof(float))) == NULL)
 	outofmem(__FILE__, "HTTCPCacheAddElement");
 
-    new->addrlength = element->h_length;
+    newhost->addrlength = element->h_length;
     if (!hostcache)
 	hostcache = HTList_new();
 
     if (TRACE) {
-	if (new->homes == 1)
+	if (newhost->homes == 1)
 	    fprintf(stderr, "HostCache... Adding single-homed host `%s'\n",
 		    HTAtom_name(host));
 	else
 	    fprintf(stderr, "HostCache... Adding host `%s' with %d homes\n",
-		    HTAtom_name(host), new->homes);
+		    HTAtom_name(host), newhost->homes);
     }
-    HTList_addObject(hostcache, (void *) new);
+    HTList_addObject(hostcache, (void *) newhost);
     HTCacheSize++;				/* Update number of elements */
-    return new;
+    return newhost;
 }
 
 

@@ -130,17 +130,17 @@ PUBLIC char *HTAAScheme_name ARGS1(HTAAScheme, scheme)
 **	returns		YES, if filename matches the template.
 **			NO, otherwise.
 */
-PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, template, 
+PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, tmplate, 
 				     CONST char *, filename)
 {
-    CONST char *p = template;
+    CONST char *p = tmplate;
     CONST char *q = filename;
     int m;
 
-    if (!template || !filename) {
+    if (!tmplate || !filename) {
 	if (TRACE) fprintf(stderr,
 			   "HTAA_templateMatch: invalid param: %s is NULL!!\n",
-			   (template ? "filename" : "template"));
+			   (tmplate ? "filename" : "template"));
 	return NO;
     }
 
@@ -172,7 +172,7 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, template,
 **	change the HTAA_templateMatch routine for VMS.
 **
 ** ON ENTRY:
-**	template	is a template string to match the file name
+**	tmplate		is a template string to match the file name
 **			agaist, may contain a single wildcard
 **			character * which matches zero or more
 **			arbitrary characters.
@@ -183,17 +183,17 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, template,
 **	returns		YES, if filename matches the template.
 **			NO, otherwise.
 */
-PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, template, 
+PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, tmplate, 
 			        	 CONST char *, filename)
 {
-    CONST char *p = template;
+    CONST char *p = tmplate;
     CONST char *q = filename;
     int m;
 
-    if (!template || !filename) {
+    if (!tmplate || !filename) {
 	if (TRACE) fprintf(stderr,
 			   "HTAA_templateCaseMatch: invalid param: %s is NULL!!\n",
-			   (template ? "filename" : "template"));
+			   (tmplate ? "filename" : "template"));
 	return NO;
     }
 
@@ -235,24 +235,24 @@ PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, template,
 */
 PUBLIC char *HTAA_makeProtectionTemplate ARGS1(CONST char *, docname)
 {
-    char *template = NULL;
+    char *tmplate = NULL;
     char *slash = NULL;
 
     if (docname) {
-	StrAllocCopy(template, docname);
-	slash = strrchr(template, '/');
+	StrAllocCopy(tmplate, docname);
+	slash = strrchr(tmplate, '/');
 	if (slash) slash++;
-	else slash = template;
+	else slash = tmplate;
 	*slash = (char)0;
-	StrAllocCat(template, "*");
+	StrAllocCat(tmplate, "*");
     }
-    else StrAllocCopy(template, "*");
+    else StrAllocCopy(tmplate, "*");
 
     if (TRACE) fprintf(stderr,
 		       "make_template: made template `%s' for file `%s'\n",
-		       template, docname);
+		       tmplate, docname);
 
-    return template;
+    return tmplate;
 }
 
 

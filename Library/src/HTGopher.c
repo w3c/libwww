@@ -329,13 +329,16 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		
 		/* Get Icon type and output the icon */
 		if (HTDirShowMask & HT_DIR_SHOW_ICON) {
-		    HTIconNode *icon = get_gopher_icon(url, gtype);
+		    char *filename = HTParse(url, "",
+					     PARSE_PATH+PARSE_PUNCTUATION);
+		    HTIconNode *icon = get_gopher_icon(filename, gtype);
 		    if (icon && icon->icon_url) {
 			HTMLPutImg(target, icon->icon_url,
 				   HTIcon_alt_string(icon->icon_alt, YES),
 				   NULL);
 			PUTC(' ');
 		    }
+		    free(filename);
 		}
 
 		if (gtype == GOPHER_WWW) {	     /* Gopher pointer to W3 */
@@ -786,7 +789,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	char *query = NULL;
 	char *separator = NULL;
 	if (*selector)
-	    gopher->type = *selector++;			    /* Pick up gtype */
+	    gopher->type = (HTGopherType) *selector++;	    /* Pick up gtype */
 	if (gopher->type == GOPHER_INDEX) {
             HTAnchor_setIndex(request->anchor);		/* Search is allowed */
 	    query = strchr(selector, '?');	   /* Look for search string */
@@ -863,11 +866,12 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	      case GOPHER_PCBINHEX:
 	      case GOPHER_UUENCODED:
 	      case GOPHER_BINARY:
- 		{
-		    /* Do our own filetyping -- maybe we get lucky */
-		    HTFormat format;
-		    format = HTFileFormat(url, &request->content_encoding,
-					  &request->content_language);
+ 		{       /* Do our own filetyping -- maybe we get lucky */
+		    char *filename = HTParse(url, "",
+					     PARSE_PATH+PARSE_PUNCTUATION);
+		    HTFormat format = HTFileFormat(filename,
+						   &request->content_encoding,
+						   &request->content_language);
 		    if (format) {
 			if (PROT_TRACE)
 			    fprintf(stderr, "Gopher...... Figured out content-type myself: %s\n", HTAtom_name(format));
@@ -880,6 +884,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 			/* Specifying WWW_UNKNOWN forces dump to local disk */
 			HTParseSocket(WWW_UNKNOWN, gopher->sockfd, request);
 		    }
+		    free(filename);
 		}
 		break;
 		
@@ -893,13 +898,15 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 		break;
 
 		/* Try and look at the suffix - maybe it is a PostScript file
-		   so that we should start an externam viewer. */
+		   so that we should start an external viewer. */
 	      case GOPHER_TEXT:
 	      default:
- 		{
-		    HTFormat format;
-		    format = HTFileFormat(url, &request->content_encoding,
-					  &request->content_language);
+ 		{       /* Do our own filetyping -- maybe we get lucky */
+		    char *filename = HTParse(url, "",
+					     PARSE_PATH+PARSE_PUNCTUATION);
+		    HTFormat format = HTFileFormat(filename,
+						   &request->content_encoding,
+						   &request->content_language);
 		    if (format) {
 			if (PROT_TRACE)
 			    fprintf(stderr, "Gopher...... Figured out content-type myself: %s\n", HTAtom_name(format));
@@ -910,6 +917,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 			status = HTParseSocket(WWW_PLAINTEXT, gopher->sockfd,
 					       request);
 		    }
+		    free(filename);
 		}
 		break;
 	    }

@@ -2247,7 +2247,7 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
 {
     unsigned char getup = 0;
     char *current;
-    char *new;
+    char *newloc;
     char *relative;
     char *result = NULL;
     char *strptr;
@@ -2260,12 +2260,12 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
 	StrAllocCat(current, "/");
 
     /* Make a temporary URL without any type indication */
-    new = HTParse(url, "", PARSE_ALL);
-    if ((strptr = strrchr(new, ';')) != NULL)
+    newloc = HTParse(url, "", PARSE_ALL);
+    if ((strptr = strrchr(newloc, ';')) != NULL)
 	*strptr = '\0';
 
     /* Compare those two URLs */
-    relative = HTRelative(new, current);
+    relative = HTRelative(newloc, current);
     {
 	/* Now send any CDUP if necessary */
 	char *tail = relative;
@@ -2286,7 +2286,7 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
     /* Now update current location if we have used CDUP and make relative 
        return value. */
     if (getup) {
-	char *location = HTParse(new, "", PARSE_PATH);
+	char *location = HTParse(newloc, "", PARSE_PATH);
 	free(ctrl->location);
 	if (*location == '/')
 	    ctrl->location = ++location;
@@ -2310,7 +2310,7 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
 	fprintf(stderr, "FTP......... current location on server: `%s\'\n",
 		ctrl->location);
     free(current);
-    free(new);
+    free(newloc);
     return result;
 }
 
@@ -2970,7 +2970,7 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
        mode if (session), and then the request is getting queued in
        ctrl->data_cons. */
     if (ctrl->state == FTP_IDLE || (session && ctrl->state == FTP_LOGGED_IN)) {
-	ftp_data_info *data = ctrl->data_cons->next->object;
+	ftp_data_info *data = (ftp_data_info *) ctrl->data_cons->next->object;
 	if (ctrl->state == FTP_IDLE)
 	    ctrl->state = FTP_BEGIN;
 	while (ctrl->state != FTP_IDLE) {	       	/* Do until finished */
