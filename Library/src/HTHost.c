@@ -31,7 +31,7 @@
 #define TCP_IDLE_ACTIVE     60000L /* Active TTL in ms on an idle connection */
 
 #define MAX_PIPES		50   /* maximum number of pipelined requests */
-#define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
+#define MAX_HOST_RECOVER	1	      /* Max number of auto recovery */
 #define DEFAULT_DELAY		30	  /* Default write flush delay in ms */
 
 struct _HTInputStream {
