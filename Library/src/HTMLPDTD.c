@@ -1,5 +1,5 @@
 /*								     HTMLPDTD.c
-**	STATIC DTD FOR HTML
+**	STATIC DTD FOR HTML (with frame support)
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -90,7 +90,112 @@ PRIVATE const char* entities[HTML_ENTITIES] = {
   "yuml",	/* small y, dieresis or umlaut mark */ 
 };
 
+/* 
 
+<IMG 
+  SRC="location" 
+  LOWSRC="location" 
+  ALT="alterntiveText" 
+  ALIGN="alignment"
+  BORDER="borderWidth"
+  HEIGHT="height"
+  WIDTH="width"
+  HSPACE="horizMargin"
+  VSPACE="verticalMargin" 
+  ISMAP 
+  USEMAP="#mapName"
+  NAME="imageName"
+  ONABORT="imgLoadJScode"
+  ONERROR="errorJScode"
+  ONLOAD="imgLoadJScode"
+  SUPPRESS="suppressOrNot"
+> 
+
+<BODY 
+  BACKGROUND="bgURL" 
+  BGCOLOR="color" 
+  TEXT="color" 
+  LINK="color" 
+  ALINK="color" 
+  VLINK="color" 
+  ONLOAD="loadJScode" 
+  ONUNLOAD="unloadJScode" 
+  ONBLUR="blurJScode" 
+  ONFOCUS="focusJScode" 
+    CLASS="styleClass"
+    ID="namedPlaceOrStyle"
+    LANG="ISO"
+    STYLE="style"
+>
+...
+</BODY> 
+*/
+PRIVATE attr body_attr[HTML_BODY_ATTRIBUTES+1] = {		/* to catch images */
+	{ "BACKGROUND" },
+	{ 0 }	/* Terminate list */
+};	
+
+/*
+<FRAME 
+  BORDERCOLOR="color"
+  FRAMEBORDER="YES"|"NO"
+  MARGINHEIGHT="marginHeight" 
+  MARGINWIDTH="marginWidth" 
+  NAME="frameName" -- likely 
+  NORESIZE 
+  SCROLLING="YES"|"NO"|"AUTO" 
+  SRC="URL"  -- required
+>*/	
+PRIVATE attr frame_attr[HTML_FRAME_ATTRIBUTES+1] = {		/* frame attributes */		 
+	{ "SRC" },
+	{ 0 }	/* Terminate list */
+};
+
+/*
+
+<FRAMESET 
+  COLS="columnWidthList" 
+  ROWS="rowHeightList" 
+  BORDER="pixWidth"
+  BORDERCOLOR="color"
+  FRAMEBORDER="YES"|"NO"
+  ONBLUR="JScode" 
+  ONFOCUS="JScode" 
+  ONLOAD="JScode" 
+  ONUNLOAD="JScode" 
+>
+...
+</FRAMESET>
+*/
+
+PRIVATE attr frameset_attr[HTML_FRAMESET_ATTRIBUTES+1] = { /* frameset attributes */
+
+	{ "BORDER" },
+	{ "BORDERCOLOR" },
+	{ "COLS" },
+	{ "FRAMEBORDER" },
+	{ "ONBLUR" },
+	{ "ONFOCUS" },
+	{ "ONLOAD" },
+	{ "ONUNLOAD" },
+	{ "ROWS" },	
+	{ 0 }	/* Terminate list */
+};
+
+/*
+<HTML><HEAD><TITLE>Frame Set Example</TITLE></HEAD>
+
+<FRAMESET COLS="20%,*"> 
+  <NOFRAME>You must use a browser that can display frames 
+  to see this page.</NOFRAME> 
+  <FRAME SRC="frametoc.htm" NAME="noname"> 
+  <FRAMESET ROWS="30%,*"> 
+    <FRAME SRC="frtoc1.htm" NAME="toptoc"> 
+    <FRAME SRC="frstart.htm" NAME="outer"> 
+  </FRAMESET> 
+</FRAMESET> 
+</HTML>
+*/
 
 /*		Attribute Lists
 **		---------------
@@ -177,6 +282,7 @@ PRIVATE attr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* IMG attributes */
 	{ "ALIGN" },
 	{ "ALT" },
 	{ "ISMAP"},			/* Use HTTP SpaceJump instead */
+	{ "LOWSRC"},
 	{ "SEETHRU"},
 	{ "SRC"},
 	{ 0 }	/* Terminate list */
@@ -348,7 +454,7 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "B"	, no_attr,	0,			SGML_MIXED },
     { "BASE"	, base_attr,	HTML_BASE_ATTRIBUTES,	SGML_EMPTY },
     { "BLOCKQUOTE", no_attr,	0,			SGML_MIXED },
-    { "BODY"	, no_attr,	0,			SGML_MIXED },
+    { "BODY"	, body_attr,	HTML_BODY_ATTRIBUTES,	SGML_MIXED },
     { "BOX"	, no_attr,	0,			SGML_MIXED },
     { "BR"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_EMPTY },
     { "BYLINE"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
@@ -367,6 +473,8 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "FIG" 	, fig_attr,	HTML_FIG_ATTRIBUTES,	SGML_MIXED },
     { "FOOTNOTE" , gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "FORM" 	, form_attr,	HTML_FORM_ATTRIBUTES,	SGML_MIXED },
+    { "FRAME"	, frame_attr,	HTML_FRAME_ATTRIBUTES,	SGML_EMPTY },
+    { "FRAMESET", frameset_attr,HTML_FRAMESET_ATTRIBUTES, SGML_EMPTY },
     { "H1"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "H2"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "H3"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
@@ -395,6 +503,7 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "META"	, meta_attr,	HTML_META_ATTRIBUTES,	SGML_EMPTY },
     { "NEXTID"  , nextid_attr,	1,			SGML_EMPTY },
     { "NOTE"	, note_attr,	HTML_NOTE_ATTRIBUTES,	SGML_EMPTY },
+    { "NOFRAMES", no_attr,	0,			SGML_MIXED },
     { "OL"	, list_attr,	HTML_LIST_ATTRIBUTES,	SGML_MIXED },
     { "OPTION"	, option_attr,	HTML_OPTION_ATTRIBUTES,	SGML_EMPTY },/*Mixed?*/
     { "OVER"	, no_attr,	0,			SGML_MIXED },

@@ -81,6 +81,8 @@ typedef enum _HTMLElement {
 	HTML_FIG,
 	HTML_FOOTNOTE,
 	HTML_FORM,
+	HTML_FRAME,
+	HTML_FRAMESET,
 	HTML_H1,
  	HTML_H2,
  	HTML_H3,
@@ -108,6 +110,7 @@ typedef enum _HTMLElement {
 	HTML_MENU,
 	HTML_META,
 	HTML_NEXTID,
+	HTML_NOFRAMES,
 	HTML_NOTE,
 	HTML_OL,
 	HTML_OPTION,
@@ -141,7 +144,7 @@ typedef enum _HTMLElement {
 }
 HTMLElement;
 
-#define HTMLP_ELEMENTS 86
+#define HTMLP_ELEMENTS 89
 
 </PRE><H2>Attribute numbers</H2>Identifier is
 HTML_&lt;element>_&lt;attribute>. These must match the tables in <A
@@ -161,12 +164,29 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 #define HTML_BASE_HREF		0
 #define HTML_BASE_ATTRIBUTES	1
 
+#define HTML_BODY_BACKGROUND    0
+#define HTML_BODY_ATTRIBUTES    1
+
 #define HTML_FORM_ACTION	0	/* WSM bug fix, added these five */
 #define HTML_FORM_ID		1
 #define HTML_FORM_INDEX		2
 #define HTML_FORM_LANG		3
 #define HTML_FORM_METHOD	4
 #define HTML_FORM_ATTRIBUTES	5
+
+#define HTML_FRAME_SRC          0
+#define HTML_FRAME_ATTRIBUTES   1
+
+#define HTML_FRAMESET_COLS              0
+#define HTML_FRAMESET_ROWS              1
+#define HTML_FRAMESET_BORDER            2
+#define HTML_FRAMESET_BORDERCOLOR       3
+#define HTML_FRAMESET_FRAMEBORDER       4
+#define HTML_FRAMESET_ONBLUR            5
+#define HTML_FRAMESET_ONFOCUS           6
+#define HTML_FRAMESET_ONLOAD            7
+#define HTML_FRAMESET_ONUNLOAD          8
+#define HTML_FRAMESET_ATTRIBUTES        9
 
 #define HTML_FIG_ATTRIBUTES	6
 
@@ -184,11 +204,10 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 #define HTML_IMG_ALIGN		0
 #define HTML_IMG_ALT		1
 #define HTML_IMG_ISMAP		2	/* Obsolete but supported */
-#define HTML_IMG_SEETHRU	3
-
-#define HTML_IMG_SRC 		4
-
-#define HTML_IMG_ATTRIBUTES	5
+#define HTML_IMG_LOWSRC	        3
+#define HTML_IMG_SEETHRU	4
+#define HTML_IMG_SRC 		5
+#define HTML_IMG_ATTRIBUTES	6
 
 #define HTML_INPUT_ALIGN	0
 #define HTML_INPUT_CHECKED	1

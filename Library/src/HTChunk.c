@@ -39,7 +39,7 @@ PUBLIC void HTChunk_clear (HTChunk * ch)
 {
     if (ch) {
 	ch->size = 0;
-	memset((void *) ch->data, '\0', ch->allocated);
+	if (ch->data) memset((void *) ch->data, '\0', ch->allocated);
     }
 }
 
@@ -65,6 +65,7 @@ PUBLIC HTChunk * HTChunk_fromCString (char * str, int grow)
     if (str) {
 	ch->data = str;			/* can't handle non-allocated str */
 	ch->size = strlen(str);
+	ch->allocated = ch->size + 1; /* [SIC] bobr */
     }
     return ch;
 }
@@ -87,8 +88,8 @@ PUBLIC char * HTChunk_toCString (HTChunk * ch)
 */
 PUBLIC void HTChunk_putc (HTChunk * ch, char c)
 {
-    if (ch) {
-	if (ch->size >= ch->allocated-1) {
+    if (ch) {	
+	if (!ch->data || ch->size >= ch->allocated-1) { /* [SIC] bobr */
 	    if (ch->data) {
 		if ((ch->data = (char  *) HT_REALLOC(ch->data,ch->allocated+ch->growby)) == NULL)
 		    HT_OUTOFMEM("HTChunk_putc");

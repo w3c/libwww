@@ -44,6 +44,10 @@ PUBLIC void HText_endAppend (HText * text) {}
 PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
 PUBLIC void HText_beginAppend (HText * text) {}
 PUBLIC void HText_appendParagraph (HText * text) {}
+PUBLIC void HText_appendObject (HText * text, int element_number,
+	                        const BOOL * present, const char ** value) {}
+PUBLIC void HText_appendLink (HText * text, HTChildAnchor * anchor,
+			      const BOOL * present, const char ** value) {}
 
 #endif
 </PRE>

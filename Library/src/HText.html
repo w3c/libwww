@@ -14,22 +14,26 @@
 </PRE>
 <P>
 This is the C interface to the Objective-C (or whatever) Style-oriented HyperText
-class. It is used when a style-oriented text object is available or craeted
+class. It is used when a style-oriented text object is available or created
 in order to display hypertext.
 <P>
-This module is a part of the <A HREF="http://www.w3.org/Library/">
-W3C Sample Code Library</A>. However, it is <B>NOT</B> implemented anywhere
-in the library, as it is client (and often platform) specific code. Hence
-these functions <EM>must</EM> be implemented in the client. The
-<A HREF="http://www.w3.org/LineMode/">Line Mode Browser</A> has the
-implementation in the
-<A HREF="http://www.w3.org/LineMode/src/GridText.html"> GridText</A>
-module.
+This module is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample
+Code Library</A>. Libwww doesn't come with a full implementation of this
+module as it depends on the UI that you are using. Instead, we
+<A HREF="HTextImp.html">provide a dummy (void) implementation in HTextImp.h</A>
+that you can include if for some reason have problems linking against libwww
+(get unresolved HText* functions).
+<P>
+However, it is <B>NOT</B> implemented anywhere in the library, as it is client
+(and often platform) specific code. Hence these functions <EM>must</EM> be
+implemented in the client. The <A HREF="http://www.w3.org/LineMode/">Line
+Mode Browser</A> has the implementation in the
+<A HREF="http://www.w3.org/LineMode/src/GridText.html"> GridText</A> module.
 <PRE>
 #ifndef HTEXT_H
 #define HTEXT_H
 
-#include "HTAnchor.h"
+#include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
 #include "HTStyle.h"
 #include "HTStruct.h"
 
@@ -43,7 +47,7 @@ extern HText * HTMainText;		/* Pointer to current main text */
 extern HTParentAnchor * HTMainAnchor;	/* Pointer to current text's anchor */
 </PRE>
 <H2>
-  Creation and deletion
+  Creation and Deletion
 </H2>
 <H3>
   Create hypertext object
@@ -74,13 +78,12 @@ extern void 	HText_free (HText * me);
   Object Building methods
 </H2>
 <P>
-These are used by a parser to build the text in an object HText_beginAppend
-must be called, then any combination of other append calls, then HText_endAppend.
-This allows optimised handling using buffers and caches which are flushed
-at the end.
+These are used by a parser to build the text in an object
+<TT>HText_beginAppend</TT> must be called, then any combination of other
+append calls, then <TT>HText_endAppend</TT>. This allows optimised handling
+using buffers and caches which are flushed at the end.
 <PRE>
 extern void HText_beginAppend (HText * text);
-
 extern void HText_endAppend (HText * text);
 </PRE>
 <H3>
@@ -104,10 +107,8 @@ extern void HText_appendText (HText * text, const char * str);
 
 </PRE>
 <H3>
-  New Paragraph
+  New Paragraph and similar things
 </H3>
-<P>
-and similar things
 <PRE>
 extern void HText_appendParagraph (HText * text);
 
@@ -116,53 +117,48 @@ extern void HText_appendLineBreak (HText * text);
 extern void HText_appendHorizontalRule (HText * text);
 </PRE>
 <H3>
-  Start/end sensitive text
+  Start/end an Anchor
 </H3>
 <P>
-The anchor object is created and passed to HText_beginAnchor. The senstive
-text is added to the text object, and then HText_endAnchor is called. Anchors
-may not be nested.
+The anchor object is created and passed to <TT>HText_beginAnchor</TT>. The
+senstive text is added to the text object, and then <TT>HText_endAnchor</TT>
+is called. Anchors may not be nested.
 <PRE>extern void HText_beginAnchor (HText * text, HTChildAnchor * anc);
 extern void HText_endAnchor (HText * text);
-
-
 </PRE>
 <H3>
-  Set the next free identifier
-</H3>
-<P>
-The string must be of the form aaannnnn where aaa is the prefix for automatically
-generated ids, normally "z", and nnnn is the next unused number. If not present,
-defaults to z0. An editor should pick up both the a and n bits, and increment
-n when generating ids. This ensures that old ids are not reused, even if
-the elements using them have been deleted from the document.
-<PRE>
-extern void HText_setNextId (
-	HText *		text,
-	const char *    s);
-
-</PRE>
-<H3>
-  Append an inline image
+  Append an Inlined Image
 </H3>
 <P>
 The image is handled by the creation of an anchor whose destination is the
 image document to be included. The semantics is the intended inline display
-of the image.
-<P>
-An alternative implementation could be, for example, to begin an anchor,
-append the alternative text or "IMAGE", then end the anchor. This would simply
-generate some text linked to the image itself as a separate document.
+of the image. An alternative implementation could be, for example, to begin
+an anchor, append the alternative text or "IMAGE", then end the anchor. This
+would simply generate some text linked to the image itself as a separate
+document.
 <PRE>extern void HText_appendImage (
 	HText * 	text,
 	HTChildAnchor * anc,
 	const char * 	alternative_text,
 	const char *	alignment,
 	BOOL		isMap);
-
 </PRE>
 <H3>
-  HText_appendObject: Append an object which does its own work
+  Append a Link Relationship
+</H3>
+<P>
+The <TT>&lt;LINK&gt;</TT> tag is handled by parsing the link attributes and
+creating the relative <A HREF="HTLink.html">link relationships</A> between
+the <A HREF="HTAnchor.html">HTAnchor objects</A>. The HText object gets called
+with the anchor and the set of attributes:
+<PRE>extern void HText_appendLink (
+	HText * 		text,
+	HTChildAnchor *		anchor,
+	const BOOL *		present,
+	const char **	 	value);
+</PRE>
+<H3>
+  Append an object which does its own work
 </H3>
 <P>
 The SGML parameters are passed untouched. Currently this is only used for
@@ -173,95 +169,119 @@ object has parsed itself.
 	HText * 		text,
 	int			element_number,
 	const BOOL *		present,
-	const char * const * 	value);
-
+	const char **	 	value);
 </PRE>
 <H3>
-  HText_unimplemented: Warn that object is not completely rendered.
+  Warn that object is not completely rendered
 </H3>
 <P>
 If the parser realises that it has incompletely parsed an object, then it
 can call this to flag it to the object. This will for example prevent editing
 or writing back.
-<PRE>extern void HText_unimplemented (
-	HText *		text);
-
+<PRE>
+extern void HText_unimplemented (HText * text);
 </PRE>
 <H2>
   Utilities
 </H2>
 <H3>
-  Dump diagnostics to stderr
+  Set The Next Free Anchor Identifier
 </H3>
-<PRE>extern void HText_dump (HText * me);	
-
+<P>
+The string must be of the form <CODE>aaannnnn</CODE> where <CODE>aaa</CODE>
+is the prefix for automatically generated ids, normally <CODE>z</CODE>, and
+nnnn is the next unused number. If not present, defaults to z0. An editor
+should pick up both the a and n bits, and increment n when generating ids.
+This ensures that old ids are not reused, even if the elements using them
+have been deleted from the document.
+<PRE>
+extern void HText_setNextId (HText * text, const char * s);
+</PRE>
+<H3>
+  Dump Diagnostics to stderr
+</H3>
+<PRE>
+extern void HText_dump (HText * me);	
 </PRE>
 <H3>
   Return the anchor associated with this node
 </H3>
-<PRE>extern HTParentAnchor * HText_nodeAnchor (HText * me);
-
+<PRE>
+extern HTParentAnchor * HText_nodeAnchor (HText * me);
 </PRE>
 <H2>
   Browsing functions
 </H2>
-<PRE>
-</PRE>
 <H3>
   Bring to front and highlight it
 </H3>
 <PRE>
-
 extern BOOL HText_select (HText * text); 
 extern BOOL HText_selectAnchor (HText * text, HTChildAnchor* anchor); 
-
 </PRE>
 <H2>
-  Editing functions
+  Editing HText Objects
 </H2>
 <P>
 These are called from the application. There are many more functions not
-included here from the orginal text object. These functions NEED NOT BE
-IMPLEMENTED in a browser which cannot edit.
-<PRE>/*	Style handling:
-*/
-/*	Apply this style to the selection
-*/
+included here from the orginal text object. These functions <B>NEED NOT BE
+IMPLEMENTED</B> in a browser which cannot edit.
+<H3>
+  Style handling
+</H3>
+<H4>
+  Apply this style to the selection
+</H4>
+<PRE>
 extern void HText_applyStyle (HText * me, HTStyle *style);
-
-/*	Update all text with changed style.
-*/
+</PRE>
+<H4>
+  Update all text with changed style
+</H4>
+<PRE>
 extern void HText_updateStyle (HText * me, HTStyle *style);
-
-/*	Return style of  selection
-*/
+</PRE>
+<H4>
+  Return style of selection
+</H4>
+<PRE>
 extern HTStyle * HText_selectionStyle (
 	HText * me,
 	HTStyleSheet* sheet);
-
-/*	Paste in styled text
-*/
+</PRE>
+<H4>
+  Paste in styled text
+</H4>
+<PRE>
 extern void HText_replaceSel (HText * me,
 	const char *aString, 
 	HTStyle* aStyle);
-
-/*	Apply this style to the selection and all similarly formatted text
-**	(style recovery only)
-*/
+</PRE>
+<H4>
+  Apply this style to the selection and all similarly formatted text
+</H4>
+<P>
+Note: style recovery only
+<PRE>
 extern void HTextApplyToSimilar (HText * me, HTStyle *style);
- 
-/*	Select the first unstyled run.
-**	(style recovery only)
-*/
+</PRE>
+<H4>
+  Select the first unstyled run
+</H4>
+<P>
+Note: style recovery only
+<PRE>
 extern void HTextSelectUnstyled (HText * me, HTStyleSheet *sheet);
-
-
-/*	Anchor handling:
-*/
+</PRE>
+<H3>
+  Anchor Handling
+</H3>
+<PRE>
 extern void		HText_unlinkSelection (HText * me);
 extern HTAnchor *	HText_referenceSelected (HText * me);
 extern HTAnchor *	HText_linkSelTo (HText * me, HTAnchor* anchor);
-
+</PRE>
+<PRE>
 #endif /* HTEXT_H */
 </PRE>
 <P>

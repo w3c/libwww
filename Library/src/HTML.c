@@ -23,8 +23,9 @@
 #include "WWWCore.h"
 #include "WWWHTML.h"
 #include "HText.h"
-#include "HTStyle.h"
 #include "HTML.h"
+#include "HTStyle.h"
+
 
 extern HTStyleSheet * styleSheet;	/* Application-wide */
 
@@ -81,7 +82,6 @@ struct _HTStream {
 /*		Forward declarations of routines
 */
 PRIVATE void get_styles (void);
-
 
 PRIVATE void actually_set_style (HTStructured * me);
 PRIVATE void change_paragraph_style (HTStructured * me, HTStyle * style);
@@ -366,6 +366,14 @@ PRIVATE void HTML_start_element (
 	const char **		value)
 {
     switch (element_number) {
+
+    case HTML_FRAME:
+    {
+	UPDATE_STYLE;
+	HText_appendObject(me->text, HTML_FRAME, present, value);
+    }
+    break;
+
     case HTML_A:
     {
 	HTChildAnchor * source = HTAnchor_findChildAndLink(
@@ -388,9 +396,13 @@ PRIVATE void HTML_start_element (
     case HTML_LINK:
     {
 	if (present[HTML_LINK_HREF] && value[HTML_LINK_HREF]) {
-	    char * relative_to = HTAnchor_expandedAddress((HTAnchor *) me->node_anchor);
-	    char * dest_addr = HTParse(value[HTML_LINK_HREF], relative_to, PARSE_ALL);
-	    HTParentAnchor * dest = HTAnchor_parent(HTAnchor_findAddress(dest_addr));
+	    HTChildAnchor * source = HTAnchor_findChildAndLink(
+		me->node_anchor,					/* parent */
+		present[HTML_A_NAME] ? value[HTML_A_NAME] : NULL,	/* Tag */
+		present[HTML_A_HREF] ? value[HTML_A_HREF] : NULL,	/* Addresss */
+		NULL);							/* Rels */
+	    HTParentAnchor * dest =
+		HTAnchor_parent(HTAnchor_followMainLink((HTAnchor *) source));
 
 	    /* If forward reference */
 	    if ((present[HTML_LINK_REL] && value[HTML_LINK_REL])) {
@@ -429,9 +441,10 @@ PRIVATE void HTML_start_element (
 				       (HTFormat) HTAtom_caseFor(value[HTML_LINK_TYPE]));
 	    }
 
-	    HT_FREE(dest_addr);
-	    HT_FREE(relative_to);
+	    UPDATE_STYLE;
+	    HText_appendLink(me->text, source, present, value);
 	}
+
     }
     break;
 
@@ -548,6 +561,12 @@ PRIVATE void HTML_start_element (
 	}	
 	break;
 
+    case HTML_BODY:			/* Images in body defn */
+
+	UPDATE_STYLE;
+	HText_appendObject(me->text, HTML_BODY, present, value);
+	break;
+
     case HTML_BASE:			/* Base header */
       if (present[HTML_BASE_HREF]) {
 	  char * base = (char *) value[HTML_BASE_HREF];
@@ -562,7 +581,6 @@ PRIVATE void HTML_start_element (
 
     case HTML_HTML:			/* Ignore these altogether */
     case HTML_HEAD:
-    case HTML_BODY:
 	break;
     
     case HTML_TT:			/* Physical character highlighting */

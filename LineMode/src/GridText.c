@@ -820,7 +820,15 @@ PUBLIC void HText_endAppend (HText * text)
     }
 }
 
+PUBLIC void HText_appendObject (HText * text, int element_number,
+	                        const BOOL * present, const char ** value)
+{
+}
 
+PUBLIC void HText_appendLink (HText * text, HTChildAnchor * anchor,
+			      const BOOL * present, const char ** value)
+{
+}
 
 /* 	Dump diagnostics to TDEST
 */

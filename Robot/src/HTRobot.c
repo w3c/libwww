@@ -1229,6 +1229,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    HTParentAnchor * referer = HTRequest_anchor(text->request);
 	    BOOL match = YES;
 
+	    if (!uri) return;
 	    if (hd) {
 		if (SHOW_QUIET(mr)) HTTrace("Already checked\n");
 		hd->hits++;
@@ -1296,6 +1297,60 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 		}
 	    }
 	    HT_FREE(uri);
+	}
+    }
+}
+
+PUBLIC void HText_appendLink (HText * text, HTChildAnchor * anchor,
+			      const BOOL * present, const char ** value)
+{
+    if (text && anchor) {
+	Finger * finger = (Finger *) HTRequest_context(text->request);
+	Robot * mr = finger->robot;
+	if (SHOW_QUIET(mr))
+	    HTTrace("Robot....... Received Link element with anchor %p\n", anchor);
+	HText_beginAnchor(text, anchor);
+    }
+}
+
+PUBLIC void HText_appendObject (HText * text, int element_number,
+	                        const BOOL * present, const char ** value)
+{
+    /* Here we can look for frames, link tags, meta tags etc. */
+    if (text && text->request) {
+	Finger * finger = (Finger *) HTRequest_context(text->request);
+	Robot * mr = finger->robot;
+
+	if (SHOW_QUIET(mr))
+	    HTTrace("Robot....... HText Object %p called with HTML element number %d\n",
+		    text, element_number);
+
+	switch (element_number) {
+
+	case HTML_FRAME:
+	{
+	    HTChildAnchor * source = HTAnchor_findChildAndLink(
+		HTRequest_anchor(text->request),			/* Parent */
+		NULL,							/* Tag */
+		present[HTML_FRAME_SRC] ? value[HTML_FRAME_SRC] : NULL,	/* Addresss */
+		NULL);							/* Rels */
+	    HText_beginAnchor(text, source);
+	}
+	break;
+
+	case HTML_BODY:
+	{
+	    HTChildAnchor * source = HTAnchor_findChildAndLink(
+		HTRequest_anchor(text->request),			/* Parent */
+		NULL,                     				/* Tag */
+		present[HTML_BODY_BACKGROUND] ? value[HTML_BODY_BACKGROUND] : NULL,  /* Addresss */
+		NULL);							/* Rels */
+	    HText_appendImage(text, source, NULL, NULL, NO);
+	}
+	break;
+
+	default:
+	    break;
 	}
     }
 }
