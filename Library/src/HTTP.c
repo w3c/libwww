@@ -456,7 +456,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
 	outofmem(__FILE__, "HTLoadHTTP");
     http->sockfd = -1;			  	    /* Invalid socket number */
-    http->isoc = HTInputSocket_new(http->sockfd);
     http->request = request;
     http->state = HTTP_IDLE;
     request->net_info = (HTNetInfo *) http;
@@ -492,6 +491,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	HTTPCleanup(http);
 	return status;
     }
+    http->isoc = HTInputSocket_new(http->sockfd);
     if (TRACE) fprintf(stderr, "HTTP........ Connected, socket %d\n",
 		       http->sockfd);
 

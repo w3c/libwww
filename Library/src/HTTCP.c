@@ -487,7 +487,6 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin, BOOL *, multi)
 /*
 **	Get host name of the machine on the other end of a socket.
 **
-**	THIS FUNCTION USED TO BE CALLED HTGetHostName()
 */
 PUBLIC char * HTGetHostBySock ARGS1(int, soc)
 {
