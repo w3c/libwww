@@ -49,7 +49,7 @@ typedef int HTLocalMode;
 #define HT_FT_APPEND	HT_FB_APPEND
 
 #else 
-typedef const char HTLocalMode[10];
+typedef const char *HTLocalMode;
 
 #define HT_FB_RDONLY	"rb"
 #define HT_FT_RDONLY	"r"
