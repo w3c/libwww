@@ -311,9 +311,6 @@ int main (int argc, char ** argv)
     HTAlert_deleteOpcode(HT_A_USER_PW);
     HTAlert_add(PromptUsernameAndPassword, HT_A_USER_PW);
 
-    /* Add our own filter to update the history list */
-    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-
     /*
     ** Add default content decoder. We insert a through line as it doesn't
     ** matter that we get an encoding that we don't know.
@@ -551,6 +548,9 @@ int main (int argc, char ** argv)
 	    if (SHOW_MSG) HTTrace("Can't access rules\n");
 	HT_FREE(rules);
     }
+
+    /* Add our own filter to update the history list */
+    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Start the request */
     switch (method) {
