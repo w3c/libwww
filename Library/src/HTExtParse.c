@@ -22,7 +22,7 @@ PRIVATE void HTExtParse_put_character ARGS2(HTStream *, me, char, c)
     while ((me->eps->used + 1) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = realloc(me->eps->buffer, me->eps->length);
+    me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
     *(me->eps->buffer + me->eps->used) = c;
     me->eps->used++;
 /*    if (TRACE) printf("(HTExtParse_put_character: %d %d)\n",c,me->eps->used);*/
@@ -37,7 +37,7 @@ PRIVATE void HTExtParse_put_string ARGS2(HTStream *, me, CONST char*, s)
     while ((me->eps->used + l) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = realloc(me->eps->buffer, me->eps->length);
+    me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
 }
@@ -47,7 +47,7 @@ PRIVATE void HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
     while ((me->eps->used + l) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = realloc(me->eps->buffer, me->eps->length);
+    me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
     (*me->eps->call_client)(me->eps);         /* so that client can give status info */

@@ -37,16 +37,19 @@ Library of Common Code</A>.
 
 #include "HTStream.h"
 
+typedef struct _HTExtParseStruct HTExtParseStruct;
 
-typedef struct {
-	void            (*call_client)();
+typedef void (*CallClient) PARAMS((struct _HTExtParseStruct *me));
+
+struct _HTExtParseStruct {
+	CallClient	call_client;
 	int             used;         /* how much of the buffer is being used */
 	BOOL            finished;     /* document loaded? */
         int             length;       /* how long the buffer is */
 	char *          buffer;       /* buffer to store in until client takes over*/
 	char *          content_type;
 	HTRequest *	request;      /* the request structure */
-} HTExtParseStruct;
+};
 
 /*extern HTStream * HTExtParse PARAMS((void (*CallMeArg)()));*/
 

@@ -14,7 +14,7 @@
 */
 </PRE>
 
-This module contains the interface between the the ExtParse module and
+This module contains the interface between the ExtParse module and
 the client. The dummy function is only here so that clients that use
 the ExtParse module can overwrite it. See also <A NAME="z0"
 HREF="HTExtParse.html">HTExtParse</A><P>
@@ -29,8 +29,9 @@ Library of Common Code</A>.
 #define HTEPTOCLIENT_H
 
 #include "HTStream.h"
+#include "HTExtParse.h"
 
-extern void HTCallClient PARAMS((void (*CallClient)()));
+extern CallClient HTCallClient;
 
 #endif
 

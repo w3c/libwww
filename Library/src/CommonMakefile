@@ -122,7 +122,8 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
 
 SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
 	$(CMN)CommonMakefile $(CMN)Makefile \
-	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD $(WWW)/Makefile
+	$(WWW)/README $(WWW)/COPYRIGH \
+	$(WWW)/BUILD $(WWW)/BUILD.SH $(WWW)/Makefile
 
 SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
 	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB $(VMS)/setup.com \
@@ -178,47 +179,43 @@ uninstall :
 inc : $(HFILES)
 	echo Include files generated from hypertext.
 
-binary : /mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
+binary : /appl/disk5/ftp/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
 	echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
 
 
-/mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
-	-mkdir /mnt/www0/pub/www/bin/$(WWW_MACH)
-	cp libwww.a /mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
+/appl/disk5/ftp/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
+	-mkdir /appl/disk5/ftp/pub/www/bin/$(WWW_MACH)
+	cp libwww.a /appl/disk5/ftp/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
 
 #	Source Distribution:
 
-distribute : /mnt/www0/pub/www/README.txt /mnt/www0/pub/www/Copyright.txt
+distribute : $(WWW)/README $(WWW)/COPYRIGH
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
-	/mnt/www0/pub/www/src/WWWLibrary_$(VC).tar.Z)
+	/appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar.Z)
 	(cd ../Implementation; cvs tag \
 	`sed -e 's/VC = /v/' Version.make | sed -e 's?\.?/?'` )
 	echo Distribution of Library version $(VC) up to date.
 
-/mnt/www0/pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
-	tar cvf /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar \
+/appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
+	tar cvf /appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar \
 	    $(SOURCES) \
 	    $(SPECIFIC) \
 	    $(WWW)/All \
 	    $(CMN)*.html
-	compress -f /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar
+	compress -f /appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar
 
 #	Hypertext supplied in text format
 #	---------------------------------
 
-$(WWW)/README.txt : $(WWW)/../README.html
+$(WWW)/README : $(WWW)/../README.html
 	www -n -p66 http://info.cern.ch/hypertext/README.html \
-		> $(WWW)/README.txt
-/mnt/www0/pub/www/README.txt : $(WWW)/README.txt
-	cp $(WWW)/README.txt /mnt/www0/pub/www/README.txt
+		> $(WWW)/README
 
-$(WWW)/Copyright.txt : $(WWW)/../Copyright.html
-	www -n -p66 http://info.cern.ch/hypertext/Copyright.html \
-		> $(WWW)/Copyright.txt
-/mnt/www0/pub/www/Copyright.txt : $(WWW)/Copyright.txt
-	cp $(WWW)/Copyright.txt /mnt/www0/pub/www/Copyright.txt
+$(WWW)/COPYRIGH : $(WWW)/../COPYRIGH.html
+	www -n -p66 http://info.cern.ch/hypertext/COPYRIGHT.html \
+		> $(WWW)/COPYRIGH
 
 # 			Common code
 #			-----------

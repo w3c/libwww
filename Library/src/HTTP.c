@@ -306,7 +306,7 @@ PRIVATE BOOL HTTPAuthentication ARGS1(HTRequest *, request)
     HTAAScheme scheme;
     HTList *valid_schemes = HTList_new();
     HTAssocList **scheme_specifics = NULL;
-    char *template = NULL;
+    char *tmplate = NULL;
 
     if (request->WWWAAScheme) {
 	if ((scheme = HTAAScheme_enum(request->WWWAAScheme)) != HTAA_UNKNOWN) {
@@ -331,11 +331,11 @@ PRIVATE BOOL HTTPAuthentication ARGS1(HTRequest *, request)
 	if (PROT_TRACE)
 	    fprintf(stderr, "Protection template set to `%s'\n",
 		    request->WWWprotection);
-	StrAllocCopy(template, request->WWWprotection);
+	StrAllocCopy(tmplate, request->WWWprotection);
     }
     request->valid_schemes = valid_schemes;
     request->scheme_specifics = scheme_specifics;
-    request->prot_template = template;
+    request->prot_template = tmplate;
     return YES;
 }
 
