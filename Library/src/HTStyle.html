@@ -9,7 +9,7 @@ A StyleSheet is a collection of styles,
 defining the translation necessary
 to represent a document. It is a
 linked list of styles.
-<H2>Overiding this module</H2>Why is the style structure declared
+<H2>Overriding this module</H2>Why is the style structure declared
 in the HTStyle.h module, instead
 of having the user browser define
 the structure, and the HTStyle routines
@@ -65,7 +65,7 @@ typedef long int HTFont;	/* Dummy definition instead */
 #endif
 
 #ifdef NeXT_suppressed
-#include 60;appkit/appkit.h>
+#include &lt;appkit/appkit.h>
 typedef NXCoord HTCoord;
 #define HTParagraphStyle NXTextStyle
 #define HTCoord NXCoord
@@ -185,5 +185,6 @@ extern HTStyleSheet * HTStyleSheetWrite PARAMS((HTStyleSheet * self,
 #define CLEAR_POINTER ((void *)-1)	/* Pointer value means "clear me" */
 #endif /* HTStyle_H */
 
-</PRE></BODY>
+
+</BODY>
 </HTML>

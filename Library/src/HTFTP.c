@@ -275,7 +275,7 @@ PRIVATE int response(cmd)
 		break;	    
 	    } /* if end of line */
 	    
-	    if (*(p-1) < 0) {
+	    if (*(p-1) == (char) EOF) {
 		if(TRACE) fprintf(stderr, "Error on rx: closing socket %d\n",
 		    control->socket);
 		strcpy(response_text, "000 *** TCP read error on response\n");

@@ -126,9 +126,8 @@ PRIVATE void HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 */
 PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 {
-    fflush(me->fp);
+    fclose(me->fp);
     if (me->end_command) {		/* Temp file */
-    	fclose(me->fp);
         HTProgress(me->end_command);	/* Tell user what's happening */
 	system(me->end_command);
 	free (me->end_command);
@@ -146,9 +145,8 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 
 PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
-    fflush(me->fp);
+    fclose(me->fp);
     if (me->end_command) {		/* Temp file */
-    	fclose(me->fp);
 	if (TRACE) fprintf(stderr,
 		"HTFWriter: Aborting: file not executed.\n");
 	free (me->end_command);

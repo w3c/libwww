@@ -103,9 +103,11 @@ static attr a_attr[] = {		/* Anchor attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-static attr img_attr[] = {			/* Anchor attributes */
+static attr img_attr[HTML_IMG_ATTRIBUTES] = {	/* Anchor attributes */
+	{ "ALIGN" },
+	{ "ALT" },
+	{ "ISMAP"},			/* Use HTTP SpaceJump instead */
 	{ "SRC"},
-	{ "ISMAP"},			/* @@@ Use HTTP SpaceJump instead */
 	{ 0 }	/* Terminate list */
 };	
 
@@ -119,8 +121,12 @@ static attr glossary_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-static attr nextid_attr[] = {
+static attr nextid_attr[HTML_NEXTID_ATTRIBUTES] = {
 	{ "N" }
+};
+
+static attr pre_attr[HTML_PRE_ATTRIBUTES] = {
+	{ "WIDTH" }
 };
 
 
@@ -138,6 +144,7 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "B"	, no_attr,	0,		SGML_MIXED },
     { "BLOCKQUOTE", no_attr,	0,		SGML_MIXED },
     { "BODY"	, no_attr,	0,		SGML_MIXED },
+    { "BR"	, no_attr,	0,		SGML_EMPTY },
     { "CITE"	, no_attr,	0,		SGML_MIXED },
     { "CODE"	, no_attr,	0,		SGML_MIXED },
     { "COMMENT",  no_attr,	0,		SGML_MIXED },
@@ -156,6 +163,7 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "H5"	, no_attr,	0,		SGML_MIXED },
     { "H6"	, no_attr,	0,		SGML_MIXED },
     { "H7"	, no_attr,	0,		SGML_MIXED },
+    { "HR"	, no_attr,	0,		SGML_EMPTY },
     { "HTML"	, no_attr,	0,		SGML_MIXED },
     { "I"	, no_attr,	0,		SGML_MIXED },
     { "IMG"     , img_attr,	2,		SGML_EMPTY },
@@ -224,6 +232,26 @@ PUBLIC void HTStartAnchor ARGS3(HTStructured *, obj,
     }
     
     (*obj->isa->start_element)(obj, HTML_A , present, value);
+
+}
+
+PUBLIC void HTNextID ARGS2(HTStructured *, obj,
+		int,	next_one)
+{
+    BOOL		present[HTML_NEXTID_ATTRIBUTES];
+    CONST char*		value[HTML_NEXTID_ATTRIBUTES];
+    char string[10];
+    
+    sprintf(string, "z%i", next_one);
+    {
+    	int i;
+    	for(i=0; i<HTML_NEXTID_ATTRIBUTES; i++)
+	    present[i] = NO;
+    }
+    present[HTML_NEXTID_N] = YES;
+    value[HTML_NEXTID_N] = string;
+    
+    (*obj->isa->start_element)(obj, HTML_NEXTID , present, value);
 
 }
 

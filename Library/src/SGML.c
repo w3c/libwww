@@ -265,7 +265,7 @@ PRIVATE void start_element(context)
 **		NULL		tag not found
 **		else		address of tag structure in dtd
 */
-PRIVATE HTTag * find_tag ARGS2(CONST SGML_dtd*, dtd, char *, string)
+PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, char *, string)
 {
     int high, low, i, diff;
     for(low=0, high=dtd->number_of_tags;
@@ -424,7 +424,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    }
 	    HTChunkTerminate(string) ;
 
-	    t = find_tag(dtd, string->data);
+	    t = SGMLFindTag(dtd, string->data);
 	    if (!t) {
 		if(TRACE) fprintf(stderr, "SGML: *** Unknown element %s\n",
 			string->data);
@@ -563,7 +563,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    if (!*string->data)	{	/* Empty end tag */
 	        t = context->element_stack->tag;
 	    } else {
-		t = find_tag(dtd, string->data);
+		t = SGMLFindTag(dtd, string->data);
 	    }
 	    if (!t) {
 		if(TRACE) fprintf(stderr,

@@ -8,9 +8,11 @@
 **		Should convert old XMP, LISTING and PLAINTEXT to PRE.
 **
 **	It is not obvious to me right now whether the HEAD should be generated
-**	from the incomming data or the anchor.  Currently itis from the former
+**	from the incomming data or the anchor.  Currently it is from the former
 **	which is cleanest.
 */
+
+#define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
 
 /* Implements:
 */
@@ -23,7 +25,7 @@
 #include "HTFormat.h"
 
 #define PUTC(c) (*me->targetClass.put_character)(me->target, c)
-#define PUTS(s) (*me->targetClass.put_string)(me->target, s)
+/* #define PUTS(s) (*me->targetClass.put_string)(me->target, s) */
 #define PUTB(s,l) (*me->targetClass.put_block)(me->target, s, l)
 
 /*		HTML Object
@@ -40,7 +42,27 @@ struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	HTStream * 			target;
 	HTStreamClass			targetClass;	/* COPY for speed */
+	
+	char				buffer[BUFFER_SIZE];
+	char *				write_pointer;
+	char *				line_break;
+	int				cleanness;
+	BOOL				preformatted;
 };
+
+
+/*	Flush Buffer
+**	------------
+*/
+PRIVATE void HTMLGen_flush ARGS1(HTStructured *, me)
+{
+    (*me->targetClass.put_block)(me->target, 
+    				me->buffer,
+				me->write_pointer - me->buffer);
+    me->write_pointer = me->buffer;
+    me->line_break = me->buffer;
+    me->cleanness = 0;
+}
 
 
 /*	Character handling
@@ -48,7 +70,40 @@ struct _HTStructured {
 */
 PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 {
-    PUTC(c);
+
+    *me->write_pointer++ = c;
+    
+    if (c=='\n') {
+        HTMLGen_flush(me);
+	return;
+    }
+    
+    if ((!me->preformatted  && c==' ')) {
+    	me->line_break = me->write_pointer;
+	me->cleanness = 1;
+    }
+    
+    /* Flush buffer out when full */
+    if (me->write_pointer == me->buffer + BUFFER_SIZE) {
+    	if (me->cleanness) {
+	    me->line_break[-1] = '\n';
+	    (*me->targetClass.put_block)(me->target,
+	    				me->buffer,
+					me->line_break - me->buffer);
+	    {  /* move next line in */
+	    	char * p,*q;
+		for(q=me->buffer, p=me->line_break; p < me->write_pointer; )
+			*q++ = *p++;
+	    }
+	    me->cleanness = 0;
+	} else {
+	    (*me->targetClass.put_block)(me->target,
+	    	me->buffer,
+		BUFFER_SIZE);
+	}
+	me->write_pointer = me->buffer;
+	me->line_break = me->buffer;
+    }
 }
 
 
@@ -58,17 +113,22 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 */
 PRIVATE void HTMLGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
-    PUTS(s);
+    CONST char * p;
+    for(p=s; *p; p++) HTMLGen_put_character(me, *p);
 }
 
 PRIVATE void HTMLGen_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 {
-    PUTB(s,l);
+    CONST char * p;
+    for(p=s; p<s+l; p++) HTMLGen_put_character(me, *p);
 }
 
 
 /*	Start Element
 **	-------------
+**
+**	Within the opening tag, there may be spaces
+**	and the line may be broken at these spaces.
 */
 PRIVATE void HTMLGen_start_element ARGS4(
 	HTStructured *, 	me,
@@ -77,22 +137,30 @@ PRIVATE void HTMLGen_start_element ARGS4(
 	CONST char **,		value)
 {
     int i;
-
+    
+    BOOL was_preformatted = me->preformatted;
     HTTag * tag = &HTML_dtd.tags[element_number];
-    PUTC('<');
-    PUTS(tag->name);
+
+    me->preformatted = NO;
+    HTMLGen_put_character(me, '<');
+    HTMLGen_put_string(me, tag->name);
     if (present) for (i=0; i< tag->number_of_attributes; i++) {
         if (present[i]) {
-	    PUTC(' ');
-	    PUTS(tag->attributes[i].name);
+	    HTMLGen_put_character(me, ' ');
+	    HTMLGen_put_string(me, tag->attributes[i].name);
 	    if (value[i]) {
-	 	PUTS("=\"");
-		PUTS(value[i]);
-		PUTC('"');
+	 	HTMLGen_put_string(me, "=\"");
+		HTMLGen_put_string(me, value[i]);
+		HTMLGen_put_character(me, '"');
 	    }
 	}
     }
-    PUTC('>');
+    HTMLGen_put_string(me, ">\n");
+    
+    /* Make very specific HTML assumption that PRE can't be
+       nested! */
+       
+    me->preformatted = (element_number == HTML_PRE)  ? YES : was_preformatted;
 }
 
 
@@ -110,9 +178,10 @@ PRIVATE void HTMLGen_start_element ARGS4(
 PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 			int , element_number)
 {
-    PUTS("</");
-    PUTS(HTML_dtd.tags[element_number].name);
-    PUTC('>');
+    HTMLGen_put_string(me, "</");
+    HTMLGen_put_string(me, HTML_dtd.tags[element_number].name);
+    HTMLGen_put_character(me, '>');
+    if (element_number == HTML_PRE) me->preformatted = NO;
 }
 
 
@@ -123,9 +192,9 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 
 PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 {
-    PUTC('&');
-    PUTS(HTML_dtd.entity_names[entity_number]);
-    PUTC(';');
+    HTMLGen_put_character(me, '&');
+    HTMLGen_put_string(me, HTML_dtd.entity_names[entity_number]);
+    HTMLGen_put_character(me, ';');
 }
 
 
@@ -133,13 +202,22 @@ PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 /*	Free an HTML object
 **	-------------------
 **
-**	Note that the SGML parsing context is freed, but the created object is not,
-**	as it takes on an existence of its own unless explicitly freed.
 */
 PRIVATE void HTMLGen_free ARGS1(HTStructured *, me)
 {
+    (*me->targetClass.put_character)(me->target, '\n');
+    HTMLGen_flush(me);
     (*me->targetClass.free)(me->target);	/* ripple through */
     free(me);
+}
+
+
+PRIVATE void PlainToHTML_free ARGS1(HTStructured *, me)
+{
+    HTMLGen_end_element(me, HTML_PRE);
+    HTMLGen_end_element(me, HTML_BODY);
+    HTMLGen_end_element(me, HTML_HTML);
+    HTMLGen_free(me);
 }
 
 
@@ -152,7 +230,7 @@ PRIVATE void HTMLGen_abort ARGS2(HTStructured *, me, HTError, e)
 
 PRIVATE void PlainToHTML_abort ARGS2(HTStructured *, me, HTError, e)
 {
-    HTMLGen_free(me);
+    PlainToHTML_free(me);
 }
 
 
@@ -183,7 +261,11 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
 
     me->target = output;
     me->targetClass = *me->target->isa; /* Copy pointers to routines for speed*/
-
+    
+    me->write_pointer = me->buffer;
+    me->line_break = 	me->buffer;
+    me->cleanness = 	0;
+    me->preformatted = 	NO;
     return me;
 }
 
@@ -217,16 +299,17 @@ PUBLIC HTStream* HTPlainToHTML ARGS3(
 	HTParentAnchor *,	anchor,	
 	HTStream *,		sink)
 {
-    HTStream* me = (HTStream*)malloc(sizeof(*me));
+    HTStructured* me = (HTStructured*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "PlainToHTML");
-    me->isa = (HTStreamClass*) &PlainToHTMLConversion;       
+    me->isa = (HTStructuredClass*) &PlainToHTMLConversion;       
 
     me->target = sink;
     me->targetClass = *me->target->isa;
     	/* Copy pointers to routines for speed*/
 	
-    PUTS("<BODY>\n<PRE>\n");
-    return me;
+    HTMLGen_put_string(me, "<HTML>\n<BODY>\n<PRE>\n");
+    me->preformatted = YES;
+    return (HTStream*) me;
 }
 
 

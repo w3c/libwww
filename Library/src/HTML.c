@@ -493,6 +493,20 @@ PRIVATE void HTML_start_element ARGS4(
    	HTAnchor_setIndex(me->node_anchor);
 	break;
 	
+    case HTML_BR: 
+	UPDATE_STYLE;
+	HText_appendCharacter(me->text, '\n');
+	me->in_word = NO;
+	break;
+	
+    case HTML_HR: 
+	UPDATE_STYLE;
+	HText_appendCharacter(me->text, '\n');
+	HText_appendCharacter(me->text, "___________________________________");
+	HText_appendCharacter(me->text, '\n');
+	me->in_word = NO;
+	break;
+	
     case HTML_P:
 	UPDATE_STYLE;
 	HText_appendParagraph(me->text);
@@ -659,7 +673,6 @@ PRIVATE void HTML_put_entity ARGS2(HTStructured *, me, int, entity_number)
 {
     HTML_put_string(me, ISO_Latin1[entity_number]);	/* @@ Other representations */
 }
-
 
 
 /*	Free an HTML object

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>The HTML DTD -- software interface in libwww</TITLE>
-<NEXTID N="z2">
+<NEXTID N="z3">
 </HEAD>
 <BODY>
 <H1>HTML DTD - Software Interface</H1>SGML purists should excuse the use
@@ -29,6 +29,7 @@ NAME="z0" HREF="HTML.c">HTML.c</A> .
 <PRE>typedef enum _HTMLElement {
 	HTML_A, 	HTML_ADDRESS,
 	HTML_B,		HTML_BLOCKQUOTE,	HTML_BODY,
+	HTML_BR,
 	HTML_CITE,	HTML_CODE,	HTML_COMMENT,
 	HTML_DD, 	HTML_DFN,	HTML_DIR,
  	HTML_DL, 	HTML_DLC,	HTML_DT,
@@ -36,6 +37,7 @@ NAME="z0" HREF="HTML.c">HTML.c</A> .
 	HTML_HEAD,
 	HTML_H1, 	HTML_H2, 	HTML_H3,
 	HTML_H4,	HTML_H5, 	HTML_H6, 	HTML_H7,
+	HTML_HR,
 	HTML_HTML,
 	HTML_I,		HTML_IMG,	HTML_ISINDEX,
  	HTML_KBD,	
@@ -47,13 +49,15 @@ NAME="z0" HREF="HTML.c">HTML.c</A> .
 	HTML_U,		HTML_UL,
 	HTML_VAR,	HTML_XMP } HTMLElement;
 
-#define HTML_ELEMENTS 45
+#define HTML_ELEMENTS 48
 
 </PRE>
 <H2>Attribute numbers</H2>
 <PRE>
 </PRE>Identifier is HTML_&lt;element>_&lt;attribute>.
-These must match the tables in HTML.c!
+These must match the tables in <A
+NAME="z2" HREF="HTMLDTD.c">HTMLDTD.c</A>
+!
 <PRE>#define HTML_A_HREF 		0
 #define HTML_A_NAME 		1
 #define HTML_A_REL		2
@@ -65,9 +69,18 @@ These must match the tables in HTML.c!
 
 #define DL_COMPACT 0
 
-#define HTML_IMG_SRC 		0
+#define HTML_IMG_ALIGN		0
 
-#define NEXTID_N 0
+#define HTML_IMG_ALT		1
+#define HTML_IMG_ISMAP		2	/* Obsolete but supported */
+#define HTML_IMG_SRC 		3
+#define HTML_IMG_ATTRIBUTES	4
+
+#define HTML_NEXTID_ATTRIBUTES  1
+#define HTML_NEXTID_N 0
+
+#define HTML_PRE_WIDTH		0
+#define HTML_PRE_ATTRIBUTES	1
 
 extern CONST SGML_dtd HTML_dtd;
 
@@ -89,6 +102,14 @@ is to be omitted.
 
 
 #endif /* HTMLDTD_H */
+
+
+</PRE>
+<H2>Specify next ID to be used</H2>This is anoter convenience routine,
+for specifying the next ID to be
+used by an editor in the series z1.
+z2,...
+<PRE>extern void HTNextID PARAMS((HTStructured * targetStream, int n));
 
 </PRE>End of module definition</BODY>
 </HTML>

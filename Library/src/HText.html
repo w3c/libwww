@@ -1,10 +1,14 @@
-<HEADER>
-<TITLE>Rich Hypertext object for libWWW</TITLE></HEADER>
+<HTML>
+<HEAD>
+<TITLE>Rich Hypertext object for libWWW</TITLE></HEAD>
 <BODY>
 <H1>Rich HyperText Object</H1>
 <PRE>
 </PRE>This is the C interface to the Objective-C
-(or whatever) HyperText class.
+(or whatever) Style-oriented HyperText
+class. It is used when a style-oriented
+text object is available or craeted
+in order to display hypertext.
 <PRE>#ifndef HTEXT_H
 #define HTEXT_H
 #include "HTAnchor.h"
@@ -21,6 +25,7 @@
 #define HText_endAppend			HTHTEnAp
 #define HText_setStyle			HTHTSeSt
 #define HText_appendCharacter		HTHTApCh
+#define HText_appendImage		HTHTApIm
 #define HText_appendText		HTHTApTe
 #define HText_appendParagraph		HTHTApPa
 #define HText_beginAnchor		HTHTBeAn
@@ -52,11 +57,10 @@ typedef CHyperText HText;
 extern HText * HTMainText;		/* Pointer to current main text */
 extern HTParentAnchor * HTMainAnchor;	/* Pointer to current text's anchor */
 
-/*			Creation and deletion
-**
-**	Create hypertext object					HText_new
-*/
- extern HText *	HText_new PARAMS((HTParentAnchor * anchor));
+</PRE>
+<H2>Creation and deletion</H2>
+<H3>HText_new: Create hypertext object</H3>
+<PRE> extern HText *	HText_new PARAMS((HTParentAnchor * anchor));
  extern HText *	HText_new2 PARAMS((HTParentAnchor * anchor,
  				HTStream * output_stream));
 
@@ -65,73 +69,103 @@ extern HTParentAnchor * HTMainAnchor;	/* Pointer to current text's anchor */
 extern void 	HText_free PARAMS((HText * me));
 
 
-/*			Object Building methods
-**			-----------------------
-**
-**	These are used by a parser to build the text in an object
-**	HText_beginAppend must be called, then any combination of other
-**	append calls, then HText_endAppend. This allows optimised
-**	handling using buffers and caches which are flushed at the end.
-*/
-extern void HText_beginAppend PARAMS((HText * text));
+</PRE>
+<H2>Object Building methods</H2>These are used by a parser to build
+the text in an object HText_beginAppend
+must be called, then any combination
+of other append calls, then HText_endAppend.
+This allows optimised handling using
+buffers and caches which are flushed
+at the end.
+<PRE>extern void HText_beginAppend PARAMS((HText * text));
 
 extern void HText_endAppend PARAMS((HText * text));
 
-/*	Set the style for future text
-*/
+</PRE>
+<H3>Set the style for future text</H3>
+<PRE>
 extern void HText_setStyle PARAMS((HText * text, HTStyle * style));
 
-/*	Add one character
-*/
-extern void HText_appendCharacter PARAMS((HText * text, char ch));
+</PRE>
+<H3>Add one character</H3>
+<PRE>extern void HText_appendCharacter PARAMS((HText * text, char ch));
 
-/*	Add a zero-terminated string
-*/
+</PRE>
+<H3>Add a zero-terminated string</H3>
+<PRE>
 extern void HText_appendText PARAMS((HText * text, CONST char * str));
 
-/*	New Paragraph
-*/
-extern void HText_appendParagraph PARAMS((HText * text));
+</PRE>
+<H3>New Paragraph</H3>and similar things
+<PRE>extern void HText_appendParagraph PARAMS((HText * text));
 
-/*	Start/end sensitive text
-**
-** The anchor object is created and passed to HText_beginAnchor.
-** The senstive text is added to the text object, and then HText_endAnchor
-** is called. Anchors may not be nested.
-*/
+extern void HText_appendLineBreak PARAMS((HText * text));
 
-extern void HText_beginAnchor PARAMS((HText * text, HTChildAnchor * anc));
+extern void HText_appendHorizontalRule PARAMS((HText * text));
+
+
+
+</PRE>
+<H3>Start/end sensitive text</H3>
+<PRE>
+</PRE>The anchor object is created and
+passed to HText_beginAnchor. The
+senstive text is added to the text
+object, and then HText_endAnchor
+is called. Anchors may not be nested.
+<PRE>extern void HText_beginAnchor PARAMS((HText * text, HTChildAnchor * anc));
 extern void HText_endAnchor PARAMS((HText * text));
 
 
-/* 	Dump diagnostics to stderr
-*/
+</PRE>
+<H3>Append an inline image</H3>The image is handled by the creation
+of an anchor whose destination is
+the image document to be included.
+The semantics is the intended inline
+display of the image.<P>
+An alternative implementation could
+be, for example, to begin an anchor,
+append the alternative text or "IMAGE",
+then end the anchor. This would simply
+generate some text linked to the
+image itself as a separate document.
+<PRE>extern void HText_appendImage PARAMS((
+	HText * 	text,
+	HTChildAnchor * anc,
+	CONST char * 	alternative_text,
+	int		alignment,
+	BOOL		isMap));
+
+</PRE>
+<H3>Dump diagnostics to stderr</H3>
+<PRE>
 extern void HText_dump PARAMS((HText * me));	
 
-/*	Return the anchor associated with this node
-*/
-extern HTParentAnchor * HText_nodeAnchor PARAMS((HText * me));
+</PRE>
+<H3>Return the anchor associated with
+this node</H3>
+<PRE>extern HTParentAnchor * HText_nodeAnchor PARAMS((HText * me));
 
 
-/*		Browsing functions
-**		------------------
-*/
+</PRE>
+<H2>Browsing functions</H2>
+<PRE>
 
-/*	Bring to front and highlight it
-*/
+</PRE>
+<H3>Bring to front and highlight it</H3>
+<PRE>
 
 extern BOOL HText_select PARAMS((HText * text)); 
 extern BOOL HText_selectAnchor PARAMS((HText * text, HTChildAnchor* anchor)); 
 
-/*		Editing functions
-**		-----------------
-**
-**	These are called from the application. There are many more functions
-**	not included here from the orginal text object. These functions
-**	NEED NOT BE IMPLEMENTED in a browser which cannot edit.
-*/
-
-/*	Style handling:
+</PRE>
+<H2>Editing functions</H2>These are called from the application.
+There are many more functions not
+included here from the orginal text
+object. These functions NEED NOT
+BE IMPLEMENTED in a browser which
+cannot edit.
+<PRE>/*	Style handling:
 */
 /*	Apply this style to the selection
 */
@@ -173,3 +207,4 @@ extern HTAnchor *	HText_linkSelTo PARAMS((HText * me, HTAnchor* anchor));
 
 #endif /* HTEXT_H */
 </PRE>end</BODY>
+</HTML>
