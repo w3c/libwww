@@ -1,0 +1,27 @@
+                                              W3C Sample Code Library TODO List
+   W3Clibwww
+   
+   This is the current work plan for new features and changed interfaces for
+   libwww. You can also have a look at release notes for the latest release and
+   the change history for older releases.
+   
+   We are moving to the Java platform pretty soon but some of the stuff that we
+   have in mind are
+   
+                         The current PEP Implementation does not contain all
+                         the features described in the latest draft
+                         
+  Byte range requests    This is a "poor man's:" multiplexing but with better
+                         semantic understanding of what is going on as it is
+                         handled in application space
+                         
+  MUX Implementation     The MUX Implementation is being worked on. We need to
+                         get some performance figures for how it performs.
+                         
+   
+   ___________________________________
+   
+                                                                 libwww@w3.org,
+                   @(#) $Id$
+                                                                               
+   

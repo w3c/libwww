@@ -1,0 +1,220 @@
+                                          W3C Sample Code Library Release Notes
+   W3ClibwwwRELEASE
+   
+   If you are reading the text version of this document then you can find a
+   HTML version in
+   
+Library/User/ReleaseNotes.html
+
+   The main features in this release are:
+   
+      Full HTTP/1.1 sample implementation
+      
+      Advanced use of HTTP/1.1 Pipelining and persistent connections
+      
+      Persistent cache manager
+      
+   The focus for version 5.1 was to implement a high-performance HTTP/1.1
+   client used as a testbed for the "Network Performance Effects of HTTP/1.1,
+   CSS1, and PNG" paper. Note that this code is sample code so please take it
+   as that and nothing more!
+   
+   NOTECheck out the latest WWW APIs and a complete list of public functions
+   
+   
+   ___________________________________
+   
+   These are the things that are upcoming in the next release
+   
+      Added support for writing out Link: header fields when uploading a
+      document. The Link: header field is use to represent link relationship
+      between documents
+      
+      Changed HTEscape to deal with silly MSDos file type escaping of the drive
+      name (using ":").
+      
+      Added support for automatic authentication (!) in the Command Line Tool
+      so that it is now possile to authenticate from scipts etc.
+      
+      Direct access to the CVS repository - checkout libwww and work with the
+      latest version!
+      
+      Made sure that we write more often as we check for expired timers in
+      HTWriter.c
+      
+      Added a "repetitive" flag to timers so that they can be created to say
+      call me every 30ms over and over again
+      
+      Added support for building libwww as a shared library on Unix (it is
+      already using DLLs on Windows). If you have any problems with shared
+      libraries on your platform then run configure with the --disable-shared
+      flag and you will only get the static version. If you are using libwww as
+      a shared library but do not use the libwww HTML parser then you MUST
+      include this dummy implementation of the HText interface somewhere in
+      your code. The reason for this is that the HText interface may be called
+      (it depends a bit on how your platform supports shared libraries) but an
+      implementation isn't provided.
+      
+      Added support for MySQL access in this simple SQL interface which takes
+      care of most os the common problems encountered when talking to an SQL
+      server. Currently I use this for handling logging in the webbot but many
+      other features like persistent caching, preferences, etc. can use the SQL
+      module as well. You can also see some cool examples of how to use the
+      robot's logs when querying MySQL through www-sql.
+      
+      Changed the name of "config.h" to "wwwconf.h" as the first name caused
+      conflicts with other packages
+      
+      Changed the name of "sysdep.h" to "wwwsys.h" for the same reason
+      
+      Fixed a bug in the generation of relative URIs which caused the creation
+      of incorrecte relative URIs. Libwww uses relative URIs in the HTTP
+      referer field and other places to save (often significant) amount of
+      bandwidth.
+      
+      Decreased mdefault max number of outstanding (pipelined) requests from
+      100 to 50
+      
+      Does now check whether we get a broken pipe when writing to the network
+      from expired timers. This was a bug that it didn't.
+      
+      Applied the following patches
+      
+      Fixed a problem in the HTWWWStr.c that caused a Y2K bug if strftime isn't
+      available on the system on where libwww is running
+      
+   This is a small add-on to 5.1k that was released two days ago. It has a few
+   fixes that was discovered while working with the latest Arena browser.
+   
+      Minor stuff that made PUT work nicer from a user perspective (when to ask
+      what questions, etc)
+      
+      Fixed a few things in the direct WAIS access module
+      
+      Added a simple "single user lock" on the persistent cache as it gets
+      confused if multiple users are using it.
+      
+      On Unic, the header files are now installed when running "make install".
+      The default location is "/usr/local/include/w3c-libwww".
+      
+      On Unix, aset of icons that can be used when browsing local file
+      directories are also installed - the default location is
+      "/usr/local/share/w3c-libwww"
+      
+      These are the patches that I have recieved for the current release. They
+      will be applied to this upcoming release.
+      
+      Fixed a few bugs that make Arena run on top of the latest version
+      
+      Made the distinction between Transfer-Encoding and
+      Content-Transfer-Encoding clear - they were somewhat mixed up before.
+      Libwww also now supports multiple transfer-codings as well as multiple
+      content-codings as required by HTTP/1.1.
+      
+      Changed the Stream Stack to not call the SaveLocally stream any more but
+      instead return an ErrorStream. The reason for this is that there are
+      several places in the stram stack building algorithm where we might want
+      to save the file to local file: when there is a content type that we
+      don't understand, a content-encoding, or a transfer-encoding (or a
+      combiunation of these) that we don't understand. Now we can make sure
+      that the SaveLocally stream is only called once
+      
+      Added support for "identity" transfer-coding and content-coding
+      
+      Added support for Allow header when doing PUT and POST
+      
+      Fixed a problem handling wrong HTTP responses from NCSA HTTPD dereived
+      servers (they don't include a version number when responding to an
+      HTTP/1.1 request)
+      
+      PUT now works much more reliable, and it also works on Windows (at least
+      NT, I haven't tested it on 95).
+      
+      Fixed a refresh problem in the Line Mode Browser which caused it to
+      sometimes render the screen twice.
+      
+      Changed the referer HTTP header field to use relative URIs instead of
+      absolute. This saves a lot of bytes on the wire
+      
+      Added support for logging the charset media type parameter
+      
+      Added support for logging when the ALT tag is missing from inlined images
+      
+      Extended the log class to support arbitrary log files
+      
+      Fixed some problems in the HTRelative function in HTParse.
+      
+      Added support for linking against a POSIX Regular Expression (regex)
+      library. This is used in the Robot, for example, to support regular
+      expressions on URIs to include and exclude from a traversal. The code has
+      been tested with the GNU regex library.
+      
+      Added more logging features to the webbot
+      
+      Fixed bug in ouputstream that caused buffer to be overwritten in some
+      cases when blocked on write
+      
+      Lots of bug fixes in the pipelining code and increased performance
+      
+      Better logging facilities with support for multiple log objects including
+      referer logging, Common Log File format logging and general logging
+      filters.
+      
+      Lots of bug fixes
+      
+      Fixed a problem in HTRules.c as described in this bug report
+      
+      Fixed coredump problem in HTGetTmpFileName() as described in this bug
+      report. This affects also the HTCache module which relies on temporary
+      file names
+      
+      Made the persistent cache more robust which in some cases will save a
+      segmentation fault
+      
+      Fixed problem in wwwsys.h as reported in this bug report
+      
+      Fixed problem where a request was not flushed if using blocking sockets
+      as reported by this bug report.
+      
+      A limitation in the current persistent cache is that it only works in
+      non-preemptive mode. Hence if using blocking sockets then the cache
+      should be disabled. This is now the default behavior in the libwww
+      profiles.
+      
+      Bug fixed that caused the maxsock variable used in select() not to be
+      decreased when deleting a socket in the default event manager
+      
+      Changed the connection management so that it complies with the Connection
+      Management draft by Jim Gettys and Alan Freier. The HTTP client now
+      closes idle connections after 60 seconds which is a heuristic period
+      chosen by Jeff Mogul in the paper "The Case for Persistent-Connection
+      HTTP". The number can be dynamically changed using the
+      HTHost_setPersistTimeout() and the HTHost_persistTimeout() methods. This
+      could be made more advanced so that we take into account any information
+      given in the "Keep-Alive" header but isn't for now.
+      
+      Fixed a problem when a HTTP/1.1 server sent a response including a
+      Connection: close header using the close of the TCP connection as a
+      delimiter. This problem was pointed out in this bug report
+      
+      Fixed security hole handling HTTP 305 proxy redirection codes. The proxy
+      location returned in the responses was enabled as a permanent proxy
+      without any notification. The operation now requires explicit
+      acknowledgement from the user
+      
+      Fixed potential (but small) security whole handling parsing a new rules
+      file. This operation now requires explicit acknowledgement from the user.
+      
+      Added support pipelining
+      
+      Support for zlib based decompression in content encoding
+      
+      A whole bunch of them...
+      
+   
+   ___________________________________
+   
+                                                                 libwww@w3.org,
+           @(#) $Id$
+                                                                               
+   

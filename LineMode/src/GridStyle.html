@@ -49,20 +49,18 @@ in this case without problems, as no other moule needs to know it.
 
 typedef double HTCoord;
 
-typedef int HTColor;/* Sorry about the US spelling! */
+typedef int HTColor;		/* Sorry about the US spelling! */
 
 typedef struct {
-    short	kind;/* only NX_LEFTTAB implemented*/
-    HTCoord	    position;/* x coordinate for stop */
+    short	kind;		/* only NX_LEFTTAB implemented*/
+    HTCoord	position;	/* x coordinate for stop */
 } HTTabStop;
 
-#define STYLE_NAME_LENGTH80/* @@@@@@@@@@@ */
+#define STYLE_NAME_LENGTH	80	/* @@@@@@@@@@@ */
 </PRE>
-
 <H2>
   The Style Structure
 </H2>
-
 <PRE>
 struct _HTStyle {
 
@@ -124,9 +122,9 @@ extern HTStyle * HTStyleModify (HTStyle *   style,
                                 int         element_number);
 
 /* Style functions: */
-extern HTStyle * HTStyleNew NOPARAMS;
-extern HTStyle * HTStyleNewNamed PARAMS ((const char * name));
-extern HTStyle * HTStyleFree PARAMS((HTStyle * self));
+extern HTStyle * HTStyleNew (void);
+extern HTStyle * HTStyleNewNamed (const char * name);
+extern HTStyle * HTStyleFree (HTStyle * self);
 
 /* Style Sheet */
 typedef struct _HTStyleSheet {
@@ -143,7 +141,7 @@ extern HTStyle * HTStyleMatching (HTStyleSheet *self, HTStyle * style);
 extern HTStyleSheet * HTStyleSheetAddStyle (HTStyleSheet * self, HTStyle * style);
 extern HTStyleSheet * HTStyleSheetRemoveStyle (HTStyleSheet * self, HTStyle * style);
 
-#define CLEAR_POINTER ((void *)-1)/* Pointer value means "clear me" */
+#define CLEAR_POINTER ((void *)-1)	/* Pointer value means "clear me" */
 
 #endif /* NOT IN GRIDSTYLE */
 #endif /* GRIDSTYLE_H */
@@ -154,4 +152,3 @@ extern HTStyleSheet * HTStyleSheetRemoveStyle (HTStyleSheet * self, HTStyle * st
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
-<HTML>

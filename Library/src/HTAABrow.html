@@ -1,54 +1,51 @@
+<HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww Client Side Authentication Challenges and Credentials</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
+  <TITLE>W3C Sample Code Library libwww Client Side Authentication Challenges
+  and Credentials</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Client Side Authentication Challenges and Credentials</H1>
-
+<H1>
+  Client Side Authentication Challenges and Credentials
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-Contains code for parsing challenges and creating credentials for
-basic and digest authentication schemes. See also the HTAAUtil module
-for how to handle other authentication schemes. You don't have to use
-this code at all if you better like to use your own functions for
-parsing challenges and generating credentials. All functions are
-implemented as callback functions to the <A
-HREF="HTAAUtil.html">Authentication Manager</A><P>
-
-This module is implemented by <A HREF="HTAABrow.c">HTAABrow.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/Library/"> W3C
-Sample Code Library</A>.
-
+<P>
+Contains code for parsing challenges and creating credentials for basic and
+digest authentication schemes. See also the HTAAUtil module for how to handle
+other authentication schemes. You don't have to use this code at all if you
+better like to use your own functions for parsing challenges and generating
+credentials. All functions are implemented as callback functions to the
+<A HREF="HTAAUtil.html">Authentication Manager</A>
+<P>
+This module is implemented by <A HREF="HTAABrow.c">HTAABrow.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
+Library</A>.
 <PRE>
 #ifndef HTAABROW_H
 #define HTAABROW_H
 #include "HTUTree.h"
 #include "HTNet.h"
 </PRE>
-
-<H2>Basic Authentication</H2>
-
+<H2>
+  Basic Authentication
+</H2>
+<P>
 This is the set of callback functions for handling basic authentication.
-
 <PRE>
 extern HTNetBefore	HTBasic_generate;
 extern HTNetAfter 	HTBasic_parse;
 extern HTUTree_gc	HTBasic_delete;
 </PRE>
-
 <PRE>
 #endif	/* NOT HTAABROW_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>
