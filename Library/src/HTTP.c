@@ -195,6 +195,7 @@ PRIVATE BOOL HTTPInformation (HTStream * me)
 			   "HTTPInformation");
 	http->next = HTTP_OK;
 	http->result = HT_UPGRADE;
+	return YES;
 	break;
 
     default:
@@ -692,15 +693,26 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	*/
 	if (me->status/100 == 1) {
 	    if (HTTPInformation(me) == YES) {
-		me->buflen = 0;
-		me->state = EOL_BEGIN;
-		if (me->info_target) (*me->info_target->isa->_free)(me->info_target);
-		me->info_target = HTStreamStack(WWW_MIME_CONT,
-						HTRequest_debugFormat(request),
-						HTRequest_debugStream(request),
-						request, NO);
-		if (length > 0) HTHost_setConsumed(host, length);
-		return HT_OK;
+		if (me->status==100) {
+		    me->buflen = 0;
+		    me->state = EOL_BEGIN;
+		    if (me->info_target) (*me->info_target->isa->_free)(me->info_target);
+		    me->info_target = HTStreamStack(WWW_MIME_CONT,
+						    HTRequest_debugFormat(request),
+						    HTRequest_debugStream(request),
+						    request, NO);
+		    if (length > 0) HTHost_setConsumed(host, length);
+		    return HT_OK;
+		} else if (me->status==101) {
+		    if (me->info_target) (*me->info_target->isa->_free)(me->info_target);
+		    me->target = HTStreamStack(WWW_MIME_UPGRADE,
+					       HTRequest_outputFormat(request),
+					       HTRequest_outputStream(request),
+					       request, NO);
+		    if (length > 0) HTHost_setConsumed(host, length);
+		    me->transparent = YES;
+		    return HT_OK;
+		}
 	    }
 	}
 

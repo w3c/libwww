@@ -40,7 +40,8 @@ typedef enum _HTMIMEMode {
     HT_MIME_HEADER	= 0x1,
     HT_MIME_FOOTER	= 0x2,
     HT_MIME_PARTIAL	= 0x4,
-    HT_MIME_CONT	= 0x8
+    HT_MIME_CONT	= 0x8,
+    HT_MIME_UPGRADE	= 0x10
 } HTMIMEMode;
 
 struct _HTStream {
@@ -105,6 +106,16 @@ PRIVATE int pumpData (HTStream * me)
     */
     if (me->mode & HT_MIME_CONT)
 	return HT_CONTINUE;
+
+    /*
+    **  If we get a 101 Protocol Switch then we are done here
+    **  but not done with the response (which we don't know
+    **  how to go about parsing
+    */
+    if (me->mode & HT_MIME_UPGRADE) {
+	me->hasBody = YES;
+	return HT_OK;
+    }
 
     /*
     **  If there is no content-length, no transfer encoding and no
@@ -560,6 +571,18 @@ PUBLIC HTStream * HTMIMEContinue (HTRequest *	request,
     HTStream * me = HTMIMEConvert(request, param, input_format,
 				  output_format, output_stream);
     me->mode |= HT_MIME_CONT;
+    return me;
+}
+
+PUBLIC HTStream * HTMIMEUpgrade  (HTRequest *	request,
+				  void *	param,
+				  HTFormat	input_format,
+				  HTFormat	output_format,
+				  HTStream *	output_stream)
+{
+    HTStream * me = HTMIMEConvert(request, param, input_format,
+				  output_format, output_stream);
+    me->mode |= HT_MIME_UPGRADE;
     return me;
 }
 

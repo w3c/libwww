@@ -54,6 +54,7 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"message/x-rfc822-foot",	"*/*",		HTMIMEFooter,	1.0, 0.0, 0.0);
     HTConversion_add(c,"message/x-rfc822-head",	"*/*",		HTMIMEHeader,	1.0, 0.0, 0.0);
     HTConversion_add(c,"message/x-rfc822-cont",	"*/*",		HTMIMEContinue,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"message/x-rfc822-upgrade","*/*",	HTMIMEUpgrade,	1.0, 0.0, 0.0);
     HTConversion_add(c,"message/x-rfc822-partial","*/*",	HTMIMEPartial,	1.0, 0.0, 0.0);
     HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
