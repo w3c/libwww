@@ -111,7 +111,7 @@ PRIVATE int HTErrorStream_flush (HTStream * me)
 
 PRIVATE int HTErrorStream_free (HTStream * me)
 {
-    return HT_ERROR;
+    return HT_OK;
 }
 
 PRIVATE int HTErrorStream_abort (HTStream * me, HTList * e)
