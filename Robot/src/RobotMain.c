@@ -50,6 +50,7 @@ int main (int argc, char ** argv)
     BOOL	cache = NO;			     /* Use persistent cache */
     BOOL	flush = NO;		       /* flush the persistent cache */
     char *	cache_root = NULL;
+    int		cache_size = DEFAULT_CACHE_SIZE;
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
     Robot *	mr = NULL;
@@ -219,6 +220,12 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-nopipe")) {
 		HTTP_setConnectionMode(HTTP_11_NO_PIPELINING);
 
+	    /* Stream write flush delay in ms */
+	    } else if (!strcmp(argv[arg], "-delay")) {
+		int delay = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    atoi(argv[++arg]) : DEFAULT_DELAY;
+		HTHost_setDefaultWriteDelay(delay);
+
 	    /* Start the persistent cache */
 	    } else if (!strcmp(argv[arg], "-cache")) {
 		cache = YES;
@@ -228,12 +235,6 @@ int main (int argc, char ** argv)
 		cache_root = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : NULL;
 
-	    /* Stream write flush delay in ms */
-	    } else if (!strcmp(argv[arg], "-delay")) {
-		int delay = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    atoi(argv[++arg]) : DEFAULT_DELAY;
-		HTHost_setDefaultWriteDelay(delay);
-
 	    /* Persistent cache flush */
 	    } else if (!strcmp(argv[arg], "-flush")) {
 		flush = YES;
@@ -241,6 +242,10 @@ int main (int argc, char ** argv)
 	    /* Do a cache validation */
 	    } else if (!strcmp(argv[arg], "-validate")) {
 		mr->flags |= MR_VALIDATE;
+
+	    } else if (!strcmp(argv[arg], "-cache_size")) {
+		cache_size = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    atoi(argv[++arg]) : DEFAULT_CACHE_SIZE;
 
 	    /* Do an end-to-end cache-validation */
 	    } else if (!strcmp(argv[arg], "-endvalidate")) {
@@ -437,7 +442,7 @@ int main (int argc, char ** argv)
 
     /* Should we use persistent cache? */
     if (cache) {
-	HTCacheInit(cache_root, 20);
+	HTCacheInit(cache_root, cache_size);
 
 	/* Should we start by flushing? */
 	if (flush) HTCache_flushAll();
