@@ -450,6 +450,7 @@ to normal C storage types.
 <H2>SCO ODT unix version</H2>
 <PRE>
 #ifdef sco
+#include &lt;unistd.h>
 #include &lt;sys/fcntl.h>
 #define USE_DIRENT
 #endif
@@ -466,8 +467,7 @@ extern int errno;
 <H2>Solaris</H2>
 (And Linux, thanks to Rainer Klute)
 <PRE>
-/* Added `sco' in here as it needs unistd.h as well, May 11 94 Henrik */
-#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux) || defined(sco)
+#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
 #include &lt;unistd.h>
 #endif
 </PRE>
@@ -475,26 +475,29 @@ extern int errno;
 <PRE>#ifdef __osf__
 #define USE_DIRENT
 #endif /* OSF1 AXP */
-
-
 </PRE>
-<H2>Regular BSD unix versions</H2>These are a default unix where not
-already defined specifically.
-<PRE>#ifndef INCLUDES_DONE
+
+<H2>Regular BSD unix versions</H2>
+
+These are a default unix where not already defined specifically.
+
+<PRE>
+#ifndef INCLUDES_DONE
 #include &lt;sys/types.h>
 /* #include &lt;streams/streams.h>			not ultrix */
 #include &lt;string.h>
 
-#include &lt;errno.h>	    /* independent */
+#include &lt;errno.h>		    /* independent */
 #include &lt;sys/time.h>	    /* independent */
 #include &lt;sys/stat.h>
 #include &lt;sys/param.h>
 #include &lt;sys/file.h>	    /* For open() etc */
 #define INCLUDES_DONE
 #endif	/* Normal includes */
+</PRE>
 
-/*			Directory reading stuff - BSD or SYS V
-*/
+<H3>Directory reading stuff - BSD or SYS V</H3>
+<PRE>
 #ifdef unix                    /* if this is to compile on a UNIX machine */
 #define GOT_READ_DIR 1    /* if directory reading functions are available */
 #ifdef USE_DIRENT             /* sys v version */
@@ -511,8 +514,32 @@ already defined specifically.
 #define FNDELAY		O_NDELAY
 #endif
 #endif
-
 </PRE>
+
+<H3>Rough estimate of max path length</H3>
+<PRE>
+#ifdef MAXPATHLEN
+#define HT_MAX_PATH MAXPATHLEN
+#else
+#ifdef PATH_MAX
+#define HT_MAX_PATH PATH_MAX
+#else
+#define HT_MAX_PATH 1024	 	      	/* Any better ideas? */
+#endif
+#endif
+</PRE>
+
+<H3>Definition of NGROUPS</H3>
+<PRE>
+#ifndef NGROUPS
+#ifdef NGROUPS_MAX
+#define NGROUPS NGROUPS_MAX
+#else
+#define NGROUPS 20				/* Any better ideas? */
+#endif
+#endif
+</PRE>
+
 <H2>NeXT</H2>
 <PRE>
 #ifdef NeXT
