@@ -4,8 +4,10 @@
 **
 ** AUTHORS:
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
+**	MD	Mark Donszelmann    duns@vxdeop.cern.ch
 **
 ** HISTORY:
+**	 7 Nov 93 	MD 	free for crypt taken out (static data returned) 
 **
 **
 ** BUGS:

@@ -323,7 +323,7 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     
     HTUnEscape(path);	/* Interpret % signs */
     
-    if (0==strcmp(access, "file")) {
+    if (0==strcmp(access, "file")) { /* local file */
         free(access);	
 	if ((0==strcasecomp(host, HTHostName())) ||
 	    (0==strcasecomp(host, "localhost")) || !*host) {

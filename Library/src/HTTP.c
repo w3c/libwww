@@ -144,7 +144,7 @@ retry:
 	hostname = HTParse((gate ? gate : arg), "", PARSE_HOST);
 	if (hostname &&
 	    NULL != (colon = strchr(hostname, ':'))) {
-	    *(colon++) = NULL;	/* Chop off port number */
+	    *(colon++) = '\0';	/* Chop off port number */
 	    portnumber = atoi(colon);
 	}
 	else portnumber = 80;

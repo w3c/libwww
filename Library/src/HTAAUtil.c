@@ -33,8 +33,10 @@
 **
 ** AUTHORS:
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
+**	MD 	Mark Donszelmann    duns@vxdeop.cern.ch
 **
 ** HISTORY:
+**	 8 Nov 93  MD	(VMS only) Added case insensitive comparison in HTAA_templateCaseMatch
 **
 **
 ** BUGS:
@@ -224,7 +226,7 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, template,
 
     for( ; *p  &&  *q  &&  *p == *q; p++, q++)	/* Find first mismatch */
 	; /* do nothing else */
-    
+
     if (!*p && !*q)	return YES;	/* Equally long equal strings */
     else if ('*' == *p) {		/* Wildcard */
 	p++;				/* Skip wildcard character */
@@ -236,7 +238,53 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, template,
 	}
     }	/* if wildcard */
     else		return NO;	/* Length or character mismatch */
-}
+}    
+
+
+/* PUBLIC						HTAA_templateCaseMatch()
+**		STRING COMPARISON FUNCTION FOR FILE NAMES
+**		   WITH ONE WILDCARD * IN THE TEMPLATE (Case Insensitive)
+** NOTE:
+**	This is essentially the same code as in HTAA_templateMatch, but
+**	it compares case insensitive (for VMS). Reason for this routine
+**	is that HTAA_templateMatch gets called from several places, also 
+**	there where a case sensitive match is needed, so one cannot just
+**	change the HTAA_templateMatch routine for VMS.
+**
+** ON ENTRY:
+**	template	is a template string to match the file name
+**			agaist, may contain a single wildcard
+**			character * which matches zero or more
+**			arbitrary characters.
+**	filename	is the filename (or pathname) to be matched
+**			agaist the template.
+**
+** ON EXIT:
+**	returns		YES, if filename matches the template.
+**			NO, otherwise.
+*/
+PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, template, 
+			        	 CONST char *, filename)
+{
+    CONST char *p = template;
+    CONST char *q = filename;
+    int m;
+
+    for( ; *p  &&  *q  &&  toupper(*p) == toupper(*q); p++, q++) /* Find first mismatch */
+	; /* do nothing else */
+
+    if (!*p && !*q)	return YES;	/* Equally long equal strings */
+    else if ('*' == *p) {		/* Wildcard */
+	p++;				/* Skip wildcard character */
+	m = strlen(q) - strlen(p);	/* Amount to match to wildcard */
+	if (m < 0) return NO;		/* No match, filename too short */
+	else {			/* Skip the matched characters and compare */
+	    if (strcasecomp(p, q+m))	return NO;	/* Tail mismatch */
+	    else                return YES;	/* Tail match */
+	}
+    }	/* if wildcard */
+    else		return NO;	/* Length or character mismatch */
+}    
 
 
 /* PUBLIC					HTAA_makeProtectionTemplate()

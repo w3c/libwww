@@ -1,5 +1,8 @@
 /*		Our Static DTD for HTML
 **		-----------------------
+**
+**	 6 Nov 93	MD	Increased size of img_attr array to make space
+**  				for terminator.
 */
 
 /* Implements:
@@ -103,7 +106,7 @@ static attr a_attr[] = {		/* Anchor attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-static attr img_attr[HTML_IMG_ATTRIBUTES] = {	/* Anchor attributes */
+static attr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* Anchor attributes */
 	{ "ALIGN" },
 	{ "ALT" },
 	{ "ISMAP"},			/* Use HTTP SpaceJump instead */

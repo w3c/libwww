@@ -15,8 +15,13 @@
 */
 
 #include <string.h>
+#ifdef VMS
+#include "../vms/pwd.h"
+#include "../vms/grp.h" 
+#else
 #include <pwd.h>	/* Unix password file routine: getpwnam()	*/
 #include <grp.h>	/* Unix group file routine: getgrnam()		*/
+#endif /* VMS */
 
 #include "HTUtils.h"
 #include "HTAAUtil.h"
