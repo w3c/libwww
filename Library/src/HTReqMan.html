@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -159,6 +159,8 @@ this request to the application using this anchor.
 
 <PRE>
     HTRequest *		source;		     /* Source for request or itself */
+    HTParentAnchor *	source_anchor;		  /* Source anchor or itself */
+
     HTRequest *		mainDestination;	     /* For the typical case */
     HTList *		destinations;		 /* List of related requests */
     int			destRequests;	   /* Number of destination requests */

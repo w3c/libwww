@@ -11,7 +11,8 @@
 #include <assert.h>
 
 #include "WWWLib.h"
-#include "WWWApp.h"
+#include "WWWCache.h"
+#include "WWWRules.h"
 #include "HTBrowse.h"
 #include "HTFont.h"
 #include "GridStyle.h"

@@ -813,6 +813,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
         }
 
     } while (!HTEndLoop);
+    return HT_OK;
 }
 
 /*

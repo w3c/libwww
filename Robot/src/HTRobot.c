@@ -15,6 +15,11 @@
 
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WWWApp.h"				        /* Application stuff */
+#include "WWWRules.h"
+#include "WWWApp.h"
+
+#include "HTInit.c"
+#include "HTBInit.c"
 #include "HText.h"
 
 #include "HTRobot.h"			     		 /* Implemented here */

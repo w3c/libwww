@@ -12,23 +12,19 @@
 */
 
 #include "WWWLib.h"			      /* Global Library Include file */
+#include "WWWApp.h"
+#include "WWWMIME.h"				    /* MIME parser/generator */
+#include "WWWHTML.h"				    /* HTML parser/generator */
 #include "WWWNews.h"				       /* News access module */
 #include "WWWHTTP.h"				       /* HTTP access module */
-#include "HTBInit.h"
-#include "HTFTP.h"
-#include "HTFile.h"
-#include "HTGopher.h"
+#include "WWWFTP.h"
+#include "WWWFile.h"
+#include "WWWGophe.h"
+#include "WWWGuess.h"				     /* Content type guesser */
+#include "WWWRules.h"
 
-#include "WWWMIME.h"				    /* MIME parser/generator */
 #include "HTPlain.h"
-#include "HTMLGen.h"
-#include "HTGuess.h"
-
-#include "HTHome.h"
-#include "HTDialog.h"
-#include "HTLog.h"
-#include "HTRules.h"
-#include "HTProxy.h"
+#include "HTBInit.h"
 
 #include "HTLine.h"			     		 /* Implemented here */
 

@@ -54,7 +54,11 @@
 
 #include "WWWLib.h"
 #include "WWWMIME.h"
+#include "WWWRules.h"
+#include "WWWCache.h"
 #include "WWWApp.h"
+#include "HTInit.c"
+#include "HTBInit.c"
 
 #include "GridText.h"				     /* Hypertext definition */
 #include "HTBrowse.h"			     /* Things exported, short names */
@@ -514,6 +518,62 @@ PRIVATE void MakeCommandLine (LineMode * lm, BOOL is_index)
 }
 
 /*
+**  Test function for posting data from memory
+**  Returns the result of the load function.
+*/
+PRIVATE int EditAnchor (LineMode * lm, HTRequest * req, HTMethod method)
+{
+    char * base = HTAnchor_address((HTAnchor*) HTMainAnchor);
+    char * scr_url = "file:/tmp/testanchor";
+    char * dest_url = NULL;
+    int status = HT_INTERNAL;
+    if ((dest_url = AskUser(req, "Destination:", NULL)) != NULL) {
+	BOOL doit = YES;
+	char * fd = HTParse(HTStrip(dest_url), base, PARSE_ALL);
+	char * fs = HTParse(HTStrip(scr_url), base, PARSE_ALL);
+	HTParentAnchor * dest = (HTParentAnchor *) HTAnchor_findAddress(fd);
+	HTParentAnchor * src = (HTParentAnchor *) HTAnchor_findAddress(fs);
+	HTLink * link = HTAnchor_findLink((HTAnchor *) src, (HTAnchor *) dest);
+	
+	/* Now link the two anchors together if not already done */
+	if (link) {
+	    char *msg = (char *) malloc(128);
+	    if (!msg) outofmem(__FILE__, "Upload");
+	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
+		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
+	    doit = confirm(req, msg);
+	    free(msg);
+	} else {
+	    HTAnchor_removeAllLinks((HTAnchor *) src);
+	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+	}
+	if (doit) {
+	    char * data = NULL;
+	    HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
+	    Context * new_context = (Context *) HTRequest_context(new_request);
+	    new_context->source = src;
+
+	    StrAllocCopy(data, "THIS IS A TEST ON POSTING FROM MEMORY");
+	    HTAnchor_setDocument(src, data);
+
+	    /* HERE WE SHOULD FILL IN THE METAINFORMATION WE KNOW IN THE
+	       SOURCE ANCHOR. IF WE DON'T KNOW THE CONTENT LENGTH THEN THIS
+	       IS FINE AS WE CAN SIMPLY ADD THE CONTENT LENGTH COUNTER STREAM
+	       TO THE TARGET WE GET IN OUR POST CALLBACK FUNCTION */
+
+	    status = HTUploadAnchor((HTAnchor *) src, new_request,
+				    HTUpload_callback);
+	}
+	free(fd);
+	free(fs);
+    }
+    FREE(scr_url);
+    FREE(dest_url);
+    FREE(base);
+    return status;
+}
+
+/*
 **  Upload a document either from local file or from a HTTP server
 **  to a HTTP server. The method can be either PUT or POST.
 **  Returns the result of the load function.
@@ -744,9 +804,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case 'E':
 	if (CHECK_INPUT("EDIT", token)) {
-
-	    /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-	    
+	    status = EditAnchor(lm, req, METHOD_PUT);
 	} else if (CHECK_INPUT("EXIT", token)) {	    /* Quit program? */
 	    status = NO;
 	} else

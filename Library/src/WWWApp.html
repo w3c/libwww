@@ -47,7 +47,18 @@ default WWW addresses.
 #include "<A HREF="HTHome.html">HTHome.h</A>"
 </PRE>
 
-<H2>When Terminating a Request</H2>
+<H2>User Dialogs and Messages</H2>
+
+You can register a set of callback functions to handle user prompting,
+error messages, confimations etc. Here we give a set of functions that
+can be used on almost anu thinkable platform. If you want to provide
+your own platform dependent implementation then fine :-)
+
+<PRE>
+#include "<A HREF="HTDialog.html">HTDialog.h</A>"
+</PRE>
+
+<H2>After Terminating a Request</H2>
 
 When a request is terminated, the application often has to do some
 action as a result of the request (and of the result of the

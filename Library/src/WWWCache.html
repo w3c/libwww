@@ -1,0 +1,80 @@
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference PERSISTENT CACHE MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference PERSISTENT CACHE MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+<H3>Cache Manager</H3>
+
+Caching is a required part of any efficient Internet access
+applications as it saves bandwidth and improves access performance
+significantly in almost all types of accesses.  The Library supports
+two different types of cache: The memory cache and the file cache. The
+two types differ in several ways which reflects their two main
+purposes: The memory cache is for short term storage of graphic
+objects whereas the file cache is for intermediate term storage of
+data objects. Often it is desirable to have both a memory and a file
+version of a cached document, so the two types do not exclude each
+other. <P>
+
+The cache contains details of temporary disk files which contain the
+contents of remote documents.  There is also a <A
+HREF="HTAnchor.html#z1">list of cache items for each URL</A> in its
+anchor object. <P>
+
+There are various ways of handling Expires header when met in a
+history list. Either it can be ignored all together, the user can be
+notified with a warning, or the document can be reloaded
+automatically. This flag decides what action to be taken. The default
+action is HT_EXPIRES_IGNORE. In HT_EXPIRES_NOTIFY mode you can specify
+a message to tell the user (NULL is valid in which case my own message
+pops up - watch out it might be in Danish ;-)) <P>
+
+The Library has two notions of a local cache: a file cache and a
+memory cache. The memory cache is handled by the client and the file
+cache is handled by the Library. Often the format of a object cached
+in memory is in the form of a hypertext object ready to be displayed
+(that is, it's already parsed).
+
+<PRE>
+#ifndef WWWCACHE_H
+#define WWWCACHE_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTCache.h"
+</PRE>
+
+End of CACHE module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWCACHE API definition
+
+</BODY>
+</HTML>

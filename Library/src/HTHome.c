@@ -27,6 +27,8 @@
 /* Library include files */
 #include "WWWLib.h"
 #include "WWWApp.h"
+#include "WWWCache.h"
+#include "WWWRules.h"
 #include "HTReqMan.h"
 #include "HTHome.h"					 /* Implemented here */
 

@@ -46,8 +46,8 @@ struct _HTStream {
 PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 {
     char linebuf[256];			/* @@@ */
-    HTParentAnchor *entity = (request->source && request->source->anchor) ?
-	request->source->anchor : request->anchor;
+    HTParentAnchor *entity = request->source_anchor ?
+	request->source_anchor : request->anchor;
 
     if (request->EntityMask & HT_E_ALLOW) {
 	/* @@@@@@@@@@ */

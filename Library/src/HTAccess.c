@@ -43,6 +43,12 @@ PRIVATE char * HTLibVersion = VC;
 
 PRIVATE BOOL   HTSecure = NO;		 /* Can we access local file system? */
 
+#define PUTBLOCK(b, l)	(*target->isa->put_block)(target, b, l)
+
+struct _HTStream {
+    HTStreamClass * isa;
+};
+
 /* --------------------------------------------------------------------------*/
 /*	           Initialization and Termination of the Library	     */
 /* --------------------------------------------------------------------------*/
@@ -505,31 +511,80 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 
 /*	Upload an Anchor
 **	----------------
-**	Send the contents (in hyperdoc) of the source anchor using either PUT
-**	or POST to the remote destination using HTTP. The caller can decide the
-**	exact method used and which HTTP header fields to transmit by setting
-**	the user fields in the request structure.
+**	This function can be used to send data along with a request to a remote
+**	server. It can for example be used to POST form data to a remote HTTP
+**	server - or it can be used to post a newsletter to a NNTP server. In
+**	either case, you pass a callback function which the request calls when
+**	the remote destination is ready to accept data. In this callback
+**	you get the current request object and a stream into where you can 
+**	write data. It is very important that you return the value returned
+**	by this stream to the Library so that it knows what to do next. The
+**	reason is that the outgoing stream might block or an error may
+**	occur and in that case the Library must know about it. The source
+**	anchor represents the data object in memory and it points to 
+**	the destination anchor by using the POSTWeb method. The source anchor
+**	contains metainformation about the data object in memory and the 
+**	destination anchor represents the reponse from the remote server.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
-			    HTParentAnchor *	dest_anchor,
-			    HTRequest *		dest_req)
+PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
+			    HTRequest * 	request,
+			    HTPostCallback *	callback)
 {
-    HTMethod allowed = HTAnchor_methods(dest_anchor);
-    if (!src_anchor || !dest_anchor || !dest_req) {
-	if (WWWTRACE) TTYPrint(TDEST, "Upload...... BAD ARGUMENT\n");
+    HTLink * link = HTAnchor_mainLink((HTAnchor *) source_anchor);
+    HTAnchor * dest_anchor = HTLink_destination(link);
+    HTMethod method = HTLink_method(link);
+    if (!link || method==METHOD_INVALID || !callback) {
+	if (WWWTRACE)
+	    TTYPrint(TDEST, "Upload...... No destination found or unspecified method\n");
 	return NO;
     }
-    if (!(allowed & dest_req->method)) {
-	BOOL confirm = NO;
-	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
-	if (cbf) confirm=(*cbf)(dest_req, HT_A_CONFIRM, HT_MSG_METHOD, NULL,
-				(void *) HTMethod_name(dest_req->method),NULL);
-	if (!confirm) return NO;
-    }
-
-    /* @@@ NOT FINISHED @@@ */
-
-    return NO;
+    request->GenMask |= HT_G_DATE;			 /* Send date header */
+    request->reload = HT_CACHE_REFRESH;
+    request->method = method;
+    request->source_anchor = HTAnchor_parent(source_anchor);
+    request->PostCallback = callback;
+    return HTLoadAnchor(dest_anchor, request);
 }
 
+/*	POST Callback Handler
+**	---------------------
+**	If you do not want to handle the stream interface on your own, you
+**	can use this function which writes the source anchor hyperdoc to the
+**	target stream for the anchor upload and also handles the return value
+**	from the stream. If you don't want to write the source anchor hyperdoc
+**	then you can register your own callback function that can get the data
+**	you want.
+*/
+PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
+{
+    if (WWWTRACE) TTYPrint(TDEST, "Uploading... from callback function\n");
+    if (!request || !request->source_anchor || !target) return HT_ERROR;
+    {
+	int status;
+	HTParentAnchor * source = request->source_anchor;
+	char * document = (char *) HTAnchor_document(request->source_anchor);
+	int len = HTAnchor_length(source);
+	if (len < 0) {
+	    len = strlen(document);
+	    HTAnchor_setLength(source, len);
+	}
+	status = (*target->isa->put_block)(target, document, len);
+	if (status == HT_OK)
+	    return (*target->isa->flush)(target);
+	if (status == HT_WOULD_BLOCK) {
+	    if (PROT_TRACE)TTYPrint(TDEST,"POST Anchor. Target WOULD BLOCK\n");
+	    return HT_WOULD_BLOCK;
+	} else if (status == HT_PAUSE) {
+	    if (PROT_TRACE) TTYPrint(TDEST,"POST Anchor. Target PAUSED\n");
+	    return HT_PAUSE;
+	} else if (status > 0) {	      /* Stream specific return code */
+	    if (PROT_TRACE)
+		TTYPrint(TDEST, "POST Anchor. Target returns %d\n", status);
+	    return status;
+	} else {				     /* We have a real error */
+	    if (PROT_TRACE) TTYPrint(TDEST, "POST Anchor. Target ERROR\n");
+	    return status;
+	}
+    }
+}
