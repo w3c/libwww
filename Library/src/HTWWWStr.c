@@ -663,9 +663,9 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 	    HTVMS_checkDecnet(path);
 #endif
 #ifdef WWW_MSWINDOWS
-	    /* an absolute pathname with logical drive */
+	    /* An absolute pathname with logical drive */
             if (*path == '/' && path[2] == ':') {
-		char *orig=path, *dest=path+3;
+		char *orig=path, *dest=path+1;
 		while((*orig++ = *dest++));
 
 	    /* A network host */
@@ -674,6 +674,15 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 		StrAllocMCopy(&newpath, "//", host, path, NULL);
 		HT_FREE(path);
 		path = newpath;
+	    }
+
+	    /* Convert '/' to '\' */
+	    {
+		char *p = path;
+		while (*p) {
+		    if (*p=='/') *p='\\';
+		    p++;
+		}
 	    }
 #endif
 	    
