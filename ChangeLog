@@ -1,3 +1,10 @@
+Changes with libwww 5.40
+
+2003-03-19      Jose Kahan <jose@w3.org>
+
+	* Changed the order between -lwwwxml and -lwwwapp in libwww-config
+	  as suggested by Frank Traenkle.
+	
 Changes with libwww 5.3.2
 
 2002-06-06	Jose Kahan <jose@w3.org>
