@@ -443,7 +443,7 @@ PUBLIC BOOL HTResponse_addRange (HTResponse * me, char * unit, char * range)
 {
     if (me) {
 	if (!me->byte_ranges) me->byte_ranges = HTAssocList_new();
-	return HTAssocList_replaceObject(me->byte_ranges, unit, range);
+	return HTAssocList_addObject(me->byte_ranges, unit, range);
     }
     return NO;
 }
