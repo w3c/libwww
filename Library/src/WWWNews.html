@@ -1,57 +1,76 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww NEWS/NNTP CLIENT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww News/NNTP Client</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference NEWS MODULE</H1>
-
+<H1>
+  Declaration of W3C Reference News/NNTP Client
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is the include file for the basic NNTP module that can be used
-together with the core of the W3C Reference Library. It contains all
-News specific modules which are required to compile and build the News
-DLL.<P>
-
+<P>
+This application interface defines a News client which &nbsp;can be used
+together with the <A HREF="WWWCore.html">Library core</A>.The module itself
+is <I>not</I> part of the <A HREF="WWWCore.html">Library core</A>. It may
+be registered by the application if wanted. The application may also use
+the <A HREF="HTProfil.html">application profiles</A> to initialize this module.
 <PRE>
 #ifndef WWWNEWS_H
 #define WWWNEWS_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H3>
+  System dependencies
+</H3>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
-#include "sysdep.h"
+#include "<A HREF="sysdep.html">sysdep.h</A>"
 </PRE>
-
-<H2>Library Includes</H2>
-
-<PRE>
-#include "HTNews.h"			/* NNTP client state machine */
-#include "HTNewsLs.h"			/* Streams for parsing News output */
-#include "HTNDir.h"			/* HTML Generator */
+<H3>
+  NNTP Protocol State machine
+</H3>
+<P>
+The state machine handles requests and responses to an NNTP server according
+to the NNTP specifications.
+<PRE>#include "<A HREF="HTNews.html">HTNews.h</A>"
 </PRE>
-
+<H3>
+  News Request Stream
+</H3>
+<P>
+The request stream generates a request which may or may not include a message
+body to be posted to the server
+<PRE>#include "<A HREF="HTNewsRq.html">HTNewsRq.h</A>"
+</PRE>
+<H3>
+  News Response Stream for Messages and group Listings
+</H3>
+<P>
+The News response streams parses the output from an NNTP server. The two
+formats understood are News groups and News articles.
+<PRE>#include "<A HREF="HTNewsLs.html">HTNewsLs.h</A>"
+</PRE>
+<H3>
+  Presentation of News Listings in HTML
+</H3>
+<P>
+When the output has been received then we convert it to HTML by parsing it
+through the following stream.
+<PRE>#include "<A HREF="HTNDir.html">HTNDir.h</A>"
+</PRE>
+<P>
 End of News module
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -59,10 +78,9 @@ End of News module
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

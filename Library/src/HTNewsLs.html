@@ -1,40 +1,49 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww NEWS GROUP LISTING</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww News/NNTP Listings</TITLE>
 </HEAD>
 <BODY>
-
-<H1>News Group Listings</H1>
-
+<H1>
+  News/NNTP Article and Group Listings
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module converts a NEWS group listing to a HTML object<P>
-
-This module is implemented by <A HREF="HTFTPDir.c">HTFTPDir.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
-Reference Library</A>.
-
+<P>
+This module converts a <A HREF="HTNdir.html">generic News group</A> listing
+to a HTML object
+<P>
+This module is implemented by <A HREF="HTFTPDir.c">HTFTPDir.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTNEWSLS_H
 #define HTNEWSLS_H
 #include "HTStream.h"
 #include "HTFormat.h"
+#include "HTNet.h"
 
 extern HTConverter HTNewsList, HTNewsGroup;
-
-#endif
-
 </PRE>
+<H3>
+  Newsgroup List Cache
+</H3>
+<P>
 
-<HR>
+The news list cache uses a URL tree to store the information
+<PRE>
+HTNetCallback HTNewsCache_before, HTNewsCache_after;
+</PRE>
+<PRE>
+#endif /* HTNEWSLS_H */
+</PRE>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

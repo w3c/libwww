@@ -48,13 +48,15 @@ PUBLIC void HTConverterInit (HTList * c)
     ** protocols to HTML objects.
     */
     HTConversion_add(c,"text/x-http",		"*/*",		HTTPStatus_new,	1.0, 0.0, 0.0);
+
 #if 0
     HTConversion_add(c,"text/x-gopher",		"www/present",	HTGopherMenu,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-cso",		"www/present",	HTGopherCSO,	1.0, 0.0, 0.0);
-    HTConversion_add(c,"text/x-nntp-list",	"*/*",		HTNewsList,	1.0, 0.0, 0.0);
-    HTConversion_add(c,"text/x-nntp-over",	"*/*",		HTNewsGroup,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-wais-source",	"*/*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
 #endif
+
+    HTConversion_add(c,"text/x-nntp-list",	"*/*",		HTNewsList,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/x-nntp-over",	"*/*",		HTNewsGroup,	1.0, 0.0, 0.0);
 
     /*
     ** We also register a special content type guess stream that can figure out

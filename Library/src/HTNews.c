@@ -19,17 +19,14 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWStream.h"
-#include "HTTCP.h"
+#include "WWWTrans.h"
 #include "HTReqMan.h"				/* @@@ */
 #include "HTNetMan.h"				/* @@@ */
-#include "HTNewsRq.h" 
+#include "HTNewsRq.h"
+#include "HTNewsLs.h"
 #include "HTNews.h"					       /* Implements */
 
 /* Macros and other defines */
-#ifndef NEWS_PORT
-#define NEWS_PORT		119			       /* See rfc977 */
-#endif
-
 #ifndef NEWS_LIST_FILE
 #define NEWS_LIST_FILE		".www_news"	   /* Name of news list file */
 #endif
@@ -41,7 +38,10 @@
 
 /* Local context structure used in the HTNet object */
 typedef enum _HTNewsState {
-    NEWS_BEGIN,
+    NEWS_ERROR		= -3,
+    NEWS_SUCCESS	= -2,
+    NEWS_NO_DATA	= -1,
+    NEWS_BEGIN		= 0,
     NEWS_SEEK_CACHE,
     NEWS_NEED_CONNECTION,
     NEWS_NEED_GREETING,
@@ -55,9 +55,7 @@ typedef enum _HTNewsState {
     NEWS_NEED_XOVER,
     NEWS_NEED_HEAD,
     NEWS_NEED_POST,
-    NEWS_NEED_BODY,
-    NEWS_ERROR,
-    NEWS_SUCCESS
+    NEWS_NEED_BODY
 } HTNewsState;
 
 typedef struct _news_info {
@@ -274,15 +272,19 @@ PUBLIC int HTNews_maxArticles (void)
 */
 PRIVATE int HTNewsCleanup (HTRequest * req, int status)
 {
-    HTNet *net = req->net;
+    HTNet * net = HTRequest_net(req);
     news_info *news = (news_info *) net->context;
+    HTStream * input = HTRequest_inputStream(req);
 
     /* Free stream with data TO network */
-    if (!HTRequest_isDestination(req) && req->input_stream) {
+    if (!HTRequest_isDestination(req))
+	HTRequest_removeDestination(req);
+    else if (input) {
 	if (status == HT_INTERRUPTED)
-	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+	    (*input->isa->abort)(input, NULL);
 	else
-	    (*req->input_stream->isa->_free)(req->input_stream);
+	    (*input->isa->_free)(input);
+	HTRequest_setInputStream(req, NULL);
     }
 
     /* Remove the request object and our own context structure for nntp */
@@ -298,6 +300,7 @@ PRIVATE int HTNewsCleanup (HTRequest * req, int status)
 PRIVATE int SendCommand (HTRequest *request, news_info *news,
 			 char *token, char *pars)
 {
+    HTStream * input = HTRequest_inputStream(request);
     int len = strlen(token) + (pars ? strlen(pars)+1:0) + 2;
     HTChunk_clear(news->cmd);
     HTChunk_ensure(news->cmd, len);
@@ -306,8 +309,7 @@ PRIVATE int SendCommand (HTRequest *request, news_info *news,
     else
 	sprintf(HTChunk_data(news->cmd), "%s%c%c", token, CR, LF);
     if (PROT_TRACE) HTTrace("News Tx..... %s", HTChunk_data(news->cmd));
-    return (*request->input_stream->isa->put_block)
-	(request->input_stream, HTChunk_data(news->cmd), len);
+    return (*input->isa->put_block)(input, HTChunk_data(news->cmd), len);
 }
 
 /*		Load data object from NNTP Server		     HTLoadNews
@@ -327,9 +329,9 @@ PRIVATE int SendCommand (HTRequest *request, news_info *news,
 PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
-    HTNet *net = request->net;
+    HTNet * net = HTRequest_net(request);
     HTParentAnchor *anchor = HTRequest_anchor(request);
-    char *url = HTAnchor_physical(anchor);
+    char * url = HTAnchor_physical(anchor);
     news_info *news;
     
     /*
@@ -346,15 +348,14 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	news->state = NEWS_BEGIN;
 	net->context = news;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
-	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
-	    HTNewsCleanup(request, HT_IGNORE);
-	else
-	    HTNewsCleanup(request, HT_INTERRUPTED);
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
+			   NULL, 0, "HTLoadHTTP");
+	HTNewsCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
 	news = (news_info *) net->context;		/* Get existing copy */
-     
-    /* Now start the state machine */
+
+    /* Now jump into the machine. We know the state from the previous run */
     while (1) {
         switch (news->state) {
           case NEWS_BEGIN:
@@ -362,8 +363,11 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		NEWS_SEEK_CACHE : NEWS_NEED_CONNECTION;
 	    break;
 
-          case NEWS_SEEK_CACHE:			       /* @@@ DO THIS @@@@@@ */
-	    news->state = NEWS_NEED_CONNECTION;
+	case NEWS_SEEK_CACHE:
+	    if (HTNewsCache_before(request, NULL, 0) == HT_LOADED)
+		news->state = NEWS_SUCCESS;
+	    else
+		news->state = NEWS_NEED_CONNECTION;
 	    break;
 
 	  case NEWS_NEED_CONNECTION: 		/* Let's set up a connection */
@@ -461,37 +465,40 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case NEWS_NEED_SWITCH:
-	    /*
-	    ** Find out what to ask the news server. Syntax of address is
-	    **	xxx@yyy		Article
-	    **	<xxx@yyy>	Same article
-	    **	xxxxx		News group (no "@")
-	    */
-	    if (request->method == METHOD_GET) {
-		if (strchr(url, '@')) {				  /* ARTICLE */
-		    if (*(news->name) != '<') {		  /* Add '<' and '>' */
-			char *newart;
-			if ((newart = (char  *) HT_MALLOC(strlen(news->name)+3)) == NULL)
-			    HT_OUTOFMEM("HTLoadNews");
-			sprintf(newart, "<%s>", news->name);
-			HT_FREE(news->name);
-			news->name = newart;
-		    }
-		    news->state = NEWS_NEED_ARTICLE;
-		} else if (strchr(url, '*'))
-		    news->state = NEWS_NEED_LIST;
-		else
-		    news->state = NEWS_NEED_GROUP;
-	    } else if (request->method == METHOD_POST)
-		news->state = NEWS_NEED_POST;
-	    else {
-		HTRequest_addError(request, ERR_FATAL, NO,
-				   HTERR_NOT_IMPLEMENTED,NULL, 0,"HTLoadNews");
-		news->state = NEWS_ERROR;
-	    }
-	    HTUnEscape(news->name);
-	    HTCleanTelnetString(news->name);
-	    break;
+	  {
+	      HTMethod method = HTRequest_method(request);
+	      /*
+	      ** Find out what to ask the news server. Syntax of address is
+	      **	xxx@yyy		Article
+	      **	<xxx@yyy>	Same article
+	      **	xxxxx		News group (no "@")
+	      */
+	      if (method == METHOD_GET) {
+		  if (strchr(url, '@')) {				  /* ARTICLE */
+		      if (*(news->name) != '<') {		  /* Add '<' and '>' */
+			  char *newart;
+			  if ((newart = (char  *) HT_MALLOC(strlen(news->name)+3)) == NULL)
+			      HT_OUTOFMEM("HTLoadNews");
+			  sprintf(newart, "<%s>", news->name);
+			  HT_FREE(news->name);
+			  news->name = newart;
+		      }
+		      news->state = NEWS_NEED_ARTICLE;
+		  } else if (strchr(url, '*'))
+		      news->state = NEWS_NEED_LIST;
+		  else
+		      news->state = NEWS_NEED_GROUP;
+	      } else if (method == METHOD_POST)
+		  news->state = NEWS_NEED_POST;
+	      else {
+		  HTRequest_addError(request, ERR_FATAL, NO,
+				     HTERR_NOT_IMPLEMENTED,NULL, 0,"HTLoadNews");
+		  news->state = NEWS_ERROR;
+	      }
+	      HTUnEscape(news->name);
+	      HTCleanTelnetString(news->name);
+	  }
+	  break;
 
 	  case NEWS_NEED_ARTICLE:
 	    if (!news->sent) {
@@ -586,6 +593,15 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 			    if (MaxArt && news->total>MaxArt)
 				news->last = news->first-MaxArt;
 			    news->current = news->first;
+
+			    /* If no content in this group */
+			    if (news->first == news->last) {
+				HTRequest_addError(request, ERR_FATAL, NO,
+						   HTERR_NO_CONTENT,
+						   NULL, 0, "HTLoadNews");
+				news->state = NEWS_NO_DATA;
+				break;
+			    }
 			    news->state = NEWS_NEED_XOVER;
 			} else
 			    news->state = NEWS_ERROR;
@@ -663,17 +679,40 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	      /* Remember to convert to CRLF */
 
 	  }
-	    news->state = NEWS_NEED_BODY;
-	    break;
+	  news->state = NEWS_NEED_BODY;
+	  break;
 
           case NEWS_NEED_BODY:
             if (ops == FD_WRITE || ops == FD_NONE) {
 		if (HTRequest_isDestination(request)) {
-		    HTNet *srcnet = request->source->net;
-		    HTEvent_register(srcnet->sockfd, request->source,
-				     (SockOps) FD_READ,
-				     HTLoadNews, srcnet->priority);
+		    HTRequest * source = HTRequest_source(request);
+		    HTNet * srcnet = HTRequest_net(source);
+		    if (srcnet) {
+			SOCKET sockfd = HTNet_socket(srcnet);
+			HTEvent_register(sockfd, source,
+					 (SockOps) FD_READ,
+					 srcnet->cbf, srcnet->priority);
+			HTEvent_unregister(sockfd, FD_WRITE);
+		    }
 		    return HT_OK;
+		}
+
+		/*
+		**  Should we use the input stream directly or call the post
+		**  callback function to send data down to the network?
+		*/
+		{
+		    HTStream * input = HTRequest_inputStream(request);
+		    HTPostCallback * pcbf = HTRequest_postCallback(request);
+		    if (pcbf) {
+			status = pcbf(request, input);
+			if (status == HT_PAUSE || status == HT_LOADED)
+			    ops = FD_READ;
+		    } else {
+			status = (*input->isa->flush)(input);
+			ops = FD_READ;	  /* Trick to ensure that we do READ */
+		    }
+		    if (status == HT_WOULD_BLOCK) return HT_OK;
 		}
 		status = request->PostCallback ?
                     request->PostCallback(request, request->input_stream) :
@@ -697,35 +736,44 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		
 	  case NEWS_SUCCESS:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTLink_find((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
-		HTRequest_removeDestination(request);
-		HTNewsCleanup(request, main ? HT_LOADED : HT_IGNORE);
-	    } else
-		HTNewsCleanup(request, HT_LOADED);
+	    }
+	    HTNewsCleanup(request, HT_LOADED);
 	    return HT_OK;
 	    break;
-	    
-	  case NEWS_ERROR:
-	    /* Clean up the other connections or just this one */
+
+	case NEWS_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
-		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTLink_find((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
+					  (HTAnchor *) anchor);
+		    HTLink_setResult(link, HT_LINK_OK);
+		}
+	    }
+	    HTNewsCleanup(request, HT_NO_DATA);
+	    return HT_OK;
+	    break;
+
+	  case NEWS_ERROR:
+	    if (HTRequest_isPostWeb(request)) {
+		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
+		    HTLink *link =
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
-		HTRequest_removeDestination(request);
-		HTNewsCleanup(request, main ? HT_ERROR : HT_IGNORE);
-	    } else
-		HTNewsCleanup(request, HT_ERROR);
+		HTRequest_killPostWeb(request);
+	    }
+	    HTNewsCleanup(request, HT_ERROR);
 	    return HT_OK;
 	    break;
 	}

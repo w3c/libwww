@@ -161,7 +161,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	char sizestr[10];
 	HTFileMode mode;
 #ifdef HT_REENTRANT
-	struct dirent * result;				    /* For readdir_r */
+	struct dirent result;				    /* For readdir_r */
 	while ((dirbuf = (struct dirent *) readdir_r(dp, &result)))
 #else
 	while ((dirbuf = readdir(dp)))

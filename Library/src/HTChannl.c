@@ -174,7 +174,7 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 **	-------------------
 **	Destroys all channels. This is called by HTLibTerminate(0
 */
-PUBLIC BOOL HTCannel_deleteAll (void)
+PUBLIC BOOL HTChannel_deleteAll (void)
 {
     if (channels) {
 	HTList * cur;

@@ -40,7 +40,8 @@ struct _HTStream {
 
 typedef enum _HTPutState {
     HT_LOAD_SOURCE	= 0,
-    HT_SAVE_DEST
+    HT_SAVE_DEST,
+    HT_ABORT_SAVE
 } HTPutState;
 
 typedef struct _HTPutContext {
@@ -980,16 +981,25 @@ PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
 		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_SOURCE_MOVED,
 			      NULL, NULL, NULL) == YES) {
 		    me->source = HTAnchor_parent(redirection);
-		    return HT_OK;
+		} else {
+		    /*
+		    ** Make sure that the operation stops 
+		    */
+		    me->state = HT_ABORT_SAVE;
 		}
 	    } else {
 		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_DESTINATION_MOVED,
 			      NULL, NULL, NULL) == YES) {
 		    me->destination = redirection;
-		    return HT_OK;
+		} else {
+		    /*
+		    ** Make sure that the operation stops 
+		    */
+		    me->state = HT_ABORT_SAVE;
 		}
 	    }
 	}
+	return HT_OK;
     }
 
     /*

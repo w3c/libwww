@@ -305,7 +305,7 @@ PRIVATE HTArray * dir_matches (char * path)
     struct dirent * dirbuf;
     HTArray * matches = NULL;
 #ifdef HT_REENTRANT
-    DIR result;				    /* For readdir_r */
+    struct dirent result;				         /* For readdir_r */
 #endif
 
     if (!path) return NULL;
@@ -332,7 +332,7 @@ PRIVATE HTArray * dir_matches (char * path)
 
     matches = HTArray_new(VARIANTS);
 #ifdef HT_REENTRANT
-	while ((dirbuf = (DIR *) readdir_r(dp, &result))) {
+	while ((dirbuf = (struct dirent *) readdir_r(dp, &result))) {
 #else
 	while ((dirbuf = readdir(dp))) {
 #endif /* HT_REENTRANT */

@@ -200,7 +200,21 @@ PUBLIC int HTInfoFilter (HTRequest * request, void * param, int status)
 	    HTTrace("Load End.... ERROR: Can't access `%s\'\n",
 		    uri ? uri : "<UNKNOWN>");
 	break;
-    }
+    }    
+
+    case HT_NO_DATA:
+    {
+	/*
+	** The document was empty
+	*/
+	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+			HTRequest_error(request), NULL);
+	if (PROT_TRACE)
+	    HTTrace("Load End.... EMPTY: No content `%s\'\n",
+		    uri ? uri : "<UNKNOWN>");
+	break;
+    }    
 
     case HT_LOADED:
     {
@@ -236,11 +250,15 @@ PUBLIC int HTRedirectFilter (HTRequest * request, void * param, int status)
 {
     HTMethod method = HTRequest_method(request); 
     HTAnchor * new_anchor = HTRequest_redirection(request); 
- 
+    if (!new_anchor) {
+	if (PROT_TRACE) HTTrace("Redirection. No destination\n");
+	return HT_OK;
+    }
+
     /*
     ** Only do redirect on GET and HEAD
     */
-    if (!HTMethod_isSafe(method) || !new_anchor) { 
+    if (!HTMethod_isSafe(method)) { 
 	HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
 	if (prompt) {
 	    if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_REDIRECTION,

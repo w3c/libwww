@@ -8,9 +8,11 @@
 ** Authors
 **	FTLO	Felix Lo
 **	HFN	Henrik Frystyk <frystyk@w3.org>
+**	MP	Maciej Puzio <puzio@zodiac1.mimuw.edu.pl>
 **
 ** History:
 **	Oct 95	HFN	Written
+**  Mar 96  MP  Modified
 */
 
 /* Library include files */
@@ -24,6 +26,8 @@
 #define DELIMITER		'\t'
 #define ATSIGN			'@'
 
+#define NEWS_TREE		"w3c-news"
+
 struct _HTStream {
     const HTStreamClass *	isa;
     HTRequest *			request;
@@ -35,24 +39,40 @@ struct _HTStream {
     int				buflen;
 };
 
-PRIVATE HTNewsDirKey		dir_key = HT_NDK_NONE;
+typedef struct _HTNewsCache {
+    char *	host;
+    HTArray *	cache;
+} HTNewsCache;
+
+PRIVATE HTNewsDirKey dir_key = HT_NDK_REFTHREAD;
+PRIVATE HTNewsDirKey list_key = HT_NDK_GROUP;     /* Added by MP. */
 
 /* ------------------------------------------------------------------------- */
 
+/* Helper function added by MP. */
+PRIVATE char* GetNewsGroupTitle (HTRequest* request)
+{
+    char * url = HTAnchor_physical(HTRequest_anchor(request));
+    char * title = NULL;
+    if (strrchr(url, '*'))
+        StrAllocCopy(title, "Newsgroups: ");
+    else
+        StrAllocCopy(title, "Newsgroup: ");
+    if (!strncasecomp(url, "news:", 5))
+	StrAllocCat(title, url+5);
+    else
+	StrAllocCat(title, HTParse(url, "", PARSE_PATH));
+    return title;
+}
 
-/*	ParseList
-**	---------
-**	Extract the group name from a LIST listing
-**	Returns YES if OK, NO on error
-*/
-PRIVATE BOOL ParseList (HTNewsDir *dir, char * line)
+PRIVATE BOOL ParseList (HTNewsDir * dir, char * line)
 {
     char *ptr = line;
     while (*ptr && !WHITE(*ptr)) ptr++;
     *ptr = '\0';
-    return HTNewsDir_addElement(dir, 0, line, NULL, (time_t) 0, line, 0);
+    /* Changed by MP */
+    return (HTNewsDir_addGroupElement(dir, line, NO) != NULL);
 }
-
 
 /*	ParseGroup
 **	----------
@@ -63,7 +83,7 @@ PRIVATE BOOL ParseList (HTNewsDir *dir, char * line)
 **
 **	Returns YES if OK, NO on error
 */
-PRIVATE BOOL ParseGroup (HTNewsDir *dir, char * line)
+PRIVATE BOOL ParseGroup (HTRequest * request, HTNewsDir *dir, char * line)
 {
     int index;
     int refcnt=0;
@@ -73,6 +93,7 @@ PRIVATE BOOL ParseGroup (HTNewsDir *dir, char * line)
     char *date;
     char *msgid;
     char *ptr=NULL;
+    HTList* reflist = NULL;  /* Added by MP. */
     while (*subject && *subject != DELIMITER) subject++;
     *subject++ = '\0';					/* Index */
     index = atoi(line);
@@ -94,22 +115,215 @@ PRIVATE BOOL ParseGroup (HTNewsDir *dir, char * line)
     while (*msgid && *msgid != DELIMITER) msgid++;
     *msgid++ = '\0';					/* Date */
     if (*msgid=='<') msgid++;
-#if 0
-    t = HTParseTime(date);
-#endif
+    t = HTParseTime(date,  HTRequest_userProfile(request));
     ptr = msgid;
     while (*ptr && *ptr != DELIMITER) {
 	if (*ptr=='>') *ptr = '\0';
 	ptr++;
     }
     *ptr++ = '\0';					/* MsgId */
-    while (!isdigit(*ptr)) {
-	while (*ptr && *ptr != DELIMITER) ptr++;
-	*ptr++ = '\0';
-	refcnt++;
+    while (ptr && *ptr && !isdigit(*ptr)) {
+        char* refstart = ptr;       /* Added by MP. */
+        char* refcopy = NULL;
+	    char* refstop;
+	    while (*ptr && *ptr != DELIMITER && *ptr != ' ') ptr++;
+	    refstop = ptr - 1;
+	    *ptr++ = '\0';
+        if (strlen(refstart) > 0)  /* Added by MP. */
+	    {
+	        refcnt++;
+            if (*refstart == '<')  refstart++;
+            if (*refstop == '>')  *refstop = '\0';
+            if (reflist == NULL)  reflist = HTList_new();
+            StrAllocCopy (refcopy, refstart);
+            HTList_addObject (reflist, (void*) refcopy);
+        }
     }
-    return HTNewsDir_addElement(dir, index, subject, from, t, msgid, refcnt);
+    /* Changed by MP. */
+    return (HTNewsDir_addElement(dir, index, subject, from, t, msgid, 
+        refcnt, reflist) != NULL);
 }
+
+/* ------------------------------------------------------------------------- */
+/*				NEWS CACHE				     */
+/* ------------------------------------------------------------------------- */
+
+PRIVATE HTNewsCache * HTNewsCache_new (const char * newshost, HTArray * array)
+{
+    if (newshost && array) {
+	HTNewsCache * me;
+     	if ((me = (HTNewsCache *) HT_CALLOC(1, sizeof(HTNewsCache))) == NULL)
+	    HT_OUTOFMEM("HTNewsCache_new");
+	StrAllocCopy(me->host, newshost);
+	me->cache = array;
+	return me;
+    }
+    return NULL;
+}
+
+/*
+**	Instead of just deleting we could save it to file.
+*/
+PRIVATE int HTNewsCache_delete (void * context)
+{
+    HTNewsCache * me = (HTNewsCache *) context;
+    if (me) {
+	if (me->cache) {
+    	    void ** data;
+    	    char * line = (char *) HTArray_firstObject(me->cache, data);
+    	    while (line) {
+		HT_FREE(line);
+		line = (char *) HTArray_nextObject(me->cache, data);
+    	    }
+	    HTArray_delete(me->cache);
+	}
+	HT_FREE(me->host);
+	if (PROT_TRACE) HTTrace("News Cache.. Deleted cache %p\n", me);
+	HT_FREE(me);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**  Look for cached information for this news server
+**  We store the information in a URL Tree so that we can have multiple
+**  servers stored simultanously
+*/
+PRIVATE HTNewsCache * HTNewsCache_find (HTRequest * request, const char * url)
+{
+    HTUTree * tree = NULL;
+    if (request && url) {
+	char * newshost = NULL;
+	HTNewsCache * element = NULL;
+	if (!strncasecomp(url, "news:", 5)) {
+	    HTUserProfile * up = HTRequest_userProfile(request);
+	    StrAllocCopy(newshost, HTUserProfile_news(up));
+	} else if (!strncasecomp(url, "nntp:", 5)) {
+	    newshost = HTParse(url, "", PARSE_HOST);
+	}
+
+	/* If we have a news server then continue to find a URL tree */
+	if (newshost) {
+	    char * colon = strchr(newshost, ':');
+	    int port = NEWS_PORT;
+	    if (colon ) {
+		*(colon++) = '\0';		     /* Chop off port number */
+		port = atoi(colon);
+	    }
+	    tree = HTUTree_find(NEWS_TREE, newshost, port);
+	    HT_FREE(newshost);
+	    if (!tree) {
+		if (PROT_TRACE)
+		    HTTrace("News Cache.. No information for `%s\'\n", url);
+		return NULL;
+	    }
+
+	    /* Find a cache element (if any) */
+	    element = (HTNewsCache *) HTUTree_findNode(tree, "", "/");
+	    return element;
+	}
+    }
+    return NULL;
+}
+
+PRIVATE BOOL HTNewsCache_update (HTRequest * request,
+				 const char * url, HTArray * array)
+{
+    HTUTree * tree = NULL;
+    if (request && url) {
+	char * newshost = NULL;
+	if (!strncasecomp(url, "news:", 5)) {
+	    HTUserProfile * up = HTRequest_userProfile(request);
+	    StrAllocCopy(newshost, HTUserProfile_news(up));
+	} else if (!strncasecomp(url, "nntp:", 5)) {
+	    newshost = HTParse(url, "", PARSE_HOST);
+	}
+
+	/* 
+	**  If the news server was found then update the data entry. Otherwise
+	**  create a new entry
+	*/
+	if (newshost) {
+	    char * colon = strchr(newshost, ':');
+	    int port = NEWS_PORT;
+	    if (colon ) {
+		*(colon++) = '\0';		     /* Chop off port number */
+		port = atoi(colon);
+	    }
+	    tree = HTUTree_new(NEWS_TREE, newshost, port, HTNewsCache_delete);
+	    HT_FREE(newshost);
+	    if (!tree) {
+		if (PROT_TRACE)HTTrace("News Cache.. Can't create tree\n");
+		return NO;
+	    }
+
+	    /* Add new cache information to the tree */
+	    {
+		HTNewsCache * element = NULL;
+		BOOL status;
+		if ((element=(HTNewsCache *) HTUTree_findNode(tree, "", "/"))){
+		    element->cache = array;
+		    status = YES;
+		} else {
+		    element = HTNewsCache_new(url, array);
+		    status = HTUTree_addNode(tree, "", "/", element);
+		}
+		return status;
+	    }
+	}
+    }
+    return NO;
+}
+
+/*
+**	Before filter: Check whether we have a cache entry for this host
+*/
+PUBLIC int HTNewsCache_before (HTRequest * request, void * context, int status)
+{
+    char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
+    HTNewsCache * element = HTNewsCache_find(request, url);
+    HT_FREE(url);
+    /*
+    **  If we have found a cache object then create a new dir obejct and fill
+    **  it with data from the cache
+    */
+    if (element) {
+	char * title = GetNewsGroupTitle(request);
+	HTNewsDir * dir = HTNewsDir_new(request, title, list_key, NO);
+	void ** data;
+	char * line = (char *) HTArray_firstObject(element->cache, data);
+	while (line) {
+	    HTNewsDir_addGroupElement(dir, line, NO);
+	    line = (char *) HTArray_nextObject(element->cache, data);
+	}
+
+	/*
+	**  After filling the new dir object we write it out and free it again
+	*/
+	HTNewsDir_free(dir);
+	HT_FREE(title);
+	return HT_LOADED;
+    }
+    return HT_OK;
+}
+
+/*
+**	After filter: Update the cache entry for this host
+*/
+PUBLIC int HTNewsCache_after (HTRequest * request, void * context, int status)
+{
+    HTArray * array = (HTArray *) context;
+    if (PROT_TRACE) HTTrace("News Cache.. AFTER filter\n");
+    if (request && array) {
+	char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
+	HTNewsCache_update(request, url, array);
+	HT_FREE(url);
+    }
+    return HT_OK;
+}
+
+/* ------------------------------------------------------------------------- */
 
 /*
 **	Searches for News line until buffer fills up or a CRLF or LF is found
@@ -121,7 +335,7 @@ PRIVATE int HTNewsList_put_block (HTStream * me, const char * b, int l)
 	    if (*b == LF && me->buflen) {
 		if (!me->junk) {
 		    *(me->buffer+me->buflen) = '\0';
-		    me->group ? ParseGroup(me->dir, me->buffer) :
+		    me->group ? ParseGroup(me->request, me->dir, me->buffer) :
 			ParseList(me->dir, me->buffer);
 		} else
 		    me->junk = NO;			   /* back to normal */
@@ -133,7 +347,7 @@ PRIVATE int HTNewsList_put_block (HTStream * me, const char * b, int l)
 	} else if (*b == LF && me->buflen) {
 	    if (!me->junk) {
 		*(me->buffer+me->buflen) = '\0';
-		me->group ? ParseGroup(me->dir, me->buffer) :
+		me->group ? ParseGroup(me->request, me->dir, me->buffer) :
 		    ParseList(me->dir, me->buffer);
 	    } else
 		me->junk = NO;				   /* back to normal */
@@ -145,7 +359,7 @@ PRIVATE int HTNewsList_put_block (HTStream * me, const char * b, int l)
 		if (PROT_TRACE)
 		    HTTrace("News Dir.... Line too long - chopped\n");
 		*(me->buffer+me->buflen) = '\0';
-		me->group ? ParseGroup(me->dir, me->buffer) :
+		me->group ? ParseGroup(me->request, me->dir, me->buffer) :
 		    ParseList(me->dir, me->buffer);
 		me->buflen = 0;
 		me->junk = YES;
@@ -173,6 +387,7 @@ PRIVATE int HTNewsList_flush (HTStream * me)
 
 PRIVATE int HTNewsList_free (HTStream * me)
 {
+    HTNewsList_put_character (me, '\n');  /* to flush the last item; added by MP. */
     HTNewsDir_free(me->dir);
     HT_FREE(me);
     return HT_OK;
@@ -208,7 +423,12 @@ PUBLIC HTStream *HTNewsList (HTRequest *	request,
     me->isa = &HTNewsListClass;
     me->request = request;
     me->state = EOL_BEGIN;
-    me->dir = HTNewsDir_new(request, "Newsgroups", HT_NDK_GROUP);
+    {
+	char * title = GetNewsGroupTitle(request);
+	me->dir = HTNewsDir_new(request, title, list_key,YES);
+	HT_FREE(title);
+    }
+    /* Modified by MP. */
     if (me->dir == NULL) HT_FREE(me);
     return me;
 }
@@ -219,22 +439,19 @@ PUBLIC HTStream *HTNewsGroup (HTRequest *	request,
 			      HTFormat		output_format,
 			      HTStream *	output_stream)
 {
-    char * url = HTAnchor_physical(HTRequest_anchor(request));
-    char * title = NULL;
-    HTStream *me;
+    HTStream * me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
         HT_OUTOFMEM("HTNewsList_new");
-    StrAllocCopy(title, "Newsgroup: ");
-    if (!strncasecomp(url, "news:", 5))
-	StrAllocCat(title, url+5);
-    else
-	StrAllocCat(title, HTParse(url, "", PARSE_PATH));
     me->isa = &HTNewsListClass;
     me->request = request;
     me->state = EOL_BEGIN;
     me->group = YES;
-    me->dir = HTNewsDir_new(request, title, dir_key);
+    {
+	char * title = GetNewsGroupTitle(request);
+	me->dir = HTNewsDir_new(request, title, dir_key, YES);
+	HT_FREE(title);
+    }
+    /* Modified by MP. */
     if (me->dir == NULL) HT_FREE(me);
-    HT_FREE(title);
     return me;
 }

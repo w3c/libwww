@@ -1,61 +1,59 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww NNTP and NEWS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
+  <TITLE>W3C Reference Library libwww NNTP State Machine</TITLE>
 </HEAD>
 <BODY>
-
-<H1>News Access</H1>
-
+<H1>
+  NNTP State Machine
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is the NEWS load module that handles all communication with
-NEWS-servers. <P>
-
-This module is implemented by <A HREF="HTNews.c">HTNews.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
-Reference Library</A>.
-
+<P>
+This is the News/NNTP client module that handles all communication with
+News/NNTP-servers.
+<P>
+This module is implemented by <A HREF="HTNews.c">HTNews.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTNEWS_H
 #define HTNEWS_H
 #include "HTEvent.h"
 </PRE>
-
+<P>
 We define the max NNTP line as rather long as the result coming from a
-<CODE>XOVER</CODE> command needs it. If the line is longer then it is
-chopped, but we will almost have received the information we're
-looking for.
-
+<CODE>XOVER</CODE> command needs it. If the line is longer then it is chopped,
+but we will almost have received the information we're looking for.
 <PRE>
-#define MAX_NEWS_LINE		512
+#ifndef NEWS_PORT
+#define NEWS_PORT		119			       /* See rfc977 */
+#endif
+
+#define MAX_NEWS_LINE		4096
 
 extern HTEventCallback HTLoadNews;
 </PRE>
-
-<H2>Setting Number of Articles to Show</H2>
-
-You can set the number of news articles to be shown at a time. If you
-set the number to none (<CODE>0</CODE>) then <EM>all</EM> articles are
-shown at once. This is also the default behavior.
-
-<PRE>
-extern BOOL HTNews_setMaxArticles (int new_max);
+<H3>
+  Setting Number of Articles to Show
+</H3>
+<P>
+You can set the number of news articles to be shown at a time. If you set
+the number to none (<CODE>0</CODE>) then <EM>all</EM> articles are shown
+at once. This is also the default behavior.
+<PRE>extern BOOL HTNews_setMaxArticles (int new_max);
 extern int HTNews_maxArticles (void);
 </PRE>
-
 <PRE>
 #endif /* HTNEWS_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>
