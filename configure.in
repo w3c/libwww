@@ -100,6 +100,7 @@ AC_ARG_WITH(zlib,
 [ case "$withval" in
   no)
     AC_MSG_RESULT(no)
+    HTZLIB=""
     ;;
   *)
     AC_MSG_RESULT(yes)
@@ -112,10 +113,13 @@ AC_ARG_WITH(zlib,
                 [ zlibVersion(); ],
 		[],
 		[ AC_MSG_ERROR(Could not find the $withval library.  You must first install zlib.) ])
+    HTZLIB="HTZip.o"
     ;;
   esac ],
   AC_MSG_RESULT(no)
+  HTZLIB=""
 )
+AC_SUBST(HTZLIB)
 
 # borrowed from SSH - thanks!
 AC_MSG_CHECKING(whether to support SOCKS)
