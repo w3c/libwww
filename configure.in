@@ -65,6 +65,10 @@ case "$target" in
 	  AC_MSG_RESULT(HT-UX's cc)
 	fi
 	;;
+    i386-next-nextstep*)
+	  CFLAGS="$CFLAGS -D_POSIX_SOURCE"
+	  AC_MSG_RESULT(NextStep and OpenStep require _POSIX_SOURCE defined. This may cause some compilation warnings about pre-compiled headers but that should be OK)
+	;;
     *)
 	AC_MSG_RESULT(no)
 	;;
