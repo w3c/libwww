@@ -31,7 +31,7 @@ AM_CONFIG_HEADER(wwwconf.h)
 
 dnl Regular configure...
 AC_PROG_CC
-AC_PROG_CXX
+dnl AC_PROG_CXX		Caused problems and is not needed...
 AC_CYGWIN 	dnl   You should probably
 AC_MINGW32  	dnl   use all three of these
 AC_EXEEXT   	dnl   for maximum portability
