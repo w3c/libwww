@@ -14,15 +14,10 @@ SUFFIXES = .h .html .txt
     else
 	@echo "**************************************************"
 	@echo "Need to regenerate one or more .h files but can't find the libwww"
-	@echo "Line Mode Browser (www). Please run the following command:"
-	@echo ""
-	@echo 
-	@echo "	perl $(top_srcdir)/config/winConfigure.pl $(srcdir)"
-	@echo ""
-	@echo "to generate the .h files and then retry make. Don't mind"
-	@echo "any warning messages coming from the winConfigure.pl script."
+	@echo "Line Mode Browser (www). Attempting to generate them using the"
+	@echo "winConfigure.pl script - it may generate a few warnings."
 	@echo "**************************************************"
-	@exit 1
+	perl $(top_srcdir)/config/winConfigure.pl $(srcdir)
     endif
 
 icondir = @icondir@
