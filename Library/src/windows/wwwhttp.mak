@@ -271,3 +271,25 @@ $(INTDIR)/HTTPReq.obj :  $(SOURCE)  $(INTDIR)
 # End Group
 # End Project
 ################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPRes.c
+
+$(INTDIR)/HTTPRes.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+# End Group
+# End Project
+################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPServ.c
+
+$(INTDIR)/HTTPServ.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+# End Group
+# End Project
+################################################################################
