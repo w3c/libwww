@@ -750,7 +750,7 @@ typedef mode_t		int;
 Includes Linux (thanks to Rainer Klute) and other SVR4 based systems
 
 <PRE>
-#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
+#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux) || defined(__sgi)
 
 #if defined(__hpux) || defined(linux)
 #define NO_ALTZONE
@@ -966,6 +966,7 @@ These are a default unix where not already defined specifically.
 #endif	/* Normal includes */
 
 #ifdef SUNOS
+#include &lt;unistd.h&gt;
 #define NO_TIMEZONE
 #define NO_MKTIME
 #undef HAVE_STRERROR
