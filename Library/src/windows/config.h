@@ -76,11 +76,14 @@
 /* Define to enable mysql access. */
 /* #undef HT_MYSQL */
 
+/* Define to enable expat XML parser. */
+#define HT_EXPAT 1
+
 /* Define to enable Zlib compression / decompression support. */
-#define HT_ZLIB
+#define HT_ZLIB 1
 
 /* Define to enable POSIX RegEx support. */
-#define HT_POSIX_REGEX
+#define HT_POSIX_REGEX 1
 
 /* Define to enable support for enabling a rules file w/o user interaction. */
 /* #undef HT_AUTOMATIC_RULES */
@@ -103,7 +106,7 @@
 #define W3C_PACKAGE "w3c-libwww"
 
 /* Define to be the version. */
-#define W3C_VERSION "5.2.3"
+#define W3C_VERSION "5.2.6"
 
 /* Define to be the location of the W3C Icons */
 #define W3C_ICONS "/usr/local/share/w3c-icons"

@@ -144,12 +144,10 @@ PUBLIC unsigned int HTCardinal (int *		pstatus,
 **  This function sets up signal handlers. This might not be necessary to
 **  call if the application has its own handlers.
 */
-#ifndef WWW_MSWINDOWS
 #include <signal.h>
-#endif /* WWW_MSWINDOWS */
+
 PUBLIC void HTSetSignal (void)
 {
-#ifndef WWW_MSWINDOWS
     /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
     ** when attemting to connect to a remote host where you normally should
     ** get `connection refused' back
@@ -159,8 +157,11 @@ PUBLIC void HTSetSignal (void)
     } else {
 	HTTRACE(CORE_TRACE, "HTSignal.... Ignoring SIGPIPE\n");
     }
-#endif /* WWW_MSWINDOWS */
 }
+#else /* WWWLIB_SIG */
+
+PUBLIC void HTSetSignal (void) { }
+
 #endif /* WWWLIB_SIG */
 
 /* ------------------------------------------------------------------------- */
