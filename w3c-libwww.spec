@@ -1,44 +1,29 @@
 # Note that this is NOT a relocatable package
-# @(#) $Id$
-# Author: Jim Gettys
-
 %define ver	5.2.8
-%define rel	1
+%define rel	3
 %define prefix	/usr/
 
-Summary: Web client library of common code
+Summary: General-purpose Web API written in C
 Name: w3c-libwww
 Version: %ver
 Release: %rel
 Copyright: W3C (see: http://www.w3.org/Consortium/Legal/copyright-software.html)
-Group: Libraries
+Group: System Environment/Libraries
 Source: http://www.w3.org/Library/Distribution/w3c-libwww-%{ver}.tar.gz
-BuildRoot: /var/tmp/w3c-libwww-%{PACKAGE_VERSION}-root
-Distribution: W3C
-Vendor: W3C - World Wide Web Consortium
-Packager: Jim Gettys <jg@w3.org>
 URL: http://www.w3.org/Library
-Docdir: %{prefix}/doc/
-
+BuildRoot: /var/tmp/%{name}-root
 Icon: Lib48x.gif
 
 %description
-
-Libwww is a general-purpose client side Web API written in C for Unix
-and Windows (Win32). With a highly extensible and layered API, it can
-accommodate many different types of client applications including
-clients, robots, etc.  The purpose of libwww is to provide a highly
-optimized HTTP sampInternet protocols and to serve as a testbed for
-protocol experiments. It is used by a number of major software
-packages (e.g. Lynx), and its HTTP/1.1 implementation is a high quality,
-optimized, production quality implemetation.
-
-   Author: Henrik Frystyk Nielsen http://www.w3.org/People/frystyk
-   Packager: Jim Gettys http://www.w3.org/People/Gettys
+Libwww is a general-purpose Web API written in C for Unix and Windows (Win32).
+With a highly extensible and layered API, it can accommodate many different
+types of applications including clients, robots, etc. The purpose of libwww
+is to provide a highly optimized HTTP sample implementation as well as other
+Internet protocols and to serve as a testbed for protocol experiments.
 
 %package devel
-Summary: Libwww web library and library of support code
-Group: Libraries
+Summary: Libraries and header files for programs that use libwww.
+Group: Development/Libraries
 Requires: w3c-libwww
 
 %description devel
@@ -47,12 +32,11 @@ libraries.
 
 %package apps
 Summary: Applications built using Libwww web library: e.g. Robot, command line tool, etc.
-Group: Applications/Networking
+Group: Applications/Internet
 Requires: w3c-libwww
 Icon: robot48x.gif
 
 %description apps
-
 Web applications built using Libwww: Robot, Command line tool, 
 line mode browser.  The Robot can crawl web sites faster, and
 with lower load, than any other web walker that we know of, 
@@ -67,16 +51,27 @@ often useful to convert to ascii text.  Currently unavailable
 until someone updates it to some new interfaces. (hint, hint...)
 
 %prep
-%setup
-%build
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --with-regex --with-zlib
+%setup -q
 
-make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
+%build
+
+# for RPM 2.9 and greater
+#%configure --enable-shared --with-gnu-ld --with-regex --with-zlib
+
+[ -f configure.in ]
+    CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --enable-shared --with-gnu-ld --with-regex --with-zlib
+
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 make prefix=$RPM_BUILD_ROOT%{prefix} install
+
+( cd $RPM_BUILD_ROOT
+  chmod +x ./usr/lib/lib{www*,xml*,md5}.so.0.*
+  strip ./usr/bin/* || :
+)
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -86,26 +81,32 @@ rm -rf $RPM_BUILD_ROOT
 %postun -p /sbin/ldconfig
 
 %files
-%defattr(-, root, root)
-
-
+%defattr(-,root,root)
 %{prefix}/lib/libwww*.so.*
 %{prefix}/lib/libxml*.so.*
 %{prefix}/lib/libmd5.so.*
+%{prefix}/share/w3c-libwww
 
 %doc *.html */*.html */*/*.html Icons/*/*.gif
 
 %files apps
-%defattr(-, root, root)
-%dir %{prefix}/bin/*
-
+%defattr(-,root,root)
+%{prefix}/bin/webbot
+%{prefix}/bin/w3c
 
 %files devel
-%defattr(-, root, root)
-%dir %{prefix}/include/w3c-libwww/*.h
-%{prefix}/lib/libwww*.so
-%{prefix}/lib/libxml*.so
-%{prefix}/lib/lib*a
+%defattr(-,root,root)
+%{prefix}/bin/libwww-config
+%{prefix}/lib/lib*.a
+%{prefix}/lib/lib*.la
+%{prefix}/lib/lib*.so
 
+%{prefix}/include/xmlparse.h
+%{prefix}/include/w3c-libwww
 
+%changelog
+* Mon Apr 12 1999 Jim Gettys <jg@w3.org)
+- down covert for older RPM currently widespread
 
+* Mon Apr 12 1999 Jeff Johnson <jbj@redhat.com>
+- repackage for Red Hat 6.0.
