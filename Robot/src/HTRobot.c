@@ -20,8 +20,8 @@
 
 #include "HText.h"
 
+#include "HTMemLog.h"
 #include "HTRobot.h"			     		 /* Implemented here */
-#include "HTWatch.h"
 
 #ifndef W3C_VERSION
 #define W3C_VERSION 		"Unspecified"
@@ -101,134 +101,6 @@ PUBLIC HTParentAnchor * HTMainAnchor = NULL;
 PUBLIC HTStyleSheet * styleSheet = NULL;
 
 /* ------------------------------------------------------------------------- */
-
-PUBLIC int HTWatch(int id, void * obj, const char * fmt, ...)
-{
-    va_list pArgs;
-    va_start(pArgs, fmt);
-    fprintf(stderr, "id: %x  obj: %p: ", id, obj);
-    return vfprintf(stderr, fmt, pArgs);
-}
-
-#define LOG_BUFF_SIZE	65536
-int LogFile = 2;
-char * LogBuff  = NULL;
-size_t LogLen = 0;
-
-PUBLIC int HTWatch_logOpen (char *ident, int option, int  facility)
-{
-#ifdef USE_SYSLOG
-    openlog(ident, option, facility);
-#else /* USE_SYSLOG */
-#if 0
-    if ((LogFile = open("HTRobot.log", O_CREAT|O_TRUNC)) == -1)
-	return HT_ERROR;
-    close(LogFile);
-#endif
-    if ((LogBuff = (char *) HT_MALLOC(LOG_BUFF_SIZE)) == NULL)
-	HT_OUTOFMEM("HTWatch_logOpen");
-    LogLen = 0;
-#endif /* !USE_SYSLOG */
-    return HT_OK;
-}
-
-PRIVATE int HTWatch_logFlush(void)
-{
-    if ((LogFile = open("HTRobot.log", O_APPEND)) == -1)
-	return HT_ERROR;
-    write(LogFile, LogBuff, LogLen);
-    LogLen = 0;
-    close(LogFile);
-    return HT_OK;
-}
-
-PRIVATE int HTWatch_logAdd(char * buf, size_t len)
-{
-    /*
-    **	Dump everything that won't fit in buffer
-    */
-    while (len + LogLen > LOG_BUFF_SIZE) {
-	size_t toWrite = LOG_BUFF_SIZE-LogLen;
-	memcpy(LogBuff+LogLen, buf, toWrite);
-	HTWatch_logFlush();
-	buf += toWrite;
-	len -= toWrite;
-    }
-    memcpy(LogBuff+LogLen, buf, len);
-    LogLen += len;
-    return HT_OK;
-}
-
-#include <sys/time.h>
-#include <unistd.h>
-
-PRIVATE int _adjustGMT(long theTime)
-{
-    static long adjustment = -1;
-    if (adjustment == -1) {
-        tzset();
-        adjustment = timezone;
-    }
-    return theTime-adjustment;
-}
-
-PRIVATE int HTWatch_logTime(void)
-{
-    char buff[20];
-    int len;
-    struct timeval tp;
-    struct timezone tz = {300, DST_USA};
-
-    gettimeofday(&tp, &tz);
-    tp.tv_sec = _adjustGMT(tp.tv_sec)%(24*60*60);
-    len = sprintf(buff, "%02d:%02d:%02d.%d ", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
-    HTWatch_logAdd(buff, len);
-    return tp.tv_sec;
-}
-
-PUBLIC void HTWatch_logClose (void)
-{
-#ifdef USE_SYSLOG
-    closelog();
-#else /* USE_SYSLOG */
-    if (LogLen)
-	HTWatch_logFlush();
-    if (LogFile > 2)
-	close(LogFile);
-    if (LogBuff != NULL)
-	HT_FREE(LogBuff);
-#endif /* !USE_SYSLOG */
-}
-
-PUBLIC int HTWatch_logData (char * data, size_t len, const char * fmt, ...)
-{
-    char buff[8200];
-    va_list pArgs;
-    /*    char * tptr;
-    time_t now; */
-    int ret;
-    va_start(pArgs, fmt);
-    ret = vsprintf(buff, fmt, pArgs);
-#ifdef USE_SYSLOG
-    syslog(LOG_DEBUG, "%s\n", buff);
-    if (len > 8192)
-	len = 8192;
-    strncpy(buff, data, len);
-    buff[len] = 0;
-    syslog(LOG_DEBUG, "%s\n", buff);
-#else /* USE_SYSLOG */
-    /*
-    time(&now);
-    tptr = ctime(&now);
-    HTWatch_logAdd(tptr, strlen(tptr));
-    */
-    HTWatch_logTime();
-    HTWatch_logAdd(buff, ret);
-    HTWatch_logAdd("\n", 1);
-    HTWatch_logAdd(data, len);
-#endif /* !USE_SYSLOG */
-    return ret;
-}
 
 /*	Standard (non-error) Output
 **	---------------------------
@@ -384,7 +256,7 @@ PRIVATE void Cleanup (Robot * me, int status)
 {
     Robot_delete(me);
     HTProfile_delete();
-    HTWatch_logClose();
+    HTMemLog_close();
 #ifdef VMS
     exit(status ? status : 1);
 #else
@@ -601,7 +473,8 @@ int main (int argc, char ** argv)
     argc=ccommand(&argv);
 #endif
 
-    HTWatch_logOpen("HTRobot", LOG_NDELAY, LOG_USER);
+    HTMemLog_open("/usr/local/src/WWW/the-dart/Robot/src/HTRobot.log", 65536);
+    HTTraceData_setCallback(HTMemLog_callback);
     /* Initiate W3C Reference Library with a robot profile */
     HTProfile_newRobot(APP_NAME, APP_VERSION);
 
