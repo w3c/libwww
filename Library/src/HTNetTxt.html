@@ -1,0 +1,32 @@
+<HTML>
+<HEAD>
+<TITLE>Network Telnet To Internal Character Text</TITLE>
+<NEXTID N="z18">
+</HEAD>
+<BODY>
+
+<H1>Network Telnet To Internal Character Text</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is a filter stream suitable for taking text from a socket and
+passing it into a stream which expects text in the local C
+representation.  It does newline conversion.  As usual, pass its
+output stream to it when creating it.
+
+<PRE>
+#ifndef HTNETTXT_H
+#define HTNETTXT_H
+
+extern HTStream * HTNetToText PARAMS ((HTStream * sink));
+
+#endif
+</PRE>
+End of definition module
+</BODY>
+</HTML>
