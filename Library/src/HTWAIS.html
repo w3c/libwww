@@ -4,46 +4,55 @@
 <NEXTID N="z3">
 </HEAD>
 <BODY>
-<H1>WAIS protocol interface</H1>This module does not actually perform
-the WAIS protocol directly, but it
-does using one or more libraries
-of the freeWAIS distribution. The
-ui.a library came with the old free
-WAIS from TMC,  the client.a and
-wais.a libraries are needed from
-the freeWAIS from CNIDR.<P>
-If you include this module in the
-library, you must also
+<H1>WAIS Protocol Interface</H1>
+
+This module does not actually perform the WAIS protocol directly, but it
+does using one or more libraries of the freeWAIS distribution. The
+ui.a library came with the old free WAIS from TMC,  the client.a and
+wais.a libraries are needed from the freeWAIS from CNIDR. <P>
+
+<EM><B>Note: </B>The current version suppored is freeWAIS-0.3, June 1994</EM><P>
+
+If you include this module in the library, you must also
+
 <UL>
-<LI>Register the HTWAIS protocol at initialisation
-(e.g. HTInit or HTSInit) by compiling
-it with -DDIRECT_WAIS
-<LI>Link with the WAIS libraries
-</UL>The wais source files are parsed
-by a separate and independent module,<A
-NAME="z1" HREF="HTWSRC.html">
-HTWSRC</A> .   You can include HTWSRC
-without including direct wais using
-this module, and your WWW code will
-be able to read source files, and
-access WAIS indexes through a gateway.<P>
-A <A
-NAME="z2" HREF="../../Daemon/WAISGate.html">WAIS-WWW gateway</A> is just a normal
-W3 server with a libwww compiled
-with this module.<P>
-Anyways, this interface won't change
-much:
-<PRE>#ifndef HTWAIS_H
+<LI> Register the HTWAIS protocol at initialisation (e.g. HTInit or HTSInit)
+     by compiling it with -DDIRECT_WAIS
+<LI> Link with the WAIS libraries
+</UL>
+
+The wais source files are parsed by a separate and independent module,
+<A NAME="z1" HREF="HTWSRC.html">HTWSRC</A>.  You can include HTWSRC
+without including direct wais using this module, and your WWW code will
+be able to read source files, and access WAIS indexes through a gateway.<P>
+
+A <A NAME="z2" HREF="../../Daemon/WAISGate.html">WAIS-WWW gateway</A>
+is just a normal W3 server with a libwww compiled with this module.<P>
+
+Anyways, this interface won't change much:
+
+<PRE>
+#ifndef HTWAIS_H
 #define HTWAIS_H
 #include "HTUtils.h"
 #include "HTAccess.h"
+</PRE>
+
+<H2>Control Flags</H2>
+
+The number of lines handled from a WAIS search is determined by this variable.
+The default value is 100 (this is defined in the module)
+
+<PRE>
+extern int HTMaxWAISLines;
+</PRE>
 
 GLOBALREF HTProtocol HTWAIS;
 
 #endif
-
 </PRE>
-<ADDRESS><A
-NAME="0" HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A>
-</ADDRESS></BODY>
+
+<ADDRESS><A NAME="0" HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A>
+</ADDRESS>
+</BODY>
 </HTML>

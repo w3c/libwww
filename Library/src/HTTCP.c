@@ -228,6 +228,8 @@ PRIVATE void HTTCPCacheRemoveElement ARGS1(host_info *, element)
     if (TRACE) fprintf(stderr, "HostCache... Remove `%s' from cache\n",
 		       HTAtom_name(element->hostname));
     HTList_removeObject(hostcache, element);
+    if (*element->addrlist)
+	free(*element->addrlist);
     if (element->addrlist)
 	free(element->addrlist);
     if (element->weight)
@@ -300,25 +302,33 @@ PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
 {
     int homes;				      /* Number of homes on the host */
     host_info *new;
+    char *addr;
+    char **index = element->h_addr_list;
+    int cnt = 1;
     if (!host || !element) {
 	if (TRACE)
 	    fprintf(stderr, "HostCache... Bad argument to add to cache\n");
 	return NULL;
     }
+    while(*index++)
+	cnt++;
     if ((new = (host_info *) calloc(1, sizeof(host_info))) == NULL ||
-	(new->addrlist = (char **)
-	 calloc(1, sizeof element->h_addr_list)) == NULL)
+	(new->addrlist = (char **) calloc(1, cnt*sizeof(char*))) == NULL ||
+	(addr = (char *) calloc(1, cnt*element->h_length)) == NULL)
 	outofmem(__FILE__, "HTTCPCacheAddElement");
     new->hostname = host;
-
+    index = element->h_addr_list;
+    cnt = 0;
+    while (*index) {
+	*(new->addrlist+cnt) = addr+cnt*element->h_length;
+	memcpy((void *) *(new->addrlist+cnt++), *index++, element->h_length);
+    }
     if ((homes = (sizeof element->h_addr_list) / element->h_length) > 1) {
 	new->multihomed = homes;
 	if ((new->weight = (float *) calloc(homes, sizeof(float))) == NULL)
 	    outofmem(__FILE__, "HTTCPCacheAddElement");
     }
     new->addrlength = element->h_length;
-    memcpy((void *) new->addrlist, element->h_addr_list,
-	   sizeof element->h_addr_list);
     if (!hostcache)
 	hostcache = HTList_new();
 

@@ -611,7 +611,7 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     if (!req->setup)
 	return NO;
 
-    if (req->scheme == HTAA_NONE)
+    if (req->scheme == HTAA_NONE || req->scheme == HTAA_UNKNOWN)
 	req->scheme = HTAA_selectScheme(req->setup);
 
     switch (req->scheme) {
@@ -861,6 +861,9 @@ PUBLIC void HTAACleanup ARGS1(HTRequest *, req)
 	FREE(req->authorization);
 	FREE(req->prot_template);
 	FREE(req->dialog_msg);
+#ifdef OLD_CODE 
+	/* Should not be freed as they have become a part of a static
+	   memory */
 	if (req->valid_schemes) {
 	    HTList_delete(req->valid_schemes);
 	    req->valid_schemes = NULL;
@@ -873,6 +876,7 @@ PUBLIC void HTAACleanup ARGS1(HTRequest *, req)
 	    }
 	    FREE(req->scheme_specifics);
 	}
+#endif /* OLD_CODE */
     }
     return;
 }
