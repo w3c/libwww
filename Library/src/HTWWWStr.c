@@ -451,13 +451,9 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand)
 #endif /* HAVE_TIMEGM */
 #endif /* HAVE_MKTIME */
 
-    if (CORE_TRACE) {
-	char buf[30];
-	*buf='\0';
-	HTDateDirStr(&t, buf, 30);
-	HTTrace("Time string. %s parsed to %ld seconds in local time (%s)\n",
-		str, (long) t, buf);
-    }    
+    if (CORE_TRACE)
+ 	HTTrace("Time string. %s parsed to %ld calendar time or `%s' in local time\n",
+		str, (long) t, ctime(&t));
     return t;
 }
 
