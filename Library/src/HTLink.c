@@ -95,12 +95,12 @@ PUBLIC BOOL HTLink_remove (HTAnchor * source, HTAnchor * destination)
     }
 
     /* Remove link information for other links */
-    if (destination->links) {
-	HTList *cur = destination->links;
+    if (source->links) {
+	HTList *cur = source->links;
 	HTLink *pres;
 	while ((pres = (HTLink *) HTList_nextObject(cur))) {
 	    if (pres->dest == destination) {
-		HTList_removeObject(destination->links, pres);
+		HTList_removeObject(source->links, pres);
 		HT_FREE(pres);
 		return YES;
 	    }
