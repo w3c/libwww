@@ -188,7 +188,7 @@ PUBLIC int HTTrace(const char * fmt, ...)
     va_start(pArgs, fmt);
     if (PHTTraceCallback)
 	(*PHTTraceCallback)(fmt, pArgs);
-#ifdef WWW_MSWINDOWS
+#ifdef WWW_WIN_WINDOWS
     return (0);
 #else
     return (vfprintf(stderr, fmt, pArgs));

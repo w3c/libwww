@@ -614,6 +614,9 @@ int main (int argc, char ** argv)
 	Cleanup(mr, -1);
     }
 
+    /* Testing that HTTrace is working */
+    HTTrace ("Welcome to the W3C mini Robot\n");
+
     /* Rule file specified? */
     if (mr->rules) {
 	HTList * list = HTList_new();
