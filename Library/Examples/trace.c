@@ -13,7 +13,7 @@
 **	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
 **	details.
 **
-**	Sample showing how to POST data to an HTTP server
+**	Sample showing how to use a TRACE request
 */
 
 #include "WWWLib.h"
@@ -38,62 +38,55 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 int main (int argc, char ** argv)
 {
     HTRequest * request = NULL;
-    HTParentAnchor * src = NULL;
     HTAnchor * dst = NULL;
     char * dst_str = NULL;
-    char * data = NULL;
+    int max_forward = 1;
     BOOL status = NO;
 
     /* Create a new premptive client */
-    HTProfile_newNoCacheClient("libwww-POST", "1.0");
+    HTProfile_newNoCacheClient("libwww-TRACE", "1.0");
 
-    /* Add our own filter to update the history list */
+    /* Add our own filter to handle termination */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Handle command line args */
     if (argc >= 3) {
 	dst_str = argv[1];
-	data = argv[2];
+	max_forward = atoi(argv[2]);
+	if (max_forward<0 || max_forward>10) max_forward==1;
     } else {
-	printf("Type the URI of the destination you want to POST to and the contents that you want to post.\n");
-	printf("\t%s <destination> <data>\n", argv[0]);
-	printf("For example, %s http://myserver/destination.html \"This is some testdata\"\n",
-	       argv[0]);
+	printf("Type the URI of the destination you want to TRACE and the max number of hops you want to try\n");
+	printf("\t%s <destination> <hops>\n", argv[0]);
+	printf("For example, %s http://www.w3.org 2\n", argv[0]);
 	return -1;
     }
 
-    if (data && *data && dst_str && *dst_str) {
+    if (dst_str && *dst_str) {
 
 	/* Make source relative to where we are */
 	char * cwd = HTGetCurrentDirectoryURL();
 
-	fprintf(stdout, "Posting to %s\n", dst_str);
+	fprintf(stdout, "Tracing request to %s with %d number of hops\n",
+		dst_str, max_forward);
 
 	/* Create a request */
 	request = HTRequest_new();
 
+	/* We don't wany any progress notification or other user stuff */
+	HTAlert_setInteractive(NO);
+
+	/* Set the output format to source and put output to stdout */
+	HTRequest_setOutputFormat(request, WWW_SOURCE);
+	HTRequest_setOutputStream(request, HTFWriter_new(request, stdout, YES));
+
+	/* Set the max forwards */
+	HTRequest_setMaxForwards(request, max_forward);
+
 	/* Get an anchor object for the destination URI */
 	dst = HTAnchor_findAddress(dst_str);
 
-	/*
-	** Dream up a source anchor (an editor can for example use this).
-	** After creation we associate the data that we want to post and
-	** set some metadata about what the data is. More formats can be found
-	** ../src/HTFormat.html
-	*/
-	src = HTTmpAnchor(NULL);
-	HTAnchor_setDocument(src, data);
-	HTAnchor_setFormat(src, WWW_PLAINTEXT);
-
-	/*
-	** If not posting to an HTTP/1.1 server then content length MUST be
-	** there. If HTTP/1.1 then it doesn't matter as we just use chunked
-	** encoding under the covers
-	*/
-	HTAnchor_setLength(src, strlen(data));
-
 	/* POST the source to the dest */
-	status = HTPostAnchor(src, dst, request);
+	status = HTTraceAnchor(dst, request);
 
 	/* We don't need these anymore */
 	HT_FREE(cwd);
