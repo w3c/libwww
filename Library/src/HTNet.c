@@ -63,6 +63,12 @@ struct _HTInputStream {
     /* ... */
 };
 
+typedef struct _HTFilterEvent {
+    HTRequest *		request;
+    int			status;
+    HTTimer *		timer;
+} HTFilterEvent;
+
 PRIVATE HTList * HTBefore = NULL;	    /* List of global BEFORE filters */
 PRIVATE HTList * HTAfter = NULL;	     /* List of global AFTER filters */
 
@@ -503,6 +509,38 @@ PUBLIC int HTNet_count (void)
 /*			  Creation and deletion methods  		     */
 /* ------------------------------------------------------------------------- */
 
+PRIVATE int AfterFilterEvent (HTTimer * timer, void * param, HTEventType type)
+{
+    HTFilterEvent * fe = (HTFilterEvent *) param;
+    if (fe) {
+	HTRequest * request = fe->request;
+	int status = fe->status;
+	if (timer != fe->timer)
+	    HTDebugBreak(__FILE__, __LINE__, "Net timer. %p not in sync\n", timer);
+	if (CORE_TRACE) 
+	    HTTrace("HTNet....... Continuing calling AFTER filters %p with timer %p\n",
+		    fe, timer);
+
+	/* Delete the event context */
+	HT_FREE(fe);
+
+	/* Now call the remaining AFTER filters */
+	return HTNet_executeAfterAll(request, status);
+    }
+    return HT_ERROR;
+}
+
+PRIVATE BOOL createAfterFilterEvent (HTRequest * request, int status)
+{
+    HTFilterEvent * me = NULL;
+    if ((me = (HTFilterEvent *) HT_CALLOC(1, sizeof(HTFilterEvent))) == NULL)
+        HT_OUTOFMEM("createAfterFilterEvent");
+    me->request = request;
+    me->status = status;
+    me->timer = HTTimer_new(NULL, AfterFilterEvent, me, 1, YES, NO);
+    return YES;
+}
+
 PRIVATE HTNet * create_object (void)
 {
     static int net_hash = 0;
@@ -615,7 +653,17 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request)
     ** that is NOT HT_OK then jump directly to the after callbacks and return
     */
     if ((status = HTNet_executeBeforeAll(request)) != HT_OK) {
-	HTNet_executeAfterAll(request, status);
+
+ 	/*
+	**  If in non-blocking mode then return here and call AFTER
+	**  filters from a timer event handler. As Olga Antropova
+	**  points out, otherwise, the stack can grow if new requests
+	**  are started directly from the after filters 
+	*/
+	if (HTEvent_isCallbacksRegistered() && !HTRequest_preemptive(request))
+	    createAfterFilterEvent(request, status);
+	else
+	    HTNet_executeAfterAll(request, status);
 	return YES;
     }
 
@@ -696,7 +744,17 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     ** that is NOT HT_OK then jump directly to the after callbacks and return
     */
     if ((status = HTNet_executeBeforeAll(request)) != HT_OK) {
-	HTNet_executeAfterAll(request, status);
+
+ 	/*
+	**  If in non-blocking mode then return here and call AFTER
+	**  filters from a timer event handler. As Olga Antropova
+	**  points out, otherwise, the stack can grow if new requests
+	**  are started directly from the after filters 
+	*/
+	if (HTEvent_isCallbacksRegistered() && !HTRequest_preemptive(request))
+	    createAfterFilterEvent(request, status);
+	else
+	    HTNet_executeAfterAll(request, status);
 	return YES;
     }
 
