@@ -116,15 +116,12 @@ PUBLIC BOOL HTLog_addReferer (HTLog * log, HTRequest * request, int status)
 	if (parent_anchor) {
 	    char * me = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
 	    char * parent = HTAnchor_address((HTAnchor *) parent_anchor);
-	    char * relative = HTParse(parent, me ? me : "",
-				      PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	    if (WWWTRACE) HTTrace("Log......... Writing Referer log\n");
-	    if (me && relative && *relative) {
+	    if (me && parent && *parent) {
 		fprintf(log->fp, "%s -> %s\n", parent, me);
 	    }
 	    HT_FREE(me);
 	    HT_FREE(parent);
-	    HT_FREE(relative);
 	    return (fflush(log->fp) != EOF); /* Actually update it on disk */
 	}
     }
@@ -133,7 +130,6 @@ PUBLIC BOOL HTLog_addReferer (HTLog * log, HTRequest * request, int status)
 
 /*
 **	A generic logger - logs whatever you put in as the line.
-**	Caller should add a line feed if needed.
 */
 PUBLIC BOOL HTLog_addLine (HTLog * log, const char * line)
 {
@@ -144,4 +140,18 @@ PUBLIC BOOL HTLog_addLine (HTLog * log, const char * line)
     return NO;
 }
 
-
+/*
+**	A generic logger with variable arguments
+*/
+PUBLIC BOOL HTLog_addText (HTLog * log, const char * fmt, ...)
+{
+    if (log && log->fp) {
+	va_list pArgs;
+	va_start(pArgs, fmt);
+#ifdef HAVE_VPRINTF
+	(vfprintf(log->fp, fmt, pArgs));
+	return (fflush(log->fp) != EOF); /* Actually update it on disk */
+#endif
+    }
+    return NO;
+}

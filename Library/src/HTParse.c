@@ -475,13 +475,14 @@ PUBLIC char * HTRelative (const char * aName, const char * relatedName)
         for(; *q && *q!='#' && *q!=';' && *q!='?'; q++) if (*q=='/') levels++;
 	if ((result = (char  *) HT_MALLOC(3*levels + strlen(last_slash) + 1)) == NULL)
 	    HT_OUTOFMEM("HTRelative");
-	result[0]=0;
+	*result = '\0';
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);
+	if (!*result) strcat(result, "./");
     }
-    if (URI_TRACE) HTTrace(
-		      "HTRelative.. `%s' expressed relative to `%s' is `%s'\n",
-		       aName, relatedName, result);
+    if (URI_TRACE)
+	HTTrace("HTRelative.. `%s' expressed relative to `%s' is `%s'\n",
+		aName, relatedName, result);
     return result;
 }
 

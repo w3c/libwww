@@ -52,7 +52,7 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
 	me->left = strtol(line, &errstr, 16);    /* hex! */
 	if (STREAM_TRACE) HTTrace("Chunked..... `%s\' chunk size: %X\n", line, me->left);
 	if (errstr == line) {
-	    HTTrace("Chunked..... Illigal chunk size: `%s\'\n", line);
+	    HTTrace("Chunked..... Received illigal chunk size: `%s\'\n", line);
 	    return NO;
 	}
 	if (me->left > 0) {

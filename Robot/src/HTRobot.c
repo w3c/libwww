@@ -24,6 +24,7 @@
 
 #ifdef HT_POSIX_REGEX
 #include "rxposix.h"
+#define	W3C_REGEX_FLAGS		(REG_EXTENDED | REG_NEWLINE)
 #endif
 
 #ifndef W3C_VERSION
@@ -41,7 +42,9 @@
 #define DEFAULT_REJECT_FILE   	"log-reject.txt"
 #define DEFAULT_NOTFOUND_FILE  	"log-notfound.txt"
 #define DEFAULT_CONNEG_FILE  	"log-conneg.txt"
+#define DEFAULT_NOALTTAG_FILE  	"log-alt.txt"
 #define DEFAULT_FORMAT_FILE  	"log-format.txt"
+#define DEFAULT_CHARSET_FILE  	"log-charset.txt"
 #define DEFAULT_MEMLOG		"robot.mem"
 #define DEFAULT_PREFIX		""
 #define DEFAULT_IMG_PREFIX	""
@@ -86,20 +89,25 @@ typedef struct _Robot {
     char *		prefix;
     char *		img_prefix;
 
-    char *		logfile;
+    char *		logfile;		/* clf log */
     HTLog *             log;
-    char *		reffile;
+    char *		reffile;		/* referer log */
     HTLog *             ref;
-    char *		rejectfile;
+    char *		rejectfile;		/* unchecked links */
     HTLog *	        reject;
-    char *		notfoundfile;
+    char *		notfoundfile;		/* links that returned 404 */
     HTLog *	        notfound;
-    char *		connegfile;
+    char *		connegfile;		/* links that were conneg'ed */
     HTLog *	        conneg;
-    char *		outputfile;
+    char *		noalttagfile;		/* images without alt tags*/
+    HTLog *	        noalttag;
+
+    char *		hitfile;		/* links sorted after hit counts */
+    char *		mtfile;			/* media types encountered */
+    char *		charsetfile;		/* charsets encountered */
+
+    char *		outputfile;		
     FILE *	        output;
-    char *		hitfile;
-    char *		mtfile;
 
     MRFlags		flags;
 
@@ -309,6 +317,51 @@ PRIVATE HTList * mediatype_distribution (HTArray * array)
     return NULL;
 }
 
+/*
+**  Calculate distributions for charsets. The same mechanism
+**  can be used for other characteristics with relatively
+**  few outcomes.
+*/
+PRIVATE HTList * charset_distribution (HTArray * array)
+{
+    if (array) {
+	HTList * cs = HTList_new();
+	MetaDist * pres = NULL;
+	void ** data = NULL;
+	HTParentAnchor * anchor = NULL;
+	anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
+	while (anchor) {
+	    HTCharset charset = HTAnchor_charset(anchor);
+	    if (charset) {
+		HTList * cur = cs;
+
+		/* If found then increase counter */
+		while ((pres = (MetaDist *) HTList_nextObject(cur))) {
+		    if (pres->name == charset) {
+			pres->hits++;
+			break;
+		    }
+		}
+
+		/* If not found then add new format to list */
+		if (!pres) {
+                    if ((pres = (MetaDist *) HT_CALLOC(1, sizeof(MetaDist))) == NULL)
+        	         HT_OUTOFMEM("charset_distribution");
+		    pres->name = charset;
+		    pres->hits = 1;
+		    HTList_addObject(cs, pres);
+		    HTList_insertionSort(cs, FormatSort);
+		}
+	    }
+
+	    /* Find next anchor in array */
+	    anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
+	}
+	return cs;
+    }
+    return NULL;
+}
+
 PRIVATE int FormatSort (const void * a, const void * b)
 {
     MetaDist * aa = (MetaDist *) a;
@@ -323,13 +376,9 @@ PRIVATE BOOL log_meta_distribution (const char * logfile, HTList * distribution)
 	if (log) {
 	    HTList * cur = distribution;
 	    MetaDist * pres;
-	    char str[64];
 	    while ((pres = (MetaDist *) HTList_nextObject(cur))) {
 		if (pres->name) {
-		    memset(str, '\0', 64*sizeof(char));
-		    sprintf(str, "%8d ", pres->hits);
-		    strncat(str, HTAtom_name(pres->name), 50);
-		    HTLog_addLine(log, str);
+		    HTLog_addText(log, "%8d %s\n", pres->hits, HTAtom_name(pres->name));
 		}
 	    }
 	    HTLog_close(log);
@@ -365,11 +414,12 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
     if (mr->time > 0) {
 	ms_t t = HTGetTimeInMillis() - mr->time;
 	if (t > 0) {
-	    double loadfactor = 1000 * (mr->get_bytes / t);
+	    double loadfactor = (mr->get_bytes / (t * 0.001));
+	    double reqprsec = (total_docs / (t * 0.001));
 	    double secs = t / 1000.0;
             char bytes[50];
-	    HTTrace("Accessed %ld documents in %.2f seconds\n",
-		    total_docs, secs);
+	    HTTrace("Accessed %ld documents in %.2f seconds (%.2f requests pr sec)\n",
+		    total_docs, secs, reqprsec);
 
             HTNumToStr(mr->get_bytes, bytes, 50);
 	    HTTrace("Did a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
@@ -398,8 +448,17 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 		}
 	    }
 
+            /* Find charset distribution */
+	    if (mr->charsetfile) {
+		HTList * charsetdist = charset_distribution(array);
+		if (charsetdist) {
+		    log_meta_distribution(mr->charsetfile, charsetdist);
+		    delete_meta_distribution(charsetdist);
+		}
+	    }
+
             /* Add as may other stats here as you like */
-	    
+	    /* ... */
 	    
 	    /* Delete the array */
             HTArray_delete(array);
@@ -456,6 +515,7 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	if (me->reject) HTLog_close(me->reject);
 	if (me->notfound) HTLog_close(me->notfound);
 	if (me->conneg) HTLog_close(me->conneg);
+	if (me->noalttag) HTLog_close(me->noalttag);
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	if (me->flags & MR_TIME) {
 	    time_t local = time(NULL);
@@ -595,14 +655,14 @@ PRIVATE char * get_regerror (int errcode, regex_t * compiled)
     return str;
 }
 
-PRIVATE regex_t * get_regtype (Robot * mr, const char * regex_str)
+PRIVATE regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
 {
     regex_t * regex = NULL;
     if (regex_str && *regex_str) {
 	int status;
 	if ((regex = (regex_t *) HT_CALLOC(1, sizeof(regex_t))) == NULL)
 	    HT_OUTOFMEM("get_regtype");
-	if ((status = regcomp(regex, regex_str, REG_EXTENDED))) {
+	if ((status = regcomp(regex, regex_str, cflags))) {
 	    char * err_msg = get_regerror(status, regex);
 	    HTTrace("Regular expression error: %s\n", err_msg);
 	    HT_FREE(err_msg);
@@ -642,10 +702,11 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	    HTChunk * buffer = HTChunk_new(128);
 	    char * uri = HTAnchor_address((HTAnchor *) finger->dest);
 	    HTAssoc * pres;
+	    HTChunk_puts(buffer, uri);
 	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
 		char * value = HTAssoc_value(pres);
 		if (first) {
-		    HTChunk_puts(buffer, "(");
+		    HTChunk_puts(buffer, "\t(");
 		    first = NO;
 		} else
 		    HTChunk_puts(buffer, ", ");
@@ -654,14 +715,13 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 		HTChunk_puts(buffer, HTAssoc_name(pres));
 
 		/* Only output the value if not empty string */
-		if (*value) {
+		if (value && *value) {
 		    HTChunk_puts(buffer, "=");
 		    HTChunk_puts(buffer, value);
 		}
 	    }
-	    if (!first) HTChunk_puts(buffer, ")\t");
-	    HTChunk_puts(buffer, uri);
-	    HTLog_addLine(mr->conneg, HTChunk_toCString(buffer));
+	    if (!first) HTChunk_puts(buffer, ")");
+	    HTLog_addLine(mr->conneg, HTChunk_data(buffer));
 	    HTChunk_delete(buffer);
 	    HT_FREE(uri);
 	}
@@ -731,6 +791,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	HTParentAnchor * dest_parent = HTAnchor_parent(dest);
 	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
 	HyperDoc * hd = HTAnchor_document(dest_parent);
+	HTParentAnchor * referer = HTRequest_anchor(text->request);
 	BOOL match = YES;
 	BOOL check = NO;
 
@@ -762,13 +823,13 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 
 	/* Test whether we already have a hyperdoc for this document */
         if (mr->flags & MR_LINK && match && dest_parent) {
-	    HTParentAnchor * parent = HTRequest_parent(text->request);
-	    HyperDoc * last = HTAnchor_document(parent);
-	    int depth = last ? last->depth+1 : 0;
+	    HTParentAnchor * last_anchor = HTRequest_parent(text->request);
+	    HyperDoc * last_doc = HTAnchor_document(last_anchor);
+	    int depth = last_doc ? last_doc->depth+1 : 0;
 	    Finger * newfinger = Finger_new(mr, dest_parent, METHOD_GET);
 	    HTRequest * newreq = newfinger->request;
 	    HyperDoc_new(mr, dest_parent, depth);
-	    HTRequest_setParent(newreq, HTRequest_anchor(text->request));
+	    HTRequest_setParent(newreq, referer);
 	    if (check || depth >= mr->depth) {
 		if (SHOW_MSG) HTTrace("loading at depth %d using HEAD\n", depth);
 		HTRequest_setMethod(newreq, METHOD_HEAD);
@@ -782,7 +843,13 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    }
 	} else {
 	    if (SHOW_MSG) HTTrace("does not fulfill constraints\n");
-	    if (mr->reject) HTLog_addLine(mr->reject, uri);
+	    if (mr->reject) {
+		if (referer) {
+		    char * ref_addr = HTAnchor_address((HTAnchor *) referer);
+		    if (ref_addr) HTLog_addText(mr->reject, "%s --> %s\n", ref_addr, uri);
+		    HT_FREE(ref_addr);
+		}
+	    }
 	}
 	HT_FREE(uri);
     }
@@ -795,10 +862,11 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	Finger * finger = (Finger *) HTRequest_context(text->request);
 	Robot * mr = finger->robot;
 	if (mr->flags & MR_IMG) {
-	    HTParentAnchor * dest = (HTParentAnchor *)
-		HTAnchor_followMainLink((HTAnchor *) anchor);
-	    char * uri = HTAnchor_address((HTAnchor *) dest);
-	    HyperDoc * hd = HTAnchor_document(dest);
+	    HTAnchor * dest = HTAnchor_followMainLink((HTAnchor *) anchor);
+	    HTParentAnchor * dest_parent = HTAnchor_parent(dest);
+	    char * uri = HTAnchor_address((HTAnchor *) dest_parent);
+	    HyperDoc * hd = HTAnchor_document(dest_parent);
+	    HTParentAnchor * referer = HTRequest_anchor(text->request);
 	    BOOL match = YES;
 
 	    if (hd) {
@@ -813,14 +881,22 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 
 	    /* Test whether we already have a hyperdoc for this document */
 	    if (match && dest) {
-		HTParentAnchor * parent = HTRequest_parent(text->request);
-		HyperDoc * last = HTAnchor_document(parent);
-		int depth = last ? last->depth+1 : 0;
-		Finger * newfinger = Finger_new(mr, dest,
+		Finger * newfinger = Finger_new(mr, dest_parent,
 						mr->flags & MR_SAVE ?
 						METHOD_GET : METHOD_HEAD);
 		HTRequest * newreq = newfinger->request;
-		HyperDoc_new(mr, dest, depth);
+		HyperDoc_new(mr, dest_parent, 1);
+		HTRequest_setParent(newreq, referer);
+
+		/* Check whether we should report missing ALT tags */
+		if (mr->noalttag && (alt==NULL || *alt=='\0')) {
+		    if (referer) {
+			char * ref_addr = HTAnchor_address((HTAnchor *) referer);
+			if (ref_addr) HTLog_addText(mr->noalttag, "%s --> %s\n", ref_addr, uri);
+			HT_FREE(ref_addr);
+		    }
+		}
+		
 		if (SHOW_MSG) HTTrace("Robot....... Checking Image `%s\'\n", uri);
 		if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
 		    if (SHOW_MSG) HTTrace("Robot....... Image not tested!\n");
@@ -828,7 +904,13 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 		}
 	    } else {
 		if (SHOW_MSG) HTTrace("does not fulfill constraints\n");
-		if (mr->reject) HTLog_addLine(mr->reject, uri);
+		if (mr->reject) {
+		    if (referer) {
+			char * ref_addr = HTAnchor_address((HTAnchor *) referer);
+			if (ref_addr) HTLog_addText(mr->reject, "%s --> %s\n", ref_addr, uri);
+			HT_FREE(ref_addr);
+		    }
+		}
 	    }
 	    HT_FREE(uri);
 	}
@@ -943,6 +1025,17 @@ int main (int argc, char ** argv)
 		    argv[++arg] : DEFAULT_FORMAT_FILE;
 		mr->flags |= MR_KEEP_META;
 
+  	    /* charset distribution log file */
+	    } else if (!strncmp(argv[arg], "-char", 5)) {
+		mr->charsetfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_CHARSET_FILE;
+		mr->flags |= MR_KEEP_META;
+
+  	    /* no alt tags log file */
+	    } else if (!strncmp(argv[arg], "-alt", 4)) {
+		mr->noalttagfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_NOALTTAG_FILE;
+
             /* rule file */
 	    } else if (!strcmp(argv[arg], "-r")) {
 		mr->rules = (arg+1 < argc && *argv[arg+1] != '-') ?
@@ -1055,15 +1148,15 @@ int main (int argc, char ** argv)
 	    /* If we can link against a POSIX regex library */
 	    } else if (!strncmp(argv[arg], "-inc", 4)) {
 		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    mr->include = get_regtype(mr, argv[++arg]);
+		    mr->include = get_regtype(mr, argv[++arg], W3C_REGEX_FLAGS);
 		}
 	    } else if (!strncmp(argv[arg], "-exc", 4)) {
 		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    mr->exclude = get_regtype(mr, argv[++arg]);
+		    mr->exclude = get_regtype(mr, argv[++arg], W3C_REGEX_FLAGS);
 		}
 	    } else if (!strncmp(argv[arg], "-check", 6)) {
 		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    mr->check = get_regtype(mr, argv[++arg]);
+		    mr->check = get_regtype(mr, argv[++arg], W3C_REGEX_FLAGS);
 		}
 #endif
 
@@ -1150,6 +1243,9 @@ int main (int argc, char ** argv)
 
     /* Negotiated resource log specified? */
     if (mr->connegfile) mr->conneg = HTLog_open(mr->connegfile, YES, YES);
+
+    /* No alt tags log file specified? */
+    if (mr->noalttagfile) mr->noalttag = HTLog_open(mr->noalttagfile, YES, YES);
 
     /* Reject Log file specified? */
     if (mr->rejectfile) mr->reject = HTLog_open(mr->rejectfile, YES, YES);

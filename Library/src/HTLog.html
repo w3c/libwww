@@ -71,6 +71,14 @@ is responsible for adding a line feed if desired.
 extern BOOL HTLog_addLine (HTLog * log, const char * line);
 </PRE>
 
+<H2>Log the Following Variable Arguments</H2>
+
+A generic logger with variable arguments
+
+<PRE>
+extern BOOL HTLog_addText (HTLog * log, const char * fmt, ...);
+</PRE>
+
 <PRE>
 #endif
 </PRE>

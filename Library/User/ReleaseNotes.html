@@ -38,6 +38,34 @@ the latest &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
 <P>
   <HR>
 <H2>
+  Release 5.1f January 1998
+</H2>
+<H3>
+  New Features
+</H3>
+<UL>
+  <LI>
+    Changed the referer HTTP header field to use relative URIs instead of absolute.
+    This saves a lot of bytes on the wire
+  <LI>
+    Added support for <A HREF="../../Robot/User/CommandLine.html#Logging">logging
+    the charset media type parameter</A>
+  <LI>
+    Added support for <A HREF="../../Robot/User/CommandLine.html#Inlined">logging
+    when the ALT tag is missing</A> from inlined images
+  <LI>
+    Extended the <A HREF="../src/HTLog.html">log class</A> to support arbitrary
+    log files
+</UL>
+<H3>
+  Bug Fixes
+</H3>
+<UL>
+  <LI>
+    Fixed some problems in the HTRelative function in
+    <A HREF="../src/HTParse.html">HTParse</A>.
+</UL>
+<H2>
   Release 5.1e January 1998
 </H2>
 <H3>

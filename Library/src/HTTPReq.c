@@ -454,11 +454,15 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	if (parent_anchor) {
 	    char * act = HTAnchor_address((HTAnchor *) anchor);
 	    char * parent = HTAnchor_address((HTAnchor *) parent_anchor);
+#if 1
+	    char * relative = HTRelative(parent, act);
+#else
 	    char * relative = HTParse(parent, act,
 				      PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+#endif
 	    if (relative && *relative) {
 		PUTS("Referer: ");
-		PUTS(parent);
+		PUTS(relative);
 		PUTBLOCK(crlf, 2);
 	    }
 	    HT_FREE(act);

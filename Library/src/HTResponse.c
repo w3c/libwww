@@ -70,6 +70,9 @@ PUBLIC BOOL HTResponse_delete (HTResponse * me)
 	/* Trailers */
 	if (me->trailer) HTAssocList_delete(me->trailer);
 
+	/* Variants */
+	if (me->variants) HTAssocList_delete(me->variants);
+
 	/*
 	** Only delete Content Type parameters and original headers if the
 	** information is not used elsewhere, for example by the anchor
