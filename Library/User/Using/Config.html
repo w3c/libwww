@@ -1,0 +1,242 @@
+<HTML>
+<HEAD>
+<TITLE>Configuration of the Library</TITLE>
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Guide.html"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Configuration</H1>
+
+The architecture of the Library is very flexible and it can be
+configured for many purposes. It has the advantage that you can set up
+exactly the configuartion needed for your application but also the
+disadvantage that it might seeem difficult to use. This section is
+supposed to describe what you can configure and how it can be
+done. There are several ways of configuring the Library:
+
+<UL>
+<LI><A HREF="#setenv">Environment Variables</A>
+<LI><A HREF="#proxy">Proxies and Gateways</A>
+<LI><A HREF="#flags">Setting flags to specify behavior of the Library</A>
+<LI><A HREF="#init">Static/dynamic initialization of Library Modules</A>
+<LI><A HREF="#stram">Set up the Stream Interface</A>
+<LI><A HREF="#Overwrite">Write your own modules to replace Library modules</A>
+</UL>
+
+<A NAME="setenv"><H2>Environment Variables</H2></A>
+
+The Library supports a set of environment variables (or what's
+equivalent on your platform). <EM><A
+HREF="../../../LineMode/Defaults/EnvVariables.html">Environment
+variable</A></EM> is a Unix term. On VMS you should use a <EM><A
+HREF="../../../LineMode/Defaults/Installation_VMS.html#3">logical
+name</A></EM>. These are used to determine the default start up page,
+what <A HREF="../../../LineMode/Defaults/AboutNewsServers.html">News
+server</A> to use, whether we should use a <A
+HREF="../../../Daemon/Proxies/Proxies.html">Proxy server</A> or a <A
+HREF="../../../Daemon/WAISGate.html">WWW Gateway</A> when requesting a
+document. <P>
+
+All the environment variables supported by the Library are also
+supported by the <A HREF="../../../LineMode/Status.html">Line Mode
+Browser</A>, and you can find a list of them under the <A
+HREF="../../../LineMode/Defaults/Customisation.html">Customization of
+the Line Mode Browser</A>
+
+
+<A NAME="proxy"><H2>Proxies and Gateways</H2></A>
+
+Applications build on top of the Library can be set up to use a proxy
+server or a gateway when requesting a document. Using either a proxy
+server or a gateway enables you efficiently to enhance the
+functionality of any client without changing the code as all requests
+between the proxy client and the proxy server (or gateway) are using
+HTTP only. <P>
+
+The difference between using a proxy server and a gateway is subtle
+but important: In a gateway request, the DNS part but not the access
+scheme is sent to the gateway whereas proxy requests include the full
+URI. As an example, if we are using a <A
+HREF="../../../Daemon/WAISGate.html">WAIS gateway</A> and want to get
+the following URI:
+
+<PRE>
+	wais://quake.think.com?WWW
+</PRE>
+
+Then the part sent to a gateway is
+
+<PRE>
+	/quake.think.com?WWW
+</PRE>
+
+and to a proxy server
+
+<PRE>
+	wais://quake.think.com?WWW
+</PRE>
+
+Proxy servers have precedence over gateways, so if both a proxy server
+and a gateway has been defined for an access scheme, then the proxy
+server is used. You can set up the Library to use either a proxy
+server or a gateway is done using <A
+HREF="../../../LineMode/Defaults/EnvVariables.html">environment
+variables</A> as described in <A
+HREF="../../../Daemon/User/Proxies/ProxyClients.html">Setting up a
+Proxy Client</A>.
+
+<A NAME="flags"><H2>Configuration Flags</H2></A>
+
+Many modules have a global set of variables/flags that can be used to
+modify the behavior of the modules. There is on general rule that
+applies to what is configurable, but it is all described in the
+individual modules, so please look into the declaration files to see
+what flags exist. An example is how to specify <A
+HREF="../../Implementation/HTDirBrw.html">what a directory listing
+should like</A>.
+
+
+<A NAME="init"><H2>Static and Dynamic Initialization</H2></A>
+
+The <CODE>stream manager</CODE> and the <CODE>protocol manager</CODE>
+are both designed in a highly modular style in that they use pointers
+to functions when they decide on what protocol or parser to use
+respectively. For the <CODE>protocol manager</CODE>, the actual
+binding between an access scheme specified in the <A
+HREF="../../../Addressing/Addressing.html">URI</A> and the protocol
+module used is done in a separate protocol structure which can be
+setup at run-time. Likewise for the <CODE>stream manager</CODE> where
+the binding is based on <A
+HREF="http://info.internet.isi.edu/0/in-notes/rfc/files/rfc1521.txt">
+MIME-types</A>, either found directly in the response code from the
+remote server or by guessing. This model makes it very easy to install
+new stream converters and protocol modules.
+
+<DL>
+
+<DT><A NAME="z63" HREF="../../Implementation/HTInit.html">HTInit</A>
+
+<DD>The initialisation module for clients. This modules contains functions to
+setup a list of MIME type converters that the client is capable of handling
+and a set of bindings between file suffixes and MIME types.  The module may be
+replaced in custom clients.
+
+<DT>HTSInit
+
+<DD>The initialisation module for servers. May be replaced for custom
+servers. Not part of the library, but part of the server.
+
+<DT><A HREF="../../Implementation/HTRules.html">HTRule</A>
+
+<DD>The module which reads the configuration file, and does
+translation of URLs according to rules. It is currently replaced by <A
+HREF="../../../Daemon/Implementation/HTConfig.c"> HTConfig Module</A>
+in the CERN Server and no rule file is used in the Line Mode Browser
+in order to keep it simple.
+
+</DL>
+
+<A NAME="stream"><H2>Set up the Stream Interface</H2></A>
+
+Many of the library modules that output data directly to the client or through
+a server can easily be overwritten, e.g, by a GUI client. Below is a list of
+moduels that specifically have been propared for this, but other modules can
+be overwritten as well. <P>
+
+A client can overwrite the graphic object modules in the Library in
+order to take advantage of a more advanced user-interface. The <A
+HREF="Overview.html#GraphicObject">graphic object</A> has several
+interfaces, depending on how much of the Library code the client wants
+to handle on its own (on the figure, the more you are to the left, the
+more you will have to replace).
+
+<P><IMG SRC="Interfaces.gif"><P>
+
+<DL>
+
+<DT>SGML Stream Interface
+
+<DD>Use this intergace if you do not want to use the <A
+HREF="../../Implementation/SGML.html">SGML parser</A> in the Library
+and the following transition to a structured stream which is a
+subclass of the stream class. This can all be set up with out
+overwriting any module but simply by defining the converters not to
+use the SGML/HTML parsers.
+
+<DT>HTML Structured Stream Interface
+
+<DD>If the client has its own HTML parser then the interface is
+between the client HTML parser and the Library SGML parser. The SGML
+parser is a general SGML parser which can be setup with a specific DTD
+and it feeds the HTML parser with structured data. In this case, you
+will be emulating the <A HREF="../../Implementation/HTML.c">HTML
+module</A>, and generating a hypertext object from the structured
+stream.
+
+<DT>HText Call Back Interface
+
+<DD>If the client wants to use the HTML parser in the Library then
+this is the interface to use for the application. The hypertext object
+is parsed and the communication with the client is based on a set of
+call-back functions in the HTML parser. The call-back functions are
+all defined as prototypes in the <A
+HREF="../../Implementation/HText.html">HText module</A> but the client
+must provide the actual code that defines the presentation method used
+for a specific HTML tag. If you wish to maintain the structure of the
+SGML file within your object, then the SGML interface will be a better
+place to connect your code.
+
+</DL>
+
+<A NAME="Overwrite"><H2>Modules to Overwrite</H2></A>
+
+When all public functions and variables within a module are
+overwritten by module other than the one in the Library, the linker
+takes the new version and ignores the module in the Library. The
+following modules are implemented in the Library in order to support
+the <A HREF="../../../LineMode/Status.html">Line Mode Browser</A> but
+can be overwritten by GUI clients etc.
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTErrMsg.html">HTErrorMsg</A>
+
+<DD>This module generates and formats the messages on the <A
+HREF="../../Implementation/HTAccess.html#z1"> error stack</A>. If the
+application wants it own format for the messages, then this module can
+be overwritten.
+
+<DT><A HREF="../../Implementation/HTAlert.html">HTAlert</A>
+
+<DD>See also <A HREF="Utils.html#ErrorAlert">Description of
+HTAlert</A>. All communication within the Library to the user goes
+through this module. It contains functions for prompting for user name
+etc. Obviously this must be overwritten by GUI clients.
+
+<DT><A NAME="z74" HREF="../../Implementation/HTHist.html">HTHistory</A>
+
+<DD>This client module records and replays on request the documents
+which the user visits. If the application wants a more advanced
+history management, then this should be overwritten.
+
+<DT><A HREF="../../Implementation/HTEvent.html">HTEvent</A>
+
+<DD>This is the internal event loop in the library for multi-threaded
+protocol access. See also the description of <A
+HREF="../Features/multithread.html"> specification of multiple
+threads</A>. If an application wants its own event loop, then this
+module must be overwritten.
+
+</DL>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@w3.org, April 1995</ADDRESS>
+
+</BODY>
+</HTML>

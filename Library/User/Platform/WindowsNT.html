@@ -1,0 +1,73 @@
+<HTML>
+<HEAD>
+<TITLE>Notes about Windows NT</TITLE>
+<NEXTID N="z10">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A
+HREF="../../../LineMode/Status.html"><IMG ALT="LMB"
+SRC="../../../Icons/WWW/LMB48x.gif"></A> <A HREF="Platform.html"><IMG
+SRC="../../../Icons/WWW/Platform48x.gif"></A>
+
+<H1>Notes About Windows NT</H1>
+
+<HR>
+
+These are the installation and user notes for the <A
+HREF="../../Status.html">Library of Common Code</A> and the <A
+HREF="../../../LineMode/Status.html">Line Mode Browser</A>. Any
+comments and suggestions are welcome at
+<EM>libwww@info.cern.ch</EM>. <P>
+
+This is a first port and as we don't have any NT platform, we have
+been depending on help from many people, especially <EM>Wissam Y
+Ali-Ahmed &lt;samaa@ceci.mit.edu&gt;</EM>. See also the notes on <A
+HREF="Windows.html">Windows</A>
+
+<DL>
+
+<DT><A HREF="http://www.ncsa.uiuc.edu/SDG/Software/WinMosaic/winsocks.htm">WinSock DLL</A>
+
+<DD>The socket interface is based on a <A
+HREF="http://www.ncsa.uiuc.edu/SDG/Software/WinMosaic/winsocks.htm">WinSock
+DLL</A>, preferably a version greater than 1.1.
+
+<DT>Dynamic Library (DLL)
+
+<DD>The Library can't compile as a DLL out of the box. It requires
+some modifications and possibly some minor patches. Please remember to
+send the patches, so that we can put them in!
+
+<DT>Direct <A HREF="../../../Daemon/WAISGate.html">WAIS</A> access
+
+<DD>The normal possibility for linking with the WAIS library is not
+possible on the Windows NT platform. Therefore the WWW Library module
+<A HREF="../../Implementation/HTWAIS.c">HTWAIS</A> must be excluded in
+the make file.
+
+<DT>Memory Model
+
+<DD>The memory model used should be <EM>LARGE</EM>. This has the
+limitation that a single data object can't exceed 64K which might
+cause problems in some situations.
+
+<DT>Errno Constants
+
+<DD>WinSock doesn't define the errno constants EWOULDBLOCK etc. on a
+NT platform in order to avoid clashes with the internal errno
+constants. We have provided some of the constants in <A
+HREF="../../Implementation/tcp.html">tcp module</A>
+
+</DL>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@info.cern.ch, Marts 1995</ADDRESS>
+
+
+

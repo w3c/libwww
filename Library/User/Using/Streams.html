@@ -1,0 +1,237 @@
+<HTML>
+<HEAD>
+<TITLE>W3 Library Internals - Streams</TITLE>
+<NEXTID N="z78">
+</HEAD>
+
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A HREF="Guide.html"><IMG
+ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>The Stream Concept</H1>
+
+A <A HREF="../../Implementation/HTStream.html">stream</A> is an object
+which accepts sequences of characters. It is a destination of data
+which can be thought of much like an output stream in C++ or an ANSI
+C-file stream for writing data to a disk or another pheripheral
+device. The Library defines a generic stream class with five methods
+as illustrated in <A HREF="#Stream">Figure 2</A>. The output is often
+referred to as the "target" or "sink". It can be anything that accepts
+data, for example another stream, ANSI C-file stream, or even a
+blockhole which absorbs all data. <P>
+
+This class is a superclass of all other stream classes in the Library
+and it provides a uniform interface to all stream objects regardless
+of what stream sub-class they originate from. <P>
+
+<P><A NAME="Stream"><IMG ALT="Stream" SRC="../Paper/Stream.gif"></A><P>
+
+Streams can be cascaded so that one stream writes into another using
+one or more of the methods shown in <A HREF="#Stream">Figure 2</A>.
+This means that a required processing of data, for example reading
+data from the Internet can be done as the total effect of several
+cascaded streams.  The Library currently includes a large set of
+specific stream modules for writing to an ANSI file structure, writing
+to a socket, stripping Carriage Returns, splitting a stream into two
+(used for caching) etc.
+
+The stream-based architecture allows the Library (and hence
+applications built on top of it) to be event-driven in the sense that
+when input arrives, it is put into a stream, and any necessary actions
+then cascade off this event. An event can either be data arriving from
+the Internet, or data arriving from the client application. The latter
+would be the case when the client is posting a data object to a remote
+server. <P>
+
+As an example, the figure below shows how streams are cascaded when
+data from a remote HTTP server arrives to the application:
+
+<P><IMG SRC="InputStream.gif"> <P>
+
+The ground symbol symbolizes that all data goes into a black hole
+where nothing is radiated from.
+
+Currently the following specific stream objects are implemented:
+
+<DL>
+
+<DT><A NAME="z43" HREF="../../Implementation/HTWriter.html">HTWriter</A>
+
+<DD>Writes to a socket or something opened with the UNIX file I/O
+<CODE>open</CODE> function.
+
+<DT><A NAME="z42" HREF="../../Implementation/HTFWrite.html">HTFWriter</A>
+
+<DD>Writes to an ANSI C FILE * object, as opened by
+<CODE>fopen</CODE>, etc.
+
+<DT><A NAME="z41" HREF="../../Implementation/SGML.html">SGML</A>
+
+<DD>Parses the data and generates a <A
+HREF="Overview.html#z38">structured stream</A>. Each parser instance
+is created with reference to a particular DTD structure.
+
+</DL>
+
+Furthermore a set of basic utility stream objects have been implemented to be
+used in a variety of constructions:
+
+<DL>
+
+<DT><A NAME="z75" HREF="../../Implementation/HTTee.html">HTTee</A>
+
+<DD>Just writes into two streams at once. Useful for taking a copy for a
+cache.
+
+<DT><A HREF="../../Implementation/HTFWrite.html">Black Hole</A>
+
+<DD>A quite expensive way of piping data into a hole for then to be forgotten
+forever.
+
+<DT><A HREF="../../Implementation/HTFWrite.html">Through Line</A>
+
+<DD>A short circuited stream that returns the same output sink as it is
+called with.
+
+</DL>
+
+<H2>Structured Streams</H2>
+
+A structured stream is a subclass of a stream, but instead of just
+accepting data, it also accepts the SGML "begin element", "end
+element", and "put entity" as illustrated in <A
+HREF="#StrucStream">Figure 3</A>
+
+<P><A NAME="StrucStream"><IMG ALT="StrucStream"
+SRC="../Paper/StrucStream.gif"></A><P>
+
+A structured stream therefore represents a structured document and can
+be thought of as the output from an SGML parser. It is more efficient
+for modules which generate hypertext objects to output a structured
+stream than to output SGML which is then parsed. The elements and
+entities in the stream are referred to by numbers, rather than
+strings. A DTD contains the mapping between element names and numbers,
+so each instance of a structured stream is associated with a
+corresponding DTD. The only DTD which is currently in the Library is
+an extended version of the HTML DTD level 1, but current work is done
+to update this to comply with the emerging HTML level 3 specification.
+
+The elements and entities in the stream are referred to by numbers,
+rather than strings. The DTD contains the mapping between element
+names and numbers, so each structured stream when created is
+associated with the DTD which it using.<P>
+
+Any instance of a structured stream has a related DTD which gives the
+rules and element and entity names for events on the structured
+stream.  The only DTD which is currently in the library is the HTML
+DTD, in the <A NAME="z34"
+HREF="../../Implementation/HTMLDTD.html">HTMLDTD</A> module.<P>
+
+The SGML parser uses a DTD to output to a structured stream from a
+stream of SGML.  A hypertext editor will output to a structured stream
+when writing out a document.  Many <A NAME="z56"
+HREF="Protocol.html">protocol modules</A> output to a structures
+stream when generating their data structures.<P>
+
+The structured stream data structure is defined in the <A NAME="z33"
+HREF="../../Implementation/SGML.html">SGML module</A>. and the current
+structured stream modules are:
+
+<DL>
+
+<DT><A NAME="z54" HREF="../../Implementation/HTML.html">HTML</A>
+
+<DD>This module is an important one as it actually PRESENTS a
+hypertext object to the user.  GUI writers replace this module with
+your own, or use it and replaced the <A
+HREF="Presentation.html#HText">HText</A> module which it feeds.
+
+<DT><A NAME="z55" HREF="../../Implementation/HTMLGen.html">HTMLGen</A>
+
+<DD>This structured stream regenerates a plain stream.  It makes
+reference to the HTML DTD to regenerate the names of entities and
+elements. This is used by the server to pass a hypertext document on
+to the client, and also by the client to save HTML.
+
+<DT><A HREF="../../Implementation/HTTeXGen.html">HTTeXGen</A>
+
+<DD>Structured streams can be used for other conversions than from
+SGML to HTML. As an example, this is a SGML to LaTex converter that
+makes it easier to construct paper versions of a HTML document.
+
+</DL>
+
+These modules refer to the DTD modules (pick one of the following,
+probably HTMLPDTD)
+
+<DL>
+
+<DT><A NAME="z67" HREF="../../Implementation/HTMLDTD.html">HTMLDTD</A>
+
+<DD>Table describing some aspects of the HTML document type: entity and
+element names, element contents and allowed attributes.
+
+<DT><A NAME="z73" HREF="../../Implementation/HTMLPDTD.html">HTMLPDTD</A>
+
+<DD>The same thing but for HTML document type.
+
+</DL>
+
+<H2>Format Conversion Using the Stream Stack</H2>
+
+The stream stack is used to select the most appropriate converter from
+the input format given by the protocol modules and the desired output
+format specified by the client. A converter is simply a stream which
+is registered as a converter from a given input MIME-type to a output
+MIME-type. If more than one converter is capable of doing the same
+conversion a quality factor is used to (subjectively) distinguish
+which one is the best. Currently the stream stack module only manages
+a single converter at the time, for example from text/plain to
+text/html, that is, the size of the stack is always 1. However, work
+is being done to expand the stack so that several converters can be
+cascaded in order to obtain the desired conversion. <P>
+
+The Library contains a large amount of converters, many of them
+converting to or from HTML.
+
+<DL>
+
+<DT><A NAME="z70" HREF="../../Implementation/HTFormat.html#z11">HTNetToText</A>
+
+<DD>Converts "Net ascii" line terminators <CODE>&lt;CRLF&gt;</CODE>
+into the equivalent C representation which is a '\n'.
+
+<DT><A NAME="z69" HREF="../../Implementation/HTMIME.html">HTMIME</A>
+
+<DD>Parse a MIME format message.
+
+<DT><A NAME="z36" HREF="../../Implementation/HTWSRC.html">HTWSRC</A>
+
+<DD>Parses a <EM>WAIS source</EM> description file.
+
+<DT><A NAME="z68" HREF="../../Implementation/HTPlain.html">HTPlain</A>
+
+<DD>Takes plain ASCII text and converts into whatever -- typically styled
+text for display or HTML.
+
+<DT><A HREF="../../Implementation/HTGuess.html">HTGuess</A>
+
+<DD>If the input format is unknown at the time when putting up a
+stream stack, then this module scans a part of the stream and on a
+statistical basis determines the type of stream needed from the <A
+HREF="../../../Protocols/HTTP/Object_Headers.html#z16">content-type</A>. This
+stream can also be used as a "normal" stream without the stream stack.
+
+</DL>
+
+<HR>
+
+<ADDRESS> <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@w3.org, April 1995</ADDRESS>
+
+</BODY>
+</HTML>

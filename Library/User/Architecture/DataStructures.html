@@ -1,0 +1,107 @@
+<HTML>
+<HEAD>
+<TITLE>W3 Library Internals - Important Data Structures</TITLE>
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A HREF="Guide.html"><IMG
+ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Important Data Structures</H1>
+
+The Library contains many data structures, which all are defined in
+the HTML files in the source code. This document introduces the most
+important data structures and how they are interconnected. The
+structures are illustrated in the figure:
+
+<P><IMG SRC="DataStructures.gif"><P>
+
+<DL>
+
+<DT><A NAME="request" HREF="../../Implementation/HTAccess.html#z1">HTRequest Structure</A>
+
+<DD>The <CODE>request</CODE> structure is the central data structure
+in the Library. It contains information intended for the client
+application, the server application and for the Library itself for how
+to fulfill a request. As this is a normal C structure, any application
+can see all the information available. However, it is strongly
+recommended only to use the information specifically intended to be
+used by the application in question. The default values of the
+structure make it very easy for a client to load a document, either
+if it is using an <A
+HREF="../../../Architecture/Anchors.html">anchor</A> or an <A
+HREF="../../../Addressing/Addressing.html">URI</A>.
+
+<DT><A HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor
+Structure</A>
+
+<DD>The anchor structure is a generic superclass used for both
+<CODE>parent</CODE> anchors and <CODE>child</CODE> anchors. Both types
+have a specific structure which is a subclass of the generic
+structure. It contains all information about relations among URIs and
+whether they have been loaded or not.
+
+<DT><A HREF="../../../LineMode/Implementation/GridText.c">HyperDoc
+Structure</A>
+
+<DD>The <CODE>HyperDoc</CODE> structure is only declared in the
+Library - the real definition is left to the client application. For
+the <A HREF="../../../LineMode/Status.html">Line Mode Browser</A>, it
+is defined in the <A
+HREF="../../../LineMode/Implementation/GridText.c">GridText Module</A>
+where it is called <CODE>_HText</CODE>. It contains all information
+needed to present and manage a <A
+HREF="Overview#GraphicObject">graphic object</A>. The client is
+responsible for allocating and freeing all <CODE>graphic
+objects</CODE> which is a question about speed versus available
+resources. When the object is freed, the link from the <CODE>anchor
+structure</CODE> must be put to <CODE>NULL</CODE>. The dotted line
+symbolizes that it is free for the client to create a
+<CODE>HyperDoc</CODE> object including a link to the
+<CODE>request</CODE> structure.
+
+<DT><A HREF="../../Implementation/HTAccess.html#HTNetInfo">HTNetInfo
+Structure</A>
+
+<DD>This structure is an internal structure used by the <A
+HREF="Protocol.html">Protocol Modules</A> and contains the <A
+HREF="../../Implementation/HTFormat.html#z15">input read buffer</A>,
+socket number and other information relevant for the access to the
+network.
+
+</DL>
+
+When a resource is requested, the Library does the following to obtain
+the graphic object:
+
+<UL>
+
+<LI>Finds or creates an <A
+HREF="../../../Architecture/Anchors.html">anchor</A> object for the
+URI given
+
+<LI>Checks if link in the <CODE>anchor</CODE> structure to the
+<CODE>HyperDoc</CODE> is non-NULL. If this is the case, the object is
+already in memory and ready for presentation.
+
+<LI>If not then the <A HREF="Overview.html#ClientCache">local
+cache</A> (if any) is searched to find the resource. If it is found
+then the resource is parsed and the graphic object recreated.
+
+<LI>If the <A HREF="Overview#GraphicObject">graphic object</A> is not
+in memory and the resource is not stored in the local cache then the
+resource must be loaded through the network.
+
+</UL>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@w3.org, April 1995</ADDRESS>
+
+</BODY>
+</HTML>

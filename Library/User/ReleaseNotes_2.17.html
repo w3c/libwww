@@ -1,0 +1,167 @@
+<HTML>
+<HEAD>
+<TITLE>CERN WWW Library 2.17 Release Notes</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW"
+SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="Lib"
+SRC="../../Icons/WWW/Lib48x.gif"></A>
+
+<H1>CERN Library 2.17 Release Notes</H1>
+
+<HR>
+
+<H2>More Information</H2>
+
+Other pages of interest are:
+
+<UL>
+
+<LI> <A HREF="../User/Guide/">Internals and Programmer's Guide</A>
+
+<LI> <A HREF="Bugs/Workinglist.html">Working List</A>
+
+<LI> <A HREF="Features/Implementation.html">Implementation Specifications</A>
+
+<LI> <A HREF="../Status.html">CERN WWW Software</A>
+
+<LI> <A HREF="Features/Features.html">Change History</A>
+
+</UL>
+
+<H2>New and Changed Features</H2>
+
+<UL>
+
+<LI><a name="hc">The host-cache is now extended so that it tries <EM>all</EM>
+IP-addresses before it fails the request. It always starts with the
+fastest IP-address.  Different penalty is added to the connect times
+dependent of the errno returned from <CODE>connect()</CODE>.</a>
+
+<LI>In addition to HTSimplify which canonicalizes the URL path, a new
+function now canonicalizes the host-part of the URL. This means that
+URLs like
+
+<PRE>
+	http://info/ = http://www.w3.org:80/ = http://INFO.CeRn.CH/ =
+	http://www.w3.org. = http://www.w3.org/
+</PRE>
+
+now all are treated identical. This is useful for all the caches
+based on URLs such like the Server document cache and the hostname
+cache
+
+<LI>TRACE is now differentiated into a bit flag so that TRACE messages
+can be turned on and off for individual groups of messages. This was
+necessary as the amount of verbose output was growing too much
+
+<LI>Redirection understands now `URI:' and `Location:'. Implemented
+after discussion on www-talk
+
+<LI>Changed 404 Error Message to `Access Forbidden'. The URL is no more
+included in the message as it is sensitive information
+
+<LI>FTP client now sends full email address of the user as the password
+for anonymous access instead of USER@. This allows access to some servers
+which don't accept the old format
+
+<LI>The data connection in a FTP session is now based on the return
+value sent by the PASV return code rather than the URL. It is not
+always the case that the data connection is on the same host as the 
+control connection
+
+<LI>UserID and Passwd in FTP URLs can now contain special characters,
+like '@' etc.
+
+<LI>The Gopher listings are now slightly lighter and don't contain the
+`name' and `files' any more
+
+<LI>Support of Gopher info items. They are treated as normal messages.
+The gopher code for this is `i'
+
+<LI>WAIS module now guesses the stream format when TEXT is returned from
+the WAIS library as it might be HTML.
+
+<LI>The Protocol modules: FTP, WAIS, and Gopher now produce proper HTML
+with <HTML><HEAD> etc. in the beginning
+
+<LI>Added a function that returns the domain name taken from the same 
+location as HTGetHostName(). The functionality of obtaining current
+host names, mail addresses etc. have improved, see HTTCP.html for more
+
+<LI>Introduced the flag HTInteractive in HTAccess.html to tell whether
+functions in HTAlert can prompt the User from within the Library or
+not. Default is YES.
+
+<LI>The common BUILD for the Line Mode Browser, the CERN Server and the Library
+of common code now accepts a command line option:
+
+<PRE>
+	BUILD linemode | daemon | library
+</PRE>
+
+to build a specific component. The default action is to build all three
+parts. BUILD is now also provided in a Bourne Shell version
+
+</UL>
+
+
+<H2>Bug Fixes</H2>
+
+<UL>
+
+<LI>Fixed memory leak in HTWAIS Doc retrieval. However, the
+functionality or performance has not changes
+
+<LI>If no host is found in the URL then no attempt is made to connect
+to host 0.0.0.0 that is localhost. Some hosts do have an alias for
+this address
+
+<LI>Fixed free memory read in redirections. Put redirection counter
+into request structure. Now no more than (default) 10 redirections are
+allowed
+
+<LI>Fixed bug in FTP module to handle really slow hosts in the select
+call. The select timed out without the right action taken.
+
+<LI>FTP module chopped off the first line of a Windows NT ftp server as
+it doesn't send a traditional first UNIX line. Fixed! Well, it
+<EM>did</EM> look like UNIX, but no more than that :-(
+
+<LI>Problem in HTTeXGen. Some markups was spread over a new line, and
+LaTeX doesn't like that.
+
+<LI>Remove the <CODE>ACCESS_AUTH</CODE> define as it is never used
+anymore (no more compilation without access authentication)
+
+<LI>Fixed bug in the ISO Latin 1 translation table in HTML.c. This was
+a problem for estonian documents or other with many special characters
+
+<LI>Fixed bug in HTSimplify not skipping host names. HTSimplify is
+made faster and is now only called once (both from the server and the
+client). Before it was called 2-3 times.
+
+<LI>Bug found in FTP URLs containing UserID and Passwd fixed
+
+<LI>Bug fixed in name generation in client cache
+
+<LI>Removed bug in FTP and IP-rotation on multi-homed hosts. When FTP
+server is in PASV mode it sends back a port number on a specific host.
+In this case we can't use IP-address rotation.
+
+<LI>Bug with FTP IP-address network order fixed for PASV mode
+
+<LI>Gopher errors (code 3) are now just put as a string as they are
+not <B>real</B> error
+
+<LI>Bug fixed in HTWriter.c function <CODE>flush()</CODE> where a
+partial success in NETWRITE would produce a wrong output (repeated
+buffer)
+
+</UL>
+
+<HR>
+
+<ADDRESS>Henrik Frystyk, libwww@info.cern.ch, September 1994</ADDRESS>

@@ -1,0 +1,156 @@
+<HTML>
+<HEAD>
+<TITLE>W3 Library Internals Overview - Utilities</TITLE>
+<NEXTID N="z78">
+</HEAD>
+
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A HREF="Guide.html"><IMG
+ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Utilities</H1>
+
+This document covers the basic programming utilities that can be used
+in the client or server to make life easier. The topics are:
+
+<UL>
+<LI><A HREF="#Container">Container Modules</A>
+<LI><A HREF="#ErrorAlert">Error Handling and user Prompt</A>
+<LI><A HREF="#URI">URI Management</A>
+<LI><A HREF="#Basic">Basic Utilities and Macro Definitions</A>
+</UL>
+
+<A NAME="Container"><H2>Container Modules</H2></A>
+
+These modules are generic data object storage modules that might be used
+wherever convenient. The general rule for freeing memory from these modules is
+that free methods handles data structures generated within the modules whereas
+user data is for the caller to free. The modules consist of:
+
+<P>
+
+<DT><A NAME="z59" HREF="../../Implementation/HTBTree.html">Binary Trees</A>
+
+<DD>This is a complete balanced binary tree that might be used for storage
+and sort of a large number of data objects, e.g. filenames in directory
+listings etc.
+
+<DT><A NAME="z50" HREF="../../Implementation/HTChunk.html">Chunks</A>
+
+<DD>A Chunk is a blockwise expandable array of type (char *) and is a sort of
+apology for real strings in C. Chunks make it easier to handle dynamic strings
+of unknown size. It is often faster than using the String Copy Routines</A>.
+
+<DT><A NAME="z77" HREF="../../Implementation/HTList.html">Linked Lists</A>
+
+<DD>This module provides the functionality for managing a generic list of data
+objects. The module is implemented as a single linked list using the scheme
+<EM>first in - last out (FILO)</EM>.
+
+<DT><A HREF="../../Implementation/HTAssoc.html">Association Lists</A>
+
+<DD>This is a small module build on top of HTList that provides a way to
+store <EM>Name-Value</EM> pairs in an easy way.
+
+<DT><A HREF="../../Implementation/HTString.html">Strings</A>
+
+<DD>A few manipulation routines for dynamic arrays of characters. The
+routines include string copy, case insensitive comparison etc.
+
+<DT><A HREF="../../Implementation/HTAtom.html">Atoms</A>
+
+<DD>Atoms are strings which are given representative pointer values so that
+they can be stored more efficiently, and comparisons for equality done more
+efficiently. The pointer values are in fact entries into a hash table.
+
+</DL>
+
+<H2><A NAME="ErrorAlert">Error Message and Information Handling</A></H2>
+
+These modules are available for handling information and parse it from the
+Library back to the user: <P>
+
+<DL>
+
+<DT><A NAME="z64" HREF="../../Implementation/HTAlert.html">HTAlert User Messages</A>
+
+<DD>This modules contains the code for prompting the user for file names,
+userid, password etc. Furthermore, it presents messages containing status
+information, error messages etc. to the user. The implementation in the
+library is meant for the Line Mode Browser (i.e. it writes to stderr) but can
+easily be overwritten by GUI browsers.
+
+<DT><A HREF="../../Implementation/HTError.html">HTError Module</A>
+
+<DD>This module maintains an message stack within the <A
+HREF="../../Implementation/HTAccess#z1"> HTRequest Structure</A>. The module classifies
+messages in the range from <I>Information</I> to <I>Fatal
+Error</I>. As an example, the new <A
+HREF="../../../Addressing/URL/Overview.html"> URI</A> specified in a
+<A HREF="../../../Protocols/HTTP/HTRESP.html#z10">HTTP Redirection</A>
+gets parsed back to the user so that a clever client can edit the link
+directly.
+
+<DT><A HREF="../../Implementation/HTErrorMsg.c">HTErrorMsg</A>
+
+<DD>This module is in fact a part of the HTError module but a this is written
+specifically for a browser like Line Mode Browser, GUI clients would like to
+overwrite it. It presents the content of the message stack to the user in a
+readable form. Often, the information could be shown in a separate information
+window in the client.
+
+</DL>
+
+
+<A NAME="URI"><H2>URI Management</H2></A>
+
+The functionality for handling URIs is placed in the following modules:
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTParse.html">HTParse</A>
+
+<DD>This module provides functions for parsing URIs, simplify them by
+removing redundant information.
+
+<DT><A HREF="../../Implementation/HTEscape.html">HTEscape</A>
+
+<DD>This module can search a URI for unsafe characteres and escape and
+unescape them according to the <A
+HREF="../../../Addressing/URL/4_URI_Recommentations.html">URI
+Specifications</A>.
+
+</DL>
+
+<A NAME="Basic"><H2>Basic Utilities</H2></A>
+
+<IMG SRC="../../../Icons/32x32/caution.gif"> Look into these modules
+before you start defining system dependent stuff. Most things are
+already defined here! The list of basic utility modules are currently
+as follows
+
+<DL>
+
+<DT><A NAME="z47" HREF="tcp.html">System specifics</A>
+
+<DD>The tcp.h file includes system-specific include files and flags for I/O
+to network and disk. The only reason for this file is that the Internet world
+is more complicated than Posix and ANSI.
+
+<DT><A NAME="z48" HREF="../../Implementation/HTUtils.html">HTUtils</A>
+
+<DD>The HTUtil.h file includes things we need everywhere, generally macros
+for declarations, booleans, etc.
+
+</DL>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@w3.org, April 1995</ADDRESS>
+</BODY>
+</HTML>

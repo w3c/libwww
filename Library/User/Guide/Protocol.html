@@ -1,0 +1,251 @@
+<HTML>
+<HEAD>
+<TITLE>W3 Library Internals - Protocol Modules</TITLE>
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A HREF="Guide.html"><IMG
+ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Protocol Modules</H1>
+
+A protocol module is invoked by the <A
+HREF="../../Implementation/HTAccess.html">HTAccess manager</A> in
+order to access a document. Each protocol module is responsible for
+extracting information from a local file or remote server using a
+particular protocol.  Depending on the protocol, the protocol module
+either builds a graphic object (e.g.  hypertext) itself, or it passes
+a socket descriptor to the format manager for parsing by one of the
+parser modules. <P>
+
+When the client parses a request to the library a <A
+HREF="../../Implementation/HTAccess.html#z1"> HTRequest Structure</A>
+is filled out and parsed to a load function in the <CODE>access
+manager</CODE>, for example <CODE>HTLoadAnchor</CODE>. HTRequest is a
+hierarchical data structure that contains all information needed by
+the client, the server and the library to fulfill the request. The
+default values in the structure makes it very easy for the client to
+do a normal request of a data object.
+
+<DL>
+
+<DT><A NAME="z46" HREF="../../Implementation/HTFile.html">File access</A>
+
+<DD>This module provides access to files on a local file system. Due
+to general confusion of the "file://" access scheme in the <A
+HREF="../../../Addressing/URL/Overview.html">URL Specifications</A>
+tries FTP access on failure, but this will be changed in a new major
+release, June 1994, as it causes very long time out periods if a file
+does not exist.
+
+<DT><A NAME="z60" HREF="../../Implementation/HTFTP.html">FTP access</A>
+
+<DD>This is a complete state based FTP client which is capable of
+communicating with a lot of weird FTP servers. It uses
+<CODE>PASV</CODE> as the default method for establishing the data
+connection as <CODE>PORT</CODE> does not work if the application is
+run from a firewall machine, as is often the case with <A
+HREF="../../../Daemon/Proxies/Proxies.html">proxy server</A>.
+
+<DT><A NAME="z45" HREF="../../Implementation/HTTP.html">HTTP access</A>
+
+<DD>The <A NAME="25" HREF="../../Implementation/HTTP.html">HTTP
+module</A> handles document search and retrieve using the <A NAME="6"
+HREF="../../../Protocols/HTTP/HTTP2.html">HTTP</A> protocol. See also
+information on the <A HREF="../Features/HTTPFeatures.html"> current
+implementation</A> of the HTTP client. The module is now a complete
+state machine which is a required functionality in a <A
+HREF="#multithread">multithreaded enviromnent</A>.
+
+<DT><A NAME="z40" HREF="../../Implementation/HTNews.html">News access</A>
+
+<DD>The NNTP internet news protocol is handled by HTNews which builds a
+hypertext object. <P>
+
+<IMG SRC="../../../Icons/WWW/construction.gif"> This module is under
+reconstruction!
+
+<DT><A NAME="z44" HREF="../../Implementation/HTGopher.html">Gopher access</A>
+
+<DD>The internet gopher access to menus and flat files (and links to telnet
+nodes, WhoIs servers, CSO Name Server etc.) is handled by <A NAME="26"
+HREF="../../Implementation/HTGopher.html">HTGopher Module</A>.
+
+<DT><A NAME="z72" HREF="../../Implementation/HTTelnet.html">Telnet access</A>
+
+<DD>This module provides the possibility of running telnet sessions in
+a subshell. It also provides functionality for rlogin and tn3270.
+
+<DT><A NAME="z39" HREF="../../Implementation/HTWAIS.html">WAIS access</A>
+
+<DD>WAIS access is not compiled into the Library by default as it
+requires the freeWAIS library. This is easily changed in the platform
+dependent <CODE>Makefile.include</CODE> in the
+
+<PRE>
+	WWW/All/&lt;platform&gt;
+</PRE>
+
+directory. However, if this library is present then the application
+can communicate directly with a WAIS server. Otherwise it must go
+through a <A HREF="../../../Daemon/WAISGate.html"> gateway
+program</A>.
+
+</DL>
+
+<H2>TCP Communication</H2>
+
+The functionality of the <A
+HREF="../../Implementation/HTTCP.html">HTTCP Module</A> covers several
+topics but they are all related to TCP/IP communication. All active
+and passive connection establishment from the <A
+HREF="Overview.html#Protocol"> Protocol Modules</A> goes through this
+module. Furthermore, the module manages a local host cache of visited
+hosts so that the Domain Name Server is only consulted when
+necessary.<P>
+
+Other topics includes:
+
+<UL>
+<LI>I/O status indication (errno etc.)
+<LI>Information on remote hosts
+<LI>Information on local host (domain name etc.)
+<LI>Information on current user (mail address)
+</UL>
+
+
+<A NAME="multithread"><H2>Multithreaded Clients</H2></A>
+
+From version 3.0 (unreleased) of the Common Code Library,
+multithreaded functionality has been added as an extra set of
+modules. For the moment, only the HTTP module has multiple threads but
+both FTP and Gopher are foreseen for the same functionality. For more
+information, see <A HREF="../Features/multithread.html">Specifications
+on Multiple threads</A>. The modules included are: <P>
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTThread.html">HTThread</A>
+
+<DD>This module provides the functionality for registrating sockets as
+ready for <CODE>read</CODE> or <CODE>write</CODE> (this includes the
+<CODE>connect</CODE> statement that is basically a <CODE>write</CODE>
+request). It is an internal module to the Library.
+
+<DT><A HREF="../../Implementation/HTEvent.html">HTEvent</A>
+
+<DD>This is the Libray's own version of the event-loop serving the HTTP
+client, and it is the application interface to the multithreaded Library. Clients can either use this module as is or they can overwrite it with their own even-loop. Note, that GUI-clients <EM>can</EM> use the current implementation!
+
+</DL>
+
+<H2>Reading Data from a Socket</H2>
+
+To avoid reading directly from the socket a module has been put up to provide
+an input buffer and some functionality to make it easier to get data from the
+network.
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTFormat.html#z15"> Non-reentrant Reading Functions</A>
+
+<DD>This module is a submodule of <A HREF="../../Implementation/HTFormat.html">HTFormat</A> and it
+provides the functionality of reading data from the network. When
+multithreaded access gets incorporated it is essential that all requests to
+the network goes through one point in the library. The reason keeping these is
+to support the singlethreaded protocol access.
+
+<DT><A HREF="../../Implementation/HTFormat.html#multi">Reentrant Reading Functions</A>
+
+<DD>This is also a submodule of the <A HREF="../../Implementation/HTFormat.html">HTFormat</A> but
+the difference from the other socket parsing module is that this is completely
+reentrant. That is, it can be used together with a multithreaded client.
+
+</DL>
+
+The same is not yet the case for writing to a socket, but this is on the "to
+do list".
+
+
+<H2>Access Authorization</H2>
+
+In order to prevent unauthorized access on a World-Wide Web server, a
+basic authorization scheme has been developed, see <A
+HREF="../../../AccessAuthorization/Overview.html"> Access
+Authorization</A> for more details on the scheme. The access
+authorization is implemented in the following modules:
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTAABrow.html">HTAABrow</A>
+
+<DD>This module contains WWW Browser specific code, that is composing
+the <A HREF="../../../Protocols/HTTP/HTRQ_Headers.html#9"> HTTP
+Authorization Header</A>, recording users information etc.
+
+<DT><A HREF="../../Implementation/HTAAUtil.html">HTAAUtil</A>
+
+<DD>This module contains the authorization code that is common to both the
+servers and clients, e.g., handling information on different authentication
+etc.
+
+<DT><A HREF="../../Implementation/HTUU.html">UU Encoding and Decoding</A>
+
+<DD>Provides functions to encode and decode a data buffer according to
+the <A
+HREF="http://info.internet.isi.edu/in-notes/rfc/files/rfc1421.txt">RFC
+1421</A> "Privacy Enhancement for Internet Electronic Mail".
+
+</DL>
+
+<H2>Presenting Directory Listings and other Listings</H2>
+
+When listings return from the protocol modules they are converted into HTML
+and parsed to the client. Listings might be HTTP directory listings, Gopher
+menus, FTP directory listings, CSO Name server etc. The modules providing this
+functionality are:
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTDirBrw.html">HTDirBrw</A>
+
+<DD>This is a very configurable module to actually present the listings
+
+<DT><A HREF="../../Implementation/HTDescpt.html">HTDescript</A>
+
+<DD>This module handles the description field in a HTTP directory listing.
+For a HTML file, the default action is to peek the title of the document.
+
+<DT><A HREF="../../Implementation/HTIcons.html">HTIcons</A>
+
+<DD>This module handles the set of icons used in the listings (HTTP, Gopher,
+FTP etc.).
+
+</DL>
+
+<H2>Multi Linguistic Documents</H2>
+
+The HTTP protocol provides the possibility of handling <A
+HREF="../../../Protocols/HTTP/HTRQ_Headers.html#z12"> Multi Linguistic
+Documents</A>.
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTMulti.html">HTMulti</A>
+
+<DD>This is the current implementation of the Multi Linguistic support in the
+Library.
+
+</DL>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@w3.org, April 1995</ADDRESS>
+
+</BODY>
+</HTML>

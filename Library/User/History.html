@@ -1,0 +1,1142 @@
+<HTML>
+<HEAD>
+<TITLE>Change History for W3 Common Code Library</TITLE>
+<NEXTID N="z500">
+</HEAD>
+
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+
+<H1>Change History</H1>
+
+This is a list of changes to the <A HREF="../../Status.html">Library
+of Common Code</A> in reverse chronological order.
+
+<H2>CERN Library 3.0, Mar 21 1995</H2>
+
+Many of the modifications and new features are mentioned under the
+pre-releases.
+
+<UL>
+
+<LI>Changed all <EM>float</EM> to <EM>double</EM> in order get it
+consistent with the working floating type in C
+
+<LI>Fixed problems with memory in HTML.c
+
+<LI>Introduced definition of <CODE>errno</CODE> constants for WIN32,
+as WinSock doesn't define them using BSD notation
+
+</UL>
+
+<H2>CERN Library 3.0 Prerelease 3, Mar 10 1995</H2>
+
+<H3>New or Changed Features</H3>
+
+<UL>
+
+<LI>All library include files which contains public information for
+applications are now contained in the single include file <A
+HREF="../../Implementation/WWWLib.html">WWWLib.h</A> which is the only
+one necessary <B>PLEASE DON'T USE ANYTHING ELSE!!!</B>
+
+<LI>Changed TRACE messages so that the target is the macro TDEST and
+not stderr. This means that on platforms that don't support stderr,
+TRACE messages can be redirected to a local file.
+
+<LI>Due to the PC Port some modules (definition and declaration files)
+have changed names so that the max length is 8 characters:
+
+<UL>
+<LI>s?HTFWriter?<A HREF="../../Implementation/HTFWrite.html">HTFWrite</A>?g
+<LI>s?HTHistory?<A HREF="../../Implementation/HTHist.html">HTHist.h</A>?g
+<LI>s?HTEPtoClient?<A HREF="../../Implementation/HTEPtoCl.html">HTEPtoCl</A>?g
+<LI>s?HTDescript?<A HREF="../../Implementation/HTDescpt.html">HTDescpt</A>?g
+<LI>s?HTExtParse?<A HREF="../../Implementation/HTXParse.html">HTXParse</A>?g
+<LI>s?HTErrorMsg?<A HREF="../../Implementation/HTErrMsg.c">HTErrMsg</A>?g
+</UL>
+
+<LI>Move EnableFrom to <A
+HREF="../../Implementation/HTAccess.html">HTAccess module</A>. This
+variable determines whether the HTTP header <EM>From: </EM> should be
+generated. The default value is <EM>off</EM>
+
+<LI>Sockets are no longer assumed to be small, non-negative integers,
+but uses macros. This should ensure portability to Windows NT.
+
+<LI>Introduced socerrno and errno so that WinSock can use its own
+definition whereas `local' errno can still use the well-known version.
+
+<LI>Introduced <CODE>error_stream</CODE> as field in <A
+HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>. All
+information contained in HTTP responses which don't naturally contain
+a body entity, for example redirection codes (3xx) and client error
+codes (4xx) will be put down this stream so that it can be put into a
+debug window.
+
+<LI>HTNewsHost is now a local variable in the <A
+HREF="../../Implementation/HTNews.html">HTNews module</A>. Use
+HTGetNewsHost and HTSetNewsHost to set and get the current value. The
+news module will be rewritten in the near future as it has many
+problems.
+
+<LI>The <A HREF="../../Implementation/HTTP.html">HTTP</A> module
+understands all HTTP/1.0 return codes and is more solid
+
+<LI>Many portability problems has been solved and optimized. Most
+system dependent things are now put into <A
+HREF="../../Implementation/tcp.html">tcp module</A>
+
+<LI>Interface to CSO name server made nicer - generates correct HTML
+
+</UL>
+
+<H3>Bug Fixes</H3>
+
+<UL>
+<LI>file:// no more tries ftp:// if host=localhost
+<LI>Improved proxy support and fixed bug when reloading a document from a proxy
+<LI>Bug fixed in HTGetHostName() which didn't include a dot &lt;.&gt;
+<LI>Bug fixed if UserID/passwd was not correct and don't want to retry
+<LI>HTErrorAdd and HTErrorSysAdd no always return HT_ERROR
+<LI>Fixed bug in HTGetDomainName when no domain name is present at all
+<LI>Add output_flush to request structure
+<LI>Uses IOCTL as a macro now - not fcntl
+<LI><EM>and a lot of other stuff...</EM>
+</UL>
+
+<H2>Library 3.0 Prerelease 2, Dec 2 1994</H2>
+
+<UL>
+
+<LI>Introduced memory cleanups from Eric Sink into
+<CODE>HTLibTerminate()</CODE>
+
+<LI>Now the client can provocate a call to
+<CODE>HTEventRequestTerminate()</CODE> even when the request never
+enters the eventloop. This is necesary so that the client can cancel
+busy icons, spinning globes etc.
+
+<LI>Introduced <CODE>EVENT_TERM</CODE> as return code for the
+HTEventHandler function
+
+<LI><CODE>HTEventHandler() now</CODE> has a double pointer so that the
+request pointer can be modified from the client
+
+<LI>Fixed bug in <CODE>HTSearch()</CODE> and
+<CODE>HTLoadRelative()</CODE> where wrong return code was returned
+(BOOL instead of int)
+
+<LI>Introduced BlockingIO field in the request structure to override
+the the mode registered in the protocol structure. This can be used as
+an easy way to make blocking I/O
+
+</UL>
+
+<H2>Library 3.0 Prerelease 1, Nov 26 1994</H2>
+
+<H3>New and Changed Features</H3>
+
+<UL>
+
+<LI>Introduced the function HTLibInit() and HTLibTerminate() which
+MUST be called when the application starts up and terminates.
+
+<LI>Introduced the modules HTThread and HTEvent. HTEvent is the client
+interface when using multithreaded functionality and HTThread is the
+internal socket management
+
+<LI>All __STDC__ defines now concentrated to HTUtils.html where it is
+called _STANDARD_CODE_ so that _cplusplus also handles this
+
+<LI>`new' and `template' not used a names anymore (confuses C++)
+
+<LI>Removed from field in HTRequest structure. This is now handled by
+the functions HTGetMailAddres and HTSetMailAddress and the flag
+HTEnableFrom in the HTTP module.
+
+<LI>Changed HTSetMailAddress so that a call with parameter equals NULL
+or "" clears the contents of the mail-address.
+
+<LI>The number of parameters to Streamstack function is now compatible
+with the arguments to a stream converter, so that we don't loose any
+information while putting up the stream stack.
+
+<LI>HTOutputSource variable is removed. You should use WWW_SOURCE in
+the request structure
+
+<LI>HTGuess stream is a a converter compatible stream so that it
+actually can be setup as a converter
+
+<LI>The stream methods `abort' and `_free' now returns int instead of
+void. On success from these methods `_free' returns 0 and `abort'
+return EOF
+
+<LI>Taken HTEscape and HTUnescape and put them into the HTEscape
+module. The functionality is the same but now they can be used in
+utility programs without linking in the whole Library
+
+</UL>
+
+<H3>Bug Fixes</H3>
+
+<UL>
+
+<LI>Removed bug in WAIS module which caused a lot of core dumps
+
+<LI>Removed bug in format classification from URL suffix in HTGoper
+when the file was plaintext
+ 
+<LI><EM>localhost</EM> is now recognized again after canonicalization
+in <CODE>HTLoadFile()</CODE>
+
+<LI>WAIS SEARCH now produces proper HTML
+
+<LI>Max number of lines in WAIS decreased to 200 as 250 (previous)
+dumps core
+
+<LI>Bug fixed in <CODE>HTGetHostName()</CODE> if we must use the
+getdomainname() function.
+
+<LI>Added some support for SCO
+
+<LI>Handling of gopher items of type ERROR (3) changed so no more core
+dumps in server
+
+</UL>
+
+<HR>
+
+<H2>2.17 Release on September 25 1994</H2>
+
+<H3>New and Changed Features</H3>
+
+<UL>
+
+<LI>The host-cache is now extended so that it tries <EM>all</EM>
+IP-addresses before it fails the request. It always starts with the
+fastest IP-address.  Different penalty is added to the connect times
+dependent of the errno returned from <CODE>connect()</CODE>.
+
+<LI>In addition to HTSimplify which canonicalizes the URL path, a new
+function now canonicalizes the host-part of the URL. This means that
+URLs like
+
+<PRE>
+	http://info/ = http://www.w3.org:80/ = http://INFO.CeRn.CH/ =
+	http://www.w3.org. = http://www.w3.org/
+</PRE>
+
+now all are treated identical. This is useful for all the caches
+based on URLs such like the Server document cache and the hostname
+cache
+
+<LI>TRACE is now differentiated into a bit flag so that TRACE messages
+can be turned on and off for individual groups of messages. This was
+necessary as the amount of verbose output was growing too much
+
+<LI>Redirection understands now `URI:' and `Location:'. Implemented
+after discussion on www-talk
+
+<LI>Changed 404 Error Message to `Access Forbidden'. The URL is no more
+included in the message as it is sensitive information
+
+<LI>FTP client now sends full email address of the user as the password
+for anonymous access instead of USER@. This allows access to some servers
+which don't accept the old format
+
+<LI>The data connection in a FTP session is now based on the return
+value sent by the PASV return code rather than the URL. It is not
+always the case that the data connection is on the same host as the 
+control connection
+
+<LI>UserID and Passwd in FTP URLs can now contain special characters,
+like '@' etc.
+
+<LI>The Gopher listings are now slightly lighter and don't contain the
+`name' and `files' any more
+
+<LI>Support of Gopher info items. They are treated as normal messages.
+The gopher code for this is `i'
+
+<LI>WAIS module now guesses the stream format when TEXT is returned from
+the WAIS library as it might be HTML.
+
+<LI>The Protocol modules: FTP, WAIS, and Gopher now produce proper HTML
+with <HTML><HEAD> etc. in the beginning
+
+<LI>Added a function that returns the domain name taken from the same 
+location as HTGetHostName(). The functionality of obtaining current
+host names, mail addresses etc. have improved, see HTTCP.html for more
+
+<LI>Introduced the flag HTInteractive in HTAccess.html to tell whether
+functions in HTAlert can prompt the User from within the Library or
+not. Default is YES.
+
+<LI>The common BUILD for the Line Mode Browser, the CERN Server and the Library
+of common code now accepts a command line option:
+
+<PRE>
+	BUILD linemode | daemon | library
+</PRE>
+
+to build a specific component. The default action is to build all three
+parts. BUILD is now also provided in a Bourne Shell version
+
+</UL>
+
+<H3>Bug Fixes</H3>
+
+<UL>
+
+<LI>Fixed memory leak in HTWAIS Doc retrieval. However, the
+functionality or performance has not changes
+
+<LI>If no host is found in the URL then no attempt is made to connect
+to host 0.0.0.0 that is localhost. Some hosts do have an alias for
+this address
+
+<LI>Fixed free memory read in redirections. Put redirection counter
+into request structure. Now no more than (default) 10 redirections are
+allowed
+
+<LI>Fixed bug in FTP module to handle really slow hosts in the select
+call. The select timed out without the right action taken.
+
+<LI>FTP module chopped off the first line of a Windows NT ftp server as
+it doesn't send a traditional first UNIX line. Fixed! Well, it
+<EM>did</EM> look like UNIX, but no more than that :-(
+
+<LI>Problem in HTTeXGen. Some markups was spread over a new line, and
+LaTeX doesn't like that.
+
+<LI>Remove the <CODE>ACCESS_AUTH</CODE> define as it is never used
+anymore (no more compilation without access authentication)
+
+<LI>Fixed bug in the ISO Latin 1 translation table in HTML.c. This was
+a problem for estonian documents or other with many special characters
+
+<LI>Fixed bug in HTSimplify not skipping host names. HTSimplify is
+made faster and is now only called once (both from the server and the
+client). Before it was called 2-3 times.
+
+<LI>Bug found in FTP URLs containing UserID and Passwd fixed
+
+<LI>Bug fixed in name generation in client cache
+
+<LI>Removed bug in FTP and IP-rotation on multi-homed hosts. When FTP
+server is in PASV mode it sends back a port number on a specific host.
+In this case we can't use IP-address rotation.
+
+<LI>Bug with FTP IP-address network order fixed for PASV mode
+
+<LI>Gopher errors (code 3) are now just put as a string as they are
+not <B>real</B> error
+
+<LI>Bug fixed in HTWriter.c function <CODE>flush()</CODE> where a
+partial success in NETWRITE would produce a wrong output (repeated
+buffer)
+
+</UL>
+
+<HR>
+
+<H2>2.16 Prerelease 2, June 1994</H2>
+
+<H3>WAIS Client</H3>
+
+The WAIS client has been improved and some bugs have been fixed:
+
+<UL>
+<LI>	Bug in the parser of the search result from the WAIS module fixed 
+<LI>	Maximum number of lines presented from a search made a configuration
+	variable. Default value is 100 (was 40) 
+<LI>	Introduced WAIS's own error messages as they are returned from the WAIS
+  	library
+<LI>	The presentation of WAIS on the screen made nicer (well - I think it
+	is!)
+</UL>
+
+<H3>HTTCP Module</H3>
+
+<UL>
+<LI> Bug in the host cache fixed
+</UL>
+
+
+<H3>Access Authorisation</H3>
+
+<UL>
+<LI> Premature free of memory fixed
+<LI> Missing initialization fixed
+</UL>
+
+<HR>
+
+<H2>2.16 Prerelease 1, April 1994</H2>
+
+<H3>New Features and Changed Interfaces</H3>
+
+<H4>HTTP Client</H4>
+
+<A HREF="../../Implementation/HTTP.html">HTTP</A> module contains the code
+for the HTTP client. The module is now reorganized and made more modular.
+
+<DL> 
+<DT> Automatic Redirection
+<DD> Now supported by the HTTP Module. The name of the new URL is parsed
+     to the client via the error_stack as a ERR_INFO message, see
+     <A HREF="../../Implementation/HTError.html">HTError</A> module. The maximum
+     number of redirections is set by the variable HTMaxRedirections.
+<DT> Referer Field in HTTP request
+<DD> Clients are provided the possibility of
+     sending a <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">Referer Field</A> in a <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html">HTTP Request</A>. This is done by
+     filling out the HTRequest-&gt;parentAnchor field.
+<DT> From field in HTTP Request
+<DD> Clients can now send the full email address of the current user in the
+     <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">HTTP From field</A>. The feature is turned off by default as it might
+     get a bit tricky through a Proxy.
+<DT> 204 Response
+<DD> Support of return code `204 No Response'
+</DL>
+
+<H4>FTP Client</H4>
+
+<A HREF="../../Implementation/HTFTP.html">HTFTP</A> module contains the code for
+the FTP client. The FTP client has changed a lot in this release. It is now a
+complete state machine where the actual action executed is a function of the
+current state.
+
+<UL>
+<LI> The client now follows the suggestions given in rfc 1123: "Requirements
+     for Internet Hosts -- Application and Support".
+<LI> Establishment of the data connection now comply to rfc 1579: "Firewall-
+     friendly FTP" such that the procedure is
+	<OL>
+		<LI> try PASV
+		<LI> if that fails, try PORT
+	</OL>	
+<LI> The URL is now parsed according to the (latest)
+     <A HREF="http://www.w3.org/hypertext/WWW/Addressing/URL/4_1_FTP.html">
+     specifications</A>:
+<PRE>
+	url	: f t p: / / login / path [  ftptype ]
+	login	: [ user [ : password ] @ ] hostport
+	hostport: host [ : port ]  
+	ftptype	: A formcode | E formcode | I | L digits
+	formcode:  N | T | C
+</PRE>
+<LI> Both directory listings and file retrieval use the same procedure:
+<OL> 
+<LI> First try to go to the location directly, as we are often talking
+     to a UNIX server or one that 'understands' UNIX syntax
+<LI> If it fails, then go to the location step by step using CWD. In
+     that way we should not have any problems on any platform, and
+     thus it is not necessary to make special hacks for VMS, etc.
+</OL> 
+<LI> Long directory listings are supported for unix-like systems and VMS. This
+     includes NetWare and WindowsNT. See <A HREF="../Bugs/Workinglist.html">Future plans</A> 
+     for more and <A HREF="#z20">Directory Listings</A>
+<LI> Information from the FTP-server is pr default presented to the client
+     using the following rule:
+<OL> 
+<LI> If you are connecting to the root directory at a ftp site, we show the
+     'login' message (might be a concatenation of several messages) just
+     like in a normal ftp session.
+<LI> If you have a more specific URL, then you probably already know the site  
+     and are less interested in the login message. Instead we show any local  
+     message when making a CWD to the right location.
+</OL> 
+</UL>
+
+<H4>Gopher Client</H4>
+
+The <A HREF="../../Implementation/HTGopher.html">Gopher</A> has been revised and 
+improved error handling has been implemented.
+
+<DL>
+<DT> Information Messages
+<DD> Some Gopher servers send back information messages in a line containing
+     "error.host". This information is treated like login information from FTP
+     servers so that it is represented as a message before or after the actual
+     listing.
+<DT> Iconized Listings
+<DD> Listings now contain icons in the same way as the other listings.
+<DT> CSO Name Server
+<DD> The CSO Name Server client outputs in HTML and not only &lt;PRE&gt; as
+     before.
+<DT> Content Type Recognition
+<DD> The Gopher module uses it's own content-type recognition inherited from 
+     HTTP when handling gopher text and gopher binary files. This means, that
+     e.g. PostScript files get handled correctly.
+</DL>
+
+<H4>Local File Access</H4>
+
+The new version of HTFile module is a lot smaller as all Directory listing
+stuff has moved to HTDirBrw module. New error handling has been implemented.
+
+<H4>Passive and Active Connection Establishment</H4>
+
+Calls to connect() and accept() now go through the functions HTDoConnect()
+and HTDoAccept() respectively.
+
+<H4>Cache of Host Names and Addresses</H4>
+
+HTInetParse() that is called from within HTDoConnect now has an internal cache
+of the names and (possible multiple) IP-addresses of visited hosts. This
+minimizes the access to the file /etc/hosts and the Domain Name Server, even
+though aliases are not recognized in the cache.<P>
+
+The default cache size is 500 entries and a host stays as long as a connect()
+succeeds. That is, if connection is refused for some reason, the host is taken
+out of the cache. <P>
+
+The time to make a connection to a multihomed host is measured every time and
+a mean access time is calculated so that HTDoConnect always takes the fastest
+IP-address, see <A HREF="../Bugs/Workinglist.html">Future plans</A>.
+
+<H4>Improved Functionality of DNS requests</H4>
+
+The Library now provides functionality for obtaining the full mail address
+of the user, full domain name of the host and also the possibility for
+setting both values. This means that the user can use his official email
+address, e.g. in the HTTP request.
+
+<H4><A NAME="z20">Long Directory Listings</A></H4>
+
+Long directory listings for HTTP, FTP and files on the local file
+system supported. For the moment only a part of
+the functionality, e.g, sorting, which columns to show etc. is exploited, see <A HREF="../Bugs/Workinglist.html">Future Plans</A>.
+
+<H4>Icon Management</H4>
+
+Icons in directory listings are bound to MIME content-types and encoding. They
+can be found in the <A HREF="../Implementation/HTIcons.html">HTIcons</A> 
+module. The default set of icons is set up using HTStdIconInit() and new 
+icons can be added dynamicly using HTAddIcon().
+
+<H4>File Descriptions in Directory Listings</H4>
+
+File descriptions are supported for long HTTP directory listings. The default
+thing is to peek the title of the HTML files.
+
+<H4>Error and Information Message Management</H4>
+
+A new error handling module is introduced in <A HREF="../Implementation/HTError.html"></A>HTError. It uses the error_stack entry in the
+<A HREF="../Implementation/HTAccess.html#z1">HTRequest structure</A>. It
+handles nested error messages so that we can give a reason for the error, e.g.
+<PRE>
+    Error in ...
+        This error occurred because ...
+            This is caused by ...
+                etc.
+</PRE>
+
+It also makes it possible for the Library to pass information back to the
+client so that the the Library doesn't act like a `black hole'. An example is
+HTTP redirection with status code `Moved 301'. Now the new URL is parsed back
+to the client via the error_stack so that the client can update the reference
+when possible. <P>
+
+The function that generates and outputs the error messages to the user is put
+into <A HREF="../../Implementation/HTErrorMsg.c">HTErrorMsg Module</A> so that it can be overwritten by a smart client or
+server.
+
+<H4>Guessing the Content Type of a Stream</H4>
+
+The HTGuess module reads a part a stream and determines the content type with 
+the highest probability from a statistical analysis.
+
+<H4>Minor Stuff</H4>
+
+<DL>
+<DT> tmpnam() 
+<DD> Because of problems on NeXT platforms the tmpnam() function is now
+     replaced by HTFWriter_filename() in HTFWriter.c. The function has two
+     modes: Give back a hash name or the last part of the URL (which
+     normally is more readable).
+<DT> HTMLPutImg()
+<DD> New function to make it easier to put out an HTML &lt;IMG&gt; tag.
+<DT> HTParseInet()
+<DD> Added one more parameter to tell whether it is a multihomed host or not.
+     (This is used in the host cache).
+<DT> HTInetStatus()
+<DD> Should no more be used directly but is called from HTErrorAdd so that the
+     message goes all the way back to the user
+<DT> HTError
+<DD> This typedef is now obsolete and will be removed in future releases
+<DT> HTLoad()
+<DD> Added new parameter to HTLoad: BOOL keep_error_stack. If YES then the 
+     error_stack is not cleared. This is used in redirection etc.
+<DT> HTLoadError()
+<DD> Because of the new <A HREF="../Implementation/HTError.html">HTError</A>
+     module, this function in HTML.c is not needed anymore.
+</DL>
+
+<H3>Bug Fixes</H3>
+
+This is a list of fixed bugs from earlier versions.
+
+<UL>
+<LI> Memory faults in HTSimplify() in HTParse.c has been fixed
+<LI> README files in directory listings now know how to handle '&lt;', '&gt;'
+     and '&amp;' correctly. Though the file still has to be Ascii. See
+     <A HREF="../Bugs/Workinglist.html">future plans</A> for handling this file.
+<LI> tmpnam is no more used in the Library because of problems on NeXT
+     platform. Instead a new function called HTFWriter_filename() in
+     HTFWriter.c is written. 
+<LI> HTInputSocket_getCharacter now returns a int and not a char so that EOF
+     is no longer a member of the char set.
+<LI> HTMLGen_start_element() is only allowed to put extra '\n' in &lt;PRE&gt;
+     mode if it is between parameters in a tag
+<LI> Changed type of &lt;IMG&gt; into SGML_EMPTY so that it doesn't expect
+     end tag &lt;\IMG&gt;
+<LI> Nested &lt;PRE&gt; is no more a problem in HTMLGen_start_element.
+<LI> Removed all #elif as not all compilers on HPUX likes it.
+<LI> Changed HTChunk such that chunk-&gt;data is '\0' terminated at any time.
+     This actually makes HTChunkTerminate less needed but be aware that
+     HTChunk-&gt;size changes.
+<LI> Removed non-portable d_namlen field in HTMulti.
+<LI> Moved definition of NO_GROUPS to tch.html
+<LI> Moved definition of HT_MAX_PATH to tch.html
+<LI> Proxy server now closes connection in HTTP.c. This was only problem in
+     non-forking servers (VMS).
+<LI> Definition of HT_NO_DATA moved to HTUtils.html where the other
+     return codes are placed.
+<LI> Functions from <A HREF="../../Implementation/HTAlert.html">HTAlert Module</A> that prompt the user don't get 
+     confused about <EM>ctrl-D</EM> anymore.
+</UL>
+
+<HR>
+
+<H2>27 March 94 2.16beta VMS version</H2>
+
+<UL>
+
+<LI><A NAME="z0"
+HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">
+Distribution for VMS</A>
+
+</UL>
+
+<HR>
+
+<H2>25 March 94 - 2.15</H2>
+
+<H3>General Upgrade </H3>
+
+<UL>
+
+<LI>Lou Montulli's Lynx and LIST NEWSGROUP diffs put in to HTNews.c
+
+<LI>Complete <A NAME="z8"
+HREF="../../Implementation/HTMLPDTD.html">HTML+ DTD</A> in parser as
+per Dave Raggett's internet draft 00. All 78 elements in the spec plus
+COMMENT, H7, HTML, XMP, LISTING and PLAINTEXT for back-compatibility.
+
+<LI>Backup files created on PUT to local file (in server or client)
+according to global flag HTTakeBackup, defaults to YES.
+
+<LI>Changed interface to <A NAME="z13"
+HREF="../../Implementation/HText.html">HText</A> -- added<A NAME="z12"
+HREF="../../Implementation/HText.html#z0"> HText_new3</A> creation
+method.  All clients using this interface should ensure that the
+structured stream used during creation is reopen()ed if it is still
+needed to hold dcoument structure after the original load has been
+done. In this case it should later be freed.
+
+<LI>CHANGED INTERFACE to <A NAME="z9"
+HREF="../../Implementation/HTAccess.html">HTAccess</A> : Now an <A
+NAME="z10" HREF="../../Implementation/HTAccess.html#z1">HTRequest</A>
+environment is passed to almost all calls.  Allows better reentrant
+use of library for image embedding, etc.  Implies (minor) changes to
+all clients.
+
+<LI> Changed <A NAME="z11"
+HREF="../../Implementation/HTFormat.html#z12">HTConverter</A>
+definition. Should be internal only, uness you register new
+converters.  Now take more useful parameters.
+
+<LI>HTSaveAndCallBack stream allows simple implementation of embedded
+graphics: just load them with all conversions you can hadle using
+HTSaveAndCallBack -- you will be called back with a filename when the
+image is on disk.
+
+<LI>Initialization: Calling of HTInit functions now not done by
+library -- if you want them, you call them from the application.
+
+<LI> xxx_proxy environment variables for forwarding requests to a
+proxy (e.g. http_proxy , ftp_proxy , gopher_proxy ).
+
+<LI> no_proxy environment variable to override the proxy; e.g.
+
+<PRE>
+        setenv no_proxy "cern.ch, foo.bar:8001, ncsa.uiuc.edu"
+</PRE>
+
+<LI>Bug causing FTP binary file transfers failing fixed.
+
+<LI> Fix to Gopher code -- Now tries to do own filetyping with unknown
+gopher types.  Even if this fails doesn't truncate binary files.
+
+<LI> Local directory listing bug with trailing slash fixed.
+
+<LI> Better multiformat handling, HTMulti(), with welcome page
+support.
+
+<LI> The eight misplaced cern_httpd access authorization modules moved
+away from the library.
+
+<LI> Parts with inefficient list handling rewritten -- better
+performance.
+
+<LI> Non-modal changes for password prompting -- I suspect this
+doesn't work yet.  Someone who is implementing a GUI client please
+contact me &lt;luotonen@ptsun00.cern.ch>.
+
+<LI>The PlainToHTML text converter now works.
+
+<LI>A basic HTMLToTeX converter is implemented.  It understands fairly
+well written HTML documents but can not recover serious HTML errors.
+
+<LI>All caching is turned off on the client side in this release until
+a more stable solution is found.
+
+<LI>tmpnam() not used any more as it caused problems on a NeXT.
+Instead the function HTFWriter_filename() returns a hash or the last
+part of the URL as filename.
+
+<LI>HTML titles now get parsed as well.  This is in order to convert
+foreign letters etc. But if somebody puts a list into the title....
+
+</UL>
+
+<H3>International</H3>
+
+<UL>
+
+<LI>Patches for parsing SGML with 2-byte<A NAME="z15"
+HREF="http://www.ntt.jp/japan/note-on-JP/encoding.html"> japanese
+encoding</A> included, from<A NAME="z16"
+HREF="http://www.ntt.jp/people/takada/takada.html">
+takada@seraph.ntt.jp</A> .
+
+</UL>
+
+<H3>Bug Fixes</H3>
+
+<UL>
+
+<LI>Bug fixed in HTFile.c prevented .multi multiformat links from
+working under Solaris, maybe other SYSV.
+
+<LI>Bug fix in client HTTP: "Accept" line params preceded by ";" now
+as per spec.
+
+<LI> Bug fixed in HTBTree.c that crashed for some large directories.
+
+</UL>
+
+<HR>
+
+<H2>15 December 2.14vms </H2>
+
+<UL>
+
+<LI><A NAME="z17"
+HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">
+Provisional Distribution for VMS</A>
+
+</UL>
+
+<HR>
+
+<H2>17 November 2.14 </H2>
+
+<UL>
+
+<LI>Contains port to VMS.
+
+<LI>Bug fix in HTML generation -- line wrapping code produced garbage.
+Affected servers working as gateways and also editors writing back
+HTML.
+
+<LI> Buf fix: static string returned by crypt() was free() 'd.
+
+</UL>
+
+<HR>
+
+<H2>4 Nov 93 Version 2.13</H2>
+
+<UL>
+
+<LI>Bug fix: FTP text transfer don't end when 8 bit characters used.
+Still end on character -1.  Thanks to Bjoern Stabell
+(bjoerns@staff.cs.uit.no)
+
+<LI>A single function HTPromptUsernameAndPassword() so that GUIs can
+have a single authentication dialog box.
+
+<LI> Extensive filename suffix recognition defaults.
+
+</UL>
+
+<HR>
+
+<H2>11 Oct 93 Version 2.12</H2>
+
+<UL>
+
+<LI>Authroization in. See <A NAME="z7"
+HREF="../AccessAuthorization/Overview.html">Ari's documentation</A> .
+Everything is back-compatible, but there are large extenions to the
+rule file syntax, plus new ACL and protection setup files.
+Authorization is done by password in the clear now, with hooks for
+public key later.
+
+<LI>Some other bug fixes.  Not all the reported ones.
+
+</UL>
+
+<HR>
+
+<H2>8 Sept 93 Version 2.11</H2>
+
+<UL>
+
+<LI>Binary transfer problems tackled in HTTP. Yukky problem of
+existing illegal 0.9 server producing binary which looks like text is
+unsolved.  No problems with HTTP 1.0 transfer.
+
+<LI>Streams: end_document method removed.  "Abort" method added as
+requested at W5 -- use this when a pipe (stream stack) is broken by an
+error prevents execution etc of partially written files for example.
+
+<LI>New stream <A NAME="z6"
+HREF="Implementation/HTFormat.html#z11">HTNetToText</A> for converting
+Net ASCII to local C representation.
+
+<LI>Bug fix: Directories represented with anchors all with empty
+string (as opposed to no) names: many NAME="" in anchors.
+
+<LI>Bug fix: application/octet-stream replaces application/binary as
+per MIME.
+
+<LI>CSO Nameserver code to HTGopher added as Mosaic originally from
+???.  (AS)
+
+<LI>Bug fix: HTTPD would return an old-style (non-MIME) response when
+sending back a file in unrecognised format, evn if client was using
+HTTP 1.0.
+
+</UL>
+
+<HR>
+
+<H2>Version 2.10 Not released due to WWWWW </H2>
+
+<UL>
+
+<LI>Bug fix: crashed with error message when doing a Gopher search.
+
+<LI>WAIS type "HTML" recognised as HTML.  Other types treated as
+application/binary.
+
+</UL>
+
+<HR>
+
+<H2>30 June 1993, version 2.09a</H2>
+
+<UL>
+
+<LI>Bug fix: A space was not allowed befoe the tagcloser (>) of an end
+tag. Now it is.  Also (untested), empty close tags should be allowed a
+la "&lt;h1>heading&lt;/>".  Not recommended, but in.
+
+<LI>Bug fix: HTML nesting stack overflow check.
+
+<LI>Bug fix: Compilation under IBM MVS didn't work.
+
+</UL>
+
+<HR>
+
+<H2>23 June 1993, version 2.09</H2>
+
+At last this stupid library is aware of content-transfer-encoding.
+When defining file suffixes you must define not only the content-type
+(eg application/postscript) but also the encoding (eg binary, or
+7bit).  The first effect of this is to get the proper mode selected
+for FTP transfers.  This means you can do a <P>
+
+<PRE>
+	www -source ftp:/xx.yy.edu/pub/junk/foo.tar.Z > junk.tar.Z<P>
+</PRE>
+
+and it will work as expected. <P>
+
+On the client side, you can define the presentation method for any
+given MIME-style 'content type".  This is done in the rule file too.
+
+<HR>
+
+<H2>2.08</H2>
+
+<UL>
+
+<LI>You can define file suffix conventions in the server and/or client
+rule files. This allows you to set up a server which for example,
+trateas .ai files as application/postscript, etc, or specifies that
+.ME is generally text.
+
+<LI>You can define how a new content type will be rendered in the rule
+file of a client.
+
+</UL>
+
+<HR>
+
+<H2>15 June 93, version 2.07</H2>
+
+<UL>
+
+<LI>If you telnet to the www client (-h option): 1. it is more secure:
+No local file access.  2.  you can use /etc/www-remote.url file to
+specify the url of the home page for telnet users.
+
+<LI>Library uses fopen() rather than open(), allowing file access on
+non-unix machines.
+
+</UL>
+
+<HR>
+
+<H2>7 June 93, 2.06</H2>
+
+<UL>
+
+<LI>Check against local hostname in file access is now string
+insensitive.
+
+<LI>HTML parser: entities were not expanded at outer level.
+
+<LI>HTTP client sends client name and version.  Requires HTAppName
+
+<LI>FTP client fix: Continuation lines which do not have - in are now
+handled properly as per the spec.
+
+</UL>
+
+<HR>
+
+<H2>May 1993 version 2.05a</H2>
+
+<UL>
+
+<LI>Bug fix in directory reading of local files -- it didn't work!
+The stopped the daemon working on directories.
+
+<LI>Bug fix in DIR handling for browers: tabs work again in directory
+listsings.
+
+</UL>
+
+<HR>
+
+<H2>22 April 1993 version 2.04</H2>
+
+<UL>
+
+<LI>WAIS handling code in library, no need to go through a gateway of
+you compile with the right options abd link with freeWAIS. First
+version of this, no bells or whistles.
+
+<LI>tcp.h systems specifics for SCO picked up from mosaic but
+directory handling not fixed yet ...
+
+</UL>
+
+<HR>
+
+<H2>20 April 1993 version 2.03c:</H2>
+
+<UL>
+
+<LI>Use of identifier "this" removed to prevent conflicts with C++
+
+<LI>_AIX  cpp defined picked up for AIX.
+
+<LI>In networking code, no assumption that \n is 10 on even on ASCII
+machines (for Mac/MPW).
+
+<LI>Server bug fix after Sebastian.Wilhelmi@isst.fhg.de -- exited with
+bad status even if all OK.
+
+</UL>
+
+<HR>
+
+<H2>19 April 1993 version 2.03b</H2>
+
+<UL>
+
+<LI>Distribution bug fix: s/Specific/All/ on line 2 of
+WWW/All/Makefile.product
+
+<LI>SGML bug fix: treatment of entities was on when would be off and
+vice-cversa.
+
+<LI>Sun binaries linked with -Bstatic to make them transportable
+
+<LI>Bug fix: Sometimes, client would ignore first part of returned
+file.
+
+</UL>
+
+<HR>
+
+<H2>17 Mar  93 Version 2.02-beta</H2>
+
+<UL>
+
+<LI>Bug fix: Falls back to old HTTP with servers which don't like the
+new HTTP.
+
+<LI>BUILD file for easy installation of library, httpd and www
+
+</UL>
+
+<HR>
+
+<H2>15 Mar 93 Version  2.0 alpha:</H2>
+
+Incompatible library release has cleaned up interfaces.  Developers
+read the .h files!  Version 2 libraries must be compiled with version
+2 products and vice-versa.  Version 2 clients will access (most)
+version 1 servers OK, version 2 servers will respond correctly to
+(all) version 1 clients.
+
+<UL>
+
+<LI>Bug fix: Gopher connections wasted socket numbers and eventually
+used them all up. (Thanks Marc Andreessen)
+
+<LI>Rule file used by clients as well as servers.
+
+<LI>MIME parser takes content-type field from MIME messages and
+invokes appropriate registerd presentation method for each type.
+
+<LI>Local and remote <A NAME="z5" HREF="Multiformat.html">multiformat
+files</A>.
+
+<LI>***HTSearch and HTLoadRelative parameters changed! HTMainAnchor
+and HTMainText globals are no longer used by the library.
+
+<LI>HTAccess package now registers known protocols in list.
+
+<LI>HT{G,S}etNewsHost available from HTNews module.
+
+<LI>SGML parser speeded up
+
+<LI>New software intrerface introduced: HTStructuredClass.  This
+should make use of the library easier with clients, and allow more
+code in common between clients and servers.
+
+<LI>Hooks for handling new formats with other applications
+
+<LI>General hooks for status messages, user query, progress
+monitoring, etc.  (HTAlert module)
+
+</UL>
+
+<HR>
+
+<H2>6 January 1993,  Version1.1a</H2>
+
+<UL>
+
+<LI>Can revisit telnet nodes.
+
+<LI>Tn3270 access type accepted.
+
+<LI>FTP password for anonymous is now WWWuser@ withouyt a hostname,
+for software on ftp.uu.net etc.
+
+<LI>Bug fix in HTML.c: Would crash when a list was the first visible
+element in a text object.
+
+</UL>
+
+<HR>
+
+<H2><A NAME="z4">11 December 1992, Version 1.1</A></H2>
+
+<UL>
+
+<LI>Added &lt;PRE> tag as in <A NAME="z3"
+HREF="../MarkUp/Connolly/921203/HTML.html">new HTML spec</A>.
+
+<LI>Added numeric character reference handling for future use.
+
+</UL>
+
+<HR>
+
+<H2>December 1992,  Version 1.0c</H2>
+
+<UL>
+
+<LI>Fixed bug in FTP handling (FTP file retrieve put control
+connection in bad state)
+
+<LI>Fixed bug in Gopher handling on non-ASCII platforms. Also, bug fix
+in Gopher search of index whose name contained characters (like
+blanks) escapes with %.
+
+<LI>Fixed bug in NEWS handling, failed on non-ASCII platforms.
+
+</UL>
+
+<HR>
+
+<H2>November 1992 Version1.0b</H2>
+
+<UL>
+
+<LI>Fix some bugs in Make system.
+
+<LI>Memory bug fixed: On failure to connect to HTTP server, it would
+free() an uninitialized pointer!
+
+<LI>Some trace messages were output to stdout instead of stderr
+
+<LI>Allow "ftp:" prefix on URL . Effect is currently equivalent to
+that of the "file:" prefix.
+
+<LI>Local file access not allowed in secure mode. (telnet access was
+never allowed in this mode).  Secure mode is used for telnet server
+and mail robot.
+
+</UL>
+
+<HR>
+
+<H2>October 1992 version 1.0</H2>
+
+<UL>
+
+<LI>Library libwww.a made independently of browsers to save time and
+space and to force good modularity
+
+</UL>
+
+<P>
+<HR> 
+<ADDRESS>libwww@w3.org, April 1995</ADDRESS>
+</BODY>
+</HTML>

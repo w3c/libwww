@@ -1,0 +1,97 @@
+<HTML>
+<HEAD>
+<TITLE>W3 Library Internals - Presentation Modules</TITLE>
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A HREF="Guide.html"><IMG
+ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Presentation Modules</H1>
+
+<H2>Generating a Graphic Object</H2>
+
+This document describes the methods provided for presentation a <A
+HREF="Overview.html#GraphicObject">graphic object</A> to the user. The
+implementation in the Library is made for a text oriented browser, so
+more advanced GUI clients must overwrite some of these modules. See
+more information on which <A HREF="Overview.html#Overwrite">modules to
+overwrite</A>.
+
+As mentioned in the <A HREF="../Using.html">how to get started
+guide</A>, the definition of a graphic object is free for the
+application. Some graphic objects work by storing the whole structure
+of the document.  Others work by converting the nested structure into
+a linear sequence of styled text for display. <P>
+
+Generally, a new platform has a new implementation of the hypertext
+object. A GUI client must overwrite the graphic object modules in the
+Library in order to take advantage of a more advanced
+user-interface. The graphic object as defined in the Library has two
+interfaces, depending on how much of the Library code the client wants
+to handle on its own:
+
+<DL>
+
+<DT>SGML Level
+
+<DD>If the client has its own HTML parser then the interface is
+between the client HTML parser and the Library SGML parser. The SGML
+parser is a general SGML parser which can be setup with a specific DTD
+and it feeds the HTML parser with structured data. In this case, you
+will be emulating the <A HREF="../../Implementation/HTML.c">HTML
+module</A>, and generating a hypertext object from the structured
+stream. The actual structured stream definition is in the <A
+HREF="../../Implementation/SGML.html">SGML module</A>.
+
+<DT>HTML Level
+
+<DD>If the client wants to use the HTML parser in the Library then
+this is the second interface to the Library. The hypertext object is
+parsed and the communication with the client is based on a set of
+call-back functions in the HTML parser. The call-back functions are
+all defined as prototypes in the <A
+HREF="../../Implementation/HText.html">HText module</A> but the client
+must provide the actual code that defines the presentation method used
+for a specific HTML tag. If you wish to maintain the structure of the
+SGML file within your object, then the SGML interface will be a better
+place to connect your code.
+
+</DL>
+
+You are free to define the structure of the hypertext object (the
+structure is left undefined in the <A
+HREF="../../Implementation/HText.html">HText module</A>. You may want to
+define your own styles and font definitions. <P>
+
+
+<H2>Style Sheets</H2>
+
+<IMG SRC="../../../Icons/32x32/caution.gif"> We are currently working
+on implementing a <A HREF="../../../MarkUp/Overview.html">HTML level
+3</A> parser in the Library, so the following description will soon be
+out of date. <P>
+
+The <A HREF="../../Implementation/HTStyle.html">Style module</A> in
+the Library currently only handles a flat style structure with no
+functionality for nested styles. You don't have to use this module, as
+you can replace the entry points in the <A
+HREF="../../Implementation/HTML.html">HTML module</A> with your own,
+to prevent the library version from being loaded.<P>
+
+The <A HREF="../../Implementation/HTPlain.html">HTPlain module</A>
+generates a styled text for a plain ascii document.<P>
+
+</DL>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@w3.org, April 1995</ADDRESS>
+
+</BODY>
+</HTML>

@@ -1,0 +1,55 @@
+<HTML>
+<HEAD>
+<TITLE>Notes about Sun OS</TITLE>
+<NEXTID N="z10">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A
+HREF="../../../LineMode/Status.html"><IMG ALT="LMB"
+SRC="../../../Icons/WWW/LMB48x.gif"></A> <A HREF="Platform.html"><IMG
+SRC="../../../Icons/WWW/Platform48x.gif"></A>
+
+<H1>Notes About Sun OS</H1>
+
+<HR>
+
+These are the installation and user notes for the <A
+HREF="../../../Daemon/Status.html">CERN HTTP Server</A>, the <A
+HREF="../../Status.html">Library of Common Code</A> and the <A
+HREF="../../../LineMode/Status.html">Line Mode Browser</A>. Any
+comments and suggestions are welcome at
+<EM>libwww@info.cern.ch</EM>. <P>
+
+<H2>Resolver Library</H2>
+
+An often encountered problem using Sun OS is that you get the error
+message back:
+
+<PRE>
+	Can't locate remote host
+</PRE>
+
+This is due to a problem with the way SunOS does name resolution. By
+default it uses NIS as the resolver and then if this fails then it
+tries the DNS server. However, sometimes it doesn't work and the
+result is the message above. <P>
+
+A way to short circuit the NIS system is to link the application with
+an external resolver library. In the case where you are building the
+code yourself this can be done by making a change to the <A
+HREF="Porting.html">Makefile.include</A> file and then rebuild the
+application. If you are using a precompiled binary then take the
+<B>lresolve</B> version.
+
+<P>
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@info.cern.ch, February 1995</ADDRESS>
+
+
+

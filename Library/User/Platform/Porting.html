@@ -1,0 +1,92 @@
+<HTML>
+<HEAD>
+<TITLE>The BUILD Script</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../../Library/Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="../../../LineMode/Status.html"><IMG ALT="LMB" SRC="../../../Icons/WWW/LMB48x.gif"></A>
+<A HREF="Platform.html"><IMG SRC="../../../Icons/WWW/Platform48x.gif" ALT="OS"></A>
+
+<H1>The BUILD Script</H1>
+
+The <EM>BUILD</EM> script is placed in the <CODE>WWW</CODE> directory
+and you can use it to compile and link the W3C applications. The
+<EM>BUILD</EM> script figures out what platform you are on and
+generates a <CODE>Makefile</CODE> which consists of a platform
+independent part and a platform dependent part. The independent stuff
+is all in
+
+<PRE>
+	WWW/&lt;application&gt;/Implementation/CommonMakefile
+</PRE>
+
+whereas the platform dependent stuff can be found in 
+
+<PRE>
+	WWW/All/&lt;platform&gt;/Makefile.include
+</PRE>
+
+The <CODE>Makefile.include</CODE> contains all platform specific
+compiler flags, linker flags etc. If you encounter problems with the
+compiler, for example if you don't have it, then modify the flags in
+this file and retry <EM>BUILD</EM>. <P>
+
+If your application is not mentioned in the <A
+HREF="Platform.html">Platform</A> page then read this section to find
+out about the <EM>BUILD</EM> script and how to port the source code to
+your platform. We assume you have a unix-like environment, including
+some sort of C (either Kernigan and Ritchie or ANSI) compiler, and a
+socket library supporting TCP/IP communications. If you are on a PC
+platform, VMS or other then it might require some more hard work
+depending on the application you want to port.<P>
+
+<UL>
+
+<LI>Make a new subdirectory under <CODE>WWW/All</CODE> and give it a
+name that is characteristic to your platform. Often you can use the
+name given by the <CODE>uname</CODE> command:
+
+<LI>Copy the <CODE>Makefile.include</CODE> from another (similar)
+machine's subdirectory. You can find similar platforms for almost any
+known Unix platform into the new directory.
+
+<LI>Modify the <CODE>Makefile.include</CODE> as necessary to compile
+and install on your system. This involves selecting the compiler
+command, flags, etc, to be used, and specifying directory names.
+
+<LI>Add a line to the <EM>BUILD</EM> script so that the
+<CODE>WWW_MACH</CODE> environment variable can be set. You can often
+see how to do this by looking at the other entries in this file.
+
+<LI>Try out the <EM>BUILD</EM> script by typing in the
+<CODE>WWW</CODE> directory
+
+<PRE>
+	./BUILD
+</PRE>
+
+If the code doesn't compile then you have to look into the source code
+itself. Often the only module to modify is the <A
+HREF="../../Implementation/tcp.html">tcp module</A> which includes all
+system specific details such as system include files etc.
+
+<LI>Mail the Makefile, and any other changes you found were necessary,
+back to us (<EM>libwww@w3.org)</EM> so that other people can get the
+changes as well.
+
+</UL>
+
+Now you can install the software according to the instructions given
+under the status page of the application you want to install.
+
+<P>
+<HR>
+
+<ADDRESS><A HREF="../../../../TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../../../People.html#Frystyk">Henrik Frystyk</A>, April
+1995</ADDRESS>
+
+</BODY>

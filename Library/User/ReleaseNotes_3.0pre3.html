@@ -1,0 +1,132 @@
+<HTML>
+<HEAD>
+<TITLE>CERN WWW Library 3.0 Pre 3 Release Notes</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW"
+SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="Lib"
+SRC="../../Icons/WWW/Lib48x.gif"></A>
+
+<H1>CERN Library 3.0 Prerelease 3 (TEST OF WINDOWS PORT)</H1>
+
+<HR>
+
+This is the announcement of the <A
+HREF="/pub/src/WWWLibrary_3.0pre3.tar.Z">CERN Common Code Library
+3.0pre3</A>. This beta-release is the last before the real thing. It
+contains a set of bug fixes, new interface <B>AND A PORT TO
+PC/WINDOWS</B> based on Winsock. The purpose of this last prerelease
+before the official 3.0 release is to get feedback from PC/WINDOWS
+developers so that we can get better support in Library version
+3.0. Some more information:
+
+<OL>
+
+<LI>I have used Microsoft Virtual C++ (msvc) and a so-called project.
+One of the problems using this is that it generates a non-standard
+make file. Also, msvc automaticly scans for all dependencies. However,
+it doesn't use a preprocessor, so if an include file is within
+
+<PRE>
+	#ifdef unix
+	#include &lt;system.h&gt;
+	#end
+</PRE>
+
+it is taken as a dependency. There are two solutions to this: Either
+create dummy include files or hand tailor the make file.  I chose the
+second solution.
+
+<LI>The TCP/IP library used is Winsock.
+
+<LI>I have tried to compile the library in two modes:
+
+<UL>
+<LI>Static library (.lib)
+<LI>Dynamic Library (.dll)
+</UL>
+
+When making a <B>DLL</B>, neither <CODE>stdin</CODE>,
+<CODE>stdout</CODE>, <CODE>stderr</CODE> nor a lot of system calls are
+defined. This is a problem as I haven't solved all the problems of
+unresolved references to system calls. I hope to get some help on this
+one! This is not a problem using a LIB, but it isn't as interesting
+either.
+
+<LI>There are still global memory that's not getting freed at the
+end. I hope that the <CODE>WWWLibTerminate()</CODE> will make this
+easier. Especially the anchors is a problem.
+
+</OL>
+
+The <A HREF="/pub/src/WWWLineMode_3.0pre3.tar.Z"> Line Mode
+Browser</A> is also released in order to show how the multithreaded
+functionality can be enabled. The method used in the Line Mode Browser
+is not limited to character-based clients but can support GUI clients
+as well. <P>
+
+Its is known to compile on Sun4, Solaris 2, HP Snake, NeXT, NeXT-386,
+Decstation Ultrix, DEC OSF/1, SGI, AIX, PC/WINDOWS and <A
+HREF="Platform/Platform.html">possibly a lot more</A>. <P>
+
+<IMG SRC="../../Icons/32x32/caution.gif" ALT="NOTE"> The Library is
+not compatible with the CERN server 3.0 and it should NOT be linked
+with this application. A later release of the CERN server will support
+the current Library. <P>
+
+<H2>New or Changed Features</H2>
+
+<LI>Made a <B>WWWLib.h</B> include file which should be the only one
+necessary <B>DON'T USE ANYTHING ELSE!!!</B>
+
+<LI>Replaced TRACE messages from stderr to using a macro TDEST On
+windows and other use local file
+
+<LI>Due to the PC Port some files have changed names (max 8 chars):
+
+<UL>
+<LI>s?HTFWrite.h?HTFWrite.h?g
+<LI>s?HTHist.h?HTHist.h?g
+<LI>s?HTEPtoCl.h?HTEPtoCl.h?g
+<LI>s?HTDescpt.h?HTDescpt.h?g
+<LI>s?HTXParse.h?HTXParse.h?g
+<LI>s?HTErrMsg.h?HTErrMsg.h?g
+</UL>
+
+<LI>Move EnableFrom to HTAccess.html
+
+<LI>Sockets are no longer assumed to be small, unsigned integers, but
+uses macros
+
+<LI>Introduced error_stream as field in HTRequest structure. This
+enables the client to get the `dead information' that follows in a 3xx
+request, 4xx request etc.
+
+<H2>Bug Fixes</H2>
+
+<UL>
+<LI>file:// no more tries ftp:// if host=localhost
+<LI>Improved proxy support and fixed bug
+<LI>Bug fixed in HTGetHostName()
+<LI>Bug fixed if UserID/passwd not correct and don't want to retry
+<LI>HTNewsHost is now a local variable. Use HTGetNewsHost and HTSetNewsHost
+<LI>HTErrorAdd and HTErrorSysAdd no always return HT_ERROR
+<LI>Fixed bug in HTGetDomainName when no domain name is present at all
+<LI>Introduced Headermask into request structure
+<LI>Add output_flush to request structure
+<LI>Created HTDateTimeStr() in HTString
+<LI>Removed HTEnableFrom (replaced by HeaderMask in request)
+<LI>HTWriter added a parameter in stead of HTWriterNoClose()
+<LI>Removed HTInetStatus. Done by HTErrnoString
+<LI>Introduced socerrno and errno
+<LI>Uses IOCTL as a macro now - not fcntl
+<LI><EM>and a lot of other stuff...</EM>
+</UL>
+
+Have fun!
+
+<HR>
+
+<ADDRESS>Henrik Frystyk, libwww@w3.org, Marts 1995</ADDRESS>

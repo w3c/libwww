@@ -1,0 +1,302 @@
+<HTML>
+<HEAD>
+<TITLE>CERN WWW Library 2.16 prerelease notes</TITLE>
+</HEAD>
+<BODY>
+
+<ADDRESS>Henrik Frystyk, Ari Luotonen, CERN, June 1994</ADDRESS>
+
+<H1><IMG SRC="http://www.w3.org/hypertext/WWW/Icons/WWW/WWWlogo.gif"
+ALT="WWWlogo"> <A HREF="../Status.html">CERN Library</A> 2.16 Release
+Notes</H1>
+
+<HR>
+
+<H2>More Information</H2>
+
+Other pages of interest are:
+
+<UL>
+
+<LI> <A HREF="../../User/Guide/">Internals and Programmer's Guide</A>
+
+<LI> <A HREF="Bugs/Workinglist.html">Working List</A>
+
+<LI> <A HREF="Features/Implementation.html">Implementation Specifications</A>
+
+<LI> <A HREF="../../Status.html">CERN WWW Software</A>
+
+<LI> <A HREF="Features/Features.html">Change History</A>
+
+</UL>
+
+<H2>2.16 Prerelease 2</H2>
+
+<H3>WAIS Client</H3>
+
+The WAIS client has been improved and some bugs have been fixed:
+
+<UL>
+<LI>	Bug in the parser of the search result from the WAIS module fixed 
+<LI>	Maximum number of lines presented from a search made a configuration
+	variable. Default value is 100 (was 40) 
+<LI>	Introduced WAIS's own error messages as they are returned from the WAIS
+  	library
+<LI>	The presentation of WAIS on the screen made nicer (well - I think it
+	is!)
+</UL>
+
+<H3>HTTCP Module</H3>
+
+<UL>
+<LI> Bug in the host cache fixed
+</UL>
+
+
+<H3>Access Authorisation</H3>
+
+<UL>
+<LI> Premature free of memory fixed
+<LI> Missing initialization fixed
+</UL>
+
+<H2>2.16 Prerelease 1</H2>
+
+<H3>New Features and Changed Interfaces</H3>
+
+<H4>HTTP Client</H4>
+
+<A HREF="../../Implementation/HTTP.html">HTTP</A> module contains the code
+for the HTTP client. The module is now reorganized and made more modular.
+
+<DL> 
+<DT> Automatic Redirection
+<DD> Now supported by the HTTP Module. The name of the new URL is parsed
+     to the client via the error_stack as a ERR_INFO message, see
+     <A HREF="../../Implementation/HTError.html">HTError</A> module. The maximum
+     number of redirections is set by the variable HTMaxRedirections.
+<DT> Referer Field in HTTP request
+<DD> Clients are provided the possibility of
+     sending a <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">Referer Field</A> in a <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html">HTTP Request</A>. This is done by
+     filling out the HTRequest-&gt;parentAnchor field.
+<DT> From field in HTTP Request
+<DD> Clients can now send the full email address of the current user in the
+     <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">HTTP From field</A>. The feature is turned off by default as it might
+     get a bit tricky through a Proxy.
+<DT> 204 Response
+<DD> Support of return code `204 No Response'
+</DL>
+
+<H4>FTP Client</H4>
+
+<A HREF="../../Implementation/HTFTP.html">HTFTP</A> module contains the code for
+the FTP client. The FTP client has changed a lot in this release. It is now a
+complete state machine where the actual action executed is a function of the
+current state.
+
+<UL>
+<LI> The client now follows the suggestions given in rfc 1123: "Requirements
+     for Internet Hosts -- Application and Support".
+<LI> Establishment of the data connection now comply to rfc 1579: "Firewall-
+     friendly FTP" such that the procedure is
+	<OL>
+		<LI> try PASV
+		<LI> if that fails, try PORT
+	</OL>	
+<LI> The URL is now parsed according to the (latest)
+     <A HREF="http://www.w3.org/hypertext/WWW/Addressing/URL/4_1_FTP.html">
+     specifications</A>:
+<PRE>
+	url	: f t p: / / login / path [  ftptype ]
+	login	: [ user [ : password ] @ ] hostport
+	hostport: host [ : port ]  
+	ftptype	: A formcode | E formcode | I | L digits
+	formcode:  N | T | C
+</PRE>
+<LI> Both directory listings and file retrieval use the same procedure:
+<OL> 
+<LI> First try to go to the location directly, as we are often talking
+     to a UNIX server or one that 'understands' UNIX syntax
+<LI> If it fails, then go to the location step by step using CWD. In
+     that way we should not have any problems on any platform, and
+     thus it is not necessary to make special hacks for VMS, etc.
+</OL> 
+<LI> Long directory listings are supported for unix-like systems and VMS. This
+     includes NetWare and WindowsNT. See <A HREF="Bugs/Workinglist.html">Future plans</A> 
+     for more and <A HREF="#z20">Directory Listings</A>
+<LI> Information from the FTP-server is pr default presented to the client
+     using the following rule:
+<OL> 
+<LI> If you are connecting to the root directory at a ftp site, we show the
+     'login' message (might be a concatenation of several messages) just
+     like in a normal ftp session.
+<LI> If you have a more specific URL, then you probably already know the site  
+     and are less interested in the login message. Instead we show any local  
+     message when making a CWD to the right location.
+</OL> 
+</UL>
+
+<H4>Gopher Client</H4>
+
+The <A HREF="../../Implementation/HTGopher.html">Gopher</A> has been revised and 
+improved error handling has been implemented.
+
+<DL>
+<DT> Information Messages
+<DD> Some Gopher servers send back information messages in a line containing
+     "error.host". This information is treated like login information from FTP
+     servers so that it is represented as a message before or after the actual
+     listing.
+<DT> Iconized Listings
+<DD> Listings now contain icons in the same way as the other listings.
+<DT> CSO Name Server
+<DD> The CSO Name Server client outputs in HTML and not only &lt;PRE&gt; as
+     before.
+<DT> Content Type Recognition
+<DD> The Gopher module uses it's own content-type recognition inherited from 
+     HTTP when handling gopher text and gopher binary files. This means, that
+     e.g. PostScript files get handled correctly.
+</DL>
+
+<H4>Local File Access</H4>
+
+The new version of HTFile module is a lot smaller as all Directory listing
+stuff has moved to HTDirBrw module. New error handling has been implemented.
+
+<H4>Passive and Active Connection Establishment</H4>
+
+Calls to connect() and accept() now go through the functions HTDoConnect()
+and HTDoAccept() respectively.
+
+<H4>Cache of Host Names and Addresses</H4>
+
+HTInetParse() that is called from within HTDoConnect now has an internal cache
+of the names and (possible multiple) IP-addresses of visited hosts. This
+minimizes the access to the file /etc/hosts and the Domain Name Server, even
+though aliases are not recognized in the cache.<P>
+
+The default cache size is 500 entries and a host stays as long as a connect()
+succeeds. That is, if connection is refused for some reason, the host is taken
+out of the cache. <P>
+
+The time to make a connection to a multihomed host is measured every time and
+a mean access time is calculated so that HTDoConnect always takes the fastest
+IP-address, see <A HREF="Bugs/Workinglist.html">Future plans</A>.
+
+<H4>Improved Functionality of DNS requests</H4>
+
+The Library now provides functionality for obtaining the full mail address
+of the user, full domain name of the host and also the possibility for
+setting both values. This means that the user can use his official email
+address, e.g. in the HTTP request.
+
+<H4><A NAME="z20">Long Directory Listings</A></H4>
+
+Long directory listings for HTTP, FTP and files on the local file
+system supported. For the moment only a part of
+the functionality, e.g, sorting, which columns to show etc. is exploited, see <A HREF="Bugs/Workinglist.html">Future Plans</A>.
+
+<H4>Icon Management</H4>
+
+Icons in directory listings are bound to MIME content-types and encoding. They
+can be found in the <A HREF="../../Implementation/HTIcons.html">HTIcons</A> 
+module. The default set of icons is set up using HTStdIconInit() and new 
+icons can be added dynamicly using HTAddIcon().
+
+<H4>File Descriptions in Directory Listings</H4>
+
+File descriptions are supported for long HTTP directory listings. The default
+thing is to peek the title of the HTML files.
+
+<H4>Error and Information Message Management</H4>
+
+A new error handling module is introduced in <A HREF="../../Implementation/HTError.html"></A>HTError. It uses the error_stack entry in the
+<A HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>. It
+handles nested error messages so that we can give a reason for the error, e.g.
+<PRE>
+    Error in ...
+        This error occurred because ...
+            This is caused by ...
+                etc.
+</PRE>
+
+It also makes it possible for the Library to pass information back to the
+client so that the the Library doesn't act like a `black hole'. An example is
+HTTP redirection with status code `Moved 301'. Now the new URL is parsed back
+to the client via the error_stack so that the client can update the reference
+when possible. <P>
+
+The function that generates and outputs the error messages to the user is put
+into <A HREF="../../Implementation/HTErrorMsg.c">HTErrorMsg Module</A> so that it can be overwritten by a smart client or
+server.
+
+<H4>Guessing the Content Type of a Stream</H4>
+
+The HTGuess module reads a part a stream and determines the content type with 
+the highest probability from a statistical analysis.
+
+<H4>Minor Stuff</H4>
+
+<DL>
+<DT> tmpnam() 
+<DD> Because of problems on NeXT platforms the tmpnam() function is now
+     replaced by HTFWriter_filename() in HTFWriter.c. The function has two
+     modes: Give back a hash name or the last part of the URL (which
+     normally is more readable).
+<DT> HTMLPutImg()
+<DD> New function to make it easier to put out an HTML &lt;IMG&gt; tag.
+<DT> HTParseInet()
+<DD> Added one more parameter to tell whether it is a multihomed host or not.
+     (This is used in the host cache).
+<DT> HTInetStatus()
+<DD> Should no more be used directly but is called from HTErrorAdd so that the
+     message goes all the way back to the user
+<DT> HTError
+<DD> This typedef is now obsolete and will be removed in future releases
+<DT> HTLoad()
+<DD> Added new parameter to HTLoad: BOOL keep_error_stack. If YES then the 
+     error_stack is not cleared. This is used in redirection etc.
+<DT> HTLoadError()
+<DD> Because of the new <A HREF="../../Implementation/HTError.html">HTError</A>
+     module, this function in HTML.c is not needed anymore.
+</DL>
+
+<H3>Bug Fixes</H3>
+
+This is a list of fixed bugs from earlier versions.
+
+<UL>
+<LI> Memory faults in HTSimplify() in HTParse.c has been fixed
+<LI> README files in directory listings now know how to handle '&lt;', '&gt;'
+     and '&amp;' correctly. Though the file still has to be Ascii. See
+     <A HREF="Bugs/Workinglist.html">future plans</A> for handling this file.
+<LI> tmpnam is no more used in the Library because of problems on NeXT
+     platform. Instead a new function called HTFWriter_filename() in
+     HTFWriter.c is written. 
+<LI> HTInputSocket_getCharacter now returns a int and not a char so that EOF
+     is no longer a member of the char set.
+<LI> HTMLGen_start_element() is only allowed to put extra '\n' in &lt;PRE&gt;
+     mode if it is between parameters in a tag
+<LI> Changed type of &lt;IMG&gt; into SGML_EMPTY so that it doesn't expect
+     end tag &lt;\IMG&gt;
+<LI> Nested &lt;PRE&gt; is no more a problem in HTMLGen_start_element.
+<LI> Removed all #elif as not all compilers on HPUX likes it.
+<LI> Changed HTChunk such that chunk-&gt;data is '\0' terminated at any time.
+     This actually makes HTChunkTerminate less needed but be aware that
+     HTChunk-&gt;size changes.
+<LI> Removed non-portable d_namlen field in HTMulti.
+<LI> Moved definition of NO_GROUPS to tch.html
+<LI> Moved definition of HT_MAX_PATH to tch.html
+<LI> Proxy server now closes connection in HTTP.c. This was only problem in
+     non-forking servers (VMS).
+<LI> Definition of HT_NO_DATA moved to HTUtils.html where the other
+     return codes are placed.
+<LI> Functions from <A HREF="../../Implementation/HTAlert.html">HTAlert Module</A> that prompt the user don't get 
+     confused about <EM>ctrl-D</EM> anymore.
+</UL>
+
+<HR>
+<ADDRESS>Henrik Frystyk - Ari Luotonen libwww@info.cern.ch - June 1994</ADDRESS>
+</BODY>
+</HTML>
+

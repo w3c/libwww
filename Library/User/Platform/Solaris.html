@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+<TITLE>Notes about Solaris</TITLE>
+<!-- Changed by: Arthur Secret, 18-Nov-1994 -->
+<NEXTID N="z10">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../Status.html"><IMG ALT="Lib"
+SRC="../../../Icons/WWW/Lib48x.gif"></A> <A
+HREF="../../../LineMode/Status.html"><IMG ALT="LMB"
+SRC="../../../Icons/WWW/LMB48x.gif"></A> <A HREF="Platform.html"><IMG
+SRC="../../../Icons/WWW/Platform48x.gif"></A>
+
+<H1>Notes About Solaris</H1>
+
+<HR>
+
+These are the installation and user notes for the <A
+HREF="../../../Daemon/Status.html">CERN HTTP Server</A>, the <A
+HREF="../../Status.html">Library of Common Code</A> and the <A
+HREF="../../../LineMode/Status.html">Line Mode Browser</A>. Any
+comments and suggestions are welcome at
+<EM>libwww@info.cern.ch</EM>. <P>
+
+<H2>Optimizations</H2>
+
+The following hints are from Simon E Spero,
+<EM>&lt;ses@tipper.oit.unc.edu&gt;</EM>
+
+<UL>
+
+<LI> Solaris has problems accepting lots of simultaneous connections.
+You can alleviate the problem somewhat by increasing the size of the
+maximum connection queue by using the following command:
+
+<PRE>
+	# ndd -set /dev/tcp tcp_conn_req_max 32
+</PRE>
+
+<LI> Another problem that Solaris has is with the period of time it
+leaves closed connections in the TIME_WAIT state; Solaris uses the
+reccommended value of 4 minutes; this can result in thousands of tcbs
+hanging around tieing up memory.  Unless you're regularly serving
+files to sites out beyond lunar orbit, dropping this value to about 30
+seconds (as it was in 4.1.3) should be safe.  If you do have people
+sending HTTP requests from that area, then somebody at NASA has way
+too much spare time on their hands. To change this paramter to a more
+sensible setting, use the following command.
+
+<PRE>
+	# ndd -set /dev/tcp tcp_close_wait_interval 30000
+</PRE>
+
+This will also help ftp, gopher and any other one-shot protocols.
+
+</UL>
+
+<H2>Problem with Clients going down</H2>
+
+The following hints are from Arthur Secret,
+<EM>&lt;webmaster@info.cern.ch&gt;</EM> <P>
+
+When a client (often Mac or a PC) opens a connection with the daemon,
+but dies in the middle of the response, the connection hangs up. If
+your http daemon is running stand-alone, you can stop the loop:
+
+<UL>
+
+<LI> edit the file /usr/local/bin/httpd_clean:<PRE>
+#! /bin/csh
+#
+# author: Arthur Secret (webmaster@info.cern.ch)
+#
+set boum4 = `ps -ef | grep 'httpd ' | grep nobody | awk '{print $2}'`
+echo '#! /bin/csh' > /tmp/httpd_clean.tmp
+echo "kill $boum4" >> /tmp/httpd_clean.tmp
+echo ' ' >> /tmp/httpd_clean.tmp
+chmod +x /tmp/httpd_clean.tmp
+sleep 190
+/tmp/httpd_clean.tmp
+rm /tmp/httpd_clean.tmp
+</PRE>
+
+<LI> Let's say your http daemon runs as <CODE>nobody</CODE>. As we
+need to create a crontab file for nobody, you must edit the file
+<CODE>/etc/cron.d/cron.allow</CODE> and add the line
+
+<PRE>
+	nobody
+</PRE>
+
+<LI> Then, as root, type
+
+<PRE>
+	crontab -e nobody
+</PRE>
+
+and insert the line
+
+<PRE>
+	0,10,20,30,40,50 * * * * /usr/local/bin/httpd_clean > /dev/null 2>&1
+</PRE>
+
+</UL>
+
+By modifying the first line of
+<CODE>/usr/local/bin/httpd_clean</CODE>, you may use this to clean
+other daemons as well. <P>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+libwww@info.cern.ch, November 1994</ADDRESS>
+
+
+
