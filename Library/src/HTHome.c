@@ -146,6 +146,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 PUBLIC HTParentAnchor * HTTmpAnchor (HTUserProfile * up)
 {
     static int offset = 0;			    /* Just keep counting... */
+    HTParentAnchor * htpa = NULL;
     time_t t = time(NULL);
     char * tmpfile = HTGetTmpFileName(HTUserProfile_tmp(up));
     char * tmpurl = HTParse(tmpfile, "file:", PARSE_ALL);
@@ -159,12 +160,12 @@ PUBLIC HTParentAnchor * HTTmpAnchor (HTUserProfile * up)
 	sprintf(result, "%s.%d.%d", tmpurl, t, offset++);
 #endif
 	HTTRACE(APP_TRACE, "Tmp Anchor.. With location `%s\'\n" _ result);
-	return HTAnchor_parent(HTAnchor_findAddress(result));
+	htpa = HTAnchor_parent(HTAnchor_findAddress(result));
 	HT_FREE(result);
     }
     HT_FREE(tmpfile);
     HT_FREE(tmpurl);
-    return NULL;
+    return htpa;
 }
 
 /*
