@@ -55,6 +55,16 @@ extern void HTSSL_verifyDepth_set (int depth);
 extern int HTSSL_verifyDepth (void);
 </PRE>
 
+<P>
+Manipulate client-side cert/key
+<PRE>
+extern void HTSSL_certFile_set (const char *cfile);
+extern const char* HTSSL_certFile (void);
+extern void HTSSL_keyFile_set (const char *kfile);
+extern const char* HTSSL_keyFile (void);
+</PRE>
+
+
 <PRE>
 extern HTSSL * HTSSL_new (int sd);
 extern void HTSSL_free (HTSSL * htssl);

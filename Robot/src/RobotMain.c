@@ -311,12 +311,6 @@ int main (int argc, char ** argv)
 		mr->redir_code = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : 0;
 
-#ifdef WWWTRACE
-	    /* trace flags */
-	    } else if (!strncmp(argv[arg], "-v", 2)) {
-		HTSetTraceMessageMask(argv[arg]+2);
-#endif
-
 #ifdef HT_POSIX_REGEX
 
 	    /* If we can link against a POSIX regex library */
@@ -399,6 +393,13 @@ int main (int argc, char ** argv)
                     argv[++arg] : DEFAULT_SSL_CFILE;
 
 #endif
+
+#ifdef WWWTRACE
+	    /* trace flags */
+	    } else if (!strncmp(argv[arg], "-v", 2)) {
+		HTSetTraceMessageMask(argv[arg]+2);
+#endif
+
 
 	    } else {
 		if (SHOW_REAL_QUIET(mr)) HTPrint("Bad Argument (%s)\n", argv[arg]);
