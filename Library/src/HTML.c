@@ -353,7 +353,7 @@ PRIVATE int HTML_put_character (HTStructured * me, char c)
     	break;					/* Do Nothing */
 	
     case HTML_TITLE:	
-    	HTChunkPutc(&me->title, c);
+    	HTChunk_putc(&me->title, c);
 	break;
 
 	
@@ -400,7 +400,7 @@ PRIVATE int HTML_put_string (HTStructured * me, CONST char* s)
     	break;					/* Do Nothing */
 	
     case HTML_TITLE:	
-    	HTChunkPuts(&me->title, s);
+    	HTChunk_puts(&me->title, s);
 	break;
 
 	
@@ -493,7 +493,7 @@ PRIVATE void HTML_start_element (
     	break;
 	
     case HTML_TITLE:
-        HTChunkClear(&me->title);
+        HTChunk_clear(&me->title);
 	break;
 	
     case HTML_NEXTID:
@@ -680,7 +680,7 @@ PRIVATE void HTML_end_element (HTStructured * me, int element_number)
 	break;
 
     case HTML_TITLE:
-        HTChunkTerminate(&me->title);
+        HTChunk_terminate(&me->title);
     	HTAnchor_setTitle(me->node_anchor, me->title.data);
 	break;
 	
@@ -746,7 +746,7 @@ PUBLIC int HTML_free (HTStructured * me)
     if (me->target) {
         (*me->targetClass._free)(me->target);
     }
-    HTChunkClear(&me->title);	/* Henrik 18/02-94 */
+    HTChunk_clear(&me->title);	/* Henrik 18/02-94 */
     free(me);
     return HT_OK;
 }
@@ -758,7 +758,7 @@ PRIVATE int HTML_abort (HTStructured * me, HTList * e)
     if (me->target) {
         (*me->targetClass.abort)(me->target, e);
     }
-    HTChunkClear(&me->title);	/* Henrik 18/02-94 */
+    HTChunk_clear(&me->title);	/* Henrik 18/02-94 */
     free(me);
     return HT_ERROR;
 }

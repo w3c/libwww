@@ -311,7 +311,7 @@ PUBLIC int SGML_free  (HTStream * context)
     }
     if ((status = (*context->actions->_free)(context->target)) != HT_OK)
 	return status;
-    HTChunkFree(context->string);
+    HTChunk_delete(context->string);
     for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	 /* Leak fix Henrik 18/02-94 */
 	if(context->value[cnt])
 	    free(context->value[cnt]);
@@ -331,7 +331,7 @@ PUBLIC int SGML_abort  (HTStream * context, HTList * e)
 	free(ptr);
     }
     (*context->actions->abort)(context->target, e);
-    HTChunkFree(context->string);
+    HTChunk_delete(context->string);
     for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	/* Leak fix Henrik 18/02-94 */
 	if(context->value[cnt])
 	    free(context->value[cnt]);
@@ -469,7 +469,7 @@ normal_text:
 **	Only foir compatibility with old servers.
 */
     case S_literal :
-	HTChunkPutc(string, c);
+	HTChunk_putc(string, c);
 	if ( TOUPPER(c) != ((string->size ==1) ? '/'
 		: context->element_stack->tag->name[string->size-2])) {
 	    int i;
@@ -504,9 +504,9 @@ normal_text:
 */
     case S_entity:
 	if (isalnum(c))
-	    HTChunkPutc(string, c);
+	    HTChunk_putc(string, c);
 	else {
-	    HTChunkTerminate(string);
+	    HTChunk_terminate(string);
 	    handle_entity(context, c);
 	    context->state = S_text;
 	}
@@ -516,10 +516,10 @@ normal_text:
 */
     case S_cro:
 	if (isalnum(c))
-	    HTChunkPutc(string, c);	/* accumulate a character NUMBER */
+	    HTChunk_putc(string, c);	/* accumulate a character NUMBER */
 	else {
 	    int value;
-	    HTChunkTerminate(string);
+	    HTChunk_terminate(string);
 	    if (sscanf(string->data, "%d", &value)==1)
 	        PUTC((char) value);
 	    context->state = S_text;
@@ -532,7 +532,7 @@ normal_text:
 handle_S_tag:
 
 	if (isalnum(c))
-	    HTChunkPutc(string, c);
+	    HTChunk_putc(string, c);
 	else {				/* End of tag name */
 	    HTTag * t;
 	    if (c=='/') {
@@ -541,7 +541,7 @@ handle_S_tag:
 		context->state = S_end;
 		break;
 	    }
-	    HTChunkTerminate(string) ;
+	    HTChunk_terminate(string) ;
 
 	    t = SGMLFindTag(dtd, string->data);
 	    if (!t) {
@@ -580,14 +580,14 @@ handle_S_tag:
 	    context->state = S_after_open;
 	    break;
 	}
-	HTChunkPutc(string, c);
+	HTChunk_putc(string, c);
 	context->state = S_attr;		/* Get attribute */
 	break;
 	
    				/* accumulating value */
     case S_attr:
 	if (WHITE(c) || (c=='>') || (c=='=')) {		/* End of word */
-	    HTChunkTerminate(string) ;
+	    HTChunk_terminate(string) ;
 	    handle_attribute_name(context, string->data);
 	    string->size = 0;
 	    if (c=='>') {		/* End of tag */
@@ -597,7 +597,7 @@ handle_S_tag:
 	    }
 	    context->state = (c=='=' ?  S_equals: S_attr_gap);
 	} else {
-	    HTChunkPutc(string, c);
+	    HTChunk_putc(string, c);
 	}
 	break;
 		
@@ -611,7 +611,7 @@ handle_S_tag:
 	    context->state = S_equals;
 	    break;
 	}
-	HTChunkPutc(string, c);
+	HTChunk_putc(string, c);
 	context->state = S_attr;		/* Get next attribute */
 	break;
 	
@@ -631,13 +631,13 @@ handle_S_tag:
 	    context->state = S_dquoted;
 	    break;
 	}
-	HTChunkPutc(string, c);
+	HTChunk_putc(string, c);
 	context->state = S_value;
 	break;
 	
     case S_value:
 	if (WHITE(c) || (c=='>')) {		/* End of word */
-	    HTChunkTerminate(string) ;
+	    HTChunk_terminate(string) ;
 	    handle_attribute_value(context, string->data);
 	    string->size = 0;
 	    if (c=='>') {		/* End of tag */
@@ -647,38 +647,38 @@ handle_S_tag:
 	    }
 	    else context->state = S_tag_gap;
 	} else {
-	    HTChunkPutc(string, c);
+	    HTChunk_putc(string, c);
 	}
 	break;
 		
     case S_squoted:		/* Quoted attribute value */
 	if (c=='\'') {		/* End of attribute value */
-	    HTChunkTerminate(string) ;
+	    HTChunk_terminate(string) ;
 	    handle_attribute_value(context, string->data);
 	    string->size = 0;
 	    context->state = S_tag_gap;
 	} else {
-	    HTChunkPutc(string, c);
+	    HTChunk_putc(string, c);
 	}
 	break;
 	
     case S_dquoted:		/* Quoted attribute value */
 	if (c=='"') {		/* End of attribute value */
-	    HTChunkTerminate(string) ;
+	    HTChunk_terminate(string) ;
 	    handle_attribute_value(context, string->data);
 	    string->size = 0;
 	    context->state = S_tag_gap;
 	} else {
-	    HTChunkPutc(string, c);
+	    HTChunk_putc(string, c);
 	}
 	break;
 	
     case S_end:					/* </ */
 	if (isalnum(c))
-	    HTChunkPutc(string, c);
+	    HTChunk_putc(string, c);
 	else {				/* End of end tag name */
 	    HTTag * t;
-	    HTChunkTerminate(string) ;
+	    HTChunk_terminate(string) ;
 	    if (!*string->data)	{	/* Empty end tag */
 	        t = context->element_stack->tag;
 	    } else {
@@ -762,7 +762,7 @@ PUBLIC HTStream * SGML_new (CONST SGML_dtd * dtd, HTStructured * target)
     if (!context) outofmem(__FILE__, "SGML_begin");
 
     context->isa = &SGMLParser;
-    context->string = HTChunkCreate(128);	/* Grow by this much */
+    context->string = HTChunk_new(128);	/* Grow by this much */
     context->dtd = dtd;
     context->target = target;
     context->actions = (HTStructuredClass*)(((HTStream*)target)->isa);

@@ -405,7 +405,7 @@ PRIVATE int HTNewsCleanup (HTRequest * req, int status)
     /* Remove the request object and our own context structure for nntp */
     HTNet_delete(net, status);
     FREE(news->name);
-    HTChunkFree(news->cmd);
+    HTChunk_delete(news->cmd);
     FREE(news);
     return YES;
 }
@@ -414,15 +414,15 @@ PRIVATE int SendCommand (HTRequest *request, news_info *news,
 			 char *token, char *pars)
 {
     int len = strlen(token) + (pars ? strlen(pars)+1:0) + 2;
-    HTChunkClear(news->cmd);
-    HTChunkEnsure(news->cmd, len);
+    HTChunk_clear(news->cmd);
+    HTChunk_ensure(news->cmd, len);
     if (pars && *pars)
-	sprintf(HTChunkData(news->cmd), "%s %s%c%c", token, pars, CR, LF);
+	sprintf(HTChunk_data(news->cmd), "%s %s%c%c", token, pars, CR, LF);
     else
-	sprintf(HTChunkData(news->cmd), "%s%c%c", token, CR, LF);
-    if (PROT_TRACE) TTYPrint(TDEST, "News Tx..... %s", HTChunkData(news->cmd));
+	sprintf(HTChunk_data(news->cmd), "%s%c%c", token, CR, LF);
+    if (PROT_TRACE) TTYPrint(TDEST, "News Tx..... %s", HTChunk_data(news->cmd));
     return (*request->input_stream->isa->put_block)
-	(request->input_stream, HTChunkData(news->cmd), len);
+	(request->input_stream, HTChunk_data(news->cmd), len);
 }
 
 /*		Load data object from NNTP Server		     HTLoadNews
@@ -457,7 +457,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    TTYPrint(TDEST, "NNTP........ Looking for `%s\'\n", url);
 	if ((news = (news_info *) calloc(1, sizeof(news_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadNews");
-	news->cmd = HTChunkCreate(128);
+	news->cmd = HTChunk_new(128);
 	news->state = NEWS_BEGIN;
 	net->context = news;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */

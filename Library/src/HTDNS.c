@@ -446,7 +446,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 
 	/* See if we have an open connection already */
 	if (pres->sockfd != INVSOC) {
-	    if (pres->active >= 0) {		   /* Warm connection in use */
+	    if (pres->active > 0) {		   /* Warm connection in use */
 		net->sockfd = pres->sockfd;		    /* Assign always */
 		pres->active++;
 		if (PROT_TRACE)

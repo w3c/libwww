@@ -527,7 +527,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
     }
 
     anchor->header_parsed = YES;
-    if (request->method == METHOD_HEAD) return HT_LOADED;
+    if (request->access || request->method == METHOD_HEAD) return HT_LOADED;
 
     /* News server almost never send content type or content length */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
@@ -564,11 +564,11 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 		me->EOLstate = EOL_FLF;
 	    else if (WHITE(*b)) {			   /* Folding: CR SP */
 		me->EOLstate = EOL_BEGIN;
-		HTChunkPutc(me->buffer, ' ');
+		HTChunk_putc(me->buffer, ' ');
 	    } else {						 /* New line */
 		me->EOLstate = EOL_BEGIN;
-		HTChunkPutc(me->buffer, '\0');
-		HTChunkPutc(me->buffer, *b);
+		HTChunk_putc(me->buffer, '\0');
+		HTChunk_putc(me->buffer, *b);
 	    }
 	} else if (me->EOLstate == EOL_FLF) {
 	    if (*b == CR)				/* LF CR or CR LF CR */
@@ -580,11 +580,11 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 		    return status;
 	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
 		me->EOLstate = EOL_BEGIN;
-		HTChunkPutc(me->buffer, ' ');
+		HTChunk_putc(me->buffer, ' ');
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
-		HTChunkPutc(me->buffer, '\0');
-		HTChunkPutc(me->buffer, *b);
+		HTChunk_putc(me->buffer, '\0');
+		HTChunk_putc(me->buffer, *b);
 	    }
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
@@ -594,18 +594,18 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 		    return status;
 	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
 		me->EOLstate = EOL_BEGIN;
-		HTChunkPutc(me->buffer, ' ');
+		HTChunk_putc(me->buffer, ' ');
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
-		HTChunkPutc(me->buffer, '\0');
-		HTChunkPutc(me->buffer, *b);
+		HTChunk_putc(me->buffer, '\0');
+		HTChunk_putc(me->buffer, *b);
 	    }
 	} else if (*b == CR) {
 	    me->EOLstate = EOL_FCR;
 	} else if (*b == LF) {
 	    me->EOLstate = EOL_FLF;			       /* Line found */
 	} else
-	    HTChunkPutc(me->buffer, *b);
+	    HTChunk_putc(me->buffer, *b);
 	b++;
     }
 
@@ -669,7 +669,7 @@ PRIVATE int HTMIME_free (HTStream * me)
     }
     if (PROT_TRACE)
 	TTYPrint(TDEST, "MIME........ FREEING....\n");
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     return status;
 }
@@ -682,7 +682,7 @@ PRIVATE int HTMIME_abort (HTStream * me, HTList * e)
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE)
 	TTYPrint(TDEST, "MIME........ ABORTING...\n");
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     return status;
 }
@@ -722,7 +722,7 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
     me->net = request->net;
     me->target = output_stream;
     me->target_format = output_format;
-    me->buffer = HTChunkCreate(512);
+    me->buffer = HTChunk_new(512);
     me->EOLstate = EOL_BEGIN;
     return me;
 }

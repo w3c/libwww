@@ -535,7 +535,11 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 #ifdef VMS	
 	    if (!(file->fp = fopen(file->local,"r","shr=put","shr=upd"))) {
 #else
+#ifdef WWW_WIN_DLL
+	    if ((file->fp = HTSocket_DLLHackFopen(file->local,"r")) == NULL) {
+#else /* !WWW_WIN_DLL */
 	    if ((file->fp = fopen(file->local,"r")) == NULL) {
+#endif /* !WWW_WIN_DLL */
 #endif /* !VMS */
 		HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
 		file->state = FS_ERROR;

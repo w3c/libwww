@@ -290,7 +290,7 @@ PUBLIC BOOL HTNet_dup (HTNet *src, HTNet **dest)
 {
     *dest = NULL;
     if (!src) return NO;
-    if ((*dest = (HTNet *) calloc(1, sizeof(HTNet))) == NULL)
+    if ((*dest = (HTNet *) malloc(sizeof(HTNet))) == NULL)
 	outofmem(__FILE__, "HTNet_dup");
     memcpy(*dest, src, sizeof(HTNet));
     return YES;
@@ -550,11 +550,9 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 
 	/* Remove object and call callback functions */
 	HTRequest *request = net->request;
-	if (HTList_removeObject(HTNetActive, (void *) net) != YES) {
+	if (HTList_removeObject(HTNetActive, (void *) net) != YES)
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "HTNetDelete. Object not registered!\n");
-	    return NO;
-	}
+		TTYPrint(TDEST, "HTNetDelete. %p not registered!\n", net);
  	delete_object(net, status);
 	HTNetCall_execute(HTAfter, request, status);
 

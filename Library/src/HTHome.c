@@ -212,7 +212,7 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 	    return HT_LOADED;
 	}
     } else {
-	HTRequest_addRqHd(request, HT_NO_CACHE);	  /* No-cache pragma */
+	HTRequest_addRqHd(request, HT_G_NO_CACHE);	  /* No-cache pragma */
 	HTAnchor_clearHeader(request->anchor);
     }
 
@@ -251,7 +251,8 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 		HTAnchor_setPhysical(anchor, newaddr);
 		HTAnchor_setCacheHit(anchor, YES);
 	    } else {			 /* If refresh version in file cache */
-		HTRequest_addRqHd(request, HT_IMS+HT_NO_CACHE);
+		HTRequest_addGnHd(request, HT_G_NO_CACHE);
+		HTRequest_addRqHd(request, HT_C_IMS);
 	    }
 	} else if ((newaddr = HTProxy_find(addr))) {
 	    StrAllocCat(newaddr, addr);

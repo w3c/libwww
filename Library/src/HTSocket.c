@@ -180,6 +180,18 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
     return HT_WOULD_BLOCK;
 }
 
+/*	HTSocket_DLLHackFopen
+**	---------------------
+** 	Work around the problem that an app can't open a file and have a dll
+** 	read from it!
+*/
+#ifdef WWW_WIN_DLL
+PUBLIC FILE * HTSocket_DLLHackFopen (const char * filename, const char * mode)
+{
+    return (fopen(filename, mode));
+}
+#endif /* WWW_WIN_DLL */
+
 /*	Push data from an ANSI file descriptor down a stream
 **	----------------------------------------------------
 **

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Initialization Routines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -24,7 +24,6 @@ The initialization consists of definiting the following bindings:
 <UL>
 <LI>Between a source media type and a dest media type (conversion)
 <LI>Between media types and external viewers/presenters
-<LI>Between file extensions and media types
 <LI>Between an access method and a protocol module
 </UL>
 
@@ -33,7 +32,11 @@ is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
 Reference Library</A>. <P>
 
 <IMG SRC="../../Icons/32x32/warning.gif"> <B>THE APPLICATION MAY USE
-THESE FUNCTIONS BUT IT IS NOT REQUIRED</B>
+THESE FUNCTIONS BUT IT IS NOT REQUIRED</B> <P>
+
+<IMG SRC="../../Icons/32x32/warning.gif"> <B>PLEASE SEE THE <A
+HREF="HTBInit.html">HTBInit MODULE</A> FOR STANDARD BINDINGS BETWEEN
+FILE EXTENSIONS AND MEDIA TYPES.
 
 <PRE>
 #ifndef HTINIT_H

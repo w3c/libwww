@@ -1,0 +1,41 @@
+<HTML>
+<HEAD>
+<TITLE>HTTP Response Stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
+</HEAD>
+<BODY>
+
+<H1>HTTP Response Stream</H1>
+
+The HTTP response stream generates a HTTP response header and writes
+it to the target which is normally a HTWriter stream.<P>
+
+This module is implemented by <A HREF="HTTPRes.c">HTTPRes.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTTPRES_H
+#define HTTPRES_H
+
+#include "HTStream.h"
+#include "HTReq.h"
+</PRE>
+
+<H3>Streams Definition</H3>
+
+This stream makes a HTTP response header before it goes into
+transparent mode.
+
+<PRE>
+extern HTStream * HTTPResponse_new (HTRequest * request, HTStream * target);
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+End of declaration
+</BODY>
+</HTML>
+

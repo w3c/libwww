@@ -19,6 +19,7 @@
 #include "HTParse.h"
 #include "HTSocket.h"
 #include "HTStream.h"
+#include "HTFWrite.h"
 #include "HTWWWStr.h"
 #include "HTDir.h"
 #include "HTIcons.h"
@@ -290,6 +291,9 @@ PUBLIC HTStream * HTFTPDir_new (HTRequest *	request,
     me->state = EOL_BEGIN;
     me->dir = HTDir_new(request, (list=='L' ? dir_show : 0), dir_key);
     me->first = YES;
-    if (me->dir == NULL) FREE(me);
+    if (me->dir == NULL) {
+	FREE(me);
+	return HTBlackHole();
+    }
     return me;
 }

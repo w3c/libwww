@@ -75,7 +75,7 @@ PRIVATE void make_system_secure (char * str)
 PRIVATE int remote_session (HTRequest * request, char * url)
 {
     int status = HT_NO_DATA;
-    HTChunk *cmd = HTChunkCreate(64);
+    HTChunk *cmd = HTChunk_new(64);
     char *access = HTParse(url, "", PARSE_ACCESS);
     char *host = HTParse(url, "", PARSE_HOST);
     char *hostname = strchr(host, '@');
@@ -88,7 +88,7 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 	if (PROT_TRACE) TTYPrint(TDEST, "Telnet...... Not interactive\n");
 	free(access);
 	free(host);
-	HTChunkFree(cmd);
+	HTChunk_delete(cmd);
 	return HT_ERROR;
     }
 
@@ -113,7 +113,7 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 			   HTERR_ACCESS, NULL, 0, "HTLoadTelnet");
 	free(access);
 	free(host);
-	HTChunkFree(cmd);
+	HTChunk_delete(cmd);
 	return HT_NO_DATA;
     }
 
@@ -128,35 +128,35 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 
     if (!strcasecomp(access, "telnet")) {
 #ifdef SIMPLE_TELNET
-	HTChunkPuts(cmd, "TELNET ");
-	HTChunkPuts(cmd, hostname);			  /* Port is ignored */
+	HTChunk_puts(cmd, "TELNET ");
+	HTChunk_puts(cmd, hostname);			  /* Port is ignored */
 #else
 #ifdef FULL_TELNET					    /* User and port */
-	HTChunkPuts(cmd, "telnet ");
-	HTChunkPuts(cmd, hostname);
+	HTChunk_puts(cmd, "telnet ");
+	HTChunk_puts(cmd, hostname);
 	if (user) {
-	    HTChunkPuts(cmd, " -l ");
-	    HTChunkPuts(cmd, user);
+	    HTChunk_puts(cmd, " -l ");
+	    HTChunk_puts(cmd, user);
 	}
 	if (port) {
-	    HTChunkPutc(cmd, ' ');
-	    HTChunkPuts(cmd,  port);
+	    HTChunk_putc(cmd, ' ');
+	    HTChunk_puts(cmd,  port);
 	}
 #else
 #ifdef MULTINET
-	HTChunkPuts(cmd, "TELNET ");
+	HTChunk_puts(cmd, "TELNET ");
 	if (port) {
-	    HTChunkPuts(cmd, "/PORT=");
-	    HTChunkPuts(cmd, port);
-	    HTChunkPutc(cmd, ' ');
+	    HTChunk_puts(cmd, "/PORT=");
+	    HTChunk_puts(cmd, port);
+	    HTChunk_putc(cmd, ' ');
 	}
-	HTChunkPuts(cmd, hostname);
+	HTChunk_puts(cmd, hostname);
 #else							  /* User is ignored */
-	HTChunkPuts(cmd, "telnet ");
-	HTChunkPuts(cmd, hostname);
+	HTChunk_puts(cmd, "telnet ");
+	HTChunk_puts(cmd, hostname);
 	if (port) {
-	    HTChunkPutc(cmd, ' ');
-	    HTChunkPuts(cmd,  port);
+	    HTChunk_putc(cmd, ' ');
+	    HTChunk_puts(cmd,  port);
 	}
 #endif /* MULTINET */
 #endif /* FULL_TELNET */
@@ -164,49 +164,49 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 
     } else if (!strcasecomp(access, "rlogin")) {
 #ifdef MULTINET
-	HTChunkPuts(cmd, "RLOGIN ");
+	HTChunk_puts(cmd, "RLOGIN ");
 	if (user) {
-	    HTChunkPuts(cmd, "/USERNAME=");
-	    HTChunkPuts(cmd, user);
-	    HTChunkPutc(cmd, ' ');
+	    HTChunk_puts(cmd, "/USERNAME=");
+	    HTChunk_puts(cmd, user);
+	    HTChunk_putc(cmd, ' ');
 	}
 	if (port) {
-	    HTChunkPuts(cmd, "/PORT=");
-	    HTChunkPuts(cmd, port);
-	    HTChunkPutc(cmd, ' ');
+	    HTChunk_puts(cmd, "/PORT=");
+	    HTChunk_puts(cmd, port);
+	    HTChunk_putc(cmd, ' ');
 	}
-	HTChunkPuts(cmd, hostname);
+	HTChunk_puts(cmd, hostname);
 #else
 #ifdef RLOGIN_USER			       /* format: "hostname -l user" */
-	HTChunkPuts(cmd, "rlogin ");
-	HTChunkPuts(cmd, hostname);
+	HTChunk_puts(cmd, "rlogin ");
+	HTChunk_puts(cmd, hostname);
 	if (user) {
-	    HTChunkPuts(cmd, " -l ");
-	    HTChunkPuts(cmd, user);
+	    HTChunk_puts(cmd, " -l ");
+	    HTChunk_puts(cmd, user);
 	}
 #else					       /* format: "-l user hostname" */
-	HTChunkPuts(cmd, "rlogin ");
+	HTChunk_puts(cmd, "rlogin ");
 	if (user) {
-	    HTChunkPuts(cmd, "-l ");
-	    HTChunkPuts(cmd, user);
-	    HTChunkPutc(cmd, ' ');
+	    HTChunk_puts(cmd, "-l ");
+	    HTChunk_puts(cmd, user);
+	    HTChunk_putc(cmd, ' ');
 	}
-	HTChunkPuts(cmd, hostname);
+	HTChunk_puts(cmd, hostname);
 #endif /* RLOGIN_AFTER */
 #endif /* MULTINET */
 
     } else if (!strcasecomp(access, "tn3270")) {
 #ifdef MULTINET
-	HTChunkPuts(cmd, "TELNET/TN3270 ");
+	HTChunk_puts(cmd, "TELNET/TN3270 ");
 	if (port) {
-	    HTChunkPuts(cmd, "/PORT=");
-	    HTChunkPuts(cmd, port);
-	    HTChunkPutc(cmd, ' ');
+	    HTChunk_puts(cmd, "/PORT=");
+	    HTChunk_puts(cmd, port);
+	    HTChunk_putc(cmd, ' ');
 	}
-	HTChunkPuts(cmd, hostname);
+	HTChunk_puts(cmd, hostname);
 #else
-	HTChunkPuts(cmd, "tn3270 ");
-	HTChunkPuts(cmd, hostname);			  /* Port is ignored */
+	HTChunk_puts(cmd, "tn3270 ");
+	HTChunk_puts(cmd, hostname);			  /* Port is ignored */
 #endif /* MULTINET */
 
     } else {
@@ -220,28 +220,28 @@ PRIVATE int remote_session (HTRequest * request, char * url)
     if (PROT_TRACE)
 	TTYPrint(TDEST, "Telnet...... Command is `%s\'\n", cmd->data);
     if (user) {
-	HTChunk *msg = HTChunkCreate(128);
+	HTChunk *msg = HTChunk_new(128);
 	if (strcasecomp(access, "rlogin")) {
-	    HTChunkPuts(msg, "user <");
-	    HTChunkPuts(msg, user);
-	    HTChunkPutc(msg, '>');
+	    HTChunk_puts(msg, "user <");
+	    HTChunk_puts(msg, user);
+	    HTChunk_putc(msg, '>');
 	}
 	if (passwd) {
-	    HTChunkPuts(msg, " and password <");
-	    HTChunkPuts(msg, passwd);
-	    HTChunkPutc(msg, '>');
+	    HTChunk_puts(msg, " and password <");
+	    HTChunk_puts(msg, passwd);
+	    HTChunk_putc(msg, '>');
 	}
 	HTRequest_addError(request, ERR_INFO, NO,
-			   HTERR_LOGIN, HTChunkData(msg), HTChunkSize(msg),
+			   HTERR_LOGIN, HTChunk_data(msg), HTChunk_size(msg),
 			   "HTLoadTelnet");
-	HTChunkFree(msg);
+	HTChunk_delete(msg);
     }
 #ifdef GOT_SYSTEM
     system(cmd->data);
 #endif
     free(access);
     free(host);
-    HTChunkFree(cmd);
+    HTChunk_delete(cmd);
     return status;
 
 }

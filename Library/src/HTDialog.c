@@ -260,19 +260,19 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
 	if (HTError_doShow(pres)) {
 	    if (!msg) {
 		HTSeverity severity = HTError_severity(pres);
-		msg = HTChunkCreate(128);
+		msg = HTChunk_new(128);
 		if (severity == ERR_WARN)
-		    HTChunkPuts(msg, "Warning: ");
+		    HTChunk_puts(msg, "Warning: ");
 		else if (severity == ERR_NON_FATAL)
-		    HTChunkPuts(msg, "Non Fatal Error: ");
+		    HTChunk_puts(msg, "Non Fatal Error: ");
 		else if (severity == ERR_FATAL)
-		    HTChunkPuts(msg, "Fatal Error: ");
+		    HTChunk_puts(msg, "Fatal Error: ");
 		else if (severity == ERR_INFO)
-		    HTChunkPuts(msg, "Information: ");
+		    HTChunk_puts(msg, "Information: ");
 		else {
 		    if (WWWTRACE)
 			TTYPrint(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", severity);
-		    HTChunkFree(msg);
+		    HTChunk_delete(msg);
 		    return NO;
 		}
 
@@ -280,33 +280,33 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
 		if ((code = HTErrors[index].code) > 0) {
 		    char buf[10];
 		    sprintf(buf, "%d ", code);
-		    HTChunkPuts(msg, buf);
+		    HTChunk_puts(msg, buf);
 		}
 	    } else
-		HTChunkPuts(msg, "\nReason: ");
-	    HTChunkPuts(msg, HTErrors[index].msg);	    /* Error message */
+		HTChunk_puts(msg, "\nReason: ");
+	    HTChunk_puts(msg, HTErrors[index].msg);	    /* Error message */
 
 	    if (showmask & HT_ERR_SHOW_PARS) {		 /* Error parameters */
 		int length;
 		int cnt;		
 		char *pars = (char *) HTError_parameter(pres, &length);
 		if (length && pars) {
-		    HTChunkPuts(msg, " (");
+		    HTChunk_puts(msg, " (");
 		    for (cnt=0; cnt<length; cnt++) {
 			char ch = *(pars+cnt);
 			if (ch < 0x20 || ch >= 0x7F)
-			    HTChunkPutc(msg, '#');
+			    HTChunk_putc(msg, '#');
 			else
-			    HTChunkPutc(msg, ch);
+			    HTChunk_putc(msg, ch);
 		    }
-		    HTChunkPuts(msg, ") ");
+		    HTChunk_puts(msg, ") ");
 		}
 	    }
 
 	    if (showmask & HT_ERR_SHOW_LOCATION) {	   /* Error Location */
-		HTChunkPuts(msg, "This occured in ");
-		HTChunkPuts(msg, HTError_location(pres));
-		HTChunkPutc(msg, '\n');
+		HTChunk_puts(msg, "This occured in ");
+		HTChunk_puts(msg, HTError_location(pres));
+		HTChunk_putc(msg, '\n');
 	    }
 
 	    /*
@@ -321,9 +321,9 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
 	}
     }
     if (msg) {
-	HTChunkPutc(msg, '\n');
-	TTYPrint(TDEST, "WARNING: %s\n", HTChunkData(msg));
-	HTChunkFree(msg);
+	HTChunk_putc(msg, '\n');
+	TTYPrint(TDEST, "WARNING: %s\n", HTChunk_data(msg));
+	HTChunk_delete(msg);
     }
     return YES;
 }

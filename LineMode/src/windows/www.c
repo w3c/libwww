@@ -196,9 +196,58 @@ static int recursing = 0;
 	return 0L;
 	} // end of monitorWndProc()
 
+int makeArgcArgv(HINSTANCE hInstance, char*** pArgv, char* commandLine)
+{
+    int argc;
+static char* argv[20];
+static char argv0[256];
+    char* ptr = commandLine;
+    char lookFor = 0;
+    enum {nowAt_start, nowAt_text} nowAt;
+    *pArgv = argv;
+    argc = 0;
+    GetModuleFileName(hInstance, argv0, sizeof(argv0));
+    argv[argc++] = argv0;
+    for (nowAt = nowAt_start;;) {
+        if (!*ptr)
+            return (argc);
+        if (lookFor) {
+            if (*ptr == lookFor) {
+                nowAt = nowAt_start;
+                lookFor = 0;
+                *ptr = 0;   /* remove the quote */
+            } else if (nowAt == nowAt_start) {
+                argv[argc++] = ptr;
+                nowAt = nowAt_text;
+            }
+            ptr++;
+            continue;
+        }
+        if (*ptr == ' ' || *ptr == '\t') {
+            *ptr = 0;
+            ptr++;
+            nowAt = nowAt_start;
+            continue;
+        }
+        if ((*ptr == '\'' || *ptr == '\"' || *ptr == '`') && nowAt == nowAt_start) {
+            lookFor = *ptr;
+            nowAt = nowAt_start;
+            ptr++;
+            continue;
+        }
+        if (nowAt == nowAt_start) {
+            argv[argc++] = ptr;
+            nowAt = nowAt_text;
+        }
+        ptr++;
+    }
+}
+
 extern int main(int, char**);
 int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
 	{
+    int argc;
+    char** argv;
 	WNDCLASS wc = {
 	0, //UINT        style
 	monitorWndProc, //WNDPROC	lpfnWndProc
@@ -210,7 +259,6 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
 	(HBRUSH)(COLOR_WINDOW+1), //HBRUSH	hbrBackground
 	MAKEINTRESOURCE(IDM_SNP), //LPCSTR	lpszMenuName
 	WWWClassName}; //LPCSTR	lpszClassName
-	HInstance = hInstance;
 
 	RegisterClass(&wc); // don't check error as class may be laying around from previously use
 	MonitorWindow = CreateWindow(WWWClassName, WWWWindowName, 
@@ -221,7 +269,8 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
 #ifdef WWW_WIN_DLL
 	*PTTYPrint = &AppTTYPrint;
 #endif
-	main(0, 0);
+    argc = makeArgcArgv(hInstance, &argv, lpszCmdLine);
+	main(argc, argv);
 	if (MonitorWindow)	//if we don't kill monitor window, Windows will cause app ended
 		if (DestroyWindow(MonitorWindow))
 			MonitorWindow = 0;

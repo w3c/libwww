@@ -192,7 +192,7 @@ PRIVATE HTRequest * Thread_new (Robot * mr, HTMethod method)
     HTRequest * newreq = HTRequest_new();
     HTRequest_setContext (newreq, mr);
     if (mr->flags & MR_PREEMTIVE) HTRequest_setPreemtive(newreq, YES);
-    HTRequest_addRqHd(newreq, HT_HOST);
+    HTRequest_addRqHd(newreq, HT_C_HOST);
     HTRequest_setMethod(newreq, method);
     return newreq;
 }
@@ -509,10 +509,10 @@ int main (int argc, char ** argv)
 	    } else {		   /* Check for successive keyword arguments */
 		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
-		    keywords = HTChunkCreate(128);
+		    keywords = HTChunk_new(128);
 		else
-		    HTChunkPutc(keywords, ' ');
-		HTChunkPuts(keywords, HTStrip(escaped));
+		    HTChunk_putc(keywords, ' ');
+		HTChunk_puts(keywords, HTStrip(escaped));
 		free(escaped);
 	    }
 	}
@@ -575,11 +575,11 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     if (keywords)						   /* Search */
-	status = HTSearch(HTChunkData(keywords), mr->anchor, mr->request);
+	status = HTSearch(HTChunk_data(keywords), mr->anchor, mr->request);
     else
 	status = HTLoadAnchor((HTAnchor *) mr->anchor, mr->request);
 
-    if (keywords) HTChunkFree(keywords);
+    if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
 	if (SHOW_MSG) TTYPrint(TDEST, "Can't access resource\n");
 	Cleanup(mr, -1);

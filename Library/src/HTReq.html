@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -264,15 +264,15 @@ GENERAL HEADERS</EM>
 
 <PRE>
 typedef enum _HTGnHd {
-    HT_DATE		= 0x1,
-    HT_FORWARDED	= 0x2,
-    HT_MESSAGE_ID	= 0x4,
-    HT_MIME		= 0x8,
-    HT_CONNECTION	= 0x10,
-    HT_NO_CACHE		= 0x20					   /* Pragma */
+    HT_G_DATE		= 0x1,
+    HT_G_FORWARDED	= 0x2,
+    HT_G_MESSAGE_ID	= 0x4,
+    HT_G_MIME		= 0x8,
+    HT_G_CONNECTION	= 0x10,
+    HT_G_NO_CACHE	= 0x20					   /* Pragma */
 } HTGnHd;
 
-#define DEFAULT_GENERAL_HEADERS		HT_CONNECTION
+#define DEFAULT_GENERAL_HEADERS		HT_G_CONNECTION
 
 extern void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd);
 extern void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd);
@@ -289,23 +289,47 @@ headers if present <EM>except</EM> <CODE>From</CODE> and
 
 <PRE>
 typedef enum _HTRqHd {
-    HT_ACCEPT_TYPE	= 0x1,
-    HT_ACCEPT_CHAR	= 0x2,
-    HT_ACCEPT_ENC	= 0x4,
-    HT_ACCEPT_LAN	= 0x8,
-    HT_FROM		= 0x10,
-    HT_IMS		= 0x20,
-    HT_HOST		= 0x40,
-    HT_REFERER		= 0x80,
-    HT_USER_AGENT	= 0x200
+    HT_C_ACCEPT_TYPE	= 0x1,
+    HT_C_ACCEPT_CHAR	= 0x2,
+    HT_C_ACCEPT_ENC	= 0x4,
+    HT_C_ACCEPT_LAN	= 0x8,
+    HT_C_FROM		= 0x10,
+    HT_C_IMS		= 0x20,
+    HT_C_HOST		= 0x40,
+    HT_C_REFERER	= 0x80,
+    HT_C_USER_AGENT	= 0x200
 } HTRqHd;
 
-#define DEFAULT_REQUEST_HEADERS \
-HT_ACCEPT_TYPE+HT_ACCEPT_CHAR+HT_ACCEPT_ENC+HT_ACCEPT_LAN+HT_REFERER+HT_USER_AGENT
+#define DEFAULT_REQUEST_HEADERS	\
+	HT_C_ACCEPT_TYPE+HT_C_ACCEPT_CHAR+ \
+	HT_C_ACCEPT_ENC+HT_C_ACCEPT_LAN+HT_C_REFERER+HT_C_USER_AGENT
 
 extern void HTRequest_setRqHd (HTRequest *request, HTRqHd rqhd);
 extern void HTRequest_addRqHd (HTRequest *request, HTRqHd rqhd);
 extern HTRqHd HTRequest_rqHd (HTRequest *request);
+</PRE>
+
+<H3><A NAME="rshd">Response Headers</A></H3>
+
+The response header fields allow the server to pass additional
+information about the response (and about the server itself) to the
+client. All headers are optional.
+
+<PRE>
+typedef enum _HTRsHd {
+    HT_S_LOCATION   	= 0x1,
+    HT_S_PROXY_AUTH 	= 0x2,
+    HT_S_PUBLIC    	= 0x4,
+    HT_S_RETRY_AFTER	= 0x8,
+    HT_S_SERVER		= 0x10,
+    HT_S_WWW_AUTH	= 0x20
+} HTRsHd;
+
+#define DEFAULT_RESPONSE_HEADERS HT_S_SERVER
+
+extern void HTRequest_setRsHd (HTRequest * request, HTRsHd rshd);
+extern void HTRequest_addRsHd (HTRequest * request, HTRsHd rshd);
+extern HTRqHd HTRequest_rsHd (HTRequest * request);
 </PRE>
 
 <H3><A NAME="enhd">Entity Header Mask</A></H3>
@@ -319,19 +343,19 @@ PRESENT</EM>
 
 <PRE>
 typedef enum _HTEnHd {
-    HT_ALLOW		= 0x1,
-    HT_CONTENT_ENCODING	= 0x2,
-    HT_CONTENT_LANGUAGE	= 0x4,
-    HT_CONTENT_LENGTH	= 0x8,
-    HT_CTE		= 0x10,			/* Content-Transfer-Encoding */
-    HT_CONTENT_TYPE	= 0x20,
-    HT_DERIVED_FROM	= 0x40,
-    HT_EXPIRES		= 0x80,
-    HT_LAST_MODIFIED	= 0x200,
-    HT_LINK		= 0x400,
-    HT_TITLE		= 0x800,
-    HT_URI		= 0x1000,
-    HT_VERSION		= 0x2000
+    HT_E_ALLOW		= 0x1,
+    HT_E_CONTENT_ENCODING = 0x2,
+    HT_E_CONTENT_LANGUAGE = 0x4,
+    HT_E_CONTENT_LENGTH	= 0x8,
+    HT_E_CTE		= 0x10,			/* Content-Transfer-Encoding */
+    HT_E_CONTENT_TYPE	= 0x20,
+    HT_E_DERIVED_FROM	= 0x40,
+    HT_E_EXPIRES	= 0x80,
+    HT_E_LAST_MODIFIED	= 0x200,
+    HT_E_LINK		= 0x400,
+    HT_E_TITLE		= 0x800,
+    HT_E_URI		= 0x1000,
+    HT_E_VERSION	= 0x2000
 } HTEnHd;
 
 #define DEFAULT_ENTITY_HEADERS		0xFFFF			      /* all */

@@ -77,6 +77,7 @@ PUBLIC HTRequest * HTRequest_new (void)
     /* HTTP headers */
     me->GenMask		= DEFAULT_GENERAL_HEADERS;
     me->RequestMask	= DEFAULT_REQUEST_HEADERS;
+    me->ResponseMask	= DEFAULT_RESPONSE_HEADERS;
     me->EntityMask	= DEFAULT_ENTITY_HEADERS;
 
     /* Default retry after value */
@@ -101,7 +102,7 @@ PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
 {
     HTRequest * me;
     if (!src) return NO;
-    if ((me = (HTRequest *) calloc(1, sizeof(HTRequest))) == NULL)
+    if ((me = (HTRequest *) malloc(sizeof(HTRequest))) == NULL)
 	outofmem(__FILE__, "HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
     return me;
@@ -311,6 +312,24 @@ PUBLIC void HTRequest_addRqHd (HTRequest *request, HTRqHd rqhd)
 PUBLIC HTRqHd HTRequest_rqHd (HTRequest *request)
 {
     return request ? request->RequestMask : 0;
+}
+
+/*
+**	Set Response Headers
+*/
+PUBLIC void HTRequest_setRsHd (HTRequest *request, HTRsHd rshd)
+{
+    if (request) request->ResponseMask = rshd;
+}
+
+PUBLIC void HTRequest_addRsHd (HTRequest *request, HTRsHd rshd)
+{
+    if (request) request->ResponseMask |= rshd;
+}
+
+PUBLIC HTRsHd HTRequest_rsHd (HTRequest *request)
+{
+    return request ? request->ResponseMask : 0;
 }
 
 /*

@@ -136,7 +136,6 @@ typedef enum _LMFlags {
 
 typedef struct _LineMode {
     HTRequest *		request;
-    HTRequest *		tty;
     HTParentAnchor *	anchor;
     HTParentAnchor *	dest;			 /* Destination for PUT etc. */
     struct timeval *	tv;				/* Timeout on socket */
@@ -176,14 +175,15 @@ PRIVATE FILE *		output = STDOUT;
 /*	Create a Context Object
 **	-----------------------
 */
-PRIVATE Context * Context_new (LineMode * lm, HTRequest * request)
+PRIVATE Context * Context_new (LineMode *lm, HTRequest *request, LMState state)
 {
     Context * me = (Context *) calloc(1, sizeof (Context));
     if (!me) outofmem(__FILE__, "Context_new");
-    me->state = LM_UPDATE;
+    me->state = state;
     me->request = request;
     me->lm = lm;
     HTRequest_setContext(request, (void *) me);
+    HTList_addObject(lm->active, (void *) me);
     return me;
 }
 
@@ -200,16 +200,14 @@ PRIVATE BOOL Context_delete (Context * old)
 **  This function creates a new request object and adds it to the global
 **  list of active threads
 */
-PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive)
+PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
 {
     HTRequest * newreq = HTRequest_new();
-    Context * context = Context_new(lm, newreq);
     if (!lm) return NULL;
-    if (!lm->active) lm->active = HTList_new();
+    Context_new(lm, newreq, state);
     if (Interactive) HTRequest_setConversion(newreq, lm->presenters, NO);
     if (lm->flags & LM_PREEMTIVE) HTRequest_setPreemtive(newreq, YES);
-    HTList_addObject(lm->active, (void *) context);
-    HTRequest_addRqHd(newreq, HT_HOST);
+    HTRequest_addRqHd(newreq, HT_C_HOST);
     return newreq;
 }
 
@@ -222,8 +220,9 @@ PRIVATE void Thread_cleanup (LineMode * lm)
 	HTList * cur = lm->active;
 	Context * pres;
 	while ((pres = (Context *) HTList_nextObject(cur))) {
-	    if (pres->state & (LM_DONE | LM_INACTIVE)) {
-		HTList_removeObject(lm->active, pres);
+	    if (pres->state&LM_DONE && pres->state&LM_INACTIVE) {
+		if ((HTList_removeObject(lm->active, pres)) == NO)
+		    TTYPrint(TDEST, "NOT FOUND\n");
 		HTRequest_delete(pres->request);
 		Context_delete(pres);
 		cur = lm->active;
@@ -241,7 +240,10 @@ PRIVATE void Thread_deleteAll (LineMode * lm)
 	HTList * cur = lm->active;
 	Context * pres;
 	while ((pres = (Context *) HTList_nextObject(cur))) {
-	    if (pres->request) HTRequest_delete(pres->request);
+	    if (pres->request) {
+		HTRequest_delete(pres->request);
+		Context_delete(pres);
+	    }
 	}
 	HTList_delete(lm->active);
 	lm->active = NULL;
@@ -253,7 +255,7 @@ PRIVATE void Thread_deleteAll (LineMode * lm)
 */
 #ifdef _WINDOWS
 HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
-                           it gets key events so save it in a global here       */
+                           it gets key events so save it in a global here */
 #endif
 
 PRIVATE LineMode * LineMode_new (void)
@@ -266,12 +268,11 @@ PRIVATE LineMode * LineMode_new (void)
     me->cwd = HTFindRelatedName();
     me->active = HTList_new();
     me->request = HTRequest_new();
-    me->tty = HTRequest_new();
+    Context_new(me, me->request, LM_UPDATE);
 #ifdef _WINDOWS
-    TTYReq = me->tty;
+    TTYReq = me->request;
 #endif
-    Context_new(me, me->request);
-    Context_new(me, me->tty);
+    me->trace = SHOW_ALL_TRACE;
     return me;
 }
 
@@ -281,10 +282,6 @@ PRIVATE LineMode * LineMode_new (void)
 PRIVATE BOOL LineMode_delete (LineMode * lm)
 {
     if (lm) {
-	Context * context = (Context *) HTRequest_context(lm->request);
-	HTRequest_delete(lm->request);
-	HTRequest_delete(lm->tty);
-	Context_delete(context);
 	free(lm->tv);
 	Thread_deleteAll(lm);
 	HTConversion_deleteAll(lm->converters);
@@ -545,7 +542,7 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
 	} else
 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
 	if (doit) {
-	    req = Thread_new(lm, YES);
+	    req = Thread_new(lm, YES, LM_UPDATE);
 	    status = HTCopyAnchor((HTAnchor *) src, req);
 	}
 	free(fd);
@@ -620,14 +617,13 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
     BOOL found = YES;
     BOOL OutSource = NO;			    /* Output source, YES/NO */
     int status = YES;
-    Context * context;
-    LineMode * lm;
+    HTRequest * cur_req = req;
+    Context * cur_context = (Context *) HTRequest_context(req);
+    LineMode * lm = cur_context->lm;
 
 #ifdef _WINDOWS
     req = TTYReq;
 #endif
-    context = (Context *) HTRequest_context(req);
-    lm = context->lm;
 
     StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
     if (*the_choice && the_choice[strlen(the_choice)-1] == '\n') /* final \n */
@@ -662,7 +658,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 		HTAnchor *destination;
 		HTChildAnchor *source = HText_childNumber(HTMainText, ref_num);
 		if (source) {
-		    req = Thread_new(lm, YES);
+		    req = Thread_new(lm, YES, LM_UPDATE);
 		    destination = HTAnchor_followMainLink((HTAnchor*) source);
 
 		    /* Continous browsing, so we want Referer field */
@@ -683,8 +679,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
       case 'B':		
 	if (CHECK_INPUT("BACK", token)) {	  /* Return to previous node */
 	    if (HTHistory_canBacktrack(lm->history)) {
-		req = Thread_new(lm, YES);
-		context->state = LM_NO_UPDATE;
+		req = Thread_new(lm, YES, LM_NO_UPDATE);
 		status = HTLoadAnchor(HTHistory_back(lm->history), req);
 	    } else {
 		TTYPrint(OUTPUT, "\nThis is the first document in history list\n");
@@ -732,14 +727,13 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	  find:
 	    {
 		if (next_word) {
-		    req = Thread_new(lm, YES);
+		    req = Thread_new(lm, YES, LM_UPDATE);
 		    status = HTSearch(other_words, HTMainAnchor, req);
 		}
 	    }
 	} else if (CHECK_INPUT("FORWARD", token)) {
 	    if (HTHistory_canForward(lm->history)) {
-		req = Thread_new(lm, YES);
-		context->state = LM_NO_UPDATE;
+		req = Thread_new(lm, YES, LM_NO_UPDATE);
 		status = HTLoadAnchor(HTHistory_forward(lm->history), req);
 	    } else {
 		TTYPrint(OUTPUT, "\nThis is the last document in history list.\n");
@@ -751,7 +745,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
       case 'G':
 	if (CHECK_INPUT("GOTO", token)) {			     /* GOTO */
 	    if (next_word) {
-		req = Thread_new(lm, YES);
+		req = Thread_new(lm, YES, LM_UPDATE);
 		status = HTLoadRelative(next_word, HTMainAnchor, req);
 	    }
 	} else
@@ -759,22 +753,21 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	break;
 	
       case '?':
-	req = Thread_new(lm, YES);
+	req = Thread_new(lm, YES, LM_NO_UPDATE);
 	HTRequest_setPreemtive(req, YES);
 	status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	break;
 	
       case 'H':
 	if (CHECK_INPUT("HELP", token)) {		     /* help menu, ..*/
-	    req = Thread_new(lm, YES);
+	    req = Thread_new(lm, YES, LM_NO_UPDATE);
 	    HTRequest_setPreemtive(req, YES);
 	    status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	} else if (CHECK_INPUT("HOME", token)) {		/* back HOME */
 	    if (!HTHistory_canBacktrack(lm->history)) {
 		HText_scrollTop(HTMainText);
 	    } else {
-		req = Thread_new(lm, YES);
-		context->state = LM_NO_UPDATE;
+		req = Thread_new(lm, YES, LM_NO_UPDATE);
 		status = HTLoadAnchor(HTHistory_find(lm->history, 1), req);
 	    }
 	} else
@@ -824,7 +817,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case 'M':
 	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
-	    req = Thread_new(lm, YES);
+	    req = Thread_new(lm, YES, LM_NO_UPDATE);
 	    HTRequest_setPreemtive(req, YES);
 	    status = HTLoadRelative(MANUAL, HTMainAnchor,req);
 	} else
@@ -903,8 +896,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 		if (next_word) {	
 		    int cnt;
 		    if ((cnt = atoi(next_word)) > 0) {
-			req = Thread_new(lm, YES);
-			context->state = LM_NO_UPDATE;
+			req = Thread_new(lm, YES, LM_NO_UPDATE);
 			status = HTLoadAnchor(HTHistory_find(lm->history,cnt), req);
 		    } else {
 			if (SHOW_MSG)
@@ -918,9 +910,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    HText_setStale(HTMainText);			    /* Force refresh */
 	    HText_refresh(HTMainText);			   /* Refresh screen */
 	} else if (CHECK_INPUT("RELOAD", token)) {
-	    req = Thread_new(lm, YES);
+	    req = Thread_new(lm, YES, LM_NO_UPDATE);
 	    HTRequest_setReloadMode(req, HT_FORCE_RELOAD);
-	    context->state = LM_NO_UPDATE;
 	    status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	} else
 	    found = NO;
@@ -976,7 +967,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
       case '>':
 	if (!lm->host) {
 	    HText *curText = HTMainText;     /* Remember current main vindow */
-	    req = Thread_new(lm, NO);
+	    req = Thread_new(lm, NO, LM_NO_UPDATE);
 	    HTRequest_setReloadMode(req, HT_MEM_REFRESH);
 	    if (OutSource) HTRequest_setOutputFormat(req, WWW_SOURCE);
 	    SaveOutputStream(req, token, next_word);
@@ -1035,8 +1026,12 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
     ** If we have created a new Request and is to update the history list then
     ** we can set the inactive bit on this request object.
     */
-    if (context->state & LM_UPDATE) context->state |= LM_INACTIVE;
-
+    if (cur_req == req)
+	cur_context->state |= LM_NO_UPDATE;
+    else if (cur_req != lm->request) {
+	printf("HERE\n");
+	cur_context->state |= LM_INACTIVE;    
+    }
     return (status==YES) ? HT_OK : HT_ERROR;
 }
 
@@ -1540,10 +1535,10 @@ int main (int argc, char ** argv)
 	    } else {		   /* Check for successive keyword arguments */
 		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
-		    keywords = HTChunkCreate(128);
+		    keywords = HTChunk_new(128);
 		else
-		    HTChunkPutc(keywords, ' ');
-		HTChunkPuts(keywords, HTStrip(escaped));
+		    HTChunk_putc(keywords, ' ');
+		HTChunk_puts(keywords, HTStrip(escaped));
 		free(escaped);
 	    }
 	}
@@ -1583,7 +1578,7 @@ int main (int argc, char ** argv)
     /* Rule file specified? */
     if (lm->rules) {
 	HTList * list = HTList_new();
-	HTRequest * rr = Thread_new(lm, NO);
+	HTRequest * rr = Thread_new(lm, NO, LM_NO_UPDATE);
 	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
 	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
 	HTRequest_setPreemtive(rr, YES);
@@ -1667,11 +1662,11 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     if (keywords)
-	status = HTSearch(HTChunkData(keywords), lm->anchor, lm->request);
+	status = HTSearch(HTChunk_data(keywords), lm->anchor, lm->request);
     else
 	status = HTLoadAnchor((HTAnchor *) lm->anchor, lm->request);
 
-    if (keywords) HTChunkFree(keywords);
+    if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
 	if (SHOW_MSG) TTYPrint(TDEST, "Couldn't load home page\n");
 	Cleanup(lm, -1);
@@ -1692,11 +1687,11 @@ int main (int argc, char ** argv)
 	*/
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
-	    HTEvent_RegisterTTY(STDIN_FILENO, lm->tty, (SockOps)FD_READ,
+	    HTEvent_RegisterTTY(STDIN_FILENO, lm->request, (SockOps)FD_READ,
 				scan_command, HT_PRIORITY_MAX);
 	}
 #else
-	HTEvent_RegisterTTY(0, lm->tty, (SockOps)FD_READ, scan_command, 1);
+	HTEvent_RegisterTTY(0, lm->request, (SockOps)FD_READ, scan_command, 1);
 #endif
     }
 

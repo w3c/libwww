@@ -185,7 +185,7 @@ PRIVATE int FTPCleanup (HTRequest * request, int status)
     HTNet_delete(dnet, HT_IGNORE);
     HTNet_delete(cnet, status);
 
-    HTChunkFree(ctrl->cmd);
+    HTChunk_delete(ctrl->cmd);
     FREE(ctrl->reply);
     FREE(ctrl->uid);
     FREE(ctrl->passwd);
@@ -216,8 +216,8 @@ PRIVATE int ScanResponse (HTStream * me)
 	me->ctrl->repcode = reply;
 	StrAllocCopy(me->ctrl->reply, ptr);
     } else {
-	HTChunkPuts(me->welcome, ptr);
-	HTChunkPutc(me->welcome, '\n');
+	HTChunk_puts(me->welcome, ptr);
+	HTChunk_putc(me->welcome, '\n');
     }
     me->buflen = 0;
     me->state = EOL_BEGIN;
@@ -295,7 +295,7 @@ PRIVATE int FTPStatus_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    HTChunkFree(me->welcome);
+    HTChunk_delete(me->welcome);
     free(me);
     return HT_OK;
 }
@@ -304,7 +304,7 @@ PRIVATE int FTPStatus_abort (HTStream * me, HTList * e)
 {
     if (me->target)
 	(*me->target->isa->abort)(me->target, e);
-    HTChunkFree(me->welcome);
+    HTChunk_delete(me->welcome);
     free(me);
     if (PROT_TRACE)
 	TTYPrint(TDEST, "FTPStatus... ABORTING...\n");
@@ -332,7 +332,7 @@ PRIVATE HTStream * FTPStatus_new (HTRequest * request, ftp_ctrl * ctrl)
     me->isa = &FTPStatusClass;
     me->request = request;
     me->first_line = YES;
-    me->welcome = HTChunkCreate(256);
+    me->welcome = HTChunk_new(256);
     me->ctrl = ctrl;
     me->state = EOL_BEGIN;
     return me;
@@ -346,15 +346,15 @@ PRIVATE int SendCommand (HTRequest *request, ftp_ctrl *ctrl,
 			 char *token, char *pars)
 {
     int len = strlen(token) + (pars ? strlen(pars)+1:0) + 2;
-    HTChunkClear(ctrl->cmd);
-    HTChunkEnsure(ctrl->cmd, len);
+    HTChunk_clear(ctrl->cmd);
+    HTChunk_ensure(ctrl->cmd, len);
     if (pars && *pars)
-	sprintf(HTChunkData(ctrl->cmd), "%s %s%c%c", token, pars, CR, LF);
+	sprintf(HTChunk_data(ctrl->cmd), "%s %s%c%c", token, pars, CR, LF);
     else
-	sprintf(HTChunkData(ctrl->cmd), "%s%c%c", token, CR, LF);
-    if (PROT_TRACE) TTYPrint(TDEST, "FTP Tx...... %s", HTChunkData(ctrl->cmd));
+	sprintf(HTChunk_data(ctrl->cmd), "%s%c%c", token, CR, LF);
+    if (PROT_TRACE) TTYPrint(TDEST, "FTP Tx...... %s", HTChunk_data(ctrl->cmd));
     return (*request->input_stream->isa->put_block)
-	(request->input_stream, HTChunkData(ctrl->cmd), len);
+	(request->input_stream, HTChunk_data(ctrl->cmd), len);
 }
 
 /*	HTFTPParseURL
@@ -1235,7 +1235,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 	if ((ctrl = (ftp_ctrl *) calloc(1, sizeof(ftp_ctrl))) == NULL ||
 	    (data = (ftp_data *) calloc(1, sizeof(ftp_data))) == NULL)
 	    outofmem(__FILE__, "HTLoadFTP");
-	ctrl->cmd = HTChunkCreate(128);
+	ctrl->cmd = HTChunk_new(128);
 	ctrl->state = FTP_BEGIN;
 	ctrl->server = FTP_UNSURE;
 	HTNet_dup(cnet, &ctrl->dnet);

@@ -12,29 +12,15 @@ HTAA_templateCaseMatch	@ 204
 HTAA_makeProtectionTemplate @ 205
 HTAA_parseArgList	@ 206
 
-;HTAlert.c		@ 300
-HTAlert_setInteractive	@ 301
-HTAlert_interactive	@ 302
-HTAlertCall_add		@ 303
-HTAlertCall_delete	@ 304
-HTAlertCall_deleteAll	@ 305
-HTAlertCall_find	@ 306
-HTAlert_setGlobal	@ 307
-HTAlert_global		@ 308
-HTAlert_add		@ 309
-HTAlert_find		@ 310
-HTAlert_newReply	@ 311
-HTAlert_deleteReply	@ 312
-HTAlert_replyMessage	@ 313
-HTAlert_setReplyMessage	@ 314
-HTAlert_replySecret	@ 315
-HTAlert_setReplySecret	@ 316
-HTAlert_replyOutput	@ 317
-HTAlert_setReplyOutput	@ 318
+;HTTP.c			@ 300
+HTLoadHTTP		@ 301
 
-;HTTP.c			@ 400
-HTLoadHTTP		@ 401
+;HTTPReq.c		@ 400
+HTTPRequest_new		@ 401
 
-;HTTPReq.c		@ 500
-HTTPRequest_new		@ 501
+;HTTPRes.c		@ 500
+HTTPResponse_new	@ 501
+
+;HTTPServ.c		@ 600
+HTServHTTP		@ 601
 

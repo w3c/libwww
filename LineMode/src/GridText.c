@@ -1076,7 +1076,7 @@ PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
 			if (CACHE_TRACE)
 			    TTYPrint(TDEST,
 				    "HTMemCache.. Expired - autoreload\n");
-			HTRequest_addRqHd(request, HT_IMS);
+			HTRequest_addRqHd(request, HT_C_IMS);
 #ifndef HT_SHARED_DISK_CACHE
 			HTRequest_setReloadMode(request, HT_CACHE_REFRESH);
 #endif
@@ -1095,7 +1095,7 @@ PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
 		HText_select(text);
 	    return HT_LOADED;
 	} else {		/* If refresh version in memory */
-	    HTRequest_addRqHd(request, HT_IMS);
+	    HTRequest_addRqHd(request, HT_C_IMS);
 	}
     } else {			      /* Don't reuse any old metainformation */
 	HTAnchor_clearHeader(anchor);

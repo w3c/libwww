@@ -51,45 +51,46 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	request->source->anchor : request->anchor;
 
     /* General Headers */
-    if (request->GenMask & HT_DATE) {
+    if (request->GenMask & HT_G_DATE) {
 	time_t local = time(NULL);
 	sprintf(linebuf, "Date: %s%c%c", HTDateTimeStr(&local, NO), CR,LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (request->GenMask & HT_FORWARDED) {
+    if (request->GenMask & HT_G_FORWARDED) {
 	/* @@@@@@ */
     }
-    if (request->GenMask & HT_MESSAGE_ID) {
+    if (request->GenMask & HT_G_MESSAGE_ID) {
 	CONST char *msgid = HTMessageIdStr();
 	if (msgid) {
 	    sprintf(linebuf, "Message-ID: %s%c%c", msgid, CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
-    if (request->GenMask & HT_MIME) {
+    if (request->GenMask & HT_G_MIME) {
 	sprintf(linebuf, "MIME-Version: %s%c%c", MIME_VERSION, CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (request->GenMask & HT_CONNECTION) {
+    if (request->GenMask & HT_G_CONNECTION) {
 	sprintf(linebuf, "Connection: Keep-Alive%c%c", CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (request->RequestMask & HT_NO_CACHE) {
+    if (request->RequestMask & HT_G_NO_CACHE) {
 	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
 
-    /* Now put out entity headers if we are using PUT or POST. If we have a
+    /* Now put out entity headers if we are using PUT or POST or is a server
+    ** If we have a
     ** PostAnchor then we take the information from this and uses the
     ** destination anchor to contain the reply. Otherwise, we have created an
     ** anchor (using internal editing etc) and we can use the destination
     ** anchor directly.
     */
-    if (request->method==METHOD_PUT || request->method==METHOD_POST) {
-	if (request->EntityMask & HT_ALLOW) {
+    if (HTMethod_hasEntity(request->method) || request->access) {
+	if (request->EntityMask & HT_E_ALLOW) {
 	    /* @@@@@@@@@@ */
 	}
-	if (request->EntityMask & HT_CONTENT_ENCODING &&
+	if (request->EntityMask & HT_E_CONTENT_ENCODING &&
 	    entity->content_encoding) {
 	    sprintf(linebuf, "Content-Encoding: %s%c%c",
 		    HTAtom_name(entity->content_encoding), CR, LF);
@@ -97,23 +98,23 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 
 	/* @@@ SHOULD BE A LIST @@@ */
-	if (request->EntityMask & HT_CONTENT_LANGUAGE &&
+	if (request->EntityMask & HT_E_CONTENT_LANGUAGE &&
 	    entity->content_language) {
 	    sprintf(linebuf, "Content-Language: %s%c%c",
 		    HTAtom_name(entity->content_language), CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
-	if (request->EntityMask & HT_CONTENT_LENGTH) {   /* Must be there!!! */
+	if (request->EntityMask & HT_E_CONTENT_LENGTH) { /* Must be there!!! */
 	    sprintf(linebuf, "Content-Length: %ld%c%c",
 		    entity->content_length, CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));	
 	}
-	if (request->EntityMask & HT_CTE && entity->cte) {
+	if (request->EntityMask & HT_E_CTE && entity->cte) {
 	    sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
 		    HTAtom_name(entity->cte), CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
-	if (request->EntityMask & HT_CONTENT_TYPE && entity->content_type) {
+	if (request->EntityMask & HT_E_CONTENT_TYPE && entity->content_type) {
 	    int len;
 	    sprintf(linebuf, "Content-Type: %s",
 		    HTAtom_name(entity->content_type));
@@ -131,35 +132,35 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    *(linebuf+len+2) = '\0';
 	    PUTBLOCK(linebuf, (int) len+2);
 	}
-	if (request->EntityMask & HT_DERIVED_FROM && entity->derived_from) {
+	if (request->EntityMask & HT_E_DERIVED_FROM && entity->derived_from) {
 	    sprintf(linebuf, "Derived-From: %s%c%c", entity->derived_from,
 		    CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
-	if (request->EntityMask & HT_EXPIRES) {
+	if (request->EntityMask & HT_E_EXPIRES) {
 	    if (entity->expires != -1) {
 		sprintf(linebuf, "Expires: %s%c%c",
 			HTDateTimeStr(&entity->expires, NO), CR,LF);
 		PUTBLOCK(linebuf, (int) strlen(linebuf));
 	    }
 	}
-	if (request->EntityMask & HT_LAST_MODIFIED) {
+	if (request->EntityMask & HT_E_LAST_MODIFIED) {
 	    if (entity->last_modified != -1) {
 		sprintf(linebuf, "Last-Modified: %s%c%c",
 			HTDateTimeStr(&entity->last_modified, NO), CR,LF);
 		PUTBLOCK(linebuf, (int) strlen(linebuf));
 	    }
 	}
-	if (request->EntityMask & HT_LINK) {		/* @@@@@@@@@@ */
+	if (request->EntityMask & HT_E_LINK) {		/* @@@@@@@@@@ */
 
 	}
-	if (request->EntityMask & HT_TITLE) {		/* @@@@@@@@@@ */
+	if (request->EntityMask & HT_E_TITLE) {		/* @@@@@@@@@@ */
 
 	}
-	if (request->EntityMask & HT_URI) {		/* @@@@@@@@@@ */
+	if (request->EntityMask & HT_E_URI) {		/* @@@@@@@@@@ */
 
 	}
-	if (request->EntityMask & HT_VERSION && entity->version) {
+	if (request->EntityMask & HT_E_VERSION && entity->version) {
 	    sprintf(linebuf, "Version: %s%c%c", entity->version, CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
@@ -197,8 +198,8 @@ PRIVATE int MIMERequest_put_block (HTStream * me, CONST char * b, int l)
     else {
 	MIMEMakeRequest(me, me->request);
 #if 0
-	if ((status = PUTBLOCK(HTChunkData(me->buffer),
-			       HTChunkSize(me->buffer))) == HT_OK) {
+	if ((status = PUTBLOCK(HTChunk_data(me->buffer),
+			       HTChunk_size(me->buffer))) == HT_OK) {
 	    me->transparent = YES;
 	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}

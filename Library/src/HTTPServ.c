@@ -22,10 +22,12 @@
 #include "HTAlert.h"
 #include "HTError.h"
 #include "HTAccess.h"
+#include "HTWriter.h"
 #include "HTChunk.h"
 #include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTTPUtil.h"
+#include "HTTPRes.h"
 #include "HTTPServ.h"					       /* Implements */
 
 /* Macros and other defines */
@@ -48,7 +50,7 @@ typedef enum _HTTPState {
 /* This is the context object for the this module */
 typedef struct _https_info {
     HTTPState	state;			  /* Current State of the connection */
-    char *	uri;		     /* As we receive it in the Request Line */
+    HTRequest *	serve;			/* For handling the incoming request */
 } https_info;
 
 /* The HTTP Receive Stream */
@@ -99,35 +101,50 @@ PRIVATE int ServerCleanup (HTRequest *req, int status)
 */
 PRIVATE int ParseRequest (HTStream * me)
 {
-    HTRequest * request = me->request;
-    char * line = HTChunkData(me->buffer);
+    HTRequest * newreq = me->http->serve = HTRequest_dup(me->request);
+    HTNet * net = newreq->net;
+    char * line = HTChunk_data(me->buffer);
     char * method;
-    char * uri;
+    char * request_uri;
 
     /* Handle method and URI */
-    if ((method = HTNextField(&line)) && (uri = HTNextField(&line))) {
-	if ((request->method = HTMethod_enum(method)) == METHOD_INVALID) {
-	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
+    if ((method = HTNextField(&line)) && (request_uri = HTNextField(&line))) {
+	if ((newreq->method = HTMethod_enum(method)) == METHOD_INVALID) {
+	    HTRequest_addError(newreq, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
 			       NULL, 0, "ParseRequest");
 	    return HT_ERROR;
 	}
-	StrAllocCopy(me->http->uri, uri);
+
+	{
+	    char * uri = HTParse(request_uri, "file:", PARSE_ALL);
+	    newreq->anchor = (HTParentAnchor *) HTAnchor_findAddress(uri);
+#if 0
+	    /* Take copy of the original uri */
+	    StrAllocCopy(newreq->request_uri, request_uri);
+#endif
+	}
     } else {
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+	HTRequest_addError(newreq, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 			   NULL, 0, "ParseRequest");
 	return HT_ERROR;
     }
 
-    /* Handle version */
+    /*
+    ** Handle version. If we have a 1.x request then always parse headers.
+    ** We might find a persistent connection request in which case we don't
+    ** want to loose it.
+    */
     if ((me->version = HTNextField(&line))) {
-	HTNet * net = request->net;
-	net->target = HTStreamStack(WWW_MIME, request->output_format,
-				    request->output_stream, request, NO);
+	newreq->output_stream =
+	    HTTPResponse_new(newreq, HTBufWriter_new(net, YES, 512));
+	me->target = HTStreamStack(WWW_MIME, newreq->output_format,
+				   newreq->output_stream, newreq, NO);
 	me->transparent = YES;
-	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is a 1.x request\n");
 	return HT_OK;
+    } else {
+	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is formatted as 0.9\n");
+	newreq->output_stream = HTBufWriter_new(net, YES, 512);
     }
-    if (PROT_TRACE) TTYPrint(TDEST, "Request Line is a - YRK - 0.9 request\n");
     return HT_LOADED;
 }
 
@@ -136,26 +153,18 @@ PRIVATE int ParseRequest (HTStream * me)
 */
 PRIVATE int HTTPReceive_put_block (HTStream * me, CONST char * b, int l)
 {
-    int status;
-    while (!me->transparent && l-- > 0) {
+    int status = HT_OK;
+    while (!me->transparent && l > 0) {
 	if (me->state == EOL_FCR) {
-	    if (*b == LF) {
-		if ((status = ParseRequest(me)) != HT_OK) return status;
-	    } else if (*b == CR) {
-		status = ParseRequest(me);
-		return status == HT_OK ? HT_LOADED : status;
-	    } else {
-		if ((status = ParseRequest(me)) != HT_OK) return status;
-		l++;
-	    }
+	    if ((status = ParseRequest(me)) != HT_OK) return status;
+	    else if (*b != LF) break;
 	} else if (*b == CR) {
 	    me->state = EOL_FCR;
 	} else if (*b == LF) {
-	    if ((status = ParseRequest(me)) != HT_OK) return status;
-	} else {
-	    HTChunkPutc(me->buffer, *b);		/* @@@ */
-	}
-	b++;
+	    if ((status = ParseRequest(me)) < 0) return status;
+	} else
+	    HTChunk_putc(me->buffer, *b);		/* @@@ */
+	b++, l--;
     }
     if (l > 0 && me->target) return PUTBLOCK(b, l);
     return HT_OK;
@@ -183,7 +192,7 @@ PRIVATE int HTTPReceive_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     return status;
 }
@@ -191,7 +200,7 @@ PRIVATE int HTTPReceive_free (HTStream * me)
 PRIVATE int HTTPReceive_abort (HTStream * me, HTList * e)
 {
     if (me->target) ABORT_TARGET;
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPReceive. ABORTING...\n");
     return HT_ERROR;
@@ -220,7 +229,7 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
     me->http = http;
     me->state = EOL_BEGIN;    
     me->method = METHOD_INVALID;
-    me->buffer = HTChunkCreate(128);		 /* Sufficiant for most URLs */
+    me->buffer = HTChunk_new(128);		 /* Sufficiant for most URLs */
     return me;
 }
 
@@ -245,14 +254,14 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     if (soc == INVSOC) return HT_ERROR;
     if (ops == FD_NONE) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST,"HTTP........ Serving request %p on socket %d\n",
+	    TTYPrint(TDEST,"HTTP Serve.. request %p on socket %d\n",
 		     request, soc);
 	if ((http = (https_info *) calloc(1, sizeof(https_info))) == NULL)
 	    outofmem(__FILE__, "HTServHTTP");
 	http->state = HTTPS_BEGIN;
 	net->context = http;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
-	ServerCleanup(request, HT_INTERRUPTED);
+	ServerCleanup(request, http->serve ? HT_IGNORE : HT_INTERRUPTED);
 	return HT_OK;
     } else
 	http = (https_info *) net->context;		/* Get existing copy */
@@ -266,7 +275,7 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		net->isoc = HTInputSocket_new(net->sockfd);	
 		http->state = HTTPS_NEED_STREAM;
 	    } else {
-		ServerCleanup(request, HT_ERROR);
+		ServerCleanup(request, http->serve ? HT_IGNORE : HT_ERROR);
 		return HT_ERROR;
 	    }	    
 	    break;
@@ -280,24 +289,30 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    status = HTSocketRead(request, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
-	    else
+	    else if (status == HT_LOADED)
 		http->state = HTTPS_HANDLE_REQUEST;
+	    else
+		http->state = HTTPS_ERROR;
 	    break;
 
 	  case HTTPS_HANDLE_REQUEST:
-	    http->state = HTTPS_SENT_RESPONSE;
+	    if (HTLoad(http->serve, NO) != YES) {
+		if (PROT_TRACE) TTYPrint(TDEST,"HTTP Serve. Error serving!\n");
+		http->state = HTTPS_ERROR;
+	    } else
+		http->state = HTTPS_SENT_RESPONSE;
 	    break;
 
 	  case HTTPS_SENT_RESPONSE:
 
 	    /* if persistent connection then jump to NEED_REQUEST */
 
-	    ServerCleanup(request, HT_LOADED);
+	    ServerCleanup(request, http->serve ? HT_IGNORE : HT_LOADED);
 	    return HT_OK;
 	    break;
 
 	  case HTTPS_ERROR:
-	    ServerCleanup(request, HT_ERROR);
+	    ServerCleanup(request, http->serve ? HT_IGNORE : HT_ERROR);
 	    return HT_OK;
 	    break;
 	}

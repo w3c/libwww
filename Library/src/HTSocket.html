@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket I/O Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Dec-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -90,6 +90,7 @@ typedef enum _HTSocketEOL {
     EOL_SLF
 } HTSocketEOL;
 
+extern FILE * HTSocket_DLLHackFopen (const char * filename, const char * mode);
 extern int HTSocketRead	(HTRequest * request, HTNet * net);
 </PRE>
 

@@ -50,7 +50,7 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
     CONST char *mailaddress = HTGetMailAddress();
     if (mailaddress) {
 	sprintf(linebuf, "From: %s%c%c", mailaddress, CR, LF);
-	HTChunkPuts(header, linebuf);
+	HTChunk_puts(header, linebuf);
     }
 
     /*
@@ -58,7 +58,7 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
     **  destinations from the source of this request.
     ** 	First the main link and then the sub links
     */
-    HTChunkPuts(header, "Newsgroups :");    
+    HTChunk_puts(header, "Newsgroups :");    
     if (HTRequest_isDestination(request)) {
 	HTRequest *src_req = HTRequest_source(request);
 	HTParentAnchor *src_anchor = HTRequest_anchor(src_req);
@@ -73,7 +73,7 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
 		char *newsgroup = HTParse(desturl, "", PARSE_PATH);
 		HTUnEscape(newsgroup);
 		HTCleanTelnetString(newsgroup);
-		HTChunkPuts(header, newsgroup);
+		HTChunk_puts(header, newsgroup);
 		free(newsgroup);
 	    }
 	    free(access);
@@ -82,7 +82,7 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
 	/* DO FOR ALL SUB ANCHOR DESTINATION S AS WELL */
 	
     }
-    if (PROT_TRACE) TTYPrint(TDEST, "News Tx..... %s", HTChunkData(header));
+    if (PROT_TRACE) TTYPrint(TDEST, "News Tx..... %s", HTChunk_data(header));
     return YES;
 }
 
@@ -112,8 +112,8 @@ PRIVATE int NewsPost_put_block (HTStream * me, CONST char* b, int l)
     else {
 	int status;
 	NewsPost_start(me, me->request);
-	if ((status = PUTBLOCK(HTChunkData(me->buffer),
-			       HTChunkSize(me->buffer))) == HT_OK) {
+	if ((status = PUTBLOCK(HTChunk_data(me->buffer),
+			       HTChunk_size(me->buffer))) == HT_OK) {
 	    me->transparent = YES;
 	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}
@@ -149,7 +149,7 @@ PRIVATE int NewsPost_free (HTStream * me)
 	(status = NewsPost_end(me)) != HT_OK ||
 	(status = (*me->target->isa->_free)(me->target)) != HT_OK)
 	return status;
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     return status;
 }
@@ -157,7 +157,7 @@ PRIVATE int NewsPost_free (HTStream * me)
 PRIVATE int NewsPost_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     if (PROT_TRACE) TTYPrint(TDEST, "NewsPost.... ABORTING...\n");
     return HT_ERROR;
@@ -184,7 +184,7 @@ PUBLIC HTStream * HTNewsPost_new (HTRequest * request, HTStream * target)
     me->isa = &NewsPostClass;
     me->target = target;
     me->request = request;
-    me->buffer = HTChunkCreate(256);
+    me->buffer = HTChunk_new(256);
     me->transparent = NO;
     return HTMIMERequest_new(request, me);		/* @@@ */
 }

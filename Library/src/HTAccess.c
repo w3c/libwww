@@ -451,7 +451,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 		return NO;
 	    }
 	    if (HTLink_result(main_link) == HT_LINK_NONE) {
-		main_req->GenMask |= HT_DATE;		 /* Send date header */
+		main_req->GenMask |= HT_G_DATE;		 /* Send date header */
 		main_req->source = src_req;
 		main_req->reload = HT_CACHE_REFRESH;
 		main_req->method = method;
@@ -477,7 +477,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 		    return NO;
 		}
 		dest_req = HTRequest_dup(main_req);
-		dest_req->GenMask |= HT_DATE;		 /* Send date header */
+		dest_req->GenMask |= HT_G_DATE;		 /* Send date header */
 		dest_req->source = src_req;
 		dest_req->reload = HT_CACHE_REFRESH;
 		dest_req->method = method;

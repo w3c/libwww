@@ -51,12 +51,12 @@ PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
     char *addr = HTAnchor_physical(request->anchor);
     char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
     HTChunk *header = me->buffer;
-    HTChunkPuts(header, "GET ");
-    HTChunkPuts(header, fullurl);
-    HTChunkPutc(header, ' ');
-    HTChunkPutc(header, CR);
-    HTChunkPutc(header, LF);
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", HTChunkData(header));
+    HTChunk_puts(header, "GET ");
+    HTChunk_puts(header, fullurl);
+    HTChunk_putc(header, ' ');
+    HTChunk_putc(header, CR);
+    HTChunk_putc(header, LF);
+    if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", HTChunk_data(header));
 }
 
 /*	HTTPMakeRequest
@@ -71,28 +71,28 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 
     /* Generate the HTTP/1.0 RequestLine */
     if (request->method != METHOD_INVALID) {
-	HTChunkPuts(header, HTMethod_name(request->method));
-	HTChunkPutc(header, ' ');
+	HTChunk_puts(header, HTMethod_name(request->method));
+	HTChunk_putc(header, ' ');
     } else
-	HTChunkPuts(header, "GET ");
+	HTChunk_puts(header, "GET ");
 
     /* If we are using a proxy then only take the `path' info in the URL */
     {
 	char *addr = HTAnchor_physical(anchor);
 	char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
 	if (request->using_proxy) {
-	    HTChunkPuts(header, fullurl+1);
+	    HTChunk_puts(header, fullurl+1);
 	} else {
-	    HTChunkPuts(header, fullurl);
+	    HTChunk_puts(header, fullurl);
 	}
 	free(fullurl);
     }
-    HTChunkPuts(header, " HTTP/1.0");
-    HTChunkPutc(header, CR);
-    HTChunkPutc(header, LF);
+    HTChunk_puts(header, " HTTP/1.0");
+    HTChunk_putc(header, CR);
+    HTChunk_putc(header, LF);
 
     /* Request Headers */
-    if (request->RequestMask & HT_ACCEPT_TYPE) {
+    if (request->RequestMask & HT_C_ACCEPT_TYPE) {
 	int list;
 	HTList *cur;
 	for (list=0; list<2; list++) {
@@ -109,13 +109,13 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 			    sprintf(linebuf, "Accept: %s%c%c",
 				    HTAtom_name(pres->rep), CR, LF);
 			}
-			HTChunkPuts(header, linebuf);
+			HTChunk_puts(header, linebuf);
 		    }
 		}
 	    }
 	}
     }
-    if (request->RequestMask & HT_ACCEPT_CHAR) {
+    if (request->RequestMask & HT_C_ACCEPT_CHAR) {
 	BOOL first=YES;
 	int list;
 	HTList *cur;
@@ -125,7 +125,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
-			HTChunkPuts(header, "Accept-Charset: ");
+			HTChunk_puts(header, "Accept-Charset: ");
 			first=NO;
 		    }
 		    if (cur->next)
@@ -133,12 +133,12 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		    else
 			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
 				CR, LF);
-		    HTChunkPuts(header, linebuf);
+		    HTChunk_puts(header, linebuf);
 		}
 	    }
 	}
     }
-    if (request->RequestMask & HT_ACCEPT_ENC) {
+    if (request->RequestMask & HT_C_ACCEPT_ENC) {
 	BOOL first=YES;
 	int list;
 	HTList *cur;
@@ -148,7 +148,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
-			HTChunkPuts(header, "Accept-Encoding: ");
+			HTChunk_puts(header, "Accept-Encoding: ");
 			first=NO;
 		    }
 		    if (cur->next)
@@ -156,12 +156,12 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		    else
 			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
 				CR, LF);
-		    HTChunkPuts(header, linebuf);
+		    HTChunk_puts(header, linebuf);
 		}
 	    }
 	}
     }
-    if (request->RequestMask & HT_ACCEPT_LAN) {
+    if (request->RequestMask & HT_C_ACCEPT_LAN) {
 	BOOL first=YES;
 	int list;
 	HTList *cur;
@@ -171,7 +171,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
-			HTChunkPuts(header, "Accept-Language: ");
+			HTChunk_puts(header, "Accept-Language: ");
 			first=NO;
 		    }
 		    if (cur->next)
@@ -179,7 +179,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		    else
 			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
 				CR, LF);
-		    HTChunkPuts(header, linebuf);
+		    HTChunk_puts(header, linebuf);
 		}
 	    }
 	}
@@ -187,51 +187,51 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
     if (request->authorization != NULL) {	    /* Put out authorization */
 	sprintf(linebuf, "Authorization: %s%c%c", request->authorization,
 		CR, LF);
-	HTChunkPuts(header, linebuf);
+	HTChunk_puts(header, linebuf);
     }
-    if (request->RequestMask & HT_FROM) {
+    if (request->RequestMask & HT_C_FROM) {
 	CONST char *mailaddress = HTGetMailAddress();
 	if (mailaddress) {
 	    sprintf(linebuf, "From: %s%c%c", mailaddress, CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    HTChunk_puts(header, linebuf);
 	}
     }
-    if (request->RequestMask & HT_IMS) {
+    if (request->RequestMask & HT_C_IMS) {
 	time_t lm = HTAnchor_lastModified(anchor);
 	if (lm != -1) {
 	    sprintf(linebuf, "If-Modified-Since: %s%c%c",
 		    HTDateTimeStr(&lm, NO), CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    HTChunk_puts(header, linebuf);
 	}
     }
-    if (request->RequestMask & HT_HOST) {
+    if (request->RequestMask & HT_C_HOST) {
 	char *orig = HTAnchor_address((HTAnchor *) anchor);
 	char *host = HTParse(orig, "", PARSE_HOST);
 	char *ptr = strchr(host, ':');		     /* Chop off port number */
 	if (ptr) *ptr = '\0';
 	sprintf(linebuf, "Host: %s%c%c", host, CR, LF);
-	HTChunkPuts(header, linebuf);
+	HTChunk_puts(header, linebuf);
 	free(orig);
 	free(host);
     }
-    if (request->RequestMask & HT_REFERER && request->parentAnchor) {
+    if (request->RequestMask & HT_C_REFERER && request->parentAnchor) {
 	char *act = HTAnchor_address((HTAnchor *) anchor);
 	char *parent = HTAnchor_address((HTAnchor *) request->parentAnchor);
 	char *relative = HTParse(parent, act,
 				 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	if (relative && *relative) {
 	    sprintf(linebuf, "Referer: %s%c%c", parent, CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    HTChunk_puts(header, linebuf);
 	}
 	free(act);
 	free(parent);
 	    free(relative);
     }
-    if (request->RequestMask & HT_USER_AGENT) {
+    if (request->RequestMask & HT_C_USER_AGENT) {
 	sprintf(linebuf, "User-Agent: %s/%s %s/%s%c%c",
 		HTLib_appName(), HTLib_appVersion(),
 		HTLib_name(), HTLib_version(), CR, LF);
-	HTChunkPuts(header, linebuf);
+	HTChunk_puts(header, linebuf);
     }
     if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", header->data);
 }
@@ -248,8 +248,8 @@ PRIVATE int HTTPRequest_put_block (HTStream * me, CONST char * b, int l)
 	    HTTP09Request(me, me->request);
 	else
 	    HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status = PUTBLOCK(HTChunkData(me->buffer),
-			       HTChunkSize(me->buffer))) == HT_OK) {
+	if ((status = PUTBLOCK(HTChunk_data(me->buffer),
+			       HTChunk_size(me->buffer))) == HT_OK) {
 	    me->transparent = YES;
 	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}
@@ -285,7 +285,7 @@ PRIVATE int HTTPRequest_free (HTStream * me)
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
-	HTChunkFree(me->buffer);
+	HTChunk_delete(me->buffer);
 	free(me);
     }
     return status;
@@ -294,7 +294,7 @@ PRIVATE int HTTPRequest_free (HTStream * me)
 PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPRequest. ABORTING...\n");
     return HT_ERROR;
@@ -323,7 +323,7 @@ PUBLIC HTStream * HTTPRequest_new (HTRequest *	request,
     me->isa = &HTTPRequestClass;
     me->target = target;
     me->request = request;
-    me->buffer = HTChunkCreate(512);
+    me->buffer = HTChunk_new(512);
     me->version = HTDNS_serverVersion(dns);
     me->transparent = NO;
     return HTMIMERequest_new(request, me);		/* @@@ */

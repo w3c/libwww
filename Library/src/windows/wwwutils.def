@@ -19,13 +19,14 @@ HTAtom_deleteAll	@ 303
 HTAtom_templateMatches	@ 304
 
 ;HTChunk.c		@ 400
-HTChunkCreate		@ 401
-HTChunkClear		@ 402
-HTChunkFree		@ 403
-HTChunkPutc		@ 404
-HTChunkEnsure		@ 405
-HTChunkTerminate	@ 406
-HTChunkPuts		@ 407
+HTChunk_new		@ 401
+HTChunk_clear		@ 402
+HTChunk_delete		@ 403
+HTChunk_putc		@ 404
+HTChunk_ensure		@ 405
+HTChunk_terminate	@ 406
+HTChunk_puts		@ 407
+HTChunk_putb		@ 408
 
 ;HTList.c		@ 500
 HTList_new		@ 501

@@ -53,7 +53,8 @@ time when the chunk is later extended. Arbitrary but normally a
 trade-off time vs. memory
 
 <PRE>
-extern HTChunk * HTChunkCreate (int growby);
+#define HTChunkCreate(growby) HTChunk_new(growby)
+extern HTChunk * HTChunk_new (int growby);
 </PRE>
 
 <H2>Free a chunk</H2>
@@ -61,7 +62,8 @@ extern HTChunk * HTChunkCreate (int growby);
 Free a chunk created by <CODE>HTChunkCreate</CODE>from memory
 
 <PRE>
-extern void HTChunkFree (HTChunk * ch);
+#define HTChunkFree(ch) HTChunk_delete(ch)
+extern void HTChunk_delete (HTChunk * ch);
 </PRE>
 
 <H2>Clear a chunk</H2>
@@ -69,7 +71,8 @@ extern void HTChunkFree (HTChunk * ch);
 Keep the chunk in memory but clear all data kept inside.
 
 <PRE>
-extern void HTChunkClear (HTChunk * ch);
+#define HTChunkClear(ch) HTChunk_clear(ch)
+extern void HTChunk_clear (HTChunk * ch);
 </PRE>
 
 <H2>Ensure a chunk has a certain space in</H2>
@@ -79,7 +82,8 @@ then the chunk is expanded. Nothing is done if the current size if
 bigger than the size requested.
 
 <PRE>
-extern void HTChunkEnsure (HTChunk * ch, int s);
+#define HTChunkEnsure(ch, s) HTChunk_ensure(ch, s)
+extern void HTChunk_ensure (HTChunk * ch, int s);
 </PRE>
 
 <H2>Append a character to a chunk</H2>
@@ -87,7 +91,8 @@ extern void HTChunkEnsure (HTChunk * ch, int s);
 Add the character and increment the size of the chunk by one character
 
 <PRE>
-extern void HTChunkPutc (HTChunk * ch, char c);
+#define HTChunkPutc(ch, c) HTChunk_putc(ch, c)
+extern void HTChunk_putc (HTChunk * ch, char c);
 </PRE>
 
 <H2>Append a string to a  chunk</H2>
@@ -96,7 +101,16 @@ Add the string and increment the size of the chunk by the length of
 the string (without the trailing zero)
 
 <PRE>
-extern void HTChunkPuts (HTChunk * ch, CONST char *str);
+#define HTChunkPuts(ch, str) HTChunk_puts(ch, str)
+extern void HTChunk_puts (HTChunk * ch, CONST char *str);
+</PRE>
+
+<H2>Append a block to a chunk</H2>
+
+Add the block and increment the size of the chunk by the len
+
+<PRE>
+extern void HTChunk_putb (HTChunk * ch, CONST char *block, int len);
 </PRE>
 
 <A NAME="Terminate"><H2>Zero Terminate a chunk</H2></A>
@@ -108,7 +122,8 @@ function is to increment the size counter with one corresponding to
 the zero.
 
 <PRE>
-extern void HTChunkTerminate (HTChunk * ch);
+#define HTChunkTerminate(ch) HTChunk_terminate(ch)
+extern void HTChunk_terminate (HTChunk * ch);
 </PRE>
 
 <H2>Return Pointer to Data</H2>
@@ -117,7 +132,8 @@ This define converts a chunk to a normal char pointer so that it can
 be parsed to any ANSI C string function.
 
 <PRE>
-#define HTChunkData(me)		((me) ? (me)-&gt;data : NULL)
+#define HTChunkData(me)         ((me) ? (me)->data : NULL)
+#define HTChunk_data(me)         ((me) ? (me)->data : NULL)
 </PRE>
 
 <H2>Return Current Size</H2>
@@ -125,7 +141,8 @@ be parsed to any ANSI C string function.
 Returns the current size of the chunk
 
 <PRE>
-#define HTChunkSize(me)		((me) ? (me)-&gt;size : -1)
+#define HTChunkSize(me)         ((me) ? (me)->size : -1)
+#define HTChunk_size(me)         ((me) ? (me)->size : -1)
 </PRE>
 
 <PRE>

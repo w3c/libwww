@@ -14,6 +14,7 @@
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WWWNews.h"				       /* News access module */
 #include "WWWHTTP.h"				       /* HTTP access module */
+#include "HTBInit.h"
 #include "HTFTP.h"
 #include "HTFile.h"
 #include "HTGopher.h"
@@ -250,7 +251,10 @@ int main (int argc, char ** argv)
     /* Normal converters */
     HTConversion_add(conv, "*/*", "www/present", HTSaveLocally, 0.5, 0.0, 0.0);
 
-    /* Bind the list of converters to the request object */
+     /* Initialize bindings between file suffixes and media types */
+    HTFileInit();
+
+   /* Bind the list of converters to the request object */
     HTRequest_setConversion(cl->request, conv, YES);
     
     /* Get any proxy or gateway environment variables */
@@ -387,10 +391,10 @@ int main (int argc, char ** argv)
 	    } else {		   /* Check for successive keyword arguments */
 		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
-		    keywords = HTChunkCreate(128);
+		    keywords = HTChunk_new(128);
 		else
-		    HTChunkPutc(keywords, ' ');
-		HTChunkPuts(keywords, HTStrip(escaped));
+		    HTChunk_putc(keywords, ' ');
+		HTChunk_puts(keywords, HTStrip(escaped));
 		free(escaped);
 	    }
 	}
@@ -478,11 +482,11 @@ int main (int argc, char ** argv)
     if (cl->dest)					   /* PUT, POST etc. */
 	status = HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
     else if (keywords)						   /* Search */
-	status = HTSearch(HTChunkData(keywords), cl->anchor, cl->request);
+	status = HTSearch(HTChunk_data(keywords), cl->anchor, cl->request);
     else						   /* GET, HEAD etc. */
 	status = HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
 
-    if (keywords) HTChunkFree(keywords);
+    if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
 	if (SHOW_MSG) TTYPrint(TDEST, "Can't access resource\n");
 	Cleanup(cl, -1);

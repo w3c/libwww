@@ -275,28 +275,28 @@ PRIVATE int HTRule_put_block (HTStream * me, CONST char * b, int l)
 	    else if (WHITE(*b))				   /* Folding: CR SP */
 		me->EOLstate = EOL_DOT;
 	    else {						 /* New line */
-		HTRule_parseLine(rules, HTChunkData(me->buffer));
+		HTRule_parseLine(rules, HTChunk_data(me->buffer));
 		me->EOLstate = EOL_BEGIN;
-		HTChunkClear(me->buffer);
+		HTChunk_clear(me->buffer);
 		continue;
 	    }
 	} else if (me->EOLstate == EOL_FLF) {
 	    if (WHITE(*b))		       /* Folding: LF SP or CR LF SP */
 		me->EOLstate = EOL_DOT;
 	    else {						/* New line */
-		HTRule_parseLine(rules, HTChunkData(me->buffer));
+		HTRule_parseLine(rules, HTChunk_data(me->buffer));
 		me->EOLstate = EOL_BEGIN;
-		HTChunkClear(me->buffer);
+		HTChunk_clear(me->buffer);
 		continue;
 	    }
 	} else if (me->EOLstate == EOL_DOT) {
 	    if (WHITE(*b)) {
 		me->EOLstate = EOL_BEGIN;
-		HTChunkPutc(me->buffer, ' ');
+		HTChunk_putc(me->buffer, ' ');
 	    } else {
-		HTRule_parseLine(rules, HTChunkData(me->buffer));
+		HTRule_parseLine(rules, HTChunk_data(me->buffer));
 		me->EOLstate = EOL_BEGIN;
-		HTChunkClear(me->buffer);
+		HTChunk_clear(me->buffer);
 		continue;
 	    }
 	} else if (*b == CR) {
@@ -304,7 +304,7 @@ PRIVATE int HTRule_put_block (HTStream * me, CONST char * b, int l)
 	} else if (*b == LF) {
 	    me->EOLstate = EOL_FLF;			       /* Line found */
 	} else
-	    HTChunkPutc(me->buffer, *b);
+	    HTChunk_putc(me->buffer, *b);
 	l--; b++;
     }
     return HT_OK;
@@ -334,7 +334,7 @@ PRIVATE int HTRule_free (HTStream * me)
     }
     if (APP_TRACE)
 	TTYPrint(TDEST, "Rules....... FREEING....\n");
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     return status;
 }
@@ -344,7 +344,7 @@ PRIVATE int HTRule_abort (HTStream * me, HTList * e)
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (APP_TRACE) TTYPrint(TDEST, "Rules....... ABORTING...\n");
-    HTChunkFree(me->buffer);
+    HTChunk_delete(me->buffer);
     free(me);
     return status;
 }
@@ -371,13 +371,14 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
 {
     HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
     HTStream * me;
-    if (cbf && (*cbf)(request, HT_A_CONFIRM, HT_MSG_RULES, NULL, NULL, NULL)) {
+    if (!cbf || (cbf && (*cbf)(request,HT_A_CONFIRM,HT_MSG_RULES,NULL,NULL,NULL))) {
+	if (WWWTRACE) TTYPrint(TDEST, "Rule file... Parser object created\n");
 	if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
 	    outofmem(__FILE__, "HTRules");
 	me->isa = &HTRuleClass;
 	me->request = request;
 	me->target = output_stream;
-	me->buffer = HTChunkCreate(512);
+	me->buffer = HTChunk_new(512);
 	me->EOLstate = EOL_BEGIN;
 	if (!rules) rules = HTList_new();
     } else
