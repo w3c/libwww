@@ -41,6 +41,7 @@
 #include "HTAABrow.h"		/* Access Authorization */
 #include "HTTee.h"		/* Tee off a cache stream */
 #include "HTFWriter.h"		/* Write to cache file */
+#include "HTError.h"
 
 struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */
@@ -189,7 +190,11 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
 	int status = HTParseInet(sin, p1);  /* TBL 920622 */
 	if (status) {
+#if 0
 	    HTAddError2(request,"No such host:",p1);
+#endif
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
+		       (void*)p1, strlen(p1), "HTLoadHTTP");
 	    free(p1);
 	    return status;   /* No such host for example */
 	}
@@ -225,8 +230,11 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    if (TRACE) fprintf(stderr, 
 	      "HTTP: Unable to connect to remote host for `%s' (errno = %d).\n",
 	      arg, errno);
+#if 0
 	    HTAddError2(request,"Unable to connect to remote host:",
 			HTErrnoString());
+#endif
+	    HTErrorSysAdd(request, ERR_FATAL, NO, "connect");
 	    return HTInetStatus("connect");
       }
     
@@ -351,7 +359,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	if (status<0) {
 	    if (TRACE) fprintf(stderr,
 	    	"HTTPAccess: Unable to send command.\n");
+#if 0
 	    HTAddError2(request,"Couldn't send request:",HTErrnoString());
+#endif
+	    HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
 	    return HTInetStatus("send");
 	}
     } /* compose and send command */
@@ -391,8 +402,11 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		int status = NETWRITE(s, buf, i);
 		if (status < 0) {
 		    CTRACE(stderr, "HTTPAccess.. Unable to forward body\n");
+#if 0
 		    HTAddError2(request,"Couldn't forward message body:",
 				HTErrnoString());
+#endif
+		    HTErrorSysAdd(request,ERR_FATAL,NO,"NETWRITE");
 		    return HTInetStatus("send");
 		}
 		remain -= i;

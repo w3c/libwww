@@ -940,7 +940,7 @@ PUBLIC int HTLoadError ARGS3(
 
 /* ------------------------------------------------------------------------- */
 /* NOTE: THIS FUNCTION IS PLACED HEER AS THE HTML.C MODULE NORMALLY GETS
-**       OVERWRITTEN BY THE CLIENT OR SERVER
+**       OVERRIDDEN BY THE CLIENT OR SERVER
 **								HTErrorMsg
 **
 **	Creates an error message on standard output containing the 
