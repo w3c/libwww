@@ -29,14 +29,16 @@
 #  If this env var is set to something else Some makes will use that instead
 SHELL = /bin/sh
 
+# NOT MADE BY DEFAULT ANYMORE
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
-
-.SUFFIXES: .h .html
-.html.h:
+#
+#.SUFFIXES: .h .html
+#.html.h:
 #	- chmod +w $*.h
-	www -w90 -na -p -to text/x-c $*.html > $*.h
+#	www -w90 -na -p -to text/x-c $*.html > $*.h
 #	chmod -w $*.h
+# --------------------------
 
 # If this is actually run in a subdirectory,
 #
@@ -127,8 +129,8 @@ SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
 	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c \
 	$(VMS)/dirent.h $(VMS)/dirent.c $(VMS)/sys_dirent.h
 
-
-all : inc $(LOB)/libwww.a
+#all : inc $(LOB)/libwww.a
+all : $(LOB)/libwww.a
 
 #	Library
 #
@@ -168,6 +170,15 @@ uninstall :
 
 #	Needs www version 2.4 or later to do this
 inc : $(HFILES)
+
+#	.h files are distributed but originally are made from the
+#	self-documenting hypertext files.
+
+.SUFFIXES: .h .html
+.html.h:
+#	- chmod +w $*.h
+	www -w90 -na -p -to text/x-c $*.html > $*.h
+#	chmod -w $*.h
 	echo Include files generated from hypertext.
 
 binary : /mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
