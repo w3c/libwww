@@ -266,9 +266,11 @@ void HTSimplify(filename)
 	            strcpy(q, p+3);	/* Remove  /xxx/..	*/
 		    if (!*filename) strcpy(filename, "/");
 		    p = q-1;		/* Start again with prev slash 	*/
-		} else {			/*   xxx/..	error?	*/
+		} else {			/*   xxx/.. leve it!	*/
+#ifdef BUG_CODE
 		    strcpy(filename, p[3] ? p+4 : p+3); /* rm  xxx/../	*/
 		    p = filename;		/* Start again */
+#endif
 		}
 	    } else if ((p[1]=='.') && (p[2]=='/' || !p[2])) {
 	        strcpy(p, p+2);			/* Remove a slash and a dot */
