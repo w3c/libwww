@@ -112,24 +112,25 @@ PRIVATE BOOL basic_credentials (HTRequest * request, HTBasic * basic)
 	char * cipher = NULL;
 	int cl_len = strlen(basic->uid ? basic->uid : "") +
 	    strlen(basic->pw ? basic->pw : "") + 3;
-	int ci_len = (4*(cl_len+2))/3;
-	if ((cleartext = (char *) HT_CALLOC(1, cl_len+3)) == NULL)
+	int ci_len = 4 * (((cl_len+2)/3) + 1);
+	if ((cleartext = (char *) HT_CALLOC(1, cl_len)) == NULL)
 	    HT_OUTOFMEM("basic_credentials");
 	*cleartext = '\0';
 	if (basic->uid) strcpy(cleartext, basic->uid);
 	strcat(cleartext, ":");
 	if (basic->pw) strcat(cleartext, basic->pw);
-	if ((cipher = (char *) HT_MALLOC(ci_len+1)) == NULL)
+	if ((cipher = (char *) HT_CALLOC(1, ci_len + 3)) == NULL)
 	    HT_OUTOFMEM("basic_credentials");
-	HTUU_encode((unsigned char *) cleartext, cl_len, cipher);
+	HTUU_encode((unsigned char *) cleartext, strlen(cleartext), cipher);
 
 	/* Create the credentials and assign them to the request object */
 	{
-	    int cr_len = strlen("basic") + ci_len + 2;
+	    int cr_len = strlen("basic") + ci_len + 3;
 	    char * cookie = (char *) HT_MALLOC(cr_len+1);
 	    if (!cookie) HT_OUTOFMEM("basic_credentials");
 	    strcpy(cookie, "Basic ");
 	    strcat(cookie, cipher);
+	    if (AUTH_TRACE) HTTrace("Basic Cookie `%s\'\n", cookie);
 	    HTRequest_addCredentials(request, "Authorization", cookie);
 	    HT_FREE(cookie);
 	}
@@ -191,6 +192,8 @@ PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
 	*/
 	if (basic->uid || prompt_user(request, realm, basic) == HT_OK)
 	    return basic_credentials(request, basic);
+	else
+	    return HT_ERROR;
     }
     return HT_OK;
 }
