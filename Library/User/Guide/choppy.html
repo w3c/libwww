@@ -1,7 +1,275 @@
 <HTML>
 <HEAD>
+<TITLE>Internals - Library Interfaces</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
+<H1>Library Interfaces</H1>
+
+This is the overall set of interfaces in the W3C Reference Library. An interface can cover multiple
+related C modules and it is defined by a <B>WWW*.h</B> include file, for example <A
+HREF="../../Implementation/WWWCore.html">WWWCore.h</A>. On <A HREF="../Platform/WinDLL.html">Windows
+platforms</A>, each interface corresponds to a DLL with a DLL definition file defining all exported
+methods and data objects.
+
+<H2>Core Interfaces</H2>
+
+The core interfaces must be included in all applications.
+
+<A NAME="dll"><H3>wwwdll.dll</H3>
+
+The wwwdll library is a tiny library that contains a pointer to the <A
+HREF="../../Implementation/TTYPrint.html">TTYPrint</A> function. When Windows loads a DLL, the
+exported function and data pointers get "fixed up" in the other modules.  Consequently, what may be
+a directly addressable piece of data in it's home library will be a pointer in the other libraries
+and executables that dynamically link to it. The <A
+HREF="../../Implementation/TTYPrint.html">TTYPrint</A> pointer is <A
+HREF="../../Implementation/windows/wwwdll.def">exported</A> to the other modules and referenced via
+the TTYPrint macro in <A HREF="../../Implementation/HTUtils.html">HTUtils.h</A>. <A
+HREF="#dll">wwwdll.dll </A> also contains the WWW_TraceFlag to the same end of macroing the
+indirection.
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwdll.def">Definition list of exported API</A>
+</UL>
+
+<A NAME="utils"><H3>wwwutils.dll</H3>
+
+The Utility modules are mostly container modules, dynamic strings and other stuff that you can't
+live without when building applications. The modules are used by the core part of the W3C Reference
+Library but can also be used by the application. See also the main Library include file called <A
+HREF="../../Implementation/WWWLib.html">WWWLib.h</A> which contains all converters and protocol
+modules known to the Library. You can include this one if the application is to use all the
+functionality of the Library.
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwutils.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWUtil.html">Interface include file</A>
+</UL>
+
+<A NAME="core"><H3>wwwcore.dll</H3>
+
+This is the basic include file for the core of the W3C Reference Library. Together with the <A
+HREF="../../Implementation/WWWUtil.html">WWWUtil module</A> it contains all core specific modules
+which are required to compile and build the Library. The core part of the Library is designed as a
+set of registration modules with no real functionality in itself. Instead all the functionality
+comes when the application registers the modules that provides a desired functionality, for example
+accessing HTTP servers or the local file system. The Library has a special include file called <A
+HREF="../../Implementation/WWWApp.html">WWWApp.h</A> which a lot of application helper modules that
+makes it easier to use the core.
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwcore.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWCore.html">Interface include file</A>
+</UL>
+
+<H2>Stream Interfaces</H2>
+
+<H3>wwwcache.dll</H3>
+
+The cache contains details of temporary disk files which contain the contents of remote documents.
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwcache.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWCache.html">Interface include file</A>
+</UL>
+
+<H3>wwwhtml.dll</H3>
+
+This is the include file for the basic HTML module that can be used together with the core of the
+W3C Reference Library. It contains all HTML specific modules which are required to compile and build
+the HTML DLL. Please note that as the <A HREF="../../Implementation/HText.html">HText</A> is
+<B>not</B> included in this interface. The reason is that the HText interface only is declared by
+the Library but must be defined by the application. Therefore it can not be part of a DLL but must
+be included directly in the application.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwhtml.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWHTML.html">Interface include file</A>
+</UL>
+
+<H3>wwwdir.dll</H3>
+
+This is the include file for the directory handling modules that can
+be used together with the core of the W3C Reference Library. It
+contains all Directory specific modules which are required to compile
+and build the DIRECTORY DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwdir.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWDir.html">Interface include file</A>
+</UL>
+
+<H3>wwwguess.dll</H3>
+
+This interface provides functionality for guessing unknown media types from magic words. The stream
+is a one that reads first a chunk of stuff, tries to figure out the format, and calls
+<CODE>HTStreamStack()</CODE>. This is a kind of lazy-evaluation of
+<CODE>HTStreamStack()</CODE>. This could be extended arbitrarily to recognize all the possible file
+formats in the world, if someone only had time to do it. <P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwguess.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWGuess.html">Interface include file</A>
+</UL>
+
+<H3>wwwmime.dll</H3>
+
+This is the module for basic RFC822/MIME parsing that can be used together with the core of the W3C
+Reference Library. It contains all MIME specific modules which are required to compile and build the
+MIME DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwmime.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWMIME.html">Interface include file</A>
+</UL>
+
+<H2>Application Interfaces</H2>
+
+<H3>wwwrules.dll</H3>
+
+A way to initialize applications is to use a rule file, also known as a configuration file. This is
+for example the case with the W3C httpd and the W3C Line Mode Browser. This module provides basic
+support for configuration file management and the application can use this is desired. The module is
+not referred to by the Library. Reading a rule file is implemented as a stream converter so that a
+rule file can come from anywhere, even across the network! <P>
+
+Applications do not have to provide native support for all protocols, they can in many situations
+rely on the support of proxies and gateways to help doing the job. Proxy servers are often used to
+carry client requests through a firewall where they can provide services like corporate caching and
+other network optimizations. Both Proxy servers and gateways can serve as "protocol translators"
+which can convert a request in the main Web protocol, HTTP, to an equivalent request in another
+protocol, for example NNTP, FTP, or Gopher. In case a proxy server or a gateway is available to the
+application, it can therefore by use of HTTP forward all requests to for example a proxy server
+which then handle the communications with the remote server, for example using FTP about the
+document and return it to the application (proxy client) using HTTP.
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwrules.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWRules.html">Interface include file</A>
+</UL>
+
+<H3>wwwapp.dll</H3>
+
+This module provides some "make life easier" functions in order to get the application going. They
+help you generate the first anchor, also called the <EM>home anchor</EM>. It also contains a nice
+set of default WWW addresses.
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwapp.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWApp.html">Interface include file</A>
+</UL>
+
+<H3>Initialization Modules</H3>
+
+The core parts of the Library is a framework for adding functionality. It has hooks for adding
+protocol modules, like for example HTTP, FTP, and also for adding streams that can convert from one
+media type to some other type, or presenting the result to the user. In the distribution file of the
+Library you will find a large set of protocol modules and streams already implemented. However, in
+order to use these you need to initialize them. This can be done by using the files in the <A
+HREF="HTInit.html">HTInit</A> module. You can modify these modules as you like to fit your
+particular needs. They are <B>not</B> part of any DLL and so must be included directly if desired.
+
+<UL>
+<LI><A HREF="../../Implementation/HTInit.html">HTInit Interface include file</A>
+<LI><A HREF="../../Implementation/HTBInit.html">HTBInit Interface include file</A>
+</UL>
+
+<H2>Protocol Interfaces</H2>
+
+<H3>wwwfile.dll</H3>
+
+This is the include file for local file handling modules that can be used together with the core of
+the W3C Reference Library. It contains modules which are required to compile and build the FILE
+DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwfile.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWFile.html">Interface include file</A>
+</UL>
+
+<H3>wwwftp.dll</H3>
+
+This is the include file for the basic FTP module that can be used together with the core of the W3C
+Reference Library. It contains all FTP specific modules which are required to compile and build the
+FTP DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwftp.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWFTP.html">Interface include file</A>
+</UL>
+
+<H3>wwwgophe.dll</H3>
+
+This is the include file for the basic GOPHER module that can be used together with the core of the
+W3C Reference Library. It contains all GOPHER specific modules which are required to compile and
+build the GOPHER DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwgophe.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWGophe.html">Interface include file</A>
+</UL>
+
+<H3>wwwhttp.dll</H3>
+
+This is the include file for all HTTP access including the server side and the client side. It can
+be used together with the core of the W3C Reference Library. It contains all HTTP specific modules
+which are required to compile and build the HTTP DLL.
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwhttp.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWHTTP.html">Interface include file</A>
+</UL>
+
+<H3>wwwnews.dll</H3>
+
+This is the include file for the basic NNTP module that can be used together with the core of the
+W3C Reference Library. It contains all News specific modules which are required to compile and build
+the News DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwnews.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWNews.html">Interface include file</A>
+</UL>
+
+<H3>wwwtelnt.dll</H3>
+
+This is the include file for the basic Telnet, rlogin, and TN3270 module that can be used together
+with the core of the W3C Reference Library. It contains all Telnet, rlogin, and TN3270 specific
+modules which are required to compile and build the Telnet, rlogin, and TN3270 DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwtelnt.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWTelnt.html">Interface include file</A>
+</UL>
+
+<H3>wwwwais.dll</H3>
+
+This is the include file for the basic WAIS module that can be used together with the core of the
+W3C Reference Library. It contains all WAIS specific modules which are required to compile and build
+the WAIS DLL.<P>
+
+<UL>
+<LI><A HREF="../../Implementation/windows/wwwwais.def">Definition list of exported API</A>
+<LI><A HREF="../../Implementation/WWWWAIS.html">Interface include file</A>
+</UL>
+
+<P>
+<HR>
+<ADDRESS>Eric Prud'hommeaux and Henrik frystyk, <A HREF="mailto:libwww.w3.org">libwww@w3.org</A> January 1996</ADDRESS>
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
 <TITLE>W3C Library Internals</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -33,6 +301,9 @@ links in this version work!<P>
 <H2>Table of Contents</H2> 
 
 <OL>
+
+<LI><A HREF="Interfaces.html">List of all Library Interfaces</A>
+<LI><A HREF="../../Implementation/windows/wwwlist.txt">List of all exported Library Methods</A><P>
 
 <LI><A HREF="Core.html">Core Modules</A>
 <LI><A HREF="Prefs.html">Application Preferences</A>

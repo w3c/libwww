@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 30-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -29,6 +29,71 @@
 <LI>REAGEN, Jeff
 <LI>WEI, John
 <LI>WOODWARD, Jennifer
+</UL>
+
+<H2>Release 4.0D Febuary 1 1996</H2>
+
+This upgrade release fixes some bugs and it adds functionality for posting data from memory. This is
+the full list of changes:
+
+<UL>
+
+<LI>We now have an updated list of <EM>all</EM> public functions exported from the Library. It's
+available as <A HREF="../Implementation/windows/wwwlist.txt">wwwlist.txt</A>
+
+<LI>We also present an updated list of <EM>all</EM> public interfaces available in the Library. You
+can find it in the <A HREF="Guide/Interfaces.html">Library Internals</A>.
+
+<LI>PUT and POST from memory is implemented. You can now post data from memory using the POSTWeb
+model as for posting remote data objects. The Interface is described in <A
+HREF="../Implementation/HTAccess.html">HTAccess module</A>. There is a very small dummy test
+implemented in the Line Mode browser. You can activate it if you type<EM>edit</EM> from the command
+line.
+
+<LI>The Mini server now runs (although crude) as a proxy. It is capable of serving data as a
+HTTP/HTTP proxy. It is based on the internal Library event loop and is therefore highly portable. It
+is not intended to be a full featured server but a test implementation which shows how to use the
+Library in server applications.
+
+<LI>Bug fixed that caused the following problem: If there hasn't been made a connection between the
+net->target and the request->output_stream then the latter is not freed if the request is
+interrupted.
+
+<LI>The <EM>referer URL</EM> header can now contain a unlimited length URL
+
+<LI>A resolver callback function has been introduced in the <A
+HREF="../Implementation/HTTee.html">HTTee stream</A>. This allows the caller to assign a callback
+function to resolve conflicts between the return codes of the two streams.
+
+
+<LI>The request object as been added as a calling parameter to the <A
+HREF="../Implementation/HTFWrite.html">HTFWrite stream creation method</A>. This allows errors from
+writing to a file to propagate back to the requst object.
+
+<LI>The three streams <CODE>HTSaveLocally</CODE>, <CODE>HTSaveAndExecute</CODE> and
+<CODE>HTSaveAndCallBack</CODE> have been optimized and they now all use the <A
+HREF="../Implementation/HTFWrite.html">HTFWrite stream creation method</A>
+
+<LI>We have a new module called <A HREF="../Implementation/HTTPGen.html">HTTPGen</A>. It generates
+general HTTP headers. These headers were a part of the MIME header generator, but by isolating them,
+we can use the MIME header as a generic MIME entity header generator.
+
+<LI>Created <A HREF="../Implementation/HTFWrite.html">HTErrorStream</A> which always returns
+HT_ERROR. It replaces the <A HREF="../Implementation/HTFWrite.html">HTBlackHole</A> has been replace
+with HTErrorStream in many places in order to speed up performance
+
+<LI>Made HTTP response stream (which parses the reponse line only) into a converter so that we can
+forward the output exactly as received from the remote HTTP server. This is important for proxy
+applications and other applications that want to see the output untouched.
+
+<LI>The HTChunk module has been made more solid and the amount of memory allocations has been
+limited.
+
+<LI>Memory cleanup fixed in content length counter stream and FTP module
+
+<LI>Introcing HT_CLOSED and HT_PAUSE for handling streams. This was required, especially after HTTP
+supports persistent connections where a document is not delimied by a closed connection.
+
 </UL>
 
 <H2>Release 4.0C January 23 1996</H2>

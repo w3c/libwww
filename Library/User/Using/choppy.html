@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -48,7 +48,7 @@ all links in this version work!<P>
 <UL>
 <LI><A HREF="Cache.html">The Cache Manager</A>
 <LI><A HREF="Proxy.html">Registering Proxy Servers and Gateways</A>
-<LI><A HREF="Rules.html">Rule File Management</A>
+<LI><A HREF="Rules.html">Rule File Management</A> and <A HREF="RuleSyntax.html">Rule File Syntax</A>
 <LI><A HREF="Logging.html">The Log Module</A>
 <LI><A HREF="History.html">The History Module</A>
 <LI><A HREF="HTML.html">Presentation Modules</A><P>
@@ -404,7 +404,7 @@ real application.
 <HTML>
 <HEAD>
 <TITLE>User's Guide - Preferences</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -433,7 +433,7 @@ how the application can set up the various preferences. All preferences describe
 use lists to group the sets together. As we will see later in this chapter, the reason for this is
 that lists are an easy way of assigning specific preferences to various requests. <P>
 
-<H2>Format Converters</H2>
+<A NAME="converters"><H2>Format Converters</H2></A>
 
 We have already seen an example on how a converter can be set up. Let's take a step back and look at
 the declaration of the function that adds a converter, <CODE>HTConversion_add(...)</CODE>:
@@ -806,7 +806,7 @@ are registered multiple times during the execution of an application.
 <HTML>
 <HEAD>
 <TITLE>Using - Access Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -853,11 +853,14 @@ than one access scheme, it can be registered multiple time with different scheme
 with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
 <B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
 
-The next argument describes to the Library whether it is capable of handling non-blocking sockets or
-not. This is normally a design decision when implementing the protocol module, and we will not
-stretch this argument anymore in this guide. The <A HREF="../Architecture/">Library Architecture</A>
-document discusses in more detail how a protocol module can be designed to support non-blocking
-sockets. <P>
+<A NAME="preemptive"></A>The <CODE>preemptive</CODE> argument describes to the Library whether it is
+capable of handling non-blocking sockets or not. This is normally a design decision when
+implementing the protocol module in that a module implemented for using blocking sockets normally
+can't use non-blocking sockets. However, the other way is often possible, and in some situations it
+is advantageous to use blocking sockets. The Library allows this to happen on a pr request basic as
+explained in the section <A HREF="Request.html#preemptive">"The Request Object"</A>. The <A
+HREF="../Architecture/">Library Architecture</A> document discusses in more detail how a protocol
+module can be designed to support non-blocking sockets. <P>
 
 The last argument is the actual function name to call when a request has been issued and a protocol
 module has been found associated with the access scheme used. Even though it is not clear at this
@@ -1284,7 +1287,7 @@ extern void HTHeader_deleteAll (void);
 <HTML>
 <HEAD>
 <TITLE>User Guide - Request Callback functions</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -1338,14 +1341,20 @@ have a result and the functions is called with the code <EM>HT_OK</EM>. However,
 <DL>
 <DT>HT_ERROR
 <DD>An error occured
+<DT>HT_INTERRUPTED
+<DD>The request was interrupted
 <DT>HT_LOADED
 <DD>The document was loaded
 <DT>HT_NO_DATA
 <DD>OK, but no data
 <DT>HT_RETRY
 <DD>Retry request after at a later time
-<DT>HT_REDIRECT
-<DD>The request has been redirected and we send back the new URL
+<DT>HT_PERM_REDIRECT
+<DD>The request has been permanently redirected and we send back the new URL
+<DT>HT_TEMP_REDIRECT
+<DD>The request has been temporarily redirected and we send back the new URL
+<DT>HT_NO_ACCESS
+<DD>The request could not be fulfilled because it didn't contain sufficient credentials
 </DL>
 
 When a callback function is registered, it may be registered with a status code for which it is to
@@ -1370,7 +1379,7 @@ or if you simply want to remove all functions from a list then you can use
 extern BOOL HTNetCall_deleteAll (HTList * list);
 </PRE>
 
-<H2>Pre-Request Callbacks</H2>
+<A NAME="pre"><H2>Pre-Request Callbacks</H2></A>
 
 When a request has been issued there are a number of things that an application might want to do
 with the request before it actually goes on the wire, for example to talk to a remote HTTP
@@ -1389,7 +1398,7 @@ file management and the application can use this is desired. The module is not r
 Library. Reading a rule file is implemented as a stream converter so that a rule file can come from
 anywhere, even across the network!
 
-<H3>Proxies and Gateways</H3>
+<A NAME="proxying"><H3>Proxies and Gateways</H3></A>
 
 Applications do not have to provide native support for all protocols, they can in many situations
 rely on the support of proxies and gateways to help doing the job. Proxy servers are often used to
@@ -1397,7 +1406,16 @@ carry client requests through a firewall where they can provide services like co
 other network optimizations. Both Proxy servers and gateways can serve as "protocol translators"
 which can convert a request in the main Web protocol, HTTP, to an equivalent request in another
 protocol, for example NNTP, FTP, or Gopher. In a later section we will see how to set up the Proxy
-servers and gateways using the <A HREF="../../Implementation/HTProxy.html">Proxy module</A>.
+servers and gateways using the <A HREF="../../Implementation/HTProxy.html">Proxy module</A>. <P>
+
+As a HTTP request looks different when it is directed to a proxy server than to a origin server, the
+HTTP module needs to know whether it is talking to a proxy for this particular request or not. You
+can specify in a request object whether a proxy is being used or not by using the following methods:
+
+<PRE>
+extern void HTRequest_setProxing (HTRequest * request, BOOL proxying);
+extern BOOL HTRequest_proxying (HTRequest * request);
+</PRE>
 
 <H3>Cache Manager</H3>
 
@@ -1788,7 +1806,7 @@ extern BOOL HTError_deleteLast (HTList * list);
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -2169,15 +2187,14 @@ extern void HTRequest_setContext (HTRequest *request, void *context);
 extern void *HTRequest_context (HTRequest *request);
 </PRE>
 
-<H2>Preemptive or Non-preemptive Access</H2>
+<A NAME="preemptive"><H2>Preemptive or Non-preemptive Access</H2></A>
 
-A access scheme is defined with a default for using either preemptive
-(blocking I/O) or non-premitve (non-blocking I/O). This is basically a
-result of the implementation of the protocol module itself. However,
-if non-blocking I/O is the default then some times it is nice to be
-able to set the mode to blocking instead. For example when loading the
-first document (the home page) then blocking can be used instead of
-non-blocking.
+A access scheme is registered with a default for using either preemptive (blocking I/O) or
+non-premitve (non-blocking I/O). This is basically a result of the implementation of the protocol
+module itself and is explained in the section <A HREF="Methods.html#preemptive">Registering Access
+Schemes</A>. However, if non-blocking I/O is the default then some times it is nice to be able to
+set the mode to blocking instead. For example when loading the first document (the home page) then
+blocking can be used instead of non-blocking.
 
 <PRE>
 extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
@@ -2554,7 +2571,7 @@ where <CODE>HTExpiresMode</CODE> can take any of the values:
 <HTML>
 <HEAD>
 <TITLE>User's Guide - Proxies and Gateways</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -2677,6 +2694,15 @@ between an access scheme and a protocol module. An application can be set up to 
 with a specific access scheme without knowing about the semantics of this access scheme or how to
 access the information directly. That way, powerful client applications can be built having direct
 support for, for example, HTTP only.
+
+<H2>Finding Proxies and Gateways</H2>
+
+Registering a proxy server or a gateway does not mean that the request automatically is redirected
+to the new location instead of the origin server. In order to actually redirect a request, you can
+register a <A HREF="Net.html#pre">Pre-Request Callback function</A> which will bet called before a
+request is actually sent over the wire. You can find more information on how to actually redirect a
+request to for example a proxy server in the section <A HREF="Net.html#proxying">Proxies and
+Gateways</A>
 
 <P>
 <HR>

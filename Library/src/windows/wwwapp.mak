@@ -43,7 +43,7 @@ RSC=rc.exe
 OUTDIR=.\WinRel
 INTDIR=.\WinRel
 
-ALL : .\WinRel\wwwapp.dll .\WinRel\wwwapp.bsc
+ALL : $(OUTDIR)/wwwapp.dll $(OUTDIR)/wwwapp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -63,12 +63,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwapp.bsc" 
 BSC32_SBRS= \
-	.\WinRel\windll.sbr \
-	.\WinRel\HTHist.sbr \
-	.\WinRel\HTLog.sbr \
-	.\WinRel\HTHome.sbr
+	$(INTDIR)/windll.sbr \
+	$(INTDIR)/HTHist.sbr \
+	$(INTDIR)/HTLog.sbr \
+	$(INTDIR)/HTHome.sbr \
+	$(INTDIR)/HTDialog.sbr
 
-.\WinRel\wwwapp.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/wwwapp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -86,15 +87,16 @@ LINK32_OBJS= \
 	.\WinDebug\wwwutils.lib \
 	.\WinDebug\wwwcore.lib \
 	.\WinDebug\wwwdll.lib \
-	.\WinRel\windll.obj \
+	$(INTDIR)/windll.obj \
 	.\WinDebug\wwwdir.lib \
-	.\WinRel\HTHist.obj \
-	.\WinRel\HTLog.obj \
-	.\WinRel\HTHome.obj \
+	$(INTDIR)/HTHist.obj \
+	$(INTDIR)/HTLog.obj \
+	$(INTDIR)/HTHome.obj \
 	.\WinDebug\wwwcache.lib \
-	.\WinDebug\wwwrules.lib
+	.\WinDebug\wwwrules.lib \
+	$(INTDIR)/HTDialog.obj
 
-.\WinRel\wwwapp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/wwwapp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -112,7 +114,7 @@ LINK32_OBJS= \
 OUTDIR=.\WinDebug
 INTDIR=.\WinDebug
 
-ALL : .\WinDebug\wwwapp.dll .\WinDebug\wwwapp.bsc
+ALL : $(OUTDIR)/wwwapp.dll $(OUTDIR)/wwwapp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -133,12 +135,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwapp.bsc" 
 BSC32_SBRS= \
-	.\WinDebug\windll.sbr \
-	.\WinDebug\HTHist.sbr \
-	.\WinDebug\HTLog.sbr \
-	.\WinDebug\HTHome.sbr
+	$(INTDIR)/windll.sbr \
+	$(INTDIR)/HTHist.sbr \
+	$(INTDIR)/HTLog.sbr \
+	$(INTDIR)/HTHome.sbr \
+	$(INTDIR)/HTDialog.sbr
 
-.\WinDebug\wwwapp.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/wwwapp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -153,18 +156,19 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  /OUT:$(OUTDIR)/"wwwapp.dll" /IMPLIB:$(OUTDIR)/"wwwapp.lib" 
 DEF_FILE=.\wwwapp.def
 LINK32_OBJS= \
-	.\WinDebug\wwwutils.lib \
-	.\WinDebug\wwwcore.lib \
-	.\WinDebug\wwwdll.lib \
-	.\WinDebug\windll.obj \
-	.\WinDebug\wwwdir.lib \
-	.\WinDebug\HTHist.obj \
-	.\WinDebug\HTLog.obj \
-	.\WinDebug\HTHome.obj \
-	.\WinDebug\wwwcache.lib \
-	.\WinDebug\wwwrules.lib
+	$(INTDIR)/wwwutils.lib \
+	$(INTDIR)/wwwcore.lib \
+	$(INTDIR)/wwwdll.lib \
+	$(INTDIR)/windll.obj \
+	$(INTDIR)/wwwdir.lib \
+	$(INTDIR)/HTHist.obj \
+	$(INTDIR)/HTLog.obj \
+	$(INTDIR)/HTHome.obj \
+	$(INTDIR)/wwwcache.lib \
+	$(INTDIR)/wwwrules.lib \
+	$(INTDIR)/HTDialog.obj
 
-.\WinDebug\wwwapp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/wwwapp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -203,15 +207,7 @@ SOURCE=.\WinDebug\wwwdll.lib
 
 SOURCE=.\windll.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\windll.obj :  $(SOURCE)  $(INTDIR)
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\windll.obj :  $(SOURCE)  $(INTDIR)
-
-!ENDIF 
+$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
 
 # End Source File
 ################################################################################
@@ -224,17 +220,8 @@ SOURCE=.\WinDebug\wwwdir.lib
 
 SOURCE=..\HTHist.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTHist.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTHist.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTHist.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -247,17 +234,8 @@ SOURCE=.\wwwapp.def
 
 SOURCE=..\HTLog.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTLog.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTLog.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTLog.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -265,17 +243,8 @@ SOURCE=..\HTLog.c
 
 SOURCE=..\HTHome.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTHome.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTHome.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTHome.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -287,6 +256,15 @@ SOURCE=.\WinDebug\wwwcache.lib
 # Begin Source File
 
 SOURCE=.\WinDebug\wwwrules.lib
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\HTDialog.c
+
+$(INTDIR)/HTDialog.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
 # End Source File
 # End Group
 # End Project

@@ -43,7 +43,7 @@ RSC=rc.exe
 OUTDIR=.\WinRel
 INTDIR=.\WinRel
 
-ALL : $(OUTDIR)/wwwhttp.dll $(OUTDIR)/wwwhttp.bsc
+ALL : .\WinRel\wwwhttp.dll .\WinRel\wwwhttp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -63,16 +63,17 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwhttp.bsc" 
 BSC32_SBRS= \
-	$(INTDIR)/windll.sbr \
-	$(INTDIR)/HTTP.sbr \
-	$(INTDIR)/HTAABrow.sbr \
-	$(INTDIR)/HTAlert.sbr \
-	$(INTDIR)/HTAAUtil.sbr \
-	$(INTDIR)/HTTPReq.sbr \
-	$(INTDIR)/HTTPServ.sbr \
-	$(INTDIR)/HTTPRes.sbr
+	.\WinRel\windll.sbr \
+	.\WinRel\HTTP.sbr \
+	.\WinRel\HTAABrow.sbr \
+	.\WinRel\HTAlert.sbr \
+	.\WinRel\HTAAUtil.sbr \
+	.\WinRel\HTTPReq.sbr \
+	.\WinRel\HTTPServ.sbr \
+	.\WinRel\HTTPRes.sbr \
+	.\WinRel\HTTPGen.sbr
 
-$(OUTDIR)/wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
+.\WinRel\wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -85,21 +86,22 @@ LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
  /OUT:$(OUTDIR)/"wwwhttp.dll" /IMPLIB:$(OUTDIR)/"wwwhttp.lib" 
 DEF_FILE=.\wwwhttp.def
 LINK32_OBJS= \
-	$(INTDIR)/windll.obj \
-	$(INTDIR)/HTTP.obj \
+	.\WinRel\windll.obj \
+	.\WinRel\HTTP.obj \
 	.\WinDebug\wwwdll.lib \
 	.\WinDebug\wwwutils.lib \
 	.\WinDebug\wwwcore.lib \
 	.\WinDebug\wwwcache.lib \
 	.\WinDebug\wwwmime.lib \
-	$(INTDIR)/HTAABrow.obj \
-	$(INTDIR)/HTAlert.obj \
-	$(INTDIR)/HTAAUtil.obj \
-	$(INTDIR)/HTTPReq.obj \
-	$(INTDIR)/HTTPServ.obj \
-	$(INTDIR)/HTTPRes.obj
+	.\WinRel\HTAABrow.obj \
+	.\WinRel\HTAlert.obj \
+	.\WinRel\HTAAUtil.obj \
+	.\WinRel\HTTPReq.obj \
+	.\WinRel\HTTPServ.obj \
+	.\WinRel\HTTPRes.obj \
+	.\WinRel\HTTPGen.obj
 
-$(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+.\WinRel\wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -117,7 +119,7 @@ $(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 OUTDIR=.\WinDebug
 INTDIR=.\WinDebug
 
-ALL : $(OUTDIR)/wwwhttp.dll $(OUTDIR)/wwwhttp.bsc
+ALL : .\WinDebug\wwwhttp.dll .\WinDebug\wwwhttp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -138,16 +140,17 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwhttp.bsc" 
 BSC32_SBRS= \
-	$(INTDIR)/windll.sbr \
-	$(INTDIR)/HTTP.sbr \
-	$(INTDIR)/HTAABrow.sbr \
-	$(INTDIR)/HTAlert.sbr \
-	$(INTDIR)/HTAAUtil.sbr \
-	$(INTDIR)/HTTPReq.sbr \
-	$(INTDIR)/HTTPServ.sbr \
-	$(INTDIR)/HTTPRes.sbr
+	.\WinDebug\windll.sbr \
+	.\WinDebug\HTTP.sbr \
+	.\WinDebug\HTAABrow.sbr \
+	.\WinDebug\HTAlert.sbr \
+	.\WinDebug\HTAAUtil.sbr \
+	.\WinDebug\HTTPReq.sbr \
+	.\WinDebug\HTTPServ.sbr \
+	.\WinDebug\HTTPRes.sbr \
+	.\WinDebug\HTTPGen.sbr
 
-$(OUTDIR)/wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
+.\WinDebug\wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -160,21 +163,22 @@ LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
  /OUT:$(OUTDIR)/"wwwhttp.dll" /IMPLIB:$(OUTDIR)/"wwwhttp.lib" 
 DEF_FILE=.\wwwhttp.def
 LINK32_OBJS= \
-	$(INTDIR)/windll.obj \
-	$(INTDIR)/HTTP.obj \
-	$(INTDIR)/wwwdll.lib \
-	$(INTDIR)/wwwutils.lib \
-	$(INTDIR)/wwwcore.lib \
-	$(INTDIR)/wwwcache.lib \
-	$(INTDIR)/wwwmime.lib \
-	$(INTDIR)/HTAABrow.obj \
-	$(INTDIR)/HTAlert.obj \
-	$(INTDIR)/HTAAUtil.obj \
-	$(INTDIR)/HTTPReq.obj \
-	$(INTDIR)/HTTPServ.obj \
-	$(INTDIR)/HTTPRes.obj
+	.\WinDebug\windll.obj \
+	.\WinDebug\HTTP.obj \
+	.\WinDebug\wwwdll.lib \
+	.\WinDebug\wwwutils.lib \
+	.\WinDebug\wwwcore.lib \
+	.\WinDebug\wwwcache.lib \
+	.\WinDebug\wwwmime.lib \
+	.\WinDebug\HTAABrow.obj \
+	.\WinDebug\HTAlert.obj \
+	.\WinDebug\HTAAUtil.obj \
+	.\WinDebug\HTTPReq.obj \
+	.\WinDebug\HTTPServ.obj \
+	.\WinDebug\HTTPRes.obj \
+	.\WinDebug\HTTPGen.obj
 
-$(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+.\WinDebug\wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -198,7 +202,15 @@ $(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 
 SOURCE=.\windll.c
 
-$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\windll.obj :  $(SOURCE)  $(INTDIR)
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\windll.obj :  $(SOURCE)  $(INTDIR)
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -206,8 +218,17 @@ $(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
 
 SOURCE=..\HTTP.c
 
-$(INTDIR)/HTTP.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTTP.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTTP.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -245,8 +266,17 @@ SOURCE=.\wwwhttp.def
 
 SOURCE=..\HTAABrow.c
 
-$(INTDIR)/HTAABrow.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTAABrow.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTAABrow.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -254,8 +284,17 @@ $(INTDIR)/HTAABrow.obj :  $(SOURCE)  $(INTDIR)
 
 SOURCE=..\HTAlert.c
 
-$(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTAlert.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTAlert.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -263,8 +302,17 @@ $(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
 
 SOURCE=..\HTAAUtil.c
 
-$(INTDIR)/HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -272,8 +320,17 @@ $(INTDIR)/HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
 
 SOURCE=..\HTTPReq.c
 
-$(INTDIR)/HTTPReq.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTTPReq.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTTPReq.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -281,8 +338,17 @@ $(INTDIR)/HTTPReq.obj :  $(SOURCE)  $(INTDIR)
 
 SOURCE=..\HTTPServ.c
 
-$(INTDIR)/HTTPServ.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTTPServ.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTTPServ.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -295,14 +361,41 @@ SOURCE=..\HTTPServ.h
 
 SOURCE=..\HTTPRes.c
 
-$(INTDIR)/HTTPRes.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTTPRes.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTTPRes.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTTPRes.h
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\HTTPGen.c
+
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTTPGen.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTTPGen.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
+
 # End Source File
 # End Group
 # End Project
