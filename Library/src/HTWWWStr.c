@@ -467,7 +467,11 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand)
 #ifdef HTDEBUG
 	    if (CORE_TRACE) {
 		if (expand) {
-#ifdef HT_REENTRANT
+#if defined (HAVE_CTIME_R_2)
+		    char buffer[CTIME_MAX];
+		    HTTRACE(CORE_TRACE, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s" _
+			    str _ (long) t _ (char *) ctime_r(&t, buffer));
+#elif defined(HAVE_CTIME_R_3)
 		    char buffer[CTIME_MAX];
 		    HTTRACE(CORE_TRACE, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s" _
 			    str _ (long) t _ (char *) ctime_r(&t, buffer, CTIME_MAX));

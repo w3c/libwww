@@ -282,9 +282,26 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
 	int thd_errno;
 	char buffer[HOSTENT_MAX];
 	struct hostent result;			      /* For gethostbyname_r */
+#endif
+#ifdef GETHOSTBYNAME_R_3
+        struct hostent_data hdata;
+#endif
+
 	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostname,NULL);
+#ifdef GETHOSTBYNAME_R_5
 	hostelement = gethostbyname_r(hostname, &result, buffer,
 				      HOSTENT_MAX, &thd_errno);
+#elif defined(GETHOSTBYNAME_R_6)
+	gethostbyname_r(hostname, &result, buffer,
+		        HOSTENT_MAX, &hostelement, &thd_errno);
+
+#elif defined(GETHOSTBYNAME_R_3)
+        if (gethostbyname_r(hostname, &result, &hdata) == 0) {
+	    hostelement = &result;
+	}
+	else {
+	    hostelement = NULL;
+	}
 #else
 	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostname,NULL);
 	hostelement = gethostbyname(hostname);
@@ -318,6 +335,9 @@ PUBLIC char * HTGetHostBySock (int soc)
     char buffer[HOSTENT_MAX];
     struct hostent result;		      	      /* For gethostbyaddr_r */
 #endif
+#ifdef HAVE_GETHOSTBYADDR_R_5
+    struct hostent_data hdata;
+#endif
 
 #ifdef DECNET  /* Decnet ain't got no damn name server 8#OO */
     return NULL;
@@ -326,9 +346,20 @@ PUBLIC char * HTGetHostBySock (int soc)
 	return NULL;
     iaddr = &(((struct sockaddr_in *)&addr)->sin_addr);
 
-#ifdef HT_REENTRANT
+#ifdef HAVE_GETHOSTBYADDR_R_7
     phost = gethostbyaddr_r((char *) iaddr, sizeof(struct in_addr), AF_INET,
 			    &result, buffer, HOSTENT_MAX, &thd_errno);
+#elif defined(HAVE_GETHOSTBYADDR_R_8)
+    gethostbyaddr_r((char *) iaddr, sizeof(struct in_addr), AF_INET,
+		    &result, buffer, HOSTENT_MAX, &phost, &thd_errno);
+#elif defined(HAVE_GETHOSTBYADDR_R_5)
+    if(gethostbyaddr_r((char *) iaddr, sizeof(struct in_addr), AF_INET,
+		       &result, &hdata)==0) {
+	phost=&result;
+    }
+    else {
+	phost = NULL;
+    }
 #else
     phost = gethostbyaddr((char *) iaddr, sizeof(struct in_addr), AF_INET);
 #endif

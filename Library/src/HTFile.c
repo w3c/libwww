@@ -174,10 +174,15 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	HTFileMode mode;
 #ifdef HT_REENTRANT
 	struct dirent result;				    /* For readdir_r */
-	while ((dirbuf = (struct dirent *) readdir_r(dp, &result)))
+#endif
+
+#ifdef HAVE_READDIR_R_2
+        while ((dirbuf = (struct dirent *) readdir_r(dp, &result)))
+#elif defined(HAVE_READDIR_R_3)
+        while (readdir_r(dp, &result, &dirbuf) == 0)
 #else
 	while ((dirbuf = readdir(dp)))
-#endif /* HT_REENTRANT */
+#endif /* HAVE_READDIR_R_2 */
 	{
 	    /* Current and parent directories are never shown in list */
 #ifdef HAVE_DIRENT_INO

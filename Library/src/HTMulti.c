@@ -333,11 +333,13 @@ PRIVATE HTArray * dir_matches (char * path)
     }
 
     matches = HTArray_new(VARIANTS);
-#ifdef HT_REENTRANT
+#ifdef HAVE_READDIR_R_2
 	while ((dirbuf = (struct dirent *) readdir_r(dp, &result))) {
+#elif defined(HAVE_READDIR_R_3)
+        while (readdir_r(dp, &result, &dirbuf) == 0) {
 #else
 	while ((dirbuf = readdir(dp))) {
-#endif /* HT_REENTRANT */
+#endif /* HAVE_READDIR_R_2 */
 	if (!dirbuf->d_ino) continue;	/* Not in use */
 	if (!strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||

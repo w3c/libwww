@@ -403,6 +403,7 @@ PUBLIC char * HTGetMailAddress (void)
 {
 #ifdef HT_REENTRANT
   char name[HT_LOGNAME_MAX];    /* For getlogin_r or getUserName */
+  int result;
 #endif
 #ifdef WWW_MSWINDOWS/* what was the plan for this under windows? - EGP */
   char name[256];    /* For getlogin_r or getUserName */
@@ -424,8 +425,14 @@ PUBLIC char * HTGetMailAddress (void)
 #endif /* HAVE_CUSERID */
 
 #ifdef HAVE_GETLOGIN
-#ifdef HT_REENTRANT
+#ifdef GETLOGIN_R_RETURNS_POINTER
     if (!login && (login = (char *) getlogin_r(name, HT_LOGNAME_MAX)) == NULL)
+#elif defined(GETLOGIN_R_RETURNS_INT)
+    if (!login && (result = getlogin_r(name, HT_LOGNAME_MAX)) == 0)
+    {
+	login = &name[0];
+    }
+    else
 #else
     if (!login && (login = (char *) getlogin()) == NULL)
 #endif /* HT_REENTRANT */

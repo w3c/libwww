@@ -36,6 +36,42 @@
 /* Define to build using reentrant system calls. */
 #undef HT_REENTRANT
 
+/* Define to use the two-argument variant of ctime_r */
+#undef HAVE_CTIME_R_2
+
+/* Define to use the three-argument variant of ctime_r */
+#undef HAVE_CTIME_R_3
+
+/* Define to use the two-argument variant of readdir_r */
+#undef HAVE_READDIR_R_2
+
+/* Define to use the three-argument variant of readdir_r */
+#undef HAVE_READDIR_R_3
+
+/* Define to use the three-argument variant of gethostbyname_r */
+#undef HAVE_GETHOSTBYNAME_R_3
+
+/* Define to use the five-argument variant of gethostbyname_r */
+#undef HAVE_GETHOSTBYNAME_R_5
+
+/* Define to use the six-argument variant of gethostbyname_r */
+#undef HAVE_GETHOSTBYNAME_R_6
+
+/* Define to use the five-argument variant of gethostbyaddr_r */
+#undef HAVE_GETHOSTBYADDR_R_5
+
+/* Define to use the seven-argument variant of gethostbyaddr_r */
+#undef HAVE_GETHOSTBYADDR_R_7
+
+/* Define to use the eight-argument variant of gethostbyaddr_r */
+#undef HAVE_GETHOSTBYADDR_R_8
+
+/* Define if getlogin_r returns an integer */
+#undef GETLOGIN_R_RETURNS_INT
+
+/* Define if getlogin_r returns a pointer */
+#undef GETLOGIN_R_RETURNS_POINTER
+
 /* Define to be the package name. */
 #undef W3C_PACKAGE
 
