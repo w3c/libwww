@@ -663,7 +663,7 @@ PUBLIC char * CSUser_acceptLabels(CSUser_t * pCSUser,
     int serviceNo = 0; /* just needed to space out URLs */
 
     HTChunk_puts(pChunk, 
-		 "Accept-Protocol: "LCURLYSTR"PICS-1.0 "LCURLYSTR"params ");
+		 "Protocol-Request: "LCURLYSTR"PICS-1.1 "LCURLYSTR"params ");
     HTChunk_puts(pChunk, Completenesses[completeness]);
     HTChunk_puts(pChunk, " "LCURLYSTR"services ");
     while ((pUserService = (UserService_t *) HTList_nextObject(userServices))){
