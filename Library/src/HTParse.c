@@ -193,18 +193,6 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
         if(given.host || related.host) {
 	    if(wanted & PARSE_PUNCTUATION) strcat(result, "//");
 	    strcat(result, given.host ? given.host : related.host);
-
-	    /* Ignore default port numbers */
-	    {
-		char *tail = result + strlen(result);
-	    	char *p = strchr(tail, ':');
-		if (p && access) {			   /* Port specified */
-		    if ((!strcmp(access, "http") && !strcmp(p, ":80")) ||
-			(!strcmp(access, "gopher") && !strcmp(p, ":70")) ||
-			(!strcmp(access, "ftp") && !strcmp(p, ":21")))
-			*p = '\0';
-		}
-	    }
 	}
 	
     if (given.host && related.host)  /* If different hosts, inherit no path. */
@@ -505,7 +493,10 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
     char *port;
     char *strptr;
     char *path;
+    char *access = host-3;
 
+    while (access>*filename && *(access-1)!='/')       /* Find access method */
+	access--;
     if ((path = strchr(host, '/')) == NULL)			/* Find path */
 	path = host + strlen(host);
     if ((strptr = strchr(host, '@')) != NULL && strptr<path)	   /* UserId */
@@ -544,8 +535,22 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
 	    path--;
 	}
     }
-    if (port && newname)
-	strncat(newname, port, (int) (path-port));
+    /* Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp) */
+    if (port) {
+	if ((!strncmp(access, "http", 4) &&
+	     (*(port+1)=='8'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||
+	    (!strncmp(access, "gopher", 6) &&
+	     (*(port+1)=='7'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||
+	    (!strncmp(access, "ftp", 3) &&
+	     (*(port+1)=='2'&&*(port+2)=='1'&&(*(port+3)=='/'||!*(port+3))))) {
+	    if (!newname) {
+		char *orig=port, *dest=port+3;
+		while((*orig++ = *dest++));
+	    }
+	} else if (newname)
+	    strncat(newname, port, (int) (path-port));
+    }
+
     if (newname) {
 	char *newpath = newname+strlen(newname);
 	strcat(newname, path);
