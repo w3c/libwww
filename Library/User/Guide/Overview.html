@@ -1,8 +1,8 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 24-Jun-1996 -->
   <TITLE>W3C Library Interfaces</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Jun-1996 -->
 </HEAD>
 <BODY>
 <P>
@@ -362,7 +362,7 @@ modules which are required to compile and build the WAIS DLL.
   Application Interfaces
 </H2>
 <H3>
-  <A HREF="../../src/WWWRules.html">Rule Files and Proxy Servers</A>
+  <A HREF="../src/WWWApp.html">Application Utilities</A>
 </H3>
 <P>
 A way to initialize applications is to use a rule file, also known as a
@@ -385,23 +385,9 @@ which then handle the communications with the remote server, for example
 using FTP about the document and return it to the application (proxy client)
 using HTTP.
 <P>
-<UL>
-  <LI>
-    Name of DLL: <B>wwwrules.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwrules">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwrules.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWRules.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWApp.html">Application Specific</A>
-</H3>
-<P>
-This module provides some "make life easier" functions in order to get the
-application going. They help you generate the first anchor, also called the
-<EM>home anchor</EM>. It also contains a nice set of default WWW addresses.
+This module provides provides functionality for handling proxies, rule files,
+and a large set of other application utilities that make it easier to build
+an application using libwww.
 <P>
 <UL>
   <LI>
@@ -414,7 +400,7 @@ application going. They help you generate the first anchor, also called the
     <A HREF="../../src/WWWApp.html">Interface include file</A>
 </UL>
 <H3>
-  Initialization Modules
+  <A HREF="../src/WWWInit.html" NAME="Initialization">Initialization Modules</A>
 </H3>
 <P>
 The core parts of the Library is a framework for adding functionality. It
@@ -440,4 +426,3 @@ directly if desired.
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
-

@@ -4,16 +4,16 @@ bin_PROGRAMS = w3clib
 
 w3clib_LDADD = \
 	@LIBTCL@ \
-	../../src/libwww.a ../../../PICS-client/src/libpics.a -lm
+	../../src/libwww.a -lm
 
 w3clib_DEPENDENCIES = \
 	@LIBTCL@ \
-	../../src/libwww.a ../../../PICS-client/src/libpics.a
+	../../src/libwww.a
 
 #	For easier use - NOT THE DEFAULT!
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I$(srcdir)/../../src -I$(srcdir)/../../../PICS-client/src
+INCLUDES = -I$(srcdir)/../../src
 
 w3clib_SOURCES = \
 	HTAnchor_glue.c HTReq_glue.c HTList_glue.c HTHost_glue.c HTLog_glue.c\

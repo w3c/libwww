@@ -54,7 +54,6 @@
 
 #include "WWWLib.h"
 #include "WWWMIME.h"
-#include "WWWRules.h"
 #include "WWWCache.h"
 #include "WWWApp.h"
 #include "WWWTrans.h"

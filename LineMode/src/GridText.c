@@ -13,7 +13,7 @@
 
 #include "WWWLib.h"
 #include "WWWCache.h"
-#include "WWWRules.h"
+#include "WWWApp.h"
 #include "HTBrowse.h"
 #include "HTFont.h"
 #include "GridStyle.h"

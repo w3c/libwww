@@ -60,10 +60,9 @@ BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
 	WWWDir.h 	WWWFTP.h 	WWWFile.h \
 	WWWStream.h 	WWWHTML.h 	WWWHTTP.h \
-	WWWNews.h 	WWWRules.h 	WWWTelnt.h \
+	WWWNews.h 	WWWTrans.h 	WWWTelnt.h \
 	WWWCache.h 	WWWApp.h 	WWWInit.h \
 	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
-	WWWTrans.h \
 	HTParse.h 	HTAccess.h  	HTProxy.h \
 	HTMethod.h 	HTProt.h 	HTCache.h \
 	HTReqMan.h 	HTReq.h  	HTDNS.h \

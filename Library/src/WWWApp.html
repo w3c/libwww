@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Reference Library libwww Client Profile Interface</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Jul-1996 -->
+  <TITLE>W3C Reference Library libwww Application Interface</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Client Profile Interface
+  Application Interface
 </H1>
 <PRE>
 /*
@@ -14,14 +14,16 @@
 */
 </PRE>
 <P>
-In addition top the basic W3C Reference Library include file called
-<A HREF="WWWLib.html">WWWLib.h</A> you <EM>can</EM> also include this file
-called WWWApp.h depending on the needs of your application. However, it is
-not required and none of the files included below are ever used in the core
-part of the Library itself. Only if this file is included, the extra modules
-will get included in the linked object code. It is also possible to include
-only a subset of the files below if the functionality you are after is covered
-by them.
+In addition top the basic W3C Reference Library <A HREF="WWWLib.html">WWWLib
+interface</A> you <EM>may</EM> include the other
+<A HREF="../User/Guide/">interfaces</A>&nbsp;depending on the needs of your
+application. However, it is not required and none of the files included below
+are ever used in the core part of the Library itself. Only if this file is
+included, the extra modules will get included in the linked object code.
+It is also possible to include only a subset of the files below if the
+functionality you are after is covered by them. This interface contains many
+application specific features including a set of default
+<A HREF="HTFilter.html">BEFORE and AFTER filters</A>.
 <PRE>
 #ifndef WWWAPP_H
 #define WWWAPP_H
@@ -40,9 +42,9 @@ files and flags for I/O to network and disk. The only reason for this file
 is that the Internet world is more complicated than Posix and ANSI.
 <PRE>#include "<A HREF="sysdep.html">sysdep.h</A>"
 </PRE>
-<H2>
+<H3>
   Event Manager
-</H2>
+</H3>
 <P>
 The core part of libwww only provides the hooks for the event manager. There
 is no event loop internal to the core part. Instead the application must
@@ -53,50 +55,77 @@ implementation of an event loop which you can either take or get some ideas
 from.
 <PRE>#include "<A HREF="HTEvntrg.html">HTEvntrg.h</A>"
 </PRE>
-<H2>
+<H3>
   Managing the Home Page
-</H2>
+</H3>
 <P>
 This module provides some "make life easier" functions in order to get the
 application going. They help you generate the first anchor, also called the
 <EM>home anchor</EM>. It also contains a nice set of default WWW addresses.
-<PRE>
-#include "<A HREF="HTHome.html">HTHome.h</A>"
+<PRE>#include "<A HREF="HTHome.html">HTHome.h</A>"
 </PRE>
-<H2>
+<H3>
   User Dialogs and Messages
-</H2>
+</H3>
 <P>
 You can register a set of callback functions to handle user prompting, error
 messages, confimations etc. Here we give a set of functions that can be used
 on almost anu thinkable platform. If you want to provide your own platform
 dependent implementation then fine :-)
-<PRE>
-#include "<A HREF="HTDialog.html">HTDialog.h</A>"
+<PRE>#include "<A HREF="HTDialog.html">HTDialog.h</A>"
 </PRE>
-<H2>
+<H3>
   Load, Upload, and Search URLs
-</H2>
+</H3>
 <P>
 Even though you may use the API for the HTRequest object directly in order
 to issue a request, you will probably find that in real life it is easier
 to use a higher level abstraction API. This API is provided by the
 <A HREF="HTAccess.html">HTAccess module</A> where you will find all kind
 of functions for down loading a URL etc.
-<PRE>
-#include "<A HREF="HTAccess.html">HTAccess.h</A>"
+<PRE>#include "<A HREF="HTAccess.html">HTAccess.h</A>"
 </PRE>
-<H2>
+<H3>
+  Rule File Management
+</H3>
+<P>
+Another way to initialize applications is to use a rule file, also known
+as a <A HREF="../User/Using/Rules.html">configuration file</A>. This is for
+example the case with the W3C httpd and the W3C Line Mode Browser. This module
+provides basic support for configuration file management and the application
+can use this is desired. The module is not referred to by the Library. Reading
+a rule file is implemented as a stream converter so that a rule file can
+come from anywhere, even across the network!
+<PRE>#include "<A HREF="HTRules.html">HTRules.h</A>"
+</PRE>
+<H3>
+  Proxies and Gateways
+</H3>
+<P>
+Applications do not have to provide native support for all protocols, they
+can in many situations rely on the support of proxies and gateways to help
+doing the job. Proxy servers are often used to carry client requests through
+a firewall where they can provide services like corporate caching and other
+network optimizations. Both Proxy servers and gateways can serve as "protocol
+translators" which can convert a request in the main Web protocol, HTTP,
+to an equivalent request in another protocol, for example NNTP, FTP, or Gopher.
+In case a proxy server or a gateway is available to the application, it can
+therefore by use of HTTP forward all requests to for example a proxy server
+which then handle the communications with the remote server, for example
+using FTP about the document and return it to the application (proxy client)
+using HTTP.
+<PRE>#include "<A HREF="HTProxy.html">HTProxy.h</A>"
+</PRE>
+<H3>
   BEFORE and AFTER Filters
-</H2>
+</H3>
 <P>
 <I>Before</I> a request has been issued and <I>after</I> it has terminated
 the application often has to do some action as a result of the request (and
 of the result of the request). The Client Profile Interface Library provides
 a set of standard BEFORE and AFTER filters to handle <I>caching</I>,
 <I>redirection</I>, <I>authentication</I>, <I>logging</I> etc.
-<PRE>
-#include "<A HREF="HTFilter.html">HTFilter.h</A>"
+<PRE>#include "<A HREF="HTFilter.html">HTFilter.h</A>"
 </PRE>
 <H3>
   Logging
@@ -106,18 +135,16 @@ Often it is required to log the requests issued to the Library. This can
 either be the case if the application is a server or it can also be useful
 in a client application. This module provides a simple logging mechanism
 which can be enabled if needed.
-<PRE>
-#include "<A HREF="HTLog.html">HTLog.h</A>"
+<PRE>#include "<A HREF="HTLog.html">HTLog.h</A>"
 </PRE>
-<H2>
+<H3>
   History Management
-</H2>
+</H3>
 <P>
 Another type of logging is keeping track of which documents a user has visited
 when browsing along on the Web. The Library history manager provides a basic
 set of functionality to keep track of a linear history list.
-<PRE>
-#include "<A HREF="HTHist.html">HTHist.h</A>"
+<PRE>#include "<A HREF="HTHist.html">HTHist.h</A>"
 </PRE>
 <P>
 End of application specific modules

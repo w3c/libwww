@@ -572,7 +572,7 @@ PUBLIC char * HTLocalToWWW (const char * local)
 	    while (*p) { 
 		if (*p == '\\')		         /* change to one true slash */
 		    *p = '/';
-		ap++;
+		p++;
 	    }	
 	    StrAllocCat(result, p);
 	    HT_FREE(p);

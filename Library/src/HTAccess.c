@@ -28,7 +28,8 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWStream.h"
-#include "WWWRules.h"
+#include "HTProxy.h"
+#include "HTRules.h"
 #include "HTReqMan.h"
 #include "HTAccess.h"					 /* Implemented here */
 

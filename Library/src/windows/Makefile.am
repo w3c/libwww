@@ -12,7 +12,7 @@ BUILT_SOURCES = \
 	wwwcore.def	wwwdir.def \
 	wwwfile.def	wwwftp.def	wwwgophe.def \
 	wwwstream.def	wwwhtml.def	wwwhttp.def \
-	wwwmime.def	wwwnews.def	wwwrules.def \
+	wwwmime.def	wwwnews.def \
 	wwwtelnt.def	wwwutils.def	wwwwais.def \
 	wwwtrans.def
 

@@ -15,8 +15,6 @@
 
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WWWApp.h"				        /* Application stuff */
-#include "WWWRules.h"
-#include "WWWApp.h"
 #include "WWWTrans.h"
 #include "WWWInit.h"
 

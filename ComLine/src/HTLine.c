@@ -21,7 +21,6 @@
 #include "WWWFile.h"
 #include "WWWGophe.h"
 #include "WWWStream.h"
-#include "WWWRules.h"
 #include "WWWTrans.h"
 #include "WWWInit.h"
 

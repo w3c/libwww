@@ -16,10 +16,11 @@
 /* Library include files */
 #include "WWWLib.h"
 #include "WWWCache.h"
-#include "WWWRules.h"
 #include "WWWHTTP.h"
 #include "HTLog.h"
 #include "HTAccess.h"
+#include "HTProxy.h"
+#include "HTRules.h"
 #include "HTFilter.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
