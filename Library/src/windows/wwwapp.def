@@ -1,0 +1,31 @@
+EXPORTS
+;HTHome.c		@ 100
+HTFindRelatedName	@ 101
+HTHomeAnchor		@ 102
+HTLoadStart		@ 103
+HTLoadTerminate		@ 104
+
+;HTHist.c		@ 200
+HTHistory_new		@ 201
+HTHistory_delete	@ 202
+HTHistory_record	@ 203
+HTHistory_replace	@ 204
+HTHistory_removeLast	@ 205
+HTHistory_removeFrom	@ 206
+HTHistory_count		@ 207
+HTHistory_position	@ 208
+HTHistory_recall	@ 209
+HTHistory_find		@ 210
+HTHistory_list		@ 211
+HTHistory_canBacktrack	@ 212
+HTHistory_backtrack	@ 213
+HTHistory_back		@ 214
+HTHistory_canForward	@ 215
+HTHistory_forward	@ 216
+
+;HTLog.c		@ 300
+HTLog_open		@ 301
+HTLog_close		@ 302
+HTLog_isOpen		@ 303
+HTLog_add		@ 304
+

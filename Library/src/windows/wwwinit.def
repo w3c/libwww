@@ -1,0 +1,15 @@
+EXPORTS
+;HTInit.c		@ 100
+HTConverterInit		@ 101
+HTPresenterInit		@ 102
+HTFormatInit		@ 103
+HTNetInit		@ 104
+HTAlertInit		@ 105
+HTAccessInit		@ 106
+HTStdIconInit		@ 107
+
+;HTBInit.c		@ 200
+HTFileInit		@ 201
+
+;			@ 300
+

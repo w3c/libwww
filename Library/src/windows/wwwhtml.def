@@ -12,27 +12,18 @@ SGML_free		@ 204
 SGML_abort		@ 205
 SGML_callerData		@ 206
 SGML_setCallerData	@ 207
-SGML_character		@ 208
-SGML_string		@ 209
-SGML_write		@ 210
-SGML_new		@ 211
+SGML_callerData		@ 208
+SGML_setCallerData	@ 209
+SGML_character		@ 210
+SGML_string		@ 211
+SGML_write		@ 212
+SGML_new		@ 213
 
-;HTML.c			@ 300
-HTMLUseCharacterSet	@ 301
-HTML_flush		@ 302
-HTML_free		@ 303
-HTMLToPlain		@ 304
-HTMLToC			@ 305
-HTMLPresent		@ 306
+;HTMLGen.c		@ 300
+HTMLGenerator		@ 301
+HTPlainToHTML		@ 302
+HTPlainTo7BitHTML	@ 303
 
-;HTPlain.c		@ 400
-HTPlainPresent		@ 401
-
-;HTMLGen.c		@ 500
-HTMLGenerator		@ 501
-HTPlainToHTML		@ 502
-HTPlainTo7BitHTML	@ 503
-
-;HTTeXGen.c		@ 600
-HTMLToTeX		@ 601
+;HTTeXGen.c		@ 400
+HTMLToTeX		@ 401
 
