@@ -446,6 +446,12 @@ to normal C storage types.
 extern int errno;
 #endif
 
+</PRE>
+<H2>OSF/1</H2>
+<PRE>#ifdef __osf__
+#define USE_DIRENT
+#endif /* OSF1 AXP */
+
 
 </PRE>
 <H2>Regular BSD unix versions</H2>These are a default unix where not
@@ -508,7 +514,7 @@ typedef unsigned int fd_set;
 
 </PRE>
 <H3><A
-NAME="z0">M</A> acros for converting characters</H3>
+NAME="z0">M</A>acros for converting characters</H3>
 <PRE>#ifndef TOASCII
 #define TOASCII(c) (c)
 #define FROMASCII(c) (c)                                   
