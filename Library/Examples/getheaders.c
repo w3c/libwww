@@ -13,6 +13,8 @@
 **	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
 **	details.
 **
+**	AUTHOR: Vladimir Kozlov
+**
 **      Issues a HEAD request and parses the header information returned in the
 **	response and prints out the information requested by the caller
 */
