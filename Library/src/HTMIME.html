@@ -34,6 +34,23 @@ Library</A>.
 #include "HTFormat.h"
 </PRE>
 <H3>
+  How to deal with "application/octetstream" etc.
+</H3>
+<P>
+When the MIME parser can't find a target stream, for example because the
+format is application/octetstream, or it has a content encoding or
+transfer encoding that we don't know about then it has to get rid of the
+data in some other fashion, for example by dumping it to local disk. The
+following two functions allow you to set and get the local file save stream.
+<P>
+Libwww provides a default implementation as <A
+HREF="HTFSave.html">HTSaveLocally</A> which you may want to use.
+<PRE>
+extern void HTMIME_setSaveStream (HTConverter * save_stream);
+extern HTConverter * HTMIME_saveStream (void);
+</PRE>
+
+<H3>
   MIME header parser stream
 </H3>
 <P>

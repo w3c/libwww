@@ -22,15 +22,19 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "WWWCache.h"
-#include "WWWStream.h"
 #include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTHeader.h"
 #include "HTWWWStr.h"
-#include "HTMIME.h"					 /* Implemented here */
 
-#define MIME_HASH_SIZE 101
+#ifndef NO_CACHE
+#include "HTTee.h"
+#include "HTConLen.h"
+#include "HTMerge.h"
+#include "WWWCache.h"
+#endif
+
+#include "HTMIME.h"					 /* Implemented here */
 
 typedef enum _HTMIMEMode {
     HT_MIME_HEADER	= 0x1,
@@ -45,6 +49,7 @@ struct _HTStream {
     HTResponse *		response;
     HTNet *			net;
     HTStream *			target;
+    HTConverter *		save_stream;
     HTFormat			target_format;
     HTChunk *			token;
     HTChunk *			value;
@@ -55,6 +60,8 @@ struct _HTStream {
     BOOL			haveToken;
     BOOL			hasBody;
 };
+
+PRIVATE HTConverter * LocalSaveStream = NULL; /* Where to save unknown stuff */
 
 /* ------------------------------------------------------------------------- */
 
@@ -138,7 +145,8 @@ PRIVATE int pumpData (HTStream * me)
 				    me->target, request, YES))==BlackHole) {
 	    if (!savestream) {
                 if (me->target) (*me->target->isa->abort)(me->target, NULL);
-                me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
+                me->target = me->save_stream(request, NULL,
+					     format, me->target_format, me->target);
 		savestream = YES;
 	    }
 	} else
@@ -154,7 +162,8 @@ PRIVATE int pumpData (HTStream * me)
 	if (target == BlackHole) {
 	    if (!savestream) {
 		if (me->target) (*me->target->isa->abort)(me->target, NULL);
-		me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
+                me->target = me->save_stream(request, NULL,
+					     format, me->target_format, me->target);
 		savestream = YES;
 	    }
 	} else
@@ -168,6 +177,7 @@ PRIVATE int pumpData (HTStream * me)
     **  If we are appending to a cache entry then use a different stream than
     **  if creating a new entry.
     */
+#ifndef NO_CACHE
     if (HTCacheMode_enabled()) {
 	if (me->mode & HT_MIME_PARTIAL) {
 	    HTStream * append = HTStreamStack(WWW_CACHE_APPEND,
@@ -180,6 +190,7 @@ PRIVATE int pumpData (HTStream * me)
 	    if (cache) me->target = HTTee(me->target, cache, NULL);
 	}
     }
+#endif
     
     /*
     **  Handle any Transfer Encodings
@@ -190,7 +201,8 @@ PRIVATE int pumpData (HTStream * me)
 	if (target == BlackHole) {
 	    if (!savestream) {
 		if (me->target) (*me->target->isa->abort)(me->target, NULL);
-		me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
+                me->target = me->save_stream(request, NULL,
+					     format, me->target_format, me->target);
 		savestream = YES;
 	    }
 	} else
@@ -513,6 +525,7 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
     me->net = HTRequest_net(request);
     me->target = output_stream;
     me->target_format = output_format;
+    me->save_stream = LocalSaveStream ? LocalSaveStream : HTBlackHoleConverter;
     me->token = HTChunk_new(256);
     me->value = HTChunk_new(256);
     me->hash = 0;
@@ -568,6 +581,7 @@ PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
     return me;
 }
 
+#ifndef NO_CACHE
 /*
 **	A small BEFORE filter that just finds a cache entry unconditionally
 **	and loads the entry. All freshness and any other constraints are 
@@ -608,6 +622,7 @@ PRIVATE int HTCacheFlushFilter (HTRequest * request, HTResponse * response,
     HTRequest_delete(request);
     return HT_ERROR;
 }
+#endif
 
 /*	Partial Response MIME parser stream
 **	-----------------------------------
@@ -625,6 +640,7 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
 				 HTFormat	output_format,
 				 HTStream *	output_stream)
 {
+#ifndef NO_CACHE
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTFormat format = HTAnchor_format(anchor);
     HTStream * pipe = NULL;
@@ -694,5 +710,17 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
 	HTLoad(cache_request, NO);
     }
     return me;
+#else
+    return NULL;
+#endif
 }
 
+PUBLIC void HTMIME_setSaveStream (HTConverter * save_stream)
+{
+    LocalSaveStream = save_stream;
+}
+
+PUBLIC HTConverter * HTMIME_saveStream (void)
+{
+    return LocalSaveStream;
+}
