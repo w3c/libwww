@@ -50,6 +50,7 @@
 #define MEGA			0x100000L
 #define HT_CACHE_TOTAL_SIZE	20		/* Default cache size is 20M */
 #define HT_CACHE_FOLDER_PCT	10    /* 10% of cache size for metainfo etc. */
+#define HT_CACHE_GC_PCT		10        /* 10% of cache size free after GC */
 #define HT_MIN_CACHE_TOTAL_SIZE	 5			/* 5M Min cache size */
 #define HT_MAX_CACHE_ENTRY_SIZE	 3     /* 3M Max sixe of single cached entry */
 
@@ -125,6 +126,7 @@ PRIVATE HTList ** 	CacheTable = NULL;
 /* Cache size variables */
 PRIVATE long		HTCacheTotalSize = HT_CACHE_TOTAL_SIZE*MEGA;
 PRIVATE long		HTCacheFolderSize = (HT_CACHE_TOTAL_SIZE*MEGA)/HT_CACHE_FOLDER_PCT;
+PRIVATE long		HTCacheGCBuffer = (HT_CACHE_TOTAL_SIZE*MEGA)/HT_CACHE_GC_PCT;
 PRIVATE long		HTCacheContentSize = 0L;
 PRIVATE long		HTCacheMaxEntrySize = HT_MAX_CACHE_ENTRY_SIZE*MEGA;
 
@@ -135,6 +137,16 @@ PRIVATE HTNetAfter HTCacheCheckFilter;
 /* ------------------------------------------------------------------------- */
 /*  			     CACHE GARBAGE COLLECTOR			     */
 /* ------------------------------------------------------------------------- */
+
+PRIVATE BOOL stopGC (void)
+{
+    return (HTCacheContentSize + HTCacheFolderSize < HTCacheTotalSize - HTCacheGCBuffer);
+}
+
+PRIVATE BOOL startGC (void)
+{
+    return (HTCacheContentSize + HTCacheFolderSize > HTCacheTotalSize);
+}
 
 PRIVATE BOOL HTCacheGarbage (void)
 {
@@ -176,6 +188,7 @@ PRIVATE BOOL HTCacheGarbage (void)
 		    } else {
 			old_cur = cur;
 		    }
+		    if (stopGC()) break;
 		}
 	    }
 	}
@@ -185,29 +198,28 @@ PRIVATE BOOL HTCacheGarbage (void)
 	**  dead lock ourselves. We start from the bottom up by taking
 	**  all the documents with 0 hits, 1 hits, 2 hits, etc.
 	*/
+	if (CACHE_TRACE) HTTrace("Cache....... Collecting least used entries\n");
 	hits = 0;
-	while (1) {
+	while (startGC()) {
 	    BOOL removed = NO;
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... Collecting entries with %d hits\n",hits);
-	    if (HTCacheContentSize + HTCacheFolderSize > HTCacheTotalSize) {
-		for (cnt=0; cnt<HASH_SIZE; cnt++) {
-		    if ((cur = CacheTable[cnt])) { 
-			HTList * old_cur = cur;
-			HTCache * pres;
-			while ((pres = (HTCache *) HTList_nextObject(cur))) {
-			    if (pres->size > HTCacheMaxEntrySize || pres->hits <= hits) {
-				HTCache_remove(pres);
-				cur = old_cur;
-				removed = YES;
-			    } else {
-				old_cur = cur;
-			    }
+	    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+		if ((cur = CacheTable[cnt])) { 
+		    HTList * old_cur = cur;
+		    HTCache * pres;
+		    while ((pres = (HTCache *) HTList_nextObject(cur))) {
+			if (pres->size > HTCacheMaxEntrySize || pres->hits <= hits) {
+			    HTCache_remove(pres);
+			    cur = old_cur;
+			    removed = YES;
+			} else {
+			    old_cur = cur;
 			}
+			if (stopGC()) break;
 		    }
 		}
-	    } else
-		break;
+	    }
 	    if (!removed) break;
 	    hits++;
 	}
@@ -850,10 +862,11 @@ PUBLIC BOOL HTCacheMode_setMaxSize (int size)
     long old_size = HTCacheTotalSize;
     HTCacheTotalSize = new_size;
     HTCacheFolderSize = HTCacheTotalSize/HT_CACHE_FOLDER_PCT;
+    HTCacheGCBuffer = HTCacheTotalSize/HT_CACHE_GC_PCT;
     if (new_size < old_size) HTCacheGarbage();
     if (CACHE_TRACE)
-	HTTrace("Cache...... Total cache size: %ld with %ld bytes for metainformation and folders\n",
-		HTCacheTotalSize, HTCacheFolderSize);
+	HTTrace("Cache....... Total cache size: %ld with %ld bytes for metainformation and folders and at least %ld bytes free after every gc\n",
+		HTCacheTotalSize, HTCacheFolderSize, HTCacheGCBuffer);
     return YES;
 }
 
@@ -1182,7 +1195,7 @@ PRIVATE BOOL HTCache_setSize (HTCache * cache, long written, BOOL append)
 	**  bigger than the legal cache size then start the gc.
 	*/
 	if (CACHE_TRACE) HTTrace("Cache....... Total size %ld\n", HTCacheContentSize);
-	if (HTCacheContentSize + HTCacheFolderSize > HTCacheTotalSize) HTCacheGarbage();
+	if (startGC()) HTCacheGarbage();
 	return YES;
     }
     return NO;
