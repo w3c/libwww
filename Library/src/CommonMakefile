@@ -123,6 +123,8 @@ SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
 	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c
 
 
+all : inc $(LOB)/libwww.a
+
 #	Library
 #
 #  On SGI, ranlib is unnecessary and does not exist so we ignore errors
