@@ -8,6 +8,7 @@ INCLUDES = -I$(srcdir)/../xmltok
 libxmlparse_la_SOURCES = \
 	hashtable.h \
 	hashtable.c \
-	xmlparse.h \
 	xmlparse.c
 
+include_HEADERS = \
+	xmlparse.h
