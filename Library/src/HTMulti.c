@@ -42,7 +42,8 @@ PRIVATE int VariantSort (const void * a, const void * b)
 {
     HTContentDescription * aa = *(HTContentDescription **) a;
     HTContentDescription * bb = *(HTContentDescription **) b;
-    return (aa->quality > bb->quality) ? -1 : 1;
+    if (aa && bb) return (aa->quality > bb->quality) ? -1 : 1;
+    return bb - aa;
 }
 
 /*
