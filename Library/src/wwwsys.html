@@ -466,7 +466,8 @@ extern int errno;
 <H2>Solaris</H2>
 (And Linux, thanks to Rainer Klute)
 <PRE>
-#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
+/* Added `sco' in here as it needs unistd.h as well, May 11 94 Henrik */
+#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux) || defined(sco)
 #include &lt;unistd.h>
 #endif
 </PRE>
