@@ -411,39 +411,6 @@ AC_SUBST(HTSQL)
 AC_SUBST(HTSQLLOG)
 AC_SUBST(CVS2SQL)
 
-AC_MSG_CHECKING(whether to support ssl access.)
-AC_ARG_WITH(ssl,
-[  --with-ssl[=PATH]      Compile with support for ssl access.],
-[ case "$withval" in
-  no)
-    AC_MSG_RESULT(no)
-    WWWSSL=""
-    LWWWSSL=""
-    LIBWWWSSL=""
-    ;;
-  *)
-    if test "x$withval" = "xyes"; then
-      withval="-L/usr/local/ssl/lib -lssl -lcrypto"
-      LIBS="$withval $LIBS"
-    else
-      AC_ADDLIB($withval)
-    fi
-    AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_SSL)
-    WWWSSL="libwwwssl.la"
-    LWWWSSL="-lwwwssl"
-    LIBWWWSSL='${top_builddir}/Library/src/SSL/libwwwssl.la'
-    ;;
-  esac ],
-  AC_MSG_RESULT(no)
-  WWWSSL=""
-  LWWWSSL=""
-  LIBWWWSSL=""
-)
-AC_SUBST(WWWSSL)
-AC_SUBST(LWWWSSL)
-AC_SUBST(LIBWWWSSL)
-
 AC_MSG_CHECKING(whether we include the Expat XML parser.)
 AC_ARG_WITH(expat,
 [  --with-expat[=PATH]      Compile with support for expat access.],
@@ -584,7 +551,6 @@ Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guid
 Library/User/Style/Makefile Library/User/Platform/Makefile
 Library/Test/Makefile Library/Test/User/Makefile Library/Test/src/Makefile
 Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile
-Library/src/SSL/Makefile
 Library/Examples/Makefile
 Library/cvs2sql/Makefile
 Library/External/Makefile
