@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
 </HEAD>  
 <BODY>
 
@@ -26,7 +26,7 @@ Library:
 
 <DL>
 
-<DT><A HREF="../Architecture"><IMG ALT="Architecture" SRC="../../../Icons/WWW/Spec48x.gif"></A> <B>The Architecture</B>
+<DT><A HREF="../Architecture/"><IMG ALT="Architecture" SRC="../../../Icons/WWW/Spec48x.gif"></A> <B>The Architecture</B>
 
 <DD>The current document is the first in the series and it describes
 the architecture of the Library without referring directly to the code
@@ -49,114 +49,78 @@ not. This is also known as the "hacker's view" of the Library.
 
 </UL>
 
-<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
-Each part of the documentation is also available as <A
-HREF="choppy.html"><B>one big HTML file</B></A> intended for
-printout. As a result, the relative links in this document do not
-work!<P>
-
-
 <H2>Table of Contents</H2> 
 <OL>
-<LI><A HREF="Installation.html">Getting Started</A> <P>
-
-<LI><A HREF="Prefs.html">Setting Up User Preferences for Language, Charset etc.</A>
+<LI><A HREF="Startup.html">Getting Started</A>
+<LI><A HREF="Prefs.html">Setting Up Preferences for Language, Charset etc.</A>
 <LI><A HREF="Bind.html">Make Bindings to the local File system</A>
 <LI><A HREF="Methods.html">Registering Access Schemes</A>
 <LI><A HREF="Proxy.html">Registering Proxy Servers and Gateways</A> <P>
 
-<LI><A HREF="Anchors.html">Using Anchors</A>
-<LI><A HREF="Streams.html">Using Streams</A>
-<LI><A HREF="HyperDoc.html">Managing the HyperDoc Object</A>
-<LI><A HREF="Request.html">Using the HTRequest Structure</A><P>
+<LI><A HREF="Anchors.html">Anchor Objects</A>
+<LI><A HREF="Request.html">Request Objects</A>
+<LI><A HREF="HyperDoc.html">HyperDoc Objects</A><P>
 
 <LI><A HREF="Access.html">The Access Manager</A>
-<LI><A HREF="Cache.html">Managing the Cache</A>
-<LI><A HREF="MIME.html">The HTTP/MIME Parser</A>
-<LI><A HREF="HTML.html">The HTML Parser</A> <P>
+<LI><A HREF="Protocol.html">The Protocol Manager</A>
+<LI><A HREF="Streams.html">The Format Manager</A>
+<LI><A HREF="Cache.html">The Cache Manager</A>
+<LI><A HREF="Error.html">The Error Cache</A>
+<LI><A HREF="Event.html">The Event Manager</A><P>
 
+<LI><A HREF="Logging.html">The Log Module</A>
+<LI><A HREF="History.html">The History Module</A>
+<LI><A HREF="MIME.html">The HTTP/MIME Parser</A>
+<LI><A HREF="HTML.html">The HTML Parser</A>
 <LI><A HREF="Override.html">Application Specific Modules</A>
-<LI><A HREF="Flags.html">Global Flags</A>
-<LI><A HREF="Examples.html">Putting it all Together</A>
+<LI><A HREF="Flags.html">Global Flags and special Modes</A>
 </OL>
 
-<H1>Installation</H1>
+
+<H1>Getting Started</H1>
 
 The Library distribution package can be obtained from the <A
-HREF="../../">Library status page</A> and includes all source files
-and <A HREF="../../../README.html">README</A> files documenting how to
-unpack and compile the Library using the <A
-HREF="../Platform/Porting.html"><EM>BUILD</EM> script</A>. There might
-also be platform specific information on how to install the Library
-which is the case for Windows NT and VMS. The <EM>BUILD script</EM> is
-a simple script which is common for all W3C source code
-distributions. When running the BUILD script, it first searches the
-environment to see if it knows the platform on which it is running. If
-so, then it creates a <EM>Makefile</EM> with a set of platform
-dependent and independent information and finally it compiles and
-links the specified modules. If the script does not know the actual
-platform, then it can often without major difficultiy be modified to
-support the new platform. It will probably be necessary to modify the
-<A HREF="../../Implementation/tcp.html"> system dependent module</A>
-in the Library as well in order to specify the required system include
-files etc. This is all explained in the <A
-HREF="../Platform/Porting.html">documentation on the <EM>BUILD</EM>
-script</A>.  The Library is compiled simply by typing:
+HREF="../../">Library status page</A> and it includes all source files
+and some <A HREF="../../../README.html">README</A> files describing
+what the package contains. There is also an online "<A
+HREF="../Installation.html">Installation Guide</A>" explaining how to
+unpack and compile the Library. As new versions of the Library are
+released frequently, it is recommended that you verify that the
+version is up to date by looking into the "Version.Make" file in the
+"Implementation" directory of the Library and compare it with the
+information given at the <A HREF="../../">Library status page</A>.<P>
 
-<PRE>
-	BUILD library
-</PRE>
-
-In order to ensure that all of the Library code is rebuilt when
-compiling then do the following:
-
-<PRE>
-	make clobber
-	BUILD library
-</PRE>
-
-As new versions of the Library are released frequently, it is
-recommended that you verify that the version is up to date by looking
-into the <CODE>Version.Make</CODE> file in the
-<CODE>Implementation</CODE> directory of the Library and compare it
-with the information given at the <A HREF="../../">Library status
-page</A>.</P><P>From version 3.0, the include file <A
-HREF="../../Implementation/WWWLib.html"><CODE>WWWLib.h</CODE></A> is
-the only include file which is required in order to use the Library.
-This file contains all the functionality that is publicly available,
-but as the architecture is currently very exposed, this includes most
-of the modules in the Library itself.  Apart from this, only two
-functions are necessary in order to initialize and cleanup the Library
+From version 3.0, the include file "<A
+HREF="../../Implementation/WWWLib.html">WWWLib.h</A>" is the only
+include file which is required in order to use the Library.  This file
+contains all the functionality that is publicly available, but as the
+architecture is currently very exposed, this includes most of the
+modules in the Library itself.  Apart from this, only two functions
+are necessary in order to initialize and cleanup the Library
 respectively:
 
 <DL>
 
-<DT><CODE>HTLibInit()</CODE>
+<DT><CODE>BOOL HTLibInit()</CODE>
 
-<DD>This function initializes  memory, file descriptors, interrupt
-handlers etc, and it calls the static initialization functions for the
-dynamic modules. There are three kind of bindings between the dynamic 
-modules and the Library:
+<DD>This function initializes memory, file descriptors, interrupt
+handlers etc. By default it also calls initialization functions for
+all the dynamic modules in the Library. The dynamic modules are
+described in "<A HREF="../Architecture/DesignModel.html">Libwww
+Architecture</A>". A major part of the User's Guide is to describe how
+the Library can be configured, both at run time and at compile time,
+and the dynamic modules are an important part of the Library
+configuration.
 
-<OL>
-<LI>Binding between an access method and a protocol module, </LI>
-<LI>between a media type and a converters stream, and</LI>
-<LI>between a file name extension and a media type</LI> 
-</OL>
-
-This bindings can be changed either by overriding the <A
-HREF="../../Implementation/HTInit.html" >HTInit module</A> or by using
-a preprocessor directive.
-
-<DT><CODE>HTLibTerminate()</CODE>
+<DT><CODE>BOOL HTLibTerminate()</CODE>
 
 <DD>Cleans up the memory and closes open file descriptors.
 
 </DL>
 
 It is essential that <CODE>HTLibInit()</CODE> is the first call to the
-Library and <CODE>HTLibTerminate()</CODE> as the last as the behavior
-otherwise is undefined. To summarize, a minimal application will look
+Library and <CODE>HTLibTerminate()</CODE> is the last as the behavior
+otherwise is undefined. As an example, a minimal application will look
 like this:
 
 <PRE>
@@ -167,40 +131,74 @@ like this:
 	{
 		HTLibInit();
 
-		/* Other stuff */
+		/* Application stuff */
 
 		HTLibTerminate();
 		return 0;
 	}
 </PRE>
 
-<H1>Setting Up User Preferences</H1>
+<H1>Request Preferences</H1>
 
-The Library supports a large set of user preferences often through the
-use of dynamic modules. This section describes how the preferences can
-be enabled and used in an application. It is important to note that
-<EM>no</EM> preferences are setup automatically by the Library in the
-<CODE>HTLibInit()</CODE> function - it is for the application to
+This section describes how to setup preferences for the representation
+of a data object when requesting it from the network. The
+representation of a data object is closely related to the format
+negotiation in the <A HREF="../../../Protocols/">HTTP protocol</A> as
+each dimension can be expressed as an "accept-*" header in an HTTP
+request. The Library supports the following dimensions:
+
+<UL>
+<LI>The preferred natural langauge of the data object
+<LI>The media type in which a data object should be rendered
+<LI>The preferred content encodings (or supported)
+<LI>The preferred character set
+</UL>
+
+Preferences can be registered in two ways: As a <EM>global</EM> list
+which applies to all requests and a <EM>local</EM> list which is bound
+to a specific request. The global and local lists are simply added
+when the preferences for a request are converted to a set of
+"accept-*" headers. There is currently no means or overriding global
+preferences with the local preferences.</P>
+
+It is important to note that <EM>none</EM> of the preferences are
+enabled automatically by the Library - it is for the application to
 specify as the preferences can change from request to
-request. However, the Library has a set of initialization functions
-that make it easy for the application to set the preferences that are
-directly supported by the Library. These are all located in the <A
-HREF="../../Implementation/HTInit.html">HTInit module </A>and can be
-modified to suit a particular application.</P>
+request. However, the Library has a set of default initialization
+functions that make it easy for the application to set the preferences
+that are directly supported by the Library. These are all located in
+the <A HREF="../../Implementation/HTInit.html">HTInit module</A> and
+can be modified to suit a particular application.</P>
 
-The first four paragraphs in this section describe the preferences
-that are bound to the HTTP request <EM>accept</EM> headers: Converters
-and presenters, natural languages, encodings, and charsets. All of
-these preferences are registered in pairs of lists: A <EM>global</EM>
-list which applies to all requests and a <EM>local</EM> list which is
-bound to a specific request. </P>
+<H3>Natural Languages</H3>
 
-<H3>Converters and Presenters</H3>
+The user's preferences of natural languages can as converters and
+presenters be registered both globally for all requests and locally
+for a single request. The global list is called
+<CODE>HTLanguages</CODE>, and the local list is a part of the <A
+HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
+</A>as described in section <A HREF="#request">Issue an Request</A>
+but in contrast to the converters there is no initialization function
+in the <A HREF="../../Implementation/HTInit.html">HTInit module</A>.
+Preferences for natural languages can be added individually to both
+the local and global list using the functions:</P>
 
-Converters and presenters are closely related and they are treated
-exactly the same way in the Library. Both converters and presenters
-take part in the stream stack algorithm that finds the best conversion
-of the media type of a data object. The difference is that presenters
+<PRE>
+	HTAcceptLanguage()
+</PRE>
+
+<H3>Setting up the Media Types</H3>
+
+The media types are handled by a set of converters and presenters. A
+converter is a stream that can convert the rendition of a data object
+from one format to another. A presenter is a stream that calls an
+external program, for example a post script viewer or an audio program
+for presenting the data obejct. Converters and presenters are special in that they both describe the preferred set of media types to be requested in a HTTP request and how a 
+
+
+Both converters and presenters take
+part in the stream stack algorithm that finds the best conversion of
+the media type of a data object. The difference is that presenters
 depend on external viewers for the presentation of the graphic object
 whereas converters use internal modules in the Library and they do not
 necessarily have to present the graphic object to the user. The
@@ -246,7 +244,6 @@ local and global list using the functions:</P>
 The initialization functions are in fact only a compiled list of calls
 to these function.</P>
 
-
 <H3>Encodings</H3>
 
 The set of encoding and decoding streams are in the same category as
@@ -264,23 +261,6 @@ using the functions:
 
 <PRE>
 	HTAcceptEncoding()</PRE>
-
-<H3>Natural Languages</H3>
-
-The user's preferences of natural languages can as converters and
-presenters be registered both globally for all requests and locally
-for a single request. The global list is called
-<CODE>HTLanguages</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
-</A>as described in section <A HREF="#request">Issue an Request</A>
-but in contrast to the converters there is no initialization function
-in the <A HREF="../../Implementation/HTInit.html">HTInit module</A>.
-Preferences for natural languages can be added individually to both
-the local and global list using the functions:</P>
-
-<PRE>
-	HTAcceptLanguage()
-</PRE>
 
 <H3>Charsets</H3>
 
@@ -501,16 +481,6 @@ for example, HTTP only.
 <LI>memory management
 </UL>
 
-<H1>Using Streams</H1>
-
-<UL>
-<LI>setting up request streams
-<LI>memory management
-<LI>examples
-</UL>
-
-<H1>Managing the HyperDoc Object</H1>
-
 <H1>The Request Object</H1>
 
 Before issuing a request to the Library, the application must create a
@@ -656,6 +626,10 @@ application about any error situation occured while handling a request.
 
 <PRE><B>	MORE</B></PRE>
 
+<H1>Managing the HyperDoc Object</H1>
+
+<B>MORE</B>
+
 <H1>The Access Manager</H1>
 
 At this point most of the design issues have been addressed and the
@@ -716,28 +690,19 @@ time when the blocking situation has ceased  to exist.
 
 </DL>
 
-<H3>Logging a Request</H3>
+<H1>The Protocol Manager</H1>
 
-The Library provides functionality
-for  logging a request. The log format is defined as follows:
-</P>
+<B>MORE</B>
 
-<PRE>	&lt;HOST> &lt;DATE> &lt;METHOD> &lt;URI> &lt;CONTENT LENGTH>
-</PRE>
+<H1>The Format Manager</H1>
 
-where the date and time stamp can be either in local time or
-GMT. Logging is turned off but the application can enable it a t any
-time.However, it is also for the application to disable the logging in
-order to close any open file descriptors etc. The log is opened and
-closes using the following functions:</P>
+<UL>
+<LI>setting up request streams
+<LI>memory management
+<LI>examples
+</UL>
 
-<PRE>	HTLog_enable()
-	HTLog_disable()
-</PRE>
-
-where the log file name can be defined by the application.
-
-<H1>Managing the Cache</H2>
+<H1>The Cache Manager</H2>
 
 Caching is a required part of any efficient Internet access
 applications as it saves bandwidth and improves access performance
@@ -751,91 +716,208 @@ version of a cached document, so the two types do not exclude each
 other. The following paragraphs explains how the two caches can be
 maintained in the Library.</P>
 
+<H3><A NAME="memcache">Memory Cache</A></H3>
 
-<H3><A NAME="memcache">Memory
-Cache</A></H3>
-
-The memory cache is largely managed by the application
-as it simply consists of keeping the graphic objects described by the
+The memory cache is largely managed by the application as it simply
+consists of keeping the graphic objects described by the
 <CODE>HyperDoc</CODE> structure in memory as the user keeps requesting
 new documents. The <CODE>HyperDoc</CODE> structure is only declared in
-the Library - the real definition is left to the  application as it is
-for the application to handle graphic objects. The Line Mode Browser has
-its own definition of the <CODE>HyperDoc</CODE> structure called <A HREF="../../../LineMode/Implementation/GridText.html"
-><CODE>HText</CODE></A>. Before a request is processed over the net, 
-the anchor object is searched for a
-<CODE>HyperDoc</CODE> structure and a  new request is issued only if
-this is not present or the Library explicitly has been asked to reload
-the document, which is described in the section <A HREF="#reload">Short
-Circuiting the Cache</A></P>
+the Library - the real definition is left to the application as it is
+for the application to handle graphic objects. The Line Mode Browser
+has its own definition of the <CODE>HyperDoc</CODE> structure called
+<A HREF="../../../LineMode/Implementation/GridText.html"
+><CODE>HText</CODE></A>. Before a request is processed over the net,
+the anchor object is searched for a <CODE>HyperDoc</CODE> structure
+and a new request is issued only if this is not present or the Library
+explicitly has been asked to reload the document, which is described
+in the section <A HREF="#reload">Short Circuiting the Cache</A></P>
 
-
-As the management of the graphic object
-is handled by the application, it is also for the application to handle
-the garbage collection of the memory cache. The
-<A HREF="../../../LineMode/">Line Mode Browser</A> has a very simple
-memory management of how long graphic objects stay around in memory. It
-is determined by a constant in the <A HREF="../../../LineMode/Implementation/GridText.c"
->GridText</A> module and is by default set to 5 documents. This approach
-can be much more advanced and the memory garbage collection can be
-determined by the size of the graphic objects, when they expire etc.,
-but the API is the same no matter how the garbage collector is
-implemented. </P>
+As the management of the graphic object is handled by the application,
+it is also for the application to handle the garbage collection of the
+memory cache. The <A HREF="../../../LineMode/">Line Mode Browser</A>
+has a very simple memory management of how long graphic objects stay
+around in memory. It is determined by a constant in the <A
+HREF="../../../LineMode/Implementation/GridText.c" >GridText</A>
+module and is by default set to 5 documents. This approach can be much
+more advanced and the memory garbage collection can be determined by
+the size of the graphic objects, when they expire etc., but the API is
+the same no matter how the garbage collector is implemented. </P>
 
 
 <H3>File Cache</H3>
 
-The file cache is intended for
-intermediate term storage of documents or data objects that can not be
-represented by the <CODE>HyperDoc</CODE> structure which is referenced
-by the <CODE>HTAnchor</CODE> object. As the definition of the <CODE>HyperDoc</CODE>
-structure is done by the application there is no explicit rule of what
-graphic objects that can not be described by the <CODE>HyperDoc</CODE>,
-but  often it is binary objects, like images etc.</P>
+The file cache is intended for intermediate term storage of documents
+or data objects that can not be represented by the
+<CODE>HyperDoc</CODE> structure which is referenced by the
+<CODE>HTAnchor</CODE> object. As the definition of the
+<CODE>HyperDoc</CODE> structure is done by the application there is no
+explicit rule of what graphic objects that can not be described by the
+<CODE>HyperDoc</CODE>, but often it is binary objects, like images
+etc.</P>
 
-
-The file cache
-in the Library is a very simple implementation in the sense that no
-intelligent garbage collection has been defined. It has been the goal to
-collect experience from the file cache in the CERN proxy server before
-an intelligent  garbage collector  is implemented in the Library. 
-Currently the following functions can be used to control the cache,
-which is disabled by default:</P>
+The file cache in the Library is a very simple implementation in the
+sense that no intelligent garbage collection has been defined. It has
+been the goal to collect experience from the file cache in the W3C
+proxy server before an intelligent garbage collector is implemented in
+the Library.  Currently the following functions can be used to control
+the cache, which is disabled by default:</P>
 
 <DL>
-<DT><CODE>HTCache_enable()</CODE>, <CODE>HTCache_disable()</CODE>,
-and <CODE>HTCache_isEnabled()</CODE></DT>
+<DT><CODE>HTCache_enable()</CODE>, <CODE>HTCache_disable()</CODE>, and
+<CODE>HTCache_isEnabled()</CODE>
 <DD>Use these functions to enable and disable the cache
 
-<DT><CODE>HTCache_setRoot()</CODE> and <CODE>HTCache_getRoot()</CODE></DT>
+<DT><CODE>HTCache_setRoot()</CODE> and <CODE>HTCache_getRoot()</CODE>
 <DD>Use these functions to set and get the value of the cache root
-
 </DL>
 
-An important difference between the memory cache and the file
-cache is the format of the data. In the memory cache, the cached objects
-are graphic objects ready to be displayed to the user. In the file cache
+An important difference between the memory cache and the file cache is
+the format of the data. In the memory cache, the cached objects are
+graphic objects ready to be displayed to the user. In the file cache
 the data objects are stored along with their metainformation so that
-important header information like Expires, Last-Modified, Language etc.
-is a part of the stored object.   </P>
+important header information like Expires, Last-Modified, Language
+etc.  is a part of the stored object.</P>
 
-
-<H3><A NAME="reload">Short Circuiting the Cache</A></H3>
+<H3><A NAME="reload">Mode for Cache Refresh</A></H3>
 
 In situations where a cached document is known to be stale it is
 desired to flush any existent version of a document in either the
 memory cache or the file cache and perform a reload from the
 authoritative server. This can for example be the case if an expires
 header has been defined for the document when returned from the origin
-server. Short circuiting the cache can be done by calling the
-following function
+server. Forcing a refresh from either the memory cache, the file
+cache, or both can be done using the following function:
 
-<PRE>	int HTRequest_SetForceReload(HTRequest *request)
+<PRE>
+void HTRequest_setReload (HTRequest *request, HTReload mode);
+HTReload HTRequest_reload (HTRequest *request);
 </PRE>
 
-In case the access module immediately issues the request instead of
-searching the memory cache and the file cache.
+where <CODE>HTReload</CODE> can be either of the values
 
+<DL>
+<DT>HT_ANY_VERSION
+<DD>Use any version available, either from memory cache or from local
+file cache
+
+<DT>HT_MEM_REFRESH
+
+<DD><EM>Non-authoritative</EM> update of any version stored in
+memory. The new version can either come from the local file cache, a
+proxy cache or the network. If the request falls through to the
+network, the Library issues a conditional GET using a
+<EM>If-Modified-Since</EM> header. There are two main purposes for
+this mode:
+
+<OL>
+<LI>If the disk cache is private to exactly one application then a
+version stored in the local disk cache does normally not differ in
+time from a version in memory - they have been created at the same
+time. However, in a shared cache environment, the two versions can
+differ and this flag can be used to force an update to the latest
+version in the file cache.
+<LI>If the application wants to see the metainformation as received
+from the network, then the object in the file cache provides this
+information whereas the version in memory does not.
+</OL>
+
+<DT>HT_CACHE_REFRESH
+
+<DD><EM>Authoritative</EM> update of any version stored in the local
+file cache or a proxy cache. The Library issues a conditional GET
+using a <EM>If-Modified-Since</EM> header and a <EM>Pragma:
+no-cache</EM> to ensure that the response is authoritative.
+
+<DT>HT_FORCE_RELOAD
+
+<DD>Unconditinal reload from the network using the <EM>Pragma:
+no-proxy</EM> directive in order to insure that the reload is passed
+to any proxy server on the way to the origin server
+
+</DL>
+
+If the Library receives either an authoritative or non-authoritative
+"304 Not Modified" response upon any of the requests above, it 
+
+<H3>Handling Expired Documents</H3>
+
+There are various ways of handling Expires header when met in a
+history list. Either it can be ignored all together, the user can be
+notified with a warning, or the document can be reloaded
+automatically. The Libarry supports either way, as it should be up to
+the user to decide. The default action is HT_EXPIRES_IGNORE, but other
+modes are to notify the user that a document is stale without
+reloading it, and to do an automatic relaod of the document. Th
+functions to use are in this case:
+
+<PRE>
+void HTAccess_setExpiresMode (HTExpiresMode mode, char *  notify);
+HTExpiresMode HTAccess_expiresMode ();
+</PRE>
+
+where <CODE>HTExpiresMode</CODE> can take any of the values:
+
+<PRE>
+    HT_EXPIRES_IGNORE
+    HT_EXPIRES_NOTIFY
+    HT_EXPIRES_AUTO
+</PRE>
+
+<H1>The Error Manager</H1>
+
+<B>MORE</B>
+
+<H1>The Event Manager</H1>
+
+<B>MORE</B>
+
+<H1>The Log Module</H1>
+
+It is possible to log the result of a request to the Library whether
+regardless of what type of application is using the Library. The
+current implementation of the log manager is very simple but it is
+straight forward to replace the implementation with a more
+sofisticated one. The current log format is defined as follows:
+
+<PRE>
+	&lt;HOST&gt; &lt;DATE&gt; &lt;METHOD&gt; &lt;URI&gt; &lt;RESULT&gt; &lt;CONTENT LENGTH&gt;
+</PRE>
+
+where the date and time stamp can be either in local time or
+GMT. Logging is turned off but the application can enable it at any
+time. However, it is also for the application to disable the logging
+in order to close any open file descriptors etc. The exact log API is
+described in the <A HREF="../../Implementation/HTLog.html">Log
+Manager</A>.
+
+<H1>Keeping Track of History</H1>
+
+The Library supports client applications in keeping track of which
+locations the user has visited while browsing the Web. The internal
+history list is implemented in the <A
+HREF="../../Implementation/HTHist.html">HTHist module</A>. This module
+is completely autonomous as it is not used by any other modules in the
+Library so if it is not referred to in the application code then it
+will not be linked into the linked application. This means that if the
+application does not need recording of history then no action is
+required at all.<P>
+
+The purpose of the history module is to try not to impose any
+particular history mechanism policy but instead to allow various
+different history mechanisms. The basic features of the history module
+are:
+
+<UL>
+<LI>The module can handle multiple history lists
+<LI>The underlying data structure is a linear list structure
+<LI>The module keeps a position pointer into this list
+<LI>The application can refer to an element in the list by an index
+</UL>
+
+Some of the navigation steps supported by the module are "back",
+"forward", and jump to a position in the list. The details of the
+module is listed in the declaration part of the <A
+HREF="../../Implementation/HTHist.html">HTHist module</A>.
 
 <H1>The HTTP/MIME Parser</H1>
 
@@ -1140,6 +1222,20 @@ a platform independent basis can change the default behavior of the
 Library.</P>
 
 <DL>
+<DT><CODE>HT_REENTRANT</CODE>
+
+<DD>This boolean define should be enabled if the reentrant versions
+("*_r") of the system calls should be used. The name of these system
+calls are currently "*_r", for example <CODE>strtok_r</CODE>. The
+default value is <EM>OFF</EM>.
+
+<DT><CODE>HT_SHARED_DISK_CACHE</CODE>
+
+<DD>If the cache can be shared between several clients this will have
+an effect on the way, update of a document will be done. The default
+cache implementation of the cache manager does not support this so the
+default value is NOT defined.
+
 <DT><CODE>HT_DIRECT_WAIS</CODE>
 
 <DD>This boolean define is enabled by the <EM>Makefile.include</EM>
@@ -1203,25 +1299,6 @@ been specified by the application. The default value is <EM>OFF</EM>
 proxies for a request. The default value is <EM>OFF</EM>
 
 </DL>
-
-<H1>Putting it All Together</H1>
-
-This section is dedicated to a set of examples that show some of the
-functionality of the Library as described in the previous
-sections. The <A HREF="../../../LineMode/">Line Mode Browser</A> is,
-as mentioned in the introduction, a working example of most of the
-functionality provided by the Library but as it contains almost 5000
-lines of code, it is often difficult to extract the right
-examples. The following examples are not intended to be complete but
-to clarify the API needed to use the Library.</P>
-
-
-<H3>Download a Document</H3><PRE
->	<B>MORE</B></PRE>
-
-<H3>Upload a Document</H3><PRE>	<B>MORE</B></PRE>
-
-<H3>Convert Between Media Types</H3><PRE>	<B>MORE</B></PRE>
 
 <P>
 <HR>

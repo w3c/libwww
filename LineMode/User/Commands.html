@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Line Mode Browser Commands</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Aug-1995 -->
 <NEXTID N="z17">
 </HEAD>
 <BODY>
@@ -71,14 +71,8 @@ URL) of the document you are reading.
 <DT><B>back</B>
 <DD>Goes back to the document you were reading before.
 
-<DT><B>next</B>, <B>previous</B>
-<DD>Goes to the next or previous document in the list of pointers from
-the document that led to the current one. This is better explained
-with an example: suppose you are reading a document which looks like a
-menu, and you want to read all entries in turn. You first type "1" to
-read the first referred document (by following the first link), and
-then you type "next" or just "n" to read the next one from the menu,
-without actually coming back to the menu and typing "2", etc.
+<DT><B>forward</B>
+<DD>Goes to the next document in the history list if any.
 
 <DT><B>goto</B> &lt;address&gt;
 
@@ -133,6 +127,10 @@ server. The syntax is the same as for PUT.
 
 <DL>
 
+<DT><B>clear</B>
+
+<DD>Clears the history list
+
 <DT><B>list</B>
 
 <DD>Gives a numbered list of the links from the current document,
@@ -150,6 +148,11 @@ the number.
 
 <DT><B>refresh</B>
 <DD>Refresh the screen
+
+<DT><B>reload</B>
+<DD>Forces a full reload of the document regardless of whether the
+object might already be in either the memory cache or in the local
+file cache.
 
 <DT><A NAME="z11"><B>source</B></A>
 
