@@ -1,0 +1,38 @@
+EXPORTS
+;HTMLPDTD.c		@ 100
+HTStartAnchor		@ 101
+HTMLPutImg		@ 102
+HTNextID		@ 103
+
+;SGML.c			@ 200
+SGMLFindAttribute	@ 201
+SGMLFindTag		@ 202
+SGML_flush		@ 203
+SGML_free		@ 204
+SGML_abort		@ 205
+SGML_callerData		@ 206
+SGML_setCallerData	@ 207
+SGML_character		@ 208
+SGML_string		@ 209
+SGML_write		@ 210
+SGML_new		@ 211
+
+;HTML.c			@ 300
+HTMLUseCharacterSet	@ 301
+HTML_flush		@ 302
+HTML_free		@ 303
+HTMLToPlain		@ 304
+HTMLToC			@ 305
+HTMLPresent		@ 306
+
+;HTPlain.c		@ 400
+HTPlainPresent		@ 401
+
+;HTMLGen.c		@ 500
+HTMLGenerator		@ 501
+HTPlainToHTML		@ 502
+HTPlainTo7BitHTML	@ 503
+
+;HTTeXGen.c		@ 600
+HTMLToTeX		@ 601
+
