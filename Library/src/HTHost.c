@@ -50,7 +50,10 @@ PRIVATE void free_object (HTHost * me)
     if (me) {
 	HT_FREE(me->hostname);
 	HT_FREE(me->type);
-	if (me->channel) HTChannel_delete(me->channel);
+	if (me->channel) {
+	    HTChannel_delete(me->channel);
+	    me->channel = NULL;
+	}
 	HT_FREE(me);
     }
 }

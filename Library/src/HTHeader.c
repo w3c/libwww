@@ -62,7 +62,9 @@ PUBLIC BOOL HTParser_delete (HTList * parsers, const char * token)
 	while ((pres = (HTParser *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->token, token)) {
 		HT_FREE(pres->token);
-		return HTList_removeObject(parsers, (void *) pres);
+		HTList_removeObject(parsers, (void *) pres);
+		HT_FREE(pres);
+		return YES;
 	    }
 	}
     }
