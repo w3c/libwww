@@ -418,6 +418,9 @@
 /* Define if you have the ICE library (-lICE).  */
 #undef HAVE_LIBICE
 
+/* Define if you have the c library (-lc).  */
+#undef HAVE_LIBC
+
 /* Define if you have the dl library (-ldl).  */
 #undef HAVE_LIBDL
 

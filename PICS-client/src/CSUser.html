@@ -57,7 +57,7 @@ As the label is parsed, it will call the assigned TargetChangeCallback as it
 passes from state to state.
 
 <PRE>
-typedef UserTargetCallback_t(CSUser_t * pCSUser, 
+typedef StateRet_t UserTargetCallback_t(CSUser_t * pCSUser, 
 				  CSParse_t * pCSParse, 
 				  CSUserTC_t target, BOOL closed, 
 				  void * pVoid);

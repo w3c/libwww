@@ -420,7 +420,7 @@ PUBLIC CSDoMore_t CSParse_parseChunk (CSParse_t * pCSParse, const char * ptr, in
                     pCSParse->nowIn = NowIn_ENGINE;
                     continue;
                 }
-                if (isspace(ptr[i]))
+                if (isspace((int) ptr[i]))
                     continue;
 /*                if (warn(pCSParse, message_UNEXPECTED_CHARACTER, ptr[i])) pCSParse->nowIn = NowIn_ERROR; */
 	        if (callErrorHandler(pCSParse, ptr+i, ptr[i], 
@@ -428,7 +428,7 @@ PUBLIC CSDoMore_t CSParse_parseChunk (CSParse_t * pCSParse, const char * ptr, in
 		    pCSParse->nowIn = NowIn_ERROR;
                 continue;
             case NowIn_ENGINE:
-                if (isspace(ptr[i])) {
+                if (isspace((int) ptr[i])) {
                     if (HTChunk_size(pCSParse->token))
                         pCSParse->demark = ' ';
                     continue;
@@ -452,7 +452,7 @@ PUBLIC CSDoMore_t CSParse_parseChunk (CSParse_t * pCSParse, const char * ptr, in
                     pCSParse->nowIn = NowIn_ENGINE;
                     continue;
                 }
-                if (isspace(ptr[i]))
+                if (isspace((int) ptr[i]))
                     continue;
 		if (callErrorHandler(pCSParse, ptr+i, ptr[i], 
 				     StateRet_ERROR_BAD_CHAR) !=StateRet_OK)
