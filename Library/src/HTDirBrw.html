@@ -109,6 +109,42 @@ extern int HTDirMaxDescrLength;
 #endif
 </PRE>
 
+<<<<<<< HTDirBrw.html
+
+<H3>Functions for directory browsing on local UNIX system</H3>
+
+<PRE>
+extern int HTBrowseDirectory PARAMS((
+		HTRequest *  	req,
+		char *		directory));
+</PRE>
+
+<H3>Functions for directory browsing from other sources</H3>
+
+This is a pseudo stat file structure used for all other systems:
+
+<PRE>
+typedef struct _dir_file_info {
+    char *		f_name;
+    long 		f_mode;
+    int			f_nlink;
+    char *		f_uid;
+    char *		f_gid;
+    unsigned long	f_size;
+    unsigned long	f_mtime;
+} dir_file_info;
+</PRE>
+
+<H2>Where do FTP Directory Listings get input?</H2>
+This function fills out the EntryInfo fil structure and should return 
+
+<UL>
+<LI>If error: -1
+<LI>EOF or interrupted by user: 0
+<LI>If succes and more to read: 1
+</UL>
+
+=======
 
 <H2>Icons</H2>
 
@@ -178,10 +214,24 @@ PUBLIC void HTStdIconInit PARAMS((char * url_prefix));
 
 
 <H2>Where do FTP Directory Listings get input?</H2>
+This function fills out the EntryInfo fil structure and should return
+
+<UL>
+<LI>If error: -1
+<LI>EOF or interrupted by user: 0
+<LI>If succes and more to read: 1
+</UL>
+
 <PRE>
 typedef int (*HTDirLineInput) PARAMS((void *));
 </PRE>
 
+<PRE>
+extern int HTFTPBrowseDirectory PARAMS((
+		HTRequest * 	req,
+		char *		directory,
+		HTDirLineInput  input));
+</PRE>
 
 <PRE>
 #endif /* HTDIRBRW */

@@ -370,7 +370,7 @@ static HTTag tags[HTMLP_ELEMENTS] = {
     { "HTMLPLUS", htmlplus_attr,HTML_HTMLPLUS_ATTRIBUTES, SGML_MIXED },
     { "I"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "IMAGE"	, image_attr,	HTML_IMAGE_ATTRIBUTES,	SGML_EMPTY },
-    { "IMG"     , img_attr,	HTML_IMG_ATTRIBUTES,	SGML_MIXED },
+    { "IMG"     , img_attr,	HTML_IMG_ATTRIBUTES,	SGML_EMPTY },
     { "INPUT"	, input_attr,	HTML_INPUT_ATTRIBUTES,	SGML_EMPTY },
     { "ISINDEX" , no_attr,	0,			SGML_EMPTY },
     { "KBD"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
@@ -504,7 +504,7 @@ PUBLIC void HTMLPutImg ARGS4(HTStructured *, obj,
         value[HTML_IMG_ALIGN] = align;
     }
     (*obj->isa->start_element)(obj, HTML_IMG , present, value);
-    (*obj->isa->end_element)(obj, HTML_IMG);
+    /* (*obj->isa->end_element)(obj, HTML_IMG); */
 }
 
 
