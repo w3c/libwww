@@ -411,6 +411,36 @@ PUBLIC BOOL HTAnchor_deleteAll (HTList * documents)
     return YES;
 }
 
+/*
+**	Deletes all the metadata associated with anchors but doesn't
+**	delete the anchor link structure itself. This is much safer
+**	than deleting the complete anchor structure as this represents the
+**	complete Web the application has been in touch with
+*/
+PUBLIC BOOL HTAnchor_clearAll (HTList * documents)
+{
+    int cnt;
+    HTList * cur;
+    if (!adult_table) return NO;
+    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	if ((cur = adult_table[cnt])) { 
+	    HTParentAnchor * pres;
+	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur))) {
+
+		/* Then remove entity header information */
+		HTAnchor_clearHeader(pres);
+
+		/* Delete the physical address */
+		HT_FREE(pres->physical);
+
+		/* Register if we have a document on this anchor */
+		if (documents && pres->document)
+		    HTList_addObject(documents, pres->document);
+	    }
+	}
+    }
+    return YES;
+}
 
 PRIVATE void delete_links (HTAnchor * me)
 {

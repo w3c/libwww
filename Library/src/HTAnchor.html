@@ -136,6 +136,19 @@ If this anchor's source list is empty, we delete it and its children.
 extern BOOL HTAnchor_delete	(HTParentAnchor *me);
 </PRE>
 <H3>
+  Clear all Anchors
+</H3>
+<P>
+Deletes all the metadata associated with anchors but doesn't delete
+the anchor link structure itself. This is much safer than deleting the
+complete anchor structure as this represents the complete Web the
+application has been in touch with. It also returns a list of all the
+objects (hyperdoc) hanging of the parent anchors found while doing
+it. These are not deleted by libwww.
+<PRE>
+extern BOOL HTAnchor_clearAll (HTList * documents);
+</PRE>
+<H3>
   Delete all Anchors
 </H3>
 <P>
@@ -150,11 +163,10 @@ if OK, else NO.
 <PRE>
 extern BOOL HTAnchor_deleteAll	(HTList * objects);
 </PRE>
-
 <H3>
   Flatten all anchors into Array
 </H3>
-
+<P>
 Flattens the anchor web structure into an array.  This is useful for
 calculating statistics, sorting the parent anchors etc.<P>
 
