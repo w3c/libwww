@@ -852,6 +852,11 @@ PUBLIC char * HTTag_name (HTTag * tag)
     return tag ? tag->name : NULL;
 }
 
+PUBLIC SGMLContent HTTag_content (HTTag * tag)
+{
+    return tag ? tag->contents : SGML_EMPTY;
+}
+
 PUBLIC int HTTag_attributes (HTTag * tag)
 {
     return tag ? tag->number_of_attributes : -1;
