@@ -49,7 +49,8 @@
 typedef enum _MRFlags {
     MR_IMG	= 0x1,
     MR_LINK	= 0x2,
-    MR_PREEMPTIVE= 0x4
+    MR_PREEMPTIVE= 0x4,
+    MR_TIME	= 0x8
 } MRFlags;
 
 typedef struct _Robot {
@@ -182,6 +183,10 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	}
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
+	if (me->flags & MR_TIME) {
+	    time_t local = time(NULL);
+	    TTYPrint(TDEST, "Robot terminated %s\n",HTDateTimeStr(&local,YES));
+	}
 	HT_FREE(me->cwd);
 	HT_FREE(me->tv);
 	HT_FREE(me);
@@ -433,7 +438,7 @@ int main (int argc, char ** argv)
     int		arg;
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
-    Robot *	mr = Robot_new();		/* Create new Robot instance */
+    Robot *	mr = NULL;
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -454,6 +459,9 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
+
+    /* Build a new robot object */
+    mr = Robot_new();
 
     /* Initialize the protocol modules */
     HTAccessInit();
@@ -522,6 +530,13 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-single")) {
 		HTRequest_setPreemptive(mr->request, YES);
 		mr->flags |= MR_PREEMPTIVE;
+
+	    /* Output start and end time */
+	    } else if (!strcmp(argv[arg], "-ss")) {
+		time_t local = time(NULL);
+		TTYPrint(TDEST, "Robot started on %s\n",
+			 HTDateTimeStr(&local, YES));
+		mr->flags |= MR_TIME;
 
 	    /* print version and exit */
 	    } else if (!strcmp(argv[arg], "-version")) { 

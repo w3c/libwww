@@ -590,10 +590,14 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 */
 PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 {
+    CONST char * start = b;
+    CONST char * end = start;
     while (!me->transparent && l-- > 0) {
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == CR) {				    /* End of header */
-		int status = parseheader(me, me->request, me->anchor);
+		int status;
+		HTChunk_putb(me->buffer, start, end-start);
+		status = parseheader(me, me->request, me->anchor);
 		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
 		    return status;
@@ -601,48 +605,61 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 		me->EOLstate = EOL_FLF;
 	    else if (WHITE(*b)) {			   /* Folding: CR SP */
 		me->EOLstate = EOL_BEGIN;
+		HTChunk_putb(me->buffer, start, end-start);
 		HTChunk_putc(me->buffer, ' ');
+		start=b, end=b+1;
 	    } else {						 /* New line */
 		me->EOLstate = EOL_BEGIN;
+		HTChunk_putb(me->buffer, start, end-start);
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putc(me->buffer, *b);
+		start=b, end=b+1;
 	    }
 	} else if (me->EOLstate == EOL_FLF) {
 	    if (*b == CR)				/* LF CR or CR LF CR */
 		me->EOLstate = EOL_SCR;
 	    else if (*b == LF) {			    /* End of header */
-		int status = parseheader(me, me->request, me->anchor);
+		int status;
+		HTChunk_putb(me->buffer, start, end-start);
+		parseheader(me, me->request, me->anchor);
 		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
 		me->EOLstate = EOL_BEGIN;
+		HTChunk_putb(me->buffer, start, end-start);
 		HTChunk_putc(me->buffer, ' ');
+		start=b, end=b+1;
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
+		HTChunk_putb(me->buffer, start, end-start);
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putc(me->buffer, *b);
+		start=b, end=b+1;
 	    }
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
-		int status = parseheader(me, me->request, me->anchor);
+		int status;
+		HTChunk_putb(me->buffer, start, end-start);
+		status = parseheader(me, me->request, me->anchor);
 		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
 		me->EOLstate = EOL_BEGIN;
+		HTChunk_putb(me->buffer, start, end-start);
 		HTChunk_putc(me->buffer, ' ');
+		start=b, end=b+1;
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
+		HTChunk_putb(me->buffer, start, end-start);
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putc(me->buffer, *b);
+		start=b, end=b+1;
 	    }
 	} else if (*b == CR) {
 	    me->EOLstate = EOL_FCR;
 	} else if (*b == LF) {
 	    me->EOLstate = EOL_FLF;			       /* Line found */
 	} else
-	    HTChunk_putc(me->buffer, *b);
+	    end++;
 	b++;
     }
 
