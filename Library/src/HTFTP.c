@@ -679,7 +679,7 @@ ARGS4 (
 
    
     {
-        HTBTree * bt = HTBTree_new((HTComparer)strcasecmp);
+        HTBTree * bt = HTBTree_new((HTComparer)strcasecomp);
         char c;
 	HTChunk * chunk = HTChunkCreate(128);
 	START(HTML_DIR);
