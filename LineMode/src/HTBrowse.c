@@ -670,7 +670,7 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 { 
     int  ref_num;
-    int  status = EVENT_OK;
+    HTEventState status = EVENT_OK;
     char * the_choice = 0;		           /* preserved user command */
     char * this_word = 0;        	   	    /* First word of command */
     char * this_command;	       	          /* this_word and following */
@@ -821,7 +821,6 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	}
 #ifdef unix
 	else if (Check_User_Input ("LCD")) {	       /* Local change dir ? */
-	    extern int chdir();
 	  lcd:
 	    if (!next_word) {				 /* Missing argument */
 		printf ("\nName of the new local directory missing.\n");
@@ -890,12 +889,12 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	else if (!HTClientHost && Check_User_Input("PRINT")) {
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
 	    char * command;
-	    char * template = (char*)getenv("WWW_PRINT_COMMAND");
+	    char * tmplate = (char*)getenv("WWW_PRINT_COMMAND");
 	    int result;
 	    
-	    if (!template) template = "www -n -na -p66 '%s' | lpr";
-	    command = (char *) malloc(strlen(address)+strlen(template)+20);
-	    sprintf(command, template, address);
+	    if (!tmplate) tmplate = "www -n -na -p66 '%s' | lpr";
+	    command = (char *) malloc(strlen(address)+strlen(tmplate)+20);
+	    sprintf(command, tmplate, address);
 	    result = system(command);
 	    free(address);
 	    free(command);

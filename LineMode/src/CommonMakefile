@@ -33,6 +33,7 @@ LM =  $(WWW)/LineMode/Implementation/
 LMD = $(WWW)/LineMode/Defaults
 CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
+FTP = /appl/disk5/ftp/pub
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
 
@@ -61,12 +62,14 @@ PROD = www
 SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)GridText.c		$(LM)GridText.h \
 	$(LM)GridStyle.c	$(LM)GridStyle.html \
-	$(LM)GridStyle.h \
-	$(LM)HTFont.h 		$(LM)Version.make\
-	$(LM)DefaultStyles.c	$(LM)CommonMakefile\
+	$(LM)GridStyle.h	$(LM)HTFont.h \
+	$(LM)DefaultStyles.c	$(LM)Version.make \
+	$(LM)CommonMakefile	$(LM)README \
+	$(WWW)/README		$(WWW)/COPYRIGH \
  	$(LM)a_stdio.g		$(LM)a_stdio.h
 
-DISTRIBUTION = $(LM)DefaultStyles.c.classic \
+DISTRIBUTION = \
+	$(LM)DefaultStyles.c.classic \
 	$(LM)DefaultStyles.c.modern
 
 # $(LM)a_stdio.g $(LM)a_stdio.h were added to support -DCYRILLIC
@@ -82,21 +85,11 @@ HTMLFILES = \
 
 # $(LM)a_stdio.h was added to support -DCYRILLIC
 SPECIFIC =  \
-	$(LM)apollo_m68k/Makefile \
-	$(LM)decstation/Makefile \
-	$(LM)next/Makefile \
-	$(LM)pc-nfs/makefile \
-	$(LM)pc-nfs/README \
-	$(LM)pc-nfs/topc \
-	$(LM)rs6000/Makefile \
-	$(LM)sgi/Makefile \
-	$(LM)snake/Makefile \
-	$(LM)sun3/Makefile \
-	$(LM)sun4/Makefile \
-	$(LM)unix/Makefile \
+	$(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
 	$(LM)vax_ultrix/Makefile \
 	$(LM)vax_ultrix_cc/Makefile \
 	$(LM)vms/descrip.mms \
+	$(LM)vms/build_multinet.com \
 	$(LM)vms/setup.com
 
 # Bug: This path, if relative, is taken relative to the directory
@@ -177,8 +170,8 @@ cleanall : clean
 #  to make binay or asis on a weird machine doesn't try to build $(PROD)!
 
 binary : $(PROD)_$(VL)
-	-mkdir /mnt/www0/pub/www/bin/$(WWW_MACH)
-	cp $(PROD)_$(VL) /mnt/www0/pub/www/bin/$(WWW_MACH)/$(PROD)_$(VL)
+	-mkdir $(FTP)/www/bin/$(WWW_MACH)
+	cp $(PROD)_$(VL) $(FTP)/www/bin/$(WWW_MACH)/$(PROD)_$(VL)
 
 #	ASIS installation
 #	-----------------
@@ -253,45 +246,36 @@ $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 #_________________________________________________________________
 # For W3 Administrative use only:
 
-
 #		W3 Source + documentation release
 #		---------------------------------
 
-distribute :  /mnt/www0/pub/www/README.txt /mnt/www0/pub/www/Copyright.txt
+distribute :  $(WWW)/README $(WWW)/COPYRIGHT
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
-	/mnt/www0/pub/www/src/WWWLineMode_$(VL).tar.Z)
+	$(FTP)/www/src/WWWLineMode_$(VL).tar.Z)
 	(cd ../Implementation; cvs tag \
 	    `sed -e 's/V. = /v/' Version.make | sed -e 's?\.?/?'` )
 	echo Distribution of Line Mode version $(VC) up to date.
 
-# THIS MUST BE BUILT FROM THE DIRECTORY ABOVE WWW ! USE distribute above!
-/mnt/www0/pub/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
-	tar cvf /mnt/www0/pub/www/src/WWWLineMode_$(VL).tar \
+$(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
+	tar cvf $(FTP)/www/src/WWWLineMode_$(VL).tar \
 	    $(SOURCES) \
-	    $(WWW)/All \
 	    $(DISTRIBUTION) \
-	    $(WWW)/LineMode/vms/descrip.mms \
-	    $(WWW)/LineMode/vms/build_multinet.com \
-            $(WWW)/LineMode/vms/setup.com 	    
-	compress -f /mnt/www0/pub/www/src/WWWLineMode_$(VL).tar
+	    $(CMN)*.html
+	compress -f $(FTP)/www/src/WWWLineMode_$(VL).tar
 
 
 #		Hypertext supplied in text format
 #		---------------------------------
 
-$(WWW)/README.txt : $(WWW)/../README.html
-	www -n -p66 http://info.cern.ch/hypertext/README.html \
-		> $(WWW)/README.txt
-/mnt/www0/pub/www/README.txt : $(WWW)/README.txt
-	cp $(WWW)/README.txt /mnt/www0/pub/www/README.txt
+$(WWW)/README : $(WWW)/../README.html
+	www -n -p -na http://info.cern.ch/hypertext/README.html \
+		> $(WWW)/README
 
-$(WWW)/Copyright.txt : $(WWW)/../Copyright.html
-	www -n -p66 http://info.cern.ch/hypertext/Copyright.html \
-		> $(WWW)/Copyright.txt
-/mnt/www0/pub/www/Copyright.txt : $(WWW)/Copyright.txt
-	cp $? $@
+$(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
+	www -n -p -na http://info.cern.ch/hypertext/COPYRIGHT.html \
+		> $(WWW)/COPYRIGH
 
 #	Line Mode Manual
 #
@@ -318,10 +302,10 @@ QUICKGUIDE = \
 	$(LMD)/Bugs.html \
 	$(LMD)/Features.html
 
-doc : /mnt/www0/pub/www/doc/line-mode-guide.txt
+doc : $(FTP)/www/doc/line-mode-guide.txt
 	echo line mode browser guide exists.
 
-/mnt/www0/pub/www/doc/line-mode-guide.txt : $(LMD)/line-mode-guide.txt
+$(FTP)/www/doc/line-mode-guide.txt : $(LMD)/line-mode-guide.txt
 	cp $? $@
 
 $(LMD)/line-mode-guide.txt : $(QUICKGUIDE)

@@ -490,8 +490,8 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
 {
     HTStyle * style = text->style;
     int spare;
-    int indent = text->in_line_1 ? text->style->indent1st
-    				 : text->style->leftIndent;
+    int indent = (int) (text->in_line_1 ? text->style->indent1st
+			: text->style->leftIndent);
 
 /*	Make new line
 */
@@ -546,9 +546,8 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
 /*	Align left, right or center
 */
 
-    spare =  HTScreenWidth -
-    		style->rightIndent + style->leftIndent -
-    		previous->size;	/* @@ first line indent */
+    spare =  (int) (HTScreenWidth - style->rightIndent + style->leftIndent -
+		    previous->size);		     /* @@ first line indent */
 		
     switch (style->alignment) {
 	case HT_CENTER :
@@ -622,8 +621,8 @@ PRIVATE void blank_lines ARGS2(HText *,text, int,newlines)
 
 PUBLIC void HText_appendParagraph ARGS1(HText *,text)
 {
-    int after = text->style->spaceAfter;
-    int before = text->style->spaceBefore;
+    int after = (int) text->style->spaceAfter;
+    int before = (int) text->style->spaceBefore;
     blank_lines(text, after>before ? after : before);
 }
 
@@ -638,8 +637,8 @@ PUBLIC void HText_setStyle ARGS2(HText *,text, HTStyle *,style)
     int after, before;
 
     if (!style) return;				/* Safety */
-    after = text->style->spaceAfter;
-    before = style->spaceBefore;
+    after = (int) text->style->spaceAfter;
+    before = (int) style->spaceBefore;
     if (SGML_TRACE) fprintf(stderr, "HTML: Change to style %s\n", style->name);
 
     blank_lines (text, after>before ? after : before);
@@ -655,7 +654,7 @@ PUBLIC void HText_appendCharacter ARGS2(HText *,text, char,ch)
 {
     HTLine * line = text->last_line;
     HTStyle * style = text->style;
-    int indent = text->in_line_1 ? style->indent1st : style->leftIndent;
+    int indent = (int)(text->in_line_1 ? style->indent1st : style->leftIndent);
     
 /*		New Line
 */
@@ -680,13 +679,13 @@ PUBLIC void HText_appendCharacter ARGS2(HText *,text, char,ch)
 		    new_line(text);
 		    return;
 		}
-	    target = tab->position;
+	    target = (int) tab->position;
 	} else if (text->in_line_1) {	/* Use 2nd indent */
 	    if (here >= style->leftIndent) {
 	        new_line(text); /* wrap */
 		return;
 	    } else {
-	        target = style->leftIndent;
+	        target = (int) style->leftIndent;
 	    }
 	} else {		/* Default tabs align with left indent mod 8 */
 #ifdef DEFAULT_TABS_8
