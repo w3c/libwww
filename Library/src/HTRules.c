@@ -8,6 +8,9 @@
 **			Rule order in file changed
 **			Comments allowed with # on 1st char of rule line
 **      17 Jun 92       Bug fix: pass and fail failed if didn't contain '*' TBL
+**       1 Sep 93       Bug fix: no memory check - Nathan Torkington
+**                      BYTE_ADDRESSING removed - Arthur Secret
+**                      
 */
 
 /* (c) CERN WorldWideWeb project 1990,91. See Copyright.html for details */
@@ -46,10 +49,7 @@ PRIVATE rule * rule_tail = 0;	/* Pointer to last on list */
 **  On exit,
 **	returns		0 if success, -1 if error.
 */
-/*	Note that if BYTE_ADDRESSING is set, the three blocks required
-**	are allocated and deallocated as one. This will save time and
-**	storage, when malloc's allocation units are large.
-*/
+
 #ifdef __STDC__
 PUBLIC int HTAddRule (HTRuleOp op, const char * pattern, const char * equiv)
 #else
@@ -58,23 +58,20 @@ int HTAddRule(op, pattern, equiv)
     char *	pattern;
     char *	equiv;
 #endif
-{
-#ifdef BYTE_ADDRESSING	/* economise on malloc() blocks */
-    int		length_of_pattern = strlen(pattern)+1;
-    rule *	temp = malloc(sizeof(*temp) +
-    			size_of_pattern + strlen(equiv) + 1);
-    char *	pPattern = (char *) &temp[1];
-#else
-    rule *	temp = (rule *)malloc(sizeof(*temp));
-    char *	pPattern = (char *)malloc(strlen(pattern)+1);
-#endif
+{ /* BYTE_ADDRESSING removed and memory check - AS - 1 Sep 93 */
+    rule *      temp;
+    char *      pPattern;
 
+    temp = (rule *)malloc(sizeof(*temp));
+    if (temp==NULL) 
+	outofmem(__FILE__, "HTAddRule"); 
+    pPattern = (char *)malloc(strlen(pattern)+1);
+    if (pPattern==NULL) 
+	outofmem(__FILE__, "HTAddRule"); 
     if (equiv) {		/* Two operands */
-#ifdef BYTE_ADDRESSING	/* economise on malloc() blocks */
-        char *	pEquiv = pPattern + length_of_pattern;
-#else
 	char *	pEquiv = (char *)malloc(strlen(equiv)+1);
-#endif
+	if (pEquiv==NULL) 
+	    outofmem(__FILE__, "HTAddRule"); 
         temp->equiv = pEquiv;
         strcpy(pEquiv, equiv);
     } else {
@@ -120,13 +117,9 @@ int HTClearRules()
     while (rules) {
     	rule * temp = rules;
 	rules = temp->next;
-#ifdef BYTE_ADDRESSING
-	free(temp);
-#else
 	free(temp->pattern);
 	free(temp->equiv);
 	free(temp);
-#endif
     }
 #ifndef PUT_ON_HEAD
     rule_tail = 0;
@@ -157,6 +150,7 @@ char * HTTranslate(required)
 {
     rule * r;
     char * current = (char *)malloc(strlen(required)+1);
+    if (current==NULL) outofmem(__FILE__, "HTTranslate"); /* NT */
     strcpy(current, required);
     
     for(r = rules; r; r = r->next) {
@@ -192,6 +186,8 @@ char * HTTranslate(required)
 	          if (ins) {	/* Consistent rule!!! */
 			char * temp = (char *)malloc(
 				strlen(r->equiv)-1 + m + 1);
+			if (temp==NULL) 
+			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
 			strncpy(temp, 	r->equiv, ins-r->equiv);
 			/* Note: temp may be unterminated now! */
 			strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
@@ -203,6 +199,8 @@ char * HTTranslate(required)
 
 		    } else {	/* No insertion point */
 			char * temp = (char *)malloc(strlen(r->equiv)+1);
+			if (temp==NULL) 
+			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
 			strcpy(temp, r->equiv);
     			if (TRACE) printf("For `%s' using `%s'\n",
 						current, temp);
