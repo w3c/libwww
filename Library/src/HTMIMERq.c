@@ -119,6 +119,9 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 		PUTBLOCK(linebuf, (int) strlen(linebuf));	
 	    } else {
 		transfer_coding = YES;
+    	        sprintf(linebuf, "Transfer-Encoding: %s%c%c",
+                        HTAtom_name(WWW_CODING_CHUNKED), CR, LF);
+	        PUTBLOCK(linebuf, (int) strlen(linebuf));
 	    }
 	}
     }
