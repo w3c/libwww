@@ -1,116 +1,100 @@
 <HTML>
-<HEADER>
-<TITLE>Architecture - Anchors</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-<NEXTID N="5">
-</HEADER>
+<HEAD>
+  <TITLE>Architecture - The Anchor Class</TITLE>
+</HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>The Anchor Object</H1>
-
-Anchors represent any references to data objects which may be the
-sources or destinations of hypertext links. This section contains a
-general description of the model used to bind anchors together in an
-internal representation in the <A HREF="../../">W3C Reference
-Library</A>.
-
-The anchors are organized into a <EM>sub-web</EM> which represents the
-part of the web that the application (often the user) has been in
-touch with. In this sub-web, any anchor can be the source of zero,
-one, or many links and it may be the destination of zero, one, or many
-links. That is, any anchor can point to and be pointed to by any
-number of links. Having an anchor being the source of many links is
-often used in the POST method, where for example the same data object
-is to be posted to a News group, a mailing list and a HTTP
-server. This is explained in the section "<A
-HREF="PostWeb.html">Building a POST Web, an API for PUT and
-POST</A>"<P>
-
-Every data object has an anchor associated with it. Anchors exist
-throughout the lifetime of the application, but as this generally is
-not the case for data objects, it is possible to have an anchor
-without a data object. If the data object is stored in the file cache
-or in memory, the parent anchor contains a link to it so the
-application can access it either directly or through the <A
-HREF="./#ClientCache">file cache manager</A>. There are two
-types of anchors in the Library:<P>
-
-<DL>
-<DT><EM>parent anchors</EM>
-
-<DD>Represents whole data objects. That is, the destination of a link
-pointing to a parent anchor is the full contents of the data object.
-Parent anchors are used to store all information about a data object,
-for example the content type, language, and length.
-
-<DT><EM>child anchors</EM>
-
-<DD>Represents a subpart of a data object. A subpart is declared by
-making a NAME tag in the anchor declaration and a child anchor is the
-destination of a link if the HREF link declaration contains a "#" and
-a tag appended to the URI. Child anchors do not contain any
-information about the data object itself. They only keep a handle (or
-a "tag") pointing into the data object kept by the corresponding
-parent anchor.
-
-</DL>
-
-Both types of anchors are subclasses of a <A
-HREF="../../src/HTAnchor.html#Generic">generic anchor
-class</A> which defines a set of outgoing links to where the anchor
-points. Every parent anchor points to an address which may or may not
-exist. In the case of posting an anchor to a remote server, the
-address pointed to is yet to be created. The client can assign an
-address for the object but it might be overridden (or completely
-denied) by the remote server. The relationship between parent anchors
-and child anchors is illustrated in the figure.
-
-<P><A NAME="Anchors"><IMG ALT="Anchors" SRC="Anchors"></A><P>
-
-<OL>
-
-<LI>Parent anchors keep a list of its children which is used to avoid
-having multiple example of the same child and in the garbage
-collection of anchors.
-
-<LI>All child anchors have a pointer to their parent as only the
-parent anchors keep information about the data object itself. Parent
-anchors simply have a pointer to themselves.
-
-<LI>Every parent anchor have an address which is a URL pointing to a
-resource that may or may not exist.
-
-<LI>Parents can have a data object associated using the HyperDoc
-object. In this case anchor <B>B</B> and <B>C</B> has a data
-object but <B>A</B> hasn't which can either be because the anchor has
-not yet been requested or the data object has been discarded from
-memory by the application.
-
-<LI>Any anchor can have any number of links pointing to a set of
-destinations. In most situations there is only one destination, but
-multiple destinations is typical when posting data objects to a remote
-server.
-
-<LI>This anchor has two destinations. By default the main destination
-will be the one selected.
-
-<LI>Parent anchors keep a list of other anchors pointing to it. This
-information is required if a single parent anchor (and its children)
-is removed from the sub-web.
-
-</OL>
-
+<H1>
+  The Anchor Class
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+The <A HREF="../../src/HTAnchor.html">Anchor Class</A> defines references
+to data objects which may be the sources or destinations of hypertext links.
+This section contains a general description of the model used to bind anchors
+together in an internal representation in the <A HREF="../../">W3C Reference
+Library</A>. The anchors are organized into a <EM>sub-web</EM> which represents
+the part of the web that the application (often the user) has been in touch
+with. In this sub-web, any anchor can be the source of zero, one, or many
+links and it may be the destination of zero, one, or many links. That is,
+any anchor can point to and be pointed to by any number of links. Having
+an anchor being the source of many links is often used in the POST method,
+where for example the same data object is to be posted to a News group, a
+mailing list and a HTTP server. This is explained in the section
+"<A HREF="PostWeb.html">Building a POST Web, an API for PUT and POST</A>"
+<P>
+Every data object has an anchor associated with it. Anchors exist throughout
+the lifetime of the application, but as this generally is not the case for
+data objects, it is possible to have an anchor without a data object. If
+the data object is stored in the file cache or in memory, the parent anchor
+contains a link to it so the application can access it either directly or
+through the <A HREF="./#ClientCache">file cache manager</A>. There are two
+types of anchors in the Library:
+<P>
+<DL>
+  <DT>
+    <EM>parent anchors</EM>
+  <DD>
+    Represents whole data objects. That is, the destination of a link pointing
+    to a parent anchor is the full contents of the data object. Parent anchors
+    are used to store all information about a data object, for example the content
+    type, language, and length.
+  <DT>
+    <EM>child anchors</EM>
+  <DD>
+    Represents a subpart of a data object. A subpart is declared by making a
+    NAME tag in the anchor declaration and a child anchor is the destination
+    of a link if the HREF link declaration contains a "#" and a tag appended
+    to the URI. Child anchors do not contain any information about the data object
+    itself. They only keep a handle (or a "tag") pointing into the data object
+    kept by the corresponding parent anchor.
+</DL>
+<P>
+Both types of anchors are subclasses of a
+<A HREF="../../src/HTAnchor.html#Generic">generic anchor class</A> which
+defines a set of outgoing links to where the anchor points. Every parent
+anchor points to an address which may or may not exist. In the case of posting
+an anchor to a remote server, the address pointed to is yet to be created.
+The client can assign an address for the object but it might be overridden
+(or completely denied) by the remote server. The relationship between parent
+anchors and child anchors is illustrated in the figure.
+<P>
+<A NAME="Anchors"><IMG SRC="Anchors.gif" ALT="Anchors" WIDTH="531" HEIGHT="367"></A>
+<P>
+<OL>
+  <LI>
+    Parent anchors keep a list of its children which is used to avoid having
+    multiple example of the same child and in the garbage collection of anchors.
+  <LI>
+    All child anchors have a pointer to their parent as only the parent anchors
+    keep information about the data object itself. Parent anchors simply have
+    a pointer to themselves.
+  <LI>
+    Every parent anchor have an address which is a URL pointing to a resource
+    that may or may not exist.
+  <LI>
+    Parents can have a data object associated using the HyperDoc object. In this
+    case anchor <B>B</B> and <B>C</B> has a data object but <B>A</B> hasn't which
+    can either be because the anchor has not yet been requested or the data object
+    has been discarded from memory by the application.
+  <LI>
+    Any anchor can have any number of links pointing to a set of destinations.
+    In most situations there is only one destination, but multiple destinations
+    is typical when posting data objects to a remote server.
+  <LI>
+    This anchor has two destinations. By default the main destination will be
+    the one selected.
+  <LI>
+    Parent anchors keep a list of other anchors pointing to it. This information
+    is required if a single parent anchor (and its children) is removed from
+    the sub-web.
+</OL>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id:
+  Anchors.html,v 1.17 1996/05/15 17:27:53 frystyk Exp $
 </ADDRESS>
-</BODY>
-</HTML>
-
-
-
+</BODY></HTML>

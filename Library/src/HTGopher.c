@@ -23,8 +23,7 @@
 #include "WWWCore.h"
 #include "WWWHTML.h"
 #include "WWWDir.h"
-#include "HTTCP.h"
-#include "HTReqMan.h"
+#include "WWWTrans.h"
 #include "HTNetMan.h"
 #include "HTGopher.h"					 /* Implemented here */
 
@@ -510,8 +509,9 @@ PRIVATE HTStream * GopherMenu_new (HTRequest * request, char *url, BOOL CSO)
         HT_OUTOFMEM("GopherMenu_new");
     me->isa = &GopherMenuClass;
     me->target = HTMLGenerator(request, NULL, WWW_HTML,
-			       request->output_format, request->output_stream);
-    HTAnchor_setFormat(request->anchor, WWW_HTML);
+			       HTRequest_outputFormat(request),
+			       HTRequest_outputStream(request));
+    HTAnchor_setFormat(HTRequest_anchor(request), WWW_HTML);
     me->request = request;    
     me->state = EOL_BEGIN;
     me->url = url;
@@ -529,17 +529,18 @@ PRIVATE HTStream * GopherMenu_new (HTRequest * request, char *url, BOOL CSO)
 **      This function closes the connection and frees memory.
 **      Returns YES if OK, else NO
 */
-PRIVATE BOOL GopherCleanup (HTRequest *req, int status)
+PRIVATE BOOL GopherCleanup (HTRequest * request, int status)
 {
-    HTNet *net = req->net;
-    gopher_info *gopher = (gopher_info *) net->context;
+    HTNet * net = HTRequest_net(request);
+    gopher_info * gopher = (gopher_info *) HTNet_context(net);
+    HTStream * input = HTRequest_inputStream(request);
 
     /* Free stream with data TO network */
-    if (req->input_stream) {
+    if (input) {
 	if (status == HT_INTERRUPTED)
-	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+	    (*input->isa->abort)(input, NULL);
 	else
-	    (*req->input_stream->isa->_free)(req->input_stream);
+	    (*input->isa->_free)(input);
     }
 
     /* Remove the request object and our own context structure for gopher */
@@ -557,12 +558,14 @@ PRIVATE BOOL GopherCleanup (HTRequest *req, int status)
 */
 PRIVATE void display_index (HTRequest * request)
 {
+    HTParentAnchor * anchor = HTRequest_anchor(request);
     HTStructured *target = HTMLGenerator(request, NULL, WWW_HTML,
-					 request->output_format,
-					 request->output_stream);
+					 HTRequest_outputFormat(request),
+					 HTRequest_outputStream(request));
+
     /* Update anchor information */
-    HTAnchor_setFormat(request->anchor, WWW_HTML);
-    HTAnchor_setTitle(request->anchor, "Searchable Gopher Index");
+    HTAnchor_setFormat(anchor, WWW_HTML);
+    HTAnchor_setTitle(anchor, "Searchable Gopher Index");
     /* @@@ We don't set Content-Length */
 
     START(HTML_HTML);
@@ -589,12 +592,14 @@ PRIVATE void display_index (HTRequest * request)
 */
 PRIVATE void display_cso (HTRequest * request)
 {
+    HTParentAnchor * anchor = HTRequest_anchor(request);
     HTStructured *target = HTMLGenerator(request, NULL, WWW_HTML,
-					 request->output_format,
-					 request->output_stream);
+					 HTRequest_outputFormat(request),
+					 HTRequest_outputStream(request));
+
     /* Update anchor information */
-    HTAnchor_setFormat(request->anchor, WWW_HTML);
-    HTAnchor_setTitle(request->anchor, "Searchable SCO Index");
+    HTAnchor_setFormat(anchor, WWW_HTML);
+    HTAnchor_setTitle(anchor, "Searchable SCO Index");
     /* @@@ We don't set Content-Length */
 
     START(HTML_HTML);
@@ -628,9 +633,10 @@ PRIVATE void display_cso (HTRequest * request)
 PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
-    HTNet *net = request->net;
-    gopher_info *gopher;
-    char *url = HTAnchor_physical(request->anchor);
+    HTNet * net = HTRequest_net(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * url = HTAnchor_physical(anchor);
+    gopher_info * gopher;
     
     /*
     ** Initiate a new gopher structure and bind to request structure
@@ -643,12 +649,12 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    HT_OUTOFMEM("HTLoadGopher");
 	gopher->type = GT_MENU;
 	gopher->state = GOPHER_BEGIN;
-	net->context = gopher;
+	HTNet_setContext(net, gopher);
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	GopherCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
-	gopher = (gopher_info *) net->context;		/* Get existing copy */
+	gopher = (gopher_info *) HTNet_context(net);	/* Get existing copy */
 
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
@@ -662,7 +668,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		char *separator = NULL;
 		if (*selector) gopher->type = (HTGopherType) *selector++;
 		if (gopher->type == GT_INDEX) {
-		    HTAnchor_setIndex(request->anchor);		 /* Is index */
+		    HTAnchor_setIndex(anchor);			 /* Is index */
 		    query = strchr(selector, '?');
 
 		    /* Display local cover page only if no search requested */
@@ -676,7 +682,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 			separator = "\t";
 		    }
 		} else if (gopher->type == GT_CSO) {
-		    HTAnchor_setIndex(request->anchor);	/* Search is allowed */
+		    HTAnchor_setIndex(anchor);		/* Search is allowed */
 		    query = strchr(selector, '?'); /* Look for search string */
 		    
 		    /* Display local cover page only if no search requested */
@@ -747,8 +753,8 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 			target = GopherMenu_new(request, url, YES);
 		    else
 			target = HTStreamStack(WWW_UNKNOWN,
-					       request->output_format,
-					       request->output_stream,
+					       HTRequest_outputFormat(request),
+					       HTRequest_outputStream(request),
 					       request, NO);
 		    HTNet_getInput(net, target, NULL, 0);
 		}
@@ -771,14 +777,17 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case GOPHER_NEED_REQUEST:
 	    if (PROT_TRACE) HTTrace("Gopher Tx... `%s\'", gopher->cmd);
-	    status = (*request->input_stream->isa->put_block)
-		(request->input_stream, gopher->cmd, strlen(gopher->cmd));
-	    if (status == HT_WOULD_BLOCK)
-		return HT_OK;
-	    else if (status == HT_ERROR)
-		gopher->state = GOPHER_ERROR;
-	    else
-		gopher->state = GOPHER_NEED_RESPONSE;
+	    {	
+		HTStream * input = HTRequest_inputStream(request);
+		status = (*input->isa->put_block)
+		    (input, gopher->cmd, strlen(gopher->cmd));
+		if (status == HT_WOULD_BLOCK)
+		    return HT_OK;
+		else if (status == HT_ERROR)
+		    gopher->state = GOPHER_ERROR;
+		else
+		    gopher->state = GOPHER_NEED_RESPONSE;
+	    }
 	    break;
 
 	  case GOPHER_NEED_RESPONSE:

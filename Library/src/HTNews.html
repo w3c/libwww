@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww NNTP and NEWS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
 </HEAD>
 <BODY>
 
@@ -47,16 +47,6 @@ shown at once. This is also the default behavior.
 <PRE>
 extern BOOL HTNews_setMaxArticles (int new_max);
 extern int HTNews_maxArticles (void);
-</PRE>
-
-<H2>Handling the News Host</H2>
-
-The default news host is "news" but you can get ans set the value here.
-
-<PRE>
-extern BOOL HTNews_setHost (const char * newshost);
-extern const char *HTNews_host (void);
-extern void HTFreeNewsHost (void);
 </PRE>
 
 <PRE>

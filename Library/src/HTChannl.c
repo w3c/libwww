@@ -224,6 +224,14 @@ PUBLIC SOCKET HTChannel_socket (HTChannel * channel)
 }
 
 /*
+**	Return the file descriptor associated with this channel
+*/
+PUBLIC FILE * HTChannel_file (HTChannel * channel)
+{
+    return channel ? channel->fp : NULL;
+}
+
+/*
 **	Increase the semaphore for this channel
 */
 PUBLIC void HTChannel_upSemaphore (HTChannel * channel)

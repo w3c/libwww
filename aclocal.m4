@@ -220,7 +220,7 @@ AC_DEFUN(AC_CHECK_EXTERNS,
 do
 AC_CHECK_EXTERN($ac_exter,
 [changequote(, )dnl
-  ac_tr_exter=HAVE_`echo $ac_exter | tr '[a-z]' '[A-Z]'`
+  ac_tr_exter=HAVE_`echo $ac_exter | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
 changequote([, ])dnl
   AC_DEFINE_UNQUOTED($ac_tr_exter) $2], $3)dnl
 done
@@ -443,8 +443,7 @@ if test $ac_cv_struct_gmtoff = yes; then
   AC_DEFINE(HAVE_TM_GMTOFF)
 fi
 
-  AC_CHECK_EXTERN(timezone)
-  AC_CHECK_EXTERN(altzone)
+AC_CHECK_EXTERNS(timezone altzone)
 
 if test $ac_cv_extern_timezone = yes; then
   AC_REQUIRE([AC_ISC_POSIX])dnl

@@ -1,36 +1,35 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww ANSI C FILE STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z4">
+  <!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+  <TITLE>W3C Reference Library libwww ANSI C File Streams</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Wrting to a File using ANSI C</H1>
-
+<H1>
+  ANSI C File Streams
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
+<P>
 It is useful to have both FWriter and Writer for environments in which
-<CODE>fdopen()</CODE> doesn't exist for example. The module contains
-the following parts:
-
+<CODE>fdopen()</CODE> doesn't exist for example. The module contains the
+following parts:
+<P>
 <UL>
-<LI><A HREF="#utils">Basic Utility Streams</A>
-<LI><A HREF="#write">An ANSI C File Writer Stream</A>
-<LI><A HREF="#converters">Various Converters using the File Writer Stream</A>
+  <LI>
+    <A HREF="#utils">Basic Utility Streams</A>
+  <LI>
+    <A HREF="#write">An ANSI C File Writer Stream</A>
+  <LI>
+    <A HREF="#converters">Various Converters using the File Writer Stream</A>
 </UL>
-
-
-This module is implemented by <A HREF="HTFWrite.c">HTFWrite.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
-
+<P>
+This module is implemented by <A HREF="HTFWrite.c">HTFWrite.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTFWRITE_H
 #define HTFWRITE_H
@@ -38,78 +37,60 @@ Reference Library</A>.
 #include "HTStream.h"
 #include "HTFormat.h"
 </PRE>
-
-<H2><A NAME="write">An ANSI C File Writer Stream</A></H2>
-
-This function puts up a new stream given an open file descripter. If the file
-is not to be closed afterwards, then set leave_open = NO.
-
+<H2>
+  <A NAME="write">ANSI C File Writer Stream</A>
+</H2>
+<P>
+This function puts up a new stream given an <I>open</I> file descripter.
+If the file is <I>not</I> to be closed afterwards, then set
+<CODE>leave_open=NO</CODE>.
 <PRE>
 extern HTStream * HTFWriter_new	(HTRequest * request,
 				 FILE * fp,
 				 BOOL leave_open);
 </PRE>
-
-<A NAME="converters"><H2>Various Converters using the File Writer
-Stream</H2></A>
-
-This is a set of functions that can be registered as converters. They
-all use the basic ANSI C file writer stream for writing out to the
-local file system.
-
+<H2>
+  Various Converters using the File Writer Stream
+</H2>
+<P>
+This is a set of functions that can be registered as converters. They all
+use the basic ANSI C file writer stream for writing out to the local file
+system.
 <PRE>
 extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallback;
 </PRE>
-
+<P>
 <DL>
-
-<DT><CODE>HTSaveLocally</CODE>
-<DD>Saves a file to local disk. This can for example be used to dump
-date objects of unknown media types to local disk. The stream prompts
-for a file name for the temporary file.
-
-<DT><CODE>HTSaveAndExecute</CODE>
-
-<DD>Creates temporary file, writes to it and then executes system
-command (maybe an external viewer) when EOF has been reached. The
-stream finds a suitable name of the temporary file which preserves the
-suffix. This way, the system command can find out the file type from
-the name of the temporary file name.
-
-<DT><CODE>HTSaveAndCallback</CODE>
-
-<DD>This stream works exactly like the <CODE>HTSaveAndExecute</CODE>
-stream but in addition when EOF has been reached, it checks whether a
-callback function has been associated with the request object in which
-case, this callback is being called. This can be use by the
-application to do some processing <EM>after</EM> the system command
-has terminated. The callback function is called with the file name of
-the temporary file as parameter.
-
+  <DT>
+    <CODE>HTSaveLocally</CODE>
+  <DD>
+    Saves a file to local disk. This can for example be used to dump date objects
+    of unknown media types to local disk. The stream prompts for a file name
+    for the temporary file.
+  <DT>
+    <CODE>HTSaveAndExecute</CODE>
+  <DD>
+    Creates temporary file, writes to it and then executes system command (maybe
+    an external viewer) when <CODE>EOF</CODE> has been reached. The stream finds
+    a suitable name of the temporary file which preserves the suffix. This way,
+    the system command can find out the file type from the name of the temporary
+    file name.
+  <DT>
+    <CODE>HTSaveAndCallback</CODE>
+  <DD>
+    This stream works exactly like the <CODE>HTSaveAndExecute</CODE> stream but
+    in addition when <CODE>EOF</CODE> has been reached, it checks whether a callback
+    function has been associated with the request object in which case, this
+    callback is being called. This can be use by the application to do some
+    processing <EM>after</EM> the system command has terminated. The callback
+    function is called with the file name of the temporary file as parameter.
 </DL>
-
-<A NAME="tmp"><H3>Location of Temporary Files</H3></A>
-
-The destination for temporary files can be managed by the following
-functions:
-
-<PRE>
-extern BOOL  HTTmp_setRoot		(const char * tmp_root);
-extern const char * HTTmp_getRoot	(void);
-extern void  HTTmp_freeRoot		(void);
-</PRE>
-
-The <CODE>HTTmp_freeRoot</CODE> is called by the <A
-HREF="HTReq.html#Library">HTLibTerminate</A> function. The default
-value is defined in <A HREF="HTAccess.html#Addresses">HTReq.html</A>
-
 <PRE>
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

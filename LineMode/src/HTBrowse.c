@@ -57,15 +57,12 @@
 #include "WWWRules.h"
 #include "WWWCache.h"
 #include "WWWApp.h"
+#include "WWWTrans.h"
 #include "WWWInit.h"
-
-#include "HTTrans.h"
-#include "HTReader.h"
-#include "HTWriter.h"
-#include "HTANSI.h"
 
 #include "GridText.h"				     /* Hypertext definition */
 #include "HTBrowse.h"			     /* Things exported, short names */
+
 #include "CSLApp.h" /* the PICApp library should provide everything the app needs */
 #include "CSLL.h"
 #include "CSUser.h"

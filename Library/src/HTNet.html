@@ -14,12 +14,25 @@
 */
 </PRE>
 <P>
-This module contains the routines for handling the set of active sockets
-currently in use by the multithreaded clients. It is an internal module to
-the Library, the application interface is implemented in the
-<A HREF="HTEvent.html">Event Module</A>. Look for more information in the
-<A HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/"> Multithread
-Specifications</A>.
+The Net class manages information related to a "thread" in libwww. As libwww
+threads are not really threads but a notion of using interleaved, non-blocking
+I/O for accessing data objects from the network (or local file system), they
+can be used on any platform with or without support for native threads. In
+the case where you have an application using real threads the Net class is
+simply a object maintaining links to all other objects involved in serving
+the request. If you are using the libwww pseudo threads then the Net object
+contains enough information to stop and start a request based on which BSD
+sockets are ready. In practise this is of course transparent to the application
+- this is just to explain the difference.
+<P>
+When a <A HREF="HTReq.html">Request object</A> is passed to the Library ,
+the core creates a new HTNet object pr <A HREF="HTChannl.html">channel</A>
+used by the request. In many cases a request only uses a single
+<A HREF="HTChannl.html">channel object </A>but for example FTP requests use
+at least two - one for the control connection and one for the data connection.
+<P>
+You can find more information about the libwww pseudo thread model in the
+<A HREF="../User/Architecture/"> Multithread Specifications</A>.
 <P>
 This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is a
 part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
@@ -43,7 +56,7 @@ typedef struct _HTNet HTNet;
 #include "HTDNS.h"
 </PRE>
 <H2>
-  Net Callback Functions
+  <A NAME="callout">Net Callback Functions</A>
 </H2>
 <P>
 Callback functions can be registered to be called <EM>before</EM> and
@@ -55,8 +68,8 @@ is called <EM>after</EM>
 <P>
 In both cases there can be more than one callback function which are called
 on turn and each callback function can be associated with a status code of
-the request. For example one callback function can be registered for HT_LOADED,
-another for HT_ERROR etc.
+the request. For example one callback function can be registered for
+<CODE>HT_LOADED</CODE>, another for <CODE>HT_ERROR</CODE> etc.
 <H3>
   Register a Net Callback
 </H3>
@@ -162,7 +175,7 @@ extern HTList * HTNet_after	(void);
 extern int HTNet_callAfter	(HTRequest *request, int status);
 </PRE>
 <H2>
-  Request Queue
+  Request Queueing and Resource Management
 </H2>
 <P>
 The request queue ensures that no more than a fixed number of TCP connections
@@ -294,7 +307,7 @@ call the call back functions - A crude way of saying goodbye!
 extern BOOL HTNet_deleteAll (void);
 </PRE>
 <H2>
-  Net Object Methods
+  Net Class Methods
 </H2>
 <H3>
   Make an Object Wait

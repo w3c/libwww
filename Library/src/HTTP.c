@@ -23,7 +23,7 @@
 #include "WWWCache.h"
 #include "WWWMIME.h"
 #include "WWWStream.h"
-#include "HTTCP.h"
+#include "WWWTrans.h"
 #include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTTPUtil.h"
@@ -96,7 +96,7 @@ struct _HTInputStream {
 PRIVATE int HTTPCleanup (HTRequest *req, int status)
 {
     HTNet *net = req->net;
-    http_info *http = (http_info *) net->context;
+    http_info * http = (http_info *) HTNet_context(net);;
 
     /* Free stream with data TO network */
     if (HTRequest_isDestination(req))
@@ -108,12 +108,6 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 	    (*req->input_stream->isa->_free)(req->input_stream);
 	req->input_stream = NULL;
     }
-
-    /* Free user part of stream pipe if error */
-#if 0
-    if (!net->target && req->output_stream)
-	(*req->output_stream->isa->abort)(req->output_stream, NULL);
-#endif
 
     /* Remove the request object and our own context structure for http */
     HTNet_delete(net, req->internal ? HT_IGNORE : status);
@@ -478,7 +472,8 @@ PUBLIC HTStream * HTTPStatus_new (HTRequest *	request,
     me->isa = &HTTPStatusClass;
     if (request) {
 	HTNet * net = request->net;
-	http_info * http = (http_info *) net->context;	/* Get existing copy */
+        /* Get existing copy */
+	http_info * http = (http_info *) HTNet_context(net);
 	me->request = request;
 	me->http = http;
 	http->next = HTTP_ERROR;
@@ -519,14 +514,14 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    HT_OUTOFMEM("HTLoadHTTP");
 	http->state = HTTP_BEGIN;
 	http->next = HTTP_GOT_DATA;
-	net->context = http;
+	HTNet_setContext(net, http);
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadHTTP");
 	HTTPCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
-	http = (http_info *) net->context;		/* Get existing copy */
+	http = (http_info *) HTNet_context(net);	/* Get existing copy */
  
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {

@@ -30,7 +30,6 @@
 #include "WWWApp.h"
 #include "WWWCache.h"
 #include "WWWRules.h"
-#include "HTReqMan.h"
 #include "HTHome.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -48,11 +47,12 @@
 PUBLIC char * HTFindRelatedName (void)
 {
     char* default_default = NULL;	      /* Parse home relative to this */
-    const char *host = HTGetHostName(); 
+    char * host = HTGetHostName(); 
     StrAllocCopy(default_default, "file://");
-    if (host)
+    if (host) {
 	StrAllocCat(default_default, host);
-    else
+	HT_FREE(host);
+    } else
 	StrAllocCat(default_default, "localhost");
     {
 	char wd[HT_MAX_PATH+1];
@@ -199,7 +199,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 */
 PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 {    
-    HTParentAnchor *anchor = HTRequest_anchor(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
     char * addr = HTAnchor_address((HTAnchor *) anchor);
     HTReload mode = HTRequest_reloadMode(request);
 
@@ -213,7 +213,7 @@ PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 	}
     } else {
 	HTRequest_addGnHd(request, HT_G_NO_CACHE);	  /* No-cache pragma */
-	HTAnchor_clearHeader(request->anchor);
+	HTAnchor_clearHeader(anchor);
     }
 
     /*
@@ -223,7 +223,7 @@ PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 	HTList *list = HTRule_global();
 	char * physical = HTRule_translate(list, addr, NO);
 	if (!physical) {
-	    char *url = HTAnchor_address((HTAnchor *) request->anchor);
+	    char *url = HTAnchor_address((HTAnchor *) anchor);
 	    if (url) {
 		HTUnEscape(url);
 		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
@@ -256,7 +256,7 @@ PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 	    }
 	} else if ((newaddr = HTProxy_find(addr))) {
 	    StrAllocCat(newaddr, addr);
-	    request->using_proxy = YES;
+	    HTRequest_setUsingProxy(request, YES);
 	    HTAnchor_setPhysical(anchor, newaddr);
 	} else if ((newaddr = HTGateway_find(addr))) {
 	    char * path = HTParse(addr, "",
@@ -267,7 +267,7 @@ PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 	    HT_FREE(path);
 	    HT_FREE(gatewayed);
 	} else {
-	    request->using_proxy = NO;      /* We don't use proxy or gateway */
+	    HTRequest_setUsingProxy(request, NO);
 	}
 	HT_FREE(newaddr);
     }
@@ -282,7 +282,8 @@ PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 */
 PUBLIC int HTLoadTerminate (HTRequest * request, void * param, int status)
 {
-    char * uri = HTAnchor_address((HTAnchor*)request->anchor);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * uri = HTAnchor_address((HTAnchor*) anchor);
     switch (status) {
       case HT_RETRY:
 	if (PROT_TRACE)
@@ -294,7 +295,7 @@ PUBLIC int HTLoadTerminate (HTRequest * request, void * param, int status)
 	{
 	    HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
 	    if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
-			    request->error_stack, NULL);
+			    HTRequest_error(request), NULL);
 	}
 	if (PROT_TRACE)
 	    HTTrace("Load End.... ERROR: Can't access `%s\'\n",

@@ -1,54 +1,56 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww URIs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="1">
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <NEXTID N="1">
+  <TITLE>W3C Reference Library libwww URIs</TITLE>
 </HEAD>
 <BODY>
-
-<H1>URI Parsing</H1>
-
+<H1>
+  URI Parsing
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
+<P>
 This module contains code to parse URIs and various related things such as:
-
 <UL>
-<LI><A HREF="#parse">Parse a URI for tokens</A>
-<LI><A HREF="#canon">Canonicalization of URIs</A>
-<LI><A HREF="#secure">Search a URI for illigal characters in order to prevent security holes</A>
+  <LI>
+    <A HREF="#parse">Parse a URI for tokens</A>
+  <LI>
+    <A HREF="#canon">Canonicalization of URIs</A>
+  <LI>
+    <A HREF="#secure">Search a URI for illigal characters in order to prevent
+    security holes</A>
 </UL>
-
-This module is implemented by <A HREF="HTParse.c">HTParse.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+This module is implemented by <A HREF="HTParse.c">HTParse.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTPARSE_H
 #define HTPARSE_H
 
 #include "HTEscape.h"
 </PRE>
-
-<A NAME="parse"><H2>Parsing URIs</H2></A>
-
+<H2>
+  Parsing URIs
+</H2>
+<P>
 These functions can be used to get information in a URI.
-
-<H3>Parse a URI relative to another URI</H3>
-
-This returns those parts of a name which are given (and requested)
-substituting bits from the related name where necessary. The
-<CODE>aName</CODE> argument is the (possibly relative) URI to be
-parsed, the <CODE>relatedName</CODE> is the URI which the
-<CODE>aName</CODE> is to be parsed relative to. Passing an empty
-string means that the <CODE>aName</CODE> is an absolute URI. The
-following are flag bits which may be OR'ed together to form a number
-to give the 'wanted' argument to HTParse.
-
+<H3>
+  Parse a URI relative to another URI
+</H3>
+<P>
+This returns those parts of a name which are given (and requested) substituting
+bits from the related name where necessary. The <CODE>aName</CODE> argument
+is the (possibly relative) URI to be parsed, the <CODE>relatedName</CODE>
+is the URI which the <CODE>aName</CODE> is to be parsed relative to. Passing
+an empty string means that the <CODE>aName</CODE> is an absolute URI. The
+following are flag bits which may be OR'ed together to form a number to give
+the 'wanted' argument to HTParse.
 <PRE>
 #define PARSE_ACCESS		16
 #define PARSE_HOST		 8
@@ -57,117 +59,119 @@ to give the 'wanted' argument to HTParse.
 #define PARSE_PUNCTUATION	 1
 #define PARSE_ALL		31
 </PRE>
-
+<P>
 where the format of a URI is as follows:
-
 <PRE>
 /*
 	ACCESS :// HOST / PATH # ANCHOR
 */
 </PRE>
-
-<CODE>PUNCTUATION</CODE> means any delimiter like '/', ':', '#'
-between the tokens above.
-
-The string returned by the function must be freed by the caller.
-
+<P>
+<CODE>PUNCTUATION</CODE> means any delimiter like '/', ':', '#' between the
+tokens above. The string returned by the function must be freed by the caller.
 <PRE>
 extern char * HTParse  (const char * aName, const char * relatedName,
 			int wanted);
 </PRE>
-
-<H3>Create a Relative (Partial) URI</H3>
-
-This function creates and returns a string which gives an expression
-of one address as related to another.  Where there is no relation, an
-absolute address is retured.
-
-<H3>On entry,</H3>Both names must be absolute, fully
-qualified names of nodes (no anchor
-bits)
-<H3>On exit,</H3>The return result points to a newly
-allocated name which, if parsed by
-HTParse relative to relatedName,
-will yield aName. The caller is responsible
-for freeing the resulting name later.
-
+<H3>
+  Create a Relative (Partial) URI
+</H3>
+<P>
+This function creates and returns a string which gives an expression of one
+address as related to another. Where there is no relation, an absolute address
+is retured.
+<H3>
+  On entry,
+</H3>
+<P>
+Both names must be absolute, fully qualified names of nodes (no anchor bits)
+<H3>
+  On exit,
+</H3>
+<P>
+The return result points to a newly allocated name which, if parsed by HTParse
+relative to relatedName, will yield aName. The caller is responsible for
+freeing the resulting name later.
 <PRE>
 extern char * HTRelative (const char * aName, const char *relatedName);
 </PRE>
-
-<A NAME="canon"><H2>Canonicalization</H2></A>
-
-Canonicalization of URIs is a difficult job, but it saves a lot of
-down loads and double entries in the cache if we do a good job. A URI
-is allowed to contain the seqeunce xxx/../ which may be replaced by ""
-, and the seqeunce "/./" which may be replaced by "/".  Simplification
-helps us recognize duplicate URIs. Thus, the following transformations
-are done:
-
+<H2>
+  Canonicalization
+</H2>
+<P>
+Canonicalization of URIs is a difficult job, but it saves a lot of down loads
+and double entries in the cache if we do a good job. A URI is allowed to
+contain the seqeunce xxx/../ which may be replaced by "" , and the seqeunce
+"/./" which may be replaced by "/". Simplification helps us recognize duplicate
+URIs. Thus, the following transformations are done:
 <UL>
-<LI> /etc/junk/../fred 	becomes	/etc/fred
-<LI> /etc/junk/./fred	becomes	/etc/junk/fred
+  <LI>
+    /etc/junk/../fred becomes /etc/fred
+  <LI>
+    /etc/junk/./fred becomes /etc/junk/fred
 </UL>
-
+<P>
 but we should NOT change
 <UL>
-<LI> http://fred.xxx.edu/../.. or
-<LI> ../../albert.html
+  <LI>
+    http://fred.xxx.edu/../.. or
+  <LI>
+    ../../albert.html
 </UL>
-
+<P>
 In the same manner, the following prefixed are preserved:
-
 <UL>
-<LI> ./<etc>
-<LI> //<etc>
+  <LI>
+    ./<etc>
+  <LI>
+    //<etc>
 </UL>
-
+<P>
 In order to avoid empty URIs the following URIs become:
-
 <UL>
-<LI> /fred/..			becomes /fred/..
-<LI> /fred/././..		becomes /fred/..
-<LI> /fred/.././junk/.././	becomes /fred/..
+  <LI>
+    /fred/.. becomes /fred/..
+  <LI>
+    /fred/././.. becomes /fred/..
+  <LI>
+    /fred/.././junk/.././ becomes /fred/..
 </UL>
-
+<P>
 If more than one set of `://' is found (several proxies in cascade) then
 only the part after the last `://' is simplified.
-
 <PRE>
 extern char *HTSimplify (char **filename);
 </PRE>
-
-<A NAME="secure"><H2>Prevent Security Holes</H2></A>
-
-In many telnet like protocols, it can be very dangerous to allow a
-full ASCII character set to be in a URI. Therefore we have to strip
-them out.
-
-<CODE>HTCleanTelnetString()</CODE> makes sure that the given string
-doesn't contain characters that could cause security holes, such as
-newlines in ftp, gopher, news or telnet URLs; more specifically:
-allows everything between hexadesimal ASCII 20-7E, and also A0-FE,
-inclusive.
+<H2>
+  Prevent Security Holes
+</H2>
+<P>
+In many telnet like protocols, it can be very dangerous to allow a full ASCII
+character set to be in a URI. Therefore we have to strip them out.
+<CODE>HTCleanTelnetString()</CODE> makes sure that the given string doesn't
+contain characters that could cause security holes, such as newlines in ftp,
+gopher, news or telnet URLs; more specifically: allows everything between
+hexadesimal ASCII 20-7E, and also A0-FE, inclusive.
 <DL>
-<DT> <CODE>str</CODE>
-<DD> the string that is *modified* if necessary.  The string will be
-     truncated at the first illegal character that is encountered.
-<DT>returns
-<DD> YES, if the string was modified.
-     NO, otherwise.
+  <DT>
+    <CODE>str</CODE>
+  <DD>
+    the string that is *modified* if necessary. The string will be truncated
+    at the first illegal character that is encountered.
+  <DT>
+    returns
+  <DD>
+    YES, if the string was modified. NO, otherwise.
 </DL>
-
 <PRE>
 extern BOOL HTCleanTelnetString (char * str);
 </PRE>
-
 <PRE>
 #endif	/* HTPARSE_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

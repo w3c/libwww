@@ -15,13 +15,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTStream.h"
-#include "HTFormat.h"
-#include "HTParse.h"
-#include "HTSocket.h"
-#include "HTReq.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTNDir.h"
 #include "HTNews.h"
 #include "HTNewsLs.h"					 /* Implemented here */

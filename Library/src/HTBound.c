@@ -19,11 +19,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTSocket.h"
-#include "HTStream.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTReqMan.h"
 #include "HTBound.h"					 /* Implemented here */
 

@@ -1,67 +1,64 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Transports</TITLE>
+  <TITLE>W3C Reference Library libwww Transports</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference Library Transports</H1>
-
+<H1>
+  Declaration of W3C Reference Library Transports
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
 <PRE>
 #ifndef WWWTRANS_H
 #define WWWTRANS_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H2>
+  System dependencies
+</H2>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "sysdep.h"
 </PRE>
-
-<H2>Transport Modules</H2>
-
+<H2>
+  Transport Modules
+</H2>
+<P>
 These are the transports describing this interface
-
-<H3>Local File Transport</H3>
-
+<H3>
+  Local File Transport
+</H3>
 <PRE>
-#include "HTANSI.h"
-#include "HTLocal.h"
+#include "<A HREF="HTANSI.html">HTANSI.h</A>"
+#include "<A HREF="HTLocal.html">HTLocal.h</A>"
 </PRE>
-
-<H3>TCP Socket Transport</H3>
-
+<H3>
+  BSD Socket Transport
+</H3>
 <PRE>
-#include "HTTCP.h"
-#include "HTSocket.h"
-#include "HTReader.h"
-#include "HTWriter.h"
-#include "HTBufWrt.h"
+#include "<A HREF="HTTCP.html">HTTCP.h</A>"
+#include "<A HREF="HTSocket.html">HTSocket.h</A>"
+#include "<A HREF="HTReader.html">HTReader.h</A>"
+#include "<A HREF="HTWriter.html">HTWriter.h</A>"
+#include "<A HREF="HTBufWrt.html">HTBufWrt.h</A>"
 </PRE>
-
-<H3>W3Mux Multiplexing Transport</H3>
-
+<H3>
+  W3Mux Multiplexing Transport
+</H3>
 <PRE>
-#include "HTMux.h"
+#include "<A HREF="HTMux.html">HTMux.h</A>"
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -69,10 +66,9 @@ These are the transports describing this interface
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

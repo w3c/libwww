@@ -1,155 +1,143 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww UTILITIES</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
+  <NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Basic Utilities</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference Library UTILITIES</H1>
-
-<PRE>
-/*
+<H1>
+  Declaration of W3C Reference Library Basic Utilities
+</H1>
+<PRE>/*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The Utility modules are mostly container modules, dynamic strings and
-otherstuff that you can't live without when building applications. The
-modules are used by the core part of the W3C Reference Library but can
-also be used by the application. See also the main Library include
-file called <A HREF="WWWLib.html">WWWLib.h</A> which contains all
-converters and protocol modules known to the Library. You can include
-this one if the application is to use all the functionality of the
-Library.
-
+<P>
+The Basic Utility modules are mostly container modules, dynamic strings and
+other stuff that you can't live without when building applications. The modules
+are used by the core part of the W3C Reference Library but can also be used
+by the application. See also the main Library include file called
+<A HREF="WWWLib.html">WWWLib.h</A> which contains all converters and protocol
+modules known to the Library. You can include this one if the application
+is to use all the functionality of the Library.
 <PRE>
 #ifndef WWWUTIL_H
 #define WWWUTIL_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H2>
+  System dependencies
+</H2>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "sysdep.h"
 </PRE>
-
-<H2>Library Includes</H2>
-
-<H3>Basic Macros etc</H3>
-
-This module includes file contains things we need everywhere,
-generally macros for declarations, booleans, etc.
-
+<H2>
+  Library Includes
+</H2>
+<H3>
+  Basic Macros etc
+</H3>
+<P>
+This module includes file contains things we need everywhere, generally macros
+for declarations, booleans, etc.
 <PRE>
 #include "<A HREF="HTUtils.html">HTUtils.h</A>"
 </PRE>
-
-<H3>Dynamic Arrays</H3>
-
-This module implements a flexible array of pointers. It is a general
-utility module.  An array is a structure which may be extended.  These
-routines create and append data to arrays, automatically reallocating
-them as necessary.  It is garanteed that the last entry in an array is
-<B>NULL</B>
-
+<H3>
+  Dynamic Arrays
+</H3>
+<P>
+This module implements a flexible array of pointers. It is a general utility
+module. An array is a structure which may be extended. These routines create
+and append data to arrays, automatically reallocating them as necessary.
+It is garanteed that the last entry in an array is <B>NULL</B>
 <PRE>
 #include "<A HREF="HTArray.html">HTArray.h</A>"
 </PRE>
-
-<H3>Association Lists</H3>
-
-This is a small module build on top of the <A
-HREF="HTList.html">HTList module</A> that provides a way to store
-<EM>Name-Value</EM> pairs in an easy way.
-
+<H3>
+  Association Lists
+</H3>
+<P>
+This is a small module build on top of the <A HREF="HTList.html">HTList
+module</A> that provides a way to store <EM>Name-Value</EM> pairs in an easy
+way.
 <PRE>
 #include "<A HREF="HTAssoc.html">HTAssoc.h</A>"
 </PRE>
-
-<H3>Atoms</H3>
-
-Atoms are strings which are given representative pointer values so
-that they can be stored more efficiently, and comparisons for equality
-done more efficiently. The pointer values are in fact entries into a
-hash table.
-
+<H3>
+  Atoms
+</H3>
+<P>
+Atoms are strings which are given representative pointer values so that they
+can be stored more efficiently, and comparisons for equality done more
+efficiently. The pointer values are in fact entries into a hash table.
 <PRE>
 #include "<A HREF="HTAtom.html">HTAtom.h</A>"
 </PRE>
-
-<H3>Dynamic Strings</H3>
-
+<H3>
+  Dynamic Strings
+</H3>
+<P>
 A Chunk is a block wise expandable array of type (char *) and is a sort of
 apology for real strings in C. Chunks make it easier to handle dynamic strings
-of unknown size. It is often faster than using the String Copy Routines</A>.
-
+of unknown size. It is often faster than using the String Copy Routines.
 <PRE>
 #include "<A HREF="HTChunk.html">HTChunk.h</A>"
 </PRE>
-
-<H3>Linked Lists</H3>
-
-This module provides the functionality for managing a generic list of
-data objects. The module is implemented as a single linked list using
-the scheme <EM>first in - last out (FILO)</EM>.
-
+<H3>
+  Linked Lists
+</H3>
+<P>
+This module provides the functionality for managing a generic list of data
+objects. The module is implemented as a single linked list using the scheme
+<EM>first in - last out (FILO)</EM>.
 <PRE>
 #include "<A HREF="HTList.html">HTList.h</A>"
 </PRE>
-
-<H3>Dymamic Memory Management</H3>
-
-This module implements a dynamic memory API that is used throughout
-the Library. The API covers three types of functionality:
-
-<UL>
-<LI><A HREF="#d">Handling of allocation and deallocation of dynamic memory</A>
-<LI><A HREF="#r">Recovering from temporary lack of available memory</A>
-<LI><A HREF="#p">Panic handling in case a new allocation fails</A>
-</UL>
-
+<H3>
+  Dymamic Memory Management
+</H3>
+<P>
+This module defines any memory handler to be used by libwww for allocating
+and de-allocating dynamic memory. As dynamic memory may be a scarce resource,
+it is required that an application can handle memory exhaustion gracefully.
 <PRE>
 #include "<A HREF="HTMemory.html">HTMemory.h</A>"
 </PRE>
-
-<H3>String Utilities</H3>
-
-Routines for dynamic arrays of characters include string copy,
-case insensitive comparison etc.
-
+<H3>
+  String Utilities
+</H3>
+<P>
+Routines for dynamic arrays of characters include string copy, case insensitive
+comparison etc.
 <PRE>
 #include "<A HREF="HTString.html">HTString.h</A>"
 </PRE>
-
-<H3>UU encode and decode</H3>
-
-File module provides functions functions for uuencode and decode
-strings which convert a buffer of bytes to/from RFC 1113 printable
-encoding format. This technique is similar to the familiar Unix
-uuencode format in that it maps 6 binary bits to one ASCII character
-(or more aptly, 3 binary bytes to 4 ASCII characters).  However, RFC
-1113 does not use the same mapping to printable characters as
-uuencode.
-
+<H3>
+  UU encode and decode
+</H3>
+<P>
+File module provides functions functions for uuencode and decode strings
+which convert a buffer of bytes to/from
+<A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1113.txt">RFC
+1113 </A>printable encoding format. This technique is similar to the familiar
+Unix uuencode format in that it maps 6 binary bits to one ASCII character
+(or more aptly, 3 binary bytes to 4 ASCII characters). However, RFC 1113
+does not use the same mapping to printable characters as uuencode.
 <PRE>
 #include "<A HREF="HTUU.html">HTUU.h</A>"
 </PRE>
-
+<P>
 End of utility modules
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -157,10 +145,9 @@ End of utility modules
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

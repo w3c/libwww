@@ -1,36 +1,36 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Channel Interface</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Apr-1996 -->
-<NEXTID N="z18">
+  <TITLE>W3C Reference Library libwww Channel Class</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Manages Read and Write to and from the Network</H1>
-
+<H1>
+  The Channel Class
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-A channel contains information about sockets and their input and
-output streams. A <CODE>channel</CODE> represents the front end for
-receiving data. The definition of a channel describes how we are to
-read the data coming in on a socket, for example. A channel represents
-the first part of how to get handle incoming data in the Library:
-
+<P>
+A channel contains information about sockets and their input and output streams.
+A <CODE>channel</CODE> represents the front end for receiving data towards
+the underlying transport. The definition of a channel describes how we are
+to read the data coming in on a socket, for example. In other words - a channel
+represents the first part of how to get handle incoming data in the Library:
+<P>
 <UL>
-<LI>Reading data on a channel
-<LI>Defining a target for incoming data
-<LI>Defining a protocol state machine that can handle the data
+  <LI>
+    Reading data on a channel
+  <LI>
+    Defining a target for incoming data
+  <LI>
+    Defining a protocol state machine that can handle the data
 </UL>
-
-This module is implemented by <A HREF="HTChannl.c">HTChannl.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+This module is implemented by <A HREF="HTChannl.c">HTChannl.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTCHANNL_H
 #define HTCHANNL_H
@@ -48,100 +48,115 @@ typedef struct _HTChannel HTChannel;
 #include <A HREF="HTNet.html">"HTNet.h"</A>
 #include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
 </PRE>
-
-<H2>The HTChannel Object</H2>
-
-A channel can be in a certain <CODE>mode</CODE> which determines how
-it behaves. The set of modes is defined as:
-
-<H3>Creating a Channel Object</H3>
-
-The following methods can be used to instantiate objects of a
-particular channel mode:
-
+<H2>
+  The Channel Object
+</H2>
+<P>
+A channel can be in a certain <CODE>mode</CODE> which determines how it behaves.
+The set of modes is defined as:
+<H3>
+  Creating a Channel Object
+</H3>
+<P>
+The following methods can be used to instantiate objects of a particular
+channel mode:
 <PRE>
 extern HTChannel * HTChannel_new (HTNet * net, BOOL active);
 </PRE>
-
-<H3>Deleting a Channel Object</H3>
-
+<H3>
+  Deleting a Channel Object
+</H3>
 <PRE>
 extern BOOL HTChannel_delete (HTChannel * channel);
 extern BOOL HTCannel_deleteAll (void);
 </PRE>
-
-<H3>Control the Channel Mode</H3>
-
-Set and get the mode of a channel. A channel may change mode in the
-middle of a connection. We also return whether the channel is active
-or passive.
-
+<H3>
+  Control the Channel Mode
+</H3>
+<P>
+A channel may change mode in the middle of a connection. The mode signifies
+how we can use the channel: Does it accept multiple requets at the same time
+or do we have to wait until a response is received? Can it handle interleaved
+(multiplexed) requests/responses etc. All this is defined by the
+<CODE>HTChannelMode</CODE>. At the same time we return whether the channel
+is active or passive which means whether we did the initial "connect" or
+the "accept". The "connect" and the "accept" term is of course a function
+of the underlying transport but I think you get the point!
 <PRE>
 extern HTChannelMode HTChannel_mode (HTChannel * channel, BOOL * active);
 
 extern BOOL HTChannel_setMode (HTChannel * channel, HTChannelMode mode);
 </PRE>
-
-<H3>Search for a Channel</H3>
-
+<H3>
+  Search for a Channel
+</H3>
+<P>
 Look for a channel object if we for some reason should have lost it
-
 <PRE>
 extern HTChannel * HTChannel_find (SOCKET sockfd);
 </PRE>
-
-<H3>Is Channel Idle?</H3>
-
-Check whether a channel is idle meaning if it is ready for a new
-request which depends on the mode of the channel. If the channel is
-idle, i.e. ready for use then return YES else NO.
-
+<H3>
+  Is the Channel Idle?
+</H3>
+<P>
+Check whether a channel is idle meaning if it is ready for a new request
+which depends on the mode of the channel. If the channel is idle, i.e. ready
+for use then return YES else NO.
 <PRE>
 extern BOOL HTChannel_idle (HTChannel * channel);
 </PRE>
+<H3>
+  Get Transport Descriptor for Channel
+</H3>
+<P>
+A transport descriptor can be either a ANSI C file descriptor or a BSD socket.
+As it is difficult for the channel to know which one is used by a specific
+transport, we leave this to the caller to figure out. This is probably not
+the best way of doing it.
+<PRE>extern SOCKET HTChannel_socket	(HTChannel * channel);
+extern FILE * HTChannel_file	(HTChannel * channel);
 
-<H3>Get Socket for a Channel</H3>
-
-<PRE>
-extern SOCKET HTChannel_socket (HTChannel * channel);
 </PRE>
-
-<H3>Semaphores</H3>
-
-Adjust the semaphore on a channel.
-
+<H3>
+  Semaphores
+</H3>
+<P>
+Adjust the semaphore on a channel. As many <A HREF="HTNet.html">Net objects
+</A>can point to the same channel we need to keep count of them so that we
+know if we can delete a channel or if it is still in use. We do this by having
+a simple semaphore associated with each channel object
 <PRE>
 extern void HTChannel_upSemaphore (HTChannel * channel);
 extern void HTChannel_downSemaphore (HTChannel * channel);
 </PRE>
-
-<H3>Create Input and Output Streams</H3>
-
-You create the input stream and bind it to the channel using the
-following methods. Please read the description in the <A
-HREF="HTIOStream.html">HTIOStream module</A> on the parameters
-<EM>target</EM>, <EM>param</EM>, and <EM>mode</EM>. Both methods
-return YES if OK, else NO.
-
+<H3>
+  Create Input and Output Streams
+</H3>
+<P>
+You create the input stream and bind it to the channel using the following
+methods. Please read the description in the
+<A HREF="HTIOStream.html">HTIOStream module</A> on the parameters
+<EM>target</EM>, <EM>param</EM>, and <EM>mode</EM>. The input and output
+stream are instances created by the <A HREF="HTTrans.html">Transport
+object</A>. The Transport Object defines the creation methods for the inout
+and output streams and the Channel object contains the actualy stream objects.
 <PRE>
 extern BOOL HTChannel_setInput (HTChannel * ch,
 				HTInputStream * input, HTChannelMode mode);
+extern HTInputStream * HTChannel_input (HTChannel * ch);
+
 
 extern BOOL HTChannel_setOutput (HTChannel * ch,
 				 HTOutputStream * output, HTChannelMode mode);
-
-extern HTInputStream * HTChannel_input (HTChannel * ch);
 extern HTOutputStream * HTChannel_output (HTChannel * ch);
 
 </PRE>
-
 <PRE>
 #endif /* HTCHANNL */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

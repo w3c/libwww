@@ -368,7 +368,8 @@ PRIVATE int SendCommand (HTRequest *request, ftp_ctrl *ctrl,
 **	If no values are found then use defaults.
 **	Returns YES if OK, else NO
 */
-PRIVATE BOOL HTFTPParseURL (char *url, ftp_ctrl *ctrl, ftp_data *data)
+PRIVATE BOOL HTFTPParseURL (HTRequest * request,
+			    char *url, ftp_ctrl *ctrl, ftp_data *data)
 {
     char *login = HTParse(url, "", PARSE_HOST);
     char *path = HTParse(url, "", PARSE_PATH+PARSE_PUNCTUATION);
@@ -384,7 +385,8 @@ PRIVATE BOOL HTFTPParseURL (char *url, ftp_ctrl *ctrl, ftp_data *data)
 	HTUnEscape(login);
 	StrAllocCopy(ctrl->uid, login);
     } else {						    /* Use anonymous */
-	const char *mailaddress = HTGetMailAddress();
+	HTUserProfile * up = HTRequest_userProfile(request);
+	const char * mailaddress = HTUserProfile_email(up);
 	StrAllocCopy(ctrl->uid, "anonymous");
 	if (mailaddress)
 	    StrAllocCopy(ctrl->passwd, mailaddress);
@@ -1286,7 +1288,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
     while (1) {
 	switch (ctrl->state) {
 	  case FTP_BEGIN:
-	    HTFTPParseURL(url, ctrl, data);
+	    HTFTPParseURL(request, url, ctrl, data);
 	    if (data->type != 'N') {
 		HTBind_getBindings(request->anchor);
 #if 0

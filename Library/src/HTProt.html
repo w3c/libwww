@@ -2,11 +2,11 @@
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 26-Mar-1996 -->
   <NEXTID N="z11">
-  <TITLE>W3C Reference Library libwww PROTOCOLS</TITLE>
+  <TITLE>W3C Reference Library libwww Protocol Class</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Access Scheme Manager
+  The Protocol Class
 </H1>
 <PRE>
 /*
@@ -15,13 +15,27 @@
 */
 </PRE>
 <P>
-This module keeps a list of valid protocol (naming scheme) specifiers with
-associated access code. New access protocols may be registered at any time.
+The Protocol class defines an application level protocol (HTTP, FTP, Gopher,
+etc.) to be used by libwww. Please note that access to the local file system
+also is considered to be an appliaction level protocol treated identically
+to for example the HTTP protocol. The Protocol class does only know about
+the application layer protocol and it relies on the
+<A HREF="HTTrans.html">Transport Class</A> to do the actualt communication
+with the network, the local file system etc. The protocol class defines an
+access method for botg a client and a server. A typical client application
+would probably only want to use the client method and a server only the server
+method. However, any application can use both which allows it to seemlessly
+to change between server and client profile as needed.
+<P>
+<B>Note</B>: The library <B>core</B> does not define any default application
+layer protocols - they are all considered part of the application. The library
+comes with a default set of protocols including the ones mentioned above
+which can be initiated using the function <CODE>HTAccessInit()</CODE> in
+<A HREF="HTInit.html">HTInit module</A>
 <P>
 This module is implemented by <A HREF="HTProt.c">HTProt.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
 Library</A>.
-<P>
 <PRE>
 #ifndef HTPROT_H
 #define HTPROT_H
@@ -32,14 +46,6 @@ Library</A>.
 #include "HTTrans.h"
 </PRE>
 <P>
-After the new architecture based on call back functions managed by an eventloop
-and protocol state machines, the protocol structure has been modified to
-reflect this call back structure. The <CODE>HTEventCallback</CODE> is defined
-in <A HREF="HTEvent.html">HTEvent module</A>.
-<P>
-All the access schemes supported in the Library can be initiated using the
-function <CODE>HTAccessInit()</CODE> in <A HREF="HTInit.html">HTInit module</A>
-<P>
 An access scheme module takes as a parameter a socket (which is an invalid
 socket the first time the function is called), a
 <A HREF="HTReqMan.html">request structure</A> containing details of the request,
@@ -49,15 +55,17 @@ is already valid (made valid by HTAccess).
 <PRE>
 typedef struct _HTProtocol HTProtocol;
 </PRE>
+<H2>
+  Creation and Deletion Methods
+</H2>
 <H3>
-  Add an Access Scheme
+  Add an Protocol
 </H3>
 <P>
 This functions registers a protocol module and binds it to a specific access
-acheme. For example HTTP.c is bound to http URLs. The call back function
-is the function to be called for loading. The reason why it is of type
-HTEventCallback is that it then can be used directly in the event loop when
-used in non-preemptive mode.
+acheme (the part before the first colon in a URL). For example, the HTTP
+&nbsp;client module is bound to http URLs. The callback function is the function
+to be called for loading. 
 <PRE>
 extern BOOL HTProtocol_add (const char *       	name,
 			    const char *	transport,
@@ -66,7 +74,7 @@ extern BOOL HTProtocol_add (const char *       	name,
 			    HTEventCallback *	server);
 </PRE>
 <H3>
-  Delete an Access Scheme
+  Delete a Protocol
 </H3>
 <P>
 This functions deletes a registered protocol module so that it can not be
@@ -75,7 +83,7 @@ used for accessing a resource anymore.
 extern BOOL HTProtocol_delete (const char * name);
 </PRE>
 <H3>
-  Remove ALL Registered Schemes
+  Remove ALL Registered Protocols
 </H3>
 <P>
 This is the garbage collection function. It is called by
@@ -83,6 +91,9 @@ This is the garbage collection function. It is called by
 <PRE>
 extern BOOL HTProtocol_deleteAll (void);
 </PRE>
+<H2>
+  Protocol Class Methods
+</H2>
 <H3>
   Find a Protocol Object
 </H3>
@@ -112,8 +123,12 @@ access only.
 extern BOOL HTProtocol_preemptive (HTProtocol * protocol);
 </PRE>
 <H3>
-  Get and Set the Transport
+  Binding to the Transport Class
 </H3>
+<P>
+An application protocol is registered together with a
+<A HREF="HTTrans.html">transport protocol </A>in order to communicate with
+the thansport layer.
 <PRE>
 extern BOOL HTProtocol_setTransport (HTProtocol * protoccol,
 				     const char * transport);

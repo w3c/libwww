@@ -35,11 +35,6 @@
 
 #define HASH_SIZE 1001		/* Tunable */
 
-/* The default directory for "save locally" and "save and execute" files: */
-#ifndef HT_TMP_ROOT
-#define HT_TMP_ROOT		"/tmp"
-#endif
-
 struct _HTStream {
     const HTStreamClass *isa;
     
@@ -51,8 +46,6 @@ struct _HTStream {
     HTRequest *		request;		       /* saved for callback */
     HTRequestCallback *	callback;
 };
-
-PRIVATE char *		HTTmpRoot = NULL;   	       /* Dest for tmp files */
 
 /* ------------------------------------------------------------------------- */
 
@@ -142,39 +135,6 @@ PUBLIC HTStream * HTFWriter_new (HTRequest * request, FILE * fp,
 /*  			     FILE WRITER ROUTINES			     */
 /* ------------------------------------------------------------------------- */
 
-/*	Set TMP Root
-**	--------------
-**	If `tmp_root' is NULL use the current value (might be a define)
-*/
-PUBLIC BOOL HTTmp_setRoot (const char * tmp_root)
-{
-    StrAllocCopy(HTTmpRoot, tmp_root ? tmp_root : HT_TMP_ROOT);
-    if (*(HTTmpRoot+strlen(HTTmpRoot)-1) != '/')
-	StrAllocCat(HTTmpRoot, "/");
-    if (STREAM_TRACE)
-	HTTrace("Tmp Root.... Root set to `%s\'\n", HTTmpRoot);
-    return YES;
-}
-
-
-/*	Get Tmp Root
-**	--------------
-*/
-PUBLIC const char * HTTmp_getRoot (void)
-{
-    return HTTmpRoot;
-}
-
-
-/*	Free Tmp Root
-**	--------------
-**	For clean up memory
-*/
-PUBLIC void HTTmp_freeRoot (void)
-{
-    HT_FREE(HTTmpRoot);
-}
-
 /*
 **   This function tries really hard to find a non-existent filename relative
 **   to the path given. Returns a string that must be freed by the caller or
@@ -228,12 +188,14 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 {
     FILE * fp = NULL;
     char * filename = NULL;
+    HTUserProfile * up = HTRequest_userProfile(request);
+    char * tmproot = HTUserProfile_tmp(up);
     if (HTLib_secure()) {
 	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_UNAUTHORIZED,
 			   NULL, 0, "HTSaveLocally");
 	return HTErrorStream();
     }
-    if (!HTTmpRoot) {
+    if (!tmproot) {
 	if (STREAM_TRACE) HTTrace("Save File... turned off");
 	return HTErrorStream();
     }
@@ -243,7 +205,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	HTAlertCallback *cbf = HTAlert_find(HT_A_PROMPT);
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
 	char *suffix = HTBind_getSuffix(anchor);
-	char *deflt = get_filename(HTTmpRoot,HTAnchor_physical(anchor),suffix);
+	char *deflt = get_filename(tmproot,HTAnchor_physical(anchor),suffix);
 	if (cbf) {
 	    HTAlertPar * reply = HTAlert_newReply();
 	    if ((*cbf)(request, HT_A_PROMPT, HT_MSG_FILENAME,deflt,NULL,reply))
@@ -292,12 +254,14 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 {
     FILE * fp = NULL;
     char * filename = NULL;
+    HTUserProfile * up = HTRequest_userProfile(request);
+    char * tmproot = HTUserProfile_tmp(up);
     if (HTLib_secure()) {
 	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_UNAUTHORIZED,
 			   NULL, 0, "HTSaveLocally");
 	return HTErrorStream();
     }
-    if (!HTTmpRoot) {
+    if (!tmproot) {
 	if (STREAM_TRACE) HTTrace("Save File... turned off");
 	return HTErrorStream();
     }
@@ -306,7 +270,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     {
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
 	char *suffix = HTBind_getSuffix(anchor);
-	filename = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
+	filename = get_filename(tmproot, HTAnchor_physical(anchor), suffix);
 	HT_FREE(suffix);
 	if (filename) {
 	    if ((fp = fopen(filename, "wb")) == NULL) {

@@ -70,6 +70,12 @@ its ``extern'' declaration. */
 /* Define this if you have the external variable 'sys_nerr'. */
 #undef HAVE_SYS_NERR
 
+/* Define this if you have the external variable 'timezone' */
+#undef HAVE_TIMEZONE
+
+/* Define this if you have the external variable 'altzone' */
+#undef HAVE_ALTZONE
+
 /* Define this if you have the uxc$inetdef.h header file. */
 #undef HAVE_UXC_INETDEF_H
 

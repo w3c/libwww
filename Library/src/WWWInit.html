@@ -1,46 +1,56 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww INITIALIZATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Non-Mandatory Initialization Module</H1>
-
+<H1>
+  Default Initialization Modules
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
+<P>
+As mentioned in the <A HREF="../User/Architecture/">Library Architecture</A>,
+libwww consists of a small core and a large set of hooks for adding
+functionality. By itself, the core it not capable of performing any Web related
+tasks like accessing a HTTP server or parsing a HTML document. All this
+functionality must be registered by the application. This way, the core of
+libwww is kept application independent and can be used as the basic building
+block for any kind of Web application. The Library comes with a large set
+of default functions, for example for accessing HTTP and FTP servers, parsing
+<A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc822.txt">RFC
+822</A> headers etc. This module helps the application programmer setting
+up all this functionality, but it is important to note that none of it is
+<I>required</I> in order to use the Library.
 <PRE>
 #ifndef WWWINIT_H
 #define WWWINIT_H
 </PRE>
-
-The core parts of the Library is a framework for adding
-functionality. It has hooks for adding protocol modules, like for
-example HTTP, FTP, and also for adding streams that can convert from
-one media type to some other type, or presenting the result to the
-user. In the distribution file of the Library you will find a large
-set of protocol modules and streams already implemented. However, in
-order to use these you need to initialize them. This can be done by
-using the files in the <A HREF="HTInit.html">HTInit</A> module. You
-can modify this module as you like to fit your particular needs.
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<PRE>
-#include "<A HREF="HTInit.html">HTInit.h</A>"
-#include "<A HREF="HTInit.html">HTBInit.h</A>"
+<H2>
+  Default Protocols etc.
+</H2>
+<P>
+This module contains a large set of default initialization functions for
+protocol modules, stream converters, event managers etc.
+<PRE>#include "<A HREF="HTInit.html">HTInit.h</A>"
 </PRE>
-
+<H2>
+  Default File Suffix Binding
+</H2>
+<P>
+Register the default set of bindings between file suffixes and media types.
+This is used for example to guess the media type of a FTP URL of a local
+file URL.
+<PRE>#include "<A HREF="HTInit.html">HTBInit.h</A>"
+</PRE>
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -48,10 +58,9 @@ extern "C" {
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

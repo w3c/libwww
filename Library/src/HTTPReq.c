@@ -17,8 +17,6 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 
-#include "HTNetMan.h"
-#include "HTReqMan.h"
 #include "HTTPGen.h"
 #include "HTTPUtil.h"
 #include "HTTPReq.h"					       /* Implements */
@@ -46,8 +44,9 @@ struct _HTStream {
 */
 PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
 {
-    char *addr = HTAnchor_physical(request->anchor);
-    char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * addr = HTAnchor_physical(anchor);
+    char * fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
     PUTS("GET ");
     PUTS(fullurl);
     PUTC(CR);
@@ -62,21 +61,25 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 {
     char crlf[3];
     char qstr[10];
-    HTParentAnchor *anchor = HTRequest_anchor(request);
+    HTRqHd request_mask = HTRequest_rqHd(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
     /* Generate the HTTP/1.0 RequestLine */
-    if (request->method != METHOD_INVALID) {
-	PUTS(HTMethod_name(request->method));
-	PUTC(' ');
-    } else
-	PUTS("GET ");
+    {
+	HTMethod method = HTRequest_method(request);
+	if (method != METHOD_INVALID) {
+	    PUTS(HTMethod_name(method));
+	    PUTC(' ');
+	} else
+	    PUTS("GET ");
+    }
 
     /* If we are using a proxy then only take the `path' info in the URL */
     {
 	char *addr = HTAnchor_physical(anchor);
 	char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
-	if (request->using_proxy) {
+	if (HTRequest_usingProxy(request)) {
 	    PUTS(fullurl+1);
 	} else {
 	    PUTS(fullurl);
@@ -88,7 +91,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
     PUTBLOCK(crlf, 2);
 
     /* Request Headers */
-    if (request->RequestMask & HT_C_ACCEPT_TYPE) {
+    if (request_mask & HT_C_ACCEPT_TYPE) {
 	int list;
 	HTList *cur;
 	BOOL first=YES;
@@ -114,7 +117,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (request->RequestMask & HT_C_ACCEPT_CHAR) {
+    if (request_mask & HT_C_ACCEPT_CHAR) {
 	int list;
 	HTList *cur;
 	BOOL first=YES;
@@ -134,7 +137,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (request->RequestMask & HT_C_ACCEPT_ENC) {
+    if (request_mask & HT_C_ACCEPT_ENC) {
 	int list;
 	HTList *cur;
 	BOOL first=YES;
@@ -154,7 +157,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (request->RequestMask & HT_C_ACCEPT_LAN) {
+    if (request_mask & HT_C_ACCEPT_LAN) {
 	int list;
 	HTList *cur;
 	BOOL first=YES;
@@ -178,25 +181,28 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (request->credentials) {			    /* Access authentication */
-	HTAssocList * cur = request->credentials;
-	HTAssoc * pres;
-	while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
-	    PUTS(HTAssoc_name(pres));
-	    PUTS(": ");
-	    PUTS(HTAssoc_value(pres));
-	    PUTBLOCK(crlf, 2);
+    {
+	HTAssocList * cur = HTRequest_credentials(request);
+	if (cur) {				    /* Access authentication */
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+		PUTS(HTAssoc_name(pres));
+		PUTS(": ");
+		PUTS(HTAssoc_value(pres));
+		PUTBLOCK(crlf, 2);
+	    }
 	}
     }
-    if (request->RequestMask & HT_C_FROM) {
-	const char *mailaddress = HTGetMailAddress();
+    if (request_mask & HT_C_FROM) {
+	HTUserProfile * up = HTRequest_userProfile(request);
+	const char * mailaddress = HTUserProfile_email(up);
 	if (mailaddress) {
 	    PUTS("From: ");
 	    PUTS(mailaddress);
 	    PUTBLOCK(crlf, 2);
 	}
     }
-    if (request->RequestMask & HT_C_IMS) {
+    if (request_mask & HT_C_IMS) {
 	time_t lm = HTAnchor_lastModified(anchor);
 	if (lm > 0) {
 	    PUTS("If-Modified-Since: ");
@@ -204,32 +210,38 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTBLOCK(crlf, 2);
 	}
     }
-    if (request->RequestMask & HT_C_HOST) {
+    if (request_mask & HT_C_HOST) {
 	char *orig = HTAnchor_address((HTAnchor *) anchor);
 	char *host = HTParse(orig, "", PARSE_HOST);
+#if 0
+	/* Keep the port number for HTTP/1.1 compliance */
 	char *ptr = strchr(host, ':');		     /* Chop off port number */
 	if (ptr) *ptr = '\0';
+#endif
 	PUTS("Host: ");
 	PUTS(host);
 	PUTBLOCK(crlf, 2);
 	HT_FREE(orig);
 	HT_FREE(host);
     }
-    if (request->RequestMask & HT_C_REFERER && request->parentAnchor) {
-	char *act = HTAnchor_address((HTAnchor *) anchor);
-	char *parent = HTAnchor_address((HTAnchor *) request->parentAnchor);
-	char *relative = HTParse(parent, act,
-				 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-	if (relative && *relative) {
-	    PUTS("Referer: ");
-	    PUTS(parent);
-	    PUTBLOCK(crlf, 2);
+    if (request_mask & HT_C_REFERER) {
+	HTParentAnchor * parent_anchor = HTRequest_parent(request);
+	if (parent_anchor) {
+	    char * act = HTAnchor_address((HTAnchor *) anchor);
+	    char * parent = HTAnchor_address((HTAnchor *) parent_anchor);
+	    char * relative = HTParse(parent, act,
+				      PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	    if (relative && *relative) {
+		PUTS("Referer: ");
+		PUTS(parent);
+		PUTBLOCK(crlf, 2);
+	    }
+	    HT_FREE(act);
+	    HT_FREE(parent);
+	    HT_FREE(relative);
 	}
-	HT_FREE(act);
-	HT_FREE(parent);
-	HT_FREE(relative);
     }
-    if (request->RequestMask & HT_C_USER_AGENT) {
+    if (request_mask & HT_C_USER_AGENT) {
 	PUTS("User-Agent: ");
 	PUTS(HTLib_appName());
 	PUTC('/');
@@ -320,7 +332,8 @@ PRIVATE const HTStreamClass HTTPRequestClass =
 PUBLIC HTStream * HTTPRequest_new (HTRequest * request, HTStream * target,
 				   BOOL endHeader)
 {
-    HTHost * host = HTNet_host(request->net);
+    HTNet * net = HTRequest_net(request);
+    HTHost * host = HTNet_host(net);
     HTStream * me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
         HT_OUTOFMEM("HTTPRequest_new");

@@ -67,7 +67,9 @@ struct _HTInputStream {
     const HTInputStreamClass *	isa;
 };
 
+#if 0
 PRIVATE BOOL		HTTakeBackup = YES;
+#endif
 
 PRIVATE HTDirReadme	dir_readme = HT_DIR_README_TOP;
 PRIVATE HTDirAccess	dir_access = HT_DIR_OK;
@@ -133,7 +135,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	StrAllocCopy(newurl, url);
 	StrAllocCat(newurl, "/");
 	HT_FREE(file->local);
-	file->local = HTWWWToLocal(newurl, "");
+	file->local = HTWWWToLocal(newurl, "", HTRequest_userProfile(request));
 	HT_FREE(newurl);
     }
     strcpy(fullname, file->local);
@@ -285,7 +287,7 @@ PRIVATE HTStream * HTFileSaveStream (HTRequest * request)
 {
 
     const char * addr = HTAnchor_address((HTAnchor*)request->anchor);
-    char * filename = HTWWWToLocal(addr, "");
+    char * filename = HTWWWToLocal(addr, "", HTRequest_userProfile(request));
     FILE* fp;
 
 /*	@ Introduce CVS handling here one day
@@ -414,7 +416,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		file->state = FS_TRY_FTP;
 		break;
 	    }
-	    file->local = HTWWWToLocal(HTAnchor_physical(anchor), "");
+	    file->local = HTWWWToLocal(HTAnchor_physical(anchor), "",
+				       HTRequest_userProfile(request));
 	    if (!file->local) {
 		file->state = FS_TRY_FTP;
 		break;

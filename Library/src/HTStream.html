@@ -1,57 +1,63 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Output Stream Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 25-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww Generic Stream Class</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Output Stream Class Definition</H1>
-
+<H1>
+  Generic Stream Class
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-A stream object is something which accepts a stream of text. See also
-the <A HREF="HTStruct.html">Structured stream
-definition.</A>. Generally streams are cascaded into stream pipes
-where the output of a stream is directed into the input of the down
-stream object. However, it is not required that a stream has a target,
-it might as well be a black hole that just swallows data. <P>
-
-The creation methods will vary on the type of Stream Object.  All
-creation methods return a pointer to the stream object below.<P>
-
-This module is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
-
-<B>NOTE: </B>All methods in the stream definition do now return an
-integer. The general return codes from the methods are:
-
+<P>
+The Stream class defines objects which accepts a sequence of characters.
+Streams may also have an output in which case multiple stream objects can
+be cascaded to build a stream pipe where the output of a stream is directed
+into the input of the next stream object "down the line". Of course, one
+of the main features of streams is that they can perform a <I>data conversion
+</I>on the data before piping it to the output. As multiple streams may be
+cascaded, the complete data conversion is then the sum of each individual
+data conversion performed by the stream objects being part of the stream
+pipe.
+<P>
+It is not <I>required</I> that a stream has a target, it might as well be
+a black hole that just accepts data without ever giving it out again. The
+generic stream class is subclassed multiple places in the Library and a good
+example is the <A HREF="HTStruct.html">structured stream definition</A> which
+creates a SGML object.
+<P>
+All stream class methods return an integer status code telling whether the
+operation succeeded or not.. This is the way for a stream to pass control
+information upstream to the caller which may also be a stream. The general
+return codes from the methods are:
+<P>
 <UL>
-<LI><B>HT_WOULD_BLOCK</B>
-<LI><B>HT_ERROR</B>
-<LI><B>HT_OK</B>
-<LI><B>&gt;0</B> - any return greater than 0 will result in that the
-return code will be parsed on from the <A
-HREF="HTSocket.html#Read">HTSocketRead</A>. This can be used by
-inidividual stream to introduce their own return codes.
+  <LI>
+    <B>HT_WOULD_BLOCK</B>
+  <LI>
+    <B>HT_ERROR</B>
+  <LI>
+    <B>HT_OK</B>
+  <LI>
+    <B>&gt;0</B> - any return greater than 0 will result in that the return code
+    will be parsed through all stream objects. This can be used to pass back
+    information to the <A HREF="HTProt.html">protocol modules</A>, for example
 </UL>
-
-As streams now have a return value, it is <B>very</B> important that
-these return values are passed upstream to all the other streams in
-the stream pipe. <P>
-
-It is not relevant to return how much data has been written in the
-stream, as there often will be a relationship other than 1:1 between
-indata and outdata. However, it is important that a stream keeps state
-(eitheron the indata or the outdata) so that it can accept a
-HT_WOULD_BLOCK and continue at a later time when the blocking
+<P>
+It is in general not relevant to return how much data has been written in
+the stream, as there often will be a relationship other than 1:1 between
+indata and outdata. However, it is important that a stream keeps state (either
+on the incoming data or the outgoing data stream) so that it can accept a
+<CODE>HT_WOULD_BLOCK</CODE> and continue at a later time when the blocking
 situation has stopped.
-
+<P>
+This module is implemented by <A HREF="HTStream.c">HTStream.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTSTREAM_H
 #define HTSTREAM_H
@@ -64,37 +70,31 @@ typedef struct _HTStreamClass {
 
     char * name;
 </PRE>
-
+<P>
 This field is for diagnostics only
-		
 <PRE>
     int (*flush)	(HTStream * me);
 </PRE>
-
-The <CODE>flush</CODE> method is introduced in order to allow the
-stream to put any buffered data down the stream pipe but without
-taking the stream pipe down. It is for the stream to decide whether it
-has buffered data or not. In some situations, the stream might not
-want to send buffered data down the target as the date might be
-relevant for this stream only.
-
+<P>
+The <B>flush</B> method is introduced in order to allow the stream to put
+any buffered data down the stream pipe but without taking the stream pipe
+down. It is for the stream to decide whether it has buffered data or not.
+In some situations, the stream might not want to send buffered data down
+the target as the date might be relevant for this stream only.
 <PRE>
     int (*_free)	(HTStream * me);
 </PRE>
-
-The <CODE>free</CODE> method is like the <CODE>flush</CODE> method but
-it also frees the current stream object and all stream objects down
-stream. When the <CODE>free</CODE> method has been called, the
-<EM>whole</EM> stream pipe (not only this obejct) should not accept
-any more data.
-
+<P>
+The <B>free</B> method is like the <CODE>flush</CODE> method but it also
+frees the current stream object and all stream objects down stream. When
+the <CODE>free</CODE> method has been called, the <EM>whole</EM> stream pipe
+(not only this obejct) should not accept any more data.
 <PRE>
     int (*abort)	(HTStream * me, HTList * errorlist);
 </PRE>
-
-The <CODE>abort</CODE> method should only be used if a stream is
-interrupted, for example by the user, or an error occurs.
-
+<P>
+The <B>abort</B> method should only be used if a stream is interrupted, for
+example by the user, or an error occurs.
 <PRE>
     int (*put_character)(HTStream * me, char ch);
 				
@@ -102,45 +102,45 @@ interrupted, for example by the user, or an error occurs.
 
     int (*put_block)	(HTStream * me, const char * str, int len);
 </PRE>
-
-These methods are for actually putting data down the stream. It is
-important that the most efficient method is chosen (often
-put_block). There is no guarantee that a stream won't change method,
-for example from <CODE>put_character</CODE> to <CODE>put_block</CODE>
-
+<P>
+These methods are for actually putting data down the stream. It is important
+that the most efficient method is chosen (often put_block). There is no guarantee
+that a stream won't change method, for example from
+<CODE>put_character</CODE> to <CODE>put_block</CODE>
 <PRE>
 } HTStreamClass;
 </PRE>
-
-<A NAME="utils"><H2>Basic Utility Streams</H2></A>
-
+<P>
+<A NAME="utils"></A>
+<H2>
+  Basic Utility Streams
+</H2>
+<P>
 These streams can be plugged in everywhere in a stream pipe.
-
-<H3>Black Hole Stream</H3>
-
+<H3>
+  Black Hole Stream
+</H3>
+<P>
 This stream simply absorbs data without doing anything what so ever.
-
 <PRE>
 extern HTStream * HTBlackHole (void);
 </PRE>
-
-<H3>Generic Error Stream</H3>
-
-The Error stream simply returns HT_ERROR on all methods. This can be
-used to stop a stream as soon as data arrives, for example from the
+<H3>
+  Generic Error Stream
+</H3>
+<P>
+The Error stream simply returns <CODE>HT_ERROR</CODE> on all methods. This
+can be used to stop a stream as soon as data arrives, for example from the
 network.
-
 <PRE>
 extern HTStream * HTErrorStream (void);
 </PRE>
-
 <PRE>
 #endif /* HTSTREAM_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

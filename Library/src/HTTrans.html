@@ -1,110 +1,113 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Transport Protocols</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
-<NEXTID N="z11">
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+  <NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Transport Class</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Transport Protocols</H1>
-
+<H1>
+  The Transport Class
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module keeps a list of transport methods with associated access
-code. New transport protocols may be registered at any time. This
-allows the application to easily hook in its own transport layers. The
-purpose of the <CODE>HTTransport</CODE> object is to contain transport
-dependent methods for opening and closing a connection to the
-transport and also to get an input stream and an output strean for
-reading and writing to the transport respectively.<P>
-
-This module is implemented by <A HREF="HTTrans.c">HTTrans.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
+<P>
+The Transport Class defines a transport as used by the
+<A HREF="HTChannl.html">HTChannel class</A> to communicate with the network,
+the local file system etc. New transport objects may be registered at any
+time. This allows the application to easily hook in its own transport layers.
+The purpose of the HTTransport object is to contain transport dependent methods
+for opening and closing a connection to the transport and also to get an
+input stream and an output strean for reading and writing to the transport
+respectively.
+<P>
+<B>Note</B>: The library <B>core</B> does not &nbsp;define any default transport
+objects - they are all considered part of the application. The library comes
+with a default set of transports which can be initiated using the function
+<CODE>HTTransportInit()</CODE> in <A HREF="HTInit.html">HTInit module</A>
+<P>
+This module is implemented by <A HREF="HTTrans.c">HTTrans.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTTRANS_H
 #define HTTRANS_H
 </PRE>
-
-All the transports supported directly by the Library can be initiated
-using the function <CODE>HTTransportInit()</CODE> in <A
-HREF="HTInit.html">HTInit module</A><P>
-
-<H2>The Transport Object</H2>
-
-All transport interfaces are registered dynamically in libwww. This
-means that libwww is independent of the transport being used (for
-example TCP) and you can therefore use libwww in any context you
-like. You have to specify a set of parameters in order for libwww to
-be able to use it. The transport class is defined as follows:
-
+<H2>
+  Creation and Deletion Methods
+</H2>
+<P>
+All transport interfaces are registered dynamically in libwww. This means
+that libwww is independent of the transport being used (for example TCP)
+and you can therefore use libwww in any context you like. You have to specify
+a set of parameters in order for libwww to be able to use it. The transport
+class is defined as follows:
 <PRE>
 typedef struct _HTTransport HTTransport;
 
 #include "HTIOStream.h"
 #include "HTChannl.h"
 </PRE>
-
-<H3>Add a Transport</H3>
-
-A new transport can be registered at any time in the Library. You must
-specify a name ad the supported channel mode that the transport
-supports. Then you must also register two creation methods of an input
-and an output stream respectively. You can find the definition of the
-I/O streams in the <A HREF="HTIOStream.html">HTIOStream module</A>.
-
+<H3>
+  Add a Transport
+</H3>
+<P>
+A new transport can be registered at any time in the Library. You must specify
+a name ad the supported channel mode that the transport supports. Then you
+must also register two creation methods of an input and an output stream
+respectively. You can find the definition of the I/O streams in the
+<A HREF="HTIOStream.html">HTIOStream module</A>.
 <PRE>
 extern BOOL HTTransport_add (const char *		name,
 			     HTChannelMode		mode,
 			     HTInput_new *		get_input,
 			     HTOutput_new *		get_output);
 </PRE>
-
-<H3>Delete a Transport</H3>
-
-This functions deletes a registered protocol module so that it can not
-be used for accessing a resource anymore.
-
+<H3>
+  Delete a Transport
+</H3>
+<P>
+This functions deletes a registered protocol module so that it can not be
+used for accessing a resource anymore.
 <PRE>
 extern BOOL HTTransport_delete (const char * name);
 </PRE>
-
-<H3>Remove ALL Registered Transports</H3>
-
-This is the garbage collection function. It is called by <A
-HREF="HTAccess.html#Library">HTLibTerminate()</A>
-
+<H3>
+  Remove ALL Registered Transports
+</H3>
+<P>
+This is the garbage collection function. It is called by
+<A HREF="HTAccess.html#Library">HTLibTerminate()</A>
 <PRE>
 extern BOOL HTTransport_deleteAll (void);
 </PRE>
-
-<H3>Find a Transport Protocol Object</H3>
-
-You can search the list of registered protocol objects as a function
-of the access acheme. If an access scheme is found then the protocol
-object is returned.
-
+<H2>
+  Transport Class Methods
+</H2>
+<H3>
+  Find a Transport Protocol Object
+</H3>
+<P>
+You can search the list of registered protocol objects as a function of the
+access acheme. If an access scheme is found then the protocol object is returned.
 <PRE>
 extern HTTransport * HTTransport_find (HTRequest * request, const char * name);
 </PRE>
-
-<H3>Supported Mode</H3>
-
-A transport object is registered with the <A
-HREF="HTChannl.html">channel mode </A>that it supports.
-
+<H3>
+  Supported Mode
+</H3>
+<P>
+A transport object is registered with the <A HREF="HTChannl.html">channel
+mode </A>that it supports.
 <PRE>
 extern HTChannelMode HTTransport_mode (HTTransport * tp);
 </PRE>
-
-<H3>Input and Output Stream Creation Methods</H3>
-
+<H3>
+  Input and Output Stream Creation Methods
+</H3>
 <PRE>
 struct _HTTransport {
     char *		name;
@@ -113,14 +116,12 @@ struct _HTTransport {
     HTOutput_new *	output_new;	    /* Output stream creation method */
 };
 </PRE>
-
 <PRE>
 #endif /* HTTRANS_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

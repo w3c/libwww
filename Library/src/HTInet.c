@@ -21,17 +21,13 @@
 #include "HTDNS.h"
 #include "HTInet.h"					 /* Implemented here */
 
-/* VMS stuff */
-#ifdef VMS
-#ifndef MULTINET
-#define FD_SETSIZE 32
-#else /* Multinet */
-#define FD_SETSIZE 256
-#endif /* Multinet */
-#endif /* VMS */
+#ifndef DEFAULT_NEWS_HOST
+#define DEFAULT_NEWS_HOST	"news"
+#endif
 
-PRIVATE char *hostname = NULL;			    /* The name of this host */
-PRIVATE char *mailaddress = NULL;		     /* Current mail address */
+#ifndef SERVER_FILE
+#define SERVER_FILE		"/usr/local/lib/rn/server"
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -248,6 +244,7 @@ PUBLIC int HTParseInet (HTNet * net, char * host)
 }
 
 
+#if 0
 /*								HTGetDomainName
 **	Returns the current domain name without the local host name.
 **	The response is pointing to a static area that might be changed
@@ -255,10 +252,10 @@ PUBLIC int HTParseInet (HTNet * net, char * host)
 **
 **	Returns NULL on error, "" if domain name is not found
 */
-PUBLIC const char *HTGetDomainName (void)
+PRIVATE char * HTGetDomainName (void)
 {
-    const char *host = HTGetHostName();
-    char *domain;
+    char * host = HTGetHostName();
+    char * domain;
     if (host && *host) {
 	if ((domain = strchr(host, '.')) != NULL)
 	    return ++domain;
@@ -267,30 +264,7 @@ PUBLIC const char *HTGetDomainName (void)
     } else
 	return NULL;
 }
-
-
-/*								HTSetHostName
-**	Sets the current hostname inclusive domain name.
-**	If this is not set then the default approach is used using
-**	HTGetHostname().
-*/
-PUBLIC void HTSetHostName (char * host)
-{
-    if (host && *host) {
-	char *strptr;
-	StrAllocCopy(hostname, host);
-	strptr = hostname;
-	while (*strptr) {
-	    *strptr = TOLOWER(*strptr);
-	    strptr++;
-	}
-	if (*(hostname+strlen(hostname)-1) == '.')    /* Remove trailing dot */
-	    *(hostname+strlen(hostname)-1) = '\0';
-    } else {
-	if (PROT_TRACE) HTTrace("SetHostName. Bad argument ignored\n");
-    }
-}
-
+#endif
 
 /*								HTGetHostName
 **	Returns the name of this host. It uses the following algoritm:
@@ -309,17 +283,12 @@ PUBLIC void HTSetHostName (char * host)
 **
 **	Return: hostname on success else NULL
 */
-PUBLIC const char * HTGetHostName (void)
+PUBLIC char * HTGetHostName (void)
 {
+    char * hostname = NULL;
     int fqdn = 0;				     /* 0=no, 1=host, 2=fqdn */
     FILE *fp;
     char name[MAXHOSTNAMELEN+1];
-    if (hostname) {		       			  /* If already done */
-	if (*hostname)
-	    return hostname;
-	else
-	    return NULL;		    /* We couldn't get the last time */
-    }
     *(name+MAXHOSTNAMELEN) = '\0';
 
 #ifdef HAVE_SYSINFO
@@ -402,34 +371,6 @@ PUBLIC const char * HTGetHostName (void)
     return hostname;
 }
 
-
-/*
-**	Free the host name. Called from HTLibTerminate
-*/
-PUBLIC void HTFreeHostName (void)
-{
-    HT_FREE(hostname);
-}
-
-
-/*							       HTSetMailAddress
-**	Sets the current mail address plus host name and domain name.
-**	If this is not set then the default approach is used using
-**	HTGetMailAddress(). If the argument is NULL or "" then HTGetMailAddress
-**	returns NULL on a succeding request.
-*/
-PUBLIC void HTSetMailAddress (char * address)
-{
-    if (!address || !*address)
-	StrAllocCopy(mailaddress, "");
-    else
-	StrAllocCopy(mailaddress, address);
-    if (WWWTRACE)
-	HTTrace("SetMailAdr.. Set mail address to `%s\'\n",
-		mailaddress);
-}
-
-
 /*							       HTGetMailAddress
 **
 **	Get the mail address of the current user on the current host. The
@@ -445,9 +386,9 @@ PUBLIC void HTSetMailAddress (char * address)
 **		LOGNAME environment variable
 **		USER environment variable
 **
-**	Returns NULL if error else pointer to static string
+**	Returns NULL or string to be freed by caller
 */
-PUBLIC const char * HTGetMailAddress (void)
+PUBLIC char * HTGetMailAddress (void)
 {
 #ifdef HT_REENTRANT
   char name[LOGNAME_MAX+1];    /* For getlogin_r or getUserName */
@@ -460,13 +401,6 @@ PUBLIC const char * HTGetMailAddress (void)
     struct passwd * pw_info = NULL;
 #endif
     char * login = NULL;
-    const char * domain;
-    if (mailaddress) {
-	if (*mailaddress)
-	    return mailaddress;
-	else
-	    return NULL;       /* No luck the last time so we wont try again */
-    }
 
 #ifdef WWW_MSWINDOWS
     if (!login && GetUserName(name, &bufSize) != TRUE)
@@ -501,24 +435,130 @@ PUBLIC const char * HTGetMailAddress (void)
     if (!login) login = HT_DEFAULT_LOGIN;
 
     if (login) {
+	char * domain = NULL;
+	char * mailaddress = NULL;
 	StrAllocCopy(mailaddress, login);
 	StrAllocCat(mailaddress, "@");
-	if ((domain = HTGetHostName()) != NULL)
+	if ((domain = HTGetHostName()) != NULL) {
 	    StrAllocCat(mailaddress, domain);
-	else {
-	    *mailaddress = '\0';
-	    return NULL;			/* Domain name not available */
+	    HT_FREE(domain);
 	}
 	return mailaddress;
     }
     return NULL;
 }
 
-
 /*
-**	Free the mail address. Called from HTLibTerminate
+**	Except on the NeXT, we pick up the NewsHost name from
+**
+**	1.	Environment variable NNTPSERVER
+**	2.	File SERVER_FILE
+**	3.	Compilation time macro DEFAULT_NEWS_HOST
+**
+**	On the NeXT, we pick up the NewsHost name from, in order:
+**
+**	1.	WorldWideWeb default "NewsHost"
+**	2.	News default "NewsHost"
+**	3.	Compilation time macro DEFAULT_NEWS_HOST
+**
+**	Returns NULL or string to be freed by caller
 */
-PUBLIC void HTFreeMailAddress (void)
+PUBLIC char * HTGetNewsServer (void)
 {
-    HT_FREE(mailaddress);
+    char * newshost = NULL;
+    char buffer[80];
+
+#ifdef NeXTStep
+    if ((newshost = NXGetDefaultValue("WorldWideWeb","NewsHost")) == 0)
+	if ((newshost = NXGetDefaultValue("News","NewsHost")) == 0)
+	    newshost = DEFAULT_NEWS_HOST;
+#else
+    if ((newshost = (char *) getenv("NNTPSERVER")) == NULL) {
+	FILE *fp = fopen(SERVER_FILE, "r");
+	*(buffer+79) = '\0';
+	if (fp) {
+	    if (fgets(buffer, 79, fp)) {
+		char *end;
+		newshost = buffer;
+		while (*newshost == ' ' || *newshost == '\t')
+		    newshost++;
+		end = newshost;
+		while (*end && !isspace(*end))
+		    end++;
+		*end = '\0';
+	    }
+	    fclose(fp);
+	}
+    }
+#endif /* NestStep */
+
+    /* Last resort */
+    if (!newshost || !*newshost) newshost = DEFAULT_NEWS_HOST;
+
+    /* Canonicalize host name */
+    {
+	char * result = NULL;
+	StrAllocCopy(result, newshost);
+	{
+	    char * strptr = result;
+	    while (*strptr) {
+		*strptr = TOLOWER(*strptr);
+		strptr++;
+	    }
+	}
+	return result;
+    }
+}
+
+/*	Timezone Offset
+**	---------------
+**	Calculates the offset from GMT in seconds
+*/
+PUBLIC time_t HTGetTimeZoneOffset (void)
+{
+    time_t HTTimeZone = 0;
+#ifdef HAVE_TIMEZONE
+    {
+	time_t cur_t = time(NULL);
+#ifdef HT_REENTRANT
+	struct tm loctime;
+	struct tm *local = (struct tm *) localtime_r(&cur_t, &loctime);
+#else
+	struct tm *local = localtime(&cur_t);
+#endif /* HT_REENTRANT */
+	if (daylight && local->tm_isdst>0) {		   /* daylight time? */
+#ifdef HAVE_ALTZONE
+	    HTTimeZone = altzone;
+#else
+ 	    /* Assumes a fixed DST offset of 1 hour, which is probably wrong */
+ 	    HTTimeZone = timezone - 3600;
+#endif /* HAVE_ALTZONE */
+	} else {						       /* no */
+	    HTTimeZone = timezone;
+	}
+	HTTimeZone = -HTTimeZone;
+	if (CORE_TRACE)
+	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
+		    (int) HTTimeZone/3600);
+    }
+#else
+#ifdef HAVE_TM_GMTOFF
+    {
+	time_t cur_t = time(NULL);
+#ifdef HT_REENTRANT
+	struct tm loctime;
+	localtime_r(&cur_t, &loctime);
+#else
+	struct tm * local = localtime(&cur_t);
+#endif /* HT_REENTRANT */
+	HTTimeZone = local->tm_gmtoff;
+	if (CORE_TRACE)
+	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
+		    (int)local->tm_gmtoff / 3600);
+    }
+#else
+    if (CORE_TRACE) HTTrace("TimeZone.... Not defined\n");
+#endif /* HAVE_TM_GMTOFF */
+#endif /* HAVE_TIMEZONE */
+    return HTTimeZone;
 }

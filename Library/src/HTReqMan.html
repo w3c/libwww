@@ -1,35 +1,28 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww REQUEST OBJECT</TITLE>
-<<<<<<< HTReqMan.html
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-=======
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Feb-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 21-Mar-1996 -->
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Apr-1996 -->
->>>>>>> 2.20
+<!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+  <TITLE>W3C Reference Library libwww Private Request Definition</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Request Object</H1>
-
+<H1>
+  Private Request Definition
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module is the private part of the request object. It has the
-functions declarations that are private to the Library and that
-shouldn't be used by applications. The module has been separated from
-the old HTAccess module. See also the public part of the declarition
-in the <A HREF="HTReq.html">HTReq Module</A>.<P>
-
-This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
+<P>
+This module is the private part of the request object. It has the functions
+declarations that are private to the Library and that shouldn't be used by
+applications. The module has been separated from the old HTAccess module.
+See also the public part of the declarition in the <A HREF="HTReq.html">HTReq
+Module</A>.
+<P>
+This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTREQMAN_H
 #define HTREQMAN_H
@@ -41,18 +34,13 @@ Reference Library</A>. <P>
 #include "<A HREF="HTMethod.html">HTMethod.h</A>"
 #include "<A HREF="HTAABrow.html">HTAABrow.h</A>"
 #include "<A HREF="HTStream.html">HTStream.h</A>"
-#include "<A HREF="HTSocket.html">HTSocket.h</A>"
 #include "<A HREF="HTNet.html">HTNet.h</A>"
 </PRE>
-
-<H2><A NAME="req">The Request structure</A></H2>
-
-When a request is handled, all kinds of things about it need to be
-passed along together with a request. It is intended to live as long
-as the request is still active, but can be deleted as soon as it has
-terminated. Only the anchor object stays around after the request
-itself is terminated.
-
+<P>
+When a request is handled, all kinds of things about it need to be passed
+along together with a request. It is intended to live as long as the request
+is still active, but can be deleted as soon as it has terminated. Only the
+anchor object stays around after the request itself is terminated.
 <PRE>
 struct _HTRequest {
 
@@ -67,9 +55,18 @@ struct _HTRequest {
     HTNet *		net;		    /* Information about socket etc. */
     HTPriority		priority;		/* Priority for this request */
 </PRE>
-
-<H3>Accept headers</H3>
-
+<H3>
+  User Profile
+</H3>
+<P>
+Each request can be assigned a <A HREF="HTUser.html">user profile</A> containing
+information about this host and the user issuing the request.
+<PRE>
+    HTUserProfile *	userprofile;
+</PRE>
+<H3>
+  Accept headers
+</H3>
 <PRE>
     HTList *		conversions;
     BOOL		conv_local;
@@ -92,9 +89,9 @@ struct _HTRequest {
     HTList *		afters;
     BOOL		afters_local;
 </PRE>
-
-<H3>Headers and header information</H3>
-
+<H3>
+  Headers and header information
+</H3>
 <PRE>
     HTGnHd		GenMask;
     HTRsHd		ResponseMask;
@@ -107,27 +104,27 @@ struct _HTRequest {
     HTList *		generators;
     BOOL		gens_local;
 </PRE>
-
-<H3>Anchors</H3>
-
+<H3>
+  Anchors
+</H3>
 <PRE>
     HTParentAnchor *	anchor;	       /* The Client anchor for this request */
 
     HTChildAnchor *	childAnchor;	    /* For element within the object */
     HTParentAnchor *	parentAnchor;			/* For referer field */
 </PRE>
-
-<H4>Redirection</H4>
-
-If we get a redirection back then we return the new destination for
-this request to the application using this anchor.
-
+<H4>
+  Redirection
+</H4>
+<P>
+If we get a redirection back then we return the new destination for this
+request to the application using this anchor.
 <PRE>
     HTAnchor *		redirectionAnchor;		  /* Redirection URL */
 </PRE>
-
-<H3>Streams From Network to Application</H3>
-
+<H3>
+  Streams From Network to Application
+</H3>
 <PRE>
     HTStream *		output_stream; 
     HTFormat		output_format;
@@ -135,43 +132,43 @@ this request to the application using this anchor.
     HTStream*		debug_stream;
     HTFormat		debug_format;
 </PRE>
-
-<H3>Streams From Application to Network</H3>
-
+<H3>
+  Streams From Application to Network
+</H3>
 <PRE>
     HTStream *		input_stream; 
     HTFormat		input_format;
 </PRE>
-
-<H3>Callback Function for getting data down the Input Stream</H3>
-
+<H3>
+  Callback Function for getting data down the Input Stream
+</H3>
 <PRE>
     HTPostCallback *	PostCallback;
 </PRE>
-
-<H3>Context Swapping</H3>
-
+<H3>
+  Context Swapping
+</H3>
 <PRE>
     HTRequestCallback *	callback;
     void *		context;
 </PRE>
-
-<H3>Other Flags</H3>
-
+<H3>
+  Other Flags
+</H3>
 <PRE>
     BOOL		preemptive;
     BOOL		ContentNegotiation;
     BOOL		using_proxy;
 </PRE>
-
-<H3>Error Manager</H3>
-
+<H3>
+  Error Manager
+</H3>
 <PRE>
     HTList *		error_stack;		           /* List of errors */
 </PRE>
-
-<H3>PostWeb Information</H3>
-
+<H3>
+  PostWeb Information
+</H3>
 <PRE>
     HTRequest *		source;		     /* Source for request or itself */
     HTParentAnchor *	source_anchor;		  /* Source anchor or itself */
@@ -181,14 +178,14 @@ this request to the application using this anchor.
     int			destRequests;	   /* Number of destination requests */
     int			destStreams;	    /* Number of destination streams */
 </PRE>
-
-<H3>Access Authentication Information</H3>
-
-The <CODE>challenge</CODE> and the <CODE>credentials</CODE> entries
-are use by the authentication parsers and generators respectively. It
-is required to have a <CODE>scheme</CODE> in order to find a parser
-for an authentication scheme.
-
+<H3>
+  Access Authentication Information
+</H3>
+<P>
+The <CODE>challenge</CODE> and the <CODE>credentials</CODE> entries are use
+by the authentication parsers and generators respectively. It is required
+to have a <CODE>scheme</CODE> in order to find a parser for an authentication
+scheme.
 <PRE>
     char *		scheme;		    /* Current authentication scheme */
     char *		realm;				    /* Current realm */
@@ -196,25 +193,24 @@ for an authentication scheme.
     HTAssocList *	challenge;           /* Challenge received by client */
     HTAssocList *	credentials;	   /* Credentials received by server */
 </PRE>
-
-<H3>Windows Specific Information</H3>
-
+<H3>
+  Windows Specific Information
+</H3>
 <PRE>
 #ifdef WWW_WIN_ASYNC
     HWND		hwnd;		/* Windows handle for MSWindows   */
     unsigned long	winMsg;	        /* msg number of Windows eloop    */
 #endif /* WWW_WIN_ASYNC */
 </PRE>
-
 <PRE>
 };
 </PRE>
-
-<H2>Post Web Management</H2>
-
-These functions are mainly used internally in the Library but there is
-no reason for them not to be public.
-
+<H2>
+  Post Web Management
+</H2>
+<P>
+These functions are mainly used internally in the Library but there is no
+reason for them not to be public.
 <PRE>
 extern BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest);
 extern BOOL HTRequest_removeDestination	(HTRequest * dest);
@@ -227,27 +223,25 @@ extern BOOL HTRequest_removePostWeb (HTRequest * me);
 extern BOOL HTRequest_killPostWeb (HTRequest * me);
 
 #define	HTRequest_mainDestination(me) \
-	((me) &amp;&amp; (me)->source ? (me)->source->mainDestination : NULL)
+	((me) &amp;&amp; (me)-&gt;source ? (me)-&gt;source-&gt;mainDestination : NULL)
 #define HTRequest_isDestination(me) \
-	((me) &amp;&amp; (me)->source &amp;&amp; (me) != (me)->source)
+	((me) &amp;&amp; (me)-&gt;source &amp;&amp; (me) != (me)-&gt;source)
 #define HTRequest_isMainDestination(me) \
-	((me) &amp;&amp; (me)->source &amp;&amp; \
-	(me) == (me)->source->mainDestination)
+	((me) &amp;&amp; (me)-&gt;source &amp;&amp; \
+	(me) == (me)-&gt;source-&gt;mainDestination)
 #define HTRequest_isSource(me) \
-	((me) &amp;&amp; (me)->source &amp;&amp; (me) == (me)->source)
-#define HTRequest_isPostWeb(me) ((me) &amp;&amp; (me)->source)
-#define HTRequest_source(me) ((me) ? (me)->source : NULL)
+	((me) &amp;&amp; (me)-&gt;source &amp;&amp; (me) == (me)-&gt;source)
+#define HTRequest_isPostWeb(me) ((me) &amp;&amp; (me)-&gt;source)
+#define HTRequest_source(me) ((me) ? (me)-&gt;source : NULL)
 </PRE>
-
+<P>
 End of Declaration
-
 <PRE>
 #endif /* HTREQMAN_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -1,62 +1,63 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library Socket Read Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Apr-1996 -->
-<NEXTID N="z18">
+  <!-- Changed by: Henrik Frystyk Nielsen, 12-Apr-1996 -->
+  <NEXTID N="z18">
+  <TITLE>W3C Reference Library Socket Reader Stream</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Manages Read and Write to and from the Network</H1>
-
+<H1>
+  Socket Reader Stream
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module defines the read and write functions to and from the
-network. As we are having reentrant function and a smarter network I/O
-this will get very small :-) <P>
-
-This module is implemented by <A HREF="HTReader.c">HTReader.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+The Socket Reader Stream is an <A HREF="HTIOStream.html">input stream
+</A>&nbsp;which knows how to read from&nbsp;a BSD type socket. It is part
+of the <A HREF="WWWTrans.html">Transport interface </A>and may be registered
+as part of a <A HREF="HTTrans.html">Transport Object</A>. The application
+can&nbsp;initialize this stream together with the
+<A HREF="HTWriter.html">HTWriter stream</A>, for example. In the
+<A HREF="HTInit.html">default initialization module</A>, you can find the
+<CODE>HTTransportInit()</CODE> function which sets up this stream as a default
+transport for handling socket read operations.
+<P>
+This module is implemented by <A HREF="HTReader.c">HTReader.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTREADER_H
 #define HTREADER_H
 
 #include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
 </PRE>
-
-<H2>Input Buffering</H2>
-
-In order to optimize reading a channel, we bind a buffer to each
-channel object. The size of this buffer is a compromise between speed
-and memory. Here it is chosen as the default TCP High Water Mark
-(sb_hiwat) for receiving data. By default, we have chosen a value that
-equals the normal TCP High Water Mark (sb_hiwat) for receiving data.
-
+<H2>
+  Input Buffering
+</H2>
+<P>
+In order to optimize reading a channel, we bind a buffer to each channel
+object. The size of this buffer is a compromise between speed and memory.
+Here it is chosen as the default TCP High Water Mark (sb_hiwat) for receiving
+data. By default, we have chosen a value that equals the normal TCP High
+Water Mark (sb_hiwat) for receiving data.
 <PRE>
 #define INPUT_BUFFER_SIZE 8192
 </PRE>
-
-<H2>Read Stream</H2>
-
-
+<H2>
+  Read Stream
+</H2>
 <PRE>
 extern HTInput_new HTReader_new;
 </PRE>
-
 <PRE>
 #endif
 </PRE>
-
 <P>
-<HR>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -12,10 +12,9 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTParse.h"
+#include "WWWUtil.h"
 #include "HTString.h"
-#include "HTInet.h"
+#include "HTParse.h"					 /* Implemented here */
 
 struct struct_parts {
 	char * access;		/* Now known as "scheme" */
@@ -211,20 +210,17 @@ PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
 }
 
 
-/*							       HTCanon
-**
+/*
 **	Canonicalizes the URL in the following manner starting from the host
 **	pointer:
 **
 **	1) The host name is converted to lowercase
-**	2) Expands the host name of the URL from a local name to a full
-**	   domain name. A host name is started by `://'.
-**	3) Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp)
+**	2) Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp)
 **
 **	Return: OK	The position of the current path part of the URL
 **			which might be the old one or a new one.
 */
-PRIVATE char *HTCanon  (char ** filename, char * host)
+PRIVATE char * HTCanon (char ** filename, char * host)
 {
     char *newname = NULL;
     char *port;
@@ -250,6 +246,7 @@ PRIVATE char *HTCanon  (char ** filename, char * host)
     /* Does the URL contain a full domain name? This also works for a
        numerical host name. The domain name is already made lower-case
        and without a trailing dot. */
+#if 0
     if (((strptr = strchr(host, '.')) == NULL || strptr >= path) &&
 	strncasecomp(host, "localhost", 9)) {
 	const char *domain = HTGetDomainName();
@@ -263,7 +260,9 @@ PRIVATE char *HTCanon  (char ** filename, char * host)
 	    strcat(newname, ".");
 	    strcat(newname, domain);
 	}
-    } else {					  /* Look for a trailing dot */
+    } else 					  /* Look for a trailing dot */
+#endif
+    {
 	char *dot = port ? port : path;
 	if (dot > *filename && *--dot=='.') {
 	    char *orig=dot, *dest=dot+1;

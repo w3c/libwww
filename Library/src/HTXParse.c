@@ -14,12 +14,10 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTXParse.h"                 /* defines HTStreamClass */
 #include "HTEPtoCl.h"         /* defines dummy routine for talking to client */
-#include "HTSocket.h"
-#include "HTEvent.h"
 
 struct _HTStream {
 	const HTStreamClass *	isa;

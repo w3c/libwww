@@ -1,186 +1,127 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-May-1996 -->
+  <TITLE>W3C Reference Library libwww Generic Network Communication</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Generic Network Communication</H1>
-
+<H1>
+  Generic Network Communication
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module has the common code for handling TCP/IP and DECnet connections
-etc. The main topics of functions in this module are:
-
-<UL>
-<LI><A HREF="#errormsg">Errno Messages</A>
-<LI><A HREF="#DNS">Host and mail addresses</A>
-<LI><A HREF="#Signals">Signal Handling</A>
-</UL>
-
+<P>
+This module has the common code for handling typical Internet functions like
+getting the name of the local host, getting the domain name and email address
+of user, parsing error codes returned in <CODE>errno</CODE> or equivalent
+etc.
+<P>
 This module is implemented by <A HREF="HTInet.c">HTInet.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTINET_H
 #define HTINET_H
 #include "HTReq.h"
 #include "HTNet.h"
 </PRE>
-
-<A NAME="errormsg"><H2>System Description of Error Message</H2></A>
-
-Return error message corresponding to errno number given. We need to
-pass the error number as a parameter as we on some platforms get
-different codes from sockets and local file access.
-
+<H2>
+  System Description of Error Message
+</H2>
+<P>
+Return error message corresponding to errno number given. We need to pass
+the error number as a parameter as we on some platforms get different codes
+from sockets and local file access.
 <PRE>
 extern const char * HTErrnoString	(int errnum);
 extern int HTInetStatus			(int errnum, char * where);
 </PRE>
-
-<H3>Parse a Cardinal Value</H3>
-
+<H2>
+  Parse a Cardinal Value
+</H2>
+<P>
+Converts a string to a cardinal value. On entry: *pp points to first character
+to be interpreted, terminated by non 0..9 character. *pstatus points to status
+already valid, maxvalue gives the largest allowable value. On exit: *pp points
+to first unread character, *pstatus points to status updated iff bad
 <PRE>
-/*	Parse a cardinal value				       parse_cardinal()
-**	----------------------
-**
-** On entry:
-** 	*pp points to first character to be interpreted, terminated by
-** 	non 0..9 character.
-** 	*pstatus points to status already valid,
-** 	maxvalue gives the largest allowable value.
-**
-** On exit:
-** 	*pp points to first unread character,
-** 	*pstatus points to status updated iff bad
-*/
-
 extern unsigned int HTCardinal (int *		pstatus,
 				char **		pp,
 				unsigned int	max_value);
 </PRE>
-
-<A NAME="DNS"><H2>Internet Name Server Functions</H2></A>
-
-The following functions are available to get information about a
-specified host.
-
-<H3>Produce a string for an internet address</H3>
-
-This function is equivalent to the BSD system call <B>inet_ntoa</B> in that it
-converts a numeric 32-bit IP-address to a dotted-notation decimal string. The
-pointer returned points to static memory which must be copied if it is to be
-kept.
-
+<H2>
+  Produce a string for an internet address
+</H2>
+<P>
+This function is equivalent to the BSD system call <B>inet_ntoa</B> in that
+it converts a numeric 32-bit IP-address to a dotted-notation decimal string.
+The pointer returned points to static memory which must be copied if it is
+to be kept.
 <PRE>
 extern const char * HTInetString (struct sockaddr_in * sin);
 </PRE>
-
-<H3>Parse a network node address and port</H3>
-
-It is assumed that any portnumber and numeric host address is given in
-decimal notation. Separation character is '.'  Any port number given
-in host name overrides all other values.  'host' might be modified.
-
+<H2>
+  Parse a network node address and port
+</H2>
+<P>
+It is assumed that any portnumber and numeric host address is given in decimal
+notation. Separation character is '.' Any port number given in host name
+overrides all other values. 'host' might be modified.
 <PRE>
 extern int HTParseInet (HTNet * net, char * host);
 </PRE>
-
-<A NAME="HTGetHostName"><H3>Get Name of This Machine</H3></A>
-
-This function returns a CONET char pointer to a static location containing
-the name of this host or NULL if not available.
-
+<H2>
+  Timezone Offset
+</H2>
+<P>
+Calculates the offset from GMT in <I>seconds</I>.
 <PRE>
-extern const char * HTGetHostName (void);
+extern time_t HTGetTimeZoneOffset (void);
 </PRE>
-
-
-<H3>Set Name of This Machine</H3>
-
-This function overwrites any other value of current host name. This might
-be set by the user to change the value in the ID value parsed to a news host
-when posting. The change doesn't influence the <A HREF="HTInet.html#Mailaddress">Mail Address</A> as they are stored in two different locations. If, however,
-the change is done before the first call to HTGetMailAddress() then this 
-function will use the new host and domain name.
-
+<H2>
+  FQDN of this Host
+</H2>
+<P>
+This function returns a the name of this host or NULL if not available. The
+name is stored in a static variable.
 <PRE>
-extern void HTSetHostName (char * host);
+extern char * HTGetHostName (void);
 </PRE>
-
-<H3>Cleanup Memory</H3>
-
-Called from <A HREF="HTReq.html#Library">HTLibTerminate</A>
-
-<PRE>
-extern void HTFreeHostName (void);
-</PRE>
-
-<H3>Get Domain Name of This Machine</H3>
-
-This function rerturns the domain name part of the host name as returned by
-HTGetHostName() function. Changing the domain name requires a call to 
-HTSetHostname().
-
-<PRE>
-extern const char *HTGetDomainName (void);
-</PRE>
-
-
-<A NAME="Mailaddress"><H3>Get User Mail Address</H3></A>
-
-This functions returns a char pointer to a static location containing
-the mail address of the current user. The static location is different
-from the one of the current host name so different values can be
-assigned. The default value is &lt;USER&gt;@hostname where hostname is
-as returned by HTGetHostName().
-
+<H2>
+  User Email Address
+</H2>
+<P>
+This functions returns a char pointer to a static location containing the
+mail address of the current user. The static location is different from the
+one of the current host name so different values can be assigned. The default
+value is <CODE>&lt;USER&gt;@hostname</CODE> where hostname is as returned
+by <I>HTGetHostName()</I>.
 <PRE>
 #ifndef HT_DEFAULT_LOGIN
 #define HT_DEFAULT_LOGIN	"libwww"
 #endif
 
-extern const char * HTGetMailAddress (void);
+extern char * HTGetMailAddress (void);
 </PRE>
-
-
-<H3>Set User Mail Address</H3>
-
-This function overwrites any other value of current mail address. This
-might be set by the user to change the value in the <A
-HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTRQ_Headers.html#from">
-From field</A> in the <A
-HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTTP2.html">HTTP
-Protocol</A>.
-
-<PRE>
-extern void HTSetMailAddress (char * address);
+<H2>
+  News server
+</H2>
+<P>
+The default news host is "news" but you can get ans set the value here.
+<PRE>extern char * HTGetNewsServer (void);
 </PRE>
-
-<H3>Free Memory</H3>
-
-Called by <A HREF="HTReq.html#Library">HTLibTerminate</A>
-
-<PRE>
-extern void HTFreeMailAddress (void);
-</PRE>
-
-<H2>Signal Handling</H2>
-
-This is only necessary to compile on a few platforms and only if the
-application does not have its own signal handling. It is required on
-Solaris 2.3 (and other SVR4 platforms?) due to a bug in the TCP
-kernel. When a <CODE>connect()</CODE> is tried to a illegal port,
-solaris gives a SIGPIPE signal instead of returning <EM>Connection
-refused</EM>.
-
+<H2>
+  Signal Handling
+</H2>
+<P>
+This is only necessary to compile on a few platforms and only if the application
+does not have its own signal handling. It is required on Solaris 2.3 (and
+other SVR4 platforms?) due to a bug in the TCP kernel. When a
+<CODE>connect()</CODE> is tried to a illegal port, solaris gives a SIGPIPE
+signal instead of returning <EM>Connection refused</EM>.
 <PRE>
 #ifdef WWWLIB_SIG
 extern void HTSetSignal (void);
@@ -188,10 +129,9 @@ extern void HTSetSignal (void);
 
 #endif   /* HTINET_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

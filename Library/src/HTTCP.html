@@ -1,91 +1,77 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww  Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww Socket Open and Close</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Generic Network Communication</H1>
-
+<H1>
+  Socket Open and Close 
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module has the common code for handling TCP/IP and DECnet connections
-etc. The main topics of functions in this module are:
-
-<UL>
-<LI><A HREF="#ConEst">Connection establishment</A>
-<LI><A HREF="#hostcache">Cache of host names</A>
-<LI><A HREF="#errormsg">Errno Messages</A>
-<LI><A HREF="#DNS">Host and mail addresses</A>
-<LI><A HREF="#Signals">Signal Handling</A>
-</UL>
-
-This module is implemented by <A HREF="HTTCP.c">HTTCP.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+The Socket Open and Close methods knows how to establish a BSD socket TCP
+connection and is part of the <A HREF="WWWTrans.html">Transport interface</A>.
+<P>
+This module is implemented by <A HREF="HTTCP.c">HTTCP.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTTCP_H
 #define HTTCP_H
 #include "HTReq.h"
 #include "HTNet.h"
 </PRE>
-
-<A NAME="ConEst"><H2>Connection Management</H2></A>
-
-All connections are established through the following functions.
-
-<H3>Active Connection Establishment</H3>
-
-This makes an active connect to the specified host. The <A
-HREF="HTReq.html#HTNet">HTNet structure</A> is parsed in
-order to handle errors. Default port might be overwritten by any port
-indication in the <A
-HREF="http://www.w3.org/pub/WWW/Addressing/URL/Overview.html">URL</A>
-specified as &lt;host&gt;:&lt;port&gt; If it is a multihomed host then
-HTDoConnect measures the time to do the connection and updates the
-calculated weights in the cache of visited hosts.
-
+<H2>
+  Active Connection Establishment
+</H2>
+<P>
+This makes an active <CODE>connect</CODE> to the specified host. An
+<A HREF="HTNet.html">HTNet Object</A> is parsed in order to handle errors
+and other stuff. The default port might be overwritten by any port indication
+in the <A HREF="http://www.w3.org/pub/WWW/Addressing/">URL</A> specified
+as <CODE>&lt;host&gt;:&lt;port&gt;</CODE> If it is a <I>multihomed host </I>(a
+host having multiple IP-addresses with the same host name) &nbsp;then
+<CODE>HTDoConnect()</CODE> measures the time it takes to connect and updates
+the calculated weights in the <A HREF="HTDNS.html">DNS object</A>.
 <PRE>
 extern int HTDoConnect (HTNet * net, char * url, u_short default_port);
 </PRE>
-
-<H3>Passive Connection Establishment</H3>
-
-This function makes a non-blocking accept on a port. The net must
-contain a valid socket to accept on. If accept is OK then the socket
-descripter in the Net object is swapped to the new one.
-
+<H2>
+  Passive Connection Establishment
+</H2>
+<P>
+This function makes an <CODE>accept</CODE> on a port. The net must contain
+a valid socket to accept on. If accept is OK then the socket descripter in
+the Net object is swapped to the new one.
 <PRE>
 extern int HTDoAccept (HTNet * net);
 </PRE>
-
-<H3>Listen on a Socket</H3>
-
-Listens on the specified port. 0 means that we don't care and a
-temporary one will be assigned. If <CODE>master</CODE>==INVSOC then we
-listen on all local interfaces (using a wildcard). If !INVSOC then use
-this as the local interface. <CODE>backlog</CODE> is the number of
+<H2>
+  Listen on a Socket
+</H2>
+<P>
+Listens on the specified port. Passing port <CODE>0</CODE> means that we
+don't care and a temporary one will be assigned. If
+<CODE>master</CODE>==INVSOC then we listen on all local interfaces (using
+a wildcard). If <CODE>INVSOC</CODE> is <I>not</I> <CODE>NULL</CODE> then
+use this as the local interface. <CODE>backlog</CODE> is the number of
 connections that can be queued on the socket - you can use
-<CODE>HT_BACKLOG</CODE> for a platform dependent value (typically 5 on
-BSD and 32 on SVR4). Returns HT_ERROR or HT_OK.
-
+<CODE>HT_BACKLOG</CODE> for a platform dependent value (typically 5 on BSD
+and 32 on SVR4). Returns <CODE>HT_ERROR</CODE> or <CODE>HT_OK</CODE>.
 <PRE>
 extern int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog);
 </PRE>
-
 <PRE>
 #endif   /* HTTCP_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

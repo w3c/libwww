@@ -15,14 +15,10 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTSocket.h"
-#include "HTStream.h"
-#include "HTWWWStr.h"
-#include "HTDir.h"
-#include "HTIcons.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWDir.h"
+#include "WWWTrans.h"
 #include "HTFTPDir.h"					 /* Implemented here */
 
 struct _HTStream {

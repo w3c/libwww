@@ -1,28 +1,26 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww EVENTS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
+  <TITLE>W3C Reference Library libwww Default Event Manager</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Event Manager</H1>
-
+<H1>
+  Default Event Manager
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module is the application interface to the multi-threaded
-functionality in the Library. It contains a set of functions that the
-application can either use as are or they can be overwritten by the
-application. <P>
-
-This module is implemented by <A HREF="HTEvntrg.c">HTEvntrg.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
-Reference Library</A>. <P>
-
+<P>
+This module is the application interface to the multi-threaded functionality
+in the Library. It contains a set of functions that the application can either
+use as are or they can be overwritten by the application.
+<P>
+This module is implemented by <A HREF="HTEvntrg.c">HTEvntrg.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTEVNTRG_H
 #define HTEVNTRG_H
@@ -31,9 +29,9 @@ Reference Library</A>. <P>
 #include "HTEvent.h"
 #include "HTReq.h"
 </PRE>
-
-<H3>Windows Specific Handles</H3>
-
+<H3>
+  Windows Specific Handles
+</H3>
 <PRE>
 #if defined(WWW_WIN_ASYNC) || defined(WWW_WIN_DLL)
 extern BOOL HTEventrg_winHandle (HTRequest * request);
@@ -42,105 +40,101 @@ extern HWND HTEventrg_getWinHandle (unsigned long * pMessage);
 extern LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
 </PRE>
-
-<H3>Register a TTY Event Handler</H3>
-
-Register the tty (console) as having events. If the TTY is
-select()-able (as is true under Unix), then we treat it as just
-another socket. Otherwise, take steps depending on the platform. This
-is the function to use to register user events!
-
+<H3>
+  Register a TTY Event Handler
+</H3>
+<P>
+Register the tty (console) as having events. If the TTY is select()-able
+(as is true under Unix), then we treat it as just another socket. Otherwise,
+take steps depending on the platform. This is the function to use to register
+user events!
 <PRE>
 extern int HTEventrg_registerTTY	(SOCKET, HTRequest *, SockOps,
 				 HTEventCallback *, HTPriority);
 </PRE>
-
-<H3>Unregister a TTY Event Handler</H3>
-
-Unregisters TTY I/O channel. If the TTY is select()-able (as is true
-under Unix), then we treat it as just another socket.
-
+<H3>
+  Unregister a TTY Event Handler
+</H3>
+<P>
+Unregisters TTY I/O channel. If the TTY is select()-able (as is true under
+Unix), then we treat it as just another socket.
 <PRE>
 extern int HTEventrg_unregisterTTY (SOCKET, SockOps);
 </PRE>
-
-<H3>Register an Event Handler</H3>
-
-For a given socket, reqister a request structure, a set of operations,
-a HTEventCallback function, and a priority. For this implementation,
-we allow only a single HTEventCallback function for all operations.
-and the priority field is ignored.
-
+<H3>
+  Register an Event Handler
+</H3>
+<P>
+For a given socket, reqister a request structure, a set of operations, a
+HTEventCallback function, and a priority. For this implementation, we allow
+only a single HTEventCallback function for all operations. and the priority
+field is ignored.
 <PRE>
 extern int HTEventrg_register	(SOCKET, HTRequest *,
 				 SockOps, HTEventCallback *,
 				 HTPriority);
 </PRE>
-
-<H3>Unregister an Event Handler</H3>
-
-Remove the registered information for the specified socket for the
-actions specified in ops. if no actions remain after the unregister,
-the registered info is deleted, and, if the socket has been registered
-for notification, the HTEventCallback will be invoked.
-
+<H3>
+  Unregister an Event Handler
+</H3>
+<P>
+Remove the registered information for the specified socket for the actions
+specified in ops. if no actions remain after the unregister, the registered
+info is deleted, and, if the socket has been registered for notification,
+the HTEventCallback will be invoked.
 <PRE>
 extern int HTEventrg_unregister	(SOCKET, SockOps);
 </PRE>
-
-<H3>Unregister ALL Event Handlers</H3>
-
+<H3>
+  Unregister ALL Event Handlers
+</H3>
+<P>
 Unregister all sockets. N.B. we just remove them for our internal data
 structures: it is up to the application to actually close the socket.
-
 <PRE>
 extern int HTEventrg_unregisterAll (void);
 </PRE>
-
-<H2>Handler for Timeout on Sockets</H2>
-
-This function sets the timeout for sockets in the
-<CODE>select()</CODE> call and registers a timeout function that is
-called if select times out. This does only works on NON windows
-platforms as we need to poll for the console on windows If <CODE>tv =
-NULL</CODE> then timeout is disabled. Default is no timeout. If
-<EM>always=YES</EM> then the callback is called at all times, if NO
-then only when Library sockets are active. Returns YES if OK else NO.
-
+<H2>
+  Handler for Timeout on Sockets
+</H2>
+<P>
+This function sets the timeout for sockets in the <CODE>select()</CODE> call
+and registers a timeout function that is called if select times out. This
+does only works on NON windows platforms as we need to poll for the console
+on windows If <CODE>tv = NULL</CODE> then timeout is disabled. Default is
+no timeout. If <EM>always=YES</EM> then the callback is called at all times,
+if NO then only when Library sockets are active. Returns YES if OK else NO.
 <PRE>
 typedef int HTEventTimeout (HTRequest *);
 
 extern BOOL HTEventrg_registerTimeout (struct timeval *tp, HTRequest * request,
 				     HTEventTimeout *tcbf, BOOL always);
 </PRE>
-
-<H2>Start the Event Loop</H2>
-
-That is, we wait for activity from one of our registered channels, and
-dispatch on that. Under Windows/NT, we must treat the console and
-sockets as distinct.  That means we can't avoid a busy wait, but we do
-our best.
-
+<H2>
+  Start the Event Loop
+</H2>
+<P>
+That is, we wait for activity from one of our registered channels, and dispatch
+on that. Under Windows/NT, we must treat the console and sockets as distinct.
+That means we can't avoid a busy wait, but we do our best.
 <PRE>
 extern int HTEventrg_loop (HTRequest * request);
 </PRE>
-
-<H2>Stop the Event Loop</H2>
-
-Stops the (select based) event loop. The function does not guarantee
-that all requests have terminated. This is for the app to do
-
+<H2>
+  Stop the Event Loop
+</H2>
+<P>
+Stops the (select based) event loop. The function does not guarantee that
+all requests have terminated. This is for the app to do
 <PRE>
 extern void HTEventrg_stopLoop (void);
 </PRE>
-
 <PRE>
 #endif /* HTEVENTRG_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

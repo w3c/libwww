@@ -96,6 +96,7 @@ struct _HTStream {
 PRIVATE int parseheader (HTStream * me, HTRequest * request,
 			 HTParentAnchor * anchor)
 {
+    HTUserProfile * up = HTRequest_userProfile(request);
     MIME_state state = BEGINNING_OF_LINE;
     MIME_state ok_state = UNKNOWN;		  /* got this state if match */
     char *ptr = me->buffer->data-1;     /* We dont change the data in length */
@@ -504,7 +505,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case MIME_DATE:
-	    HTAnchor_setDate(anchor, HTParseTime(ptr));
+	    HTAnchor_setDate(anchor, HTParseTime(ptr, up));
 	    state = JUNK_LINE;
 	    break;
 
@@ -515,12 +516,12 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case EXPIRES:
-	    HTAnchor_setExpires(anchor, HTParseTime(ptr));
+	    HTAnchor_setExpires(anchor, HTParseTime(ptr, up));
 	    state = JUNK_LINE;
 	    break;
 
 	  case LAST_MODIFIED:
-	    HTAnchor_setLastModified(anchor, HTParseTime(ptr));
+	    HTAnchor_setLastModified(anchor, HTParseTime(ptr, up));
 	    state = JUNK_LINE;
 	    break;
 
@@ -538,7 +539,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case RETRY_AFTER:
-	    request->retry_after = HTParseTime(ptr);
+	    request->retry_after = HTParseTime(ptr, up);
 	    state = JUNK_LINE;
 	    break;
 

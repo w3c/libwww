@@ -11,11 +11,10 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTInet.h"
 #include "HTParse.h"
+#include "HTUser.h"
 #include "HTWWWStr.h"					 /* Implemented here */
 
-PRIVATE long HTTimeZone = 0L;		       /* Offset from GMT in seconds */
 PRIVATE char * months[12] = {
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
 };
@@ -95,14 +94,14 @@ PUBLIC char * HTNextField (char ** pstr)
 **
 **	Returns a pointer to the MessageID
 */
-PUBLIC const char *HTMessageIdStr (void)
+PUBLIC const char * HTMessageIdStr (HTUserProfile * up)
 {
     static char buf[80];
     time_t sectime = time(NULL);
 #ifdef HAVE_GETPID
-    const char *address = HTGetDomainName();
+    const char * address = HTUserProfile_fqdn(up);
 #else
-    const char *address = HTGetMailAddress();
+    const char * address = HTUserProfile_email(up);
 #endif /* HAVE_GETPID */
     if (!address) address = tmpnam(NULL);
     if ((!address || !*address) && sectime < 0) {
@@ -142,58 +141,6 @@ PRIVATE int make_month (const char *  s)
     return 0;
 }
 
-/*	Timezone Offset
-**	---------------
-**	Calculates the offset from GMT in seconds
-*/
-PUBLIC long HTGetTimeZoneOffset (void)
-{
-#ifdef HAVE_TIMEZONE
-    {
-	time_t cur_t = time(NULL);
-#ifdef HT_REENTRANT
-	struct tm loctime;
-	struct tm *local = (struct tm *) localtime_r(&cur_t, &loctime);
-#else
-	struct tm *local = localtime(&cur_t);
-#endif /* HT_REENTRANT */
-	if (daylight && local->tm_isdst>0) {		   /* daylight time? */
-#ifdef HAVE_ALTZONE
-	    HTTimeZone = altzone;
-#else
- 	    /* Assumes a fixed DST offset of 1 hour, which is probably wrong */
- 	    HTTimeZone = timezone - 3600;
-#endif /* HAVE_ALTZONE */
-	} else {						       /* no */
-	    HTTimeZone = timezone;
-	}
-	HTTimeZone = -HTTimeZone;
-	if (CORE_TRACE)
-	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
-		    (int) HTTimeZone/3600);
-    }
-#else
-#ifdef HAVE_TM_GMTOFF
-    {
-	time_t cur_t = time(NULL);
-#ifdef HT_REENTRANT
-	struct tm loctime;
-	localtime_r(&cur_t, &loctime);
-#else
-	struct tm * local = localtime(&cur_t);
-#endif /* HT_REENTRANT */
-	HTTimeZone = local->tm_gmtoff;
-	if (CORE_TRACE)
-	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
-		    (int)local->tm_gmtoff / 3600);
-    }
-#else
-    if (CORE_TRACE) HTTrace("TimeZone.... Not defined\n");
-#endif /* HAVE_TM_GMTOFF */
-#endif /* HAVE_TIMEZONE */
-    return HTTimeZone;
-}
-
 /*
 **	Parse a str in GMT format to a local time time_t representation
 **	Four formats are accepted:
@@ -203,7 +150,7 @@ PUBLIC long HTGetTimeZoneOffset (void)
 **		Wkd Mon 00 00:00:00 0000 GMT		(ctime)
 **		1*DIGIT					(delta-seconds)
 */
-PUBLIC time_t HTParseTime (const char *  str)
+PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
 {
     const char * s;
     struct tm tm;
@@ -298,7 +245,7 @@ PUBLIC time_t HTParseTime (const char *  str)
 
 #ifdef HAVE_MKTIME
     t = mktime(&tm);
-    t += (HTTimeZone);
+    t += (HTUserProfile_timezone(up));
 #else
 #ifdef HAVE_TIMEGM
     t = timegm(&tm);
@@ -457,13 +404,14 @@ PUBLIC void HTNumToStr (unsigned long n, char * str, int len)
 **		OK:	local file (that must be freed by caller)
 **		Error:	NULL
 */
-PUBLIC char * HTWWWToLocal (const char * url, const char * base)
+PUBLIC char * HTWWWToLocal (const char * url, const char * base,
+			    HTUserProfile * up)
 {
     if (url) {
 	char * access = HTParse(url, base, PARSE_ACCESS);
 	char * host = HTParse(url, base, PARSE_HOST);
 	char * path = HTParse(url, base, PARSE_PATH+PARSE_PUNCTUATION);
-	const char *myhost = HTGetHostName();
+	const char * myhost = HTUserProfile_fqdn(up);
 
 	/* Find out if this is a reference to the local file system */
 	if ((*access && strcmp(access, "file")) ||

@@ -48,7 +48,8 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
 {
     char linebuf[128];		/* @@@ */
     HTChunk *header = me->buffer;
-    const char *mailaddress = HTGetMailAddress();
+    HTUserProfile * up = HTRequest_userProfile(request);
+    const char * mailaddress = HTUserProfile_email(up);
     if (mailaddress) {
 	sprintf(linebuf, "From: %s%c%c", mailaddress, CR, LF);
 	HTChunk_puts(header, linebuf);

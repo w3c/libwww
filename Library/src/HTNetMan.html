@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
-  <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+  <TITLE>W3C Reference Library libwww Private Net Definition</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Asyncronous Socket Management
+  Private Net Definition
 </H1>
 <PRE>
 /*
@@ -14,12 +14,8 @@
 */
 </PRE>
 <P>
-This module contains the routines for handling the set of active sockets
-currently in use by the multithreaded clients. It is an internal module to
-the Library, the application interface is implemented in the
-<A HREF="HTEvent.html">Event Module</A>. Look for more information in the
-<A HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/"> Multithread
-Specifications</A>.
+This is the private definition of the Net Class. Please look in the public
+<A HREF="HTNet.html">Net Class</A> for more documentation 
 <P>
 This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is a
 part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
@@ -29,18 +25,13 @@ Library</A>.
 #define HTNETMAN_H
 #include "HTNet.h"
 #include "HTDNS.h"
-#include "HTSocket.h"
 #include "HTEvent.h"
 #include "HTProt.h"
 </PRE>
-<H2>
-  The HTNet Object
-</H2>
 <P>
 The <CODE>HTNet</CODE> object is the core of the request queue management.
 This object contains information about the socket descriptor, the input read
 buffer etc. required to identify and service a request.
-<P>
 <PRE>
 typedef enum _TCPState {
     TCP_ERROR		= -2,

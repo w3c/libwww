@@ -1,5 +1,6 @@
 <HTML>
 <HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
   <TITLE>W3C Reference Library libwww Request Class</TITLE>
 </HEAD>
 <BODY>
@@ -13,11 +14,44 @@
 */
 </PRE>
 <P>
-The request manager consists of two parts: a public part and a private part.
-The public part contains all the information needed to define a request the
-parameters to be used when requesting a resource from the network or local
-file system. When a request is handled, all kinds of things about it need
-to be passed along together with a request.
+Libwww is based on a request/response paradigm and the Request class defines
+"<I>an operation to be performed on a URL</I>". The request object is the
+main entry point for an application to issue a request to the Library - all
+operations on a URL <I>must</I> use a Request object. The request object
+is application independent in that both servers and clients use the same
+Request class. Examples of requests passed to the Library are a client
+application issuing a <B>GET</B> request on a HTTP URL, or a server issuing
+a load on a local file URL. The only difference is that the client gets the
+input from a user whereas the server gets the input via the network.
+<P>
+A request object is created with a default set of parameters which are applicable
+for many URL requests but the class defines a huge set of methods that an
+be used to customize a request for a particular purpose. Example of things
+that you can define is natural language, media types, what RFC 822 headers
+to use, whether the request should be refreshed from cache etc. Scroll down
+and see the set of parameters you can tune.
+<P>
+A request object is registered in the library by issuing an operation on
+a URL - for example <B>PUT</B>, <B>POST</B>, or <B>DELETE</B>. You can find
+many higher level "request issuing functions" in the
+<A HREF="HTAccess.html">Access module</A> - the methods defined by the Request
+class itself are very low level but can of course be used directly if needed.
+<P>
+Whereas the lifetime of the URL (in form of an anchor) often is very long
+(for example as long as the application is running), the lifetime of a request
+is limited to the time it takes to service the request. The core does not
+automatically delete any request object created by the application - it is
+for the application to do. In many cases a request object can be deleted
+when any of the <A HREF="HTNet.html#callout">termination callback functions</A>
+are called but the application may keep request objects around longer than
+that
+<P>
+The Library can accept an unlimited number of simultaneous requests passed
+by the application. One of the main functions of the Library core is to handle
+any number of ongoing requests in an intelligent manner by limiting the number
+of active request to the fit the available resources as defined by the
+application. This is described in more detail in the <A HREF="HTNet.html">HTNet
+module</A>.
 <P>
 This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
@@ -36,13 +70,17 @@ typedef struct _HTRequest HTRequest;
 #include "HTStream.h"
 #include "HTError.h"
 #include "HTNet.h"
+#include "HTUser.h"
 </PRE>
 <H2>
-  Request a resource
+  Issuing a Request
 </H2>
 <P>
-This is an internal routine, which has an address AND a matching anchor.
-(The public routines are called with one OR the other.)
+This is the "<I>basic request issue method</I>" provided by the Request class.
+This is a very low level API as the caller must have set up the request object
+before passing it to the Library. You can find many higher level issuing
+functions in the <A HREF="HTAccess.html">HTAccess module</A>. If you like,
+you can of course use this directly!
 <PRE>
 extern BOOL HTLoad (HTRequest * request, BOOL recursive);
 </PRE>
@@ -51,7 +89,7 @@ extern BOOL HTLoad (HTRequest * request, BOOL recursive);
 </H2>
 <P>
 The request object is intended to live as long as the request is still active,
-but can be deleted as soon as it has terminatedk, for example in one of the
+but can be deleted as soon as it has terminated, for example in one of the
 request termination callback functions as described in the
 <A HREF="HTNet.html">Net Manager</A>. Only the anchor object stays around
 after the request itself is terminated.
@@ -102,6 +140,17 @@ extern HTRequest * HTRequest_dupInternal (HTRequest * src);
 This function deletes the object and cleans up the memory.
 <PRE>
 extern void HTRequest_delete (HTRequest * request);
+</PRE>
+<H2>
+  User Profile
+</H2>
+<P>
+Each request is associated with a <A HREF="HTUser.html">User profile</A>
+which contains information about the local host name, email address of the
+user, news server etc. A request object is created with a default "generic
+user" but can be assigned a specific user at any time.
+<PRE>extern BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up);
+extern HTUserProfile * HTRequest_userProfile (HTRequest * request);
 </PRE>
 <H2>
   Set the Method for the Request
@@ -611,6 +660,17 @@ or disables content negotiation - the default value is <EM>ON</EM>.
 <PRE>
 extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_negotiation (HTRequest *request);
+</PRE>
+<H2>
+  Are we Using Proxy?
+</H2>
+<P>
+In early versions of HTTP, the request sent to the remote server varies whether
+we use a proxy or go directly to the origin server. The default value is
+<EM>OFF</EM>.
+<PRE>
+extern void HTRequest_setUsingProxy (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_usingProxy (HTRequest *request);
 </PRE>
 <H2>
   Error Manager

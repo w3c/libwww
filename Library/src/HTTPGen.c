@@ -56,7 +56,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	/* @@@@@@ */
     }
     if (request->GenMask & HT_G_MESSAGE_ID) {
-	const char *msgid = HTMessageIdStr();
+	const char *msgid = HTMessageIdStr(HTRequest_userProfile(request));
 	if (msgid) {
 	    sprintf(linebuf, "Message-ID: %s%c%c", msgid, CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));

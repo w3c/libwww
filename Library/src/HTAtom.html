@@ -1,33 +1,32 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Atoms</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww Atom Class</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Atoms</H1>
-
+<H1>
+  The Atom Class
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-<CODE>Atoms</CODE> are strings which are given representative pointer
-values so that they can be stored more efficiently, and compaisons for
-equality done more efficiently. The list of <CODE>atoms</CODE> are
-stored in a has table, so when asking for a new atom you might infact
-get back an existing one.<P>
-
-There are a whole bunch of <A
-HREF="HTFormat.html#FormatTypes">MIME-types</A> defined as
-<CODE>atoms</CODE>, so please use them! <P>
-
-This module is implemented by <A HREF="HTAtom.c">HTAtom.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
+<P>
+The <CODE>Atom Class defines s</CODE>trings which are given representative
+pointer values so that they can be stored more efficiently, and comparisons
+for equality done more efficiently. The list of <CODE>atoms</CODE> are stored
+in a has table, so when asking for a new atom you might infact get back an
+existing one.
+<P>
+<B>Note</B>: There are a whole bunch of
+<A HREF="HTFormat.html#FormatTypes">MIME-types</A> defined as
+<CODE>atoms</CODE>, so please use them!
+<P>
+This module is implemented by <A HREF="HTAtom.c">HTAtom.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTATOM_H
 #define HTATOM_H
@@ -40,57 +39,51 @@ struct _HTAtom {
 	char *		name;
 }; /* struct _HTAtom */
 </PRE>
-
-<H2>Public Functions</H2>
-
-The following methods are available for this class:
-
-<H3>Get an Atom</H3>
-
-This function returns a representative value (an <CODE>atom</CODE>)
-such that it will always (within one run of the program) return the
-same value for the same given string. The former is case sensitive,
-the latter is case insensitive.
-
+<H3>
+  Get an Atom
+</H3>
+<P>
+This function returns a representative value (an <CODE>atom</CODE>) such
+that it will always (within one run of the program) return the same value
+for the same given string. The former is case sensitive, the latter is case
+insensitive.
 <PRE>
 extern HTAtom * HTAtom_for	(const char * string);
 extern HTAtom * HTAtom_caseFor	(const char * string);
 </PRE>
-
-<H3>Get Content of an Atom</H3>
-
+<H3>
+  Get Content of an Atom
+</H3>
 <PRE>
-#define HTAtom_name(a) ((a) ? (a)->name : NULL)
+#define HTAtom_name(a) ((a) ? (a)-&gt;name : NULL)
 </PRE>
-
+<P>
 This macro returns the string pointed to by the <CODE>atom</CODE>.
-
-<H3>Search For Atoms</H3>
-
-Returns a list of <CODE>atoms</CODE> which matches the template
-given. It is especially made for MIME-types so that for example a
-template like <CODE>text&lt;slash&gt;&lt;star&gt;</CODE> returns a
-list of all MIME-types of type <CODE>text</CODE>.
-
+<H3>
+  Search For Atoms
+</H3>
+<P>
+Returns a list of <CODE>atoms</CODE> which matches the template given. It
+is especially made for MIME-types so that for example a template like
+<CODE>text&lt;slash&gt;&lt;star&gt;</CODE> returns a list of all MIME-types
+of type <CODE>text</CODE>.
 <PRE>
 extern HTList * HTAtom_templateMatches (const char * templ);
 </PRE>
-
-<H3>Cleanup Memory</H3>
-
-In order to cleanup memory, call this function. This is done
-automaticly from the <A
-HREF="HTReq.html#Library">HTLibTerminate</A> function.
-
+<H3>
+  Cleanup Memory
+</H3>
+<P>
+In order to cleanup memory, call this function. This is done automaticly
+from the <A HREF="HTReq.html#Library">HTLibTerminate</A> function.
 <PRE>
 extern void HTAtom_deleteAll (void);
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

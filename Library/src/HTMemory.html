@@ -1,58 +1,68 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww DYNAMIC MEMORY</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww Dynamic Memory Handlers</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Dynamic Memory Interface</H1>
-
+<H1>
+  Dynamic Memory Handlers
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module implements a dynamic memory API thata is used in the
-Library. There are three situations that are covered by this module:
-
+<P>
+This module defines any memory handler to be used by libwww for allocating
+and de-allocating dynamic memory. As dynamic memory may be a scarce resource,
+it is required that an application can handle memory exhaustion gracefully.
+This module provides an interface that covers the following situations:
+<P>
 <UL>
-<LI><A HREF="#d">Handling of allocation and deallocation of dynamic memory</A>
-<LI><A HREF="#r">Recovering from temporary lack of available memory</A>
-<LI><A HREF="#p">Panic handling in case a new allocation fails</A>
+  <LI>
+    <A HREF="#Allocation">Handling of allocation, reallocation and de-allocation
+    of dynamic memory</A>
+  <LI>
+    <A HREF="#Memory">Recovering from temporary lack of available memory</A>
+  <LI>
+    <A HREF="#Panic">Panic handling in case a new allocation fails</A>
 </UL>
-
+<P>
+<B>Note</B>: The Library <I>core</I> provides a default set of memory handlers
+for allocating and de-allocating dynamic memory. In order to maintain a
+reasonable performance, they are not registered dynamically but assigned
+using <I>C style macros</I>. Hence, it is not possible to swap memory handler
+at run time but this was considered to be a reasonable trade-off.
+<P>
 This module is implemented by <A HREF="HTMemory.c">HTMemory.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTMEMORY_H
 #define HTMEMORY_H
 </PRE>
-
-<A NAME="malloc"></A>
-<A NAME="calloc"></A>
-<A NAME="realloc"></A>
-<A NAME="free"></A>
-<A NAME="d"><H2>Dynamic Memory Allocation and Deallocation</H2></A>
-
-These are the functions for handling dynamic allocation and deallcation.
-
-<PRE>
-extern void* HTMemory_malloc(size_t size);
+<H2>
+  <A NAME="Allocation">Allocation, Reallocation and De-allocation</A>
+</H2>
+<P>
+The Library provides a default set of methods for handling dynamic memory.
+They are very basic and essentially identical to the C style
+<CODE>malloc</CODE>, <CODE>calloc</CODE>, <CODE>realloc</CODE>, and
+<CODE>free</CODE>:
+<PRE>extern void* HTMemory_malloc(size_t size);
 extern void* HTMemory_calloc(size_t count, size_t size);
 extern void* HTMemory_realloc(void * ptr, size_t size);
 extern void HTMemory_free(void* ptr);
 </PRE>
-
-<H3>Memory Macros</H3>
-
-We use the following set of macros throughout the code. If you don't
-wany any memory management beyond normal malloc and alloc then you can
-just use that instead of the HTMemory_* function.
-
+<H3>
+  Memory Macros
+</H3>
+<P>
+The methods above are not referred directly in the Library. Instead we use
+a set of C style macros. If you don't wany any memory management beyond normal
+malloc and alloc then you can just use that instead of the HTMemory_* function.
+You can of course also provide your own methods as well.
 <PRE>
 #ifndef __FILE__
 #define __FILE__ ""
@@ -67,82 +77,81 @@ just use that instead of the HTMemory_* function.
 #define HT_REALLOC(ptr, size)	HTMemory_realloc(ptr, size)
 #define HT_FREE(pointer)	{HTMemory_free(pointer);(pointer)=NULL;}
 </PRE>
-
-<A NAME="r"><H2>Memory Freer Functions</H2></A>
-
-The dynamic memory freer functions are typically functions that are
-capable of freeing large chunks of memory. In case a new allocation
-fails, the allocation method looks for any freer functions to
-call. There can be multriple freer functions and after each call, the
-allocation method tries again to allocate the desired amount of
-dynamic memory. The freer functions are called in <EM>reverse</EM>
-order meaning that the <EM>last</EM> one registered gets called
-<EM>first</EM>. That way, it is easy to add temporary free functions
+<H2>
+  <A NAME="Memory">Memory Freer Functions</A>
+</H2>
+<P>
+The dynamic memory freer functions are typically functions that are capable
+of freeing large chunks of memory. In case a new allocation fails, the allocation
+method looks for any registered freer functions to call. There can be multiple
+freer functions and after each call, the allocation method tries again to
+allocate the desired amount of dynamic memory. The freer functions are called
+in <EM>reverse</EM> order meaning that the <EM>last</EM> one registered gets
+called <EM>first</EM>. That way, it is easy to add temporary freer functions
 which then are guaranteed to be called first if a methods fails.
-
-<H3>Add a Freer Function</H3>
-
-You can add a freer function by using the following method. The
-Library itself registeres a set of free functions during
-initialization. If the application does not register any freer
-functions then the Library looks how it can free internal memory.
-
-<PRE>
-typedef void HTMemoryCallback(size_t size);
+<H3>
+  Add a Freer Function
+</H3>
+<P>
+You can add a freer function by using the following method. The Library may
+itself register a set of free functions during initialization. If the application
+does not register any freer functions then the Library looks how it can free
+internal memory. The freer function is passed the total number of
+<I>bytes</I> requested by the allocation.
+<PRE>typedef void HTMemoryCallback(size_t size);
 
 extern BOOL HTMemoryCall_add (HTMemoryCallback * cbf);
 </PRE>
-
-<H3>Delete a Freer Function</H3>
-
-Freer functions can be deleted at any time in which case they are not
-called anymore.
-
+<H3>
+  Delete a Freer Function
+</H3>
+<P>
+Freer functions can be deleted at any time in which case they are not called
+anymore.
 <PRE>
 extern BOOL HTMemoryCall_delete (HTMemoryCallback * cbf);
 extern BOOL HTMemoryCall_deleteAll (void);
 </PRE>
-
-<A NAME="p"><H2>Panic Handling</H2></A>
-
-If the freer functions are not capable of deallocation enough memory
-then the application must have an organized way of closing down. This
-is done using the panic handler. In the libwww, each allocation is 
-tested and HT_OUTOFMEM is called if a NULL was returned. HT_OUTOFMEM
-is a macro which calls HTMemory_outofmem. This function calls an exit
-function defined by the app in a call to HTMemory_setExit. If the app
-has not defined this function, HTMemory_outofmem TTYPrints the error
-message and calls exit(1).
-
+<H2>
+  <A NAME="Panic">Panic Handling</A>
+</H2>
+<P>
+If the freer functions are not capable of de-allocation enough memory then
+the application must have an organized way of closing down. This is done
+using the panic handler. In the libwww, each allocation is tested and
+<CODE>HT_OUTOFMEM</CODE> is called if a <CODE>NULL</CODE> was returned.
+<CODE>HT_OUTOFMEM</CODE> is a macro which by default calls
+<CODE>HTMemory_outofmem()</CODE> but of course can point to any method. The
+default handler calls an exit function defined by the application in a call
+to <CODE>HTMemory_setExit()</CODE>. If the application has <I>not</I> defined
+an exit function, <CODE>HTMemory_outofmem()</CODE> prints an error message
+and calls <CODE>exit(1)</CODE>.
 <PRE>
 typedef void HTMemory_exitCallback(char *name, char *file, unsigned long line);
 
 extern void HTMemory_setExit(HTMemory_exitCallback * pExit);
 extern HTMemory_exitCallback * HTMemory_exit(void);
 </PRE>
-
-<H3>Call the Exit Handler</H3>
-
-If an allocation fails then this function is called. If the
-application has registered it's own panic handler then this is called
-diretly from this function. Otherwise, the default behavior is to
-write a small message to stderr and then exit.
-
-<A NAME="outofmem"></A>
+<H3>
+  Call the Exit Handler
+</H3>
+<P>
+If an allocation fails then this function is called. If the application has
+registered its own panic handler then this is called directly from this function.
+Otherwise, the default behavior is to write a small message to stderr and
+then exit. 
 <PRE>
 #define outofmem(file, name)	HT_OUTOFMEM(name)
 #define HT_OUTOFMEM(name)	HTMemory_outofmem((name), __FILE__, __LINE__)
 
 extern void HTMemory_outofmem(char * name, char * file, unsigned long line);
 </PRE>
-
 <PRE>
 #endif /* HTMEMORY_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

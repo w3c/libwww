@@ -34,14 +34,6 @@
 #define NEWS_LIST_FILE		".www_news"	   /* Name of news list file */
 #endif
 
-#ifndef DEFAULT_NEWS_HOST
-#define DEFAULT_NEWS_HOST	"news"
-#endif
-
-#ifndef SERVER_FILE
-#define SERVER_FILE		"/usr/local/lib/rn/server"
-#endif
-
 #define MAX_NEWS_ARTICLES	0 	/* No default max number of articles */
 
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)	     (me->target, b, l)
@@ -99,7 +91,6 @@ struct _HTInputStream {
     const HTInputStreamClass *	isa;
 };
 
-PRIVATE char *HTNewsHost = NULL;
 PRIVATE int MaxArt = MAX_NEWS_ARTICLES;
 
 /* ------------------------------------------------------------------------- */
@@ -276,112 +267,6 @@ PUBLIC int HTNews_maxArticles (void)
     return MaxArt;
 }
 
-/*
-**	Sets the current NEWS server.
-*/
-PUBLIC BOOL HTNews_setHost (const char * newshost)
-{
-    if (newshost && *newshost) {
-	StrAllocCopy(HTNewsHost, newshost);
-	{
-	    char *strptr = HTNewsHost;
-	    while (*strptr) {
-		*strptr = TOLOWER(*strptr);
-		strptr++;
-	    }
-	    
-	    /* Remove final dot or paste in domain name */
-	    if (strchr(HTNewsHost, '.')) {
-		if (*(HTNewsHost+strlen(HTNewsHost)-1) == '.')
-		    *(HTNewsHost+strlen(HTNewsHost)-1) = '\0';
-	    } else {
-		const char *domain = HTGetDomainName();
-		if (domain) {
-		    StrAllocCat(HTNewsHost, ".");
-		    StrAllocCat(HTNewsHost, domain);
-		}
-	    }		
-	}
-	if (PROT_TRACE)
-	    HTTrace("SetNewsHost. Host name is `%s\'\n", HTNewsHost);
-	return YES;
-    } else {
-	if (PROT_TRACE)
-	    HTTrace("SetNewsHost. Bad argument ignored\n");
-	return NO;
-    }
-}
-
-/*
-**	Except on the NeXT, we pick up the NewsHost name from
-**
-**	1.	Environment variable NNTPSERVER
-**	2.	File SERVER_FILE
-**	3.	Compilation time macro DEFAULT_NEWS_HOST
-**
-**	On the NeXT, we pick up the NewsHost name from, in order:
-**
-**	1.	WorldWideWeb default "NewsHost"
-**	2.	News default "NewsHost"
-**	3.	Compilation time macro DEFAULT_NEWS_HOST
-**
-**	Return:	HTNewsHost if success else NULL
-*/
-PUBLIC const char *HTNews_host (void)
-{
-    if (HTNewsHost) {
-	if (*HTNewsHost) {
-	    if (PROT_TRACE)
-		HTTrace("GetNewsHost. found as `%s\'\n", HTNewsHost);
-	    return HTNewsHost;
-	} else
-	    return NULL;		 /* We couldn't get it the last time */
-    }
-    {
-	char *newshost = NULL;
-        char buffer[80];
-
-#ifdef NeXTStep
-	if ((newshost = NXGetDefaultValue("WorldWideWeb","NewsHost")) == 0)
-	    if ((newshost = NXGetDefaultValue("News","NewsHost")) == 0)
-		newshost = DEFAULT_NEWS_HOST;
-#else
-	if ((newshost = (char *) getenv("NNTPSERVER")) == NULL) {
-	    FILE *fp = fopen(SERVER_FILE, "r");
-	    *(buffer+79) = '\0';
-	    if (fp) {
-		if (fgets(buffer, 79, fp)) {
-		    char *end;
-		    newshost = buffer;
-		    while (*newshost == ' ' || *newshost == '\t')
-			newshost++;
-		    end = newshost;
-		    while (*end && !isspace(*end))
-			end++;
-		    *end = '\0';
-		}
-		fclose(fp);
-	    }
-	}
-#endif /* NestStep */
-
-	if (!newshost || !*newshost)
-	    newshost = DEFAULT_NEWS_HOST;
-	if (HTNews_setHost(newshost))
-	    return HTNewsHost;
-	StrAllocCopy(HTNewsHost, "");
-	return NULL;
-    }
-}
-
-/*
-**	Free Newshostname
-*/
-PUBLIC void HTFreeNewsHost (void)
-{
-    HT_FREE(HTNewsHost);
-}
-
 /*	HTNewsCleanup
 **	-------------
 **      This function closes the connection and frees memory.
@@ -483,7 +368,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case NEWS_NEED_CONNECTION: 		/* Let's set up a connection */
 	    if (!strncasecomp(url, "news:", 5)) {
-		const char *newshost = HTNews_host();
+		HTUserProfile * up = HTRequest_userProfile(request);
+		char * newshost = HTUserProfile_news(up);
 		StrAllocCopy(news->name, url+5);
 		if (newshost) {
 		    char *newshack = NULL;    /* Then we can use HTParse :-) */

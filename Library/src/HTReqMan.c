@@ -30,7 +30,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
+#include "WWWUtil.h"
+#include "HTAccess.h"
 #include "HTString.h"
 #include "HTParse.h"
 #include "HTAlert.h"
@@ -71,6 +72,9 @@ PUBLIC HTRequest * HTRequest_new (void)
     
    /* Force Reload */
     me->reload = HT_ANY_VERSION;
+
+    /* Set the default user profile */
+    me->userprofile = HTLib_userProfile();
 
     /* Format of output */
     me->output_format	= WWW_PRESENT;	    /* default it to present to user */
@@ -415,6 +419,40 @@ PUBLIC HTParentAnchor * HTRequest_anchor (HTRequest *request)
 }
 
 /*
+**	Net
+*/
+PUBLIC BOOL HTRequest_setNet (HTRequest * request, HTNet * net)
+{
+    if (request && net) {
+	request->net = net;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTNet * HTRequest_net (HTRequest * request)
+{
+    return request ? request->net : NULL;
+}
+
+/*
+**	User Profile
+*/
+PUBLIC BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up)
+{
+    if (request && up) {
+	request->userprofile = up;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTUserProfile * HTRequest_userProfile (HTRequest * request)
+{
+    return request ? request->userprofile : NULL;
+}
+
+/*
 **	Parent anchor for Referer field
 */
 PUBLIC void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent)
@@ -594,6 +632,19 @@ PUBLIC void HTRequest_setNegotiation (HTRequest *request, BOOL mode)
 PUBLIC BOOL HTRequest_negotiation (HTRequest *request)
 {
     return request ? request->ContentNegotiation : NO;
+}
+
+/*
+**	Are we using a proxy or not?
+*/
+PUBLIC void HTRequest_setUsingProxy (HTRequest *request, BOOL mode)
+{
+    if (request) request->using_proxy = mode;
+}
+
+PUBLIC BOOL HTRequest_usingProxy (HTRequest *request)
+{
+    return request ? request->using_proxy : NO;
 }
 
 /*

@@ -1,12 +1,10 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
-  <NEXTID N="z18">
-  <TITLE>W3C Reference Library libwww Socket Interface</TITLE>
+  <TITLE>W3C Reference Library libwww Identity Socket Read</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Manages Read and Write to and from the Network
+  Identity Socket Read Method
 </H1>
 <PRE>
 /*
@@ -15,9 +13,14 @@
 */
 </PRE>
 <P>
-This module defines the read and write functions to and from the network.
-As we are having reentrant function and a smarter network I/O this will get
-very small :-)
+This function is an "<I>identity</I>" application protocol in that it reads
+data from the transport and passes it down stream without doing anything
+with it. It simply reads data and is a wrapper around a registered
+<A HREF="HTTrans.html">transport mechanism</A> for reading from a socket.
+It provides a callback function for the <A HREF="HTEvent.html">event loop</A>
+so that a socket can be loaded using non-blocking I/O. The function requires
+an <B>open</B> socket. It will typically be used in server applications or
+in a client application that can read directly from <CODE>stdin</CODE>.
 <P>
 This module is implemented by <A HREF="HTSocket.c">HTSocket.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
@@ -27,40 +30,12 @@ Library</A>.
 #define HTSOCKET_H
 
 #include <A HREF="HTReq.html">"HTEvent.h"</A>
-</PRE>
-<H2>
-  Reading CRLF
-</H2>
-<P>
-The Library provides a default set of read routines that can handle the most
-common situations. However, before we start we make following definition
-is to make life easier when having a state machine looking for a
-<CODE>&lt;CRLF&gt;</CODE> sequence.
-<PRE>
-typedef enum _HTEOLState {
-    EOL_ERR = -1,
-    EOL_BEGIN = 0,
-    EOL_FCR,
-    EOL_FLF,
-    EOL_DOT,
-    EOL_SCR,
-    EOL_SLF
-} HTEOLState;
-</PRE>
-<H2>
-  Load Data from a Socket
-</H2>
-<P>
-This function is a wrapper around the <CODE>HTSocketRead()</CODE> declared
-below. It provides a callback function for the <A HREF="HTEvent.html">event
-loop</A> so that a socket can be loaded using non-blocking I/O. The function
-requires an <B>open</B> socket. It will typically be used in server applications
-or in a client application that can read directly from <CODE>stdin</CODE>.
-<PRE>
+
 extern HTEventCallback HTLoadSocket;
 </PRE>
 <PRE>
-#endif
+</PRE>
+<PRE>#endif
 </PRE>
 <P>
   <HR>

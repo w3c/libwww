@@ -36,6 +36,10 @@
 #define W3C_VERSION	"unknown"
 #endif
 
+#ifndef HT_DEFAULT_USER
+#define HT_DEFAULT_USER		"LIBWWW_GENERIC_USER"
+#endif
+
 PRIVATE char * HTAppName = NULL;	  /* Application name: please supply */
 PRIVATE char * HTAppVersion = NULL;    /* Application version: please supply */
 
@@ -43,6 +47,8 @@ PRIVATE char * HTLibName = "libwww";
 PRIVATE char * HTLibVersion = W3C_VERSION;
 
 PRIVATE BOOL   HTSecure = NO;		 /* Can we access local file system? */
+
+PRIVATE HTUserProfile * UserProfile = NULL;	     /* Default user profile */
 
 #define PUTBLOCK(b, l)	(*target->isa->put_block)(target, b, l)
 
@@ -78,6 +84,23 @@ PUBLIC const char * HTLib_name (void)
 PUBLIC const char * HTLib_version (void)
 {
     return HTLibVersion ? HTLibVersion : "0.0";
+}
+
+/*	Default User Profile
+**	--------------------
+*/
+PUBLIC HTUserProfile * HTLib_userProfile (void)
+{
+    return UserProfile;
+}
+
+PUBLIC BOOL HTLib_setUserProfile (HTUserProfile * up)
+{
+    if (up) {
+	UserProfile = up;
+	return YES;
+    }
+    return NO;
 }
 
 /*	Access Local File System
@@ -124,7 +147,11 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 	}
     }
 
-    HTBind_init();				      /* Initialize bindings */
+    /* Create a default user profile */
+    UserProfile = HTUserProfile_new(HT_DEFAULT_USER, NULL);
+    
+    /* Initialize bindings */
+    HTBind_init();
 
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
@@ -156,8 +183,6 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
     }
 #endif /* _WINSOCKAPI_ */
 
-    HTGetTimeZoneOffset();	   /* Find offset from GMT if using mktime() */
-    HTTmp_setRoot(NULL);		     /* Set up default tmp directory */
     return YES;
 }
 
@@ -181,9 +206,7 @@ PUBLIC BOOL HTLibTerminate (void)
     HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
     HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
 
-    HTFreeHostName();			    /* Free up some internal strings */
-    HTFreeMailAddress();
-    HTTmp_freeRoot();
+    HTUserProfile_delete(UserProfile);	    /* Free our default User profile */
 
 #ifdef _WINSOCKAPI_
     WSACleanup();

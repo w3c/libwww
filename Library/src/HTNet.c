@@ -783,6 +783,23 @@ PUBLIC BOOL HTNet_setPersistent (HTNet * net, BOOL persistent)
 /* ------------------------------------------------------------------------- */
 
 /*
+**	Context pointer to be used in context call back function
+*/
+PUBLIC BOOL HTNet_setContext (HTNet * net, void * context)
+{
+    if (net) {
+	net->context = context;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC void * HTNet_context (HTNet * net)
+{
+    return net ? net->context : NULL;
+}
+
+/*
 **  Get and set the socket number
 */
 PUBLIC BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd)

@@ -1,122 +1,127 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Domain Name Service</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  2-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww DNS Class</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Domain Name Service Manager</H1>
-
+<H1>
+  Domain Name Service Class
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module has the common code for handling DNS access. It maintains
-a cache of all visited hosts so that subsequent connects to the same
-host doesn't imply a new request to the DNS every time. <P>
-
-Multihomed hosts are treated specially in that the time spend on every
-connect is measured and kept in the cache. On the next request to the
-same host, the IP-address with the lowest average connect time is
-chosen. If one IP-address fails completely, e.g. <EM>connection
-refused</EM> then it disabled and HTDoConnect tries one of the other
-IP-addresses to the same host.<P>
-
-If the connect fails in the case of at single-homed host then the
-entry is removed from the cache and HTDoConnect tries again asking the
-DNS. <P>
-
-This module is implemented by <A HREF="HTDNS.c">HTDNS.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+The DNS Class defines generic access to &nbsp;the DNS system. It maintains
+a cache of all visited hosts so that subsequent connects to the same host
+doesn't imply a new request to the DNS every time. Multihomed hosts are treated
+specially in that the time spend on every connect is measured and kept in
+the cache. On the next request to the same host, the IP-address with the
+lowest average connect time is chosen. If one IP-address fails completely,
+e.g. <EM>connection refused</EM> then it disabled and HTDoConnect tries one
+of the other IP-addresses to the same host.
+<P>
+Every entry in the cache has its own time to live (TTL) and hence the cache
+manages its own automatic garbage collection. Currently the TTL is <B>not</B>
+bound to the DNS records which should be changed. You can set the DNS object
+TTL
+<P>
+This module is implemented by <A HREF="HTDNS.c">HTDNS.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTDNS_H
 #define HTDNS_H
+
 </PRE>
-
-<H2>The DNS Object</H2>
-
-The DNS object contains information obtained from the DNS system but
-in addition it stores known information about the remote server, for
-example the type (HTTP/1.0, HTTP/1.1, FT etc.) along with information
-on how the connections can be used (if it supports persistent TCP
-connections, interleaved access etc.)
-
-<PRE>
-typedef struct _HTdns HTdns;
+<PRE>typedef struct _HTdns HTdns;
 </PRE>
-
-<H3>Cache Timeouts</H3>
-
+<H2>
+  DNS Cache Expiration Time
+</H2>
+<P>
 When to remove an entry in the cache. The default value is 12h.
-
 <PRE>
 extern void HTDNS_setTimeout (time_t timeout);
 extern time_t HTDNS_timeout  (time_t timeout);
 </PRE>
-
-<H3>Recalculating the Time-Weights on Multihomed Hosts</H3>
-
-On every connect to a multihomed host, the average connect time is updated
-exponentially for all the entries.
-
+<H2>
+  Creation and Deletion Methods
+</H2>
+<H3>
+  Add a DNS Object
+</H3>
+<P>
+Add an element to the cache of visited hosts. The <CODE>homes</CODE> variable
+indicates the number of IP addresses found when looking up the name. A host
+name must <B>NOT</B> contain a port number.
 <PRE>
-extern BOOL HTDNS_updateWeigths (HTdns *dns, int cur, time_t deltatime);
+extern HTdns * HTDNS_add (HTList * list, struct hostent * element,
+			  char * host, int * homes);
 </PRE>
-
-<H3>Delete a host element from Cache</H3>
-
-This function deletes a single cache entry.
-
+<H3>
+  Delete a DNS object
+</H3>
+<P>
+This function flushes the DNS object from the cache and frees up memory
 <PRE>
 extern BOOL HTDNS_delete (const char * host);
 </PRE>
-
-<H3>Delete ALL host elements from Cache</H3>
-
+<H3>
+  Delete ALL DNS objects
+</H3>
+<P>
 This function is called from <A HREF="HTAccess.html#Library">
-HTLibTerminate</A>. It can be called at any point in time if the DNS
-cache is going to be flushed.
-
+HTLibTerminate</A>. It can be called at any point in time if the DNS cache
+is going to be flushed.
 <PRE>
 extern BOOL HTDNS_deleteAll (void);
 </PRE>
-
-<H2>Resolver Functions</H2>
-
-These are the functions that resolve a host name 
-
-<H3>Get Host By Socket</H3>
-
-This function should have been called HTGetHostByAddr but for
-historical reasons this is not the case. <P>
-
+<H2>
+  DNS Class Methods
+</H2>
+<H3>
+  Recalculating the Time Weights on Multihomed Host
+</H3>
+<P>
+On every connect to a multihomed host, the average connect time is updated
+exponentially for all the entries.
+<PRE>
+extern BOOL HTDNS_updateWeigths (HTdns *dns, int cur, time_t deltatime);
+</PRE>
+<H2>
+  Resolver Functions
+</H2>
+<P>
+These are the functions that resolve a host name
+<H3>
+  Get Host By Socket
+</H3>
+<P>
+This function should have been called HTGetHostByAddr but for historical
+reasons this is not the case.
 <PRE>
 extern char * HTGetHostBySock (int soc);
 </PRE>
-
-<H3>Get Host By Name</H3>
-
-This function gets the address of the host and puts it in to the
-socket structure. It maintains its own cache of connections so that
-the communication to the Domain Name Server is minimized. Returns the
-number of homes or -1 if error.
-
+<H3>
+  Get Host By Name
+</H3>
+<P>
+This function gets the address of the host and puts it in to the socket
+structure. It maintains its own cache of connections so that the communication
+to the Domain Name Server is minimized. Returns the number of homes or -1
+if error.
 <PRE>
 extern int HTGetHostByName (struct _HTNet *net, char *host);
 </PRE>
-
 <PRE>
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

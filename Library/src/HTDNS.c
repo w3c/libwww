@@ -88,8 +88,8 @@ PUBLIC time_t HTDNS_timeout (time_t timeout)
 **	found. A host name must NOT contain a port number.
 **	Returns address of new HTdns object
 */
-PRIVATE HTdns * HTDNS_add (HTList * list, struct hostent * element,
-			   char *host, int *homes)
+PUBLIC HTdns * HTDNS_add (HTList * list, struct hostent * element,
+			  char *host, int *homes)
 {
     HTdns *me;
     char *addr = NULL;
