@@ -101,6 +101,7 @@
 #include "HTFWriter.h"	/* For non-interactive output */
 #include "HTFile.h"	/* For Dir access flags */
 #include "HTRules.h"    /* For loading rule file */
+#include "HTError.h"
 
 #ifdef THINK_C					 /* Macintosh Think C development system */
 #include <console.h>
@@ -712,7 +713,7 @@ int main
 */    
     if (!home_anchor)
 	home_anchor = HTHomeAnchor ();
-    
+
 
 /*	Non-interactive use
 **	-------------------
@@ -749,7 +750,7 @@ int main
 /* 	Main "Event Loop"
 **	----------------
 */
-
+    HTRequest_clear(request);      		     /* We wan't to reuse it */
     if (interactive) {
 	while (Selection_Prompt());
 	
@@ -1314,10 +1315,10 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 		    printf(" document.\n");
 		    goto ret; 
 		}
-			HTLoadAnchor(HTHistory_moveBy(1), request);
-			goto ret;
-			}
-		break;
+		HTLoadAnchor(HTHistory_moveBy(1), request);
+		goto ret;
+	    }
+	    break;
 
 	  case 'P':                    
 	    if (Check_User_Input("PREVIOUS")) {
@@ -1508,7 +1509,7 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 #endif
 	  default:
 	    break;
-        }	/* Switch on 1st character */
+        } /* Switch on 1st character */
 	
 	if (is_index && *this_word) {        /* No commands, search keywords */
 	    next_word = other_words = this_command;
@@ -1517,7 +1518,9 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	    Error_Selection();
 	}
 
-ret:	free (the_choice);
+ret:
+	HTRequest_clear(request);      		     /* We wan't to reuse it */
+	free (the_choice);
 	return YES;
 
 stop:   free(the_choice);
