@@ -541,20 +541,21 @@ PRIVATE HyperDoc *delete_family (HTAnchor * me)
 **	------------------
 **	Deletes all anchors and return a list of all the HyperDocs found.
 **	It is for the application to delete any HyperDocs.
+**	If NULL then no hyperdocs are returned
 **	Return YES if OK, else NO
 */
 PUBLIC BOOL HTAnchor_deleteAll (HTList * documents)
 {
     int cnt;
     HTList *cur;
-    if (!documents || !adult_table)
+    if (!adult_table)
 	return NO;
     for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	if ((cur = adult_table[cnt])) { 
 	    HTParentAnchor *pres;
 	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur)) != NULL){
 		HyperDoc *doc = delete_family((HTAnchor *) pres);
-		if (doc) HTList_addObject(documents, (void *) doc);
+		if (doc && documents) HTList_addObject(documents, (void *)doc);
 	    }
 	}
 	HTList_delete(adult_table[cnt]);

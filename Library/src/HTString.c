@@ -21,7 +21,7 @@
 PUBLIC FILE *WWWTrace = NULL;
 #endif
 
-#ifndef _DLL
+#ifndef WWW_WIN_DLL
 PUBLIC int WWW_TraceFlag = 0;		/* Global trace flag for ALL W3 code */
 #endif
 
@@ -132,18 +132,20 @@ PUBLIC char * HTSACat (char ** dest, CONST char * src)
 **		matches zero or more arbitrary characters.
 **	name	is the name to be matched agaist the template.
 **
-**	returns	 YES, if filename matches the template, else NO
+**	return:	- Empty string if perfect match
+**		- pointer to part matched by wildcard if any
+**		- NULL if no match
 */
-PUBLIC BOOL HTStrMatch (CONST char * tmpl, CONST char * name)
+PUBLIC char * HTStrMatch (CONST char * tmpl, CONST char * name)
 {
     while (*tmpl && *name && *tmpl==*name) tmpl++, name++;
-    return ((!*tmpl && !*name) || (*tmpl=='*')) ? YES : NO;
+    return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : NULL;
 }    
 
-PUBLIC BOOL HTStrCaseMatch (CONST char * tmpl, CONST char * name)
+PUBLIC char * HTStrCaseMatch (CONST char * tmpl, CONST char * name)
 {
     while (*tmpl && *name && TOUPPER(*tmpl)==TOUPPER(*name)) tmpl++, name++;
-    return ((!*tmpl && !*name) || (*tmpl=='*')) ? YES : NO;
+    return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : NULL;
 }    
 
 /*	Strip white space off a string

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Linked List Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -52,6 +52,13 @@ first element just after the head element.
 
 <PRE>
 extern BOOL	HTList_addObject (HTList *me, void *newObject);
+</PRE>
+
+You can also append an element to the end of the list (the end is the
+first entered object) by using the following function:
+
+<PRE>
+extern BOOL HTList_appendObject (HTList * me, void * newObject);
 </PRE>
 
 <H2>Remove List Elements</H2>

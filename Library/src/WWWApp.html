@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Non-Mandatory Application Include File</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -30,8 +30,6 @@ covered by them.
 #define WWWAPP_H
 </PRE>
 
-<H2>Application Specific Library Includes</H2>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
@@ -41,11 +39,11 @@ extern "C" {
 <H2>Initialization</H2>
 
 The core parts of the Library is a framework for adding
-functionailty. It has hooks for adding protocol modules, like for
+functionality. It has hooks for adding protocol modules, like for
 example HTTP, FTP, and also for adding streams that can convert from
 one media type to some other type, or presenting the result to the
 user. In the distribution file of the Library you will find a large
-set of porotocol modules and streams already implemented. However, in
+set of protocol modules and streams already implemented. However, in
 order to use these you need to initialize them. This can be done by
 using the files in the <A HREF="HTInit.html">HTInit</A> module. You
 can modify this module as you like to fit your particular needs.
@@ -54,7 +52,7 @@ can modify this module as you like to fit your particular needs.
 #include "<A HREF="HTInit.html">HTInit.h</A>"
 </PRE>
 
-<H2>Generating the First Anchor</H2>
+<H3>Generating the First Anchor</H3>
 
 This module provides some "make life easier" functions in order to get
 the application going. They help you generate the first anchor, also
@@ -65,7 +63,87 @@ default WWW addresses.
 #include "<A HREF="HTHome.html">HTHome.h</A>"
 </PRE>
 
-<H2>Logging</H2>
+<H2>Before a Request</H2>
+
+After a request has been issued there are a number of things that an
+application might want to do with the request before it actually goes
+on the wire, for example to talk to a remote HTTP server. Examples are
+checking if the object already is kept in a cache managed by the
+application, if the request should be redirected to a proxy or a
+gateway, or there is some other kind of translation of the URL taking
+place. The Library provides a variety of modules that handles many
+common place translations such as <EM>redirection of URLs</EM> and
+<EM>caching</EM>. <P>
+
+These modules are not part of the <A HREF="WWWCore.html">Library
+Core</A> as the registration process depends on the application. It
+can for example use a database or some other means of registering
+translation rules, proxy servers. etc. The Library implementations are
+deliberately made as platform independent as possible and will cover
+most situations.
+
+<H3>Rule File Management</H3>
+
+Another way to initialize applications is to use a rule file, also
+known as a configuration file. This is for example the case with the
+W3C httpd and the W3C Line Mode Browser. This module provides basic
+support for configuration file management and the application can use
+this is desired. The module is not referred to by the Library. Reading
+a rule file is implemented as a stream converter so that a rule file
+can come from anywhere, even across the network!
+
+<PRE>
+#include "<A HREF="HTRules.html">HTRules.h</A>"
+</PRE>
+
+<H3>Proxies and Gateways</H3>
+
+Applications do not have to provide native support for all protocols,
+they can in many situations rely on the support of proxies and
+gateways to help doing the job. Proxy servers are often used to carry
+client requests through a firewall where they can provide services
+like corporate caching and other network optimizations. Both Proxy
+servers and gateways can serve as "protocol translators" which can
+convert a request in the main Web protocol, HTTP, to an equivalent
+request in another protocol, for example NNTP, FTP, or Gopher. In case
+a proxy server or a gateway is available to the application, it can
+therefore by use of HTTP forward all requests to for example a proxy
+server which then handle the communications with the remote server,
+for example using FTP about the document and return it to the
+application (proxy client) using HTTP.
+
+<PRE>
+#include "<A HREF="HTProxy.html">HTProxy.h</A>"
+</PRE>
+
+<H3>Cache Manager</H3>
+
+Caching is a required part of any efficient Internet access
+applications as it saves bandwidth and improves access performance
+significantly in almost all types of accesses.  The Library supports
+two different types of cache: The memory cache and the file cache. The
+two types differ in several ways which reflects their two main
+purposes: The memory cache is for short term storage of graphic
+objects whereas the file cache is for intermediate term storage of
+data objects. Often it is desirable to have both a memory and a file
+version of a cached document, so the two types do not exclude each
+other.
+
+<PRE>
+#include "<A HREF="HTCache.html">HTCache.h</A>"
+</PRE>
+
+<H2>After a Request</H2>
+
+When a request is terminated, the application often has to do some
+action as a result of the request (and of the result of the
+request). The Application part of the Library provides two following
+modules to handle <EM>logging</EM> and <EM>history
+management</EM>. You can register a <EM>POST request handler</EM> in
+the <A HREF="HTNet.html">Net Manager</A> as described in the <A
+HREF="../User/Using/Overview.html">User's Guide</A>
+
+<H3>Logging</H3>
 
 Often it is required to log the requests issued to the Library. This
 can either be the case if the application is a server or it can also
@@ -76,7 +154,7 @@ logging mechanism which can be enabled if needed.
 #include "<A HREF="HTLog.html">HTLog.h</A>"
 </PRE>
 
-<H2>History Management</H2>
+<H3>History Management</H3>
 
 Another type of logging is keeping track of which documents a user has
 visited when browsing along on the Web. The Library history manager
@@ -86,19 +164,6 @@ history list.
 <PRE>
 #include "<A HREF="HTHist.html">HTHist.h</A>"
 </PRE>
-
-<H2>Rule File Management</H2>
-
-Another way to initialize applications is to use a rule file, also
-known as a configuration file. This is for example the case with the
-W3C httpd and the W3C Line Mode Browser. This module provides basic
-support for configuration file management and the application can use
-this is desired. The module is not referred to by the Library.
-
-<PRE>
-#include "<A HREF="HTRules.html">HTRules.h</A>"
-</PRE>
-
 
 End of application specific modules
 

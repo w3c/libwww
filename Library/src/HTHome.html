@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>Generation of the Home Anchor</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<TITLE>Anchor Translations</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<H1>Generation of the Home Anchor</H1>
+<H1>Anchor Translations</H1>
 
 <PRE>
 /*
@@ -28,6 +28,7 @@ Reference Library</A>. <P>
 <PRE>
 #ifndef HTHOME_H
 #define HTHOME_H
+#include "HTReq.h"
 #include "HTAnchor.h"
 </PRE>
 
@@ -83,6 +84,25 @@ to take advantage.<P>
 
 <PRE>
 extern char *  HTFindRelatedName (void);
+</PRE>
+
+<H2>BEFORE Request Callback</H2>
+
+This function uses all the functionaly that the app part of the
+Library gives for URL translations BEFORE a request is isseued.  It
+checks for Cache, proxy, and gateway (in that order)
+
+<PRE>
+extern int HTLoadStart (HTRequest * request, int status);
+</PRE>
+
+<H3>AFTER Request Callback</H3>
+
+This function uses all the functionaly that the app part of the Library
+gives for handling AFTER a request.
+
+<PRE>
+extern int HTLoadTerminate (HTRequest * request, int status);
 </PRE>
 
 <PRE>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -167,6 +167,13 @@ we convert from ASCII to HTML.
 #define WWW_NNTP_LIST   HTAtom_for("text/x-nntp-list")
 #define WWW_NNTP_OVER	HTAtom_for("text/x-nntp-over")
 #define WWW_NNTP_HEAD	HTAtom_for("text/x-nntp-head")
+</PRE>
+
+Finally we have defined a special format for our RULE files as they
+can be handled by a special converter.
+
+<PRE>
+#define WWW_RULES	HTAtom_for("text/x-www-rules")
 </PRE>
 
 <H4>Add a Presenter</H4>

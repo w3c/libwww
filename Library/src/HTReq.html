@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -49,14 +49,14 @@ anchor.  (The public routines are called with one OR the other.)
 extern BOOL HTLoad (HTRequest * request, BOOL recursive);
 </PRE>
 
-<H2>Request Terminate Call Back Function</H2>
+<H2>Library Request Call Back Functions</H2>
 
-This function is registered at startup time by HTLibInit() in order to
+These functions are registered at startup time by HTLibInit() in order to
 probably terminate a request to the Library. The application can
 register addtional call back functions in the same manner:
 
 <PRE>
-extern HTNetCallback HTLoad_terminate;
+extern HTNetCallback HTLoad_terminate, HTLoad_start;
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>

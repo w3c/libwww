@@ -96,7 +96,7 @@ PUBLIC HTParserCallback * HTParser_find (HTList *parsers, CONST char * token)
     HTParser * pres;
     if (token && cur) {
 	while ((pres = (HTParser *) HTList_nextObject(cur))) {
-	    BOOL match = pres->case_sensitive ?
+	    char *match = pres->case_sensitive ?
 		HTStrCaseMatch(pres->token, token) : 
 		    HTStrMatch(pres->token, token);
 	    if (match) return pres->Pcbf;

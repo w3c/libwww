@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Declaration of W3C Reference Library CORE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -18,11 +18,16 @@
 This is the basic include file for the core of the W3C Reference
 Library. Togrther with the <A HREF="WWWUtil.html">WWWUtil module</A>
 it contains all core specific modules which are required to compile
-and build the Library. No converter streams or protocol modules are
-included in this file as they are for the application to set up. The
-Library has a special include file called <A
-HREF="WWWApp.html">WWWApp.h</A> which contains all converters and
-protocol modules known to the Library. You can include this one if the
+and build the Library. <P>
+
+The core part of the Library is designed as a set of registration
+modules with no real functionality in itself. Instead all the
+functionality comes when the applciation registeres the modules that
+provides a desired functionaly, for example accessing HTTP servers or
+the local file system. The Library has a special include file called
+<A HREF="WWWApp.html">WWWApp.h</A> which contains all converters,
+protocol modules, and a lot of other "sugar" modules that can make the
+core a very powerful Web interface. You can include this one if the
 application is to use all the functionality of the Library.
 
 <PRE>
@@ -46,13 +51,10 @@ extern "C" {
 
 <H2>Core Modules</H2>
 
-These are always required to be included
-
 <PRE>
 #include "HTAccess.h"			/* Document access network code */
 #include "HTAnchor.h"			/* Anchor class Definition */
 #include "HTBind.h"			/* Binding to file suffixes */
-#include "HTCache.h"			/* Cache Manager */
 #include "HTConLen.h"			/* Content Length Counter */
 #include "HTDNS.h"			/* Host name cache */
 #include "HTError.h"			/* Error manager */
@@ -64,7 +66,6 @@ These are always required to be included
 #include "HTNet.h"			/* public part of Net Manager */
 #include "HTParse.h"			/* Parse URLs */
 #include "HTProt.h"			/* Protocol Manager */
-#include "HTProxy.h"			/* Proxies and gateways registration */
 #include "HTReq.h"			/* public part of Request Manager */
 #include "HTSocket.h"			/* public part of Net Manager */
 #include "HTTCP.h"			/* GetXbyY functions */
@@ -75,10 +76,14 @@ These are always required to be included
 
 <H3>Application Specific</H3>
 
-There are a few modules that are required by the Library but contains
-application specific code. Depending on the application it may want to
-override these modules with its own versions providing the same
-interface to the Library.
+The Library has a special module called <A
+HREF="HTAlert.html">HTAlert</A> which provides all communication with
+the user, for example prompting for a confirmation whether a file
+should be overwritten. In order to remain portable, the current
+implementation of <A HREF="HTAlert.html">HTAlert</A> only uses
+standard ANSI input/output functions. In most cases, an application
+will want to override this with a more platform specific
+implementation, for example to fit a GUI interface.
 
 <PRE>
 #include "HTAlert.h"			/* Messages and User prompts */

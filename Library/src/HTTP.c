@@ -681,17 +681,17 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			    HT_OK : HT_ERROR;
 		    }
 		} else {
-		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
-			       NULL, 0, "HTLoadHTTP");
+		    HTRequest_addError(request, ERR_FATAL, NO,
+				       HTERR_MAX_REDIRECT,NULL,0,"HTLoadHTTP");
 		    if (HTRequest_isPostWeb(request)) {
 			BOOL main = HTRequest_isMainDestination(request);
 			if (HTRequest_isDestination(request)) {
 			    HTLink *link =
-				HTAnchor_findLink((HTAnchor *) request->source->anchor,
-						  (HTAnchor *) request->anchor);
+				HTAnchor_findLink((HTAnchor *)request->source->anchor,
+						  (HTAnchor *)request->anchor);
 			    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 			}
-			HTNet_callback(request, main ? HT_ERROR : HT_IGNORE);
+			HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
 			HTRequest_removeDestination(request);
 		    }
 		    return HT_OK;
@@ -738,7 +738,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 					      (HTAnchor *) request->anchor);
 			HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		    }
-		    HTNet_callback(request, main ? HT_ERROR : HT_IGNORE);
+		    HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
 		    HTRequest_removeDestination(request);
 		}
 		return HT_OK;

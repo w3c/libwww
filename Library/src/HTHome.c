@@ -1,5 +1,5 @@
 /*								     HTHome.c
-**	GENERATION OF THE HOME ANCHOR
+**	ANCHOR TRANSLATIONS
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -8,6 +8,7 @@
 **	TBL	Tim Berners-Lee timbl@w3.org
 **	JFG	Jean-Francois Groff jfg@dxcern.cern.ch
 **	DD	Denis DeLaRoca (310) 825-4580  <CSP1DWD@mvs.oac.ucla.edu>
+**	HFN	Henrik Frystyk
 ** History
 **       8 Jun 92 Telnet hopping prohibited as telnet is not secure TBL
 **	26 Jun 92 When over DECnet, suppressed FTP, Gopher and News. JFG
@@ -25,6 +26,8 @@
 
 /* Library include files */
 #include "WWWLib.h"
+#include "WWWApp.h"
+#include "HTReqMan.h"
 #include "HTHome.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -183,4 +186,105 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
     anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
     free(ref);
     return anchor;
+}
+
+/*	Application "BEFORE" Callback
+**	-----------------------------
+**	This function uses all the functionaly that the app part of the Library
+**	gives for URL translations BEFORE a request is isseud.
+**	It checks for Cache, proxy, and gateway (in that order)
+**	returns		HT_NO_ACCESS		no protocol module found
+**			HT_FORBIDDEN		Error has occured.
+**			HT_OK			Success
+*/
+PUBLIC int HTLoadStart (HTRequest * request, int status)
+{    
+    HTParentAnchor *anchor = HTRequest_anchor(request);
+    char * addr = HTAnchor_address((HTAnchor *) anchor);
+    HTReload mode = HTRequest_reloadMode(request);
+
+    /*
+    ** Check if document is already loaded. 
+    */
+    if (mode != HT_FORCE_RELOAD) {
+	if (HTMemoryCache_check(request) == HT_LOADED) {
+	    free(addr);
+	    return HT_LOADED;
+	}
+    } else {
+	HTRequest_addRqHd(request, HT_NO_CACHE);	  /* No-cache pragma */
+	HTAnchor_clearHeader(request->anchor);
+    }
+
+    /*
+    ** Check if we have any rule translations to do
+    */
+    {
+	HTList *list = HTRule_global();
+	char * physical = HTRule_translate(list, addr, NO);
+	if (!physical) {
+	    char *url = HTAnchor_address((HTAnchor *) request->anchor);
+	    if (url) {
+		HTUnEscape(url);
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+			   (void *) url, (int) strlen(url), "HTLoad");
+	    } else {
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+			   NULL, 0, "HTLoad");
+	    }
+	    free(addr);
+	    FREE(url);
+	    return HT_FORBIDDEN;
+	}
+	HTAnchor_setPhysical(anchor, physical);
+	free(physical);
+    }
+
+    /*
+    ** Check local Disk Cache (if we are not forced to reload), then
+    ** for proxy, and finally gateways
+    */
+    {
+	char *newaddr=NULL;
+	if (mode != HT_FORCE_RELOAD && (newaddr = HTCache_getReference(addr))){
+	    if (mode != HT_CACHE_REFRESH) {
+		HTAnchor_setPhysical(anchor, newaddr);
+		HTAnchor_setCacheHit(anchor, YES);
+	    } else {			 /* If refresh version in file cache */
+		HTRequest_addRqHd(request, HT_IMS+HT_NO_CACHE);
+	    }
+	} else if ((newaddr = HTProxy_find(addr))) {
+	    StrAllocCat(newaddr, addr);
+	    request->using_proxy = YES;
+	    HTAnchor_setPhysical(anchor, newaddr);
+	} else if ((newaddr = HTGateway_find(addr))) {
+	    char * path = HTParse(addr, "",
+				  PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
+		/* Chop leading / off to make host into part of path */
+	    char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
+            HTAnchor_setPhysical(anchor, gatewayed);
+	    free(path);
+	    free(gatewayed);
+	} else {
+	    request->using_proxy = NO;      /* We don't use proxy or gateway */
+	}
+	FREE(newaddr);
+    }
+    FREE(addr);
+
+    /* Set the access scheme on our way out */
+    return (HTProtocol_find(request, anchor)==YES) ? HT_OK : HT_NO_ACCESS;
+}
+
+/*	Application "AFTER" Callback
+**	-----------------------------
+**	This function uses all the functionaly that the app part of the Library
+**	gives for handling AFTER a request.
+*/
+PUBLIC int HTLoadTerminate (HTRequest * request, int status)
+{    
+
+    /* Should we do logging? */
+    if (HTLog_isOpen()) HTLog_add(request, status);
+    return HT_OK;
 }

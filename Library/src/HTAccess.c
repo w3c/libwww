@@ -131,12 +131,8 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 
     HTBind_init();				      /* Initialize bindings */
 
-#ifndef HT_DIRECT_WAIS
-    HTGateway_add("wais", HT_DEFAULT_WAIS_GATEWAY);
-#endif
-
     /* Register a call back function for the Net Manager */
-    HTNet_register (HTLoad_terminate, HT_ALL);
+    HTNetCall_addAfter(HTLoad_terminate, HT_ALL);
 
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
@@ -180,24 +176,19 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 **	This function frees memory kept by the Library and should be called
 **	before exit of an application (if you are on a PC platform)
 */
-PUBLIC BOOL HTLibTerminate NOARGS
+PUBLIC BOOL HTLibTerminate (void)
 {
     if (WWWTRACE)
 	TTYPrint(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
-    HTAtom_deleteAll();
-    HTDNS_deleteAll();
+    HTAtom_deleteAll();					 /* Remove the atoms */
+    HTDNS_deleteAll();				/* Remove the DNS host cache */
+    HTAnchor_deleteAll(NULL);		/* Delete anchors and drop hyperdocs */
 
     HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
     HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
 
-    HTProxy_deleteAll();	   /* Clean up lists of proxies and gateways */
-    HTNoProxy_deleteAll();
-    HTGateway_deleteAll();
-
     HTFreeHostName();			    /* Free up some internal strings */
     HTFreeMailAddress();
-    HTCache_freeRoot();
-    HTCache_clearMem();				  /* Keep the disk versions! */
     HTTmp_freeRoot();
     HTError_freePrefix();
 
@@ -224,7 +215,7 @@ PUBLIC BOOL HTLibTerminate NOARGS
 **	Private version that requests a document from the request manager
 **	Returns YES if request accepted, else NO
 */
-PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *, request, BOOL, recursive)
+PRIVATE BOOL HTLoadDocument (HTRequest * request, BOOL recursive)
 {
     if (PROT_TRACE) {
 	HTParentAnchor *anchor = HTRequest_anchor(request);

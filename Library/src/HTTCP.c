@@ -671,34 +671,27 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
 	    if (!net->preemtive) {
-#ifdef _WINDOWS 
+#ifdef _WINDOWS
 		{		/* begin windows scope  */
 		    HTRequest * rq = net->request;
 		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
 			FD_CONNECT | FD_CLOSE ;
 		    int rv = 0 ;
 				    
-#ifndef _WIN32 		
-		    if (net->request->hwnd == 0) {
-					
-		    }
-#endif 
+#ifdef WWW_WIN_ASYNC
 		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
-
-		    if (net->request->hwnd != 0) {
-			rv = WSAAsyncSelect( net->sockfd, rq->hwnd, 
-					    rq->winMsg, levents);
-			if (rv == SOCKET_ERROR) {
-			    status = -1 ;
-			    if (PROT_TRACE) 
-				TTYPrint(TDEST, 
-					"HTDoConnect. WSAAsyncSelect() fails: %d\n", 
-					WSAGetLastError());
-			} /* error returns */
-		    } else {
-			int enable = 1 ;
-			status = IOCTL(net->sockfd, FIONBIO, &enable);
-		    }
+		    rv = WSAAsyncSelect( net->sockfd, rq->hwnd, 
+					rq->winMsg, levents);
+		    if (rv == SOCKET_ERROR) {
+			status = -1 ;
+			if (PROT_TRACE) 
+			    TTYPrint(TDEST, "HTDoConnect. WSAAsyncSelect() fails: %d\n", 
+				     WSAGetLastError());
+		    } /* error returns */
+#else
+		    int enable = 1;
+		    status = IOCTL(net->sockfd, FIONBIO, &enable);
+#endif
 		} /* end scope */
 #else 
 #if defined(VMS)
@@ -979,27 +972,20 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 			FD_CONNECT | FD_CLOSE ;
 		    int rv = 0 ;
 				    
-#ifndef _WIN32 		
-		    if (net->request->hwnd == 0) {
-					
-		    }
-#endif 
+#ifdef WWW_WIN_ASYNC
 		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
-
-		    if (net->request->hwnd != 0) {
-			rv = WSAAsyncSelect( net->sockfd, rq->hwnd, 
-					    rq->winMsg, levents);
-			if (rv == SOCKET_ERROR) {
-			    status = -1 ;
-			    if (PROT_TRACE) 
-				TTYPrint(TDEST, 
-					"HTDoListen.. WSAAsyncSelect() fails: %d\n", 
-					WSAGetLastError());
+		    rv = WSAAsyncSelect( net->sockfd, rq->hwnd, 
+					rq->winMsg, levents);
+		    if (rv == SOCKET_ERROR) {
+			status = -1 ;
+			if (PROT_TRACE) 
+			    TTYPrint(TDEST, "HTDoListen.. WSAAsyncSelect() fails: %d\n", 
+				     WSAGetLastError());
 			} /* error returns */
-		    } else {
-			int enable = 1 ;
-			status = IOCTL(net->sockfd, FIONBIO, &enable);
-		    }
+#else
+		    int enable = 1 ;
+		    status = IOCTL(net->sockfd, FIONBIO, &enable);
+#endif
 		} /* end scope */
 #else 
 #if defined(VMS)

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Anchor object Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -241,7 +241,8 @@ Deletes <EM>all</EM> anchors and return a list of all the
 <CODE>HyperDoc</CODE>s found while doing it. The application may keep
 its own list of <CODE>HyperDoc</CODE>s, but this function returns it
 anyway.  It is <EM>always</EM> for the application to delete any
-<CODE>HyperDoc</CODE>s. Return YES if OK, else NO. <P>
+<CODE>HyperDoc</CODE>s. If NULL then no hyperdocs are returned. Return
+YES if OK, else NO. <P>
 
 <B>Note:</B> This function is different from cleaning up the history
 list!

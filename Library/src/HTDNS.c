@@ -512,7 +512,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 **	Get host name of the machine on the other end of a socket.
 **
 */
-PUBLIC char * HTGetHostBySock ARGS1(int, soc)
+PUBLIC char * HTGetHostBySock (int soc)
 {
     struct sockaddr addr;
     int len = sizeof(struct sockaddr);

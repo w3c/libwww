@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -15,8 +15,7 @@
 </PRE>
 
 This module is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference Library</A>.
 
 See also the system dependent file <A HREF="tcp.html">tcp module</A>
 for system specific information. <P>
@@ -39,7 +38,12 @@ This is the global flag for setting the WWWTRACE options.
 #define DEBUG	/* No one ever turns this off as trace is too important */
 #endif		/* Keep option for really small memory applications too */
 
+#ifdef WWW_WIN_DLL
+extern int * WWW_TraceFlag;		     /* Global flag for all W3 trace */
+#else
 extern int WWW_TraceFlag;		     /* Global flag for all W3 trace */
+#endif
+
 </PRE>
 
 The verbose mode is no longer a simple boolean but a bit field so that
@@ -78,7 +82,7 @@ extern FILE *WWWTrace;
 #if defined(_WINDOWS) && !defined(_CONSOLE) /* EGP */
 /* standard windows 3.x and non-console WIN32 programs */
 #define TDEST    0
-#ifdef _DLL
+#ifdef WWW_WIN_DLL
 typedef int TTYPrint_t(unsigned int target, const char* fmt, ...);
 extern TTYPrint_t** PTTYPrint;
 #define TTYPrint (**PTTYPrint)
@@ -93,7 +97,9 @@ int TTYPrint(FILE* target, const char* fmt, ...);
 #endif
 
 typedef enum _HTTraceFlags {
-    SHOW_CACHE_TRACE	= 0x2,				/*		  10 */
+    SHOW_UTIL_TRACE	= 0x1,				/* 	           1 */
+    SHOW_APP_TRACE	= 0x2,				/* 	          10 */
+    SHOW_CACHE_TRACE	= 0x4,				/*		 100 */
     SHOW_SGML_TRACE	= 0x8,				/*		1000 */
     SHOW_BIND_TRACE	= 0x10,				/* 	      1.0000 */
     SHOW_THREAD_TRACE	= 0x20,				/* 	     10.0000 */
@@ -110,7 +116,22 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 
 <PRE>
 #ifdef DEBUG
+#ifdef WWW_WIN_DLL
+#define WWWTRACE	(*WWW_TraceFlag)
+#define UTIL_TRACE	(*WWW_TraceFlag & SHOW_UTIL_TRACE)
+#define APP_TRACE	(*WWW_TraceFlag & SHOW_APP_TRACE)
+#define CACHE_TRACE	(*WWW_TraceFlag & SHOW_CACHE_TRACE)
+#define SGML_TRACE	(*WWW_TraceFlag & SHOW_SGML_TRACE)
+#define BIND_TRACE	(*WWW_TraceFlag & SHOW_BIND_TRACE)
+#define THD_TRACE	(*WWW_TraceFlag & SHOW_THREAD_TRACE)
+#define STREAM_TRACE	(*WWW_TraceFlag & SHOW_STREAM_TRACE)
+#define PROT_TRACE	(*WWW_TraceFlag & SHOW_PROTOCOL_TRACE)
+#define URI_TRACE	(*WWW_TraceFlag & SHOW_URI_TRACE)
+#define ANCH_TRACE	(*WWW_TraceFlag & SHOW_ANCHOR_TRACE)
+#else
 #define WWWTRACE	(WWW_TraceFlag)
+#define UTIL_TRACE	(WWW_TraceFlag & SHOW_UTIL_TRACE)
+#define APP_TRACE	(WWW_TraceFlag & SHOW_APP_TRACE)
 #define CACHE_TRACE	(WWW_TraceFlag & SHOW_CACHE_TRACE)
 #define SGML_TRACE	(WWW_TraceFlag & SHOW_SGML_TRACE)
 #define BIND_TRACE	(WWW_TraceFlag & SHOW_BIND_TRACE)
@@ -119,8 +140,11 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 #define PROT_TRACE	(WWW_TraceFlag & SHOW_PROTOCOL_TRACE)
 #define URI_TRACE	(WWW_TraceFlag & SHOW_URI_TRACE)
 #define ANCH_TRACE	(WWW_TraceFlag & SHOW_ANCHOR_TRACE)
+#endif
 #else
 #define WWWTRACE	0
+#define UTIL_TRACE	0
+#define APP_TRACE	0
 #define CACHE_TRACE	0
 #define SGML_TRACE	0
 #define BIND_TRACE	0
@@ -307,6 +331,7 @@ stream modules. Success are (&gt;=0) and failure are (&lt;0)
 #define HT_IGNORE		29996	/* Ignore this in the Net manager */
 #define HT_NO_DATA		29997	/* OK but no data was loaded */
 #define HT_REDIRECTION_ON_FLY   29998	/* Redo the retrieve with a new URL */
+#define HT_REDIRECT		29998	/* Redo the retrieve with a new URL */
 #define HT_LOADED		29999	/* Instead of a socket */
 
 #define HT_ERROR		-1	/* Generic failure */

@@ -838,7 +838,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 		goto loop;	                       /* Go treat as before */
 	    }
 	} else if (CHECK_INPUT("SET", token)) {        	           /* config */
-	    HTSetConfiguration(other_words);
+	    HTList * rules = HTRule_global();
+	    HTRule_parseLine(rules, other_words);
 	} else
 	    found = NO;
 	break;
@@ -859,8 +860,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case 'V':
 	if (CHECK_INPUT("VERBOSE", token)) {	     /* Switch verbose mode  */
-	    WWW_TraceFlag = WWW_TraceFlag ? 0 : OldTraceFlag;
-	    TTYPrint(OUTPUT, "\n  Verbose mode %s.\n", WWW_TraceFlag ? "ON":"OFF");
+	    WWWTRACE = WWWTRACE ? 0 : OldTraceFlag;
+	    TTYPrint(OUTPUT, "\n  Verbose mode %s.\n", WWWTRACE ? "ON":"OFF");
 	} else if (CHECK_INPUT("VERSION", token)) {	 	  /* Version */
 	    VersionInfo();
 	} else
@@ -1374,26 +1375,26 @@ int main (int argc, char ** argv)
 	   /* Verify: Turns on trace */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
 	    	char *p = argv[arg]+2;
-		WWW_TraceFlag = 0;
+		WWWTRACE = 0;
 		for(; *p; p++) {
 		    switch (*p) {
-		      case 'a': WWW_TraceFlag |= SHOW_ANCHOR_TRACE; break;
-		      case 'b': WWW_TraceFlag |= SHOW_BIND_TRACE; break;
-		      case 'c': WWW_TraceFlag |= SHOW_CACHE_TRACE; break;
-		      case 'g':	WWW_TraceFlag |= SHOW_SGML_TRACE; break;
-		      case 'p':	WWW_TraceFlag |= SHOW_PROTOCOL_TRACE; break;
-		      case 's':	WWW_TraceFlag |= SHOW_STREAM_TRACE; break;
-		      case 't':	WWW_TraceFlag |= SHOW_THREAD_TRACE; break;
-		      case 'u': WWW_TraceFlag |= SHOW_URI_TRACE; break;
+		      case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; break;
+		      case 'b': WWWTRACE |= SHOW_BIND_TRACE; break;
+		      case 'c': WWWTRACE |= SHOW_CACHE_TRACE; break;
+		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
+		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
+		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
+		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;
+		      case 'u': WWWTRACE |= SHOW_URI_TRACE; break;
 		      default:
 			if (SHOW_MSG)
 			    TTYPrint(TDEST,"Bad parameter (%s) for -v option\n",
 				    argv[arg]);
 		    }
 		}/* loop over characters */
-		if (!WWW_TraceFlag)
-		    WWW_TraceFlag = SHOW_ALL_TRACE;
-		OldTraceFlag = WWW_TraceFlag;		 /* Remember setting */
+		if (!WWWTRACE)
+		    WWWTRACE = SHOW_ALL_TRACE;
+		OldTraceFlag = WWWTRACE;		 /* Remember setting */
 #endif
 	    
 	    /* Original output */
@@ -1403,7 +1404,7 @@ int main (int argc, char ** argv)
 
 	    /* Source please */
 	    } else if (!strcmp(argv[arg], "-source")) {
-		HTRequest_setOutputFormat(request, WWW_UNPARSED);
+		HTRequest_setOutputFormat(request, WWW_SOURCE);
 		HTPrompt_setInteractive(NO);
 
 	    } else {
@@ -1456,6 +1457,7 @@ int main (int argc, char ** argv)
     if (HTClientHost && HTFile_dirAccess()==HT_DIR_OK)
 	HTFile_setDirAccess(HT_DIR_SELECTIVE);
 
+#if 0
 #ifndef HT_NO_RULES
     {
     	char * rules = rulefile ? rulefile : getenv("WWW_CONFIG");
@@ -1464,6 +1466,7 @@ int main (int argc, char ** argv)
 		TTYPrint(TDEST, "Can't open rule file (%s) - ignored\n",rules);
 	}
     }
+#endif
 #endif
 
     /* Open output file */
@@ -1495,7 +1498,7 @@ int main (int argc, char ** argv)
     }
 
     /* Open Log File */
-    if (logfile) HTLog_enable(logfile, YES, NO);
+    if (logfile) HTLog_open(logfile, YES, NO);
 
     /* Make home page address */
     if (!home_anchor) home_anchor = HTHomeAnchor();
@@ -1508,7 +1511,11 @@ int main (int argc, char ** argv)
     }
     
     /* Register a call back function for the Net Manager */
-    if (HTPrompt_interactive()) HTNet_register(terminate_handler, HT_ALL);
+    if (HTPrompt_interactive()) {
+	HTNetCall_addBefore(HTLoadStart, 0);
+	HTNetCall_addAfter(terminate_handler, HT_ALL);
+	HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
+    }
     
     /* Register our own "unknown" header handler (see GridText.c) */
 #if 0
@@ -1586,19 +1593,7 @@ endproc:
     Thread_deleteAll();
     if (abs_home)
 	free(abs_home);
-    if (logfile)
-	HTLog_disable();
-    {
-	HTList *hyperdocs = HTList_new();
-	HTAnchor_deleteAll(hyperdocs);
-	if (hyperdocs) {
-	    HTList *cur = hyperdocs;
-	    HText *pres;
-	    while ((pres = (HText *) HTList_nextObject(cur)))
-		hyperfree(pres);
-	    HTList_delete(hyperdocs);
-	}
-    }
+    if (logfile) HTLog_close();
     if (HTPrompt_interactive())	   /* Terminate with a LF if not interactive */
 	TTYPrint(OUTPUT, "\n");
     else

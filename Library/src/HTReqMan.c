@@ -38,10 +38,11 @@
 #include "HTCache.h"
 #include "HTNetMan.h"
 #include "HTEvntrg.h"
-#include "HTBind.h"
 #include "HTProt.h"
 #include "HTProxy.h"
 #include "HTReqMan.h"					 /* Implemented here */
+
+#include "HTRules.h"
 
 #ifndef HT_MAX_RELOADS
 #define HT_MAX_RELOADS	6
@@ -780,25 +781,14 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 PRIVATE int get_physical (HTRequest *req)
 {    
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
-
-#if 0
-    if (HTImServer) {	/* cern_httpd has already done its own translations */
-	HTAnchor_setPhysical(req->anchor, HTImServer);
-	StrAllocCopy(addr, HTImServer);	/* Oops, queries thru many proxies */
-					/* didn't work without this -- AL  */
+    HTList *list = HTRule_global();
+    char * physical = HTRule_translate(list, addr, NO);
+    if (!physical) {
+	free(addr);
+	return HT_FORBIDDEN;
     }
-    else {
-	char * physical = HTTranslate(addr);
-	if (!physical) {
-	    free(addr);
-	    return HT_FORBIDDEN;
-	}
-	HTAnchor_setPhysical(req->anchor, physical);
-	free(physical);			/* free our copy */
-    }
-#else
-    HTAnchor_setPhysical(req->anchor, addr);
-#endif
+    HTAnchor_setPhysical(req->anchor, physical);
+    free(physical);
 
     /*
     ** Check local Disk Cache (if we are not forced to reload), then
@@ -857,54 +847,16 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
         if (PROT_TRACE) TTYPrint(TDEST, "Load Start.. Bad argument\n");
         return NO;
     }
-
-    /*
-    ** Check if document is already loaded. As the application handles the
-    ** memory cache, we call the application to ask.
-    */
-    if (request->reload != HT_FORCE_RELOAD) {
-	if (HTMemoryCache_check(request) == HT_LOADED)
-	    return HTNet_callback(request, HT_LOADED);
-    } else {
-	request->RequestMask |= HT_NO_CACHE;		  /* no-cache pragma */
-	HTAnchor_clearHeader(request->anchor);
-    }
-
-    if (request->method == METHOD_INVALID)
-	request->method = METHOD_GET;
-
+    if (request->method == METHOD_INVALID) request->method = METHOD_GET;
     if (!recursive) HTError_deleteAll(request->error_stack);
-
-    if ((status = get_physical(request)) < 0) {
-	if (status == HT_FORBIDDEN) {
-	    char *url = HTAnchor_address((HTAnchor *) request->anchor);
-	    if (url) {
-		HTUnEscape(url);
-		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			   (void *) url, (int) strlen(url), "HTLoad");
-		free(url);
-	    } else {
-		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			   NULL, 0, "HTLoad");
-	    }
-	} 
-	return HTNet_callback(request, HT_ERROR);
-	return YES;			       /* Can't resolve or forbidden */
-    }
-    if (!(arg = HTAnchor_physical(request->anchor)) || !*arg)
-	return NO;
     return HTNet_new(request);
 }
 
 
-/*		Terminate a LOAD
-**		----------------
-**
+/*	Terminate a LOAD
+**	----------------
 **	This function looks at the status code from the HTLoadDocument
-**	function and updates logfiles, creates error messages etc.
-**
-**    On Entry,
-**	Status code from load function
+**	It is registered in the Net Manager
 */
 PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 {
@@ -943,6 +895,21 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 	break;
     }
     free(uri);
-    return YES;
+    return HT_OK;
+}
+
+/*	Start a LOAD
+**	------------
+**	This function makes sure that we have a physical anchor address
+**	It can be registered in the Net Manager
+*/
+PUBLIC int HTLoad_start (HTRequest *request, int status)
+{
+    char * physical = HTAnchor_address((HTAnchor *) request->anchor);
+    HTAnchor_setPhysical(request->anchor, physical);
+    free(physical);
+    return (HTProtocol_find(request, request->anchor)==YES) ?
+	HT_OK : HT_NO_ACCESS;
+    return HT_OK;
 }
 

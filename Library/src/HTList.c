@@ -54,6 +54,15 @@ PUBLIC BOOL HTList_addObject (HTList * me, void * newObject)
     return NO;
 }
 
+PUBLIC BOOL HTList_appendObject (HTList * me, void * newObject)
+{
+    if (me) {
+	while (me->next) me = me->next;
+	return HTList_addObject(me, newObject);
+    }
+    return NO;
+}
+
 PUBLIC BOOL HTList_removeObject (HTList *  me, void *  oldObject)
 {
     if (me) {

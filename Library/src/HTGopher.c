@@ -419,7 +419,7 @@ PRIVATE BOOL GopherCSOLine (HTStream *me, char *line)
 /*
 **  Searches for Gopher line until buffer fills up or a CRLF or LF is found
 */
-PRIVATE int GopherMenu_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
+PRIVATE int GopherMenu_put_block (HTStream * me, CONST char * b, int l)
 {
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
@@ -462,22 +462,22 @@ PRIVATE int GopherMenu_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
     return HT_OK;
 }
 
-PRIVATE int GopherMenu_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int GopherMenu_put_string (HTStream * me, CONST char* s)
 {
     return GopherMenu_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int GopherMenu_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int GopherMenu_put_character (HTStream * me, char c)
 {
     return GopherMenu_put_block(me, &c, 1);
 }
 
-PRIVATE int GopherMenu_flush ARGS1(HTStream *, me)
+PRIVATE int GopherMenu_flush (HTStream * me)
 {    
     return (*me->target->isa->flush)(me->target);
 }
 
-PRIVATE int GopherMenu_free ARGS1(HTStream *, me)
+PRIVATE int GopherMenu_free (HTStream * me)
 {
     int status = HT_OK;
     GopherBottom(me);
@@ -487,7 +487,7 @@ PRIVATE int GopherMenu_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int GopherMenu_abort ARGS2(HTStream *, me, HTList *, e)
+PRIVATE int GopherMenu_abort (HTStream * me, HTList * e)
 {
     (*me->target->isa->abort)(me->target, e);
     free(me);

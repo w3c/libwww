@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -44,11 +44,17 @@ service a request. <P>
 typedef struct _HTNet HTNet;
 </PRE>
 
-<H2>Request Termination Call Back Functions</H2>
+<H2>Request Call Back Functions</H2>
 
-The termination callback functions is a set of functions that can be
-registered by the application to be called when a request has
-terminated. There can be more than one callback function which are
+Callback functions can be registered to be called <EM>before</EM> and
+<EM>after</EM> a request has either been started or has
+terminated. The following functions are the generic registration
+mechanisms where we use lists as the basic data container. Then there
+is two methods for binding a list of callback functions to the set
+which is called <EM>before</EM> and to the set set which is called
+<EM>after</EM> <P>
+
+In both cases there can be more than one callback function which are
 called on turn and each callback function can be associated with a
 status code of the request. For example one callback function can be
 registered for HT_LOADED, another for HT_ERROR etc.
@@ -58,9 +64,14 @@ registered for HT_LOADED, another for HT_ERROR etc.
 Register a call back function that is to be called on every
 termination of a request. Several call back functions can be
 registered in which case all of them are called in the reverse order
-of which they were registered (last one first). The status signifies
-which call back function to call depending of the result of the
-request. This can be
+of which they were registered (last one first). We name the calling
+mechansm of calling the functions for the <EM>before</EM> loop and the
+<EM>after</EM> loop.<P>
+
+In case the callback function is registered as being called
+<EM>after</EM> the request has terminated the result of the request is
+passed to the fucntion. The status signifies which call back function
+to call depending of the result of the request. This can be
 
 <DL>
 <DT>HT_ERROR
@@ -71,34 +82,73 @@ request. This can be
 <DD>OK, but no data
 <DT>HT_RETRY
 <DD>Retry request after at a later time
+<DT>HT_REDIRECT
+<DD>The request has been redirected and we send back the new URL
 <DT>HT_ALL
 <DD>All of above
 </DL>
 
+Any callback function any code it likes, but <B>IF NOT</B> the code is
+<EM>HT_OK</EM>, then the callback loop is stopped. If we are in the
+<EM>before</EM> loop and a function returns anything else than
+<EM>HT_OK</EM> then we immediately jump to the <EM>after</EM> loop
+<B>passing</B> the last return code from the <EM>before</EM> loop.
+
 <PRE>
 typedef int HTNetCallback (HTRequest * request, int status);
 
-extern BOOL HTNet_register (HTNetCallback *cbf, int status);
+extern BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf, int status);
 </PRE>
 
-<H3>Unregister</H3>
+<H3>Delete a single Callbak</H3>
 
-Unregister call back functions
+Removes a callback function from a list
 
 <PRE>
-extern BOOL HTNet_unregister (HTNetCallback *cbf);
-extern BOOL HTNet_unregisterAll (void);
+extern BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf);
 </PRE>
 
-<H3>Call the Call Back Functions</H3>
+<H3>Delete a list of Callbacks</H3>
+
+Unregisters all call back functions in the list
+
+<PRE>
+extern BOOL HTNetCall_deleteAll (HTList * list);
+</PRE>
+
+<H3>Call List of Registered Callback Functions</H3>
 
 Call all the call back functions registered in the list IF not the
-status is HT_IGNORE. The callback functions are called in the reverse
-order of which they were registered (last one first). Returns YES if
-OK, else NO.
+status is HT_IGNORE.  The callback functions are called in the order
+of which they were registered. At the moment an application callback
+function is called, it can free the request object - it is no longer
+used by the Library. Returns what the last callback function returns
 
 <PRE>
-extern BOOL HTNet_callback (HTRequest * me, int status);
+extern int HTNetCall_execute (HTList * list, HTRequest * request, int status);
+</PRE>
+
+<H3>BEFORE Callbacks</H3>
+
+Global set of callback functions BEFORE the request is issued. The
+list can be NULL.
+
+<PRE>
+extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, int status);
+extern BOOL HTNet_setBefore	(HTList * list);
+extern HTList * HTNet_before	(void);
+extern int HTNet_callBefore	(HTRequest *request, int status);
+</PRE>
+
+<H3>AFTER Callbacks</H3>
+
+Global set of callback functions AFTER the request is issued. The list can be NULL
+
+<PRE>
+extern BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status);
+extern BOOL HTNet_setAfter	(HTList * list);
+extern HTList * HTNet_after	(void);
+extern int HTNet_callAfter	(HTRequest *request, int status);
 </PRE>
 
 <H2>Request Queue</H2>
@@ -202,7 +252,7 @@ any registered call back functions IF not the status is HT_IGNORE.
 This is used if we have internal requests that the app doesn't know
 about. We also see if we have pending requests that can be started up
 now when we have a socket free. The callback functions are called in
-the reverse order of which they were registered (last one first)
+the reverse order of which they were registered (last one first);
 
 <PRE>
 extern BOOL HTNet_delete (HTNet * me, int status);

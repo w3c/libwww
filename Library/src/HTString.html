@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic String Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -68,11 +68,13 @@ arbitrary characters.
 <DD>is the name to be matched agaist the template.
 </DL>
 
-returns	 YES, if filename matches the template, else NO
+Returns empty string ("") if perfect match, pointer to part matched by
+wildcard if any, or NULL if no match. This is basically the same as
+YES if match, else NO.
 
 <PRE>
-extern BOOL HTStrMatch		(CONST char * tmpl, CONST char * name);
-extern BOOL HTStrCaseMatch	(CONST char * tmpl, CONST char * name);
+extern char * HTStrMatch	(CONST char * tmpl, CONST char * name);
+extern char * HTStrCaseMatch	(CONST char * tmpl, CONST char * name);
 </PRE>
 
 <H2>Case-insensitive strstr</H2>

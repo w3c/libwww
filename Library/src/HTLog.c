@@ -18,7 +18,7 @@
 #include "WWWLib.h"
 #include "HTLog.h"					 /* Implemented here */
 
-PRIVATE FILE *HTlogfile = NULL;          /* Log of requests in common format */
+PRIVATE FILE *HTLogFile = NULL;          /* Log of requests in common format */
 PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
 
 /* ------------------------------------------------------------------------- */
@@ -30,7 +30,7 @@ PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
 **	file or overwriting an exsisting file.
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_enable (CONST char * filename, BOOL local, BOOL append)
+PUBLIC BOOL HTLog_open (CONST char * filename, BOOL local, BOOL append)
 {
     if (!filename || !*filename) {
 	if (WWWTRACE) TTYPrint(TDEST, "Log......... No log file given\n");
@@ -38,13 +38,13 @@ PUBLIC BOOL HTLog_enable (CONST char * filename, BOOL local, BOOL append)
     }
     if (WWWTRACE)
 	TTYPrint(TDEST, "Log......... Open log file `%s\'\n", filename);
-    if (HTlogfile) {
+    if (HTLogFile) {
 	if (WWWTRACE)
 	    TTYPrint(TDEST, "Log......... Already open\n");
 	return NO;
     }
-    HTlogfile = fopen(filename, append ? "a" : "w");
-    if (!HTlogfile) {
+    HTLogFile = fopen(filename, append ? "a" : "w");
+    if (!HTLogFile) {
 	if (WWWTRACE)
 	    TTYPrint(TDEST, "Log......... Can't open log file `%s\'\n",
 		    filename);
@@ -59,21 +59,25 @@ PUBLIC BOOL HTLog_enable (CONST char * filename, BOOL local, BOOL append)
 **	------------------
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_disable (void)
+PUBLIC BOOL HTLog_close (void)
 {
     if (WWWTRACE)
 	TTYPrint(TDEST, "Log......... Closing log file\n");
-    if (HTlogfile) {
-	int status = fclose(HTlogfile);
-	HTlogfile = NULL;
+    if (HTLogFile) {
+	int status = fclose(HTLogFile);
+	HTLogFile = NULL;
 	return (status!=EOF);
     }
     return NO;
 }
 
+PUBLIC BOOL HTLog_isOpen (void)
+{
+    return HTLogFile ? YES : NO;
+}
 
-/*	Log the result of a request
-**	---------------------------
+/*	Add entry to the log file
+**	-------------------------
 **	Format: <HOST> - - <DATE> <METHOD> <URI> <RESULT> <CONTENT_LENTGH>
 **	which is almost equivalent to Common Logformat. Permissions on UNIX
 **	are modified by umask.
@@ -82,21 +86,21 @@ PUBLIC BOOL HTLog_disable (void)
 **
 **	BUG: No result code is produced :-( Should be taken from HTError.c
 */
-PUBLIC BOOL HTLog_request (HTRequest * request, int status)
+PUBLIC BOOL HTLog_add (HTRequest * request, int status)
 {
-    if (HTlogfile) {
+    if (HTLogFile) {
 	time_t now = time(NULL);	
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * uri = HTAnchor_address((HTAnchor *) anchor);
 	if (WWWTRACE) TTYPrint(TDEST, "Log......... Writing log\n");
-	fprintf(HTlogfile, "localhost - - [%s] %s %s %d %ld\n",
+	fprintf(HTLogFile, "localhost - - [%s] %s %s %d %ld\n",
 		HTDateTimeStr(&now, HTloglocal),
 		HTMethod_name(HTRequest_method(request)),
 		uri,
 		status,
 		anchor->content_length);
 	FREE(uri);
-	return (fflush(HTlogfile)!=EOF);       /* Actually update it on disk */
+	return (fflush(HTLogFile)!=EOF);       /* Actually update it on disk */
     }
     return NO;
 }

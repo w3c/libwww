@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Configuration Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -14,174 +14,111 @@
 */
 </PRE>
 
-The configuration information loaded includes tables (file suffixes,
-presentation methods) in other modules.  The most likely routines
-needed by developers will be:
-
-<DL>
-<DT><A
-NAME=z3 HREF="#z2">HTSetConfiguration</A>
-<DD> to load configuration
-information.
-<DT><A
-NAME=z1 HREF="#z0">HTLoadRules</A>
-<DD> to load a whole file
-of configuration information
-<DT><A
-NAME=z5 HREF="#z4">HTTranslate</A>
-<DD> to translate a URL using
-the rule table.
-</DL>
+The W3C Library provides this module for handling configuration files
+(a.k.a.  rule files). Rule files can be used to initialize as much as
+the application desires including setting up new protocol modules
+etc. Also the rules file do not have to be a fil - it can be a
+database or any other way of storage information. This implementation
+is not used by the Library at all and is part of the <A
+HREF="WWWApp.html">WWWApp.h</A> interface. <P>
 
 This module is implemented by <A HREF="HTRules.c">HTRules.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTRULE_H
 #define HTRULE_H
 
-#include "HTReq.h"	/* HTRequest */
+#include "HTList.h"
+#include "HTReq.h"
+#include "HTFormat.h"
+</PRE>
+
+<H2>Parse a Whole Rule File</H2>
+
+Parsing a whole rule file is done using a converter stream. This means
+that a rule file can come from anywhere, even accross the network. We
+have defined a special content type for rule files called
+<CODE>WWW_RULES</CODE> in <A HREF="HTFormat.html">HTFormat</A>.
+
+<PRE>
+extern HTConverter HTRules;
+</PRE>
+
+<H2>Parse a single line from a Rules File</H2>
+
+This routine may be used for loading configuration information from
+sources other than the rule file, for example INI files for X
+resources. <CODE>config</CODE> is a string in the syntax of a rule
+file line.
+
+<PRE>
+extern BOOL HTRule_parseLine (HTList * list, CONST char * config);
+</PRE>
+
+<H2>Add a Rule to the List</H2>
+
+This function adds a rule to the list of rules. The
+<CODE>pattern</CODE> is a 0-terminated string containing a single
+"*". <CODE>equiv</CODE> points to the equivalent string with * for the
+place where the text matched by * goes.
+
+<PRE>
+typedef struct _HTRule HTRule;
 
 typedef enum _HTRuleOp {
-	HT_Invalid, 
-	HT_Map, 
-	HT_Pass, 
-	HT_Fail,
-	HT_DefProt,
-	HT_Protect,
-	HT_Exec,
-	HT_Redirect,
-	HT_UseProxy
+    HT_Invalid, 
+    HT_Map, 
+    HT_Pass, 
+    HT_Fail,
+    HT_DefProt,
+    HT_Protect,
+    HT_Exec,
+    HT_Redirect,
+    HT_UseProxy
 } HTRuleOp;
+
+extern BOOL HTRule_add (HTList * list, HTRuleOp op,
+			CONST char * pattern, CONST char * replace);
 </PRE>
 
-<H2>Server Side Script Execution</H2>
+<H2>Delete all Registered Rules</H2>
 
-If a URL starts with <CODE>/htbin/</CODE> it is understood
-to mean a script execution request on server.
-This feature needs to
-be turned on by setting <CODE>HTBinDir</CODE> by the
-<CODE>htbin</CODE> rule.  Index searching is enabled by
-setting <CODE>HTSearchScript</CODE> into the name of script
-in BinDir doing the actual search by <CODE>search</CODE> rule
-(BinDir must also be set in this case, of course).
-<PRE>
-#ifdef NOT_USED
-extern char * HTSearchScript;	/* Search script name */
-extern char * HTPutScript;	/* Script handling PUT */
-extern char * HTPostScript;	/* Script handling POST */
-#endif /* NOT_USED */
-
-</PRE>
-<H2>HTAddRule:  Add rule to the list</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>pattern
-<DD>points to 0-terminated string
-containing a single "*"
-<DT>equiv
-<DD>points to the equivalent string
-with * for the place where the text
-matched by * goes.
-</DL>
-
-<H3>On exit,</H3>
-<DL>
-<DT>returns
-<DD>0 if success, -1 if error.
-</DL>
-Note that if BYTE_ADDRESSING is set,
-the three blocks required are allocated
-and deallocated as one. This will
-save time and storage, when malloc's
-allocation units are large.
+This function clears all rules registered
 
 <PRE>
-extern int HTAddRule PARAMS((	HTRuleOp op, const char * pattern,
-				const char * equiv));
+extern BOOL HTRule_deleteAll (HTList *list);
 </PRE>
 
-<H2>HTClearRules: Clear all rules</H2>
-<H3>On exit,</H3>
-<DL>
-<DT>Rule file
-<DD> There are no rules
-<DT>returns
-<DD>
-<DD> 0 if success, -1 if error.
-</DL>
+<H2>Global Rules</H2>
+
+Rules are handled as list as everything else that has to do with
+preferences. We provide two functions for getting and setting the
+global rules:
 
 <PRE>
-extern int HTClearRules NOPARAMS;
+extern HTList * HTRule_global	(void);
+extern BOOL HTRule_setGlobal	(HTList * list);
 </PRE>
 
-<H2><A NAME=z4>HTTranslate: Translate by rules</A></H2>
+<H2>Translate by rules</H2>
 
-<H3>On entry,</H3>
-<DL>
-<DT>required
-<DD> points to a string whose
-equivalent value is neeed
-</DL>
-
-<H3>On exit,</H3>
-<DL>
-<DT>returns
-<DD> the address of the equivalent
-string allocated from the heap which
-the CALLER MUST FREE. If no translation
-occured, then it is a copy of the
-original.
-</DL>
+This function walks through the list of rules and translates the
+reference when matches are found. The list is traversed in order
+starting from the head of the list. It returns the address of the
+equivalent string allocated from the heap which the CALLER MUST
+FREE. If no translation occured, then it is a copy of the original.
 
 <PRE>
-extern char * HTTranslate PARAMS((CONST char * required));
-
-</PRE>
-<H2><A
-NAME=z2>HTSetConfiguration:  Load one line
-of configuration information</A></H2>
-<H3>On entry,</H3>
-<DL>
-<DT>config
-<DD> is a string in the syntax
-of a rule file line.
-</DL>
-This routine may be used for loading
-configuration information from sources
-other than the  rule file, for example
-INI files for X resources.
-<PRE>extern int HTSetConfiguration PARAMS((CONST char * config));
-
-
-</PRE>
-<H2><A
-NAME=z0>HtLoadRules:  Load the rules from
-a file</A></H2>
-<H3>On entry,</H3>
-<DL>
-<DT>Rule table
-<DD> Rules can be in any state
-</DL>
-
-<H3>On exit,</H3>
-<DL>
-<DT>Rule table
-<DD> Any existing rules will
-have been kept. Any new rules will
-have been loaded on top, so as to
-be tried first.
-<DT>Returns
-<DD> 0 if no error.
-</DL>
-
-<PRE>
-extern int HTLoadRules PARAMS((const char * filename));
+extern char * HTRule_translate (HTList * list, CONST char * token,
+				BOOL ignore_case);
 </PRE>
 
 <PRE>
+#endif
+</PRE>
 
-#endif /* HTUtils.h */
-</PRE>end</A></BODY>
+End of declaration
+</BODY>
+</HTMl>

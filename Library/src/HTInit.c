@@ -59,6 +59,13 @@ PUBLIC void HTConverterInit (HTList * c)
     ** the content type by reading the first bytes of the stream
     */
     HTConversion_add(c,"www/unknown",		"*/*",		HTGuess_new,	1.0, 0.0, 0.0);
+
+    /*
+    ** Handling Rule files is handled just like any other stream
+    ** This converter reads a rule file and generates the rules
+    */
+    HTConversion_add(c,"text/x-www-rules",	"*/*",		HTRules,	1.0, 0.0, 0.0);
+
     /*
     ** This dumps all other formats to local disk without any further
     ** action taken
@@ -231,6 +238,8 @@ PUBLIC void HTFileInit (void)
     HTBind_add("zip",    NULL,				"zip",      NULL, 1.0);	/* PKZIP		*/
     HTBind_add("Z",	NULL,				"compress", NULL, 1.0);	/* Compressed data	*/
     HTBind_add("gz",	NULL,				"gzip",	    NULL, 1.0);	/* Gnu Compressed data	*/
+
+    HTBind_add("conf",    "text/x-www-rules",		"8bit",	  NULL, 1.0);	/* CONFIGURATION FILE	*/
 
     HTBind_add("*.*",     "www/unknown",			"binary", NULL, 0.1);	/* Unknown suffix */
     HTBind_add("*",       "www/unknown",			"7bit",   NULL, 0.5);	/* No suffix */

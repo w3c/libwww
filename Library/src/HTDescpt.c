@@ -19,9 +19,7 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTList.h"
-#if 0
 #include "HTAAUtil.h"
-#endif
 
 #define MAX_LINE_LEN 256
 
