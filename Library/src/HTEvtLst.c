@@ -38,8 +38,34 @@
 /* Type definitions and global variables etc. local to this module */
 #define MILLI_PER_SECOND	1000
 #define HASH(s)			((s) % HT_M_HASH_SIZE) 
-#define HT_EVENT_ORDER				  /* use event ordering code */
+
 #define EVENTS_TO_EXECUTE	10 /* how many to execute in one select loop */
+
+#ifdef EVENT_TRACE
+#define HT_FS_BYTES(a)		((((a)/16)+1) * 4)
+#endif
+
+typedef struct {
+    SOCKET 	s ;	 		/* our socket */
+    HTEvent * 	events[HTEvent_TYPES];	/* event parameters for read, write, oob */
+    HTTimer *	timeouts[HTEvent_TYPES];
+} SockEvents;
+
+typedef struct {
+    HTEvent *	event;
+    SOCKET	s;
+    HTEventType	type;
+    HTPriority	skipped;
+} EventOrder;
+
+typedef enum {
+    SockEvents_mayCreate,
+    SockEvents_find
+} SockEvents_action;
+
+PRIVATE HTList * HashTable [HT_M_HASH_SIZE]; 
+PRIVATE HTList * EventOrderList = NULL;
+PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 
 #ifdef WWW_WIN_ASYNC
 #define TIMEOUT	1 /* WM_TIMER id */
@@ -52,24 +78,77 @@ PRIVATE fd_set FdArray[HTEvent_TYPES];
 PRIVATE SOCKET MaxSock = 0;			  /* max socket value in use */
 #endif /* !WWW_WIN_ASYNC */
 
-#define HT_FD_BYTES(a)	((a/16)+1)*4
+/* ------------------------------------------------------------------------- */
+/* 				DEBUG FUNCTIONS	    		             */
+/* ------------------------------------------------------------------------- */
 
-typedef struct {
-    SOCKET 	s ;	 		/* our socket */
-    HTEvent * 	events[HTEvent_TYPES];	/* event parameters for read, write, oob */
-#ifndef IN_EVENT
-    HTTimer *	timeouts[HTEvent_TYPES];
-#endif
-} SockEvents;
+PRIVATE void Event_trace (HTEvent * event)
+{
+    if (event) {
+	HTTrace("%8p: %3d %6d %8p %8p %8p",
+		event, event->priority, event->millis, event->cbf,
+		event->param, event->request);
+    }
+}
 
-typedef enum {
-    SockEvents_mayCreate,
-    SockEvents_find
-} SockEvents_action;
+PRIVATE void Event_traceHead (void)
+{
+    HTTrace("     event: pri millis  callback   param    request  ");
+}
 
-HTList * HashTable[HT_M_HASH_SIZE]; 
-PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
+PRIVATE void Timer_trace (HTTimer * timer)
+{
+    if (timer) {
+	HTTrace("%8p: %6d %ld %c %8p",
+		timer,
+		HTTimer_expiresAbsolute(timer),
+		HTTimer_expiresRelative(timer), 
+		HTTimer_isRelative(timer) ? 'R' : 'A',
+		HTTimer_callback(timer));
+    }
+}
 
+PRIVATE void Timer_traceHead (void)
+{
+    HTTrace("     timer: millis expires ?   param   callback  ");
+}
+
+/*
+**  A simple debug function that dumps all the socket arrays
+**  as trace messages
+*/
+PRIVATE void EventList_dump (void)
+{
+    int v = 0;
+    HTList* cur;
+    SockEvents * pres;
+    HTTrace("Event....... Dumping socket events\n");
+    HTTrace("soc ");
+    Event_traceHead();
+    HTTrace(" ");
+    Timer_traceHead();
+    HTTrace("\n");
+    for (v = 0; v < HT_M_HASH_SIZE; v++) {
+	cur = HashTable[v];
+	while ((pres = (SockEvents *) HTList_nextObject(cur))) {
+	    int i;
+	    HTTrace("%3d \n", pres->s);
+	    for (i = 0; i < HTEvent_TYPES; i++)
+		if (pres->events[i]) {
+		    static char * names[HTEvent_TYPES] = {"read", "writ", "xcpt"};
+		    HTTrace("%s ", names[i]);
+		    Event_trace(pres->events[i]);
+		    HTTrace(" ");
+		    Timer_trace(pres->timeouts[i]);
+		    HTTrace(" ");
+		}
+	    HTTrace("\n");
+	}
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/*		           EVENT TIMING FUNCTIONS			     */
 /* ------------------------------------------------------------------------- */
 
 #ifdef WWW_WIN_ASYNC
@@ -90,18 +169,65 @@ PRIVATE BOOL Timer_deleteWindowsTimer (HTTimer * timer)
 }
 #endif /* WWW_WIN_ASYNC */
 
+/*
+**  Event timeout handler
+**  If an event didn't occur before the timeout then call it explicitly
+**  indicating that it timed out.
+*/
+PRIVATE int EventListTimerHandler (HTTimer * timer, void * param, HTEventType type)
+{
+    SockEvents * sockp = (SockEvents *) param;
+    HTEvent * event = NULL;
+
+    /* Check for read timeout */
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_READ)] == timer) {
+	event = sockp->events[HTEvent_INDEX(HTEvent_READ)];
+	if (THD_TRACE) HTTrace("Event....... READ timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
+    }
+
+    /* Check for write timeout */
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_WRITE)] == timer) {
+	event = sockp->events[HTEvent_INDEX(HTEvent_WRITE)];
+	if (THD_TRACE) HTTrace("Event....... WRITE timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
+    }
+
+    /* Check for out-of-band data timeout */
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_OOB)] == timer) {
+	event = sockp->events[HTEvent_INDEX(HTEvent_OOB)];
+	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
+    }
+    if (THD_TRACE)
+	HTTrace("Event....... No event for timer %p with context %p\n", timer, param);
+    return HT_ERROR;
+}
+
+PUBLIC void CheckSockEvent (HTTimer * timer, HTTimerCallback * cbf, void * param)
+{
+    SockEvents * sockp = (SockEvents *)param;
+    if (cbf == EventListTimerHandler && 
+	sockp->timeouts[0] != timer && 
+	sockp->timeouts[1] != timer && 
+	sockp->timeouts[2] != timer) {
+	HTDebugBreak(__FILE__, __LINE__, "Bad timer %p\n", timer);
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/*		             EVENT ORDERING STUFF			     */
+/* ------------------------------------------------------------------------- */
+
 PRIVATE SockEvents * SockEvents_get (SOCKET s, SockEvents_action action)
 {
     long v = HASH(s);
     HTList* cur;
     SockEvents * pres;
-
-    if (HashTable[v] == NULL)
-	HashTable[v] = HTList_new();
+    if (HashTable[v] == NULL) HashTable[v] = HTList_new();
     cur = HashTable[v];
     while ((pres = (SockEvents *) HTList_nextObject(cur)))
-	if (pres->s == s)
-	    return pres;
+	if (pres->s == s) return pres;
 
     if (action == SockEvents_mayCreate) {
         if ((pres = (SockEvents *) HT_CALLOC(1, sizeof(SockEvents))) == NULL)
@@ -113,153 +239,7 @@ PRIVATE SockEvents * SockEvents_get (SOCKET s, SockEvents_action action)
     return NULL;
 }
 
-PUBLIC void HTEvent_traceHead(void)
-{
-    HTTrace("     event: pri millis  callback   param    request  ");
-}
-PUBLIC void HTEvent_trace(HTEvent * event)
-{
-    if (event == NULL)
-	return;
-    HTTrace("%8p: %3d %6d %8p %8p %8p", event, event->priority, event->millis, event->cbf, event->param, event->request);
-}
-PUBLIC void HTTimer_traceHead(void)
-{
-    HTTrace("     timer: millis expires ?   param   callback  ");
-}
-PRIVATE char * MyTime(unsigned long int time, int len)
-{
-    static char space[100];
-    sprintf(space, "1234567");
-    return space;
-}
-struct _HTTimer {
-    HTTimer *	next;		/* The next guy in line */
-    ms_t	millis;		/* Relative value in millis */
-    ms_t	expires;	/* Absolute value in millis */
-    BOOL	relative;
-    void *	param;		/* Client supplied context */
-    HTTimerCallback * cbf;
-};
-
-PUBLIC void HTTimer_trace(HTTimer * timer)
-{
-    if (timer == NULL)
-	return;
-    HTTrace("%8p: %6d %7s %c %8p %8p", timer, timer->millis, MyTime(timer->expires, 7), 
-	    timer->relative == YES ? 'R' : 'A', timer->param, timer->cbf);
-}
-/*
-**  A simple debug function that dumps all the socket arrays
-**  as trace messages
-*/
-PRIVATE void EventList_dump (void)
-{
-    int v = 0;
-    HTList* cur;
-    SockEvents * pres;
-#if 0
-    if (HashTable[v] == NULL) {
-	HTTrace("Event....... No sockets registered\n");
-	return;
-    }
-#endif
-    HTTrace("Event....... Dumping socket events\n");
-    HTTrace("soc ");
-    HTEvent_traceHead();
-    HTTrace(" ");
-    HTTimer_traceHead();
-    HTTrace("\n");
-    for (v = 0; v < HT_M_HASH_SIZE; v++) {
-	cur = HashTable[v];
-	while ((pres = (SockEvents *) HTList_nextObject(cur))) {
-	    int i;
-	    HTTrace("%3d \n", pres->s);
-	    for (i = 0; i < HTEvent_TYPES; i++)
-		if (pres->events[i]) {
-		    static char * names[HTEvent_TYPES] = {"read", "writ", "xcpt"};
-		    HTTrace("%s ", names[i]);
-		    HTEvent_trace(pres->events[i]);
-		    HTTrace(" ");
-#ifndef IN_EVENT
-		    HTTimer_trace(pres->timeouts[i]);
-		    HTTrace(" ");
-#endif
-		}
-	    HTTrace("\n");
-	}
-    }
-}
-
-/* ------------------------------------------------------------------------- */
-/*		T I M E O U T   H A N D L E R				     */
-PRIVATE int EventListTimerHandler (HTTimer * timer, void * param, HTEventType type)
-{
-    SockEvents * sockp = (SockEvents *) param;
-    HTEvent * event = NULL;
-    /* HTMemLog_flush(); keep around - very useful for debugging crashes - EGP */
-#ifdef IN_EVENT
-    if (sockp->events[HTEvent_INDEX(HTEvent_READ)]->timer == timer)
-#else /* IN_EVENT */
-    if (sockp->timeouts[HTEvent_INDEX(HTEvent_READ)] == timer)
-#endif /* !IN_EVENT */
-    {
-	event = sockp->events[HTEvent_INDEX(HTEvent_READ)];
-	if (THD_TRACE) HTTrace("Event....... READ timed out on %d.\n", sockp->s);
-	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
-    }
-#ifdef IN_EVENT
-    if (sockp->events[HTEvent_INDEX(HTEvent_WRITE)]->timer == timer)
-#else /* IN_EVENT */
-    if (sockp->timeouts[HTEvent_INDEX(HTEvent_WRITE)] == timer)
-#endif /* !IN_EVENT */
-    {
-	event = sockp->events[HTEvent_INDEX(HTEvent_WRITE)];
-	if (THD_TRACE) HTTrace("Event....... WRITE timed out on %d.\n", sockp->s);
-	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
-    }
-#ifdef IN_EVENT
-    if (sockp->events[HTEvent_INDEX(HTEvent_OOB)]->timer == timer)
-#else /* IN_EVENT */
-    if (sockp->timeouts[HTEvent_INDEX(HTEvent_OOB)] == timer)
-#endif /* !IN_EVENT */
-    {
-	event = sockp->events[HTEvent_INDEX(HTEvent_OOB)];
-	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", sockp->s);
-	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
-    }
-    if (THD_TRACE)
-	HTTrace("Event....... Can't find event for timer %p with context %p\n",
-		timer, param);
-    return HT_ERROR;
-}
-
-/* ------------------------------------------------------------------------- */
-/*		E V E N T   O R D E R I N G   S T U F F			     */
-#ifdef HT_EVENT_ORDER
-typedef struct {
-    HTEvent *	event;
-    SOCKET	s;
-    HTEventType	type;
-    HTPriority	skipped;
-} EventOrder;
-
-HTList * EventOrderList = NULL;
-#if 0
-/*
-**	return -1 if a should be after b
- */
-int EventOrderComparer (const void * a, const void * b)
-{
-    EventOrder * placeMe = (EventOrder *)a;
-    EventOrder * maybeHere = (EventOrder *)b;
-    if (placeMe->event->priority+placeMe->skipped >= maybeHere->event->priority+maybeHere->skipped)
-	return 1;
-    return -1;
-}
-#endif
-
-int EventOrder_add (SOCKET s, HTEventType type, ms_t now)
+PRIVATE int EventOrder_add (SOCKET s, HTEventType type, ms_t now)
 {
     EventOrder * pres;
     HTList * cur = EventOrderList;
@@ -268,23 +248,16 @@ int EventOrder_add (SOCKET s, HTEventType type, ms_t now)
     HTEvent * event;
 
     if (sockp == NULL || (event = sockp->events[HTEvent_INDEX(type)]) == NULL) {
-	HTTrace("EventOrder.. no event found for socket %d, type %s.\n", s, HTEvent_type2str(type));
+	HTTrace("EventOrder.. no event found for socket %d, type %s.\n",
+		s, HTEvent_type2str(type));
 	return HT_ERROR;
     }
 
-    /*	Fixup the timeout
-    */
-#ifdef IN_EVENT
-    if (event->timer)
-	HTTimer_refresh(event->timer, now);
-#else
+    /*	Fixup the timeout */
     if (sockp->timeouts[HTEvent_INDEX(type)])
 	HTTimer_refresh(sockp->timeouts[HTEvent_INDEX(type)], now);
-#endif
 
-    /*
-    **	Look to see if it's already here from before
-    */
+    /* Look to see if it's already here from before */
     while ((pres = (EventOrder *) HTList_nextObject(cur))) {
 	if (pres->s == s && pres->event == event && pres->type == type) {
 	    pres->skipped++;
@@ -294,9 +267,7 @@ int EventOrder_add (SOCKET s, HTEventType type, ms_t now)
 	    insertAfter = cur;
     }
 
-    /*
-    **	No, so create a new element
-    */
+    /* Create a new element */
     if ((pres = (EventOrder *) HT_CALLOC(1, sizeof(EventOrder))) == NULL)
 	HT_OUTOFMEM("EventOrder_add");
     pres->event = event;
@@ -313,17 +284,16 @@ PUBLIC int EventOrder_executeAndDelete (void)
     int i = 0;
     if (THD_TRACE) HTTrace("EventOrder.. execute ordered events\n");
     if (cur == NULL) return NO;
-    while ((pres = (EventOrder *) HTList_removeLastObject(cur)) && i < EVENTS_TO_EXECUTE) {
+    while ((pres=(EventOrder *) HTList_removeLastObject(cur)) && i<EVENTS_TO_EXECUTE) {
 	HTEvent * event = pres->event;
 	int ret;
 	if (THD_TRACE)
-	HTTrace("EventList... calling socket %d, request %p handler %p type %s\n",
-		pres->s, (void *) event->request,
-		(void *) event->cbf, HTEvent_type2str(pres->type));
+	    HTTrace("EventList... calling socket %d, request %p handler %p type %s\n",
+		    pres->s, (void *) event->request,
+		    (void *) event->cbf, HTEvent_type2str(pres->type));
 	ret = (*pres->event->cbf)(pres->s, pres->event->param, pres->type);
 	HT_FREE(pres);
-	if (ret != HT_OK)
-	    return ret;
+	if (ret != HT_OK) return ret;
 	i++;
     }
     return HT_OK;
@@ -341,8 +311,9 @@ PUBLIC BOOL EventOrder_deleteAll (void)
     EventOrderList = NULL;
     return YES;
 }
-#endif /* HT_EVENT_ORDER */
 
+/* ------------------------------------------------------------------------- */
+/*				EVENT REGISTRATION			     */
 /* ------------------------------------------------------------------------- */
 
 /*
@@ -367,7 +338,7 @@ PRIVATE void __ResetMaxSock (void)
 }  
 #endif /* !WWW_WIN_ASYNC */
 
-PRIVATE int EventList_remaining(SockEvents * pres)
+PRIVATE int EventList_remaining (SockEvents * pres)
 {
     int ret = 0;
     int i;
@@ -399,7 +370,8 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     ** Insert socket into appropriate file descriptor set. We also make sure
     ** that it is registered in the global set.
     */
-    if (THD_TRACE) HTTrace("Event....... Registering socket for %s\n", HTEvent_type2str(type));
+    if (THD_TRACE)
+	HTTrace("Event....... Registering socket for %s\n", HTEvent_type2str(type));
     sockp = SockEvents_get(s, SockEvents_mayCreate);
     sockp->s = s;
     sockp->events[HTEvent_INDEX(type)] = event;
@@ -412,6 +384,9 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     }
 #else /* WWW_WIN_ASYNC */
     FD_SET(s, FdArray+HTEvent_INDEX(type));
+#ifdef EVENT_TRACE
+    HTTraceData((char *) FdArray+HTEvent_INDEX(type), 8, "HTEventList_register: (s:%d)", s);
+#endif /* EVENT_TRACE */
     if (s > MaxSock) {
 	MaxSock = s ;
 	if (THD_TRACE) HTTrace("Event....... New value for MaxSock is %d\n", MaxSock);
@@ -423,14 +398,9 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     **  a new timeout for this event unless we already have a timer.
     */
     if (event->millis >= 0) {
-#ifdef IN_EVENT
-	event->timer = HTTimer_new(event->timer, EventListTimerHandler,
-				   sockp, event->millis, YES);
-#else
 	sockp->timeouts[HTEvent_INDEX(type)] =
 	    HTTimer_new(sockp->timeouts[HTEvent_INDEX(type)],
 			EventListTimerHandler, sockp, event->millis, YES, YES);
-#endif
     }
 
     return HT_OK;
@@ -442,7 +412,7 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 ** info is deleted, and, if the socket has been registered for notification, 
 ** the HTEventCallback will be invoked.
 */
-PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type) 
+PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type) 
 {
     long 		v = HASH(s);
     HTList * 		cur = HashTable[v];
@@ -465,16 +435,9 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    **  If so then delete the timeout as well.
 	    */
 	    {
-#ifdef IN_EVENT
-		HTTimer * timer = pres->events[HTEvent_INDEX(type)]->timer;
-                if (timer) HTTimer_delete(timer);
-                pres->events[HTEvent_INDEX(type)]->timer = NULL;
-#else
 		HTTimer * timer = pres->timeouts[HTEvent_INDEX(type)];
                 if (timer) HTTimer_delete(timer);
                 pres->timeouts[HTEvent_INDEX(type)] = NULL;
-#endif
-		
 	    }
 	    
 #ifdef WWW_WIN_ASYNC
@@ -482,7 +445,9 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 		ret = HT_ERROR;
 #else /* WWW_WIN_ASYNC */
 	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
+#ifdef EVENT_TRACE
 	    HTTraceData((char*)FdArray+HTEvent_INDEX(type), 8, "HTEventList_unregister: (s:%d)", s);
+#endif /* EVENT_TRACE */
 #endif /* !WWW_WIN_ASYNC */
 
 	    /*
@@ -494,10 +459,9 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 		if (THD_TRACE)
 		    HTTrace("Event....... No more events registered for socket %d\n", s);
 
-
 #ifndef WWW_WIN_ASYNC
 		/* Check to see if we have to update MaxSock */
-		if(pres->s >= MaxSock) __ResetMaxSock();
+		if (pres->s >= MaxSock) __ResetMaxSock();
 #endif /* !WWW_WIN_ASYNC */
 
 		HT_FREE(pres);
@@ -509,15 +473,16 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
       	    if (THD_TRACE) HTTrace("Event....... Socket %d unregistered for %s\n", s,
 				   HTEvent_type2str(type));
 
-	    /*
-	    **  We found the socket and can break
-	    */
+	    /* We found the socket and can break */
 	    break;
 	}
 	last = cur;
     }
-    if (ret == HT_ERROR && THD_TRACE) HTTrace("Event....... Couldn't find socket %d. Can't unregister type %s\n",
-        s, HTEvent_type2str(type));
+    if (THD_TRACE) {
+	if (ret == HT_ERROR)
+	    HTTrace("Event....... Couldn't find socket %d. Can't unregister type %s\n",
+		    s, HTEvent_type2str(type));
+    }
     return ret;
 }
 
@@ -542,6 +507,7 @@ PUBLIC int HTEventList_unregisterAll (void)
 	HTList_delete(HashTable[i]);
 	HashTable[i] = NULL;
     }
+
 #ifndef WWW_WIN_ASYNC
     MaxSock = 0 ;
     if (THD_TRACE) HTTrace("Event....... New value for MaxSock is %d\n", MaxSock);
@@ -549,9 +515,8 @@ PUBLIC int HTEventList_unregisterAll (void)
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_WRITE));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_OOB));
 #endif /* !WWW_WIN_ASYNC */
-#ifdef HT_EVENT_ORDER
+
     EventOrder_deleteAll();
-#endif /* HT_EVENT_ORDER */
     return 0;
 }
 
@@ -565,15 +530,10 @@ PUBLIC int HTEventList_dispatch (SOCKET s, HTEventType type, ms_t now)
     if (sockp) {
 	HTEvent * event = sockp->events[HTEvent_INDEX(type)];
 
-	/*	Fixup the timeout
-	*/
-#ifdef IN_EVENT
-	if (event->timer)
-	    HTTimer_refresh(event->timer, now);
-#else
+	/* Fixup the timeout */
 	if (sockp->timeouts[HTEvent_INDEX(type)])
 	    HTTimer_refresh(sockp->timeouts[HTEvent_INDEX(type)], now);
-#endif
+
 	/*
 	**  If we have found an event object for this event then see
 	**  is we should call it.
@@ -587,15 +547,6 @@ PUBLIC int HTEventList_dispatch (SOCKET s, HTEventType type, ms_t now)
     return NO;
 }
 
-/*
-**  Stops the (select based) event loop. The function does not guarantee
-**  that all requests have terminated. This is for the app to do
-*/
-PUBLIC void HTEventList_stopLoop (void)
-{
-    HTEndLoop = 1;
-}
-
 PUBLIC HTEvent * HTEventList_lookup (SOCKET s, HTEventType type)
 {
     SockEvents * sockp = NULL;
@@ -604,165 +555,36 @@ PUBLIC HTEvent * HTEventList_lookup (SOCKET s, HTEventType type)
     return sockp->events[HTEvent_INDEX(type)];
 }
 
-/*	REGISTER DEFULT EVENT MANAGER
-**	-----------------------------
-**	Not done automaticly - may be done by application!
+/* ------------------------------------------------------------------------- */
+/*		     		THE EVENT LOOP 		 		     */
+/* ------------------------------------------------------------------------- */
+
+/*
+**  Start eventloop
 */
-PUBLIC BOOL HTEventInit (void)
-{
-#ifdef WWW_WIN_ASYNC
-    /*
-    **	We are here starting a hidden window to take care of events from
-    **  the async select() call in the async version of the event loop in
-    **	the Internal event manager (HTEvtLst.c)
-    */
-    static char className[] = "AsyncWindowClass";
-    WNDCLASS wc;
-    OSVERSIONINFO osInfo;
-    
-    wc.style=0;
-    wc.lpfnWndProc=(WNDPROC)AsyncWindowProc;
-    wc.cbClsExtra=0;
-    wc.cbWndExtra=0;
-    wc.hIcon=0;
-    wc.hCursor=0;
-    wc.hbrBackground=0;
-    wc.lpszMenuName=(LPSTR)0;
-    wc.lpszClassName=className;
-
-    osInfo.dwOSVersionInfoSize = sizeof(osInfo);
-    GetVersionEx(&osInfo);
-    if (osInfo.dwPlatformId == VER_PLATFORM_WIN32s || osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
-    else
-	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
-    HTinstance = wc.hInstance;
-    HTclass = RegisterClass(&wc);
-    if (!HTclass) {
-    	HTTrace("HTLibInit.. Can't RegisterClass \"%s\"\n", className);
-	    return NO;
-    }
-    if (!(HTSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
-                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
-	char space[50];
-       	HTTrace("HTLibInit.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
-	sprintf(space, "%ld\n", GetLastError());
-	HTTrace(space);
-    	return NO;
-    }
-    HTwinMsg = WM_USER;  /* use first available message since app uses none */
-
-    /*
-    **  Register platform specific timer handlers for windows
-    */
-    HTTimer_registerSetTimerCallback(Timer_setWindowsTimer);
-    HTTimer_registerDeleteTimerCallback(Timer_deleteWindowsTimer);
-
-#endif /* WWW_WIN_ASYNC */
-
-#ifdef _WINSOCKAPI_
-    /*
-    ** Initialise WinSock DLL. This must also be shut down! PMH
-    */
-    {
-        WSADATA            wsadata;
-	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
-	    if (WWWTRACE)
-		HTTrace("HTEventInit. Can't initialize WinSoc\n");
-            WSACleanup();
-            return NO;
-        }
-        if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
-            if (WWWTRACE)
-		HTTrace("HTEventInit. Bad version of WinSoc\n");
-            WSACleanup();
-            return NO;
-        }
-	if (APP_TRACE)
-	    HTTrace("HTEventInit. Using WinSoc version \"%s\".\n", 
-		    wsadata.szDescription);
-    }
-#endif /* _WINSOCKAPI_ */
-
-    HTEvent_setRegisterCallback(HTEventList_register);
-    HTEvent_setUnregisterCallback(HTEventList_unregister);
-    return YES;
-}
-
-PUBLIC BOOL HTEventTerminate (void)
-{
-#ifdef _WINSOCKAPI_
-    WSACleanup();
-#endif /* _WINSOCKAPI_ */
-
-#ifdef WWW_WIN_ASYNC
-    DestroyWindow(HTSocketWin);
-    UnregisterClass((LPCTSTR)HTclass, HTinstance);
-#endif /* WWW_WIN_ASYNC */
-
-    return YES;
-}
-
-#ifdef WWW_WIN_ASYNC
-
-/*	HTEventList_get/setWinHandle
-**	--------------------------
-**	Managing the windows handle on Windows
-*/
-PUBLIC BOOL HTEventList_setWinHandle (HWND window, unsigned long message)
-{
-    HTSocketWin = window;
-    HTwinMsg = message;
-    return YES;
-}
-
-PUBLIC HWND HTEventList_getWinHandle (unsigned long * pMessage)
-{
-    if (pMessage)
-        *pMessage = HTwinMsg;
-    return (HTSocketWin);
-}
-
-/* only responsible for WM_TIMER and WSA_AsyncSelect */    	
-PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    WORD event;
-    SOCKET sock;
-    HTEventType type;
-    ms_t now = HTGetTimeInMillis();
-
-    /* timeout stuff */
-    if (uMsg == WM_TIMER) {
-	HTTimer_dispatch((HTTimer *)wParam);
-	return (0);
-    }
-
-    if (uMsg != HTwinMsg)	/* not our async message */
-    	return (DefWindowProc(hwnd, uMsg, wParam, lParam));
-
-    event = LOWORD(lParam);
-    sock = (SOCKET)wParam;
-    switch (event) {
-    case FD_READ: type = HTEvent_READ; break;
-    case FD_WRITE: type = HTEvent_WRITE; break;
-    case FD_ACCEPT: type = HTEvent_ACCEPT; break;
-    case FD_CONNECT: type = HTEvent_CONNECT; break;
-    case FD_OOB: type = HTEvent_OOB; break;
-    case FD_CLOSE: type = HTEvent_CLOSE; break;
-    default: HTDebugBreak(__FILE__, __LINE__, "Unknown event %d\n", event);
-    }
-    if (HTEventList_dispatch((int)sock, type, now) != HT_OK)
-	HTEndLoop = -1;
-    return (0);
-}
-
 PUBLIC int HTEventList_newLoop (void)
 {
     return HTEventList_loop (NULL);
 }
 
-PUBLIC int HTEventList_loop (HTRequest * theRequest )
+/*
+**  Stops the event loop. The function does not guarantee
+**  that all requests have terminated. This is for the app to do
+*/
+PUBLIC void HTEventList_stopLoop (void)
 {
+    HTEndLoop = 1;
+}
+
+/*
+**  There are now two versions of the event loop. The first is if you want
+**  to use async I/O on windows, and the other is if you want to use normal
+**  Unix setup with sockets
+*/
+PUBLIC int HTEventList_loop (HTRequest * theRequest)
+{
+#ifdef WWW_WIN_ASYNC
+
     MSG msg;
     int status;
     while (!HTEndLoop && GetMessage(&msg,0,0,0)) {
@@ -776,25 +598,9 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest )
     HTEndLoop = 0;
     
     return (status == 1 ? HT_OK : HT_ERROR);
-}
 
 #else /* WWW_WIN_ASYNC */
 
-PUBLIC int HTEventList_newLoop (void)
-{
-    return HTEventList_loop (NULL);
-}
-
-/*
-**  We wait for activity from one of our registered 
-**  channels, and dispatch on that.
-**
-**  There are now two versions of the event loop. The first is if you want
-**  to use async I/O on windows, and the other is if you want to use normal
-**  Unix setup with sockets
-*/
-PUBLIC int HTEventList_loop (HTRequest * theRequest) 
-{
     fd_set treadset, twriteset, texceptset;
     struct timeval waittime, * wt;
     int active_sockets;
@@ -831,7 +637,6 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	if (THD_TRACE) HTTrace("Event Loop.. calling select: maxfds is %d\n", maxfds);
 
 #ifdef EVENT_TRACE
-#define HT_FS_BYTES(a)  ((((a)/16)+1) * 4)
 	HTTraceData((char*)&treadset, HT_FS_BYTES(maxfds), "HTEventList_loop pre treadset: (maxfd:%d)", maxfds);
 	HTTraceData((char*)&twriteset, HT_FS_BYTES(maxfds), "HTEventList_loop pre twriteset:");
 	HTTraceData((char*)&texceptset, HT_FS_BYTES(maxfds), "HTEventList_loop pre texceptset:");
@@ -895,47 +700,174 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	if (active_sockets == 0)
 	    continue;
 
-	/*
-	**  There were active sockets. Determine which fd sets they were in
-	*/
-#ifdef HT_EVENT_ORDER
-#define DISPATCH(socket, type, now) EventOrder_add(socket, type, now)
-#else /* HT_EVENT_ORDER */
-#define DISPATCH(socket, type, now) HTEventList_dispatch(socket, type, now)
-#endif /* !HT_EVENT_ORDER */
+	/* There were active sockets. Determine which fd sets they were in */
 	for (s = 0 ; s <= maxfds ; s++) { 
 	    if (FD_ISSET(s, &texceptset))
-		if ((status = DISPATCH(s, HTEvent_OOB, now)) != HT_OK)
+		if ((status = EventOrder_add(s, HTEvent_OOB, now)) != HT_OK)
 		    return status;
 	    if (FD_ISSET(s, &twriteset))
-		if ((status = DISPATCH(s, HTEvent_WRITE, now)) != HT_OK)
+		if ((status = EventOrder_add(s, HTEvent_WRITE, now)) != HT_OK)
 		    return status;
 	    if (FD_ISSET(s, &treadset))
-		if ((status = DISPATCH(s, HTEvent_READ, now)) != HT_OK)
+		if ((status = EventOrder_add(s, HTEvent_READ, now)) != HT_OK)
 		    return status;
 	}
-#ifdef HT_EVENT_ORDER
-	if ((status = EventOrder_executeAndDelete()) != HT_OK)
-	    return status;
-#endif /* HT_EVENT_ORDER */
+	if ((status = EventOrder_executeAndDelete()) != HT_OK) return status;
     };
 
     /* Reset HTEndLoop in case we want to start again */
     HTEndLoop = 0;
-
     return HT_OK;
-}
-
 #endif /* !WWW_WIN_ASYNC */
-
-PUBLIC void CheckSockEvent(HTTimer * timer, HTTimerCallback * cbf, void * param)
-{
-    SockEvents * sockp = (SockEvents *)param;
-    if (cbf == EventListTimerHandler && 
-	sockp->timeouts[0] != timer && 
-	sockp->timeouts[1] != timer && 
-	sockp->timeouts[2] != timer) {
-	HTDebugBreak(__FILE__, __LINE__, "Bad timer %p\n", timer);
-    }
 }
 
+/* ------------------------------------------------------------------------- */
+/*		     EVENT INITIALIZATION AND TERMINATION		     */
+/* ------------------------------------------------------------------------- */
+
+#ifdef WWW_WIN_ASYNC
+
+/* Only responsible for WM_TIMER and WSA_AsyncSelect */    	
+PRIVATE LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    WORD event;
+    SOCKET sock;
+    HTEventType type;
+    ms_t now = HTGetTimeInMillis();
+
+    /* timeout stuff */
+    if (uMsg == WM_TIMER) {
+	HTTimer_dispatch((HTTimer *)wParam);
+	return (0);
+    }
+
+    if (uMsg != HTwinMsg)	/* not our async message */
+    	return (DefWindowProc(hwnd, uMsg, wParam, lParam));
+
+    event = LOWORD(lParam);
+    sock = (SOCKET)wParam;
+    switch (event) {
+    case FD_READ: type = HTEvent_READ; break;
+    case FD_WRITE: type = HTEvent_WRITE; break;
+    case FD_ACCEPT: type = HTEvent_ACCEPT; break;
+    case FD_CONNECT: type = HTEvent_CONNECT; break;
+    case FD_OOB: type = HTEvent_OOB; break;
+    case FD_CLOSE: type = HTEvent_CLOSE; break;
+    default: HTDebugBreak(__FILE__, __LINE__, "Unknown event %d\n", event);
+    }
+    if (HTEventList_dispatch((int)sock, type, now) != HT_OK)
+	HTEndLoop = -1;
+    return (0);
+}
+
+/*	HTEventList_get/setWinHandle
+**	--------------------------
+**	Managing the windows handle on Windows
+*/
+PUBLIC BOOL HTEventList_setWinHandle (HWND window, unsigned long message)
+{
+    HTSocketWin = window;
+    HTwinMsg = message;
+    return YES;
+}
+
+PUBLIC HWND HTEventList_getWinHandle (unsigned long * pMessage)
+{
+    if (pMessage)
+        *pMessage = HTwinMsg;
+    return (HTSocketWin);
+}
+#endif /* WWW_WIN_ASYNC */
+
+PUBLIC BOOL HTEventInit (void)
+{
+#ifdef WWW_WIN_ASYNC
+    /*
+    **	We are here starting a hidden window to take care of events from
+    **  the async select() call in the async version of the event loop in
+    **	the Internal event manager (HTEvtLst.c)
+    */
+    static char className[] = "AsyncWindowClass";
+    WNDCLASS wc;
+    OSVERSIONINFO osInfo;
+    
+    wc.style=0;
+    wc.lpfnWndProc=(WNDPROC)AsyncWindowProc;
+    wc.cbClsExtra=0;
+    wc.cbWndExtra=0;
+    wc.hIcon=0;
+    wc.hCursor=0;
+    wc.hbrBackground=0;
+    wc.lpszMenuName=(LPSTR)0;
+    wc.lpszClassName=className;
+
+    osInfo.dwOSVersionInfoSize = sizeof(osInfo);
+    GetVersionEx(&osInfo);
+    if (osInfo.dwPlatformId == VER_PLATFORM_WIN32s || osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
+    else
+	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
+    HTinstance = wc.hInstance;
+    HTclass = RegisterClass(&wc);
+    if (!HTclass) {
+    	HTTrace("HTLibInit.. Can't RegisterClass \"%s\"\n", className);
+	    return NO;
+    }
+    if (!(HTSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
+	char space[50];
+       	HTTrace("HTLibInit.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
+	sprintf(space, "%ld\n", GetLastError());
+	HTTrace(space);
+    	return NO;
+    }
+    HTwinMsg = WM_USER;  /* use first available message since app uses none */
+
+    /*  Register platform specific timer handlers for windows */
+    HTTimer_registerSetTimerCallback(Timer_setWindowsTimer);
+    HTTimer_registerDeleteTimerCallback(Timer_deleteWindowsTimer);
+
+#endif /* WWW_WIN_ASYNC */
+
+#ifdef _WINSOCKAPI_
+    /*
+    ** Initialise WinSock DLL. This must also be shut down! PMH
+    */
+    {
+        WSADATA            wsadata;
+	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
+	    if (WWWTRACE)
+		HTTrace("HTEventInit. Can't initialize WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+        if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
+            if (WWWTRACE)
+		HTTrace("HTEventInit. Bad version of WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+	if (APP_TRACE)
+	    HTTrace("HTEventInit. Using WinSoc version \"%s\".\n", 
+		    wsadata.szDescription);
+    }
+#endif /* _WINSOCKAPI_ */
+
+    HTEvent_setRegisterCallback(HTEventList_register);
+    HTEvent_setUnregisterCallback(HTEventList_unregister);
+    return YES;
+}
+
+PUBLIC BOOL HTEventTerminate (void)
+{
+#ifdef _WINSOCKAPI_
+    WSACleanup();
+#endif /* _WINSOCKAPI_ */
+
+#ifdef WWW_WIN_ASYNC
+    DestroyWindow(HTSocketWin);
+    UnregisterClass((LPCTSTR)HTclass, HTinstance);
+#endif /* WWW_WIN_ASYNC */
+
+    return YES;
+}
