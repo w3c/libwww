@@ -146,17 +146,19 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 
     /* Free stream with data TO network */
     if (input) {
-	if (status==HT_INTERRUPTED || status==HT_RECOVER_PIPE || status==HT_TIMEOUT)
-	    (*input->isa->abort)(input, NULL);
-	else
-	    (*input->isa->_free)(input);
+	if (input->isa) {
+	    if (status==HT_INTERRUPTED || status==HT_RECOVER_PIPE || status==HT_TIMEOUT)
+		(*input->isa->abort)(input, NULL);
+	    else
+		(*input->isa->_free)(input);
+	}
 	HTRequest_setInputStream(req, NULL);
     }
 
     /*
     **  Remove if we have registered an upload function as a callback
     */
-    if (http->timer) {
+    if (http && http->timer) {
 	HTTimer_delete(http->timer);
 	http->timer = NULL;
     }
@@ -1194,30 +1196,37 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		  **  Check to see if we are uploading something or just a normal
 		  **  GET kind of thing.
 		  */
-		  if (pcbf) {
-		      if (http->lock == NO) {
-			  int retrys = HTRequest_retrys(request);
-			  ms_t delay = retrys > 3 ? HTSecondWriteDelay : HTFirstWriteDelay;
-			  if (!http->timer && !http->usedTimer) {
-			      http->timer = HTTimer_new(NULL, FlushPutEvent,
+		  
+		  /*
+		  ** JK: don't continue sending things thru the network
+		  ** if the flush resulted in an error or if the connection
+		  ** is closed 
+		  */
+		  if ((status != HT_ERROR) && status != HT_CLOSED) {
+		      if (pcbf) {
+		          if (http->lock == NO) {
+			      int retrys = HTRequest_retrys(request);
+			      ms_t delay = retrys > 3 ? HTSecondWriteDelay : HTFirstWriteDelay;
+			      if (!http->timer && !http->usedTimer) {
+				  http->timer = HTTimer_new(NULL, FlushPutEvent,
 							http, delay, YES, NO);
-			      HTTRACE(PROT_TRACE, "Uploading... Holding %p for %lu ms using time %p\n" _ 
+				  HTTRACE(PROT_TRACE, "Uploading... Holding %p for %lu ms using time %p\n" _ 
 					  http _ delay _ http->timer);
-			      HTHost_register(host, net, HTEvent_READ);
+				  HTHost_register(host, net, HTEvent_READ);
+			      }
+			      http->lock = YES;
 			  }
-			  http->lock = YES;
+			  type = HTEvent_READ;
+		      } else {
+
+			/*
+			**  Check to see if we can start a new request
+			**  pending in the host object.
+			*/
+			HTHost_launchPending(host);
+			type = HTEvent_READ;
 		      }
-		      type = HTEvent_READ;
-		  } else {
-
-		      /*
-		      **  Check to see if we can start a new request
-		      **  pending in the host object.
-		      */
-		      HTHost_launchPending(host);
-		      type = HTEvent_READ;
 		  }
-
 		  /* Now check the status code */
 		  if (status == HT_WOULD_BLOCK)
 		      return HT_OK;
