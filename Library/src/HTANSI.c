@@ -98,8 +98,11 @@ PRIVATE int HTANSIReader_read (HTInputStream * me)
 
 	{
 	    HTAlertCallback * cbf = HTAlert_find(HT_PROG_READ);
-	    net->bytesRead += me->b_read;
-	    if (cbf) (*cbf)(net->request, HT_PROG_READ, HT_MSG_NULL, NULL, NULL, NULL);
+	    HTNet_addBytesRead(net, me->b_read);
+	    if (cbf) {
+		int tr = HTNet_bytesRead(net);
+		(*cbf)(net->request, HT_PROG_READ, HT_MSG_NULL, NULL, &tr, NULL);
+	    }
 	}
 
 	/* Now push the data down the stream */

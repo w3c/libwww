@@ -196,8 +196,10 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		HTAlertCallback * cbf = HTAlert_find(HT_PROG_READ);
 		if (HTNet_rawBytesCount(net))
 		    HTNet_addBytesRead(net, me->b_read);
-		if (cbf) (*cbf)(request, HT_PROG_READ,
-				HT_MSG_NULL, NULL, NULL, NULL);
+		if (cbf) {
+		    int tr = HTNet_bytesRead(net);
+		    (*cbf)(request, HT_PROG_READ, HT_MSG_NULL, NULL, &tr, NULL);
+		}
 	    }
 	}
 

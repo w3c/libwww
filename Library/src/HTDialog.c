@@ -41,7 +41,6 @@ PUBLIC char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
 					void * input)
 {
     char * result = NULL;
-    if (request && HTRequest_internal(request)) return NULL;
     switch (op) {
       case HT_PROG_DNS:
 	StrAllocMCopy(&result, "Looking up ",
@@ -59,6 +58,10 @@ PUBLIC char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
 	StrAllocCopy(result, "Waiting for connection...");
 	break;
 
+      case HT_PROG_LOGIN:
+	StrAllocCopy(result, "Logging in...");
+	break;
+
       case HT_PROG_READ:
 	if (request) {
 	    long cl = HTAnchor_length(HTRequest_anchor(request));
@@ -72,10 +75,19 @@ PUBLIC char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
 		StrAllocMCopy(&result, "Read (", pct, "of ", buf, ")", NULL);
 	    } else {
 		long b_read = HTRequest_bytesRead(request);
-		char buf[10];
-		HTNumToStr(b_read>0 ? b_read : 0, buf, 10);
-		StrAllocMCopy(&result, "Read ", buf, "bytes", NULL);
-	    }    
+		int * raw_read = input ? (int *) input : NULL;
+		if (b_read > 0) {
+		    char buf[10];
+		    HTNumToStr(b_read, buf, 10);
+		    StrAllocMCopy(&result, "Read ", buf, "bytes", NULL);
+		} else if (raw_read && *raw_read>0) {
+		    char buf[10];
+		    HTNumToStr(*raw_read, buf, 10);
+		    StrAllocMCopy(&result, "Read ", buf, "bytes", NULL);
+		} else {
+		    StrAllocCopy(result, "Reading...");
+		}
+	    }
 	}
 	break;
 
@@ -93,9 +105,18 @@ PUBLIC char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
 		StrAllocMCopy(&result, "Writing (", pct, "of ", buf, ")", NULL);
 	    } else {
 		long b_written = HTRequest_bytesWritten(request);
-		char buf[10];
-		HTNumToStr(b_written>0 ? b_written : 0, buf, 10);
-		StrAllocMCopy(&result, "Writing ", buf, "bytes", NULL);
+		int * raw_written = input ? (int *) input : NULL;
+		if (b_written > 0) {
+		    char buf[10];
+		    HTNumToStr(b_written>0 ? b_written : 0, buf, 10);
+		    StrAllocMCopy(&result, "Writing ", buf, "bytes", NULL);
+		} if (raw_written && *raw_written>0) {
+		    char buf[10];
+		    HTNumToStr(*raw_written, buf, 10);
+		    StrAllocMCopy(&result, "Writing ", buf, "bytes", NULL);
+		} else {
+		    StrAllocCopy(result, "Writing...");
+		}
 	    }
         }
 	break;

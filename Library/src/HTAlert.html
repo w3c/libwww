@@ -65,6 +65,7 @@ typedef enum _HTAlertOpcode {
     HT_PROG_INTERRUPT   = 0x40,         /* Request interrupted */
     HT_PROG_OTHER       = 0x80,         /* Other progress notes */
     HT_PROG_TIMEOUT     = 0x100,        /* Request timed out */
+    HT_PROG_LOGIN	= 0x200,	/* Automatic login notifications */
     HT_A_PROGRESS	= 0xFFFF,	/* Get all progress reports - no reply */
 
     /* First word are reserved for progresss notifications */

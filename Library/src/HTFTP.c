@@ -584,12 +584,13 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
     /* Jump into a second level state machine */
     while (1) {
 	switch ((state) ctrl->substate) {
-	  case NEED_SELECT:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_SELECT\n");
-	    ctrl->substate = ctrl->reset ? NEED_REIN : NEED_GREETING;
-#if 0
-	    ctrl->substate = ctrl->reset ? NEED_UID : NEED_GREETING;
-#endif
+	case NEED_SELECT:
+	    {
+		HTAlertCallback * cbf = HTAlert_find(HT_PROG_LOGIN);
+		if (cbf) (*cbf)(request, HT_PROG_LOGIN, HT_MSG_NULL, NULL, NULL, NULL);
+		if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_SELECT\n");
+		ctrl->substate = ctrl->reset ? NEED_REIN : NEED_GREETING;
+	    }
 	    break;
 
 	  case NEED_GREETING:
