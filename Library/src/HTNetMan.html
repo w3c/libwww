@@ -104,7 +104,10 @@ extern SOCKET HTNet_socket(HTNet * me);
 </H3>
 <PRE>
 #define HTNet_setHeaderBytesWritten(me,l) ((me) ? (me-&gt;headerBytesWritten=(l)) :-1)
-#define HTNet_headerBytesWritten(me)	  ((me) ? (me)-&gt;headerBytesWritten : -1)
+#define HTNet_headerBytesWritten(me)  ((me) ? \
+                                       ((me)-&gt;headerBytesWritten==0 ? \
+                                        HTNet_bytesWritten(me) : \
+                                        (me)-&gt;headerBytesWritten) : -1)
 #define HTNet_addHeaderBytesWritten(me,l) ((me) ? (me-&gt;headerBytesWritten+=(l)) : -1)
 </PRE>
 <H2>
