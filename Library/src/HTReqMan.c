@@ -435,6 +435,16 @@ PUBLIC BOOL HTRequest_addRetry (HTRequest * me)
     return (me && me->retrys++);
 }
 
+PUBLIC int HTRequest_AAretrys (HTRequest * me)
+{
+    return me ? me->AAretrys : 0;
+}
+
+PUBLIC BOOL HTRequest_addAARetry (HTRequest * me)
+{
+    return (me && me->AAretrys++);
+}
+
 /*
 **	Should we try again?
 **	--------------------

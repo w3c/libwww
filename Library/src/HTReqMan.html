@@ -97,10 +97,12 @@ Have many times do We Want to Try?
 <PRE>
     int			retrys;       	      /* Number of automatic reloads */
     int                 max_forwards;
+    int			AAretrys;      	      /* Number of authentication
+                                                 retries */
 </PRE>
 
 <H3>
-  Preemtive or Non-Preemptive load?
+  Preemptive or Non-Preemptive load?
 </H3>
 
 Each protocol module is registered with a default behavior but if you have registered a protocol module for non-preemtive load you can override this by using the following flag.

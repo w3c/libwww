@@ -91,10 +91,11 @@ extern BOOL HTLoad (HTRequest * request, BOOL recursive);
 <P>
 This function kills this particular request, see <A HREF="HTNet.html">HTNet
 module</A> for a function that kills them all. If you know that you are
-pipelining requests (typically the case for GUI browsers, robots etc.) then
-it is often not enough to just kill a single request as the whole pipeline
-gets affected. Therefore, in that case you MUST call the
-<TT><A HREF="HTHost.html#Pipeline">HTHost_killPipe</A></TT> function instead.
+pipelining requests (typically the case for GUI browsers, robots etc.) then it
+is often not enough to just kill a single request as the whole pipeline gets
+affected. Therefore, in that case you MUST call the <TT><A
+HREF="HTHost.html#Pipeline">HTHost_killPipe</A></TT> function instead,
+
 <PRE>
 extern BOOL HTRequest_kill(HTRequest * request);
 </PRE>
@@ -229,7 +230,7 @@ extern BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up);
 extern HTUserProfile * HTRequest_userProfile (HTRequest * request);
 </PRE>
 <H2>
-  <A NAME="HTNet">Binding to a Net Object</A>
+   <A NAME="HTNet">Binding to a Net Object</A>
 </H2>
 <P>
 If a request is actually going on the net then the <A HREF="HTNet.html">Net
@@ -311,6 +312,9 @@ extern int  HTRequest_maxRetry (void);
 extern int HTRequest_retrys (HTRequest * request);
 extern BOOL HTRequest_doRetry (HTRequest *request);
 extern BOOL HTRequest_addRetry (HTRequest * request);
+
+extern int HTRequest_AAretrys (HTRequest * request);
+extern BOOL HTRequest_addAARetry (HTRequest * request);
 </PRE>
 <H2>
   Set Max Forwards for TRACE methods
@@ -355,10 +359,8 @@ extern BOOL HTRequest_negotiation (HTRequest *request);
 <H2>
   Request Preconditions
 </H2>
-<P>
-Should this request use preconditions when doing a PUT or a POST? These are
-the if-* header fields that can be used to avoid version conflicts etc. The
-default is no.
+Should this request use preconditions when doing a PUT or a POST? These are the
+if-* header fields that can be used to avoid version conflicts etc. The default is no.
 <PRE>
 extern void HTRequest_setPreconditions (HTRequest * me, BOOL mode);
 extern BOOL HTRequest_preconditions (HTRequest * me);
@@ -621,20 +623,24 @@ extern BOOL HTRequest_addCacheControl        (HTRequest * request,
 extern BOOL HTRequest_deleteCacheControlAll  (HTRequest * request);
 extern HTAssocList * HTRequest_cacheControl  (HTRequest * request);
 </PRE>
+
 <H3>
   HTTP Expect Directives
 </H3>
-<P>
-The Expect request-header field is used to indicate that particular server
-behaviors are required by the client. A server that does not understand or
-is unable to comply with any of the expectation values in the Expect field
-of a request MUST respond with appropriate error status.
+
+The Expect request-header field is used to indicate that particular
+server behaviors are required by the client.  A server that does not
+understand or is unable to comply with any of the expectation values in
+the Expect field of a request MUST respond with appropriate error
+status.
+
 <PRE>
 extern BOOL HTRequest_addExpect (HTRequest * me,
 				 char * token, char * value);
 extern BOOL HTRequest_deleteExpect (HTRequest * me);
 extern HTAssocList * HTRequest_expect (HTRequest * me);
 </PRE>
+
 <H3>
   Partial Requests and Range Retrievals
 </H3>
@@ -686,8 +692,8 @@ extern HTAssocList * HTRequest_credentials (HTRequest * request);
 <H3>
   Realms
 </H3>
-<P>
 The realm is normally set and used by the authentication filters.
+
 <PRE>
 extern BOOL HTRequest_setRealm (HTRequest * request, char * realm);
 extern const char * HTRequest_realm (HTRequest * request);
@@ -744,7 +750,8 @@ extern HTAssocList * HTRequest_ProtocolRequest (HTRequest * request);
 <P>
 If this parameter is set then a `Referer: &lt;parent address&gt; can be generated
 in the request to the server, see
-<A HREF="http://www.w3.org/Protocols/">Referer field in a HTTP Request</A>
+<A HREF="http://www.w3.org/Protocols/">Referer field in a HTTP
+Request</A>
 <PRE>
 extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
 extern HTParentAnchor * HTRequest_parent (HTRequest *request);
@@ -1034,13 +1041,14 @@ module</A> to give the number of bytes read or written in a progress message.
 extern long HTRequest_bodyRead (HTRequest * request);
 extern long HTRequest_bodyWritten (HTRequest * request);
 </PRE>
-<P>
-You can also get the total number of bytes read or written including the
-headers
+
+You can also get the total number of bytes read or written including the headers
+
 <PRE>
 extern long HTRequest_bytesRead (HTRequest * request);
 extern long HTRequest_bytesWritten (HTRequest * request);
 </PRE>
+
 <H2>
   Internal Request Objects
 </H2>

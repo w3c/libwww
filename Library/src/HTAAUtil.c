@@ -319,8 +319,9 @@ PUBLIC void * HTAA_updateNode (BOOL proxy_access, char const * scheme,
 	if ((element = (HTAAElement *) HTUTree_findNode(tree, realm, path)))
 	    status = HTAA_updateElement(element, scheme, context);
 	else {
-	    element = HTAA_newElement(scheme, context);
-	    status = HTUTree_addNode(tree, realm, path, element);
+  	  /* create the new element */
+	  element = HTAA_newElement(scheme, context);
+	  status = HTUTree_addNode(tree, realm, path, element);
 	}
 	HT_FREE(path);
 	return status==YES ? element->context : NULL;
@@ -430,6 +431,7 @@ PUBLIC int HTAA_afterFilter (HTRequest * request, HTResponse * response,
 	if (AUTH_TRACE)
 	    HTTrace("Auth Engine. Found AFTER filter %p\n", module->after);
 	HTRequest_deleteCredentialsAll(request);
+	HTRequest_addAARetry (request);
 	return (*module->after)(request, response, NULL, status);
     }
     return HT_ERROR;

@@ -80,11 +80,13 @@ PRIVATE char * make_template (const char * docname)
 	    } else
 		StrAllocCat(host, "/*");
 #else
-	    if (slash > path) {		
-		strcpy(slash, "*");
+	    if (*(slash+1)) {
+		strcpy(slash + 1, "*");
 		StrAllocCat(host, path);
-	    } else
-		StrAllocCat(host, "/*");
+	    } else {
+                StrAllocCat(host, path);
+                StrAllocCat(host, "*");
+	    }
 #endif
 	}
 	HT_FREE(path);
@@ -294,12 +296,20 @@ PUBLIC int HTBasic_parse (HTRequest * request, HTResponse * response,
 		if (AUTH_TRACE) HTTrace("Basic Parse. Proxy authentication\n");
 		basic = (HTBasic *) HTAA_updateNode(proxy, BASIC_AUTH, rm,
 						    url, NULL);
+		/* if the previous authentication failed, then try again */
+		if (HTRequest_AAretrys (request) > 1 
+		    && status == HT_NO_ACCESS && basic)
+		  basic->retry = YES;
 	    } else {
 		char * url = HTAnchor_address((HTAnchor *)
 					      HTRequest_anchor(request));
 		char * tmplate = make_template(url);
 		basic = (HTBasic *) HTAA_updateNode(proxy, BASIC_AUTH, rm,
 						    tmplate, NULL);
+		/* if the previous authentication failed, then try again */
+		if (HTRequest_AAretrys (request) > 1 
+		    && status == HT_NO_ACCESS && basic)
+		  basic->retry = YES;
 		HT_FREE(url);
 		HT_FREE(tmplate);
 	    }
@@ -310,7 +320,7 @@ PUBLIC int HTBasic_parse (HTRequest * request, HTResponse * response,
 	** if we should try again. It may be because the user typed the wrong
 	** user name and password
 	*/
-	if (basic) {
+	if (basic && basic->retry) {
 	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
 
 	    /*
