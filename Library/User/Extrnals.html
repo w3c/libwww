@@ -90,6 +90,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_followMainLink</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_format</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_formatParam</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTAnchor.html#child">HTAnchor_getArray</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_hasChildren</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_header</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_headerParsed</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -248,6 +249,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_add</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_deleteAll</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_name</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_quality</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTDialog.html">HTConfirm</A> --- <A HREF="#WWWApp">WWWApp</A>
   <LI><A HREF="./../src/HTFormat.html#CEStack">HTContentCodingStack</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTConLen.html">HTContentCounter</A> --- <A HREF="#WWWStream">WWWStream</A>
@@ -422,6 +424,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_channel</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_class</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_clearChannel</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_closeNotification</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_connect</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_decreaseRetry</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_defaultWriteDelay</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -457,12 +460,14 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_read</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_recoverPipe</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_register</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_remainingRead</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsMade</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsPerConnection</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_retry</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_server</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setChannel</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setClass</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setCloseNotification</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setConsumed</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setDefaultWriteDelay</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setEventTimeout</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -560,10 +565,12 @@ The functions are sorted by
   <LI><A HREF="./../src/HTAccess.html">HTLoadToStream</A> --- <A HREF="#WWWApp">WWWApp</A>
   <LI><A HREF="./../src/HTWAIS.html">HTLoadWAIS</A> --- <A HREF="#WWWWAIS">WWWWAIS</A>
   <LI><A HREF="./../src/HTFilter.html">HTLogFilter</A> --- <A HREF="#WWWApp">WWWApp</A>
-  <LI><A HREF="./../src/HTLog.html">HTLog_add</A> --- <A HREF="#WWWApp">WWWApp</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addCLF</A> --- <A HREF="#WWWApp">WWWApp</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addLine</A> --- <A HREF="#WWWApp">WWWApp</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addReferer</A> --- <A HREF="#WWWApp">WWWApp</A>
   <LI><A HREF="./../src/HTLog.html">HTLog_close</A> --- <A HREF="#WWWApp">WWWApp</A>
-  <LI><A HREF="./../src/HTLog.html">HTLog_isOpen</A> --- <A HREF="#WWWApp">WWWApp</A>
   <LI><A HREF="./../src/HTLog.html">HTLog_open</A> --- <A HREF="#WWWApp">WWWApp</A>
+  <LI><A HREF="./../src/HTMIME.html">HTMIMEContinue</A> --- <A HREF="#WWWMIME">WWWMIME</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEConvert</A> --- <A HREF="#WWWMIME">WWWMIME</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEFooter</A> --- <A HREF="#WWWMIME">WWWMIME</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEHeader</A> --- <A HREF="#WWWMIME">WWWMIME</A>
@@ -801,6 +808,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTDescpt.html">HTReadDescriptions</A> --- <A HREF="#WWWDir">WWWDir</A>
   <LI><A HREF="./../src/HTReader.html">HTReader_new</A> --- <A HREF="#WWWTrans">WWWTrans</A>
   <LI><A HREF="./../src/HTFilter.html">HTRedirectFilter</A> --- <A HREF="#WWWApp">WWWApp</A>
+  <LI><A HREF="./../src/HTFilter.html">HTRefererFilter</A> --- <A HREF="#WWWApp">WWWApp</A>
   <LI><A HREF="./../src/HTML.html">HTRegenCharacter</A>
   <LI><A HREF="./../src/HTML.html">HTRegenInit</A>
   <LI><A HREF="./../src/HTParse.html">HTRelative</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -816,6 +824,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTReqMan.html">HTRequest_addDestination</A>
   <LI><A HREF="./../src/HTReq.html#enhd">HTRequest_addEnHd</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Error">HTRequest_addError</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_addExpect</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#gnhd">HTRequest_addGnHd</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addProtocol</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addProtocolInfo</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -851,6 +860,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteCacheControlAll</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteConnection</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteCredentialsAll</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteExpect</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolAll</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolInfoAll</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolRequestAll</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -864,6 +874,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_encoding</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#before">HTRequest_entityAnchor</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#Error">HTRequest_error</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_expect</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html">HTRequest_flush</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#context">HTRequest_forceFlush</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTReq.html#context">HTRequest_fullURI</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -955,6 +966,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addProtocolInfo</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addProtocolRequest</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addRange</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addTrailer</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_cacheControl</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_challenge</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_charsee</A>
@@ -968,9 +980,11 @@ The functions are sorted by
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteProtocolInfoAll</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteProtocolRequestAll</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteRangeAll</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteTrailerAll</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_encoding</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_format</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_formatParam</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_handOverHeader</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_header</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_isCachable</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_isCached</A>
@@ -998,6 +1012,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTResponse.html">HTResponse_setRetryTime</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_setScheme</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_setTransfer</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_trailer</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_transfer</A>
   <LI><A HREF="./../src/HTFilter.html">HTRuleFilter</A> --- <A HREF="#WWWApp">WWWApp</A>
   <LI><A HREF="./../src/HTRules.html">HTRule_add</A> --- <A HREF="#WWWApp">WWWApp</A>
@@ -1226,9 +1241,10 @@ The functions are sorted by
   <LI><A HREF="./../src/HTAccess.html">HTLoadToFile</A>
   <LI><A HREF="./../src/HTAccess.html">HTLoadToStream</A>
   <LI><A HREF="./../src/HTFilter.html">HTLogFilter</A>
-  <LI><A HREF="./../src/HTLog.html">HTLog_add</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addCLF</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addLine</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addReferer</A>
   <LI><A HREF="./../src/HTLog.html">HTLog_close</A>
-  <LI><A HREF="./../src/HTLog.html">HTLog_isOpen</A>
   <LI><A HREF="./../src/HTLog.html">HTLog_open</A>
   <LI><A HREF="./../src/HTFilter.html">HTMemoryCacheFilter</A>
   <LI><A HREF="./../src/HTProxy.html#noproxy">HTNoProxy_add</A>
@@ -1261,6 +1277,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTAccess.html#SaveStructured">HTPutStructuredAnchor</A>
   <LI><A HREF="./../src/HTAccess.html#SaveStructured">HTPutStructuredRelative</A>
   <LI><A HREF="./../src/HTFilter.html">HTRedirectFilter</A>
+  <LI><A HREF="./../src/HTFilter.html">HTRefererFilter</A>
   <LI><A HREF="./../src/HTFilter.html">HTRuleFilter</A>
   <LI><A HREF="./../src/HTRules.html">HTRule_add</A>
   <LI><A HREF="./../src/HTRules.html">HTRule_addGlobal</A>
@@ -1369,6 +1386,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_followMainLink</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_format</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_formatParam</A>
+  <LI><A HREF="./../src/HTAnchor.html#child">HTAnchor_getArray</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_hasChildren</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_header</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_headerParsed</A>
@@ -1436,6 +1454,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_add</A>
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_deleteAll</A>
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_name</A>
+  <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_quality</A>
   <LI><A HREF="./../src/HTFormat.html#CEStack">HTContentCodingStack</A>
   <LI><A HREF="./../src/HTFormat.html#CEStack">HTContentDecodingStack</A>
   <LI><A HREF="./../src/HTFormat.html#CEStack">HTContentEncodingStack</A>
@@ -1504,6 +1523,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_channel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_class</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_clearChannel</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_closeNotification</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_connect</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_decreaseRetry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_defaultWriteDelay</A>
@@ -1539,12 +1559,14 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_read</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_recoverPipe</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_register</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_remainingRead</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsMade</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsPerConnection</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_retry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_server</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setChannel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setClass</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setCloseNotification</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setConsumed</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setDefaultWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setEventTimeout</A>
@@ -1700,6 +1722,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addCredentials</A>
   <LI><A HREF="./../src/HTReq.html#enhd">HTRequest_addEnHd</A>
   <LI><A HREF="./../src/HTReq.html#Error">HTRequest_addError</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_addExpect</A>
   <LI><A HREF="./../src/HTReq.html#gnhd">HTRequest_addGnHd</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addProtocol</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addProtocolInfo</A>
@@ -1735,6 +1758,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteCacheControlAll</A>
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteConnection</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteCredentialsAll</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteExpect</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolAll</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolInfoAll</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolRequestAll</A>
@@ -1747,6 +1771,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_encoding</A>
   <LI><A HREF="./../src/HTReq.html#before">HTRequest_entityAnchor</A>
   <LI><A HREF="./../src/HTReq.html#Error">HTRequest_error</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_expect</A>
   <LI><A HREF="./../src/HTReq.html">HTRequest_flush</A>
   <LI><A HREF="./../src/HTReq.html#context">HTRequest_forceFlush</A>
   <LI><A HREF="./../src/HTReq.html#context">HTRequest_fullURI</A>
@@ -1995,6 +2020,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHeader.html">HTHeader_generator</A>
   <LI><A HREF="./../src/HTHeader.html">HTHeader_setGenerator</A>
   <LI><A HREF="./../src/HTHeader.html">HTHeader_setMIMEParseSet</A>
+  <LI><A HREF="./../src/HTMIME.html">HTMIMEContinue</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEConvert</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEFooter</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEHeader</A>
@@ -2314,6 +2340,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_followMainLink</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_format</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_formatParam</A>
+  <LI><A HREF="./../src/HTAnchor.html#child">HTAnchor_getArray</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_hasChildren</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_header</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_headerParsed</A>
@@ -2726,6 +2753,7 @@ from the <A HREF="#WWWApp">WWWApp</A> module
   <LI><A HREF="./../src/HTFilter.html">HTMemoryCacheFilter</A>
   <LI><A HREF="./../src/HTFilter.html">HTProxyFilter</A>
   <LI><A HREF="./../src/HTFilter.html">HTRedirectFilter</A>
+  <LI><A HREF="./../src/HTFilter.html">HTRefererFilter</A>
   <LI><A HREF="./../src/HTFilter.html">HTRuleFilter</A>
   <LI><A HREF="./../src/HTFilter.html">HTUseProxyFilter</A>
 </UL>
@@ -2740,6 +2768,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_add</A>
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_deleteAll</A>
   <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_name</A>
+  <LI><A HREF="./../src/HTFormat.html#encoding">HTCoding_quality</A>
   <LI><A HREF="./../src/HTFormat.html#CEStack">HTContentCodingStack</A>
   <LI><A HREF="./../src/HTFormat.html#CEStack">HTContentDecodingStack</A>
   <LI><A HREF="./../src/HTFormat.html#CEStack">HTContentEncodingStack</A>
@@ -2851,6 +2880,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTHost.html">HTHost_channel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_class</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_clearChannel</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_closeNotification</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_connect</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_decreaseRetry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_defaultWriteDelay</A>
@@ -2886,12 +2916,14 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTHost.html">HTHost_read</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_recoverPipe</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_register</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_remainingRead</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsMade</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsPerConnection</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_retry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_server</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setChannel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setClass</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setCloseNotification</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setConsumed</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setDefaultWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setEventTimeout</A>
@@ -3050,9 +3082,10 @@ from the <A HREF="#WWWTrans">WWWTrans</A> module
 from the <A HREF="#WWWApp">WWWApp</A> module
 
 <UL>
-  <LI><A HREF="./../src/HTLog.html">HTLog_add</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addCLF</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addLine</A>
+  <LI><A HREF="./../src/HTLog.html">HTLog_addReferer</A>
   <LI><A HREF="./../src/HTLog.html">HTLog_close</A>
-  <LI><A HREF="./../src/HTLog.html">HTLog_isOpen</A>
   <LI><A HREF="./../src/HTLog.html">HTLog_open</A>
 </UL>
 <P>
@@ -3060,6 +3093,7 @@ from the <A HREF="#WWWApp">WWWApp</A> module
 from the <A HREF="#WWWMIME">WWWMIME</A> module
 
 <UL>
+  <LI><A HREF="./../src/HTMIME.html">HTMIMEContinue</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEConvert</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEFooter</A>
   <LI><A HREF="./../src/HTMIME.html">HTMIMEHeader</A>
@@ -3465,6 +3499,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addCredentials</A>
   <LI><A HREF="./../src/HTReq.html#enhd">HTRequest_addEnHd</A>
   <LI><A HREF="./../src/HTReq.html#Error">HTRequest_addError</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_addExpect</A>
   <LI><A HREF="./../src/HTReq.html#gnhd">HTRequest_addGnHd</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addProtocol</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_addProtocolInfo</A>
@@ -3500,6 +3535,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteCacheControlAll</A>
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteConnection</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteCredentialsAll</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_deleteExpect</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolAll</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolInfoAll</A>
   <LI><A HREF="./../src/HTReq.html#Access">HTRequest_deleteProtocolRequestAll</A>
@@ -3512,6 +3548,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_encoding</A>
   <LI><A HREF="./../src/HTReq.html#before">HTRequest_entityAnchor</A>
   <LI><A HREF="./../src/HTReq.html#Error">HTRequest_error</A>
+  <LI><A HREF="./../src/HTReq.html#Accept">HTRequest_expect</A>
   <LI><A HREF="./../src/HTReq.html">HTRequest_flush</A>
   <LI><A HREF="./../src/HTReq.html#context">HTRequest_forceFlush</A>
   <LI><A HREF="./../src/HTReq.html#context">HTRequest_fullURI</A>
@@ -3620,6 +3657,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addProtocolInfo</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addProtocolRequest</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addRange</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_addTrailer</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_cacheControl</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_challenge</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_charsee</A>
@@ -3633,9 +3671,11 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteProtocolInfoAll</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteProtocolRequestAll</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteRangeAll</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_deleteTrailerAll</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_encoding</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_format</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_formatParam</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_handOverHeader</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_header</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_isCachable</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_isCached</A>
@@ -3663,6 +3703,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTResponse.html">HTResponse_setRetryTime</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_setScheme</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_setTransfer</A>
+  <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_trailer</A>
   <LI><A HREF="./../src/HTResponse.html#Access">HTResponse_transfer</A>
 </UL>
 <P>
