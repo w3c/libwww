@@ -86,7 +86,7 @@ struct _HTStream {
     HTStream *			target;
     HTFormat			target_format;
     HTChunk *			buffer;
-    HTSocketEOL			EOLstate;
+    HTEOLState			EOLstate;
     BOOL			transparent;
     BOOL			head_only;
     BOOL			nntp;
@@ -406,7 +406,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	  case AUTHENTICATE:
 	    if (!request->challenge) request->challenge = HTAssocList_new();
 
-	    StrAllocCopy(request->scheme, "basic");
+	    StrAllocCopy(request->scheme, "basic");	/* @@@@@@@@@ */
 
 	    HTAssocList_add(request->challenge, "WWW-authenticate", ptr);
 	    state = JUNK_LINE;
@@ -417,8 +417,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		if (!strcasecomp(value, "keep-alive")) {
 		    if (STREAM_TRACE)
 			HTTrace("MIMEParser.. Persistent Connection\n");
-		    me->net->persistent = YES;
-		    HTDNS_setSocket(me->net->dns, me->net->sockfd);
+		    HTNet_setPersistent(me->net, YES);
 		}
 	    }
 	    state = JUNK_LINE;

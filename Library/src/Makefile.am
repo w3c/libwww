@@ -10,12 +10,6 @@ SUFFIXES = .h .html .txt
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
-#	Some extra make directives
-inc : $(HEADERS)
-	@echo Include files generated from hypertext.
-
-all-local : inc
-
 www_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \
 	HTMethod.c 	HTProt.c 	HTCache.c \
@@ -42,17 +36,15 @@ www_SOURCES = \
 	HTTP.c		HTTPServ.c	HTNewsRq.c \
 	HTTPGen.c 	HTTPReq.c 	HTTPRes.c \
 	HTNet.c 	HTEvntrg.c	HTNewsLs.c \
-	@HTWAIS@
+	HTMux.c		@HTWAIS@
 
-include_HEADERS = \
+BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
 	WWWDir.h 	WWWFTP.h 	WWWFile.h \
 	WWWGuess.h 	WWWHTML.h 	WWWHTTP.h \
 	WWWNews.h 	WWWRules.h 	WWWTelnt.h \
 	WWWCache.h 	WWWApp.h 	WWWInit.h \
-	WWWGophe.h	WWWMIME.h	WWWWAIS.h
-
-noinst_HEADERS = sysdep.h \
+	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
 	HTParse.h 	HTAccess.h  	HTProxy.h \
 	HTMethod.h 	HTProt.h 	HTCache.h \
 	HTReqMan.h 	HTReq.h  	HTDNS.h \
@@ -81,12 +73,12 @@ noinst_HEADERS = sysdep.h \
 	HTHome.h 	HTDialog.h 	HTEscape.h \
 	HTTP.h		HTTPServ.h	HTNews.h \
 	HTTPGen.h 	HTTPReq.h 	HTTPRes.h \
-	HTTPUtil.h	
+	HTTPUtil.h	HTMux.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h
 
 DOCS :=	$(wildcard *.html)
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	$(DOCS)

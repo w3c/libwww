@@ -14,7 +14,7 @@
 /* Library include files */
 #include "sysdep.h"
 #include "HTUtils.h"
-#include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */
+#include "HTFormat.h"			/* defines CHANNEL_BUFFER_SIZE */
 #include "HTXParse.h"                 /* defines HTStreamClass */
 #include "HTEPtoCl.h"         /* defines dummy routine for talking to client */
 #include "HTSocket.h"
@@ -28,7 +28,7 @@ struct _HTStream {
 PRIVATE int HTXParse_put_character (HTStream * me, char c)
 {
     while ((me->eps->used + 1) > (me->eps->length + 1)) {
-	me->eps->length += INPUT_BUFFER_SIZE;
+	me->eps->length += CHANNEL_BUFFER_SIZE;
     }
     if ((me->eps->buffer = (char  *) HT_REALLOC(me->eps->buffer, (me->eps->length + 1))) == NULL)
         HT_OUTOFMEM("me->eps->buffer ");
@@ -45,7 +45,7 @@ PRIVATE int HTXParse_put_string (HTStream * me, const char * s)
     if (WWWTRACE) HTTrace("HTXParse_put_string, %s\n",s);
 
     while ((me->eps->used + l) > (me->eps->length + 1)) {
-	me->eps->length += INPUT_BUFFER_SIZE;
+	me->eps->length += CHANNEL_BUFFER_SIZE;
     }
     if ((me->eps->buffer = (char  *) HT_REALLOC(me->eps->buffer, (me->eps->length + 1))) == NULL)
         HT_OUTOFMEM("me->eps->buffer ");
@@ -58,7 +58,7 @@ PRIVATE int HTXParse_put_string (HTStream * me, const char * s)
 PRIVATE int HTXParse_write (HTStream * me, const char * s, int l)
 {
     while ((me->eps->used + l) > (me->eps->length + 1)) {
-	me->eps->length += INPUT_BUFFER_SIZE;
+	me->eps->length += CHANNEL_BUFFER_SIZE;
     }
     if ((me->eps->buffer = (char  *) HT_REALLOC(me->eps->buffer, (me->eps->length + 1))) == NULL)
         HT_OUTOFMEM("me->eps->buffer ");
@@ -140,11 +140,11 @@ PUBLIC HTStream* HTXParse (HTRequest *	request,
     if (input_format)
         me->eps->content_type = input_format->name;
     me->eps->call_client = HTCallClient;
-    if ((me->eps->buffer = (char  *) HT_CALLOC(INPUT_BUFFER_SIZE,1)) == NULL)
+    if ((me->eps->buffer = (char  *) HT_CALLOC(CHANNEL_BUFFER_SIZE,1)) == NULL)
         HT_OUTOFMEM("me->eps->buffer ");
     me->eps->used = 0;
     me->eps->finished = NO;
-    me->eps->length = INPUT_BUFFER_SIZE;
+    me->eps->length = CHANNEL_BUFFER_SIZE;
     me->eps->request = request;
     return me;
 }

@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	descrip.mms \
 	COPYING.LIB \
  	build_multinet.com

@@ -54,50 +54,50 @@ PUBLIC HTBTree * HTBTree_new (HTComparer * comp)
 
 
 
-PRIVATE void HTBTElement_HT_FREE (HTBTElement*  element)
+PRIVATE void HTBTElement_free (HTBTElement*  element)
     /**********************************************************
     ** This void will HT_FREE the memory allocated for one element
     */
 {
     if (element) {
-        if (element->left != NULL)    HTBTElement_HT_FREE(element->left);
-	if (element->right != NULL)    HTBTElement_HT_FREE(element->right);
+        if (element->left != NULL)    HTBTElement_free(element->left);
+	if (element->right != NULL)    HTBTElement_free(element->right);
 	HT_FREE(element);
     }
 }
 
-PUBLIC void HTBTree_HT_FREE (HTBTree*  tree)
+PUBLIC void HTBTree_free (HTBTree*  tree)
     /**************************************************************
     ** This void will HT_FREE the memory allocated for the whole tree
     */
 {
-    HTBTElement_HT_FREE(tree->top);
+    HTBTElement_free(tree->top);
     HT_FREE(tree);
 }
 
 
 
 
-PRIVATE void HTBTElementAndObject_HT_FREE (HTBTElement*  element)
+PRIVATE void HTBTElementAndObject_free (HTBTElement*  element)
     /**********************************************************
     ** This void will HT_FREE the memory allocated for one element
     */
 {
     if (element) {     /* Just in case nothing was in the tree anyway */
-        if (element->left != NULL)    HTBTElementAndObject_HT_FREE(element->left);
+        if (element->left != NULL)    HTBTElementAndObject_free(element->left);
 	if (element->right != NULL)    
-	    HTBTElementAndObject_HT_FREE(element->right);
+	    HTBTElementAndObject_free(element->right);
 	HT_FREE(element->object);
 	HT_FREE(element);
     }
 }
 
-PUBLIC void HTBTreeAndObject_HT_FREE (HTBTree*  tree)
+PUBLIC void HTBTreeAndObject_free (HTBTree*  tree)
     /**************************************************************
     ** This void will HT_FREE the memory allocated for the whole tree
     */
 {
-    HTBTElementAndObject_HT_FREE(tree->top);
+    HTBTElementAndObject_free(tree->top);
     HT_FREE(tree);
 }
 
@@ -707,6 +707,6 @@ main ()
         HTTrace("The next element is %s\n",next_element->object);
         next_element = HTBTree_next(tree,next_element);
     }
-    HTBTree_HT_FREE (tree);
+    HTBTree_free (tree);
 }
 #endif

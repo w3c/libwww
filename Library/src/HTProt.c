@@ -41,7 +41,7 @@ PUBLIC BOOL HTProtocol_add (const char *       	name,
 {
     if (name && (client || server)) {
 	HTProtocol *newProt;
-	if ((newProt = (HTProtocol  *) HT_CALLOC(1, sizeof(HTProtocol))) == NULL)
+	if ((newProt=(HTProtocol *) HT_CALLOC(1, sizeof(HTProtocol))) == NULL)
 	    HT_OUTOFMEM("HTProtocol_add");
 	StrAllocCopy(newProt->name, name);
 	{
@@ -52,6 +52,7 @@ PUBLIC BOOL HTProtocol_add (const char *       	name,
 	newProt->client = client;
 	newProt->server = server;
 	if (!protocols) protocols = HTList_new();
+	if (PROT_TRACE) HTTrace("Protocol.... Adding `%s'\n", name);
 	return HTList_addObject(protocols, (void *) newProt);
     }
     return NO;

@@ -86,7 +86,7 @@ struct rq_t {
     ACTION actions[1];
 };
 
-#define PRIME_TABLE_SIZE 67 
+#define PRIME_TABLE_SIZE	67
 #define MAX_ACTIONS 1 
 
 #define HASH(s) ((s) % PRIME_TABLE_SIZE) 
@@ -933,7 +933,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
         FD_CLR(s, &except_fds);
 
 
-    /* if all actions are clear we are HT_FREE to delete our request structure */
+    /* if all actions are clear we are free to delete our request structure */
     if (ap->ops == 0)  {
         if (rqp->unregister) /* requested HTEventCallback */
             rv = ap->cbf( s, ap->rq, FD_UNREGISTER); 

@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 0.30 from Makefile.am
+# Makefile.in generated automatically by automake 0.31 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -38,7 +38,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	$(DEF) \
 	$(MAK) \
 	$(WIN)
@@ -50,9 +50,9 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 default: all
 
 
@@ -90,8 +90,10 @@ install: install-exec install-data
 
 uninstall: 
 
-all: Makefile all-local
+all: Makefile
 
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
 
 
@@ -120,16 +122,14 @@ maintainer-clean:  maintainer-clean-generic distclean
 	@echo "it deletes files that may require special tools to rebuild."
 
 .PHONY: default tags dist info dvi check installcheck install-exec \
-    install-data install uninstall all installdirs mostlyclean-generic \
-    distclean-generic clean-generic maintainer-clean-generic clean \
-    mostlyclean distclean maintainer-clean
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 DEF := $(wildcard *.def)
 MAK := $(wildcard *.mak)
 WIN := $(wildcard *.rc *.ico *.h *.c)
-
-all-local : $(DIST_OTHER)
 .SUFFIXES:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -2,8 +2,5 @@
 
 DOCS :=	$(wildcard *.html *.gif *.fix)
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	$(DOCS)
-
-inc :
-	@echo patch

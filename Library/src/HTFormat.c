@@ -10,7 +10,7 @@
 **	Therefore, non-ASCII machines can't read local files.
 **
 ** HISTORY:
-**	8 Jul 94  FM	Insulate HT_FREE() from _HT_FREE structure element.
+**	8 Jul 94  FM	Insulate free from _free structure element.
 **	8 Nov 94  HFN	Changed a lot to make reentrant
 */
 
@@ -475,7 +475,7 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 	    accepted_cnt++;
 	}
 	else {
-	    if (d->filename) HT_FREE(d->filename);
+	    HT_FREE(d->filename);
 	    HT_FREE(d);
 	}
     }

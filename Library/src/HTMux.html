@@ -1,0 +1,56 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library libwww Multiplexing</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Mar-1996 -->
+<NEXTID N="z18">
+</HEAD>
+<BODY>
+
+<H1>Channels, Sessions, and Multiplexing</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module defines the read and write functions to and from the
+network. As we are having reentrant function and a smarter network I/O
+this will get very small :-) <P>
+
+This module is implemented by <A HREF="HTMux.c">HTMux.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTMUX_H
+#define HTMUX_H
+
+#include <A HREF="sysdep.html">"sysdep.h"</A>
+#include <A HREF="HTReq.html">"HTReq.h"</A>
+#include <A HREF="HTStream.html">"HTStream.h"</A>
+</PRE>
+
+<H2>The HTSession Object</H2>
+
+<B>MORE</B>
+
+<H2>Multiplexing and Demultiplexing Streams</H2>
+
+The multiplexing protocol works just like another stream. We have a
+read loop and a output stream:
+
+<PRE>
+extern HTStream * HTMux_new (HTNet * net, HTStream * target, BOOL active);
+extern HTStream * HTDemux_new (HTNet * net, HTStream * target);
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+End of declaration module
+
+</BODY>
+</HTML>

@@ -813,7 +813,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 		    /* Continous browsing, so we want Referer field */
 		    HTRequest_setParent(req,
 					HTAnchor_parent((HTAnchor*)source));
-		    status = HTLoadAnchor(destination, req);
+		    HTLoadAnchor(destination, req);
 		} else {
 		    status = NO;				/* No anchor */
 		}
@@ -1534,27 +1534,6 @@ int main (int argc, char ** argv)
     lm = LineMode_new();
     request = Thread_new(lm, NO, LM_UPDATE);
 
-    /* Initialize the protocol modules */
-    HTAccessInit();
-
-    /* Setup authentication manager */
-    HTAuthCall_add("basic", HTBasic_parse, HTBasic_generate, HTBasic_delete);
-    HTAuthCall_add("digest", HTDigest_parse,HTDigest_generate,HTDigest_delete);
-
-    /* Initialize set of converters */
-    lm->converters = HTList_new();
-    HTConverterInit(lm->converters);
-    HTFormat_setConversion(lm->converters);
-
-    /* Initialize bindings between file suffixes and media types */
-    HTFileInit();
-
-    /* Set up default set of icons */
-    HTStdIconInit(NULL);
-
-    /* Get any proxy or gateway environment variables */
-    HTProxy_getEnvVar();
-
     /* Scan command Line for parameters */
     for (arg=1; arg<argc ; arg++) {
 	if (*argv[arg] == '-') {
@@ -1814,6 +1793,27 @@ int main (int argc, char ** argv)
 #ifdef CATCH_SIG
     SetSignal();
 #endif
+
+    /* Initialize the protocol modules */
+    HTAccessInit();
+
+    /* Setup authentication manager */
+    HTAuthCall_add("basic", HTBasic_parse, HTBasic_generate, HTBasic_delete);
+    HTAuthCall_add("digest", HTDigest_parse,HTDigest_generate,HTDigest_delete);
+
+    /* Initialize set of converters */
+    lm->converters = HTList_new();
+    HTConverterInit(lm->converters);
+    HTFormat_setConversion(lm->converters);
+
+    /* Initialize bindings between file suffixes and media types */
+    HTFileInit();
+
+    /* Set up default set of icons */
+    HTStdIconInit(NULL);
+
+    /* Get any proxy or gateway environment variables */
+    HTProxy_getEnvVar();
 
     /* Make home page address */
     if (!lm->anchor) lm->anchor = HTHomeAnchor();

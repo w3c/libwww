@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 0.30 from Makefile.am
+# Makefile.in generated automatically by automake 0.31 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -72,17 +72,15 @@ www_SOURCES = \
 	HTTP.c		HTTPServ.c	HTNewsRq.c \
 	HTTPGen.c 	HTTPReq.c 	HTTPRes.c \
 	HTNet.c 	HTEvntrg.c	HTNewsLs.c \
-	@HTWAIS@
+	HTMux.c		@HTWAIS@
 
-include_HEADERS = \
+BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
 	WWWDir.h 	WWWFTP.h 	WWWFile.h \
 	WWWGuess.h 	WWWHTML.h 	WWWHTTP.h \
 	WWWNews.h 	WWWRules.h 	WWWTelnt.h \
 	WWWCache.h 	WWWApp.h 	WWWInit.h \
-	WWWGophe.h	WWWMIME.h	WWWWAIS.h
-
-noinst_HEADERS = sysdep.h \
+	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
 	HTParse.h 	HTAccess.h  	HTProxy.h \
 	HTMethod.h 	HTProt.h 	HTCache.h \
 	HTReqMan.h 	HTReq.h  	HTDNS.h \
@@ -111,12 +109,12 @@ noinst_HEADERS = sysdep.h \
 	HTHome.h 	HTDialog.h 	HTEscape.h \
 	HTTP.h		HTTPServ.h	HTNews.h \
 	HTTPGen.h 	HTTPReq.h 	HTTPRes.h \
-	HTTPUtil.h	
+	HTTPUtil.h	HTMux.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	$(DOCS)
 CONFIG_HEADER = ../../config.h
 LIBRARIES = $(lib_LIBRARIES)
@@ -141,23 +139,22 @@ X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
 www_LIBADD =
 www_OBJECTS = HTParse.o HTAccess.o HTProxy.o HTMethod.o HTProt.o \
-    HTCache.o HTReqMan.o HTDNS.o HTArray.o HTFile.o HTBTree.o HTMulti.o \
-    HTFTP.o HTTCP.o SGML.o HTML.o HTMLPDTD.o HTDir.o HTFTPDir.o \
-    HTEPtoCl.o HTStyle.o HTPlain.o HTWriter.o HTFWrite.o HTMLGen.o \
-    HTTee.o HTXParse.o HTChunk.o HTAtom.o HTAnchor.o HTList.o \
-    HTString.o HTAlert.o HTFormat.o HTHist.o HTMemory.o HTInit.o \
-    HTBInit.o HTRules.o HTMIME.o HTMIMERq.o HTBound.o HTConLen.o \
-    HTHeader.o HTBind.o HTGopher.o HTTelnet.o HTNetTxt.o HTNews.o \
-    HTWSRC.o HTSocket.o HTAAUtil.o HTAABrow.o HTAssoc.o HTUU.o \
-    HTTeXGen.o HTEscape.o HTDescpt.o HTGuess.o HTWWWStr.o HTIcons.o \
-    HTError.o HTLog.o HTHome.o HTDialog.o HTNDir.o HTTP.o HTTPServ.o \
-    HTNewsRq.o HTTPGen.o HTTPReq.o HTTPRes.o HTNet.o HTEvntrg.o \
-    HTNewsLs.o
+HTCache.o HTReqMan.o HTDNS.o HTArray.o HTFile.o HTBTree.o HTMulti.o \
+HTFTP.o HTTCP.o SGML.o HTML.o HTMLPDTD.o HTDir.o HTFTPDir.o HTEPtoCl.o \
+HTStyle.o HTPlain.o HTWriter.o HTFWrite.o HTMLGen.o HTTee.o HTXParse.o \
+HTChunk.o HTAtom.o HTAnchor.o HTList.o HTString.o HTAlert.o HTFormat.o \
+HTHist.o HTMemory.o HTInit.o HTBInit.o HTRules.o HTMIME.o HTMIMERq.o \
+HTBound.o HTConLen.o HTHeader.o HTBind.o HTGopher.o HTTelnet.o \
+HTNetTxt.o HTNews.o HTWSRC.o HTSocket.o HTAAUtil.o HTAABrow.o HTAssoc.o \
+HTUU.o HTTeXGen.o HTEscape.o HTDescpt.o HTGuess.o HTWWWStr.o HTIcons.o \
+HTError.o HTLog.o HTHome.o HTDialog.o HTNDir.o HTTP.o HTTPServ.o \
+HTNewsRq.o HTTPGen.o HTTPReq.o HTTPRes.o HTNet.o HTEvntrg.o HTNewsLs.o \
+HTMux.o
 LIBFILES =  libwww.a
 
 AR = ar
 RANLIB = @RANLIB@
-HEADERS = $(include_HEADERS) $(noinst_HEADERS)
+HEADERS = $(EXTRA_HEADERS)
 
 DIST_COMMON = README Makefile.am Makefile.in README
 
@@ -166,47 +163,47 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_FILES = $(srcdir)/.deps/HTAABrow.P $(srcdir)/.deps/HTAAUtil.P \
-    $(srcdir)/.deps/HTAccess.P $(srcdir)/.deps/HTAlert.P \
-    $(srcdir)/.deps/HTAnchor.P $(srcdir)/.deps/HTArray.P \
-    $(srcdir)/.deps/HTAssoc.P $(srcdir)/.deps/HTAtom.P \
-    $(srcdir)/.deps/HTBInit.P $(srcdir)/.deps/HTBTree.P \
-    $(srcdir)/.deps/HTBind.P $(srcdir)/.deps/HTBound.P \
-    $(srcdir)/.deps/HTCache.P $(srcdir)/.deps/HTChunk.P \
-    $(srcdir)/.deps/HTConLen.P $(srcdir)/.deps/HTDNS.P \
-    $(srcdir)/.deps/HTDescpt.P $(srcdir)/.deps/HTDialog.P \
-    $(srcdir)/.deps/HTDir.P $(srcdir)/.deps/HTEPtoCl.P \
-    $(srcdir)/.deps/HTError.P $(srcdir)/.deps/HTEscape.P \
-    $(srcdir)/.deps/HTEvntrg.P $(srcdir)/.deps/HTFTP.P \
-    $(srcdir)/.deps/HTFTPDir.P $(srcdir)/.deps/HTFWrite.P \
-    $(srcdir)/.deps/HTFile.P $(srcdir)/.deps/HTFormat.P \
-    $(srcdir)/.deps/HTGopher.P $(srcdir)/.deps/HTGuess.P \
-    $(srcdir)/.deps/HTHeader.P $(srcdir)/.deps/HTHist.P \
-    $(srcdir)/.deps/HTHome.P $(srcdir)/.deps/HTIcons.P \
-    $(srcdir)/.deps/HTInit.P $(srcdir)/.deps/HTList.P \
-    $(srcdir)/.deps/HTLog.P $(srcdir)/.deps/HTMIME.P \
-    $(srcdir)/.deps/HTMIMERq.P $(srcdir)/.deps/HTML.P \
-    $(srcdir)/.deps/HTMLGen.P $(srcdir)/.deps/HTMLPDTD.P \
-    $(srcdir)/.deps/HTMemory.P $(srcdir)/.deps/HTMethod.P \
-    $(srcdir)/.deps/HTMulti.P $(srcdir)/.deps/HTNDir.P \
-    $(srcdir)/.deps/HTNet.P $(srcdir)/.deps/HTNetTxt.P \
-    $(srcdir)/.deps/HTNews.P $(srcdir)/.deps/HTNewsLs.P \
-    $(srcdir)/.deps/HTNewsRq.P $(srcdir)/.deps/HTParse.P \
-    $(srcdir)/.deps/HTPlain.P $(srcdir)/.deps/HTProt.P \
-    $(srcdir)/.deps/HTProxy.P $(srcdir)/.deps/HTReqMan.P \
-    $(srcdir)/.deps/HTRules.P $(srcdir)/.deps/HTSocket.P \
-    $(srcdir)/.deps/HTString.P $(srcdir)/.deps/HTStyle.P \
-    $(srcdir)/.deps/HTTCP.P $(srcdir)/.deps/HTTP.P \
-    $(srcdir)/.deps/HTTPGen.P $(srcdir)/.deps/HTTPReq.P \
-    $(srcdir)/.deps/HTTPRes.P $(srcdir)/.deps/HTTPServ.P \
-    $(srcdir)/.deps/HTTeXGen.P $(srcdir)/.deps/HTTee.P \
-    $(srcdir)/.deps/HTTelnet.P $(srcdir)/.deps/HTUU.P \
-    $(srcdir)/.deps/HTWSRC.P $(srcdir)/.deps/HTWWWStr.P \
-    $(srcdir)/.deps/HTWriter.P $(srcdir)/.deps/HTXParse.P \
-    $(srcdir)/.deps/SGML.P
+$(srcdir)/.deps/HTAccess.P $(srcdir)/.deps/HTAlert.P \
+$(srcdir)/.deps/HTAnchor.P $(srcdir)/.deps/HTArray.P \
+$(srcdir)/.deps/HTAssoc.P $(srcdir)/.deps/HTAtom.P \
+$(srcdir)/.deps/HTBInit.P $(srcdir)/.deps/HTBTree.P \
+$(srcdir)/.deps/HTBind.P $(srcdir)/.deps/HTBound.P \
+$(srcdir)/.deps/HTCache.P $(srcdir)/.deps/HTChunk.P \
+$(srcdir)/.deps/HTConLen.P $(srcdir)/.deps/HTDNS.P \
+$(srcdir)/.deps/HTDescpt.P $(srcdir)/.deps/HTDialog.P \
+$(srcdir)/.deps/HTDir.P $(srcdir)/.deps/HTEPtoCl.P \
+$(srcdir)/.deps/HTError.P $(srcdir)/.deps/HTEscape.P \
+$(srcdir)/.deps/HTEvntrg.P $(srcdir)/.deps/HTFTP.P \
+$(srcdir)/.deps/HTFTPDir.P $(srcdir)/.deps/HTFWrite.P \
+$(srcdir)/.deps/HTFile.P $(srcdir)/.deps/HTFormat.P \
+$(srcdir)/.deps/HTGopher.P $(srcdir)/.deps/HTGuess.P \
+$(srcdir)/.deps/HTHeader.P $(srcdir)/.deps/HTHist.P \
+$(srcdir)/.deps/HTHome.P $(srcdir)/.deps/HTIcons.P \
+$(srcdir)/.deps/HTInit.P $(srcdir)/.deps/HTList.P \
+$(srcdir)/.deps/HTLog.P $(srcdir)/.deps/HTMIME.P \
+$(srcdir)/.deps/HTMIMERq.P $(srcdir)/.deps/HTML.P \
+$(srcdir)/.deps/HTMLGen.P $(srcdir)/.deps/HTMLPDTD.P \
+$(srcdir)/.deps/HTMemory.P $(srcdir)/.deps/HTMethod.P \
+$(srcdir)/.deps/HTMulti.P $(srcdir)/.deps/HTMux.P \
+$(srcdir)/.deps/HTNDir.P $(srcdir)/.deps/HTNet.P \
+$(srcdir)/.deps/HTNetTxt.P $(srcdir)/.deps/HTNews.P \
+$(srcdir)/.deps/HTNewsLs.P $(srcdir)/.deps/HTNewsRq.P \
+$(srcdir)/.deps/HTParse.P $(srcdir)/.deps/HTPlain.P \
+$(srcdir)/.deps/HTProt.P $(srcdir)/.deps/HTProxy.P \
+$(srcdir)/.deps/HTReqMan.P $(srcdir)/.deps/HTRules.P \
+$(srcdir)/.deps/HTSocket.P $(srcdir)/.deps/HTString.P \
+$(srcdir)/.deps/HTStyle.P $(srcdir)/.deps/HTTCP.P \
+$(srcdir)/.deps/HTTP.P $(srcdir)/.deps/HTTPGen.P \
+$(srcdir)/.deps/HTTPReq.P $(srcdir)/.deps/HTTPRes.P \
+$(srcdir)/.deps/HTTPServ.P $(srcdir)/.deps/HTTeXGen.P \
+$(srcdir)/.deps/HTTee.P $(srcdir)/.deps/HTTelnet.P \
+$(srcdir)/.deps/HTUU.P $(srcdir)/.deps/HTWSRC.P \
+$(srcdir)/.deps/HTWWWStr.P $(srcdir)/.deps/HTWriter.P \
+$(srcdir)/.deps/HTXParse.P $(srcdir)/.deps/SGML.P
 SOURCES = $(www_SOURCES)
 OBJECTS = $(www_OBJECTS)
 
@@ -261,15 +258,15 @@ libwww.a: $(www_OBJECTS) $(www_LIBADD)
 	$(AR) cru libwww.a $(www_OBJECTS) $(www_LIBADD)
 	$(RANLIB) libwww.a
 
-install-includeHEADERS: $(include_HEADERS)
-	$(top_srcdir)/mkinstalldirs $(includedir)
-	for p in $(include_HEADERS); do		\
-	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
+install-EXTRAHEADERS: $(EXTRA_HEADERS)
+	$(top_srcdir)/mkinstalldirs $(EXTRAdir)
+	for p in $(EXTRA_HEADERS); do		\
+	  $(INSTALL_DATA) $(srcdir)/$$p $(EXTRAdir)/$$p; \
 	done
 
-uninstall-includeHEADERS:
-	for p in $(include_HEADERS); do		\
-	  rm -f $(includedir)/$$p;		\
+uninstall-EXTRAHEADERS:
+	for p in $(EXTRA_HEADERS); do		\
+	  rm -f $(EXTRAdir)/$$p;		\
 	done
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -366,13 +363,13 @@ check: all check-recursive
 
 installcheck: installcheck-recursive
 
-all-am: $(LIBFILES) $(HEADERS) Makefile all-local
+all-am: $(LIBFILES) $(HEADERS) Makefile
 
 install-exec-am: install-libLIBRARIES
 
-install-data-am: install-includeHEADERS
+install-data-am: install-EXTRAHEADERS
 
-uninstall-am: uninstall-libLIBRARIES uninstall-includeHEADERS
+uninstall-am: uninstall-libLIBRARIES uninstall-EXTRAHEADERS
 
 install-exec: install-exec-recursive install-exec-am
 
@@ -385,8 +382,10 @@ uninstall: uninstall-recursive uninstall-am
 
 all: all-recursive all-am
 
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs: installdirs-recursive
-	$(top_srcdir)/mkinstalldirs  $(libdir) $(includedir)
+	$(top_srcdir)/mkinstalldirs  $(libdir) $(EXTRAdir)
 
 
 mostlyclean-generic:
@@ -427,30 +426,23 @@ maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
 	@echo "it deletes files that may require special tools to rebuild."
 
 .PHONY: default mostlyclean-libLIBRARIES distclean-libLIBRARIES \
-    clean-libLIBRARIES maintainer-clean-libLIBRARIES \
-    uninstall-libLIBRARIES install-libLIBRARIES mostlyclean-compile \
-    distclean-compile clean-compile maintainer-clean-compile \
-    uninstall-includeHEADERS install-includeHEADERS \
-    install-data-recursive uninstall-data-recursive \
-    install-exec-recursive uninstall-exec-recursive \
-    installdirs-recursive uninstalldirs-recursive all-recursive \
-    check-recursive installcheck-recursive info-recursive dvi-recursive \
-    mostlyclean-recursive distclean-recursive clean-recursive \
-    maintainer-clean-recursive tags mostlyclean-tags distclean-tags \
-    clean-tags maintainer-clean-tags dist info dvi check installcheck \
-    all-am install-exec-am install-data-am uninstall-am install-exec \
-    install-data install uninstall all installdirs mostlyclean-generic \
-    distclean-generic clean-generic maintainer-clean-generic clean \
-    mostlyclean distclean maintainer-clean
+clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
+install-libLIBRARIES mostlyclean-compile distclean-compile \
+clean-compile maintainer-clean-compile uninstall-EXTRAHEADERS \
+install-EXTRAHEADERS install-data-recursive uninstall-data-recursive \
+install-exec-recursive uninstall-exec-recursive installdirs-recursive \
+uninstalldirs-recursive all-recursive check-recursive \
+installcheck-recursive info-recursive dvi-recursive \
+mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags dist info dvi check installcheck \
+all-am install-exec-am install-data-am uninstall-am install-exec \
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
-
-#	Some extra make directives
-inc : $(HEADERS)
-	@echo Include files generated from hypertext.
-
-all-local : inc
 
 DOCS :=	$(wildcard *.html)
 .SUFFIXES:

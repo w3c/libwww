@@ -9,19 +9,6 @@ SUFFIXES = .h .html
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
-#	Some extra make directives
-inc-recursive:
-	for subdir in $(SUBDIRS); do		\
-	  target=`echo $@ | sed s/-recursive//`; \
-	  echo making $$target in $$subdir;	\
-	  (cd $$subdir && $(MAKE) $$target)	\
-	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
-	done && test -z "$$fail"
-inc : inc-recursive
-	@echo Include files generated from hypertext.
-
-all-local : inc legal
-
 LEGAL =	WELCOME \
 	README \
 	INSTALL \
@@ -32,7 +19,7 @@ LEGAL =	WELCOME \
 
 legal : $(LEGAL)
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	INSTALL.html \
 	README.html \
 	$(LEGAL)

@@ -6,6 +6,7 @@ AC_PREREQ(2.2)
 AC_INIT(Library)
 AC_REVISION
 AC_CONFIG_HEADER(config.h)
+AC_CONFIG_AUX_DIR(config)
 
 dnl Cheks for platform information
 AC_CANONICAL_SYSTEM
@@ -22,8 +23,6 @@ AC_PROG_MAKE_SET
 AC_ARG_PROGRAM
 fp_PROG_INSTALL
 
-CFLAGS=
-
 AC_PROG_CC
 AC_PROG_RANLIB
 
@@ -34,7 +33,13 @@ AC_PATH_X
 AC_PATH_XTRA
 
 dnl Various compiler directives
-AC_PROG_CC_DEBUG
+case "$target" in
+    alpha-dec*)
+	if test "$CC" = "cc"; then
+	  CFLAGS="$CFLAGS -std1"
+	fi
+	;;
+esac
 
 dnl Checks for configuration arguments
 AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
@@ -104,7 +109,10 @@ dnl AC_DEFINE_UNQUOTED(PRESENT_IMAGE, "$image_viewer %s")
 
 dnl Checks for misc files
 dnl AC_FILE_RESOLV_CONF
-AC_PATH_PROG(RESOLV_CONF, resolv.conf)
+AC_PATH_PROG(have_resolv_conf, resolv.conf, , /etc, /usr/etc)
+if test -n "$have_resolv_conf" ; then
+  AC_DEFINE_UNQUOTED(RESOLV_CONF, "$have_resolv_conf")
+fi
 
 dnl Checks for libraries:
 AC_CHECK_LIB(socket, main)
@@ -157,6 +165,7 @@ AC_HEADER_STAT
 
 dnl Checks for typedefs, structures, and compiler characteristics:
 AC_TYPE_UID_T
+AC_TYPE_PID_T
 AC_TYPE_GETGROUPS
 AC_TYPE_MODE_T
 AC_TYPE_SIZE_T
@@ -174,11 +183,9 @@ AC_STRUCT_WINSIZE
 AC_HEADER_TIME
 
 dnl Other types that aren't checked for, but maybe should be:
-dnl  AC_TYPE_SIGNAL AC_TYPE_OFF_T AC_TYPE_PID_T AC_STRUCT_ST_RDEV 
+dnl AC_TYPE_OFF_T AC_STRUCT_ST_RDEV 
 
 dnl Checks for library functions:
-AC_TYPE_GETGROUPS
-AC_HEADER_STDC
 AC_TYPE_SIGNAL
 AC_FUNC_VPRINTF
 AC_FUNC_STRFTIME
@@ -209,6 +216,7 @@ Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
 Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
 Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile
 PICS/Makefile PICS/User/Makefile PICS/src/Makefile
+Arena/Makefile Arena/src/Makefile
 LineMode/Makefile LineMode/User/Makefile
 LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
 Robot/Makefile Robot/User/Makefile Robot/src/Makefile

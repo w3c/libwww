@@ -522,7 +522,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 			file->local, net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
-	    ** I use FCNTL so that I can ask the status before I set it.
+	    ** I use fcntl() so that I can ask the status before I set it.
 	    ** See W. Richard Stevens (Advan. Prog. in UNIX env, p.364)
 	    ** Be CAREFULL with the old `O_NDELAY' - it wont work as read()
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
@@ -530,7 +530,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    */
 #ifdef HAVE_FCNTL
 	    if (!request->net->preemptive) {
-		if ((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
+		if ((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
 #ifdef O_NONBLOCK
 		    status |= O_NONBLOCK;			    /* POSIX */
 #else
@@ -538,7 +538,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    status |= F_NDELAY;				      /* BSD */
 #endif /* F_NDELAY */
 #endif /* O_NONBLOCK */
-		    status = FCNTL(net->sockfd, F_SETFL, status);
+		    status = fcntl(net->sockfd, F_SETFL, status);
 		}
 		if (PROT_TRACE) {
 		    if (status == -1)
@@ -584,6 +584,13 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    file->state = FS_NEED_TARGET;
 	    if (HTRequest_isSource(request) && !HTRequest_destinationsReady(request))
 		return HT_OK;
+
+#ifndef NO_UNIX_IO
+	    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
+	    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+			     net->cbf, net->priority);
+	    return HT_WOULD_BLOCK;
+#endif
 	    break;
 
 	  case FS_NEED_TARGET:
@@ -592,7 +599,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** If cache element, we know that it's MIME, so call MIME parser
 	    ** If ANSI then sockfd=INVSOC
 	    */
-	    net->isoc = HTInputSocket_new(net->sockfd);
+	    HTChannel_new(net->sockfd, HT_CH_PLAIN, NO);
 	    if (HTAnchor_cacheHit(anchor))HTAnchor_setFormat(anchor, WWW_MIME);
 	    net->target = HTStreamStack(HTAnchor_format(anchor),
 					request->output_format,
@@ -603,9 +610,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case FS_NEED_BODY:
 #ifndef NO_UNIX_IO
-	    status = HTSocketRead(request, net);
+	    status = HTChannel_readSocket(request, net);
 #else
-	    status = HTFileRead(request, net, file->fp);
+	    status = HTChannel_readFile(request, net, file->fp);
 #endif
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;

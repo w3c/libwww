@@ -156,7 +156,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	break;
 
       case HT_PROG_WAIT:
-	HTTrace("Waiting for HT_FREE socket...\n");
+	HTTrace("Waiting for free socket...\n");
 	break;
 
       default:

@@ -87,7 +87,7 @@ PRIVATE int HTBlackHole_flush (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_HT_FREE (HTStream * me)
+PRIVATE int HTBlackHole_free (HTStream * me)
 {
     return HT_OK;
 }
@@ -105,7 +105,7 @@ PRIVATE const HTStreamClass HTBlackHoleClass =
 {		
     "BlackHole",
     HTBlackHole_flush,
-    HTBlackHole_HT_FREE,
+    HTBlackHole_free,
     HTBlackHole_abort,
     HTBlackHole_put_character,
     HTBlackHole_put_string,
@@ -154,7 +154,7 @@ PRIVATE int HTErrorStream_flush (HTStream * me)
     return HT_ERROR;
 }
 
-PRIVATE int HTErrorStream_HT_FREE (HTStream * me)
+PRIVATE int HTErrorStream_free (HTStream * me)
 {
     return HT_ERROR;
 }
@@ -168,7 +168,7 @@ PRIVATE const HTStreamClass HTErrorStreamClass =
 {		
     "ErrorStream",
     HTErrorStream_flush,
-    HTErrorStream_HT_FREE,
+    HTErrorStream_free,
     HTErrorStream_abort,
     HTErrorStream_put_character,
     HTErrorStream_put_string,
@@ -226,7 +226,7 @@ PRIVATE int HTFWriter_write (HTStream * me, const char* s, int l)
     return status ;
 }
 
-PRIVATE int HTFWriter_HT_FREE (HTStream * me)
+PRIVATE int HTFWriter_free (HTStream * me)
 {
     if (me) {
 	if (me->leave_open != YES) fclose(me->fp);
@@ -259,7 +259,7 @@ PRIVATE const HTStreamClass HTFWriter = /* As opposed to print etc */
 {		
     "FileWriter",
     HTFWriter_flush,
-    HTFWriter_HT_FREE,
+    HTFWriter_free,
     HTFWriter_abort,
     HTFWriter_put_character,
     HTFWriter_put_string,

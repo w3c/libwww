@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Domain Name Service</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -93,7 +93,7 @@ extern void HTDNS_setSockExpires (HTdns * dns, time_t expires);
 extern time_t HTDNS_sockExpires (HTdns * dns);
 </PRE>
 
-<H3>Set the Server Class and Type</H3>
+<H3>Set the Server Class and Version</H3>
 
 Define the <EM>server class</EM> of the server at the other end. A
 class is a generic description of the protocol which is exactly like
@@ -111,15 +111,6 @@ extern void HTDNS_setServerClass	(HTdns * dns, char * s_class);
 
 extern int  HTDNS_serverVersion		(HTdns * dns);
 extern void HTDNS_setServerVersion	(HTdns * dns, int version);
-
-typedef enum _HTTCPType {
-    HT_TCP_PLAIN	= 0x0,			    /* One request at a time */
-    HT_TCP_BATCH	= 0x1,			       /* Use batch requests */
-    HT_TCP_INTERLEAVE	= 0x2	  	      /* Can we interleave requests? */
-} HTTCPType;
-
-extern HTTCPType HTDNS_connection	(HTdns * dns);
-extern void HTDNS_setConnection		(HTdns * dns, HTTCPType type);
 </PRE>
 
 <H3>Recalculating the Time-Weights on Multihomed Hosts</H3>

@@ -31,7 +31,7 @@
 struct _HTStream {
     const HTStreamClass *	isa;
     HTRequest *			request;
-    HTSocketEOL			state;
+    HTEOLState			state;
     HTNewsDir *			dir;
     BOOL			group;
     BOOL			junk;

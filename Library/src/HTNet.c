@@ -25,6 +25,9 @@
 #include "HTReqMan.h"
 #include "HTEvntrg.h"
 #include "HTStream.h"
+
+#include "HTMux.h"
+
 #include "HTNetMan.h"					 /* Implemented here */
 
 #ifdef WIN32
@@ -278,6 +281,42 @@ PUBLIC HTList *HTNet_pendingQueue (void)
 }
 
 /* ------------------------------------------------------------------------- */
+/*			    Connection Specifics 			     */
+/* ------------------------------------------------------------------------- */
+
+/*	HTNet_Persistent
+**	----------------
+**	Check whether the net object handles persistent connections
+**	If we have a DNS entry then check that as well.
+*/
+PUBLIC BOOL HTNet_persistent (HTNet * net)
+{
+    if (net) {
+	return net->dns ?
+	    (net->persistent = HTDNS_socket(net->dns)!=INVSOC) :
+		net->persistent;
+    }
+    return NO;
+}
+
+/*	HTNet_persistent
+**	----------------
+**	Set the net object to handle persistent connections
+**	If we also have a DNS entry then update that as well
+*/
+PUBLIC BOOL HTNet_setPersistent (HTNet * net, BOOL persistent)
+{
+    if (net) {
+	if (PROT_TRACE) HTTrace("Net......... Persistent connection set %s\n",
+				persistent ? "ON" : "OFF");
+	net->persistent = persistent;
+	return net->dns ?
+	    HTDNS_setSocket(net->dns, persistent ? net->sockfd : INVSOC) : YES;
+    }
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
 /*			  Creation and deletion methods  		     */
 /* ------------------------------------------------------------------------- */
 
@@ -508,19 +547,15 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 		if ((status = NETCLOSE(net->sockfd)) < 0)
 		    HTRequest_addSystemError(net->request, ERR_FATAL,
 					     socerrno, NO, "NETCLOSE");
-		if (WWWTRACE)
-		    HTTrace("HTNet_delete closing %d\n", net->sockfd);
+		if (WWWTRACE) HTTrace("HTNet_delete closing %d\n",net->sockfd);
 	    } else {
-		if (WWWTRACE)
-		    HTTrace("HTNet_delete keeping %d\n", net->sockfd);
+		if (WWWTRACE) HTTrace("HTNet_delete keeping %d\n",net->sockfd);
 		HTDNS_clearActive(net->dns);
 		/* Here we should probably use a low priority */
 		HTEvent_Register(net->sockfd, net->request, (SockOps) FD_READ,
 				 HTDNS_closeSocket, net->priority);
 	    }
 	}
-	if (net->isoc)
-	    HTInputSocket_free(net->isoc);
 	if (net->request)
 	    net->request->net = NULL;		    /* Break link to request */
 	HT_FREE(net);
@@ -734,3 +769,26 @@ PUBLIC SOCKET HTNet_socket (HTNet * net)
     return (net ? net->sockfd : INVSOC);
 }
 
+/*
+**  Get and set the target for this Net object. If we have a interleaved socket
+**  then add the HTDemux stream so that we can get the right part back
+*/
+PUBLIC BOOL HTNet_setTarget (HTNet * net, HTStream * target)
+{
+    if (net) {
+	HTChannelMode mode = HTChannel_mode(net->sockfd, NULL);
+#if 0
+	net->target = (mode==HT_CH_INTERLEAVED) ?
+	    HTDemux_new(net, target) : target;
+#else
+	net->target = HTDemux_new(net, target);
+#endif
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTStream * HTNet_target (HTNet * net)
+{
+    return (net ? net->target : NULL);
+}

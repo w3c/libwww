@@ -95,7 +95,7 @@ struct _HTStream {
     HTStream *			target;
     HTRequest *			request;
     news_info *			news;
-    HTSocketEOL			EOLstate;
+    HTEOLState			EOLstate;
     BOOL			semi_trans;
     BOOL			junk;
     char 			buffer[MAX_NEWS_LINE+1];
@@ -513,8 +513,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    break;
 		}
 		HTDNS_setServerClass(net->dns, "nntp");
-		if (HTDNS_socket(net->dns) == INVSOC) {
-		    HTDNS_setSocket(net->dns, net->sockfd);
+		if (!HTNet_persistent(net)) {
+		    HTNet_setPersistent(net, YES);
 		    greeting = YES;
 		}
 		if (PROT_TRACE)
@@ -537,7 +537,6 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		}
 
 		/* Set up stream FROM network and corresponding read buffer */
-		net->isoc = HTInputSocket_new(net->sockfd);
 		net->target = HTNewsStatus_new(request, news);
 		news->state = greeting ? NEWS_NEED_GREETING : NEWS_NEED_SWITCH;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
@@ -547,7 +546,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case NEWS_NEED_GREETING:
-	    status = HTSocketRead(request, net);
+	    status = HTChannel_readSocket(request, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED) {
@@ -602,7 +601,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_MIME;
 		news->sent = YES;
 	    } else {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -627,7 +626,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
  		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -652,7 +651,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -675,7 +674,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -708,7 +707,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_NNTP_OVER;
 		news->sent = YES;
 	    } else {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -737,7 +736,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -779,7 +778,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
                 else 	
                     ops = FD_READ;	  /* Trick to ensure that we do READ */
 	    } else if (ops == FD_READ) {
-                status = HTSocketRead(request, net);
+                status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
                 else if (status == HT_LOADED)

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww SYSTEM DEPENDENCIES</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -133,7 +133,6 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #undef HAVE_GETPASS
 #undef HAVE_ALTZONE
 #define NO_GETWD
-#define NO_FCNTL
 #define HAVE_GETCWD
 #define BOOLEAN				/* Windows have BOOLEAN defined */
 
@@ -1198,10 +1197,6 @@ This is necessary in order to support Windows NT...
 
 #ifndef DEFAULT_SUFFIXES
 #define DEFAULT_SUFFIXES	".,_"
-#endif
-
-#ifndef FCNTL
-#define FCNTL(r,s,t)	fcntl((r),(s),(t))
 #endif
 </PRE>
 

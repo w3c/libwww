@@ -61,7 +61,7 @@ struct _HTStream {
     HTRequest *			request;
     https_info *		http;
     HTRequest *			client;
-    HTSocketEOL			state;
+    HTEOLState			state;
     HTChunk *			buffer;
     BOOL			transparent;
 };
@@ -196,7 +196,7 @@ PRIVATE int HTTPReply_free (HTStream * me)
 	if ((status = FREE_TARGET) == HT_WOULD_BLOCK) return HT_WOULD_BLOCK;
 #if 0
 	/* We can't do this until we get a better event loop */
-	if (snet->persistent) {
+	if (HTNet_persistent(snet)) {
 	    if (STREAM_TRACE)
 		HTTrace("HTTPReply... Persistent conenction\n");
 	    HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
@@ -228,7 +228,7 @@ PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
     if (me->target) ABORT_TARGET;
 #if 0
     /* We can't do this until we get a better event loop */
-    if (snet->persistent) {
+    if (HTNet_persistent(snet)) {
 	if (STREAM_TRACE)
 	    HTTrace("HTTPReply... Persistent conenction\n");
 	HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
@@ -449,9 +449,6 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    status = HTDoAccept(net);
 	    if (status == HT_OK) {
 
-		/* Setup read buffer */
-		net->isoc = HTInputSocket_new(net->sockfd);	
-
 		/* Setup Request parser stream */
 		net->target = HTTPReceive_new(request, http);
 
@@ -464,7 +461,7 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case HTTPS_NEED_REQUEST:
 	    if (ops == FD_READ || ops == FD_NONE) {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_PAUSE) {

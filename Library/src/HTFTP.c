@@ -143,7 +143,7 @@ struct _HTStream {
     HTStream *		  	target;
     HTRequest *			request;
     ftp_ctrl *			ctrl;
-    HTSocketEOL			state;
+    HTEOLState			state;
     HTChunk *			welcome;
     BOOL			junk;		       /* For too long lines */
     BOOL			first_line;
@@ -529,7 +529,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_GREETING:
-	    status = HTSocketRead(request, cnet);
+	    status = HTChannel_readSocket(request, cnet);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_LOADED) {
@@ -551,7 +551,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -575,7 +575,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -604,7 +604,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -640,7 +640,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -730,7 +730,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -762,7 +762,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -808,7 +808,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -876,7 +876,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -933,7 +933,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -1079,7 +1079,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -1134,7 +1134,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		ctrl->cwd = YES;
 		ctrl->sent = YES;
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -1150,7 +1150,6 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 
 	  case NEED_STREAM:
 	    {
-		dnet->isoc = HTInputSocket_new(dnet->sockfd);
 		if (FTP_DIR(data)) {
 		    dnet->target=HTFTPDir_new(request,ctrl->server,data->type);
 		} else {
@@ -1167,7 +1166,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 
 	  case NEED_BODY:
 	    if (sockfd == dnet->sockfd) {
-		status = HTSocketRead(request, dnet);
+		status = HTChannel_readSocket(request, dnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED || status == HT_CLOSED) {
@@ -1181,7 +1180,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		    data->stream_error = YES;
 		}
 	    } else {
-		status = HTSocketRead(request, cnet);
+		status = HTChannel_readSocket(request, cnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
@@ -1315,7 +1314,6 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		}
 
 		/* Set up stream FROM network and corresponding read buffer */
-		cnet->isoc = HTInputSocket_new(cnet->sockfd);
 		cnet->target = FTPStatus_new(request, ctrl);
 		ctrl->state = FTP_NEED_LOGIN;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)

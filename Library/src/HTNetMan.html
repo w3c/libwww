@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -31,8 +31,8 @@ Reference Library</A>.
 #define HTNETMAN_H
 #include "HTNet.h"
 #include "HTDNS.h"
-#include "HTEvntrg.h"
 #include "HTSocket.h"
+#include "HTEvntrg.h"
 </PRE>
 
 <H2>The HTNet Object</H2>
@@ -56,21 +56,24 @@ typedef enum _TCPState {
 
 struct _HTNet {
     SOCKET		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;		/* SockA is defined in sysdep.h */
-    TCPState		tcpstate;		      /* State in connection */
-    HTInputSocket *	isoc;				     /* Input buffer */
-    HTdns *		dns;			       /* Entry in DNS table */
+    SockA 		sock_addr;	     /* SockA is defined in sysdep.h */
+    HTPriority		priority;	 /* Priority of this request (event) */
+
     HTStream *		target;				    /* Target stream */
+    HTEventCallback *	cbf;			   /* Protocol state machine */
+
+    HTdns *		dns;			       /* Link to DNS object */
+    HTRequest *		request;		   /* Link to request object */
+
+    long		bytes_read;		  /* Bytes read from network */
+    long		bytes_written;		 /* Bytes written to network */
+
+    TCPState		tcpstate;		      /* State in connection */
     int			retry;		     /* Counting attempts to connect */
     int 		home;			 /* Current home if multiple */
     time_t		connecttime;		 /* Used on multihomed hosts */
-    long		bytes_read;		  /* Bytes read from network */
-    long		bytes_written;		 /* Bytes written to network */
     BOOL		preemptive;  /* Eff result from Request and Protocol */
     BOOL		persistent;	  /* YES if persistent, otherwise NO */
-    HTPriority		priority;	 /* Priority of this request (event) */
-    HTEventCallback *	cbf;			     /* Library load routine */
-    HTRequest *		request;	   /* Link back to request structure */
     void *		context;		/* Protocol Specific context */
 };
 

@@ -4,10 +4,9 @@ DEF := $(wildcard *.def)
 MAK := $(wildcard *.mak)
 WIN := $(wildcard *.rc *.ico *.h *.c)
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	$(DEF) \
 	$(MAK) \
 	$(WIN)
 
-all-local : $(DIST_OTHER)
 

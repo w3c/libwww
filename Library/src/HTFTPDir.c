@@ -29,7 +29,7 @@ struct _HTStream {
     const HTStreamClass *	isa;
     HTRequest *			request;
     FTPServerType		server;
-    HTSocketEOL			state;
+    HTEOLState			state;
     HTDir *			dir;
     BOOL			first;
     BOOL			junk;

@@ -1,23 +1,24 @@
 ## Process this file with Automake to create Makefile.in.
 
-SUFFIXES = .files .def .txt
+SUFFIXES = .files .def
 
 SRC := $(wildcard *.c)
-DEF := $(wildcard *.def)
 MAK := $(wildcard *.mak)
 PL  := $(wildcard *.pl)
 
-DIST_OTHER = \
+BUILT_SOURCES = \
+	wwwapp.def	wwwapp.def	wwwcache.def \
+	wwwcore.def	wwwdir.def	wwwdll.def \
+	wwwfile.def	wwwftp.def	wwwgophe.def \
+	wwwguess.def	wwwhtml.def	wwwhttp.def \
+	wwmime.def	wwwnews.def	wwwrules.def \
+	wwwtelnt.def	wwwutils.def	wwwwais.def \
+	wwwlist.txt
+
+EXTRA_DIST = \
 	$(SRC) \
-	$(DEF) \
 	$(MAK) \
 	$(PL)
-
-def:
-	for i in *.files; do ./makedefs.pl @ < $$i > `basename $$i files`def; done
-
-list:
-	ls -1 ../*.c | sed -e s=\.\./==1 | ./makedefs.pl @ > wwwlist.txt 
 
 .files.def:
 	./makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
@@ -25,5 +26,4 @@ list:
 wwwlist.txt:
 	ls -1 ../*.c | sed -e s=\.\./==1 | ./makedefs.pl @ > wwwlist.txt
 
-windows: def list
 

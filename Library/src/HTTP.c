@@ -81,7 +81,7 @@ struct _HTStream {
     HTStream *		  	target;
     HTRequest *			request;
     http_info *			http;
-    HTSocketEOL			state;
+    HTEOLState			state;
     BOOL			transparent;
     char *			version;	     /* Should we save this? */
     int				status;
@@ -589,18 +589,19 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTRequest_linkDestination(request);
 		}
 
-		/* Set up stream FROM network and corresponding read buffer */
-		net->isoc = HTInputSocket_new(net->sockfd);
+		/* Set up stream FROM network */
+#if 1
 		net->target=HTStreamStack(WWW_HTTP, request->output_format,
 					  request->output_stream, request, NO);
-#if 0
-		if (request->output_format == WWW_RAW) {
-		    net->target = request->output_stream;
-		    http->next = HTTP_GOT_DATA;
-		} else
-		    net->target = HTTPStatus_new(request, http);
+#else
+		{
+		    HTStream * target = HTStreamStack(WWW_HTTP,
+						      request->output_format,
+						      request->output_stream,
+						      request, NO);
+		    HTNet_setTarget(net, target);
+		}
 #endif
-
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;
@@ -629,7 +630,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		else
 		    ops = FD_READ;	  /* Trick to ensure that we do READ */
 	    } else if (ops == FD_READ) {
-		status = HTSocketRead(request, net);
+		status = HTChannel_readSocket(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status==HT_LOADED || status==HT_CLOSED)

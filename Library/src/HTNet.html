@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -282,6 +282,23 @@ in the <A HREF="HTReq.html">request manager</A>.
 <PRE>
 extern HTPriority HTNet_priority (HTNet * net);
 extern BOOL HTNet_setPriority (HTNet * net, HTPriority priority);
+</PRE>
+
+<H3>Persistent Connections</H3>
+
+You can set a Net object to handle persistent connections for example
+using HTTP, NNTP, or FTP. You can control whether a Net object
+supports persistent connections or not using this function.
+
+<PRE>
+extern BOOL HTNet_persistent (HTNet * net);
+</PRE>
+
+You can set or disable a Net object supporting persistent connections
+using this function:
+
+<PRE>
+extern BOOL HTNet_setPersistent (HTNet * net, BOOL persistent);
 </PRE>
 
 <H3>Delete an Object</H3>

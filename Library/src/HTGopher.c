@@ -101,7 +101,7 @@ struct _HTStream {
     const HTStreamClass *	isa;
     HTStructured *	  	target;
     HTRequest *			request;
-    HTSocketEOL			state;
+    HTEOLState			state;
     char *			url;
     BOOL			pre;		       /* Preformatted mode? */
     BOOL			junk;		       /* For too long lines */
@@ -736,7 +736,6 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		request->input_stream = HTWriter_new(net, YES);
 
 		/* Set up stream FROM network and corresponding read buffer */
-		net->isoc = HTInputSocket_new(net->sockfd);
                 if (gopher->type == GT_MENU || gopher->type == GT_INDEX)
 		    net->target = GopherMenu_new(request, url, NO);
 		else if (gopher->type == GT_CSO)
@@ -766,7 +765,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case GOPHER_NEED_RESPONSE:
-	    status = HTSocketRead(request, net);
+	    status = HTChannel_readSocket(request, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED)

@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 0.30 from Makefile.am
+# Makefile.in generated automatically by automake 0.31 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -42,6 +42,9 @@ bin_PROGRAMS = webbot
 
 webbot_LDADD = ../../Library/src/libwww.a -lm
 
+webbot_DEPENDENCIES = \
+	../../Library/src/libwww.a
+
 INCLUDES = -I$(srcdir)/../../Library/src
 
 #	.h files are distributed but originally are made from the
@@ -51,7 +54,7 @@ SUFFIXES = .h .html
 webbot_SOURCES = \
 	HTRobot.c
 
-noinst_HEADERS = \
+BUILT_SOURCES = \
 	HTRobot.h
 CONFIG_HEADER = ../../config.h
 PROGRAMS = $(bin_PROGRAMS)
@@ -74,8 +77,6 @@ X_LIBS = @X_LIBS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
 webbot_OBJECTS = HTRobot.o
-HEADERS = $(noinst_HEADERS)
-
 DIST_COMMON = README Makefile.am Makefile.in README
 
 
@@ -83,9 +84,9 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_FILES = $(srcdir)/.deps/HTRobot.P
 SOURCES = $(webbot_SOURCES)
 OBJECTS = $(webbot_OBJECTS)
@@ -135,7 +136,7 @@ distclean-compile:
 maintainer-clean-compile:
 $(webbot_OBJECTS): ../../config.h
 
-webbot: $(webbot_OBJECTS)
+webbot: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	$(LINK) $(webbot_OBJECTS) $(webbot_LDADD) $(LIBS)
 
 ID: $(HEADERS) $(SOURCES)
@@ -207,8 +208,10 @@ install: install-exec install-data
 
 uninstall: uninstall-binPROGRAMS
 
-all: $(PROGRAMS) $(HEADERS) Makefile all-local
+all: $(PROGRAMS) Makefile
 
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
 	$(top_srcdir)/mkinstalldirs  $(bindir)
 
@@ -243,23 +246,16 @@ maintainer-clean:  maintainer-clean-binPROGRAMS maintainer-clean-compile \
 	@echo "it deletes files that may require special tools to rebuild."
 
 .PHONY: default mostlyclean-binPROGRAMS distclean-binPROGRAMS \
-    clean-binPROGRAMS maintainer-clean-binPROGRAMS \
-    uninstall-binPROGRAMS install-binPROGRAMS mostlyclean-compile \
-    distclean-compile clean-compile maintainer-clean-compile tags \
-    mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
-    dist info dvi check installcheck install-exec install-data install \
-    uninstall all installdirs mostlyclean-generic distclean-generic \
-    clean-generic maintainer-clean-generic clean mostlyclean distclean \
-    maintainer-clean
+clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
+install-binPROGRAMS mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags dist info dvi check installcheck \
+install-exec install-data install uninstall all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
-
-#	Some extra make directives
-inc : $(HEADERS)
-	@echo Include files generated from hypertext.
-
-all-local : inc
 .SUFFIXES:
 .SUFFIXES: .c .o $(SUFFIXES)
 

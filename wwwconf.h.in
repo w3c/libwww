@@ -37,6 +37,9 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef mode_t
 
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef pid_t
+
 /* Define if you need to in order for stat and other things to work.  */
 #undef _POSIX_SOURCE
 
@@ -88,6 +91,9 @@
 
 /* Define this if it's not typedef'd automatically. */
 #undef BOOLEAN
+
+/* Define this to be the location of the resolver configuration file. */
+#undef RESOLV_CONF
 
 /* Define this to be the rlogin program name. */
 #undef RLOGIN_PROGRAM

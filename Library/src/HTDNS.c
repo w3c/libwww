@@ -22,6 +22,7 @@
 #include "HTAlert.h"
 #include "HTError.h"
 #include "HTNetMan.h"
+#include "HTSocket.h"
 #include "HTDNS.h"					 /* Implemented here */
 
 #define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
@@ -35,7 +36,6 @@ struct _HTdns {
 
     char *		server;				     /* Server class */
     int 		version;			   /* Server version */
-    HTTCPType		type;				  /* Connection type */
 
     int 		active;			 /* Semaphor on Socket usage */
     time_t		expires;		      /* Socket expires time */
@@ -54,7 +54,7 @@ PRIVATE time_t	TCPTimeout = TCP_TIMEOUT;	   /* Timeout on TCP sockets */
 
 /* ------------------------------------------------------------------------- */
 
-PRIVATE void HT_FREE_object (HTdns * me)
+PRIVATE void free_object (HTdns * me)
 {
     if (me) {
 	HT_FREE(me->hostname);
@@ -77,7 +77,7 @@ PRIVATE BOOL delete_object (HTList * list, HTdns *me)
     if (PROT_TRACE)
 	HTTrace("DNS Delete.. object %p from list %p\n", me, list);
     HTList_removeObject(list, (void *) me);
-    HT_FREE_object(me);
+    free_object(me);
     return YES;
 }
 
@@ -141,19 +141,6 @@ PUBLIC int HTDNS_serverVersion (HTdns *dns)
 PUBLIC void HTDNS_setServerVersion (HTdns * dns, int version)
 {
     if (dns) dns->version = version;
-}
-
-/*	HTDNS_connection
-**	----------------
-*/
-PUBLIC HTTCPType HTDNS_connection (HTdns *dns)
-{
-     return dns ? dns->type : HT_TCP_PLAIN;
-}
-
-PUBLIC void HTDNS_setConnection (HTdns * dns, HTTCPType type)
-{
-    if (dns) dns->type = type;
 }
 
 /*	Persistent Connections
@@ -351,7 +338,7 @@ PUBLIC BOOL HTDNS_deleteAll (void)
 	if ((cur = CacheTable[cnt])) { 
 	    HTdns *pres;
 	    while ((pres = (HTdns *) HTList_nextObject(cur)) != NULL)
-		HT_FREE_object(pres);
+		free_object(pres);
 	}
 	HTList_delete(CacheTable[cnt]);
 	CacheTable[cnt] = NULL;
@@ -380,9 +367,10 @@ PUBLIC int HTDNS_closeSocket(SOCKET soc, HTRequest * request, SockOps ops)
 	HTdns *pres;
 	while ((pres = (HTdns *) HTList_nextObject(cur))) {
 	    if (pres->sockfd == soc) {
-		if (PROT_TRACE)HTTrace("DNS Close... socket %d\n",soc);
+		if (PROT_TRACE) HTTrace("DNS Close... socket %d\n",soc);
 		NETCLOSE(soc);
 		HTDNS_setSocket(pres, INVSOC);
+		HTChannel_delete (soc);
 		break;
 	    }
 	}
@@ -447,8 +435,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	}
     }
     if (pres) {
-	if (PROT_TRACE)
-	    HTTrace("HostByName.. '%s\' found in cache\n", host);
+	if (PROT_TRACE) HTTrace("HostByName.. '%s\' found in cache\n", host);
 
 	/* See if we have an open connection already */
 	if (pres->sockfd != INVSOC) {
@@ -458,10 +445,10 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 		if (PROT_TRACE)
 		    HTTrace("HostByName.. semaphor is %d for soc %d\n",
 			     pres->active, pres->sockfd);
-		if (pres->type == HT_TCP_PLAIN) {
+		if (HTChannel_mode(pres->sockfd, NULL) == HT_CH_PLAIN) {
 		    if (PROT_TRACE)
 			HTTrace("HostByName.. waiting for socket %d\n",
-				 pres->sockfd);
+				pres->sockfd);
 		    net->dns = pres;
 		    return 0;			/* Wait for clear connection */
 		}

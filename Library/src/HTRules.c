@@ -37,7 +37,7 @@ struct _HTStream {
     HTRequest *			request;
     HTStream *			target;
     HTChunk *			buffer;
-    HTSocketEOL			EOLstate;
+    HTEOLState			EOLstate;
 };
 
 struct _HTRule {

@@ -648,7 +648,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		HTTrace("HTDoConnect. Created socket %d\n",net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
-	    ** I use FCNTL so that I can ask the status before I set it.
+	    ** I use fcntl() so that I can ask the status before I set it.
 	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
 	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
@@ -684,7 +684,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    status = IOCTL(net->sockfd, FIONBIO, &enable);
 		}
 #else
-		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
+		if((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
 #ifdef O_NONBLOCK
 		    status |= O_NONBLOCK;			    /* POSIX */
 #else
@@ -692,7 +692,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    status |= F_NDELAY;				      /* BSD */
 #endif /* F_NDELAY */
 #endif /* O_NONBLOCK */
-		    status = FCNTL(net->sockfd, F_SETFL, status);
+		    status = fcntl(net->sockfd, F_SETFL, status);
 		}
 #endif /* VMS */
 #endif /* WINDOW */
@@ -805,7 +805,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
 	    }
 	    net->retry = 0;
-	    HT_FREE(fullhost);
+	    HTChannel_new(net->sockfd, HT_CH_PLAIN, YES);
+	    HT_FREE(fullhost);	    
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_OK;
 	    break;
@@ -818,8 +819,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 		NETCLOSE(net->sockfd);
 		net->sockfd = INVSOC;
-		if (HTDNS_socket(net->dns) != INVSOC) {	 /* Inherited socket */
-		    HTDNS_setSocket(net->dns, INVSOC);
+		if (HTNet_persistent(net)) {		 /* Inherited socket */
+		    HTNet_setPersistent(net, NO);
 		    net->tcpstate = TCP_NEED_SOCKET;
 		    break;
 		}
@@ -892,15 +893,14 @@ PUBLIC int HTDoAccept (HTNet * net)
 	}
 	HTRequest_addSystemError(request, ERR_WARN, socerrno, YES, "accept");
 	if (PROT_TRACE) HTTrace("HTDoAccept.. Accept failed\n");
-	if (HTDNS_socket(net->dns) != INVSOC) {	 	 /* Inherited socket */
-	    HTDNS_setSocket(net->dns, INVSOC);
-	}
+	if (HTNet_persistent(net)) HTNet_setPersistent(net, NO);
 	return HT_ERROR;
     }
 
     /* Swap to new socket */
     HTEvent_UnRegister(net->sockfd, (SockOps) FD_ACCEPT);
     net->sockfd = status;
+    HTChannel_new(net->sockfd, HT_CH_PLAIN, NO);
     if (PROT_TRACE) HTTrace("Accepted.... socket %d\n", status);
     return HT_OK;
 }
@@ -964,7 +964,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 		HTTrace("HTDoListen.. Created socket %d\n",net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
-	    ** I use FCNTL so that I can ask the status before I set it.
+	    ** I use fcntl() so that I can ask the status before I set it.
 	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
 	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
@@ -999,7 +999,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 		    status = IOCTL(net->sockfd, FIONBIO, &enable);
 		}
 #else
-		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
+		if((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
 #ifdef O_NONBLOCK
 		    status |= O_NONBLOCK;			    /* POSIX */
 #else
@@ -1007,7 +1007,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 		    status |= F_NDELAY;				      /* BSD */
 #endif /* F_NDELAY */
 #endif /* O_NONBLOCK */
-		    status = FCNTL(net->sockfd, F_SETFL, status);
+		    status = fcntl(net->sockfd, F_SETFL, status);
 		}
 #endif /* VMS */
 #endif /* WINDOW */

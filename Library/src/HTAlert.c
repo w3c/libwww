@@ -183,7 +183,7 @@ PUBLIC HTAlertPar * HTAlert_newReply (void)
 */
 PUBLIC void HTAlert_deleteReply (HTAlertPar * old)
 {
-    if (old) HT_FREE(old);
+    HT_FREE(old);
 }
 
 PUBLIC char * HTAlert_replyMessage (HTAlertPar * me)

@@ -39,7 +39,7 @@ struct _HTStream {
     HTStream *			debug;		  /* For preamble and epilog */
     HTRequest *			request;
     BOOL			body;		  /* Body or preamble|epilog */
-    HTSocketEOL			state;
+    HTEOLState			state;
     int				dash;			 /* Number of dashes */
     char *			boundary;
     char *			bpos;

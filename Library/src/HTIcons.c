@@ -58,7 +58,7 @@ PUBLIC char * HTIcon_alt_string (char *	alt,
     char * p = NULL;
     int len = alt ? strlen(alt) : 0;
 
-    if (ret) HT_FREE(ret);		/* from previous call */
+    HT_FREE(ret);		/* from previous call */
     if ((p = ret = (char*) HT_MALLOC(alt_len + 3)) == NULL)
 	HT_OUTOFMEM("HTIcon_alt_string");
 

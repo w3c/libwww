@@ -19,7 +19,7 @@
 **	28 May 93 WAIS gateway explicit if no WAIS library linked in.
 **	   Dec 93 Bug change around, more reentrant, etc
 **	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
-**	 8 Jul 94 Insulate HT_FREE() from _HT_FREE structure element.
+**	 8 Jul 94 Insulate free from _free structure element.
 **	   Sep 95 Rewritten, HFN
 **	   Nov 95 Spawned from HTAccess.c
 */
@@ -283,21 +283,6 @@ PUBLIC int HTLoadTerminate (HTRequest * request, int status)
 {
     char * uri = HTAnchor_address((HTAnchor*)request->anchor);
     switch (status) {
-      case HT_LOADED:
-	if (PROT_TRACE)
-	    HTTrace("Load End.... OK: `%s\' has been accessed\n", uri);
-	break;
-
-      case HT_NO_DATA:
-	if (PROT_TRACE)
-	    HTTrace("Load End.... OK BUT NO DATA: `%s\'\n", uri);
-	break;
-
-      case HT_INTERRUPTED:
-	if (PROT_TRACE)
-	    HTTrace("Load End.... INTERRUPTED: `%s\'\n", uri);
-	break;
-
       case HT_RETRY:
 	if (PROT_TRACE)
 	    HTTrace("Load End.... NOT AVAILABLE, RETRY AT %ld\n",
@@ -317,7 +302,7 @@ PUBLIC int HTLoadTerminate (HTRequest * request, int status)
 
       default:
 	if (PROT_TRACE)
-	    HTTrace("Load End.... UNKNOWN RETURN CODE %d\n", status);
+	    HTTrace("Load End.... Request ended with code %d\n", status);
 	break;
     }
 

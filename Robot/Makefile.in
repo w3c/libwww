@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 0.30 from Makefile.am
+# Makefile.in generated automatically by automake 0.31 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -47,9 +47,9 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 default: all
 
 
@@ -139,6 +139,8 @@ uninstall: uninstall-recursive
 
 all: all-recursive all-am
 
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs: installdirs-recursive
 
 
@@ -176,28 +178,16 @@ maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
 	@echo "it deletes files that may require special tools to rebuild."
 
 .PHONY: default install-data-recursive uninstall-data-recursive \
-    install-exec-recursive uninstall-exec-recursive \
-    installdirs-recursive uninstalldirs-recursive all-recursive \
-    check-recursive installcheck-recursive info-recursive dvi-recursive \
-    mostlyclean-recursive distclean-recursive clean-recursive \
-    maintainer-clean-recursive tags mostlyclean-tags distclean-tags \
-    clean-tags maintainer-clean-tags dist info dvi check installcheck \
-    all-am install-exec install-data install uninstall all installdirs \
-    mostlyclean-generic distclean-generic clean-generic \
-    maintainer-clean-generic clean mostlyclean distclean \
-    maintainer-clean
+install-exec-recursive uninstall-exec-recursive installdirs-recursive \
+uninstalldirs-recursive all-recursive check-recursive \
+installcheck-recursive info-recursive dvi-recursive \
+mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags dist info dvi check installcheck \
+all-am install-exec install-data install uninstall all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
-
-#	Some extra make directives
-inc-recursive:
-	for subdir in $(SUBDIRS); do		\
-	  target=`echo $@ | sed s/-recursive//`; \
-	  echo making $$target in $$subdir;	\
-	  (cd $$subdir && $(MAKE) $$target)	\
-	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
-	done && test -z "$$fail"
-inc : inc-recursive
-	@echo Include files generated from hypertext.
 .SUFFIXES:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

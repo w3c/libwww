@@ -2,7 +2,11 @@
 
 bin_PROGRAMS = www
 
-www_LDADD = ../../Library/src/libwww.a ../../PICS/src/libpics.a -lm
+www_LDADD = \
+	../../Library/src/libwww.a ../../PICS/src/libpics.a -lm
+
+www_DEPENDENCIES = \
+	../../Library/src/libwww.a ../../PICS/src/libpics.a
 
 SUBDIRS = windows vms
 
@@ -14,23 +18,23 @@ SUFFIXES = .h .html
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
-#	Some extra make directives
-inc : $(HEADERS)
-	@echo Include files generated from hypertext.
-
-all-local : inc
-
 www_SOURCES = \
 	HTBrowse.c	GridText.c	ConView.c \
 	GridStyle.c	DefaultStyles.c
 
-noinst_HEADERS = \
+BUILT_SOURCES = \
 	HTBrowse.h	GridStyle.h	GridText.h \
 	HTFont.h
 
+PURIFY_CACHE = /home2/frystyk/purify-cache
+
+purify: $(www_OBJECTS) $(www_DEPENDENCIES)
+	purify -cache-dir=$(PURIFY_CACHE) \
+	$(LINK) $(www_OBJECTS) $(www_LDADD) $(LIBS)
+
 # need the WAIS library and the cyrrilic support!
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	DefaultStyles.c.classic \
 	DefaultStyles.c.modern \
  	a_stdio.g \

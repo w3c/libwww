@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 0.30 from Makefile.am
+# Makefile.in generated automatically by automake 0.31 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -40,7 +40,11 @@ transform = @program_transform_name@
 
 bin_PROGRAMS = www
 
-www_LDADD = ../../Library/src/libwww.a ../../PICS/src/libpics.a -lm
+www_LDADD = \
+	../../Library/src/libwww.a ../../PICS/src/libpics.a -lm
+
+www_DEPENDENCIES = \
+	../../Library/src/libwww.a ../../PICS/src/libpics.a
 
 SUBDIRS = windows vms
 
@@ -54,13 +58,15 @@ www_SOURCES = \
 	HTBrowse.c	GridText.c	ConView.c \
 	GridStyle.c	DefaultStyles.c
 
-noinst_HEADERS = \
+BUILT_SOURCES = \
 	HTBrowse.h	GridStyle.h	GridText.h \
 	HTFont.h
 
+PURIFY_CACHE = /home2/frystyk/purify-cache
+
 # need the WAIS library and the cyrrilic support!
 
-DIST_OTHER = \
+EXTRA_DIST = \
 	DefaultStyles.c.classic \
 	DefaultStyles.c.modern \
  	a_stdio.g \
@@ -86,9 +92,7 @@ X_LIBS = @X_LIBS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
 www_OBJECTS = HTBrowse.o GridText.o ConView.o GridStyle.o \
-    DefaultStyles.o
-HEADERS = $(noinst_HEADERS)
-
+DefaultStyles.o
 DIST_COMMON = README Makefile.am Makefile.in README
 
 
@@ -96,12 +100,12 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_FILES = $(srcdir)/.deps/ConView.P $(srcdir)/.deps/DefaultStyles.P \
-    $(srcdir)/.deps/GridStyle.P $(srcdir)/.deps/GridText.P \
-    $(srcdir)/.deps/HTBrowse.P
+$(srcdir)/.deps/GridStyle.P $(srcdir)/.deps/GridText.P \
+$(srcdir)/.deps/HTBrowse.P
 SOURCES = $(www_SOURCES)
 OBJECTS = $(www_OBJECTS)
 
@@ -150,7 +154,7 @@ distclean-compile:
 maintainer-clean-compile:
 $(www_OBJECTS): ../../config.h
 
-www: $(www_OBJECTS)
+www: $(www_OBJECTS) $(www_DEPENDENCIES)
 	$(LINK) $(www_OBJECTS) $(www_LDADD) $(LIBS)
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -247,7 +251,7 @@ check: all check-recursive
 
 installcheck: installcheck-recursive
 
-all-am: $(PROGRAMS) $(HEADERS) Makefile all-local
+all-am: $(PROGRAMS) Makefile
 
 install-exec-am: install-binPROGRAMS
 
@@ -264,6 +268,8 @@ uninstall: uninstall-recursive uninstall-am
 
 all: all-recursive all-am
 
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs: installdirs-recursive
 	$(top_srcdir)/mkinstalldirs  $(bindir)
 
@@ -306,29 +312,26 @@ maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
 	@echo "it deletes files that may require special tools to rebuild."
 
 .PHONY: default mostlyclean-binPROGRAMS distclean-binPROGRAMS \
-    clean-binPROGRAMS maintainer-clean-binPROGRAMS \
-    uninstall-binPROGRAMS install-binPROGRAMS mostlyclean-compile \
-    distclean-compile clean-compile maintainer-clean-compile \
-    install-data-recursive uninstall-data-recursive \
-    install-exec-recursive uninstall-exec-recursive \
-    installdirs-recursive uninstalldirs-recursive all-recursive \
-    check-recursive installcheck-recursive info-recursive dvi-recursive \
-    mostlyclean-recursive distclean-recursive clean-recursive \
-    maintainer-clean-recursive tags mostlyclean-tags distclean-tags \
-    clean-tags maintainer-clean-tags dist info dvi check installcheck \
-    all-am install-exec-am uninstall-am install-exec install-data \
-    install uninstall all installdirs mostlyclean-generic \
-    distclean-generic clean-generic maintainer-clean-generic clean \
-    mostlyclean distclean maintainer-clean
+clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
+install-binPROGRAMS mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile install-data-recursive \
+uninstall-data-recursive install-exec-recursive \
+uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
+all-recursive check-recursive installcheck-recursive info-recursive \
+dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags dist info dvi check installcheck \
+all-am install-exec-am uninstall-am install-exec install-data install \
+uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
-#	Some extra make directives
-inc : $(HEADERS)
-	@echo Include files generated from hypertext.
-
-all-local : inc
+purify: $(www_OBJECTS) $(www_DEPENDENCIES)
+	purify -cache-dir=$(PURIFY_CACHE) \
+	$(LINK) $(www_OBJECTS) $(www_LDADD) $(LIBS)
 .SUFFIXES:
 .SUFFIXES: .c .o $(SUFFIXES)
 

@@ -206,7 +206,7 @@ PRIVATE char * cache_file_name (char * url)
 	 0 != strcmp(access, "ftp")  &&
 	 0 != strcmp(access, "gopher"))) {
 
-	if (access) HT_FREE(access);
+	HT_FREE(access);
 
 	if (res && CACHE_TRACE)
 	    HTTrace(
@@ -348,7 +348,7 @@ PRIVATE char *HTCache_getName (char * url)
 
 /*
 **  Make a WWW name from a cache name and returns it if OK, else NULL.
-**  The string returned must be HT_FREEd by the caller.
+**  The string returned must be freed by the caller.
 **  We keep this function private as we might change the naming scheme for
 **  cache files. Right now it follows the file hierarchi.
 */
@@ -528,7 +528,7 @@ PUBLIC HTExpiresMode HTCache_expiresMode (char ** notify)
 **  for the cached object. It does not verify whether the object is valid or
 **  not, for example it might have expired.
 **
-**  Returns: file name	If OK (must be HT_FREEd by caller)
+**  Returns: file name	If OK (must be freed by caller)
 **	     NULL	If no cache object found
 */
 PUBLIC char * HTCache_getReference (char * url)
@@ -590,7 +590,7 @@ PRIVATE int HTCache_putString (HTStream * me, const char * s)
     return HTCache_putBlock(me, s, (int) strlen(s));
 }
 
-PRIVATE int HTCache_HT_FREE (HTStream * me)
+PRIVATE int HTCache_free (HTStream * me)
 {
     me->cache->load_delay = time(NULL) - me->cache->start_time;
     fclose(me->fp);
@@ -614,7 +614,7 @@ PRIVATE const HTStreamClass HTCacheClass =
 {		
     "Cache",
     HTCache_flush,
-    HTCache_HT_FREE,
+    HTCache_free,
     HTCache_abort,
     HTCache_putChar,
     HTCache_putString,

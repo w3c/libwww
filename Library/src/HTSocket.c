@@ -23,60 +23,171 @@
 #include "HTError.h"
 #include "HTSocket.h"					 /* Implemented here */
 
-struct _HTInputSocket {
-    char	buffer[INPUT_BUFFER_SIZE];
-    char *	write;					/* Last byte written */
-    char *	read;					   /* Last byte read */
-    SOCKET	sockfd;
+/* A channel occupies exactly one socket */
+struct _HTChannel {
+    HTChannel *		next;
+    SOCKET 		sockfd;
+    char		data [CHANNEL_BUFFER_SIZE];		   /* buffer */
+    char *		write;				/* Last byte written */
+    char *		read;				   /* Last byte read */
+    HTChannelMode	mode;
+    BOOL		active;
 };
 
 struct _HTStream {
     const HTStreamClass *	isa;
 };
 
-/* ------------------------------------------------------------------------- */
-/* 				SOCKET INPUT BUFFERING			     */
-/* ------------------------------------------------------------------------- */
-/*			
-**	This code is used because one cannot in general open a
-**	file descriptor for a socket.
-**
-**	The input file is read using the macro which can read from
-**	a socket or a file, but this should not be used for files
-**	as fopen() etc is more portable of course.
-**
-**	The input buffer size, if large will give greater efficiency and
-**	release the server faster, and if small will save space on PCs etc.
-*/
+#define PRIME_TABLE_SIZE	67
+#define HASH(s)			((s) % PRIME_TABLE_SIZE) 
 
+PRIVATE HTChannel * channels [PRIME_TABLE_SIZE];
 
-/*	Set up the buffering
-**
-**	These routines are public because they are in fact needed by
-**	many parsers, and on PCs and Macs we should not duplicate
-**	the static buffer area.
+/* ------------------------------------------------------------------------- */
+/*				CHANNEL CONTROL				     */
+/* ------------------------------------------------------------------------- */
+
+/*
+**	Look for a channel object
 */
-PUBLIC HTInputSocket * HTInputSocket_new (SOCKET file_number)
+PUBLIC HTChannel * HTChannel_find (SOCKET sockfd)
 {
-    HTInputSocket *isoc;
-    if ((isoc = (HTInputSocket  *) HT_CALLOC(1, sizeof(*isoc))) == NULL)
-        HT_OUTOFMEM("HTInputSocket_new");
-    isoc->sockfd = file_number;
-    isoc->write = isoc->read = isoc->buffer;
-    return isoc;
+    if (sockfd != INVSOC) {
+	int hash = HASH(sockfd);
+	HTChannel *ch=NULL;
+	for (ch = channels[hash]; ch; ch=ch->next) {
+	    if (ch->sockfd == sockfd) {
+		if (PROT_TRACE) HTTrace("Channel..... Found %p\n", ch);
+		return ch;
+	    }
+	}
+    }
+    return NULL;
 }
 
-PUBLIC void HTInputSocket_free (HTInputSocket * me)
+/*
+**	A channel is uniquely identified by a socket.
+**	If we are not using mux then a channel is simply a normal TCP socket.
+**	Before creating a new channel, we check to see if it already exists.
+**	You may get back an already existing channel - you're not promised a
+**	new one each time.
+*/
+PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, HTChannelMode mode,
+				  BOOL active)
 {
-    if (me) HT_FREE(me);
+    if (sockfd != INVSOC) {
+	int hash = HASH(sockfd);
+	HTChannel *ch=NULL, **chp=NULL;
+	for (chp = &channels[hash]; (ch = *chp) != NULL ; chp = &ch->next) {
+	    if (ch->sockfd == sockfd) break;
+	}
+	if (!ch) {
+	    if ((*chp=ch=(HTChannel *) HT_CALLOC(1, sizeof(HTChannel)))==NULL)
+		HT_OUTOFMEM("HTChannel_new");	    
+	    ch->sockfd = sockfd;
+	    ch->write = ch->read = ch->data;
+	    ch->mode = mode;
+	    ch->active = active;
+	    if (PROT_TRACE)
+		HTTrace("Channel..... Created %p with id %d\n", ch,ch->sockfd);
+	} else {
+	    if (PROT_TRACE)
+		HTTrace("Channel..... Found %p with id %d\n", ch, ch->sockfd);
+	    ch->write = ch->read = ch->data;
+	}
+	return ch;
+    }
+    return NULL;
 }
+
+PUBLIC BOOL HTChannel_delete (SOCKET sockfd)
+{
+    if (sockfd != INVSOC) {
+	int hash = HASH(sockfd);
+	HTChannel *ch=NULL, **chp=NULL;
+	for (chp = &channels[hash]; (ch = *chp) != NULL ; chp = &ch->next) {
+	    if (ch->sockfd == sockfd) {
+
+		/* Walk through and ABORT all remaining sessions */
+
+		if (PROT_TRACE) HTTrace("Channel..... Deleted %p with id %d\n",
+					ch, ch->sockfd);
+		*chp = ch->next;
+		HT_FREE(ch);
+		return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTChannel_deleteAll (void)
+{
+
+    /* @@@ */
+
+    return NO;
+}
+
+/*
+**	Set and Get the mode of a channel. A channel may change mode in the 
+**	middle of a connection.
+*/
+PUBLIC HTChannelMode HTChannel_mode (SOCKET sockfd, BOOL *active)
+{
+    if (sockfd != INVSOC) {
+	int hash = HASH(sockfd);
+	HTChannel *ch=NULL, **chp=NULL;
+	for (chp = &channels[hash]; (ch = *chp) != NULL ; chp = &ch->next) {
+	    if (ch->sockfd == sockfd) {
+		if (active) *active = ch->active;
+		return ch->mode;
+	    }
+	}
+    }
+    return HT_CH_UNKNOWN;
+}
+
+PUBLIC BOOL HTChannel_setMode (SOCKET sockfd, HTChannelMode mode)
+{
+    if (sockfd != INVSOC) {
+	int hash = HASH(sockfd);
+	HTChannel *ch=NULL, **chp=NULL;
+	for (chp = &channels[hash]; (ch = *chp) != NULL ; chp = &ch->next) {
+	    if (ch->sockfd == sockfd) {
+		ch->mode = mode;
+		return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTChannel_addMode (SOCKET sockfd, HTChannelMode mode)
+{
+    if (sockfd != INVSOC) {
+	int hash = HASH(sockfd);
+	HTChannel *ch=NULL, **chp=NULL;
+	for (chp = &channels[hash]; (ch = *chp) != NULL ; chp = &ch->next) {
+	    if (ch->sockfd == sockfd) {
+		ch->mode |= mode;
+		return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
+/*				READ ROUTINES  				     */
+/* ------------------------------------------------------------------------- */
 
 /*	Push data from a socket down a stream
 **	-------------------------------------
 **
 **   This routine is responsible for creating and PRESENTING any
 **   graphic (or other) objects described by the file. As this function
-**   max reads a chunk of data on size INPUT_BUFFER_SIZE, it can be used
+**   max reads a chunk of data on size CHANNEL_BUFFER_SIZE, it can be used
 **   with both blocking or non-blocking sockets. It will always return to
 **   the event loop, however if we are using blocking I/O then we get a full
 **   buffer read, otherwise we get what's available.
@@ -87,22 +198,17 @@ PUBLIC void HTInputSocket_free (HTInputSocket * me)
 **     		HT_WOULD_BLOCK	if read or write would block
 **		HT_PAUSE	if stream is paused
 */
-PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
+PUBLIC int HTChannel_readSocket (HTRequest * request, HTNet * net)
 {
-    HTInputSocket *isoc = net->isoc;
-    HTStream *target = net->target;
-    int b_read = isoc->read - isoc->buffer;
+    HTChannel * ch = HTChannel_find(net->sockfd);
+    int b_read = ch->read - ch->data;
     int status;
-    if (!isoc || isoc->sockfd==INVSOC) {
-	if (PROT_TRACE) HTTrace("Read Socket. Bad argument\n");
-	return HT_ERROR;
-    }
 
     /* Read from socket if we got rid of all the data previously read */
     do {
-	if (isoc->write >= isoc->read) {
-	    if ((b_read = NETREAD(isoc->sockfd, isoc->buffer,
-				  INPUT_BUFFER_SIZE)) < 0) {
+	if (ch->write >= ch->read) {
+	    if ((b_read = NETREAD(net->sockfd, ch->data,
+				  CHANNEL_BUFFER_SIZE)) < 0) {
 #ifdef EAGAIN
 		if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)      /* POSIX */
 #else
@@ -110,9 +216,8 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 #endif	
 		{
 		    if (PROT_TRACE)
-			HTTrace("Read Socket. WOULD BLOCK soc %d\n",
-				isoc->sockfd);
-		    HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
+			HTTrace("Read Socket. WOULD BLOCK soc %d\n",net->sockfd);
+		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
 				     net->cbf, net->priority);
 		    return HT_WOULD_BLOCK;
 #ifdef __svr4__
@@ -134,53 +239,54 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
 		if (PROT_TRACE)
 		    HTTrace("Read Socket. Finished loading socket %d\n",
-			     isoc->sockfd);
+			     net->sockfd);
 		if(cbf)(*cbf)(request,HT_PROG_DONE,HT_MSG_NULL,NULL,NULL,NULL);
-	        HTEvent_UnRegister(isoc->sockfd, FD_READ);
+	        HTEvent_UnRegister(net->sockfd, FD_READ);
 		return HT_CLOSED;
 	    }
 
 	    /* Remember how much we have read from the input socket */
-	    isoc->write = isoc->buffer;
-	    isoc->read = isoc->buffer + b_read;
+	    ch->write = ch->data;
+	    ch->read = ch->data + b_read;
 
 #ifdef NOT_ASCII
 	    {
-		char *p = isoc->buffer;
-		while (p < isoc->read) {
+		char *p = ch->data;
+		while (p < ch->read) {
 		    *p = FROMASCII(*p);
 		    p++;
 		}
 	    }
 #endif
+
 	    if (PROT_TRACE)
 		HTTrace("Read Socket. %d bytes read from socket %d\n",
-			b_read, isoc->sockfd);
-	    net->bytes_read += b_read;
+			b_read, net->sockfd);
 
-	    {
-		HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
+	    if (!(ch->mode & HT_CH_INTERLEAVED)) {
+		HTAlertCallback * cbf = HTAlert_find(HT_PROG_READ);
+		net->bytes_read += b_read;
 		if (cbf)
 		    (*cbf)(request, HT_PROG_READ, HT_MSG_NULL,NULL,NULL,NULL);
 	    }
 	}
-	
+
 	/* Now push the data down the stream */
-	if ((status = (*target->isa->put_block)(target, isoc->buffer,
-						b_read)) != HT_OK) {
+	if ((status = (*net->target->isa->put_block)(net->target, ch->data,
+						     b_read)) != HT_OK) {
 	    if (status==HT_WOULD_BLOCK) {
 		if (PROT_TRACE)
 		    HTTrace("Read Socket. Target WOULD BLOCK\n");
-		HTEvent_UnRegister(isoc->sockfd, FD_READ);
+		HTEvent_UnRegister(net->sockfd, FD_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
 		if (PROT_TRACE) HTTrace("Read Socket. Target PAUSED\n");
-		HTEvent_UnRegister(isoc->sockfd, FD_READ);
+		HTEvent_UnRegister(net->sockfd, FD_READ);
 		return HT_PAUSE;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
 		    HTTrace("Read Socket. Target returns %d\n",status);
-		isoc->write = isoc->buffer + b_read;
+		ch->write = ch->data + b_read;
 		return status;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
@@ -188,9 +294,9 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 		return status;
 	    }
 	}
-	isoc->write = isoc->buffer + b_read;
+	ch->write = ch->data + b_read;
     } while (net->preemptive);
-    HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
+    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
 		     net->cbf, net->priority);
     return HT_WOULD_BLOCK;
 }
@@ -223,10 +329,9 @@ PUBLIC int HTSocket_DLLHackFclose (FILE * file)
 **   Returns    HT_LOADED	if finished reading
 **	      	HT_ERROR	if error,
 */
-PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
+PUBLIC int HTChannel_readFile (HTRequest * request, HTNet * net, FILE * fp)
 {
-    HTInputSocket *isoc = net->isoc;
-    HTStream *target = net->target;
+    HTChannel * ch = HTChannel_find(net->sockfd);
     int b_read;
     int status;
     if (!fp) {
@@ -235,27 +340,27 @@ PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
     }
 
     while(1) {
-	if ((b_read = fread(isoc->buffer, 1, INPUT_BUFFER_SIZE, fp))==0){
+	if ((b_read = fread(ch->data, 1, CHANNEL_BUFFER_SIZE, fp))==0){
 	    if (ferror(fp)) {
 		if (PROT_TRACE)
 		    HTTrace("Read File... READ ERROR\n");
 	    } else
 		return HT_LOADED;
 	}
-	isoc->write = isoc->buffer;
-	isoc->read = isoc->buffer + b_read;
+	ch->write = ch->data;
+	ch->read = ch->data + b_read;
 	if (PROT_TRACE)
 	    HTTrace("Read File... %d bytes read from file %p\n",
 		    b_read, fp);
 
 	/* Now push the data down the stream (we use blocking I/O) */
-	if ((status = (*target->isa->put_block)(target, isoc->buffer,
-						b_read)) != HT_OK) {
+	if ((status = (*net->target->isa->put_block)(net->target, ch->data,
+						     b_read)) != HT_OK) {
 	    if (PROT_TRACE)
 		HTTrace("Read File... Target ERROR\n");
 	    return status;
 	}
-	isoc->write = isoc->buffer + b_read;
+	ch->write = ch->data + b_read;
     }
 }
 
@@ -283,7 +388,7 @@ PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
 	me = HTNet_new(request, soc);
 	me->sockfd = soc;
 	me->target = request->output_stream;
-	me->isoc = HTInputSocket_new(soc);
+	HTChannel_new(net->sockfd, HT_CH_PLAIN, NO);
 	net = me;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	HTNet_delete(request->net, HT_INTERRUPTED);
@@ -297,7 +402,7 @@ PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
 
     /* In this load function we only have one state: READ */
     {
-	int status = HTSocketRead(request, net);
+	int status = HTChannel_readSocket(request, net);
 	if (status == HT_WOULD_BLOCK)
 	    return HT_OK;
 	else if (status == HT_CLOSED)
@@ -307,3 +412,4 @@ PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
     }
     return HT_OK;
 }
+
