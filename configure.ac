@@ -32,27 +32,30 @@ AM_CONFIG_HEADER(wwwconf.h)
 
 dnl our own functions
 
-AC_DEFUN(AC_ADDLIB,[
-  LIBS="$LIBS $1"
-])
+AC_DEFUN([AC_ADDLIB],[LIBS="$LIBS $1"])
 
 dnl taken from the DDD configure.in
-AC_DEFUN(AC_STRUCT_WINSIZE,
-[AC_MSG_CHECKING(for struct winsize in sys/ioctl.h and termios.h)
-AC_CACHE_VAL(libwww_cv_struct_winsize_header,
-[AC_TRY_COMPILE([#include <sys/types.h>
-#include <sys/ioctl.h>], [struct winsize x;],
-  libwww_cv_struct_winsize_header=ioctl_h,
-  [AC_TRY_COMPILE([#include <sys/types.h>
-#include <termios.h>], [struct winsize x;],
-  libwww_cv_struct_winsize_header=termios_h, libwww_cv_struct_winsize_header=other)
-])])
-if test $libwww_cv_struct_winsize_header = ioctl_h; then
-  AC_MSG_RESULT(sys/ioctl.h)
-  AC_DEFINE(HAVE_WINSIZE)
-else
-  AC_MSG_RESULT(not found)
-fi
+AC_DEFUN([AC_STRUCT_WINSIZE],
+	 [AC_MSG_CHECKING( [for struct winsize in sys/ioctl.h and termios.h] )
+	  AC_CACHE_VAL( [libwww_cv_struct_winsize_header],
+			[AC_TRY_COMPILE( [#include <sys/types.h>
+					  #include <sys/ioctl.h>
+					 ],	  
+					 [struct winsize x;],
+					 libwww_cv_struct_winsize_header=ioctl_h,
+					 [AC_TRY_COMPILE( [#include <sys/types.h> 
+							   #include <termios.h>], 
+							   [struct winsize x;],
+							   libwww_cv_struct_winsize_header=termios_h, 
+							   libwww_cv_struct_winsize_header=other)
+					])
+			])
+	if test $libwww_cv_struct_winsize_header = ioctl_h; then
+	  AC_MSG_RESULT(sys/ioctl.h)
+	  AC_DEFINE(HAVE_WINSIZE)
+	else
+	  AC_MSG_RESULT(not found)
+	fi
 ])
 
 dnl Check if time_t is long
