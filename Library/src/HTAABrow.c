@@ -848,7 +848,7 @@ PUBLIC int HTDigest_generate (HTRequest * request, void * context, int mode)
 	     prompt_digest_user(request, realm, digest) == HT_OK) ||
 	    (!digest->retry && digest->uid)) {
 	/* @@@ here we should generate a new cnonce value */
-	    digest->cnonce = "012345678";
+	    HTSACopy (&(digest->cnonce), "012345678");
 	    digest->retry = NO;
 	    return digest_credentials(request, digest);
 	} else {
