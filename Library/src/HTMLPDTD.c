@@ -322,6 +322,8 @@ static attr ul_attr[HTML_UL_ATTRIBUTES+1] = {
 **	Must be in alphabetical order.
 **
 **	HTML is included to allow HTML documents to be parsed as a subset.
+**	TITLE is changed to type SGML_MIXED so it get parsed as well
+**	Henrik 08/03-94
 **
 **    Name, 	Attributes, 		content
 */
@@ -404,7 +406,7 @@ static HTTag tags[HTMLP_ELEMENTS] = {
     { "TD"	, td_attr,	HTML_TABLE_ATTRIBUTES,	SGML_MIXED },
     { "TEXTAREA", textarea_attr,HTML_TEXTAREA_ATTRIBUTES,SGML_MIXED},
     { "TH"	, td_attr,	HTML_TD_ATTRIBUTES,	SGML_MIXED },
-    { "TITLE"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_CDATA },
+    { "TITLE"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "TR"	, id_attr,	HTML_ID_ATTRIBUTE,	SGML_MIXED },
     { "TT"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "U"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },

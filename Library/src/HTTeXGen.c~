@@ -3,6 +3,9 @@
 **
 ** 	This version of the HTML object sends LaTeX to the output stream.
 ** 	No attributes are considered in the translation!
+** 	The module uses simple 1:1 table-conversions, but this COULD be
+**	expanded to a stack-machine. This would then be in start_element and
+**	end_element...
 **						Henrik 07/03-94
 */
 
@@ -41,32 +44,33 @@ struct _HTStructured {
 	BOOL				sensitive;          /* Can we put \n */
 	BOOL				preformatted;     /* Is it verbatim? */
 	BOOL				markup;     /* If doing LaTeX markup */
+	BOOL				startup;      /* To skip MIME header */
 };
 
 PRIVATE char *TeX_names[][2] = {
     { "",       	""		},	/* HTML_A		*/
-    { "02",		""		},	/* HTML_ABBREV		*/
+    { "",		""		},	/* HTML_ABBREV		*/
     { "\n\\begin{abstract}\n","\n\\end{abstract}\n"},  /* HTML_ABSTRACT	*/
-    { "03",		""		},	/* HTML_ACRONYM		*/
-    { "04",		""		},	/* HTML_ADDED		*/
+    { "",		""		},	/* HTML_ACRONYM		*/
+    { "",		""		},	/* HTML_ADDED		*/
     { "{\\it ",		"}"		},	/* HTML_ADDRESS		*/
-    { "06",		""		},	/* HTML_ARG		*/
+    { "",		""		},	/* HTML_ARG		*/
     { "{\\bf ",		"}"		},	/* HTML_B		*/
-    { "07",		""		},	/* HTML_BASE		*/
-    { "08",		""		},	/* HTML_BLOCKQUOTE 	*/
+    { "",		""		},	/* HTML_BASE		*/
+    { "{\\sf ",		"}"		},	/* HTML_BLOCKQUOTE 	*/
     { "", 		""		},	/* HTML_BODY     	*/
     { "",		""		},	/* HTML_BOX		*/
-    { "10",		""		},	/* HTML_BR		*/
-    { "11",		""		},	/* HTML_BYLINE		*/
-    { "12",		""		},	/* HTML_CAPTION		*/
-    { "1B",		""		},	/* HTML_CHANGED		*/
+    { "",		""		},	/* HTML_BR		*/
+    { "",		""		},	/* HTML_BYLINE		*/
+    { "",		""		},	/* HTML_CAPTION		*/
+    { "",		""		},	/* HTML_CHANGED		*/
     { "\\cite{",      	"}"		},	/* HTML_CITE		*/
-    { "14",		""		},	/* HTML_CMD		*/
+    { "",		""		},	/* HTML_CMD		*/
     { "{\\tt ",		"}"		},	/* HTML_CODE		*/
     { "\n\\typeout{",	"}\n"		},	/* HTML_COMMENT		*/
     { "]",		""		},	/* HTML_DD		*/
-    { "16",		""		},	/* HTML_DFN		*/
-    { "17",		""		},	/* HTML_DIR		*/
+    { "",		""		},	/* HTML_DFN		*/
+    { "",		""		},	/* HTML_DIR		*/
     { "\n\\begin{description}","\n\\end{description}\n"}, /* HTML_DL 	*/
     { "\n\\item[",	""		},	/* HTML_DT		*/
     { "{\\em ",		"}"		},	/* HTML_EM		*/
@@ -88,46 +92,46 @@ PRIVATE char *TeX_names[][2] = {
     { "",		""		},	/* HTML_IMAGE		*/
     { "",		""		},	/* HTML_IMG		*/
     { "",		""		},	/* HTML_INPUT		*/
-    { "25",		""		},	/* HTML_ISINDEX		*/
+    { "",		""		},	/* HTML_ISINDEX		*/
     { "{\\tt ",		"}"		},	/* HTML_KBD		*/
-    { "26",		""		},	/* HTML_L		*/
+    { "",		""		},	/* HTML_L		*/
     { "\n\\item ",      "" 	        },	/* HTML_LI		*/
-    { "27",		""		},	/* HTML_LINK		*/
-    { "28",		""		},	/* HTML_LISTING		*/
-    { "29",		""		},	/* HTML_LIT		*/
-    { "30",		""		},	/* HTML_MARGIN		*/
-    { "31",		""		},	/* HTML_MATH		*/
-    { "32",		""		},	/* HTML_MENU		*/
+    { "",		""		},	/* HTML_LINK		*/
+    { "",		""		},	/* HTML_LISTING		*/
+    { "",		""		},	/* HTML_LIT		*/
+    { "",		""		},	/* HTML_MARGIN		*/
+    { "",		""		},	/* HTML_MATH		*/
+    { "",		""		},	/* HTML_MENU		*/
     { "",		""		},	/* HTML_NEXTID		*/
-    { "34",		""		},	/* HTML_NOTE		*/
+    { "",		""		},	/* HTML_NOTE		*/
     { "\n\\begin{enumerate}\n","\n\\end{enumerate}\n"}, /* HTML_OL     	*/
-    { "35",		""		},	/* HTML_OPTION		*/
-    { "36",		""		},	/* HTML_OVER		*/
+    { "",		""		},	/* HTML_OPTION		*/
+    { "",		""		},	/* HTML_OVER		*/
     { "\n\n",		""		},	/* HTML_P		*/
-    { "38",		""		},	/* HTML_PERSON		*/
-    { "39",		""		},	/* HTML_PLAINTEXT	*/
+    { "",		""		},	/* HTML_PERSON		*/
+    { "",		""		},	/* HTML_PLAINTEXT	*/
     { "\n\\begin{verbatim}"," \\end{verbatim}\n"},  /* HTML_PRE        */
-    { "40",		""		},	/* HTML_Q		*/
+    { "",		""		},	/* HTML_Q		*/
     { "\\begin{quote}",	"\\end{quote}"}, 	/* HTML_QUOTE		*/
-    { "41",		""		},	/* HTML_RENDER		*/
-    { "42",		""		},	/* HTML_REMOVED		*/
-    { "43",		""		},	/* HTML_S		*/
-    { "44",		""		},	/* HTML_SAMP		*/
-    { "45", 		""		},	/* HTML_SELECT		*/
+    { "",		""		},	/* HTML_RENDER		*/
+    { "",		""		},	/* HTML_REMOVED		*/
+    { "",		""		},	/* HTML_S		*/
+    { "",		""		},	/* HTML_SAMP		*/
+    { "", 		""		},	/* HTML_SELECT		*/
     { "{\\bf ",		"}"		},	/* HTML_STRONG		*/
-    { "46", 		""		},	/* HTML_SUB		*/
-    { "47",		""		},	/* HTML_SUP		*/
-    { "48",		""		},	/* HTML_TAB		*/
-    { "49",		""		},	/* HTML_TABLE		*/
-    { "50",		""		},	/* HTML_TD		*/
-    { "51",		""		},	/* HTML_TEXTAREA	*/
-    { "52",		""		},	/* HTML_TH		*/
-    { "\\title{",	"}\n\\author{}\n\\maketitle\n"},  /* HTML_TITLE */
-    { "53",		""		},	/* HTML_TR		*/
-    { "54",		""		},	/* HTML_TT		*/
-    { "55",		""		},	/* HTML_U		*/
+    { "", 		""		},	/* HTML_SUB		*/
+    { "",		""		},	/* HTML_SUP		*/
+    { "",		""		},	/* HTML_TAB		*/
+    { "",		""		},	/* HTML_TABLE		*/
+    { "",		""		},	/* HTML_TD		*/
+    { "",		""		},	/* HTML_TEXTAREA	*/
+    { "",		""		},	/* HTML_TH		*/
+    { "\n\\title{",	"}\n\\author{}\n\\maketitle\n"},  /* HTML_TITLE */
+    { "",		""		},	/* HTML_TR		*/
+    { "",		""		},	/* HTML_TT		*/
+    { "",		""		},	/* HTML_U		*/
     { "\n\\begin{itemize}","\n\\end{itemize}\n"},   /* HTML_UL		*/
-    { "56",		""		},	/* HTML_VAR		*/
+    { "",		""		},	/* HTML_VAR		*/
     { "{\\sf ",		"}"		}	/* HTML_XMP		*/
 };
 
@@ -140,7 +144,7 @@ PRIVATE char *TeX_entities[] = {
     "\\~{A} ", 		/*"Atilde",	 capital A, tilde */ 
     "\\\"{A} ",		/*"Auml",	 capital A, dieresis or umlaut mark */ 
     "\\c{C} ",		/*"Ccedil",	 capital C, cedilla */ 
-    "",		/*"ETH",	 capital Eth, Icelandic */ 
+    "\\OE",		/*"ETH",	 capital Eth, Icelandic */ 
     "\\\'{E} ",		/*"Eacute",	 capital E, acute accent */ 
     "\\^{E} ",		/*"Ecirc",	 capital E, circumflex accent */ 
     "\\`{E} ",		/*"Egrave",	 capital E, grave accent */ 
@@ -174,7 +178,7 @@ PRIVATE char *TeX_entities[] = {
     "\\\'{e} ",		/*"eacute",	 small e, acute accent */ 
     "\\^{c} ",		/*"ecirc",	 small e, circumflex accent */ 
     "\\`{c} ",		/*"egrave",	 small e, grave accent */ 
-    "",		/*"eth",	 small eth, Icelandic */ 
+    "\\oe",		/*"eth",	 small eth, Icelandic */ 
     "\\\"{e} ",		/*"euml",	 small e, dieresis or umlaut mark */ 
     ">",		/*"gt",	 greater than */ 
     "\\\'{\\i} ",      	/*"iacute",	 small i, acute accent */ 
@@ -219,6 +223,8 @@ PRIVATE void HTTeXGen_flush ARGS1(HTStructured *, me)
 */
 PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 {
+    if (!me->startup)		                      /* To skip MIME header */
+	return;
     if (c=='\n') {
 	if (me->markup || me->preformatted) {     /* Put out as is and flush */
 	    *me->write_pointer++ = c;
@@ -319,6 +325,7 @@ PRIVATE void HTTeXGen_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 **	-------------
 **
 **     	No attributes are put to the output		Henrik 07/03-94
+**	Does no assumptions of WHAT element is started...
 */
 PRIVATE void HTTeXGen_start_element ARGS4(
 	HTStructured *, 	me,
@@ -326,6 +333,7 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 	CONST BOOL*,	 	present,
 	CONST char **,		value)
 {
+    me->startup = YES;			        /* Now, let's get down to it */
     if (me->preformatted == YES)	       /* Don't start markup in here */
 	return;
     if (element_number == HTML_PRE)
@@ -342,6 +350,8 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 	element_number == HTML_H7 ||
 	element_number == HTML_TITLE)
 	me->sensitive = YES;
+    else if (element_number == HTML_DD)         /* Only way to turn <DT> off */
+	me->sensitive = NO;
     me->markup = element_number == HTML_A ? NO : YES;
     HTTeXGen_put_string(me, *TeX_names[element_number]);
     me->markup = NO;
@@ -352,6 +362,7 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 **		-----------
 **
 **	Ends an markup element			Henrik 07/03-94
+**	Does no assumptions of WHAT element is ended...
 */
 PRIVATE void HTTeXGen_end_element ARGS2(HTStructured *, me,
 					int , element_number)
@@ -364,7 +375,7 @@ PRIVATE void HTTeXGen_end_element ARGS2(HTStructured *, me,
     me->markup = NO;
     if (element_number == HTML_CITE ||	
 	element_number == HTML_COMMENT ||
-	element_number == HTML_DT ||
+	element_number == HTML_DL ||
 	element_number == HTML_H1 ||
 	element_number == HTML_H2 ||
 	element_number == HTML_H3 ||
@@ -440,7 +451,7 @@ PUBLIC HTStream* HTMLToTeX ARGS5(
 	HTStream *,		output_stream)
 {
     HTStructured* me = (HTStructured*) calloc(1, sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "PlainToHTML");    
+    if (me == NULL) outofmem(__FILE__, "HTMLToTeX");    
 
     me->isa = (HTStructuredClass*) &HTTeXGeneration;
     me->dtd = &HTMLP_dtd;
@@ -449,7 +460,7 @@ PUBLIC HTStream* HTMLToTeX ARGS5(
     me->write_pointer = me->buffer;
     me->line_break = 	me->buffer;
     (*me->targetClass.put_string)(me->target,
-        "\\documentstyle[11pt]{report}\n\\begin{document}");
+        "\\documentstyle[11pt]{report}\n\\begin{document}\n");
     return SGML_new(&HTMLP_dtd, me);
 }
 

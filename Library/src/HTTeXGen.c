@@ -137,70 +137,70 @@ PRIVATE char *TeX_names[][2] = {
 
 PRIVATE char *TeX_entities[] = {
     "\\AE ",		/*"AElig",	 capital AE diphthong (ligature) */ 
-    "\\\'{A} ",		/*"Aacute",	 capital A, acute accent */ 
-    "\\^{A} ",		/*"Acirc",	 capital A, circumflex accent */ 
-    "\\`{A} ",		/*"Agrave",	 capital A, grave accent */ 
-    "\\AA ",   	 	/*"Aring",	 capital A, ring */ 
-    "\\~{A} ", 		/*"Atilde",	 capital A, tilde */ 
-    "\\\"{A} ",		/*"Auml",	 capital A, dieresis or umlaut mark */ 
-    "\\c{C} ",		/*"Ccedil",	 capital C, cedilla */ 
-    "\\OE",		/*"ETH",	 capital Eth, Icelandic */ 
-    "\\\'{E} ",		/*"Eacute",	 capital E, acute accent */ 
-    "\\^{E} ",		/*"Ecirc",	 capital E, circumflex accent */ 
-    "\\`{E} ",		/*"Egrave",	 capital E, grave accent */ 
-    "\\\"{E} ",		/*"Euml",	 capital E, dieresis or umlaut mark */ 
-    "\\\'{I} ",		/*"Iacute",	 capital I, acute accent */ 
-    "\\^{I} ",		/*"Icirc",	 capital I, circumflex accent */ 
-    "\\`{I} ",		/*"Igrave",	 capital I, grave accent */ 
-    "\\\"{I} ",		/*"Iuml",	 capital I, dieresis or umlaut mark */ 
-    "\\~{N} ",		/*"Ntilde",	 capital N, tilde */ 
-    "\\\'{O} ",		/*"Oacute",	 capital O, acute accent */ 
-    "\\^{O} ",		/*"Ocirc",	 capital O, circumflex accent */ 
-    "\\`{O} ",		/*"Ograve",	 capital O, grave accent */ 
+    "\\\'{A}",		/*"Aacute",	 capital A, acute accent */ 
+    "\\^{A}",		/*"Acirc",	 capital A, circumflex accent */ 
+    "\\`{A}",		/*"Agrave",	 capital A, grave accent */ 
+    "\\AA",   	 	/*"Aring",	 capital A, ring */ 
+    "\\~{A}", 		/*"Atilde",	 capital A, tilde */ 
+    "\\\"{A}",		/*"Auml",	 capital A, dieresis or umlaut mark */ 
+    "\\c{C}",		/*"Ccedil",	 capital C, cedilla */ 
+    "\\OE ",		/*"ETH",	 capital Eth, Icelandic */ 
+    "\\\'{E}",		/*"Eacute",	 capital E, acute accent */ 
+    "\\^{E}",		/*"Ecirc",	 capital E, circumflex accent */ 
+    "\\`{E}",		/*"Egrave",	 capital E, grave accent */ 
+    "\\\"{E}",		/*"Euml",	 capital E, dieresis or umlaut mark */ 
+    "\\\'{I}",		/*"Iacute",	 capital I, acute accent */ 
+    "\\^{I}",		/*"Icirc",	 capital I, circumflex accent */ 
+    "\\`{I}",		/*"Igrave",	 capital I, grave accent */ 
+    "\\\"{I}",		/*"Iuml",	 capital I, dieresis or umlaut mark */ 
+    "\\~{N}",		/*"Ntilde",	 capital N, tilde */ 
+    "\\\'{O}",		/*"Oacute",	 capital O, acute accent */ 
+    "\\^{O}",		/*"Ocirc",	 capital O, circumflex accent */ 
+    "\\`{O}",		/*"Ograve",	 capital O, grave accent */ 
     "\\O ",            	/*"Oslash",	 capital O, slash */ 
-    "\\~{O} ",		/*"Otilde",	 capital O, tilde */ 
-    "\\\"{O} ",        	/*"Ouml",	 capital O, dieresis or umlaut mark */ 
-    "",		/*"THORN",	 capital THORN, Icelandic */ 
-    "\\\'{U} ",		/*"Uacute",	 capital U, acute accent */ 
-    "\\^{U} ",		/*"Ucirc",	 capital U, circumflex accent */ 
-    "\\`{U} ",		/*"Ugrave",	 capital U, grave accent */ 
-    "\\\"{U} ",		/*"Uuml",	 capital U, dieresis or umlaut mark */ 
-    "\\\'{Y} ",		/*"Yacute",	 capital Y, acute accent */ 
-    "\\\'{a} ",		/*"aacute",	 small a, acute accent */ 
-    "\\^{a} ",		/*"acirc",	 small a, circumflex accent */ 
+    "\\~{O}",		/*"Otilde",	 capital O, tilde */ 
+    "\\\"{O}",        	/*"Ouml",	 capital O, dieresis or umlaut mark */ 
+    " ",      	/*"THORN",	 capital THORN, Icelandic */ 
+    "\\\'{U}",		/*"Uacute",	 capital U, acute accent */ 
+    "\\^{U}",		/*"Ucirc",	 capital U, circumflex accent */ 
+    "\\`{U}",		/*"Ugrave",	 capital U, grave accent */ 
+    "\\\"{U}",		/*"Uuml",	 capital U, dieresis or umlaut mark */ 
+    "\\\'{Y}",		/*"Yacute",	 capital Y, acute accent */ 
+    "\\\'{a}",		/*"aacute",	 small a, acute accent */ 
+    "\\^{a}",		/*"acirc",	 small a, circumflex accent */ 
     "\\ae ",		/*"aelig",	 small ae diphthong (ligature) */ 
-    "\\`{a} ",		/*"agrave",	 small a, grave accent */ 
+    "\\`{a}",		/*"agrave",	 small a, grave accent */ 
     "&",            	/*"amp",	 ampersand */ 
     "\\aa ",		/*"aring",	 small a, ring */ 
-    "\\~{a} ",		/*"atilde",	 small a, tilde */ 
-    "\\\"{a} ",		/*"auml",	 small a, dieresis or umlaut mark */ 
-    "\\c{c} ",		/*"ccedil",	 small c, cedilla */ 
-    "\\\'{e} ",		/*"eacute",	 small e, acute accent */ 
-    "\\^{c} ",		/*"ecirc",	 small e, circumflex accent */ 
-    "\\`{c} ",		/*"egrave",	 small e, grave accent */ 
-    "\\oe",		/*"eth",	 small eth, Icelandic */ 
-    "\\\"{e} ",		/*"euml",	 small e, dieresis or umlaut mark */ 
+    "\\~{a}",		/*"atilde",	 small a, tilde */ 
+    "\\\"{a}",		/*"auml",	 small a, dieresis or umlaut mark */ 
+    "\\c{c}",		/*"ccedil",	 small c, cedilla */ 
+    "\\\'{e}",		/*"eacute",	 small e, acute accent */ 
+    "\\^{c}",		/*"ecirc",	 small e, circumflex accent */ 
+    "\\`{c}",		/*"egrave",	 small e, grave accent */ 
+    "\\oe ",		/*"eth",	 small eth, Icelandic */ 
+    "\\\"{e}",		/*"euml",	 small e, dieresis or umlaut mark */ 
     ">",		/*"gt",	 greater than */ 
-    "\\\'{\\i} ",      	/*"iacute",	 small i, acute accent */ 
-    "\\^{\\i} ",       	/*"icirc",	 small i, circumflex accent */ 
-    "\\`{\\i} ",       	/*"igrave",	 small i, grave accent */ 
-    "\\\"{\\i} ",     	/*"iuml",	 small i, dieresis or umlaut mark */ 
+    "\\\'{\\i}",      	/*"iacute",	 small i, acute accent */ 
+    "\\^{\\i}",       	/*"icirc",	 small i, circumflex accent */ 
+    "\\`{\\i}",       	/*"igrave",	 small i, grave accent */ 
+    "\\\"{\\i}",     	/*"iuml",	 small i, dieresis or umlaut mark */ 
     "<",		/*"lt",	 less than */ 
-    "\\~{n} ",		/*"ntilde",	 small n, tilde */ 
-    "\\\'{o} ",		/*"oacute",	 small o, acute accent */ 
-    "\\~{o} ",		/*"ocirc",	 small o, circumflex accent */ 
-    "\\`{o} ",		/*"ograve",	 small o, grave accent */ 
+    "\\~{n}",		/*"ntilde",	 small n, tilde */ 
+    "\\\'{o}",		/*"oacute",	 small o, acute accent */ 
+    "\\~{o}",		/*"ocirc",	 small o, circumflex accent */ 
+    "\\`{o}",		/*"ograve",	 small o, grave accent */ 
     "\\o ",            	/*"oslash",	 small o, slash */ 
-    "\\~{o} ",         	/*"otilde",	 small o, tilde */ 
-    "\\\"{o} ",         /*"ouml",	 small o, dieresis or umlaut mark */ 
+    "\\~{o}",         	/*"otilde",	 small o, tilde */ 
+    "\\\"{o}",	   	/*"ouml",	 small o, dieresis or umlaut mark */ 
     "\\ss ",		/*"szlig",	 small sharp s, German (sz ligature)*/ 
-    "",		/*"thorn",	 small thorn, Icelandic */ 
-    "\\\'{u} ",        	/*"uacute",	 small u, acute accent */ 
-    "\\^{u} ",        	/*"ucirc",	 small u, circumflex accent */ 
-    "\\`{u} ",         	/*"ugrave",	 small u, grave accent */ 
-    "\\\"{u} ",        	/*"uuml",	 small u, dieresis or umlaut mark */ 
-    "\\\'{y} ",		/*"yacute",	 small y, acute accent */ 
-    "\\\"{y} "	    	/*"yuml",	 small y, dieresis or umlaut mark */ 
+    " ",       	/*"thorn",	 small thorn, Icelandic */ 
+    "\\\'{u}",        	/*"uacute",	 small u, acute accent */ 
+    "\\^{u}",        	/*"ucirc",	 small u, circumflex accent */ 
+    "\\`{u}",         	/*"ugrave",	 small u, grave accent */ 
+    "\\\"{u}",        	/*"uuml",	 small u, dieresis or umlaut mark */ 
+    "\\\'{y}",		/*"yacute",	 small y, acute accent */ 
+    "\\\"{y}"	    	/*"yuml",	 small y, dieresis or umlaut mark */ 
 };
 
 
@@ -246,7 +246,6 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 	    c=='{' || c=='}' || c=='_') {
 	    *me->write_pointer++ = '\\';
 	    *me->write_pointer++ = c;
-	    *me->write_pointer++ = ' ';
 	} else if (c=='\\') {			            /* Special names */
 	    char *temp = "$\\backslash$";
 	    strcpy(me->write_pointer, temp);
