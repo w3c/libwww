@@ -61,16 +61,16 @@ PUBLIC char *HTAA_encryptPasswd ARGS1(CONST char *, password)
     if (!(result = (char*)malloc(13*((strlen(password)+7)/8) + 1)))
 	outofmem(__FILE__, "HTAA_encryptPasswd");
 
-    *result = NULL;
+    *result = (char)0;
     while (len > 0) {
 	salt[0] = salt_chars[random%64];
 	salt[1] = salt_chars[(random/64)%64];
-	salt[2] = NULL;
+	salt[2] = (char)0;
 
 	strncpy(chunk, cur, 8);
-	chunk[8] = NULL;
+	chunk[8] = (char)0;
 
-	tmp = crypt(password, salt);
+	tmp = crypt((char*)password, salt);  /*crypt() doesn't change its args*/
 	strcat(result, tmp);
 	free(tmp);
 
@@ -113,7 +113,7 @@ PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
     if (!(result = (char*)malloc(len + 1)))
 	outofmem(__FILE__, "HTAA_encryptPasswd");
 
-    *result = NULL;
+    *result = (char)0;
     while (len > 0) {
 	char salt[3];
 	char chunk[9];
@@ -123,12 +123,12 @@ PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
 
 	salt[0] = *cur2;
 	salt[1] = *(cur2+1);
-	salt[2] = NULL;
+	salt[2] = (char)0;
 
 	strncpy(chunk, cur1, 8);
-	chunk[8] = NULL;
+	chunk[8] = (char)0;
 
-	tmp = crypt(password, salt);
+	tmp = crypt((char*)password, salt);
 	strcat(result, tmp);
 	free(tmp);
 

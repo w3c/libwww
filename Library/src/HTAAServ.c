@@ -424,7 +424,7 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
     StrAllocCopy(local_copy, url);
     {
 	char *keywords = strchr(local_copy, '?');
-	if (keywords) *keywords = NULL;	/* Chop off keywords */
+	if (keywords) *keywords = (char)0;	/* Chop off keywords */
     }
     HTSimplify(local_copy);	/* Remove ".." etc. */
     pathname = HTTranslate(local_copy);
@@ -574,7 +574,7 @@ PUBLIC char *HTAA_composeAuthHeaders NOARGS
     FREE(result);	/* From previous call */
     if (!(result = (char*)malloc(4096)))	/* @@ */
 	outofmem(__FILE__, "HTAA_composeAuthHeaders");
-    *result = NULL;
+    *result = (char)0;
 
     for (scheme=0; scheme < HTAA_MAX_SCHEMES; scheme++) {
 	if (-1 < HTList_indexOf(prot->valid_schemes, (void*)scheme)) {

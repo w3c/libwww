@@ -1,5 +1,5 @@
 
-/* MODULE							HTAABoth.c
+/* MODULE							HTAAUtil.c
 **		COMMON PARTS OF ACCESS AUTHORIZATION MODULE
 **			FOR BOTH SERVER AND BROWSER
 **
@@ -268,7 +268,7 @@ PUBLIC char *HTAA_makeProtectionTemplate ARGS1(CONST char *, docname)
 	slash = strrchr(template, '/');
 	if (slash) slash++;
 	else slash = template;
-	*slash = NULL;
+	*slash = (char)0;
 	StrAllocCat(template, "*");
     }
     else StrAllocCopy(template, "*");
@@ -291,7 +291,7 @@ PUBLIC char *HTAA_makeProtectionTemplate ARGS1(CONST char *, docname)
 /*
 ** Kill trailing whitespace starting from *(s-1) backwords
 */
-#define KILLWS(s) {char *c=s-1; while (*c==' ' || *c=='\t') *(c--)=NULL;}
+#define KILLWS(s) {char *c=s-1; while (*c==' ' || *c=='\t') *(c--)=(char)0;}
 
 
 /* PUBLIC						HTAA_parseArgList()
@@ -339,7 +339,7 @@ PUBLIC HTAssocList *HTAA_parseArgList ARGS1(char *, str)
 	KILLWS(cur);	/* Kill trailing whitespace */
 
 	if (*cur == '=') {			/* Name followed by a value */
-	    *(cur++) = NULL;			/* Terminate name */
+	    *(cur++) = (char)0;			/* Terminate name */
 	    StrAllocCopy(name, str);
 	    SKIPWS(cur);			/* Skip WS leading the value */
 	    str = cur;
@@ -348,7 +348,7 @@ PUBLIC HTAssocList *HTAA_parseArgList ARGS1(char *, str)
 		cur = str;
 		while (*cur  &&  *cur != '"') cur++;
 		if (*cur == '"')
-		    *(cur++) = NULL;		/* Terminate value */
+		    *(cur++) = (char)0;	/* Terminate value */
 		/* else it is lacking terminating quote */
 		SKIPWS(cur);			/* Skip WS leading comma */
 		if (*cur == ',') cur++;		/* Skip separating colon */
@@ -357,13 +357,13 @@ PUBLIC HTAssocList *HTAA_parseArgList ARGS1(char *, str)
 		while (*cur  &&  *cur != ',') cur++;
 		KILLWS(cur);			/* Kill trailing whitespace */
 		if (*cur == ',')
-		    *(cur++) = NULL;
+		    *(cur++) = (char)0;
 		/* else *cur already NULL */
 	    }
 	}
 	else {	/* No name, just a value */
 	    if (*cur == ',') 
-		*(cur++) = NULL;		/* Terminate value */
+		*(cur++) = (char)0;		/* Terminate value */
 	    /* else last value on line (already terminated by NULL) */
 	    StrAllocCopy(name, "nnn");	/* Room for item order number */
 	    sprintf(name, "%d", index); /* Item order number for name */
@@ -412,11 +412,11 @@ PUBLIC void HTAA_setupReader ARGS3(char *,	start_of_headers,
     start_pointer = buffer;
     if (start_of_headers) {
 	strncpy(buffer, start_of_headers, length);
-	buffer[length] = NULL;
+	buffer[length] = (char)0;
 	end_pointer = buffer + length;
     }
     else {
-	*start_pointer = NULL;
+	*start_pointer = (char)0;
 	end_pointer = start_pointer;
     }
     in_soc = soc;
@@ -470,7 +470,7 @@ PUBLIC char *HTAA_getUnfoldedLine NOARGS
 	    }
 	    start_pointer = buffer;
 	    end_pointer = buffer + count;
-	    *end_pointer = NULL;
+	    *end_pointer = (char)0;
 #ifdef NOT_ASCII
 	    cur = start_pointer;
 	    while (cur < end_pointer) {
@@ -501,9 +501,9 @@ PUBLIC char *HTAA_getUnfoldedLine NOARGS
 	/* Terminating line */
 
 	if (cur < end_pointer) {	/* So *cur==LF, terminate line */
-	    *cur = NULL;		/* Overwrite LF */
+	    *cur = (char)0;		/* Overwrite LF */
 	    if (*(cur-1) == '\r')
-		*(cur-1) = NULL;	/* Overwrite CR */
+		*(cur-1) = (char)0;	/* Overwrite CR */
 	    peek_for_folding = YES;	/* Check for a continuation line */
 	}
 

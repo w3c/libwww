@@ -43,7 +43,7 @@ PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
   URep=Reply;
   while (*URep) {
     if (*URep == '\n') {
-	*URep = NULL;	/* Overwrite newline */
+	*URep = (char)0;	/* Overwrite newline */
 	break;
     }
     *URep=TOUPPER(*URep);
@@ -68,7 +68,7 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
     if (deflt) fprintf(stderr, " (RETURN for [%s]) ", deflt);
     
     fgets(Tmp, 200, stdin);
-    Tmp[strlen(Tmp)-1] = NULL;	/* Overwrite newline */
+    Tmp[strlen(Tmp)-1] = (char)0;	/* Overwrite newline */
    
     StrAllocCopy(rep, *Tmp ? Tmp : deflt);
     return rep;

@@ -555,7 +555,7 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
 	outofmem(__FILE__, "compose_auth_string");
 
     if (realm->username) strcpy(cleartext, realm->username);
-    else *cleartext = NULL;
+    else *cleartext = (char)0;
 
     strcat(cleartext, ":");
 
@@ -760,7 +760,7 @@ PUBLIC BOOL HTAA_shouldRetryWithAuth ARGS3(char *, start_of_headers,
 	fprintf(stderr, "Server reply header lines:\n");
 
     HTAA_setupReader(start_of_headers, length, soc);
-    while (NULL != (line = HTAA_getUnfoldedLine())  &&  NULL != *line ) {
+    while (NULL != (line = HTAA_getUnfoldedLine())  &&  *line != (char)0) {
 
 	if (TRACE) fprintf(stderr, "%s\n", line);
 

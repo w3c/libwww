@@ -161,7 +161,7 @@ PRIVATE void HTAA_setIds ARGS2(HTAAProt *,	prot,
 	StrAllocCopy(local_copy, ids);
 	point = strchr(local_copy, '.');
 	if (point) {
-	    *(point++) = NULL;
+	    *(point++) = (char)0;
 	    StrAllocCopy(prot->gid_name, point);
 	}
 	else {

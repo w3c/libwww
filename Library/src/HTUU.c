@@ -82,8 +82,8 @@ PUBLIC int HTUU_encode ARGS3(unsigned char *,	bufin,
 
    for (i=0; i<nbytes; i += 3) {
       *(outptr++) = ENC(*bufin >> 2);            /* c1 */
-      *(outptr++) = ENC((*bufin << 4) & 060 | (bufin[1] >> 4) & 017);  /* c2 */
-      *(outptr++) = ENC((bufin[1] << 2) & 074 | (bufin[2] >> 6) & 03); /* c3 */
+      *(outptr++) = ENC(((*bufin << 4) & 060) | ((bufin[1] >> 4) & 017)); /*c2*/
+      *(outptr++) = ENC(((bufin[1] << 2) & 074) | ((bufin[2] >> 6) & 03));/*c3*/
       *(outptr++) = ENC(bufin[2] & 077);         /* c4 */
 
       bufin += 3;

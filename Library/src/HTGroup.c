@@ -80,7 +80,7 @@ PRIVATE void syntax_error ARGS3(FILE *,	 fp,
 
     while ((ch = getc(fp)) != EOF  &&  ch != '\n')
 	if (cnt < 40) buffer[cnt++] = ch;
-    buffer[cnt] = NULL;
+    buffer[cnt] = (char)0;
 
     if (TRACE)
 	fprintf(stderr, "%s %d before: '%s'\nHTGroup.c: %s (got %s)\n",
@@ -482,13 +482,13 @@ PRIVATE BOOL part_match ARGS2(CONST char *, tcur,
     cnt=0;
     while (cnt < 3  &&  *cur && *cur != '.')
 	required[cnt++] = *(cur++);
-    required[cnt] = NULL;
+    required[cnt] = (char)0;
 
     cur=icur;
     cnt=0;
     while (cnt < 3  &&  *cur && *cur != '.')
 	actual[cnt++] = *(cur++);
-    actual[cnt] = NULL;
+    actual[cnt] = (char)0;
 
     if (TRACE) {
 	BOOL status = HTAA_templateMatch(required, actual);
