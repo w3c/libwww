@@ -60,7 +60,7 @@ static char *rcsid = "$Id$";
  *    ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-#include <config.h>
+#include "config.h"
 
 #include <string.h>
 #include <stdlib.h>
