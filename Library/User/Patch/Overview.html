@@ -36,9 +36,17 @@ distribution tree. In order to apply a patch, do the following in the
 </OL>
 <P>
   <HR>
-<H2>
+<H3>
+  Version 5.1j
+</H3>
+<UL>
+  <LI>
+    <A HREF="5.1j/">These are the patches</A> that I have received for this release
+    and that I will apply before the next release.
+</UL>
+<H3>
   Version 5.1d
-</H2>
+</H3>
 <DL>
   <DT>
     Contribution from Rick Curry (not a patch)
@@ -46,9 +54,9 @@ distribution tree. In order to apply a patch, do the following in the
     A new version of <A HREF="HTWWWStr.c">HTWWWStr</A> with a better date stamp
     string parser
 </DL>
-<H2>
+<H3>
   Version 5.1b
-</H2>
+</H3>
 <DL>
   <DT>
     <A HREF="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00256.html">Patch
@@ -62,9 +70,9 @@ distribution tree. In order to apply a patch, do the following in the
   <DD>
     Gecse Roland pointed out these problems on FreeBSD
 </DL>
-<H2>
+<H3>
   Version 5.0a
-</H2>
+</H3>
 <P>
 Bulding on <B>SunOS</B>: Sun uses the symbol "<CODE>__STDC__</CODE>" in their
 headers, not "<CODE>STDC_HEADERS</CODE>" which the configure script is looking
@@ -75,9 +83,9 @@ running configure. Depending on your shell, this may look like this
 <PRE>	BASH&gt; CFLAGS='-g -Wall -DSTDC_HEADERS' ./configure
 	CSH&gt; env CFLAGS='-g -Wall -DSTDC_HEADERS' ./configure
 </PRE>
-<H2>
+<H3>
   Version 5.0
-</H2>
+</H3>
 <DL>
   <DT>
     <A HREF="lib_5.0_1.fix">Patch 1</A>
@@ -118,12 +126,12 @@ running configure. Depending on your shell, this may look like this
 	persistent connection (thanks to Markku Savela)
     </UL>
 </DL>
-<H2>
-  Version 4.0D
-</H2>
 <H3>
-  Library
+  Version 4.0D
 </H3>
+<H4>
+  Library
+</H4>
 <DL>
   <DT>
     New Multiple T stream (May 27 1996)
@@ -135,9 +143,9 @@ running configure. Depending on your shell, this may look like this
     <A HREF="lib_4.0_2.fix">Patch for better logging</A>
   <DD>
 </DL>
-<H3>
+<H4>
   Mini Server
-</H3>
+</H4>
 <DL>
   <DT>
     Event Loop and Timeouts
@@ -158,9 +166,9 @@ running configure. Depending on your shell, this may look like this
     server may block as we only have a single process and a single stack. The
     solution is of course to have a non-blocking DNS resolver library.
 </DL>
-<H2>
+<H3>
   Version 4.0C
-</H2>
+</H3>
 <DL>
   <DT>
     <A HREF="lib_4.0C_1.fix">Patch for PUT and POST</A>
@@ -210,9 +218,9 @@ running configure. Depending on your shell, this may look like this
 	traversing the Web.
     </UL>
 </DL>
-<H2>
+<H3>
   Library 4.0
-</H2>
+</H3>
 <UL>
   <LI>
     <A HREF="lib_4.0_1.fix">SGML fix from Maciej Puzio for better error
@@ -232,9 +240,9 @@ running configure. Depending on your shell, this may look like this
   <LI>
     Directory listings do not work completely on Windows NT
 </UL>
-<H2>
+<H3>
   Library 3.1
-</H2>
+</H3>
 <DL>
   <DT>
     Bug in time stamp on files in FTP directory listings
@@ -251,9 +259,9 @@ running configure. Depending on your shell, this may look like this
     A bug which makes the HTML parser crash if is gets more than 20 nested HTML
     tags. Thanks to Robert M. Fleischman for pointing this out!
 </DL>
-<H2>
+<H3>
   Library 3.0
-</H2>
+</H3>
 <DL>
   <DT>
     <A HREF="lib_3.0_1.fix">Problems with redirection</A>
@@ -271,8 +279,7 @@ running configure. Depending on your shell, this may look like this
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  <A HREF="../../../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
