@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+  <TITLE>The W3C Web Database</TITLE>
+  <LINK rel=STYLESHEET href="http://www.w3.org/StyleSheets/Area/Overview.css"
+  type="text/css">
+</HEAD>
+<BODY>
+<P>
+<A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home"
+    BORDER="0" WIDTH="72" HEIGHT="48"></A>
+<A HREF="http://www.w3.org/Robot/"><IMG ALT="Robot" SRC="http://www.w3.org/Icons/WWW/robot48x"
+    BORDER="0"></A>
+<H1>
+  The W3C Web Database
+</H1>
+<P>
+Here you can find information about broken links, redirections, document
+titles, last modified dates, content types, link relationships and much much
+more. The information is extracted from an SQL database as you go along.
+This SQL database is built and maintained by the libwww robot which travseres
+the site approximately every night.
+<DL>
+  <DT>
+    <B><A HREF="links.sql">Link Relationships</A></B>
+  <DD>
+    Here you can find which resources point to which resources - both incoming
+    and outgoing links as well as search for different link types.
+  <DT>
+    <B><A href="requests.sql">Request Information</A></B>
+  <DD>
+    Here you can find all the information that the libwww robot gathered from
+    the Web requests issued when traversing our site.
+  <DT>
+    <B><A href="resources.sql">Resources Information</A></B>
+  <DD>
+    Here you can find a lot of metainformation about the resources that we are
+    serving including content type, last modified date, etc.
+  <DT>
+    <B><A href="fixme.sql">Broken HTML, Bad Style, etc.</A></B>
+  <DD>
+    Find out what is wrong about your pages and where the problems are
+</DL>
+<P>
+This tool uses a <A href="http://www.tcx.se/">MySQL</A> database runnning
+on localhost and the Web interface is provided by
+<A href="http://www.daa.com.au/~james/www-sql/">www-sql</A>.
+<P>
+The index is approximately updated either early in the morning or late in
+the evening, but there is no automated process in place as it is running
+against my own machine.
+<P>
+Have fun!
+<P>
+  <HR>
+<ADDRESS>
+  <A href="http://www.w3.org/People/Frystyk/">Henrik Frystyk Nielsen</A>
+</ADDRESS>
+</BODY></HTML>
