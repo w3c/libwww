@@ -6,6 +6,7 @@
 **	TBL: Tim Berners-Lee CERN (timbl@info.cern.ch)
 **	JFG: Jean-Francois Groff, Cooperant CERN 1991-92 (jfg@info.cern.ch)
 **	DR:  Dudu Rashty +972-2-584848 <RASHTY@hujivms.bitnet>
+**	MD:  Mark Donszelmann, DELPHI CERN, (duns@vxdeop.cern.ch)
 **
 **  Copyright CERN 1990-1992   See Copyright.html 
 **
@@ -39,6 +40,8 @@
 **   6 Oct 92:  Painful recovery from someone(?)'s attept to pretty print.(TBL)
 **		Please see coding style guide before changing indentation etc!
 **     Mar 93:	Force on HTFile's HTDirAccess and HTDirReadme flags.
+**   3 Nov 93:	(MD) Changed vms into VMS
+**		(MD) Assigne output in main, not at initialize (VMS only)
 **
 ** Compilation-time macro options
 **
@@ -186,7 +189,12 @@ PUBLIC char *	     log_file_name = 0;	         /* Root of log file name */
 PRIVATE BOOL	     filter=0;		               /* Load from stdin? */
 PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
 
+
+#ifdef VMS
+PRIVATE FILE *       output;		/* assignment done in main */
+#else /* not VMS */
 PRIVATE FILE *	     output = stdout;
+#endif /* not VMS */ 
 
 /* Forward Declaration of Functions */
 /* ================================ */
@@ -277,6 +285,10 @@ int main
     int i;
     argc=ccommand(&argv);
 #endif
+
+#ifdef VMS
+    output = stdout;
+#endif /* VMS */
 	
     StrAllocCopy(default_default, "file://");
     StrAllocCat(default_default, HTHostName()); /* eg file://cernvax.cern.ch */
@@ -299,7 +311,8 @@ int main
 	char * result = getcwd(wd, sizeof(wd)); 
 	if (result) {
 
-#ifdef vms  /* convert directory name to Unix-style syntax */
+#ifdef VMS 
+            /* convert directory name to Unix-style syntax */
 	    char * disk = strchr (wd, ':');
 	    char * dir = strchr (wd, '[');
 	    if (disk) {
@@ -343,7 +356,7 @@ int main
 	}
 #endif
 		
-#ifdef vms
+#ifdef VMS  
       StrAllocCat(default_default, "default.html");
 #else
       StrAllocCat(default_default, "/default.html");
@@ -648,7 +661,7 @@ int main
 	}
     }
 good:	
-#ifdef vms
+#ifdef VMS 
     return 1;
 #else
     return 0; /* Good */
