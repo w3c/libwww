@@ -544,7 +544,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 
 #ifndef HT_DIRECT_WAIS
 	if (!gateway && 0==strcmp(access, "wais")) {
-	    gateway = DEFAULT_WAIS_GATEWAY;
+	    gateway = HT_DEFAULT_WAIS_GATEWAY;
 	}
 #endif
 
