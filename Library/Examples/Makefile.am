@@ -3,11 +3,19 @@
 noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	chunk chunkbody LoadToFile postform multichunk put post trace \
 	range tzcheck mget isredirected listen eventloop memput \
-	showlinks showtags showtext
+	showlinks showtags showtext tiny
 
-LDADD = ../../Library/src/libwww.la -lm
+LDADD = ../src/libwww.la -lm
 
 DEPENDENCIES = \
-	../../Library/src/libwww.la
+	../src/libwww.la
 
-INCLUDES = -I$(srcdir)/../../Library/src
+INCLUDES = -I$(srcdir)/../src
+
+PURIFY_CACHE = @PURIFY_CACHE@
+
+purify: $(tiny_OBJECTS) $(tiny_DEPENDENCIES)
+	-rm purify; \
+	purify -cache-dir=$(PURIFY_CACHE) \
+	$(CC) $(LDFLAGS) -o purify $(tiny_OBJECTS) \
+	../src/.libs/libwww.a -lm $(LIBS)
