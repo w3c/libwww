@@ -113,6 +113,15 @@ not possible to interrupt a request.
     first keyword does not conflict with another www command.
 </DL>
 <H3>
+  Find out information about a Document
+</H3>
+<DL>
+  <DT>
+    <A NAME="options">options</A>
+  <DD>
+    Issues a request on the current document using the HTTP OPTIONS method.
+</DL>
+<H3>
   Upload a Document to a remote server
 </H3>
 <P>
@@ -122,19 +131,16 @@ to a remote HTTP server using PUT or POST.
   <DT>
     <A NAME="put"><B>put</B></A>
   <DD>
-    Put a document (PUT) to remote HTTP server. You can either put a file on
-    your local file system, or from a remote HTTP server. An example is:
+    Put the current document to a remote HTTP server using the PUT method.
     <PRE>
 	put
-	Source: http://www.w3.org
 	Destination: http://www.my.server
 </PRE>
   <DT>
     <A NAME="post"><B>post</B></A>
   <DD>
-    Post a document (POST) to remote HTTP server. As for PUT you can either post
-    a file on your local file system, or from a remote HTTP server. The syntax
-    is the same as for PUT.
+    Post the current document to a remote HTTP server using the POST method.
+    The syntax is the same as for PUT.
 </DL>
 <H3>
   Delete a Document on a remote server
@@ -146,11 +152,7 @@ on a remote HTTP server.
   <DT>
     <A NAME="delete"><B>delete</B></A>
   <DD>
-    Deletes a document (DELETE) on remote HTTP server. Example
-    <PRE>
-	delete
-	URL to delete: http://www.w3.org
-</PRE>
+    Deletes the curent document on a remote HTTP server using the DELETE method.
 </DL>
 <H3>
   Killer Features

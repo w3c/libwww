@@ -1,6 +1,6 @@
 #! /bin/sh
 # Attempt to guess a canonical system name.
-#   Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+#   Copyright (C) 1992, 93, 94, 95, 1996 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -51,9 +51,10 @@ trap 'rm -f dummy.c dummy.o dummy; exit 1' 1 2 15
 # Note: order is significant - the case branches are not exclusive.
 
 case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
-    alpha:OSF1:V*:*)
+    alpha:OSF1:[VX]*:*)
 	# After 1.2, OSF1 uses "V1.3" for uname -r.
-	echo alpha-dec-osf`echo ${UNAME_RELEASE} | sed -e 's/^V//'`
+	# After 4.x, OSF1 uses "X4.x" for uname -r.
+	echo alpha-dec-osf`echo ${UNAME_RELEASE} | sed -e 's/^[VX]//'`
 	exit 0 ;;
     alpha:OSF1:*:*)
 	# 1.2 uses "1.2" for uname -r.
@@ -62,6 +63,9 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
     21064:Windows_NT:50:3)
 	echo alpha-dec-winnt3.5
 	exit 0 ;;
+    Amiga*:UNIX_System_V:4.0:*)
+	echo m68k-cbm-sysv4
+	exit 0;;
     amiga:NetBSD:*:*)
       echo m68k-cbm-netbsd${UNAME_RELEASE}
       exit 0 ;;
@@ -119,6 +123,9 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
 	exit 0 ;;
     mips:*:5*:RISCos)
 	echo mips-mips-riscos${UNAME_RELEASE}
+	exit 0 ;;
+    Night_Hawk:Power_UNIX:*:*)
+	echo powerpc-harris-powerunix
 	exit 0 ;;
     m88k:CX/UX:7*:*)
 	echo m88k-harris-cxux7
@@ -317,6 +324,12 @@ EOF
     *:NetBSD:*:*)
 	echo ${UNAME_MACHINE}-unknown-netbsd`echo ${UNAME_RELEASE}|sed -e 's/[-_].*/\./'`
 	exit 0 ;;
+    i*:CYGWIN*:*)
+	echo i386-unknown-cygwin32
+	exit 0 ;;
+    p*:CYGWIN*:*)
+	echo powerpcle-unknown-cygwin32
+	exit 0 ;;
     *:GNU:*:*)
 	echo `echo ${UNAME_MACHINE}|sed -e 's,/.*$,,'`-unknown-gnu`echo ${UNAME_RELEASE}|sed -e 's,/.*$,,'`
 	exit 0 ;;
@@ -324,12 +337,16 @@ EOF
 	# The BFD linker knows what the default object file format is, so
 	# first see if it will tell us.
 	ld_help_string=`ld --help 2>&1`
-	if echo $ld_help_string | grep >/dev/null 2>&1 "supported emulations: elf_i[345]86"; then
+	if echo "$ld_help_string" | grep >/dev/null 2>&1 "supported emulations: elf_i[345]86"; then
 	  echo "${UNAME_MACHINE}-unknown-linux" ; exit 0
-	elif echo $ld_help_string | grep >/dev/null 2>&1 "supported emulations: i[345]86linux"; then
+	elif echo "$ld_help_string" | grep >/dev/null 2>&1 "supported emulations: i[345]86linux"; then
 	  echo "${UNAME_MACHINE}-unknown-linuxaout" ; exit 0
-	elif echo $ld_help_string | grep >/dev/null 2>&1 "supported emulations: i[345]86coff"; then
+	elif echo "$ld_help_string" | grep >/dev/null 2>&1 "supported emulations: i[345]86coff"; then
 	  echo "${UNAME_MACHINE}-unknown-linuxcoff" ; exit 0
+	elif echo "$ld_help_string" | grep >/dev/null 2>&1 "supported emulations: m68kelf"; then
+	  echo "${UNAME_MACHINE}-unknown-linux" ; exit 0
+	elif echo "$ld_help_string" | grep >/dev/null 2>&1 "supported emulations: m68klinux"; then
+	  echo "${UNAME_MACHINE}-unknown-linuxaout" ; exit 0
 	elif test "${UNAME_MACHINE}" = "alpha" ; then
 	  echo alpha-unknown-linux ; exit 0
 	else
@@ -431,6 +448,16 @@ EOF
 		echo ns32k-sni-sysv
 	fi
 	exit 0 ;;
+    mc68*:A/UX:*:*)
+	echo m68k-apple-aux${UNAME_RELEASE}
+	exit 0 ;;
+    R3000:*System_V*:*:*)
+	if [ -d /usr/nec ]; then
+	        echo mips-nec-sysv${UNAME_RELEASE}
+	else
+	        echo mips-unknown-sysv${UNAME_RELEASE}
+	fi
+        exit 0 ;;
 esac
 
 #echo '(No uname command or uname output not recognized.)' 1>&2
