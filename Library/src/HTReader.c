@@ -127,12 +127,12 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		    HTHost_register(host, net, HTEvent_READ);
 		    return HT_WOULD_BLOCK;
 #ifdef __svr4__
-    /* 
-    ** In Solaris envirnoment, SIGPOLL is used to signal end of buffer for
-    ** /dev/audio.  If your process is also doing a socket read, it will cause
-    ** an EINTR error.  This error will cause the www library request to 
-    ** terminate prematurly.
-    */
+		    /* 
+		    ** In Solaris envirnoment, SIGPOLL is used to signal end of buffer for
+		    ** /dev/audio.  If your process is also doing a socket read, it will cause
+		    ** an EINTR error.  This error will cause the www library request to 
+		    ** terminate prematurly.
+		    */
                 } else if (socerrno == EINTR) {
                     continue;
 #endif /* __svr4__ */
@@ -141,19 +141,20 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		    if (STREAM_TRACE) HTTrace("Read Socket. got EPIPE\n", soc);
 		    goto socketClosed;
 #endif /* EPIPE */
+#ifdef ECONNRESET
+		} else if (socerrno == ECONNRESET) {
+		    if (STREAM_TRACE) HTTrace("Read Socket. got ECONNRESET\n", soc);
+		    goto socketClosed;
+#endif /* ECONNRESET */
 		} else { 			     /* We have a real error */
 
-		    /* HERE WE SHOULD RETURN target abort */
 		    if (request)
 			HTRequest_addSystemError(request, ERR_FATAL, socerrno,
 						 NO, "NETREAD");
 		    return HT_ERROR;
 		}
-#ifdef ECONNRESET
-	    } else if (!me->b_read || socerrno==ECONNRESET) {
-#else
 	    } else if (!me->b_read) {
-#endif
+
 	    socketClosed:
 		if (STREAM_TRACE)
 		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
