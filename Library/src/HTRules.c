@@ -10,10 +10,11 @@
 **      17 Jun 92       Bug fix: pass and fail failed if didn't contain '*' TBL
 **       1 Sep 93       Bug fix: no memory check - Nathan Torkington
 **                      BYTE_ADDRESSING removed - Arthur Secret
-**	11 Sep 93 MD	Changed %i into %d in debug printf. 
+**	11 Sep 93  MD	Changed %i into %d in debug printf. 
 **			VMS does not recognize %i.
 **			Bug Fix: in case of PASS, only one parameter to printf.
-**	19 Sep 93	Added Access Authorization stuff - AL
+**	19 Sep 93  AL	Added Access Authorization stuff.
+**	 1 Nov 93  AL	Added htbin.
 **
 */
 
@@ -34,6 +35,12 @@ typedef struct _rule {
 	char *		pattern;
 	char *		equiv;
 } rule;
+
+/*	Global variables
+**	----------------
+*/
+PUBLIC char *HTBinDir = NULL;	/* Physical /htbin directory path.	*/
+                                /* In future this should not be global.	*/
 
 /*	Module-wide variables
 **	---------------------
@@ -341,7 +348,10 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );
-	
+
+    } else if (0==strcasecomp(word1, "htbin")) { /* Physical /htbin location */
+	StrAllocCopy(HTBinDir, word2);
+
     } else {
 	op =	0==strcasecomp(word1, "map")  ?	HT_Map
 	    :	0==strcasecomp(word1, "pass") ?	HT_Pass

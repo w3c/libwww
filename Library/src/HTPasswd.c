@@ -125,6 +125,12 @@ PUBLIC char *HTAA_encryptPasswd ARGS1(CONST char *, password)
 ** ON EXIT:
 **	returns		YES, if password matches the encrypted one.
 **			NO, if not, or if either parameter is NULL.
+** FIX:
+**	Only the length of original encrypted password is
+**	checked -- longer given passwords are accepted if
+**	common length is correct (but not shorter).
+**	This is to allow interoperation of servers and clients
+**	who have a hard-coded limit of 8 to password.
 */
 PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
 				   CONST char *, encrypted)
@@ -133,11 +139,12 @@ PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
     int len;
     int status;
 
-    if (!password || !encrypted ||
-	13*((strlen(password)+7)/8) != strlen(encrypted))
+    if (!password || !encrypted)
 	return NO;
 
-    len = strlen(encrypted);
+    len = 13*((strlen(password)+7)/8);
+    if (len < strlen(encrypted))
+	return NO;
 
     if (!(result = (char*)malloc(len + 1)))
 	outofmem(__FILE__, "HTAA_encryptPasswd");
@@ -166,7 +173,7 @@ PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
 	len -= 13;
     } /* while */
 
-    status = strcmp(result, encrypted);
+    status = strncmp(result, encrypted, strlen(encrypted));
 
     if (TRACE)
 	fprintf(stderr,
