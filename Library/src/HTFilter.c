@@ -235,6 +235,8 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
 {
     HTMethod method = HTRequest_method(request); 
     HTAnchor * new_anchor = HTResponse_redirection(response); 
+
+    /* Check for destination */
     if (!new_anchor) {
 	HTTRACE(PROT_TRACE, "Redirection. No destination\n");
 	return HT_OK;
@@ -290,6 +292,7 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
     } else {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
 			   NULL, 0, "HTRedirectFilter");
+	return HT_OK;		/* Wanna fall through */
     }
 
     /*
