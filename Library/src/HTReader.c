@@ -28,8 +28,8 @@ struct _HTInputStream {
     HTHost *			host;
     char *			write;			/* Last byte written */
     char *			read;			   /* Last byte read */
-    char			data [INPUT_BUFFER_SIZE];	   /* buffer */
     int				b_read;
+    char			data [INPUT_BUFFER_SIZE];	   /* buffer */
 };
 
 /* ------------------------------------------------------------------------- */

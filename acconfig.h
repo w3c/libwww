@@ -1,6 +1,9 @@
 /* Define to enable direct WAIS access. */
 #undef HT_DIRECT_WAIS
 
+/* Define to enable ZLIB compression / decompression support. */
+#undef ZLIB
+
 /* Define to enable SOCKS firewall-breaching code. */
 #undef SOCKS
 #undef SOCKS4

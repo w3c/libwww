@@ -29,7 +29,7 @@ EXTRA_DIST = \
 	 $(BUILT_SOURCES) \
 	Robot.tcl
 
-PURIFY_CACHE = /home2/frystyk/purify-cache
+PURIFY_CACHE = /tmp/purify-cache
 
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources

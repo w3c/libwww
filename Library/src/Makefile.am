@@ -51,7 +51,7 @@ libwww_a_SOURCES = \
 	HTPEP.c		HTProfil.c	HTMerge.c \
 	HTMux.c		HTDemux.c	HTMuxTx.c \
 	HTMuxCh.c	HTTimer.c	HTTrace.c \
-	HTMemLog.c
+	HTMemLog.c	HTZip.c
 
 libwww_a_LIBADD = @HTWAIS@
 
@@ -65,7 +65,7 @@ BUILT_SOURCES = sysdep.h \
 	WWWNews.h 	WWWTrans.h 	WWWTelnt.h \
 	WWWCache.h 	WWWApp.h 	WWWInit.h \
 	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
-	WWWMux.h \
+	WWWMux.h	WWWZip.h \
 	HTParse.h 	HTAccess.h  	HTProxy.h \
 	HTMethod.h 	HTProt.h 	HTCache.h \
 	HTReqMan.h 	HTReq.h  	HTDNS.h \
@@ -105,7 +105,7 @@ BUILT_SOURCES = sysdep.h \
 	HTMerge.h	HTResponse.h 	HTMuxHeader.h \
 	HTMux.h		HTDemux.h	HTMuxTx.h \
 	HTMuxCh.h 	HTHstMan.h	HTMemLog.h \
-	HTTimer.h
+	HTTimer.h	HTZip.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h

@@ -66,19 +66,56 @@ case "$target" in
 	;;
 esac
 
-dnl Checks for configuration arguments - a bit rusty!!!
-AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
-  AC_PATH_WAIS(
-	[AC_DEFINE(HT_DIRECT_WAIS)
-	 HTWAIS="HTWAIS.o"
-	 WAISINCLUDE="${srcdir}/$ac_path_wais/include"] ,
-	[AC_MSG_WARN(Cannot find WAIS; code will be built without it)
-	 HTWAIS=""
-	 WAISINCLUDE="" ] ),
+dnl Checks for configuration arguments
+
+AC_MSG_CHECKING(whether to support direct WAIS access - a bit rusty!)
+AC_ARG_WITH(wais,
+[  --with-wais[=PATH]      Compile with support for direct WAIS access.],
+[ case "$withval" in
+  no)
+    AC_MSG_RESULT(no)
+    HTWAIS=""
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
+    if test "x$withval" = "xyes"; then
+      withval="-lclient.a -lwais.a"
+    fi
+    LIBS="$withval $LIBS"
+    AC_TRY_LINK([],
+                [ interpret_message(); ],
+		[],
+		[ AC_MSG_ERROR(Could not find the $withval library.  You must first install WAIS.) ])
+    HTWAIS="HTWAIS.o"
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
   HTWAIS=""
-  WAISINCLUDE="")
+)
 AC_SUBST(HTWAIS)
-AC_SUBST(WAISINCLUDE)
+
+AC_MSG_CHECKING(whether to support zlib compress/decompress)
+AC_ARG_WITH(zlib,
+[  --with-zlib[=PATH]      Compile with zlib compress/decompress support.],
+[ case "$withval" in
+  no)
+    AC_MSG_RESULT(no)
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
+    if test "x$withval" = "xyes"; then
+      withval="-lz"
+    fi
+    LIBS="$withval $LIBS"
+    AC_DEFINE(ZLIB)
+    AC_TRY_LINK([],
+                [ zlibVersion(); ],
+		[],
+		[ AC_MSG_ERROR(Could not find the $withval library.  You must first install zlib.) ])
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+)
 
 # borrowed from SSH - thanks!
 AC_MSG_CHECKING(whether to support SOCKS)

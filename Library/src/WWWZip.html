@@ -1,0 +1,58 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww Encoder/Decoder Streams</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Declaration of W3C Reference Library Encoder / Decoder Streams
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The stream part of the Library is a set of streams that can be used to
+encode/decode, or compress/decompress content. Many of the streams are based
+on <A HREF="http: //www.cdrom.com/pub/infozip/zlib/">zlib</A> which is a
+freely available compression library.
+<PRE>
+#ifndef WWWZIP_H
+#define WWWZIP_H
+</PRE>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+<H3>
+  System dependencies
+</H3>
+<P>
+The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
+<PRE>#include "sysdep.h"
+</PRE>
+<H3>
+  GZip Compression / Decompression
+</H3>
+<P>
+This stream can encode / decode gzipped content.
+<PRE>#include "<A HREF="HTZip.html">HTZip.h</A>"
+</PRE>
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

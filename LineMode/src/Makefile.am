@@ -29,7 +29,7 @@ BUILT_SOURCES = \
 	HTBrowse.h	GridStyle.h	GridText.h \
 	HTFont.h
 
-PURIFY_CACHE = /home2/frystyk/purify-cache
+PURIFY_CACHE = /tmp/purify-cache
 
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources

@@ -16,7 +16,8 @@
 #include "HTProfil.h"				         /* Implemented here */
 
 PRIVATE HTList * converters = NULL;
-PRIVATE HTList * encodings = NULL;
+PRIVATE HTList * transfer_encodings = NULL;
+PRIVATE HTList * content_encodings = NULL;
 PRIVATE BOOL preemptive = NO;
 
 /* ------------------------------------------------------------------------- */
@@ -44,7 +45,8 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
     if (!HTLib_isInitialized()) HTLibInit(AppName, AppVersion);
 
     if (!converters) converters = HTList_new();
-    if (!encodings) encodings = HTList_new();
+    if (!transfer_encodings) transfer_encodings = HTList_new();
+    if (!content_encodings) content_encodings = HTList_new();
 
     /* Register the default set of transport protocols */
     HTTransportInit();
@@ -72,8 +74,17 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
     HTFormat_setConversion(converters);
 
     /* Register the default set of transfer encoders and decoders */
-    HTEncoderInit(encodings);
-    HTFormat_setTransferCoding(encodings);
+    HTTransferEncoderInit(transfer_encodings);
+    HTFormat_setTransferCoding(transfer_encodings);
+
+    /* Register the default set of content encoders and decoders */
+    HTContentEncoderInit(content_encodings);
+    if (HTList_count(content_encodings) > 0)
+	HTFormat_setContentCoding(content_encodings);
+    else {
+	HTList_delete(content_encodings);
+	content_encodings = NULL;
+    }
 
     /* Register the default set of MIME header parsers */
     HTMIMEInit();
@@ -114,7 +125,8 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
     if (!HTLib_isInitialized()) HTLibInit(AppName, AppVersion);
 
     if (!converters) converters = HTList_new();
-    if (!encodings) encodings = HTList_new();
+    if (!transfer_encodings) transfer_encodings = HTList_new();
+    if (!content_encodings) content_encodings = HTList_new();
 
     /* Register the default set of transport protocols */
     HTTransportInit();
@@ -138,9 +150,19 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
     HTConverterInit(converters);
     HTFormat_setConversion(converters);
 
+
     /* Register the default set of transfer encoders and decoders */
-    HTEncoderInit(encodings);
-    HTFormat_setTransferCoding(encodings);
+    HTTransferEncoderInit(transfer_encodings);
+    HTFormat_setTransferCoding(transfer_encodings);
+
+    /* Register the default set of content encoders and decoders */
+    HTContentEncoderInit(content_encodings);
+    if (HTList_count(content_encodings) > 0)
+	HTFormat_setContentCoding(content_encodings);
+    else {
+	HTList_delete(content_encodings);
+	content_encodings = NULL;
+    }
 
     /* Register the default set of MIME header parsers */
     HTMIMEInit();

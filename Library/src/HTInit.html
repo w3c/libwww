@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
@@ -52,7 +52,8 @@ extern void HTTransportInit (void);
 </H2>
 <P>
 Set up default bindings between access schemes and the set of protocol modules
-in the Library. The preemptive version registers all protocol modules to use blocking sockets.
+in the Library. The preemptive version registers all protocol modules to
+use blocking sockets.
 <PRE>
 #include "WWWHTTP.h"
 #include "WWWFile.h"
@@ -148,14 +149,24 @@ This function is only defined in order to preserve backward compatibility.
 extern void HTFormatInit	(HTList * conversions);
 </PRE>
 <H2>
-  Default Content and Transfer Encodings
+  Default Transfer Encodings
 </H2>
 <P>
-Content encoders and decoders can handle encodings like <EM>chunked</EM>
+Transfer encoders and decoders can handle encodings like <EM>chunked</EM>
 etc.
 <PRE>#include "<A HREF="WWWHTTP.html">WWWHTTP.h</A>"
 
-extern void HTEncoderInit	(HTList * encodings);
+extern void HTTransferEncoderInit	(HTList * encodings);
+</PRE>
+<H2>
+  Default Content Encodings
+</H2>
+<P>
+Content encoders and decoders can handle encodings like <EM>deflate</EM>
+etc.
+<PRE>#include "<A HREF="WWWZip.html">WWWZip.h</A>"
+
+extern void HTContentEncoderInit	(HTList * encodings);
 </PRE>
 <H2>
   Default BEFORE and AFTER Filters

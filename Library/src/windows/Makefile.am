@@ -13,7 +13,8 @@ BUILT_SOURCES = \
 	wwwfile.def	wwwftp.def	wwwgophe.def \
 	wwwstream.def	wwwhtml.def	wwwhttp.def \
 	wwwmime.def	wwwnews.def 	wwwtrans.def \
-	wwwtelnt.def	wwwutils.def	wwwwais.def
+	wwwtelnt.def	wwwutils.def	wwwwais.def \
+	wwwzip.def
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \

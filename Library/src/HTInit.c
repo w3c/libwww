@@ -129,13 +129,24 @@ PUBLIC void HTFormatInit (HTList * c)
 
 }
 
-/*	BINDINGS BETWEEN A ENCODING AND CODERS / DECODERS
-**	--------------------------- ---------------------
+/*	BINDINGS BETWEEN A TRANSFER ENCODING AND CODERS / DECODERS
+**	----------------------------------------------------------
 **	Not done automaticly - may be done by application!
 */
-PUBLIC void HTEncoderInit (HTList * c)
+PUBLIC void HTTransferEncoderInit (HTList * c)
 {
     HTCoding_add(c, "chunked", HTChunkedEncoder, HTChunkedDecoder, 1.0);
+}
+
+/*	BINDINGS BETWEEN A CONTENT ENCODING AND CODERS / DECODERS
+**	---------------------------------------------------------
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTContentEncoderInit (HTList * c)
+{
+#ifdef ZLIB
+    HTCoding_add(c, "deflate", NULL, HTZLib_inflate, 1.0);
+#endif /* ZLIB */
 }
 
 /*	REGISTER BEFORE FILTERS

@@ -1,0 +1,41 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww ZLib Compress and Decompress Stream</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  ZLib Compress and Decompress Stream
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module provides an interface to the zlib compress and decompress functions. It can be hooked inas as content encoding coder/decoder in libwww which allows for on-the-fly encoding/decoding.
+<P>
+This module is implemented by <A HREF="HTZip.c">HTZip.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTZIP_H
+#define HTZIP_H
+
+#include "HTFormat.h"
+</PRE>
+<PRE>
+extern HTCoder HTZLib_inflate;
+</PRE>
+<P>
+End of definition module
+<PRE>
+#endif /* HTZIP_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
