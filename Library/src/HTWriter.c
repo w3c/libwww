@@ -216,6 +216,12 @@ PUBLIC HTStream* HTWriter_new (HTNet *net, BOOL leave_open)
 PUBLIC HTStream* HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size)
 {
     return HTBuffer_new(HTWriter_new(net, leave_open), net->request, buf_size);
+
+#ifdef NEW_CODE
+#include "HTMux.h"
+    HTStream * mux = HTMux_new(net, HTWriter_new(net, leave_open), YES);
+    return HTBuffer_new(mux, net->request, buf_size);
+#endif /* NEW_CODE */
 }
 
 /*	Subclass-specific Methods

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Socket Interface</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Mar-1996 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -139,7 +139,13 @@ used on any other platform.
 extern FILE * HTSocket_DLLHackFopen (const char * filename, const char * mode);
 extern int HTSocket_DLLHackFclose (FILE * file);
 
-extern int HTChannel_readFile (HTRequest * request, HTNet * net, FILE * fp);
+typedef struct _HTFileBuffer HTFileBuffer;
+
+extern HTFileBuffer * HTFileBuffer_new (void);
+extern void HTFileBuffer_free (HTFileBuffer * me);
+
+extern int HTChannel_readFile (HTRequest * request, HTNet * net,
+			       HTFileBuffer * isoc, FILE * fp);
 </PRE>
 
 <H2>Load Data from a Socket</H2>

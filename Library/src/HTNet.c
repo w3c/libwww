@@ -544,6 +544,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 	if (net->sockfd != INVSOC) {
 	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 	    if (HTDNS_socket(net->dns) == INVSOC) {
+		HTChannel_delete(net->sockfd);
 		if ((status = NETCLOSE(net->sockfd)) < 0)
 		    HTRequest_addSystemError(net->request, ERR_FATAL,
 					     socerrno, NO, "NETCLOSE");
@@ -775,17 +776,18 @@ PUBLIC SOCKET HTNet_socket (HTNet * net)
 */
 PUBLIC BOOL HTNet_setTarget (HTNet * net, HTStream * target)
 {
+#ifdef NEW_CODE
     if (net) {
 	HTChannelMode mode = HTChannel_mode(net->sockfd, NULL);
-#if 0
 	net->target = (mode==HT_CH_INTERLEAVED) ?
 	    HTDemux_new(net, target) : target;
-#else
 	net->target = HTDemux_new(net, target);
-#endif
 	return YES;
     }
     return NO;
+#endif
+    net->target = target;
+    return YES;
 }
 
 PUBLIC HTStream * HTNet_target (HTNet * net)

@@ -26,12 +26,12 @@
 /* A channel occupies exactly one socket */
 struct _HTChannel {
     HTChannel *		next;
+    HTChannelMode	mode;
+    BOOL		active;			/* Active or passive channel */
     SOCKET 		sockfd;
-    char		data [CHANNEL_BUFFER_SIZE];		   /* buffer */
     char *		write;				/* Last byte written */
     char *		read;				   /* Last byte read */
-    HTChannelMode	mode;
-    BOOL		active;
+    char		data [CHANNEL_BUFFER_SIZE];		   /* buffer */
 };
 
 struct _HTStream {
@@ -42,6 +42,32 @@ struct _HTStream {
 #define HASH(s)			((s) % PRIME_TABLE_SIZE) 
 
 PRIVATE HTChannel * channels [PRIME_TABLE_SIZE];
+
+struct _HTFileBuffer {
+    char *	write;					/* Last byte written */
+    char *	read;					   /* Last byte read */
+    char	data [CHANNEL_BUFFER_SIZE];
+};
+
+/*	Set up the buffering
+**
+**	These routines are public because they are in fact needed by
+**	many parsers, and on PCs and Macs we should not duplicate
+**	the static buffer area.
+*/
+PUBLIC HTFileBuffer * HTFileBuffer_new (void)
+{
+    HTFileBuffer * isoc;
+    if ((isoc = (HTFileBuffer  *) HT_CALLOC(1, sizeof(*isoc))) == NULL)
+        HT_OUTOFMEM("HTFileBuffer_new");
+    isoc->write = isoc->read = isoc->data;
+    return isoc;
+}
+
+PUBLIC void HTFileBuffer_free (HTFileBuffer * me)
+{
+    HT_FREE(me);
+}
 
 /* ------------------------------------------------------------------------- */
 /*				CHANNEL CONTROL				     */
@@ -70,7 +96,8 @@ PUBLIC HTChannel * HTChannel_find (SOCKET sockfd)
 **	If we are not using mux then a channel is simply a normal TCP socket.
 **	Before creating a new channel, we check to see if it already exists.
 **	You may get back an already existing channel - you're not promised a
-**	new one each time.
+**	new one each time. ANSI C file channels can not be created by using
+**	the INVSOC socket descriptor.
 */
 PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, HTChannelMode mode,
 				  BOOL active)
@@ -329,9 +356,9 @@ PUBLIC int HTSocket_DLLHackFclose (FILE * file)
 **   Returns    HT_LOADED	if finished reading
 **	      	HT_ERROR	if error,
 */
-PUBLIC int HTChannel_readFile (HTRequest * request, HTNet * net, FILE * fp)
+PUBLIC int HTChannel_readFile (HTRequest * request, HTNet * net,
+			       HTFileBuffer * isoc, FILE * fp)
 {
-    HTChannel * ch = HTChannel_find(net->sockfd);
     int b_read;
     int status;
     if (!fp) {
@@ -340,27 +367,24 @@ PUBLIC int HTChannel_readFile (HTRequest * request, HTNet * net, FILE * fp)
     }
 
     while(1) {
-	if ((b_read = fread(ch->data, 1, CHANNEL_BUFFER_SIZE, fp))==0){
+	if ((b_read = fread(isoc->data, 1, CHANNEL_BUFFER_SIZE, fp))==0){
 	    if (ferror(fp)) {
-		if (PROT_TRACE)
-		    HTTrace("Read File... READ ERROR\n");
+		if (PROT_TRACE) HTTrace("Read File... READ ERROR\n");
 	    } else
 		return HT_LOADED;
 	}
-	ch->write = ch->data;
-	ch->read = ch->data + b_read;
+	isoc->write = isoc->data;
+	isoc->read = isoc->data + b_read;
 	if (PROT_TRACE)
-	    HTTrace("Read File... %d bytes read from file %p\n",
-		    b_read, fp);
+	    HTTrace("Read File... %d bytes read from file %p\n", b_read, fp);
 
 	/* Now push the data down the stream (we use blocking I/O) */
-	if ((status = (*net->target->isa->put_block)(net->target, ch->data,
+	if ((status = (*net->target->isa->put_block)(net->target, isoc->data,
 						     b_read)) != HT_OK) {
-	    if (PROT_TRACE)
-		HTTrace("Read File... Target ERROR\n");
+	    if (PROT_TRACE) HTTrace("Read File... Target ERROR\n");
 	    return status;
 	}
-	ch->write = ch->data + b_read;
+	isoc->write = isoc->data + b_read;
     }
 }
 

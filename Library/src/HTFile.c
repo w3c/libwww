@@ -68,6 +68,7 @@ typedef struct _file_info {
     char *		local;		/* Local representation of file name */
 #ifdef NO_UNIX_IO    
     FILE *		fp;        /* If we can't use sockets on local files */
+    HTFileBuffer *	fbuf;
 #endif
 } file_info;
 
@@ -371,6 +372,7 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 
     if (file) {
 #ifdef NO_UNIX_IO
+	HTFileBuffer_delete(file->fbuf);
 	if (file->fp) {
 	    if (PROT_TRACE)
 		HTTrace("FileCleanup. Closing file %p\n", file->fp);
@@ -599,7 +601,11 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** If cache element, we know that it's MIME, so call MIME parser
 	    ** If ANSI then sockfd=INVSOC
 	    */
+#ifndef NO_UNIX_IO
 	    HTChannel_new(net->sockfd, HT_CH_PLAIN, NO);
+#else
+	    file->fbuf = HTFileBuffer_new();
+#endif
 	    if (HTAnchor_cacheHit(anchor))HTAnchor_setFormat(anchor, WWW_MIME);
 	    net->target = HTStreamStack(HTAnchor_format(anchor),
 					request->output_format,
@@ -612,7 +618,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 #ifndef NO_UNIX_IO
 	    status = HTChannel_readSocket(request, net);
 #else
-	    status = HTChannel_readFile(request, net, file->fp);
+	    status = HTChannel_readFile(request, net, file->fbuf, file->fp);
 #endif
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This stream generates and parses SCP Mux headers.
 **
@@ -24,29 +25,10 @@
 #include "HTStream.h"
 #include "HTMux.h"					 /* Implemented here */
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
-
-#if (!defined(hpux))
-#define HT_SWAP_WORD(src,dst) { \
-     out = ROTATE_LEFT((src),16); \
-     other = out >> 8; \
-     other &= 0x00ff00ff; \
-     out &= 0x00ff00ff; \
-     out <<= 8; \
-     (dst) = out | other; \
-     }
-#else
-#define HT_SWAP_WORD(src,dst) { \
-     (dst) = (ROTATE_LEFT((src),8) & 0x00ff00ff) | ROTATE_LEFT((src) & 0x00ff00ff,24); \
-     }
-#endif
-
-#if 0
-#define SWAP_WORD(a) ( ((a) << 24) | \
+#define HT_SWAP_WORD(a) ( ((a) << 24) | \
 		      (((a) << 8) & 0x00ff0000) | \
 		      (((a) >> 8) & 0x0000ff00) | \
-	((ilu_cardinal)(a) >>24) )
-#endif
+	((unsigned int)(a) >>24) )
 
 #define MUX_LONG_LENGTH	0x80000000
 #define MUX_SYN		0x40000000
@@ -58,13 +40,15 @@
 #define MUX_LENGTH	0x0003FFFF
 
 #define MAX_SESSIONS		0xFF			 /* Max 256 sessions */
-#define CLIENT_CTRL		0		   /* Client control session */
-#define SERVER_CTRL		1		   /* Server control session */
+#define CLIENT_CTRL_SID		0		   /* Client control session */
+#define SERVER_CTRL_SID		1		   /* Server control session */
 
-typedef int HTSessionId;
+#define SD_READ		1		   /* How to shutdown a w3mux object */
+#define SD_WRITE	2
+#define SD_CLOSE	4
+
+/* Definition of the W3mux protocol */
 typedef unsigned int flagbit;
-typedef struct _HTW3Mux HTW3Mux;
-
 typedef struct _HTMuxHdr {
     union {
 	struct {
@@ -81,94 +65,91 @@ typedef struct _HTMuxHdr {
 	    unsigned int	type	: 2;
 	    /* more to come */
 	} ctrl;
+	unsigned int		len	: 32;
     } c;
 } HTMuxHdr;
 
-struct _HTW3Mux {
-    HTW3Mux *		next;
-    SOCKET 		sockfd;			       /* Socket  identifier */
-    HTSessionId		ctrl;			       /* Control session id */
-    int			nexthead;   /* number of bytes until next mux header */
+typedef int HTSessionId;
+#define INVSID	-1				       /* Invalid session id */
+
+struct _HTW3mux {
+    unsigned int	next_head;  /* Number of bytes until next mux header */
+    HTStream *		mux;			/* Target for our mux stream */
+    HTSessionId		ctrl_sid;		       /* Control session id */
+    int			shutdown;
     HTStream *		sessions [MAX_SESSIONS];
 };
 
+#define MUX_BLOCK(b,l)		(*w3mux->mux->isa->put_block)(w3mux->mux, b, l)
+#define DEMUX_BLOCK(b, l)	(*target->isa->put_block)(target, b, l)
+
+/*
+**	Thus is the stream for each session. Notice that we don't have a 
+**	target for this strem directly associated with it. It is stored in the
+**	w3mux object instead.
+*/
 struct _HTStream {
     const HTStreamClass *	isa;
     HTSessionId			sid;
-    HTW3Mux *			scp;
-    HTStream *			target;    
-    HTStream *			overflow;	/* Buffer for input overflow */
-    int				state;		/* State of the input stream */
+    HTW3mux *			w3mux;
     BOOL			transparent;
 };
 
-/* Number of entries in our hash table of channels */
-#define PRIME_TABLE_SIZE	67
-#define HASH(s)			((s) % PRIME_TABLE_SIZE) 
-
-PRIVATE HTW3Mux * SesCtrl [PRIME_TABLE_SIZE];
-
 /* ------------------------------------------------------------------------- */
-/*				W3MUX CONTROL				     */
+/*				SESSION CONTROL				     */
 /* ------------------------------------------------------------------------- */
 
 /*
-**	A session is uniquely identified by a (socket, session id) pair.
-**	Before creating a new session and or a channel, we check to see if
-**	either already exists.
-**	Returns YES if OK else NO.
+**	Register a new session with this w3mux object, If no free entries
+**	are available then return INVSID which always is an invalid session 
+**	number.
 */
-PRIVATE BOOL HTW3Mux_new (SOCKET sockfd, BOOL active)
+PRIVATE HTSessionId HTSession_add (HTW3mux * w3mux, HTStream * output)
 {
-    if (sockfd != INVSOC) {
-	int hash = HASH(sockfd);
-	HTW3Mux *ss=NULL, **ssp=NULL;
-	for (ssp = &SesCtrl[hash]; (ss = *ssp) != NULL ; ssp = &ss->next) {
-	    if (ss->sockfd == sockfd) break;
-	}
-	if (!ss) {
-	    if ((*ssp = ss =(HTW3Mux *) HT_CALLOC(1, sizeof(HTW3Mux))) == NULL)
-		HT_OUTOFMEM("HTW3Mux_new");	    
-	    ss->sockfd = sockfd;
-	    ss->ctrl = active ? CLIENT_CTRL : SERVER_CTRL;
-	    if (PROT_TRACE)
-		HTTrace("W3mux...... Created %p with id %d\n", ss,ss->sockfd);
-	}
-    }
-    return YES;
-}
-
-/*
-**	Find a new session ID for this stream. If no entries are available then
-**	return o which is always an invalid session number
-*/
-PRIVATE HTSessionId HTW3Mux_sid (HTW3Mux * scp, HTStream * stream)
-{
-    if (scp && stream) {
-	int sid = scp->ctrl+2;
-	HTStream ** mp = scp->sessions;
-	for (;sid < MAX_SESSIONS && *mp==NULL; sid+=2, mp+=2);
-	if (!*mp) *mp = stream;
+    if (w3mux && output) {
+	int sid = w3mux->ctrl_sid+2;
+	HTStream ** mp = w3mux->sessions+sid;
+	for (;sid < MAX_SESSIONS && *mp!=NULL; sid+=2, mp+=2);
+	if (!*mp) *mp = output;
 	return sid;
     }
-    if (PROT_TRACE) HTTrace("W3mux...... No available entries\n");
-    return 0;				      /* Not a valid data session ID */
+    if (PROT_TRACE) HTTrace("Session..... No available entries\n");
+    return INVSID;
 }
 
 /*
-**	Look for a session object with this session id and return the 
-**	associated stream if found
+**	Unregister a session from this w3mux object.
+**	Returns YES if OK else NO
 */
-PRIVATE HTStream * HTW3Mux_find (HTW3Mux * scp, HTSessionId sid)
+PRIVATE BOOL HTSession_delete (HTW3mux * w3mux, HTSessionId sid)
 {
-    return scp ? *(scp->sessions+sid) : NULL;
+    if (w3mux && sid!=INVSID) {
+	*(w3mux->sessions+sid) = NULL;
+	return (w3mux->shutdown & SD_CLOSE) && HTW3mux_isEmpty(w3mux) ?
+	    HTW3mux_delete(w3mux) : YES;
+    }
+    return NO;
 }
 
-PRIVATE BOOL HTW3Mux_delete (HTW3Mux * scp)
+/*
+**	Return the stream associated with this session ID
+*/
+PRIVATE HTStream * HTSession_stream (HTW3mux * w3mux, HTSessionId sid)
 {
+    return w3mux ? *(w3mux->sessions+sid) : NULL;
+}
 
-    /* @@@ */
-
+/*
+**	Set the stream associated with this session ID
+*/
+PRIVATE BOOL HTSession_setStream (HTW3mux * w3mux, HTSessionId sid,
+				  HTStream * output)
+{
+    if (w3mux && sid!=INVSID) {
+	*(w3mux->sessions+sid)=output;
+	return YES;
+    }
+    return NO;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -177,21 +158,40 @@ PRIVATE BOOL HTW3Mux_delete (HTW3Mux * scp)
 
 PRIVATE int HTMux_put_block (HTStream * me, const char * b, int len)
 {
-    HTMuxHdr hdr;
-    memset(&hdr, '\0', sizeof(hdr));
+    HTMuxHdr hdr[2];
+    HTW3mux * w3mux = me->w3mux;
+    hdr[0].c.len = 0;
     if (!me->transparent) {
-	if ((me->sid = HTW3Mux_sid(me->scp, me)) == 0) return HT_PAUSE;
-	hdr.c.data.syn = 1;
+	hdr[0].c.data.syn = 1;
 	me->transparent = YES;
     }
-    hdr.c.data.sid = me->sid;
+    hdr[0].c.data.sid = me->sid;
+#ifndef HT_MUX_ALIGN_64
     if (len <= MUX_LENGTH) {
-	hdr.c.data.size = 1;
-	hdr.c.data.size = len;
-    } else {
-	hdr.c.data.long_len = 1;
+	hdr[0].c.data.size = len;	
+#ifdef WORDS_BIGENDIAN
+	{
+	    register unsigned int tmp = hdr[0].c.len;
+	    hdr[0].c.len = HT_SWAP_WORD(tmp);
+	}
+#endif
+	MUX_BLOCK((const char *) &hdr, sizeof(int));
+    } else
+#endif /* HT_MUX_ALIGN_64 */
+    {
+	hdr[0].c.data.long_len = 1;
+	hdr[1].c.len = len;
+#ifdef WORDS_BIGENDIAN
+	{
+	    register unsigned int tmp = hdr[0].c.len;
+	    hdr[0].c.len = HT_SWAP_WORD(tmp);
+	    tmp = hdr[1].c.len;
+	    hdr[1].c.len = HT_SWAP_WORD(tmp);
+	}
+#endif
+	MUX_BLOCK((const char *) &hdr, sizeof(int)+sizeof(int));
     }
-    return HT_OK;
+    return MUX_BLOCK(b, len);
 }
 
 PRIVATE int HTMux_put_string (HTStream * me, const char * s)
@@ -206,20 +206,31 @@ PRIVATE int HTMux_put_character (HTStream * me, char c)
 
 PRIVATE int HTMux_flush (HTStream * me)
 {
-    return (*me->target->isa->flush)(me->target);
+    return (*me->w3mux->mux->isa->flush)(me->w3mux->mux);
 }
 
 PRIVATE int HTMux_free (HTStream * me)
 {
     int status = HT_OK;
-
-    /* Here we should send a FIN header */
-
-    if (me->target) {
-	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
+    HTW3mux * w3mux = me->w3mux;
+    if (me->transparent) {			 /* Only FIN active sessions */
+	HTMuxHdr hdr;
+	hdr.c.len = 0;
+	hdr.c.data.fin = 1;
+#ifdef WORDS_BIGENDIAN
+	{
+	    register unsigned int tmp = hdr.c.len;
+	    hdr.c.len = HT_SWAP_WORD(tmp);
+	}
+#endif
+	MUX_BLOCK((const char *) &hdr, sizeof(int));
+    }
+    if (w3mux->mux) {
+	if ((status = (*w3mux->mux->isa->_free)(w3mux->mux)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    if (PROT_TRACE) HTTrace("Mux stream.. FREEING....\n");
+    HTSession_delete(w3mux, me->sid);
+    if (PROT_TRACE) HTTrace("Session stream FREEING....\n");
     HT_FREE(me);
     return status;
 }
@@ -227,12 +238,22 @@ PRIVATE int HTMux_free (HTStream * me)
 PRIVATE int HTMux_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
-
-    /* Here we should send a RST header */
-
-    if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (PROT_TRACE) HTTrace("Mux stream.. ABORTING...\n");
-    HTW3Mux_delete(me->scp);
+    HTW3mux * w3mux = me->w3mux;
+    if (me->transparent) {			 /* Only RST active sessions */
+	HTMuxHdr hdr;
+	hdr.c.len = 0;
+	hdr.c.data.rst = 1;
+#ifdef WORDS_BIGENDIAN
+	{
+	    register unsigned int tmp = hdr.c.len;
+	    hdr.c.len = HT_SWAP_WORD(tmp);
+	}
+#endif
+	MUX_BLOCK((const char *) &hdr, sizeof(int));
+    }
+    if (w3mux->mux) status = (*w3mux->mux->isa->abort)(w3mux->mux, e);
+    HTSession_delete(w3mux, me->sid);
+    if (PROT_TRACE) HTTrace("Session stream ABORTING...\n");
     HT_FREE(me);
     return status;
 }
@@ -248,18 +269,28 @@ PRIVATE const HTStreamClass HTMuxClass =
     HTMux_put_block
 };
 
-PUBLIC HTStream * HTMux_new (HTNet * net, HTStream * target,
-			     BOOL active)
+/*	HTSession_new
+**	-------------
+**	Create a new session and register it with a w3mux object.
+**	The output stream is where to output data returning from the session
+**	and the return stream is where to input data to the stream.
+**	If the output stream is NULL then we use a blackhole instead
+*/
+PUBLIC HTStream * HTSession_new (HTW3mux * w3mux, HTStream * output)
 {
-    if (net && net->sockfd!=INVSOC) {
-	if (HTW3Mux_new(net->sockfd, active) == YES) {
-	    HTStream * me;
-	    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-		HT_OUTOFMEM("HTMux");
-	    me->isa = &HTMuxClass;
+    if (w3mux && !w3mux->shutdown) { 
+	HTStream * me;
+	if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+	    HT_OUTOFMEM("HTSession");
+	me->isa = &HTMuxClass;	
+	me->w3mux = w3mux;
+	if ((me->sid = HTSession_add(w3mux, output)) == INVSID) {
+	    HT_FREE(me);
+	} else {
 	    return me;
 	}
     }
+    if (STREAM_TRACE) HTTrace("Session..... Can't create session\n");
     return HTErrorStream();
 }
 
@@ -267,11 +298,55 @@ PUBLIC HTStream * HTMux_new (HTNet * net, HTStream * target,
 /*			    DEMULTIPLEXING STREAM			     */
 /* ------------------------------------------------------------------------- */
 
-PRIVATE int HTDemux_put_block (HTStream * me, const char * b, int l)
-{
-    /* if not transparent then send a SYN bit */
+PRIVATE HTStream * HTDemux_new (HTW3mux * w3mux, HTSessionId);
 
-    return HT_OK;
+/*
+**	We assume that we always get a full mux header (either 32 or 64 bits)!
+*/
+PRIVATE int HTDemux_put_block (HTStream * me, const char * b, int len)
+{
+    int status;
+    HTStream * target;
+    HTW3mux * w3mux = me->w3mux;
+    while (1) {
+	if (w3mux->next_head < len) {	      /* Can we see the next header? */
+	    HTMuxHdr hdr;
+
+	    /* Read header */
+#ifdef WORDS_BIGENDIAN
+	    register unsigned int tmp = *(b+w3mux->next_head);
+	    hdr.c.len = HT_SWAP_WORD(tmp);
+#else
+	    hdr.c.len = *(b+w3mux->next_head);
+#endif
+
+	    /* Check for long header */
+	    if (hdr.c.data.long_len) {
+#ifdef WORDS_BIGENDIAN
+		register unsigned int tmp = *(b+w3mux->next_head);
+		w3mux->next_head = HT_SWAP_WORD(tmp);
+#else
+		w3mux->next_head = *(b+w3mux->next_head);
+#endif
+	    }
+
+	    /* Find stream */
+	    if ((target = HTSession_stream(w3mux, hdr.c.data.sid)) == NULL)
+		target = HTDemux_new(w3mux, hdr.c.data.sid);
+	    
+	    /* Write to stream */
+	    status = DEMUX_BLOCK(b, w3mux->next_head);
+	    if (status != HT_OK) {
+
+		/* Set target stream to Buffer stream */
+
+	    }
+	    b += w3mux->next_head;
+    	} else {
+	    w3mux->next_head += len;
+	    status = DEMUX_BLOCK(b, len);
+	}
+    }
 }
 
 PRIVATE int HTDemux_put_string (HTStream * me, const char * s)
@@ -286,35 +361,31 @@ PRIVATE int HTDemux_put_character (HTStream * me, char c)
 
 PRIVATE int HTDemux_flush (HTStream * me)
 {
-    return (*me->target->isa->flush)(me->target);
+
+    /* This stream is the demux stream */
+    /* Here we should flush all targets */
+
+    return HT_OK;
 }
 
 PRIVATE int HTDemux_free (HTStream * me)
 {
-    int status = HT_OK;
-
-    /* Here we should send a FIN header */
-
-    if (me->target) {
-	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
-	    return HT_WOULD_BLOCK;
-    }
     if (PROT_TRACE) HTTrace("Demux stream FREEING....\n");
-    HT_FREE(me);
-    return status;
+
+    /* This stream is the demux stream */
+    /* Here we should free all targets */
+
+    return HT_OK;
 }
 
 PRIVATE int HTDemux_abort (HTStream * me, HTList * e)
 {
-    int status = HT_ERROR;
-
-    /* Here we should send a RST header */
-
-    if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE) HTTrace("Demux stream ABORTING...\n");
-    HTW3Mux_delete(me->scp);
-    HT_FREE(me);
-    return status;
+
+    /* This stream is the demux stream */
+    /* Here we should abort all targets */
+
+    return HT_ERROR;
 }
 
 PRIVATE const HTStreamClass HTDemuxClass =
@@ -328,16 +399,116 @@ PRIVATE const HTStreamClass HTDemuxClass =
     HTDemux_put_block
 };
 
-PUBLIC HTStream * HTDemux_new (HTNet * net, HTStream * target)
+/*	HTDemux_new
+**	-----------
+**	Create a new session and register it with this w3mux object.
+**	This stream can only be created by w3mux object itself and it happens
+**	when we encounter a session id that we haven't seen before.
+**	Creating a demux stream means finding a target for outputing data.
+**	with this session id.
+*/
+PRIVATE HTStream * HTDemux_new (HTW3mux * w3mux, HTSessionId sid)
 {
-    HTStream * me;
-    if (net && net->sockfd!=INVSOC) {
-	if (HTW3Mux_new(net->sockfd, NO) == YES) {
-	    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-	    HT_OUTOFMEM("HTDemux");
-	    me->isa = &HTDemuxClass;
-	    return me;
-	}
+    if (w3mux && sid!=INVSID) { 
+	HTStream * me;
+	if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+	    HT_OUTOFMEM("HTDemux_new");
+	me->isa = &HTDemuxClass;
+	me->w3mux = w3mux;
+	me->sid = sid;
+
+	/* HERE WE MUST FIND THE TARGET */
+
+	HTSession_setStream(w3mux, sid, HTErrorStream());
+	
     }
     return HTErrorStream();
 }
+
+/*	HTW3mux_new
+**	-----------
+**	Create a new W3mux protocol object.
+**	Returns new W3Mux object or NULL on error
+*/
+PUBLIC HTW3mux * HTW3mux_new (HTStream * mux, BOOL active)
+{
+    HTW3mux * w3mux = NULL;
+    if (mux) {
+	if ((w3mux = (HTW3mux *) HT_CALLOC(1, sizeof(HTW3mux))) == NULL)
+	    HT_OUTOFMEM("HTW3mux_new");	    
+	w3mux->mux = mux;
+	w3mux->ctrl_sid = active ? CLIENT_CTRL_SID : SERVER_CTRL_SID;
+	if (PROT_TRACE) HTTrace("W3mux....... Created %p\n", w3mux);
+    }
+    return w3mux;
+}
+
+/*	HTW3mux_delete
+**	--------------
+**	Delete a W3mux protocol object. If there are any remaining sessions
+**	then cancel them by turning the output into a error stream. When no
+**	more sessions are referencing this object we can delete it for good.
+**	Until that point we turn this object into a zombie. However, the user
+**	does not need to call it more than once.
+*/
+PUBLIC BOOL HTW3mux_delete (HTW3mux * w3mux)
+{
+    if (w3mux) {
+	if (w3mux->shutdown < SD_CLOSE) {
+	    HTW3mux_shutdown(w3mux, 2);
+	    w3mux->shutdown = SD_CLOSE;
+	}
+	if (HTW3mux_isEmpty(w3mux)) HT_FREE(w3mux);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Do this w3mux object have any more sessions?
+*/
+PUBLIC BOOL HTW3mux_isEmpty (HTW3mux * w3mux)
+{
+    if (w3mux) {
+	int sid = w3mux->ctrl_sid+2;
+	HTStream ** mp = w3mux->sessions+sid;
+	for (;sid < MAX_SESSIONS && *mp!=NULL; sid+=2, mp+=2);
+	return mp ? NO : YES;
+    }
+    return NO;
+}
+
+/*	HTW3mux_shutdown
+**	----------------
+**	Shutdown a w3mux object in one or both directions. This is equivalent
+**	to a socket shutdown() system call. That is, we have the following 
+**	options:
+**		0	Read half
+**		1	Write half
+**		2	Both read and write halves
+*/
+PUBLIC BOOL HTW3mux_shutdown (HTW3mux * w3mux, int how)
+{
+    if (w3mux) {
+	int sid;
+	HTStream ** mp;
+	how++;
+	if (how & SD_READ) {
+	    for (sid=w3mux->ctrl_sid+SERVER_CTRL_SID, mp=w3mux->sessions+sid;
+		 sid < MAX_SESSIONS; sid+=2, mp+=2) {
+		if (*mp) {
+		    (*(*mp)->isa->abort)(*mp, NULL);
+		    *mp = HTErrorStream();
+		}
+	    }
+	}
+	if (how & SD_WRITE) {
+	    (*w3mux->mux->isa->abort)(w3mux->mux, NULL);
+	    w3mux->mux = HTErrorStream();
+	}
+	w3mux->shutdown = how;
+	return YES;
+    }
+    return NO;
+}
+

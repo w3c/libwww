@@ -173,6 +173,8 @@ AC_CHECK_TYPE(BOOLEAN, char)
 AC_CHECK_TYPE(u_char, unsigned char)
 AC_CHECK_TYPE(u_short, unsigned short)
 AC_CHECK_TYPE(u_long, unsigned long)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
 AC_C_CONST
 AC_C_BIGENDIAN
 AC_C_CHAR_UNSIGNED

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Multiplexing</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Mar-1996 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -32,25 +32,80 @@ Reference Library</A>.
 #include <A HREF="HTStream.html">"HTStream.h"</A>
 </PRE>
 
-<H2>The HTSession Object</H2>
+<H2>The W3mux Object</H2>
 
-<B>MORE</B>
+<PRE>
+typedef struct _HTW3mux HTW3mux;
+</PRE>
 
 <H2>Multiplexing and Demultiplexing Streams</H2>
 
 The multiplexing protocol works just like another stream. We have a
 read loop and a output stream:
 
+<H2>Create a new Session</H2>
+
+Create a new session and register it with a w3mux object.  The output
+stream is where to output data returning from the session and the
+return stream is where to input data to the stream.  If the output
+stream is NULL then we use a blackhole instead
+
 <PRE>
-extern HTStream * HTMux_new (HTNet * net, HTStream * target, BOOL active);
-extern HTStream * HTDemux_new (HTNet * net, HTStream * target);
+extern HTStream * HTSession_new (HTW3mux * w3mux, HTStream * output);
+</PRE>
+
+<H2>Create a w3mux object</H2>
+
+Create a new W3mux protocol object.  Returns new W3Mux object or NULL
+on error
+
+<PRE>
+extern HTW3mux * HTW3mux_new (HTStream * mux, BOOL active);
+</PRE>
+
+<H3>Does a w3mux object contain any more sessions?</H3>
+
+<PRE>
+extern BOOL HTW3mux_isEmpty (HTW3mux * w3mux);
+</PRE>
+
+<H3>Delete a w3mux object</H3>
+
+Delete a W3mux protocol object. If there are any remaining sessions
+then cancel them by turning the output into a error stream. When no
+more sessions are referencing this object we can delete it for good.
+Until that point we turn this object into a zombie.
+
+<PRE>
+extern BOOL HTW3mux_delete (HTW3mux * w3mux);
+</PRE>
+
+<H3>Shutdown a w3mux object</H3>
+
+Shutdown a w3mux object in one or both directions. This is equivalent
+to a socket shutdown() system call. That is, we have the following 
+options:
+
+<DL>
+<DT>0
+<DD>Read half
+<DT>1
+<DD>Write half
+<DT>2
+<DD>Both read and write halves
+</DL>
+
+<PRE>
+extern BOOL HTW3mux_shutdown (HTW3mux * w3mux, int how);
 </PRE>
 
 <PRE>
 #endif
 </PRE>
 
-End of declaration module
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>
