@@ -1,0 +1,118 @@
+<HTML>
+<HEAD>
+<TITLE>How News servers work, and how to find one</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1995 -->
+<NEXTID N="z2">
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="Lib" SRC="../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+
+<H1>About news servers and NNTP</H1>
+
+This explains what an NNTP server is, and why if you haven't got one
+you can't just use someone else's.
+
+<H2>How news is distributed</H2>
+
+Internet news, (or "Usenet news"), is distributed using a completely
+different protocol to either electronic mail or normal W3 "HTTP"
+servers.  The Network News Transfer Protocol "NNTP" has the effect of
+broadcasting every message to (basically) every site, in contrast to
+email protocols which send messages to specific sites, and HTTP, which
+only transfers the information on demand by the reader.<P>
+
+An NNTP server is set up by its system manager to know about some (at
+least one) nearby servers.  With these servers, there is an
+arrangement that they will pass news to each other.  Sometimes this
+arrangement is limited to certain news groups.  Articles can be passed
+in both directions, and the servers compare article message-id headers
+to see whether they have any new news for each other.<P>
+
+(There are other protocols for communicating between servers, over
+dial-up lines for example, when there is no Internet connectivity.
+That is why there are many people who have no access to Internet can
+read and post news.)
+
+<H2>Running an NNTP server</H2>
+
+An NNTP server manager decides which parts of the news group hierarchy
+he will take, and finds another server administrator who is willing to
+feed news to him: his "news feed". Many administrators for example
+exclude the "alt.*" groups.  The decision to take NNTP news involves
+allocating a lot of disk space to keep all the articles until they
+expire (typically in a few weeks).  Some organizations feel it is an
+inappropriate use of their machines to store articles on strange
+topics.  This is why, even if you do have a news server, you may not
+have access to some groups.<P>
+
+Sometimes there are conditions attached to the news feed, which forbid
+for example commercial use being made of the data, or it being passed
+on by any other way than NNTP.<P>
+
+NNTP is much more efficient than HTTP for the case of articles which
+are going to be very widely read, because an article is only
+transferred once onto each site.  Then, someone reads it, the WWW
+client only has to retrieve it from the local server, and not from the
+server where it started.  NNTP servers will only allow local clients
+to access them directly, as to allow everyone in the world to access
+the same NNTP server would destroy this efficiency, and could lead to
+disastrous loads on the net and on that server.  This is why you can't
+use just anyone's NNTP server.  We get a lot of queries asking whether
+people can use ours.  Sorry, you can't.<P>
+
+It may be that on your site there is already an NNTP server.  Smart
+sites just give it an alias "news".  If anyone on your site is reading
+Internet news then you could find how they have configured their new
+reader.<P>
+
+If you don't have an NNTP server on site, then someone is going to
+have to install it and arrange for a news feed from somewhere
+close.<P>
+
+When you have found one, then <A HREF="NewsServer.html" NAME="z1"><A
+HREF="NewsServer.html" NAME="z1">configure your WWW client to use
+it.</A>
+
+<H2>An alternative</H2>
+
+If you really can't, for some reason, run an NNTP server on your site,
+you may find a friendly nearby site which will run an HTTP/NNTP
+gateway for you.  This means running the cern_httpd with a small
+configuration file which allows anyone (or rather, anyone in your
+domain) to use it as a proxy for news: URLs.  That is easy. Then, you
+configure your client to use that proxy for news. That should be easy
+too.  The disadvantage is that you can't currently post news through
+the proxy.
+
+<H2>Exception</H2>
+
+There are some specialist news groups which are set up locally, and
+which it is not worth distributing via the general system.  In this
+case, the administrators, instead of feeding the news into the NNTP
+network, just enable clients to connect from anywhere.<P>
+
+This doesn't scale very well, and in fact it would be more appropriate
+for them to run an HTTP server (or run an NNTP server and a server
+such as cern_httpd running as an HTTP/NNTP gateway).  However, for
+these specialist groups, a URL of the form
+
+<PRE>
+	nntp://host.dom.ain/news.group
+</PRE>
+
+has been defined and will be available in future releases of the <A
+HREF="/hypertext/WWW/Library/Status.html">Library of Common Code</A>
+version 3.0 or later.
+
+<P>
+<HR>
+
+<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, <A
+HREF="../../People.html#Frystyk">Henrik Frystyk</A>, April
+1995</ADDRESS>
+
+</BODY>
+</HTML>

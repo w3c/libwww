@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+<TITLE>Known Bugs in Line Mode Browser</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+<IMG ALT="BUG" SRC="../../Icons/WWW/Bug48x.gif">
+
+<H1>Known Bugs in Line Mode Browser</H1>
+
+The list of known bugs are in reverse chronological order.<P>
+
+<IMG SRC="../../Icons/32x32/caution.gif"> If you (very unlikely)
+have discovered a new <B>BUG</B> or just have a great idea -
+pronounced patches ;-) then please mail <EM>www-bug@info.cern.ch</EM>
+noting the version of the Line Mode browser <EM>and</EM> the
+Library. Find out by typing:
+
+<PRE>
+	./www -version
+</PRE>
+
+<HR>
+
+<DL>
+
+<DT>Better error reporting
+ 
+<DD>Difficult when many possible paths have been tried. Save log of
+attempts? Portability of error message generation?
+
+<DT>Command wanted: Append
+
+<DD>to a given file a hypertext reference to the document.
+
+<DT>Anchors in paper prints
+
+<DD>If the user needs to print out documents when following links,
+instead of inserting anchor numbers, insert page numbers of the
+destination nodes, as they would appear in the printed document. Do
+this by first following the links with no output on the screen,
+reading all the files into the buffer and calculating the page
+numbers.  Then go through the path again, with output directed to the
+printer, inserting the corresponding page numbers rather than the
+anchor numbers.
+
+<DT>Deal with lists within lists
+
+<DD>This is a part of having a better HTML parser
+
+<DT>Style sheets
+
+<DD>Nested style sheets like everybody is asking for
+
+</UL>
+
+<P>
+<HR>
+
+<ADDRESS>www-bug@info.cern.ch, February 1995</ADDRESS>
+</BODY>
+</HTML>

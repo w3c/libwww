@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<TITLE>CERN Line Mode Browser 2.15 Release Notes</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW"
+SRC="../../Icons/WWW/WWW48x.gif"></A> <A HREF="../Status.html"><IMG
+ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+
+<H1>Line Mode Browser 2.15 Release Notes</H1>
+
+<HR>
+
+As always, most of the added features in the Line Mode Browser are a
+result of changes to the <A HREF="../../Library/Status.html">Library
+of Common Code</A>. However, the following new features deserve to be
+mentioned:
+
+<UL>
+
+<LI>Introduced a more sophisticated verbose mode that takes parameter
+after the -v option. This feature is implemented due to an excessive
+amount of verbose output from the Library and the Browser. The -v
+option can now be followed by none, one, or more of the following
+characters:
+
+<DL>
+
+<DT>a
+
+<DD>Anchor relevant information
+
+<DT>p
+
+<DD>Protocol Modules
+
+<DT>s 
+
+<DD>SGML/HTML information
+
+<DT>u
+
+<DD>URI management
+
+</DL>
+
+The <CODE>-v</CODE> flag alone turns on all trace messages. This
+feature is a result of a more advanced TRACE management in the Library
+of Common Code
+
+<LI>LineMode Browser now supports direct WAIS access. If it is
+compiled with the same WAIS flags in the Makefile as the CERN server
+then it can access a WAIS server directly.
+
+<LI>New command line feature: -m <method> where <method> is one of
+
+<UL>
+<LI>GET
+<LI>HEAD
+</UL>
+
+This will later get extended to also include other HTTP methods
+
+<LI>Cyrillic support added for Line Mode Browser. This is a patch from
+Anton Tropashko, agl@glas2.glas.apc.org
+
+<LI>Bug where the Browser prompted the user a UserID and Password in
+non-interactive mode fixed. Now non-interactive <EM>really</EM> means
+non-interactive.
+
+<LI>The common BUILD for the Line Mode Browser, the CERN Server and
+the Library of common code now accepts a command line option:
+
+<PRE>
+	BUILD linemode | daemon | library
+</PRE>
+
+to build a specific component. The default action is to build all
+three parts. BUILD is now also provided in a Bourne Shell version
+
+</UL>
+
+<HR>
+
+<ADDRESS>Henrik Frystyk, www-bug@info.cern.ch, September 1994</ADDRESS>

@@ -1,0 +1,305 @@
+<HTML>
+<HEAD>
+<TITLE>Command Line Syntax for the Line Mode browser</TITLE>
+<NEXTID N="z29">
+</HEAD>
+
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+<A HREF="QuickGuide.html"><IMG SRC="../../Icons/WWW/guide48x.gif"></A>
+
+<H1>Command Line Syntax</H1>
+
+The syntax is:
+
+<PRE>
+	www [<A HREF="#z19" NAME="z20">options</A> ]  [<A HREF="#z16"NAME="z14"> docaddress</A> [<A HREF="#z17" NAME="z18"> keywords</A> ]]
+</PRE>
+
+With no arguments, and if the <A HREF="../Status.html" >Line Mode
+Browser</A> has not been <A HREF="Customisation.html">customized</A>
+then it automaticly tries the following locations:
+
+<OL>
+<LI>~/WWW/default.html
+<LI>/usr/local/lib/WWW/default.html
+<LI>http://www.w3.org/default.html
+</OL>
+
+<H2><A NAME="z19">Options</A></H2>
+
+Options should be specified before other arguments. Currently
+available options are:-
+
+<H3>Main Modes of execution</H3>
+
+<DL>
+
+<DT>-
+
+<DD>A minus sign with no trailing characters indicates that the
+program will accept<A HREF="../../MarkUp/MarkUp.html"> HTML format</A>
+input from the standard input. This allows www to be used as a filter
+from html to plain text for example. Relative links in the input are
+parsed as though the address of the document was that of the home page
+(or docaddress if specified). Implies non-interactive mode.
+
+<DT>-h host
+
+<DD>Establish a telnet connection to the remote host specified. This
+implies a "secure mode" execution where all references to the local
+file system are canceled.
+
+<DT>-m <A HREF="../../Protocols/HTTP/Methods.html">&lt;METHOD&gt;</A>
+
+<DD>This mode gives the possibility of setting the Method of the HTTP
+request. The default value is <B>GET</B>. The current supported values
+are:
+
+<UL>
+<LI>get
+<LI>head
+</UL>
+
+This option implies non-interactive execution.
+
+<DT>-n
+
+<DD>Non-interactive mode. Outputs the formatted document to the
+standard output, then exits. Pages are delimited with form feed (FF)
+characters.
+
+<DT>-single
+
+<DD>Singlethreaded mode. If this flag is set then the browser uses
+blocking, non interruptible I/O in interactive mode. Non-interactive
+mode always uses blocking I/O.
+
+<DT>-v
+
+<DD>Verbose mode: Gives a running commentary on the program's attempts
+to read data in various ways. This can also be turned on and off
+during normal execution, see <A HREF="Commands.html"
+NAME="z21">Existing Commands</A>. As the amount of verbose output from
+the Browser and the Library is substantial, the <CODE>-v</CODE> option
+can now be followed by zero, one or more of the following flags in
+order to differentiate the verbose output generated:
+
+<DL>
+
+<DT>s
+
+<DD>Show the SGML/HTML relevant information
+
+<DT>u
+
+<DD>Show URI relevant information
+
+<DT>a
+
+<DD>Show Anchor relevant information
+
+<DT>p
+
+<DD>Show Protocol module information
+
+</DL>
+
+The <CODE>-v</CODE> option without any appended options shows all
+trace messages
+
+</DL>
+
+<H3>Data format conversions (non-interactive)</H3>
+
+<DL>
+
+<DT>-from &lt;format&gt;
+
+<DD>Only if WWW is executed as a filter, this option indicates the
+desired input format according to the HTTP-specifications. The default
+value is "text/html".
+
+<DT><A NAME="z28">-reformat</A>
+
+<DD>The output is to be in HTML, "canonicalized" so that line breaks
+will be put in common places. Comments, processing instructions, etc,
+will be stripped. This feature allows HTML files produced by
+different editors to be compared.
+
+<DT>-source
+
+<DD>Display the original source (without any MIME-headers) of a
+document instead of parsing it. Has effect for HTML from w3 servers,
+and news articles. (v1.2a or later). In order to get the
+MIME-headers, use the " -to " command.
+
+<DT>-to &lt;format&gt;
+
+<DD>Format is the output format for www. Default value is
+"www/present" but may be changed according to the HTTP-specifications.
+Two common output formats are "www/source" that is the source without
+MIME-headers and "www/mime" that is the source with the MIME-header if
+any. Though also "text/latex" is possible which generates a LaTeX
+version of the (HTML) document. This can then be compiled using latex
+and put out as Postscript.
+
+</DL>
+
+<H3>Other modes that force non-interactive mode</H3>
+
+<DL>
+
+<DT>-listrefs
+
+<DD>Adds a list of the addresses of all documents references to the
+end of the HTML file.
+
+<DT>-o &lt;file&gt;
+
+<DD>Redirects output to specified file.
+
+<DT>-version
+
+<DD>Prints out the version number of the software, and the version
+number of the WWW library, and exits.</DL>
+
+<H3>Screen options</H3>
+
+<DL>
+
+<DT>-p n
+
+<DD>where n is a number, specifies the page length. Without a number,
+that is <CODE>-p</CODE> without any number, makes the page length
+infinite. Default page size is 24 or is automitically set on some
+systems.
+
+<DT>-w n
+
+<DD>where n is a number, specifies the page width in columns. The
+default is 78, 79 or 80 depending on the system. (v1.0 or later)
+
+</DL>
+
+<H3>Anchor formats</H3>
+
+<DL>
+
+<DT>-a &lt;format&gt;
+
+<DD>Specifies the printf-style format string to be used when printing
+references. Must contain the two characters "%d" where the numbers
+should occur. Be sure to escape or quote any special characters you
+use. For example under Unix:
+
+<DT>-na
+
+<DD>Hides anchor positions in the text. Useful, when printing out the
+document. The option can also be used together with the
+<CODE>-p</CODE> option with no number specified (infinite page
+length).
+
+</DL>
+
+<H3>Directory Listings</H3>
+
+<DL>
+
+<DT>-d &lt;options&gt;
+
+<DD>The <CODE>-d</CODE> directive can be used to modify the directory
+listing layout. More than one option can be specified but they might
+be mutually exclusive. The following options are available:
+
+<DL>
+
+<DT>t
+
+<DD>Place any readme file at the top of the list (default)
+
+<DT>b
+
+<DD>Place any readme file at the bottom of the list
+
+<DT>r
+
+<DD>Ignore any readme file
+
+<DT>n
+
+<DD>Directory listings are not allowed
+
+<DT>s
+
+<DD>Directory listings are only allowed in the directories where a
+file <CODE>.www_browsable</CODE> is located. The content of the file
+is of no importance.
+
+<DT>y
+
+<DD>Directory listings are always allowed (default)
+
+</DL>
+
+</DL>
+
+<H3>Other configuration options</H3>
+
+<DL>
+
+<DT>-l &lt;file&gt;
+
+<DD>Specifies a log file with a list of visited documents.
+
+<DT>-r &lt;file&gt;
+
+<DD>Rule file (configuration file). If this is specified, a rule file
+may be used to map URLs, and to set up other aspects of the behavior
+of the browser. Many rule files may be given with successive -r
+options. One rule file name may be given using the WWW_CONFIG
+environment variable.
+
+<PRE>
+	www -a \&lt;%d\&gt;
+</PRE>
+
+<PRE>
+	www -a "(Type %d)"
+</PRE>
+
+<DD>
+
+<DT>-cacheroot &lt;path&gt;
+
+<DD>This option defines the root of the cache system. If the option is
+not specified, no local file cache is generated. If the parameter is
+specified without a path then a default cache root is set - normally
+to <CODE>/tmp</CODE>.
+
+<DT>-help or -?
+
+<DD>Load this file from directly into the browser
+
+</DL>
+
+<H2><A NAME="z16">docaddress</A></H2>
+
+If present, the next argument (docaddress) is the <A
+HREF="../../Addressing/Addressing.html">hypertext address</A> , of the
+document at which you want to start browsing. You may want to define
+an alias for www followed by name of your favorite index. <H2><A
+NAME="z17">keywords</A></H2>Any further command line arguments are
+taken as keywords. The first argument must refer to an index in this
+case. The index is searched for entries matching the keywords, and a
+list of matching entries is displayed. <P>
+
+<HR>
+
+<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A> and <A
+HREF="../../People.html#Frystyk" NAME="z9">Henrik Frystyk</A>, April
+1995</ADDRESS>
+
+</BODY></HTML>

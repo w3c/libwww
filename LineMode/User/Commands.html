@@ -1,0 +1,225 @@
+<HTML>
+<HEAD>
+<TITLE>Commands -- /LineMode</TITLE>
+<NEXTID N="z17">
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW"
+SRC="../../Icons/WWW/WWW48x.gif"></A> <A HREF="../Status.html"><IMG
+ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A> <A
+HREF="QuickGuide.html"><IMG SRC="../../Icons/WWW/guide48x.gif"></A>
+
+<H1>Line Mode Browser Commands</H1>
+
+<HR>
+
+The following commands are available at the prompt within <A
+HREF="../Status.html">WWW Line Mode Browser</A>. Some are disabled
+when not applicable. All commands may be abbreviated. Case is not
+significant.
+
+<H3>Getting Help</H3>
+<DL>
+
+<DT>Help, ?</A>
+
+<DD>Gives a list of available commands depending on the context, the
+version number of the www program, and the<A
+HREF="../../Addressing/Addressing.html"> hypertext address</A>, (or
+UDI) of the document you are reading.
+
+<DT>Manual
+
+<DD>Jumps directly to the master document of the online manual.
+
+</DL>
+
+<H3>Getting around in a document</H3>
+
+<DL>
+
+<DT>&lt;Return&gt;
+
+<DD> Just hitting Return displays the next page (if any) of the
+current document.
+
+<DT>Top, Bottom
+
+<DD>Goes to the top or the bottom of the current document
+
+<DT>Up, Down
+
+<DD> Scrolls up or down one page in the current document.
+
+</DL>
+
+<H3>Load a document</H3>
+
+<DL>
+<DT>&lt;number&gt;
+
+<DD>Typing a number by itself follows the corresponding reference from
+the currently displayed document.
+
+<DT>Back
+
+<DD>Goes back to the document you were reading before.
+
+<DT>Next, Previous
+
+<DD>Goes to the next or previous document in the list of pointers from
+the document that led to the current one. This is better explained
+with an example: suppose you are reading a document which looks like a
+menu, and you want to read all entries in turn. You first type "1" to
+read the first referred document (by following the first link), and
+then you type "next" or just "n" to read the next one from the menu,
+without actually coming back to the menu and typing "2", etc.
+
+<DT>Go &lt;address&gt;
+
+<DD>Goes to the document represented by the given hypertext address,
+which is interpreted relatively to the current document.
+
+<DT>Home
+
+<DD>Goes back to the first document you were reading.
+
+</DL>
+
+<H3>Loading Multiple Documents Simultanously</H3>
+
+In version 3.0 and later of the Line Mode Browser you can immediately
+type another command as soon as the prompt line returns. This is the
+result of the multithreaded model used in the <A
+HREF="../../Library/Status.html">Library of Common Code</A>.
+
+<H3>Interrupt Current Requests</H3>
+
+<DL>
+
+<DT>z
+
+<DD>If running in multithreaded mode (default in interactive mode from
+version 3.0), you can interrupt a request by typing 'z'.
+
+</DL>
+
+
+<H3>Links</H3>
+
+<DL>
+
+<DT>List
+
+<DD> Gives a numbered list of the links from the current document,
+giving the title of the target documents if it is known otherwise the
+URL To follow a link, type the number by itself as above. By using <A
+NAME="z9" HREF="#z11">source</A>, only the URL's are displayed.
+
+</DL>
+
+<H3>Search</H3>
+
+<DL>
+
+<DT>Find, Keywords  &lt;keywords&gt;
+
+<DD> Queries the current index with the supplied keywords (separated
+by blanks). The interpretation of the keywords depends on the
+particular information server you're looking at. In most cases, it
+will search a database for entries matching the keywords, and will
+display the results with possibly links to further details. For more
+complex queries, instructions should be present in the cover page. The
+"Find" (or "Keywords") command can be omitted if the first keyword
+does not conflict with another www command.
+
+</DL>
+
+<H3>History</H3>
+
+<DL>
+
+<DT>Recall
+
+<DD> Without a parameter, gives a numbered list of the documents you
+have visited.  To select one, type "Recall" followed by the number.
+
+</DL>
+
+<H3>Other Features</H3>
+
+<DL>
+
+<DT><A NAME="z11">Source</A>
+
+<DD> Followed by another command, causes raw source to be generated
+for that command but without any MIME headers wrapped around it. This
+is useful for printing postscript files without formatting, with
+SOURCE PRINT.  See <A HREF="SourceExamples.html">examples</A> .
+
+<DT>Verbose
+
+<DD> Toggles verbose mode (for maintenance purposes).
+
+</DL>
+
+<H3>Exit World Wide Web</H3>
+
+<DL>
+
+<DT>Quit, Exit
+
+<DD> Leaves the application.
+
+</DL>
+
+<H3>On Unix versions, the following extra commands are available:</H3>
+
+<DL>
+
+<DT>Print
+
+<DD> Prints the current document, without the numbered document
+references.  A background www is launched to do that, and its output
+is piped to the command defined by the environment variable
+WWW_PRINT_COMMAND ("lpr" by default). Can be used with <A NAME="z12"
+HREF="#z11">source</A> .
+
+<DT>&gt; file
+
+<DD> Saves the current document to the given file, without the
+numbered document references. A background www is launched to do
+that. If the file exists, a ">!" will overwrite it. Can be used with
+<A NAME="z13" HREF="#z11">source</A> .
+
+<DT>&gt;&gt; file
+
+<DD> Appends the current document to the given file without the
+numbered links. Can be used with <A NAME="z14" HREF="#z11">source</A>.
+
+<DT>| command
+
+<DD>Pipes the current document to the given command, without the
+numbered document references. A background www is launched to do
+that. Can be used with <A NAME="z15" HREF="#z11">source</A> .
+
+<DT>! command
+
+<DD>Executes the given shell command without leaving www.
+
+<DT>CD (or LCD) directory
+
+<DD> Changes the local working directory. "! cd directory" won't do
+this because it applies to a subshell.
+
+</DL><P>
+
+<HR>
+
+<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>and <A
+NAME="z16" HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
+October 1994 </ADDRESS>
+
+</BODY>
+</HTML>
