@@ -512,8 +512,9 @@ PUBLIC HTStream* HTSaveAndCallBack ARGS5(
    HTStream * me;
    
    if (request->using_cache) {  /* Special case! file wanted && cache hit */
-        (*request->callback)(me->request,
+        (*request->callback)(request,
 			 ((HTCacheItem*)request->using_cache)->filename);
+	return &HTBlackHoleInstance;	/* @@@@@@@@@@@@@@ */
    } else {
    	me = HTCacheWriter(request, param,
 			    input_format, output_format, output_stream);

@@ -42,6 +42,8 @@
 #include "HTML.h"		/* SCW */
 #include "HTInit.h"		/* SCW */
 #include "HTAABrow.h"		/* Access Authorization */
+#include "HTTee.h"		/* Tee off a cache stream */
+#include "HTFWriter.h"		/* Write to cache file */
 
 struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */

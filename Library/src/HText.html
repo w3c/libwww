@@ -156,6 +156,22 @@ image itself as a separate document.
 	BOOL		isMap));
 
 </PRE>
+<H3>HText_appendObject:  Append an object
+which does its own work</H3>The SGML parameters are passed untouched.
+ Currently thiusis only used for
+empty elements.  Extensions could
+be (1) to pass CDATA contents as
+well as any attributes and (2) to
+pass the whole structured stream
+until the compound object has parsed
+itself.
+<PRE>extern void HText_appendObject PARAMS((
+	HText * 		text,
+	int			element_number,
+	BOOL *			present,
+	CONST char * CONST * 	value));
+
+</PRE>
 <H3>HText_unimplemented: Warn that object
 is not completely rendered.</H3>If the parser realises that it has
 incompletely parsed an object, then

@@ -76,6 +76,7 @@ struct _HTStructured {
 
 PUBLIC int HTDirAccess = HT_DIR_OK;
 PUBLIC int HTDirReadme = HT_DIR_README_TOP;
+PUBLIC BOOL HTTakeBackup = YES;
 
 PRIVATE char *HTMountRoot = "/Net/";		/* Where to find mounts */
 #ifdef VMS
@@ -531,13 +532,51 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 {
 
     CONST char * addr = HTAnchor_address((HTAnchor*)request->anchor);
-    char *  localname = HTLocalName(addr);
+    char *  filename = HTLocalName(addr);
+    FILE* fp;
+
+/*	@ Introduce CVS handling here one day
+*/
+/*	Take a backup before we do anything silly   931205
+*/        
+    if (HTTakeBackup) {
+    	char * backup_filename = 0;
+	char * p = backup_filename;
+	backup_filename = malloc(strlen(filename)+2);
+	if (!backup_filename) outofmem(__FILE__, "taking backup");
+	strcpy(backup_filename, filename);
+	for(p=backup_filename+strlen(backup_filename);; p--) {// Start at null
+	    if ((*p=='/') || (p<backup_filename)) {
+	        p[1]=',';		/* Insert comma after slash */
+		break;
+	    }
+	    p[1] = p[0];	/* Move up everything to the right of it */
+	}
+	
+	if (fp=fopen(filename, "r")) {			/* File exists */
+	    fclose(fp);
+	    if (TRACE) printf("File `%s' exists\n", filename);
+	    if (remove(backup_filename)) {
+		if (TRACE) printf("Backup file `%s' removed\n",
+			 backup_filename);
+	    }
+	    if (rename(filename, backup_filename)) {	/* != 0 => Failure */
+		if (TRACE) printf("Rename `%s' to `%s' FAILED!\n",
+				    filename, backup_filename);
+	    } else {					/* Success */
+		if (TRACE) printf("Renamed `%s' to `%s'\n", filename,
+				backup_filename);
+	    }
+	}
+    	free(backup_filename);
+    } /* if take backup */    
     
-    FILE* fp = fopen(localname, "w");
-    if (!fp) return NULL;
+    {
+        fp = fopen(filename, "w");
+        if (!fp) return NULL;
     
-    return HTFWriter_new(fp);
-    
+    	return HTFWriter_new(fp);
+    }
 }
 
 /*      Output one directory entry
@@ -725,7 +764,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *,		request)
 	    STRUCT_DIRENT * dirbuf;
 	    float best = NO_VALUE_FOUND;	/* So far best is bad */
 	    HTFormat best_rep = NULL;	/* Set when rep found */
-	    STRUCT_DIRENT best_dirbuf;	/* Best dir entry so far */
+	    char * best_file_name = NULL;	/* Best dir entry so far */
 
 	    char * base = strrchr(localname, '/');
 	    int baselen;
@@ -762,7 +801,7 @@ forget_multi:
 			if  (value > best) {
 			    best_rep = rep;
 			    best = value;
-			    best_dirbuf = *dirbuf;
+			    StrAllocCopy(best_file_name, dirbuf->d_name);
 		       }
 		    }	/* if best so far */ 		    
 		 } /* if match */  
@@ -774,7 +813,7 @@ forget_multi:
 		format = best_rep;
 		base[-1] = '/';		/* Restore directory name */
 		base[0] = 0;
-		StrAllocCat(localname, best_dirbuf.d_name);
+		localname = best_file_name;	/* freed later */
 		goto open_file;
 		
 	    } else { 			/* If not found suitable file */

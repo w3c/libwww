@@ -188,6 +188,7 @@ static attr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
 	{ "SRC" },
 	{ "TYPE" },
 	{ "VALUE" },
+	{ "0" }
 };
 
 static attr l_attr[] = {
@@ -360,9 +361,9 @@ static HTTag tags[HTMLP_ELEMENTS] = {
     { "H6"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "H7"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "HEAD"	, no_attr,	0,			SGML_MIXED },
-    { "HTMLPLUS", htmlplus_attr,HTML_HTMLPLUS_ATTRIBUTES, SGML_MIXED },
     { "HR"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_EMPTY },
     { "HTML"	, no_attr,	0,			SGML_MIXED },  /* */
+    { "HTMLPLUS", htmlplus_attr,HTML_HTMLPLUS_ATTRIBUTES, SGML_MIXED },
     { "I"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "IMAGE"	, image_attr,	HTML_IMAGE_ATTRIBUTES,	SGML_EMPTY },
     { "IMG"     , img_attr,	HTML_IMG_ATTRIBUTES,	SGML_EMPTY },

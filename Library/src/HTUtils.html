@@ -176,9 +176,9 @@ for something more sophisticated.
 #define NO (BOOLEAN)0
 #endif
 
-#ifndef MIN 
-#define MIN(a,b) ((a) &lt;= (b) ? (a) : (b))
-#define MAX(a,b) ((a) >= (b) ? (a) : (b))
+#ifndef HTMIN 
+#define HTMIN(a,b) ((a) &lt;= (b) ? (a) : (b))
+#define HTMAX(a,b) ((a) >= (b) ? (a) : (b))
 #endif
 
 #define TCP_PORT 80	/* Allocated to http by Jon Postel/ISI 24-Jan-92 */
@@ -278,5 +278,5 @@ sent as net ascii after translation.
 
 #endif /* HTUTILS_H */
 
-</PRE>end of utilities</A></BODY>
+</PRE>end of utilities</BODY>
 </HTML>

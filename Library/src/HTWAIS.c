@@ -791,7 +791,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 		    docid, 
 		    CT_byte,
 		    count * CHARS_PER_PAGE,
-		    MIN((count + 1) * CHARS_PER_PAGE,document_length),
+		    HTMIN((count + 1) * CHARS_PER_PAGE,document_length),
 		    type,
 		    wais_database
 		    ))
