@@ -268,6 +268,9 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
 	}
     } 
  
+    /* Delete any auth credendials as they get regenerated */
+    HTRequest_deleteCredentialsAll(request);
+
     /*
     **  Start new request with the redirect anchor found in the headers.
     **	Note that we reuse the same request object which means that we must
