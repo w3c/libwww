@@ -95,7 +95,7 @@ PRIVATE void HTPlain_abort ARGS2(HTStream *, me, HTError, e)
 */
 PUBLIC CONST HTStreamClass HTPlain =
 {		
-	"SocketWriter",
+	"PlainText",
 	HTPlain_free,
 	HTPlain_abort,
 	HTPlain_put_character, 	HTPlain_put_string, HTPlain_write,
@@ -117,7 +117,7 @@ PUBLIC HTStream* HTPlainPresent ARGS5(
     if (me == NULL) outofmem(__FILE__, "HTPlain_new");
     me->isa = &HTPlain;       
 
-    me->text = HText_new(request->anchor);
+    me->text = HText_new2(request->anchor, output_stream);
     HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
     HText_beginAppend(me->text);
 

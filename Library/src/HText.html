@@ -1,6 +1,8 @@
 <HTML>
 <HEAD>
-<TITLE>Rich Hypertext object for libWWW</TITLE></HEAD>
+<TITLE>Rich Hypertext object for libWWW</TITLE>
+<NEXTID N="z1">
+</HEAD>
 <BODY>
 <H1>Rich HyperText Object</H1>
 <PRE>
@@ -49,6 +51,8 @@ in order to display hypertext.
 #ifndef THINK_C
 #ifndef HyperText		/* Objective C version defined HyperText */
 typedef struct _HText HText;	/* Normal Library */
+#else
+@class HText;			/* Objective C version for NeXTStep */
 #endif
 #else
 class CHyperText;		/* Mac Think-C browser hook */
@@ -68,14 +72,15 @@ to a stream.  The structure is for
 objects which need to refer to the
 structure which is kep by the creating
 stream.
-<PRE> extern HText *	HText_new PARAMS((HTParentAnchor * anchor));
+<PRE> extern HText *	HText_new PARAMS((HTParentAnchor * 	anchor));
 
- extern HText *	HText_new2 PARAMS((HTParentAnchor * anchor,
- 				HTStream * output_stream));
+ extern HText *	HText_new2 PARAMS((HTParentAnchor * 	anchor,
+ 				HTStream * 		output_stream));
 
- extern HText *	HText_new3 PARAMS((HTParentAnchor * anchor,
- 				HTStream * output_stream,
-				HTStructured * structure));
+ extern HText *	<A
+NAME="z0">HText_new3</A> PARAMS((HTRequest *		request,
+ 				HTStream * 		output_stream,
+				HTStructured * 		structure));
 
 </PRE>
 <H3>Free hypertext object</H3>
@@ -147,7 +152,7 @@ image itself as a separate document.
 	HText * 	text,
 	HTChildAnchor * anc,
 	CONST char * 	alternative_text,
-	int		alignment,
+	CONST char *	alignment,
 	BOOL		isMap));
 
 </PRE>

@@ -27,25 +27,6 @@ NAME="z3" HREF="HTML.c">HTML.c</A>
 extern CONST HTStructuredClass HTMLPresentation;
 
 </PRE>
-<H2>HTConverter instances to present
-HTML</H2>
-<PRE>/* PUBLIC HTStream* HTMLToPlain PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
-
-PUBLIC HTStream* HTMLToC PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
-
-PUBLIC HTStream* HTMLPresent PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
-*/
-
-</PRE>
 <H2>HTML_new: A structured stream to
 parse HTML</H2>
 <PRE>extern HTStructured* HTML_new PARAMS((HTRequest * request,
@@ -54,8 +35,19 @@ parse HTML</H2>
 					HTFormat output_format,
 				     	HTStream * output_stream));
 
+</PRE>
+<H3>Reopen</H3>Reopening an existing HTML object
+allows it to be retained (for example
+by the styled text object) after
+the structured stream has been closed.
+ To be actually deleted, the HTML
+object must  be closed once more
+times than it has been reopened.
+<PRE>extern void HTML_reopen PARAMS((HTStructured *, me));
 
-extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent;
+</PRE>
+<H2>Converters</H2>
+<PRE>extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent;
 
 
 </PRE>
@@ -76,15 +68,20 @@ as an error so that it can be reloaded
 later. This implementation just throws
 up an error message and leaves the
 document unloaded.
-<PRE>/* On entry,
-**	sink 	is a stream to the output device if any
-**	number	is the HTTP error number
-**	message	is the human readable message.
-** On exit,
-**	a retrun code like HT_LOADED if object exists else 60; 0
-*/
+<H3>On entry,</H3>
+<DL>
+<DT>sink
+<DD>is a stream to the output device
+if any
+<DT>number
+<DD>is the HTTP error number
+<DT>message
+<DD>is the human readable message.
+</DL>
 
-PUBLIC int HTLoadError PARAMS((
+<H3>On exit,</H3>a return code like HT_LOADED if object
+exists else &lt; 0
+<PRE>PUBLIC int HTLoadError PARAMS((
 	HTStream * 	sink,
 	int		number,
 	CONST char *	message));
@@ -92,13 +89,5 @@ PUBLIC int HTLoadError PARAMS((
 #endif
 
 
-
-
-
-
-
-
-
-
-</BODY>
+</PRE>end</A></BODY>
 </HTML>
