@@ -124,7 +124,7 @@ int main (int argc, char ** argv)
     for (i=1; i < argc; i++) {
         msg = parse_buffer(argv[i], &buffer, &buff_len);
         if (!msg) {
-            status = HTRDF_parseBuffer(buffer, argv[i], buff_len, new_triple_handler);
+            status = HTRDF_parseBuffer(buffer, argv[i], buff_len, new_triple_handler, NULL);
             if (!status)
                 (void) fprintf (stderr, "ERROR parsing the buffer from file: '%s'\n", argv[i]);
         }
