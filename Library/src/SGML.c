@@ -57,6 +57,9 @@ struct _HTStream {
     enum sgml_state { S_text, S_literal, S_tag, S_tag_gap, 
 		S_attr, S_attr_gap, S_equals, S_value,
 		S_ero, S_cro,
+#ifdef ISO_2022_JP
+ 		S_esc, S_dollar, S_paren, S_nonascii_text,
+#endif
 		  S_squoted, S_dquoted, S_end, S_entity, S_junk_tag} state;
 #ifdef CALLERDATA		  
     void *		callerData;
@@ -330,6 +333,13 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 
     switch(context->state) {
     case S_text:
+#ifdef ISO_2022_JP
+ 	if (c=='\033') {
+ 	    context->state = S_esc;
+ 	    PUTC(c);
+ 	    break;
+ 	}
+#endif /* ISO_2022_JP */
 	if (c=='&' && (!context->element_stack || (
 	    		 context->element_stack->tag  &&
 	    		 ( context->element_stack->tag->contents == SGML_MIXED
@@ -342,11 +352,48 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	} else if (c=='<') {
 	    string->size = 0;
 	    context->state = (context->element_stack &&
-	    		context->element_stack->tag  &&
-	    		context->element_stack->tag->contents == SGML_LITERAL) ?
+	    	context->element_stack->tag  &&
+	    	context->element_stack->tag->contents == SGML_LITERAL) ?
 	    			S_literal : S_tag;
 	} else PUTC(c);
 	break;
+
+#ifdef ISO_2022_JP
+    case S_esc:
+	if (c=='$') {
+	    context->state = S_dollar;
+	} else if (c=='(') {
+	    context->state = S_paren;
+	} else {
+	    context->state = S_text;
+	}
+	PUTC(c);
+	break;
+    case S_dollar:
+	if (c=='@' || c=='B') {
+	    context->state = S_nonascii_text;
+	} else {
+	    context->state = S_text;
+	}
+	PUTC(c);
+	break;
+    case S_paren:
+	if (c=='B' || c=='J') {
+	    context->state = S_text;
+	} else {
+	    context->state = S_text;
+	}
+	PUTC(c);
+	break;
+    case S_nonascii_text:
+	if (c=='\033') {
+	    context->state = S_esc;
+	    PUTC(c);
+	} else {
+	    PUTC(c);
+	}
+	break;
+#endif /* ISO_2022_JP */
 
 /*	In literal mode, waits only for specific end tag!
 **	Only foir compatibility with old servers.

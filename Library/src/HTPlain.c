@@ -118,8 +118,8 @@ PUBLIC HTStream* HTPlainPresent ARGS5(
     me->isa = &HTPlain;       
 
     me->text = HText_new2(request->anchor, output_stream);
-    HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
     HText_beginAppend(me->text);
+    HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
 
     return (HTStream*) me;
 }

@@ -545,7 +545,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 	backup_filename = malloc(strlen(filename)+2);
 	if (!backup_filename) outofmem(__FILE__, "taking backup");
 	strcpy(backup_filename, filename);
-	for(p=backup_filename+strlen(backup_filename);; p--) {// Start at null
+	for(p=backup_filename+strlen(backup_filename);; p--) {
 	    if ((*p=='/') || (p<backup_filename)) {
 	        p[1]=',';		/* Insert comma after slash */
 		break;

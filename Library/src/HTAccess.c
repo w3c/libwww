@@ -13,7 +13,7 @@
 **	 4 Feb 93 Access registration, Search escapes bad chars TBL
 **		  PARAMETERS TO HTSEARCH AND HTLOADRELATIVE CHANGED
 **	28 May 93 WAIS gateway explicit if no WAIS library linked in.
-**
+**	   Dec 93 Bug change around, more reentrant, etc
 ** Bugs
 **	This module assumes that that the graphic object is hypertext, as it
 **	needs to select it when it has been loaded.  A superclass needs to be
@@ -140,16 +140,16 @@ GLOBALREF  HTProtocol HTWAIS;
 **			HT_OK			Success
 **
 */
-PRIVATE int get_physical ARGS2(
-	CONST char *,		addr,
-	HTParentAnchor *,	anchor)
+PRIVATE int get_physical ARGS1(HTParentAnchor *,	anchor)
 {
     char * access=0;	/* Name of access method */
     char * physical = 0;
+    char * addr = HTAnchor_address((HTAnchor*)anchor);	/* free me */
     
 #ifndef NO_RULES
     physical = HTTranslate(addr);
     if (!physical) {
+    	free(addr);
 	return HT_FORBIDDEN;
     }
     HTAnchor_setPhysical(anchor, physical);
@@ -198,6 +198,7 @@ PRIVATE int get_physical ARGS2(
     }
 #endif
 
+    free(addr);
 
 
 /*	Search registered protocols to find suitable one
@@ -244,11 +245,13 @@ PRIVATE int get_physical ARGS2(
 **
 */
 PRIVATE int HTLoad ARGS2(
-	CONST char *,		addr,
+	CONST char *,		addr,	/* not used */
 	HTRequest *,		request)
 {
     HTProtocol* p;
-    int status = get_physical(addr, request->anchor);
+    int status;
+    request->method = HTAtom_for("GET");
+    status = get_physical(request->anchor);
     if (status == HT_FORBIDDEN) {
         return HTLoadError(request->output_stream, 500,
 		"Access forbidden by rule");
@@ -263,12 +266,19 @@ PRIVATE int HTLoad ARGS2(
 /*		Get a save stream for a document
 **		--------------------------------
 */
-PUBLIC HTStream *HTSaveStream ARGS2(
-			HTParentAnchor *, 	anchor,
-			HTRequest *, 		request)
+PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 {
     HTProtocol * p;
-    request->anchor = anchor;
+    int status;
+    request->method = HTAtom_for("PUT");
+    status = get_physical(request->anchor);
+    if (status == HT_FORBIDDEN) {
+        HTLoadError(request->output_stream, 500,
+		"Access forbidden by rule");
+	return NULL;	/* should return error status? */
+    }
+    if (status < 0) return NULL; /* @@ error. Can't resolve or forbidden */
+    
     p = HTAnchor_protocol(request->anchor);
     if (!p) return NULL;
     
@@ -286,7 +296,9 @@ PUBLIC HTStream *HTSaveStream ARGS2(
 **	- Trace ouput and error messages
 **
 **    On Entry,
-**        full_address      The address of the document to be accessed.
+**        request->anchor	valid for of the document to be accessed.
+**	 request->childAnchor   optional anchor within doc to be selected
+**
 **        filter            if YES, treat stdin as HTML
 **
 **	  request->anchor   is the node_anchor for the document
@@ -298,14 +310,13 @@ PUBLIC HTStream *HTSaveStream ARGS2(
 **
 */
 
-PRIVATE BOOL HTLoadDocument ARGS2(
-	CONST char *,		full_address,
-	HTRequest *,		request)
+PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 
 {
     int	        status;
     HText *	text;
-
+    char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
+    
     if (TRACE) fprintf (stderr,
       "HTAccess: loading document %s\n", full_address);
 
@@ -316,7 +327,12 @@ PRIVATE BOOL HTLoadDocument ARGS2(
     if (text=(HText *)HTAnchor_document(request->anchor))
     {	/* Already loaded */
         if (TRACE) fprintf(stderr, "HTAccess: Document already in memory.\n");
-        HText_select(text);
+	if (request->childAnchor) {
+	    HText_selectAnchor(text, request->childAnchor);
+	} else {
+	    HText_select(text);	
+	}
+	free(full_address);
 	return YES;
     }
     
@@ -343,6 +359,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(
 		if (fp) {
 		    HTFileCopy(fp, s);
 		    fclose(fp);
+		    free(full_address);
 		    return YES;
 		} else {
 		    fprintf(stderr, "***** Can't read cache file %s !\n",
@@ -379,6 +396,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(
 	    fprintf(stderr, "HTAccess: `%s' has been accessed.\n",
 	    full_address);
 	}
+	free(full_address);
 	return YES;
     }
     
@@ -388,6 +406,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(
 	    "HTAccess: `%s' has been accessed, No data left.\n",
 	    full_address);
 	}
+	free(full_address);
 	return NO;
     }
     
@@ -399,6 +418,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
 	HTLoadError(request->output_stream, 500, "Unable to access document.");
+	free(full_address);
 	return NO;
     }
  
@@ -408,7 +428,10 @@ PRIVATE BOOL HTLoadDocument ARGS2(
     fprintf(stderr,
     "**** HTAccess: socket or file number returned by obsolete load routine!\n");
     fprintf(stderr,
-    "**** HTAccess: Internal software error. Please mail www-bug@info.cern.ch!\n");
+    "**** HTAccess: Internal software error. Please mail www-bug@info.cern.ch quoting the version number of this software and the URL: %s!\n",
+    	full_address);
+    free(full_address);
+   
     exit(-6996);
 
 } /* HTLoadDocument */
@@ -431,9 +454,11 @@ PRIVATE BOOL HTLoadDocument ARGS2(
 
 PUBLIC BOOL HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
 {
-   request->anchor = HTAnchor_parent(HTAnchor_findAddress(addr));
-
-   return HTLoadDocument( addr, request);
+   HTAnchor * anchor = HTAnchor_findAddress(addr);
+   request->anchor = HTAnchor_parent(anchor);
+   request->childAnchor = ((HTAnchor*)request->anchor == anchor) ?
+   			NULL : (HTChildAnchor*) anchor;
+   return HTLoadDocument(request);
 }
 
 
@@ -456,9 +481,12 @@ PUBLIC BOOL HTLoadToStream ARGS3(
 		BOOL, 		filter,
 		HTRequest*,	request)
 {
+   HTAnchor * anchor = HTAnchor_findAddress(addr);
+   request->anchor = HTAnchor_parent(anchor);
+   request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL :
+   	(HTChildAnchor*) anchor;
     request->output_stream = request->output_stream;
-    request->anchor = HTAnchor_parent(HTAnchor_findAddress(addr));
-    return HTLoadDocument(addr, request);
+    return HTLoadDocument(request);
 }
 
 
@@ -522,26 +550,10 @@ PUBLIC BOOL HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
     if (!anchor) return NO;	/* No link */
     
     request->anchor  = HTAnchor_parent(anchor);
+    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
+    					: (HTChildAnchor*) anchor;
     
-    if (HTAnchor_document(request->anchor) == NULL) {/* If not alread loaded */
-        BOOL result;
-        char * address = HTAnchor_address((HTAnchor*) request->anchor);
-	result = HTLoadDocument(address, request);
-	free(address);
-	if (!result) return NO;
-	loaded = YES;
-    }
-    
-    {
-	HText *text = (HText*)HTAnchor_document(request->anchor);
-	if (anchor != (HTAnchor *)request->anchor) {  /* If child anchor */
-	    HText_selectAnchor(text, 
-		    (HTChildAnchor*)anchor); /* Double display? @@ */
-	} else {
-	    if (!loaded) HText_select(text);
-	}
-    }
-    return YES;
+    return HTLoadDocument(request) ? YES : NO;
 	
 } /* HTLoadAnchor */
 

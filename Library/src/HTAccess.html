@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTAccess:  Access manager  for libwww</TITLE>
-<NEXTID N="z6">
+<NEXTID N="z8">
 </HEAD>
 <BODY>
 <H1>Access Manager</H1>This module keeps a list of valid
@@ -109,6 +109,8 @@ NAME="z5">conversions</A> ;	/* conversions allowed in this case */
 	HTParentAnchor*	anchor;		/* Set by HTAccess */
 
 	void *		using_cache;	/* pointer to cache element if cache hit */
+	HTAtom *	method;		/* Operation code */
+	HTChildAnchor *	childAnchor;	/* For element within the object */
 
 	/* To be added: authentication, etc */
 };
@@ -116,6 +118,10 @@ NAME="z5">conversions</A> ;	/* conversions allowed in this case */
 </PRE>The elements of the request structure
 are as follows.
 <DL>
+<DT>method
+<DD>An atom for the name of the
+operation using HTTP <A
+NAME="z7" HREF="../../Protocols/HTTP/Methods.html">method names</A>.
 <DT>conversions
 <DD> NULL, or a list of conversions
 which the format manager can do in
@@ -135,8 +141,15 @@ output stream is required, te stream.
 or a generic format such as www/present
 (present to user). 
 <DT>anchor
-<DD> The anchor for teh object
+<DD> The anchor for the object
 in question.  NOTE: Set by HTAcesss.
+<DT><A
+NAME="z6">childAnchor</A>
+<DD>the anchor for the subobject
+if any.  The object builder should
+ensure that htis is selected, highlighted,
+etc when the object is loaded. NOTE:
+Set by HTAccess.
 </DL>
 Just to make things easier especially
 for clients, here is a function to
@@ -297,8 +310,7 @@ to save the object to.
 
 <PRE>
 
-extern HTStream * HTSaveStream PARAMS((HTParentAnchor* anchor,
-			HTRequest *		request));
+extern HTStream * HTSaveStream PARAMS((HTRequest * request));
 
 
 </PRE>

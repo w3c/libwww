@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTML to rich text converter for libwww</TITLE>
-<NEXTID N="z4">
+<NEXTID N="z5">
 </HEAD>
 <BODY>
 <H1>The HTML to styled text object converter</H1>This interprets the <A
@@ -28,7 +28,12 @@ extern CONST HTStructuredClass HTMLPresentation;
 
 </PRE>
 <H2>HTML_new: A structured stream to
-parse HTML</H2>
+parse HTML</H2>When this routine is called, the
+request structure may contain a <A
+NAME="z4" HREF="HTAccess.html#z6">childAnchor</A>
+value.  I that case it is the responsability
+of this module to select  the anchor.<P>
+ 
 <PRE>extern HTStructured* HTML_new PARAMS((HTRequest * request,
 					void *   param,
 					HTFormat input_format,
