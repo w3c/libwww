@@ -325,8 +325,8 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     ** virtual address is kept in a hash table so it can't be
     ** changed -- otherwise it wouldn't be found anymore.
     */
-    if (HTAnchor_physical((HTAnchor*)req->anchor))
-	StrAllocCopy(addr, HTAnchor_physical((HTAnchor*)req->anchor));
+    if (HTAnchor_physical(req->anchor))
+	StrAllocCopy(addr, HTAnchor_physical(req->anchor));
 
 #ifndef NO_RULES
     if (HTImServer)	/* cern_httpd has already done its own translations */
