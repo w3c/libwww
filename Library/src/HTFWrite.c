@@ -315,7 +315,7 @@ PUBLIC const char * HTTmp_getRoot (void)
 **	--------------
 **	For clean up memory
 */
-PUBLIC void HTTmp_HT_FREERoot (void)
+PUBLIC void HTTmp_freeRoot (void)
 {
     HT_FREE(HTTmpRoot);
 }

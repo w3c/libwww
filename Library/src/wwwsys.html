@@ -661,6 +661,11 @@ HREF="HTMemory.html">Dynamic Memory Module</A> for how to handle
 #define NO_GMTOFF
 #undef  HAVE_TIMEZONE
 #endif
+
+#ifdef WWW_MSWINDOWS
+#define HAVE_MKTIME
+#define HAVE_STRFTIME
+#endif
 </PRE>
 
 <H3>Definition of Errno</H3>
@@ -971,11 +976,11 @@ exist.  Their existance is discovered by <CODE>configure</CODE>.
 #endif
 #endif
 
-#ifndef HAVE_STRCHR
+#if !defined(HAVE_STRCHR) &amp;&amp; !defined(WWW_MSWINDOWS)
 #define strchr index
 #define strrchr rindex
 #endif
-#ifndef HAVE_MEMCPY
+#if !defined(HAVE_MEMCPY) &amp;&amp; !defined(WWW_MSWINDOWS)
 #define memcpy(d, s, n) bcopy((s), (d), (n))
 #define memmove(d, s, n) bcopy((s), (d), (n))
 #endif
@@ -984,7 +989,9 @@ exist.  Their existance is discovered by <CODE>configure</CODE>.
 #ifdef STDC_HEADERS
 #include &lt;stdarg.h&gt;
 #else
+#ifndef WWW_MSWINDOWS
 #include &lt;varargs.h&gt;
+#endif
 #endif
 
 /* wait.h */

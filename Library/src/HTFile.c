@@ -218,7 +218,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	HTRequest_addSystemError(request,  ERR_FATAL, errno, NO, "opendir");
     return HT_LOADED;
 #else
-#error "readdir not defined"
+    return HT_ERROR;	/* needed for WWW_MSWINDOWS */
 #endif /* HAVE_READDIR */
 }
 

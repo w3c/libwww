@@ -232,7 +232,7 @@ PUBLIC BOOL HTPromptPassword (HTRequest * request, HTAlertOpcode op,
 	if (pw) HTAlert_setReplySecret(reply, pw);
 	return YES;
 #else
-#error "getpass is not defined"
+	return NO;	/* needed for WWW_MSWINDOWS */
 #endif /* HAVE_GETPASS */
     }
     return NO;

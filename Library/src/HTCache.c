@@ -468,7 +468,7 @@ PUBLIC const char * HTCache_getRoot (void)
 **	--------------
 **	For clean up memory
 */
-PUBLIC void HTCache_HT_FREERoot (void)
+PUBLIC void HTCache_freeRoot (void)
 {
     HT_FREE(HTCacheRoot);
 }

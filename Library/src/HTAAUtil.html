@@ -246,18 +246,6 @@ hostname and port number they control. For example, a server with
 interfaces "www.foo.com" and "internal.foo.com" can have different
 protection setups for each interface.
 
-<H3>Initialize the Authentication database</H3>
-
-<PRE>
-extern BOOL HTAuthInfo_init (void);
-</PRE>
-
-<H3>Terminate the Database</H3>
-
-<PRE>
-extern BOOL HTAuthInfo_terminate (void);
-</PRE>
-
 <H3>Add information to the Database</H3>
 
 Add an access authentication information node to the database. If
@@ -267,9 +255,14 @@ Return YES if added (or replaced), else NO
 
 <PRE>
 extern BOOL HTAuthInfo_add	(const char *	scheme,
-				 char *		url,
-				 char *		realm,
-				 void *		data);
+				 char *		url);
+
+</PRE>
+
+<H3>Delete the Database</H3>
+
+<PRE>
+extern BOOL HTAuthInfo_deleteAll (void);
 </PRE>
 
 <PRE>

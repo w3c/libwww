@@ -226,7 +226,7 @@ PUBLIC BOOL HTLibTerminate (void)
 
     HTFreeHostName();			    /* Free up some internal strings */
     HTFreeMailAddress();
-    HTTmp_HT_FREERoot();
+    HTTmp_freeRoot();
 
 #ifdef _WINSOCKAPI_
     WSACleanup();

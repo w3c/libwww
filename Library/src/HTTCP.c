@@ -462,8 +462,12 @@ PUBLIC void HTSetMailAddress (char * address)
 */
 PUBLIC const char * HTGetMailAddress (void)
 {
-#if defined(HT_REENTRANT) || defined(WWW_MSWINDOWS)
-    char name[LOGNAME_MAX+1];		    /* For getlogin_r or getUserName */
+#ifdef HT_REENTRANT
+  char name[LOGNAME_MAX+1];    /* For getlogin_r or getUserName */
+#endif
+#ifdef WWW_MSWINDOWS/* what was the plan for this under windows? - EGP */
+  char name[256];    /* For getlogin_r or getUserName */
+  unsigned int bufSize = sizeof(name);
 #endif
 #ifdef HAVE_PWD_H
     struct passwd * pw_info = NULL;
@@ -478,7 +482,7 @@ PUBLIC const char * HTGetMailAddress (void)
     }
 
 #ifdef WWW_MSWINDOWS
-    if (!login && GetUserName(name, LOGNAME_MAX) != TRUE)
+    if (!login && GetUserName(name, &bufSize) != TRUE)
         if (PROT_TRACE) HTTrace("MailAddress. GetUsername returns NO\n");
 #endif /* WWW_MSWINDOWS */
 

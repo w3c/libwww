@@ -125,7 +125,7 @@ extern int HTTrace(const char * fmt, ...);
 <H2>Booleans</H2>
 
 <PRE>
-#ifndef BOOLEAN
+#if !defined(BOOLEAN) &amp;&amp; !defined(WWW_MSWINDOWS)
 typedef char	BOOLEAN;				    /* Logical value */
 #endif
 
