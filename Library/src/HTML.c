@@ -326,7 +326,7 @@ PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
 	
 	default:					/* Free format text */
 	    if (me->style_change) {
-		if ((c=='\n') || (c==' ')) return HT_OK;	/* Ignore it */
+		if ((c=='\n') || (c==' ')) continue;	       /* Ignore it */
 		UPDATE_STYLE;
 	    }
 	    if (c == HTTAB)
