@@ -1,0 +1,1516 @@
+<HTML>
+<HEAD>
+<TITLE>Libwww Architecture</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
+</HEAD>
+<BODY>
+
+<H1>Libwww Architecture</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>. <P>
+
+The W3C Reference Library, a.k.a. Library of Common Code, is a general
+code base that can be used as a basic for building clients, servers
+and many other Web applications. It contains reference code for
+accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local
+file system. Furthermore it provides modules for parsing, managing and
+presenting hypertext objects to the user and a wide spectra of generic
+programming utilities. The Library is the basis for many <A
+HREF="../">World-Wide Web</A> applications and the W3C reference
+applications are built on top of it. This document is the first of
+three documents that each describes different aspects of the Library:
+
+<DL>
+
+<DT><A HREF="Overview.html"><IMG ALT="Architecture" SRC="../../../Icons/WWW/Spec48x.gif"></A> <B>The Architecture</B>
+
+<DD>The current document is the first in the serie and it describes
+the architecture of the Library without referring directly to the code
+itself. This is the "designer view" where bugs are a unknown phenomenon.
+
+<DT><A HREF="../Using/"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A> <B>The User's Guide</B>
+
+<DD>The second document introduces the most common API which provides
+the basic basic functionality for most applications. This document is
+the "User view" and should be sufficient to use the Library without
+being aware of what's going on underneeth the interface. The
+description contains a set of examples.
+
+<DT><A HREF="../Guide/"><IMG ALT="Internals" SRC="../../../Icons/WWW/Tang48x.gif"></A> <B>The Internals and Programmer's Guide</B>
+
+<DD>The last document in the serie introduces all modules in the
+Library regardles if they are public or private. This is also known as
+the "hacker view" of the Library.
+
+</UL>
+
+The current documentation is based on version 3.1 which is to be
+released June 1995.<P>
+
+<H2>Table of Contents</H2>
+
+<DL>
+<LI><A HREF="Introduction.html">Introduction</A> <P>
+
+<LI><A HREF="DesignModel.html">Design Model</A>
+<LI><A HREF="ControlFlow.html">Control and Data Flow</A>
+
+<LI><A HREF="DataStructures.html">Central Data Structures</A>
+<LI><A HREF="Anchors.html">Anchor Objects</A>
+<LI><A HREF="Streams.html">Stream Objects</A> <P>
+
+<LI><A HREF="Threads.html">Description of libwww Threads</A>
+<LI><A HREF="HTTPFeatures.html">Usage of State machines</A>
+<LI><A HREF="PostWeb.html">Building a POST Web, an API for PUT and POST</A>
+<LI><A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>
+<LI><A HREF="Multiformat.html">Format Negotiation</A>
+</UL>
+
+<H1>Introduction</H1>
+
+The W3C Reference Library is a general code base that can be used as a
+basis for building a large variety of World-Wide Web applications. Its
+main purpose is to provide services to transmit data objects rendered
+in many different media types either to or from a remote server using
+the most common Internet access methods or the local file system. It
+provides plain C reference implementation of those specifications and
+is especially designed to be used on a large set of different
+platforms. Version 3.1 supports more than 20 Unix flavors, VMS,
+Windows NT, and ongoing work is being done to extend the set of
+platforms.<P>
+
+Even though plain C does not support an object oriented model but
+merely enables the concept, many of the data structures in the Library
+are derived from the class notation. This leads to situations where
+forced type casting is required in order to use a reference to a
+subclass where a superclass is expected. The forced type casting
+problem and inheritance in general would be solved if an object
+oriented programming language was to be used in the Library, but the
+current standardization and deployment level of object oriented
+languages in general would imply that a part of the portability would
+get lost in the transition. There are several intermediate solutions
+under consideration where one or more object oriented APIs built on
+top of the Library provides the application programmer with a cleaner
+interface. <P>
+
+Many of the features of the Library are demonstrated in the <A
+HREF="../../../LineMode/">Line Mode Browser</A> which is a simple dumb
+terminal client built right on top of the Library. Even though this
+application is usable as an independent Web application, its main
+purpose is to show a working example of how the Library can be
+used. However, it is important to note that the Line Mode Browser is
+only <EM>one</EM> way of using the Library and many other applications
+may want to use it in other ways.<P>
+
+The development of the W3C Reference Library was started by <A
+HREF="../../../People.html#BernersLee">Tim Berners-Lee</A> in 1990,
+and today the Library is a multi functional code base with a large
+amount of knowledge about network programming and portability built
+into it with help from <A HREF="../../../People.html#Luotonen">Ari
+Luotonen</A>, <A HREF="../../../People.html#Groff">Jean-Francois
+Groff</A>, <A HREF="../../../People/howcome/">H&aring;kon W. Lie</A>
+and a large number of people on the Internet.
+
+<H1>Design Model</H1>
+
+The Library is designed to be easily extended with new functionality
+as new Internet standards evolve for transportation and representation
+of data objects. This means that most of the functionality is placed
+in separate modules that can be hooked onto a basic set of modules
+called the "core entity". This design model is illustrated in the
+figure below:
+
+<P><IMG SRC="Design.gif" ALT="Design"><P>
+
+The figure is similar to a protocol stack where the lower layers
+provides a set of services to the upper layers. This is also the case
+in the Library where the "layering" is as follows:
+
+<DL>
+
+<DT>Generic tools
+
+<DD>The Library provides a large set of generic utility modules such
+as various container classes, string utilities etc. They have the
+important function to separate the upper layer code from platform
+specific implementations using a large set of macros that makes the
+Library more portable. The modules are used throughout the Library
+itself and can easily be employed in many applications.
+
+<DT>Core entity
+
+<DD>The fundamental part of the Library is actually quite small. The
+core entity is not a closed entity but an open frame construction that
+provides hooks for the dynamic modules. The core entity also contains
+the major access points for applications issuing requests, for example
+to access a data object. Many of the sections in this paper contain
+references to the core entity and explain the interaction between the
+core entity and an application.
+
+<DT>Access and stream modules
+
+<DD>These modules are often referred to as "dynamic modules" as they
+can be enabled or disabled dynamically during execution of an
+application (using static linking). There are several ways to
+initialize the dynamic modules:
+
+<OL>
+
+<LI>Through a configuration file (often called a rule file) which is
+parsed, for example at start up time;
+
+<LI>Using static initialization functions which are set up at compile
+time;
+
+<LI>By initializing the modules during execution as the application
+requires it.
+
+</OL>The Library has a set of default, static initialization functions
+which can be found in the <A HREF="../../Implementation/HTInit.html">
+HTInit module</A>. By default they enable all the dynamic modules in
+the Library, but this can be changed as described later.
+
+<DT>Application Modules
+
+<DD>The application modules are often specific for client applications
+including functions that require user interaction, management of
+history lists etc. The reference implementation of these modules in
+the reference code is mainly intended for character based applications
+like the <A HREF="../../../LineMode/">Line Mode Browser</A>. More
+advanced clients will often have to override them, that is, a module
+with an identical interface is provided by the application, and the
+loading of the default module suppressed.  </DL>
+
+When writing an application most of the code interacting with the
+Library will consist of access modules, stream modules, and
+application modules. These modules can either provide additional
+functionality or override existing functionality in the Library in
+order to make use of more platform dependent implementations. The
+latter will typically be the case with the application modules which
+must be adjusted to a given graphic platform.
+
+<H1>Control and Data Flow</H1>
+
+The main concept in the Library is a "request/response" model where an
+application issues a request for a URI (URL). The Library then tries
+to fulfill the request as efficient as possible either by requesting
+the URL at the origin server, a proxy server, a gateway, directly from
+the local file system, or a locally cached version. Data is delivered
+back to the application as soon as it gets ready which guarantees
+minimum access delay for the application. From version 3.0, the
+Library supports threads including its own platform independent thread
+model called "<A HREF="Threads.html">libwww threads</A>". This allows
+multiple requests to be handled simultaneously without blocking the
+application while waiting on data. <P>
+
+<H2>Requests and Responses</H2>
+
+The "request/response" model is illustrated in the control/data
+diagram shown below. The diagram shows only the core modules - the
+other modules are "pasted in" later. Note, that the Library code is to
+the right of the thick vertical line (green), and the application to
+the left can be any type of application, for example a proxy or a
+client. The architecture of the Library does support clients and
+proxies in pretty much the same way as it makes little difference to
+the Library: a client has a user interface whereas a server has a
+network interface. It is a good idea to study the <A
+HREF="../../../LineMode/">Line Mode Browser</A> and the <A
+HREF="../../../Daemon/">httpd</A> as reference implementations using
+the Library to see this duality.<P>
+
+Another thing to note is that the Library from version 3.1 supports
+large scale data flow from the application to the network as well as
+from the network to the application. This has an important impact on
+the functionality that can be put into applications, for example
+allowing collaborative authoring possibilities via the Web. The
+architecture behind this is described in the section <A
+HREF="PostWeb.html">"Post Webs - an API for PUT and POST"</A>.
+
+<P><IMG SRC="LibCore.gif" ALT="Flow"><P>
+
+The thin lines (red) is control flow, the thick lines (blue) is data
+flow and the "lightning" (magenta) is control flow as a result of
+events handled by the Library. Let's see what happens when an
+application issues a request. The description is based on having an
+event loop - this can either be the one provided by the Library or an
+external event loop provided by the application. The section on <A
+HREF="Threads.html">libwww threads</A> explains more on how this can
+be set up. The numbers refer to the figure above.
+
+<OL>
+
+<LI>The event manager is waiting for an event from the application.
+This can for example be a user clicking the mouse on a link or types a
+number on the keyboard.
+
+<LI>When an event arrives, the event manager calls the user event
+handler provided by the application.
+
+<LI>The user event handler issues a request by calling the access
+manager.
+
+<LI>The access manager contacts the cache manager to see if the object
+is already cached. If data is to be sent <EM>to</EM> the network (for
+example using the HTTP PUT method) then the cache manager is not
+requested.
+
+<LI>If the cache manager says "no" then the protocol manager is
+contacted to down load the object. If "yes" then the cache file is
+accessed.
+
+<LI>The cache manager can also contact the protocol manager directly
+if the cached object turns out to be stale or a reload has explicit
+requested by the application.
+
+<LI>If the protocol manager successfully can access the data object
+then the cache manager is contacted in order to cache or refresh the
+object.
+
+<LI>When data is arriving, either from the cache manager or the
+protocol manager it is passed to the format manager that handles any
+data format conversion as requested by the application.
+
+<LI>The protocol can recursively call the access manager in case of
+redirections and inadequate access authentication for the request
+(after prompting the user).
+
+<LI>The converted data is either handed from the network to the
+application <EM>or</EM> from the application to the network as it gets
+ready. If no data is ready, control is given back to the event
+manager.
+
+<LI>When data is ready to be sent or received from the network, the
+event manager calls the protocol manager directly to handle the data.
+
+<LI>When the request is terminated the application is called with the
+result of the request so that it for example can update a history list
+of visited documents.
+
+</OL>
+
+This description is the "macro" description of how the core modules
+interact and in the rest of this document we shall see more of the
+details of what is going on inside the core modules and what data
+structures are involved. Note that by using a threaded model, the
+Library can handle multiple requests simultaneously. An example on how
+to do this is described in the section "<A HREF="Threads.html">Libwww
+Threads</A>".
+
+<DL>
+
+<DT>Access Manager
+<DD>
+
+The access manager is the main entry point for requesting a data
+object pointed to by a URI. It has a set of methods that allows the
+application to request different services, for example to get a URI,
+post a URI, or to search a URI. When the application issues a request,
+the access manager does the following:
+
+<OL>
+
+<LI>Translates the URI according to the rules given, for example by a
+rule file. It also looks for gateways or proxies that should be
+contacted for a specific access method. Rules can be registered
+dynamically as described in the <A HREF="../Using/">User's Guide</A>.
+
+<LI>If the request is on the local file system, the access manager
+verifies that access to local files is allowed. This might not always
+be the case, as is the case when the <A HREF="../../../LineMode/">Line
+Mode Browser</A> is used as a login shell for telnet sessions.
+
+<LI>Then the file cache manager is contacted to see if the object
+already has been accessed. The application might administer a memory
+cache in which cache this is consulted before the file cache.
+
+<LI>If the data object is not cached then the protocol module is
+called to actually perform the access to the network.
+
+<LI>When a request is to be terminated, the access manager can log the
+result of the request to a local file so that the "browse route" can
+be reconstructed.
+
+</OL>
+
+<DT>Protocol Manager
+
+<DD>The protocol manager is invoked by the access manager in order to
+access a document not found in memory or in file cache. The manager
+consists of a set of protocol modules handling the access schemes
+HTTP, FTP, NNTP, Gopher, WAIS, Telnet, and access to the local file
+system. The protocol modules are registered dynamically (using static
+linking) and the <A HREF="../Using/">User's Guide</A> describes how
+modules can be registered. Each protocol module is responsible for
+establishing the connection to the remote server (or the local
+file-system) and extract information using a specific access
+method. When data arrives from the network, it is passed on to the
+format manager.
+
+<DT>Format Manager
+
+<DD>The stream format manager takes care of the transportation of
+streams of data from the network to the application and vice versa. It
+also performs any parsing and data format conversion requested based
+on a set of registered format converters and a simple algorithm for
+selecting the best conversion. As the protocol modules, data format
+converters can be registered dynamically, and the current set of
+streams includes among others: MIME, SGML, HTML, and LaTeX.
+
+<DT>File Cache Manager
+
+<DD>The cache manager is used to save data objects once they have been
+down loaded from the network. The cache uses the hierarchy indicated
+in the URLs as a way to identify items in the cache but is still under
+construction and requires a lot of work to be a highly efficient cache
+manager!
+
+<DT>Error Manager
+
+<DD>This module manages an information stack which contains
+information of all errors occurred during the communication with a
+remote server or simply information about the current state. Using a
+stack for this kind of information provides the possibility of nested
+error messages where each message can be classified and filtered
+according to its impact on the current request, for example "Fatal",
+"Non-Fatal", "Warning" etc. The filtering can be used to decide which
+level of messages will be passed back to the user.
+
+<DT>Event Manager 
+
+<DD>The event manager is a "session layer" handling which thread
+should be the active thread. A thread can either be an internal libwww
+thread or an external thread, for example a Posix thread, and the
+event manager can itself be either the internal Library manager or an
+external event manager. Currently the internal event manager uses a
+select function call to decide which thread should be made the active
+one, however an external event manager can use another decision
+model. One of the design ideas behind the event manager is that it can
+be extended to a full session layer manager handling for example the
+control of a HTTP-NG connection. The event manager is described
+together with the internal thread model in the section "<A
+HREF="Threads.html">Libwww Threads</A>".
+
+</DL>
+
+<H1>Central Data Structures</H1>
+
+The central data structures are the structures that are a part of the
+core entity. Each of the core modules as explained in section "<A
+HREF="ControlFlow.html">Control and Data Flow</A>"are relying on one
+or more of the central data structures. This section describes the
+relationship between the core modules and the central data structures
+<EM>and</EM> the relationship between the central data structures
+themselves. <P>
+
+The figure below is very similar to the one in section "<A
+HREF="ControlFlow.html">Control and Data Flow</A>", but it also
+introduces the set of central data structures as boxes that represent
+the main structures connected to the corresponding core modules. This
+does not mean that these are the only existing relations, but it can
+be used as an indication.
+
+<P><IMG SRC="ModStruc.gif" ALT="Structures"><P>
+
+<DL>
+
+<DT><IMG ALIGN=BOTTOM SRC="R.gif" ALT="R"> <A NAME="request" HREF="../../Implementation/HTAccess.html#z1">HTRequest</A>
+
+<DD>The <EM>HTRequest</EM> structure contains information necessary to
+handle a request issued by the application. It contains information
+about the method to be used (for example "GET" and "PUT"), user
+preferences (language, content type etc.) specific for this request,
+where the output of the data object should go etc. The HTRequest
+structure ties together the other structures used by the core modules
+in order to handle the request. It is intended to live until the
+request reaches a final state, either success or failure, after which
+it can be discarded.<P>
+
+Normally, the HTRequest structure is created by the application, but
+the Library is capable of creating HTRequest structures on its own
+under certain circumstances. An example is when the Library creates a
+"Post Web" as explained in section "<A HREF="PostWeb.html">Building a
+POST Web, an API for PUT and POST</A>".
+
+<DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> 
+
+<DD><A HREF="../Terms.html#anchor">Anchors</A> represent any data
+objects which may be the sources or destinations of hypertext
+links. The HTAnchor structure contains all information about the
+object, whether it has been loaded, metainformation like language,
+media type etc., and any relations to other objects. The Library
+defines two anchor classes: a parent anchor and a child anchor. The
+former contains information about whole data objects and the latter
+contains about subparts of a data object. The HTAnchor structure is a
+generic superclass of both parent anchors and child anchors. Section
+"<A HREF="Anchors.html">Anchor Objects</A>" describes anchors and
+their relations in more detail.
+
+<DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../Implementation/HTAccess.html#HTNetInfo">HTNetInfo</A>
+
+<DD><EM>HTNetInfo</EM> is a network interface specific structure that
+contains all information required to read and write from the
+network. It contains the current socket descriptor (or ANSI C file
+descriptor) used for reading and writing, which input buffer to use
+and where to put the data once they are read. It also contains timing
+information on how long it takes to connect to a remote host and how
+many times it has tried to connect. This information is used by the <A
+HREF="DNSCache.html">DNS Cache</A> in order to optimize access on
+multi homed hosts. <P>
+
+The HTNetInfo structure is also a key structure in the libwww thread
+model where a thread is identified by this structure. The libwww
+thread model is explained in "<A HREF="Threads.html">Description of
+libwww Threads</A>".
+
+<DT><IMG ALIGN=BOTTOM SRC="C.gif" ALT="C"> <A NAME="cache" HREF="../../Implementation/HTFWrite.html#cacheitem">HTCacheInfo</A>
+
+<DD>The <EM>HTCacheInfo</EM> structure contains metainformation about
+every cached object like the amount of times it has been requested from
+the cache, the content type, the size, and how long it took to obtain
+the data from the network. As the cache manager is yet to be fully
+specified this structure is likely to change in the near future.
+
+<DT><IMG ALIGN=BOTTOM SRC="H.gif" ALT="H"> <A NAME="hyperdoc" HREF="../../../LineMode/Implementation/GridText.c">HyperDoc</A> 
+
+<DD>The <EM>HyperDoc</EM> structure is different from the other
+central data structures as it is only declared in the Library - the
+definition is left to the application. It is intended to contain
+information about data objects, especially hypertext objects that are
+to be presented to a user. As an example of a definition, you can look
+at the <A HREF="../../../LineMode/Status.html">Line Mode Browser</A>
+where it is defined in the <A
+HREF="../../../LineMode/Implementation/GridText.c"> GridText
+Module</A>. Here it is called "_HText" structure and it contains all
+information needed to present and manage a data object in a text based
+environment. <P>
+
+The memory management of the HyperDoc object is also left to the
+application along with the definition. The Library does not use any
+information from the object at all - the only interaction is that the
+access manager checks if a HyperDoc object exists for a given anchor
+or not as a part of servicing a request. The application can use this
+to maintain a set of HyperDoc objects in memory as a fast
+cache. Again, the Line Mode Browser can be used as an example as it
+keeps the 5 latest accessed hypertext objects in memory (regardless of
+their size) in order to allow fast back track for the user. The
+relation to the HTAnchor object requires that there is a link from the
+HyperDoc to the corresponding anchor in order for the application to
+do proper garbage collection of the HyperDoc objects.<P>
+
+Even though the Library does not interfere with the contents of the
+HyperDoc object it does provide an API for managing the object. This
+API is known as the "HText" API and it is described further in the <A
+HREF="../Using/">User's Guide</A>
+
+<DT><IMG ALIGN=BOTTOM SRC="E.gif" ALT="E"> <A NAME="error" HREF="../../Implementation/HTError.html#errorinfo">HTErrorInfo</A>
+
+<DD>The <EM>HTErrorInfo</EM> contains information about errors occured
+in the protocol manager. Each request (in form of a HTRequest
+structure) has an error stack which is a linked list of HTErrorInfo
+structures. The HTErrorInfo structure contains an error number that
+refers to a list of error messages, the severity of the error, any
+parameters registered together with the error, and if this specific
+error should be ignored by the application or not - independently of
+the severity. A parameter can for example be a file name causing the
+error.
+
+<DT><IMG ALIGN=BOTTOM SRC="S.gif" ALT="S"> <A NAME="stream" HREF="../../Implementation/HTStream.html">HTStream</A> 
+
+<DD>The <A HREF="../../Implementation/HTStream.html">stream</A>
+structure is an object which accepts sequences of characters. It is a
+destination of data which can be thought of much like an output stream
+in C++ or an ANSI C-file stream for writing data to a disk or another
+peripheral device. The broad definition makes streams very flexible
+and they are used as the main method to transport data from the
+application to the network and vise versa. The Library defines two
+stream classes: A generic stream class and a specialized stream class
+for structured data using SGML lexical tokens. The contents of the two
+classes is described in detail in section "<A
+HREF="Streams.html">Streams Objects</A>".
+
+</DL>
+
+The following figure illustrates the relations between the central
+data structures themselves. As before there might be other relations
+between the structures, but these are the main relations.
+
+<P><IMG SRC="DataStruc.gif" ALT="Structures"><P>
+
+<OL>
+
+<LI>When an application issues a request the access manager binds the
+anchor corresponding to a URL together with a request object. The
+binding exists until the request reaches a final state after which the
+application can discard the request object. Normally the anchor object
+stays in memory during the whole life time of the application as the
+set of anchors represent the part of the Web that the application has
+been in touch with including metainformation etc.
+
+<LI>The application can make a binding between the request object and
+the desired destination for the data when it arrives, typically from
+the network. The request object is by default bound to a <A
+HREF="../../Implementation/HTML.html">presentation stream</A> which
+presents a hypertext object to the user on the screen, but it can also
+be written to a file, represented as source text etc.
+
+<LI>If the file cache is enabled a cache object is created and linked
+to the anchor object by the cache manager so that the access manager
+on any future requests can use the cached version (if not stale). As
+mentioned, the cache manager is yet to be fully designed, and the
+current approach may change.
+
+<LI>If the data object is not found in the cache or in memory the
+protocol manager is called by the access manager. The protocol manager
+then executes a specific protocol module which creates a netinfo
+object and binds it to the request object. The netinfo object is
+maintained uniquely by the protocol module and is removed by the
+protocol module as soon as the communication with the remote server
+reaches a final state.
+
+<LI>The request object also has a link to any error information
+related to it. At the end of the request this information is handled
+by the error manager and an error message may be generated and passed
+to the user.
+
+<LI>When data starts arriving, typically from the network, it is
+directed down the stream chain which can either already exist or is
+created as data arrives (stream chains are described in the section
+"<A HREF="Streams.html">Stream Objects</A>". In the case where the
+application is transmitting a data object to a remote server, there
+are two steam chains directed in opposite directions: one from the
+application to the network and one from the network to the
+application.
+
+<LI>The end of the stream chain is the stream that the user may have
+defined when the request first was issued or it can be the default
+destination which is presenting the information on the screen. Between
+the first and the last stream in the stream chain there can be any
+number of other stream objects performing operations either directly
+on the data, or on the stream flow itself. A T-stream is an example of
+the latter where the stream flow is divided into two.
+
+<LI>The application receives the data arriving from the network via
+the "HText" object (or any of the other stream interfaces as explained
+in section <A HREF="../Using/HTMLParser.html">The HTML Parser</A> in
+the User's Guide).
+
+<LI>The HyperDoc object <EM>must</EM> have a link to the HTAnchor
+object in order to verify the anchor whether it has a data object
+attached to it or not. The HyperDoc may have a link to the request
+structure but this is not required.
+
+</OL>
+
+<H1>Anchor Objects</H1>
+
+<A HREF="../../../Terms.html#anchor">Anchors</A> represent any
+references to data objects which may be the sources or destinations of
+hypertext links. Here follows a general description of their
+implementation in the <A HREF="../../">W3C Reference
+Library</A>. Anchors normally exist throughout the execution time of
+the application, but as this generally is not the case for data
+objects, it is possible to have a parent anchor without a data
+object. There are two types of anchors in the Library:<P>
+
+<DL>
+<DT><EM>parent anchors</EM></DT>
+
+<DD>Represents whole data objects. That is, the target of a link
+pointing to a parent anchor is the full contents of the data
+object.  A parent anchor is made the target of a link by making a
+HREF without any # appended to the URI.</DD>
+
+<DT><EM>child anchors</EM></DT>
+
+<DD>Represents subparts of a data object. A subpart is declared by
+making a NAME tag in the anchor declaration. A child
+anchor is the target of a link if the HREF link
+declaration contains a # appended to the URI.</DD>
+
+</DL>
+
+The anchors are organized into a <EM>sub-web</EM> which represents the
+part of the web that the application (often through user interaction)
+has been in touch with. In this sub-web, any anchor can be the source
+of zero, one, or many links and it may be the target of zero, one, or
+many links. That is, any anchor can point to and be pointed to by any
+number of links. Having an anchor being the source of many links is
+often used in the POST method, where for example the same data object
+is to posted to a News group, a mailing list and a HTTP server. <P>
+
+Every request and hence every data object has a parent anchor
+associated with it. Anchors exist throughout the lifetime of the
+application, but as this generally is not the case for data objects,
+it is possible to have a parent anchor without a data object. If the
+data object is stored in the client cache, the parent anchor contains
+a link to it so that the client can access it through the <A
+HREF="Overview.html#ClientCache">Cache Manager</A>. <P>
+
+Both types of anchors are subclasses of a <A
+HREF="../../Implementation/HTAnchor.html#Generic">generic anchor
+class</A> which defines a set of outgoing links to where the anchor
+points. The relationship between parent anchors and child anchors is
+illustrated in the figure.
+
+<P><A NAME="Anchors"><IMG ALT="Anchors" SRC="anchor.gif"></A><P>
+
+Every parent anchor points to a remote data object. In the case of
+posting an anchor to a remote server, the data object is yet to be
+created. The client can assign a URI for the object but it might be
+overridden (or completely denied) by the remote server. In the figure,
+parent <B>A</B> has no associated data object. This can either be
+because the anchor has not yet been requested by the user or the data
+object has been discarded from memory. <P>
+
+When child <B>B1</B> is created, pointing to parent <B>A</B>, parent
+<B>B</B> is registered in parent <B>A</B> as pointing to <B>A</B>. The
+same is the case for the link between child <B>BL</B> and <B>A2</B>,
+but parent <B>B</B> is only registered once in parent <B>A</B> (this
+is marked with <EM>b</EM> in the figure). The same is the case for the
+links marked <EM>a</EM> and <EM>c</EM>.  <P>
+
+<H1>The Stream Concept</H1>
+
+A <A HREF="../../Implementation/HTStream.html">stream</A> is an object
+which accepts sequences of characters. It is a destination of data
+which can be thought of much like an output stream in C++ or an ANSI
+C-file stream for writing data to a disk or another peripheral
+device. It can be anything that accepts data, for example another
+stream, ANSI C-file stream, or even a black hole which absorbs data
+without ever sending it out again. Streams are used to transport data
+internally in the Library between the application, the network, and
+the local file system. Streams can be cascaded into a stream chain by
+directing the output of a stream which often is called the sink or
+target into another stream.  This means that the processing of data
+can be done as the total effect of several cascaded streams. <P>
+
+From version 3.1 of the Library, streams are both used to transport
+data from the application to the network and vice verse which enables
+applications to send data objects to the remote server which is a
+requirement for doing collaborative work using HTTP as the transport
+carrier. The stream-based architecture allows the Library to be event
+driven in the sense that data is put down a stream as it gets ready,
+for example from the network, and any necessary actions then cascade
+off this event. An event can also be data arriving from the
+application which would be the case when an application is posting a
+data object to a remote server. <P>
+
+The Library has two fundamental stream classes which are described in
+the following:
+
+<UL>
+<LI>A generic superclass
+<LI>A structured stream subclass
+</UL>
+
+Apart from these classes, many stream modules have their own subclass
+definitions of either the generic stream class or the structured
+class. These definitions can be found in the individual stream
+modules.
+
+<H2>The Generic Stream Class</H2>
+
+The generic stream class is a superclass of all other streams and it
+provides a uniform interface to all stream objects regardless of what
+stream sub-class they originate from. The generic stream class is
+defined with the following set of methods.
+
+<P><A NAME="Stream"><IMG ALT="Stream" SRC="../Paper/Stream.gif"></A><P>
+
+<H2>The Structured Stream Class</H2>
+
+A structured stream is a subclass of a stream, but instead of just
+accepting data, it also accepts the SGML "begin element", "end
+element", and "put entity". The conversion from a generic stream to a
+structured stream is done by the SGML tokenizer which recognizes basic
+SGML mark up like "&lt;", "&gt;", entities etc.
+
+<P><A NAME="StrucStream"><IMG SRC="../Paper/StrucStream.gif" ALT="StrucStream"></A><P>
+
+A structured stream therefore represents a structured document. The
+elements and entities in the stream are referred to by numbers, rather
+than strings. A DTD contains the mapping between element names and
+numbers, so each instance of a structured stream is associated with a
+corresponding DTD. The only DTD which is currently in the Library is
+an extended version of the HTML DTD level 1, but current work is done
+to update this to comply with the emerging HTML level 3 specification. <P>
+
+As for generic streams, it is not required that the stream
+actually has a output - it can for example be a stream writing to a
+file where no output is required.
+
+<H2>Cascaded Streams</H2>
+
+Streams are often cascaded into a stream chain but before explaining
+why a stream chain is a flexible construction for data transportation,
+let's have a look at what kind of streams, the Library provides. The
+stream modules be divided into groups depending on their behavior:</P>
+
+<DL>
+<DT>Protocol Streams
+<DD>Internal streams that parses or generates protocol specific
+information to communicate with remote servers.
+
+<DT>Converters
+<DD>Streams that can be used to convert data from one media type to
+another or create a data object and present it to the user.
+
+<DT>Presenters
+<DD>These are streams that save the data to a local file and calls an
+external program, for example a postscript viewer.
+
+<DT>I/O Streams
+<DD>Streams that can write data to a socket or an ANSI C FILE object.
+This can be used when redirecting a request to a local file of when
+saving a document in the cache
+
+<DT>Basic Streams
+<DD>A set of basic utility streams with no or little internal contents
+but required in order to cascade streams.
+
+</DL>
+
+The first four stream classes often fall into a natural order in a
+stream chain which is indicated in the the figure below. Here two
+typical stream pipes are shown for data flowing from the network to
+the application and vise verse:
+
+<P><IMG SRC="InOutPipe.gif" ALT="Stream Chains"><P>
+
+As a more specific example, the figure below shows how streams are
+cascaded when data from a remote HTTP server is handled by the
+Library. In this case, the stream chain is built as data arrives to
+the Library from the network: The first stream can decide whether it
+is a 0.9 or a 1.0 response from the first line in the response; The
+HTTP header parser stream can decide the format of the body when the
+header part is parsed and so forth. In other situations the stream
+chain can be setup before data arrives if the format is known a priori
+to the data acquisition.
+
+<P><IMG SRC="InputStream.gif"> <P>
+
+The ground symbol symbolizes that all data goes into a black hole
+where nothing is radiated from. The two stream outputs going to the
+application from each of the converters symbolizes that error
+information is separated from other data objects. This allows the
+application to direct any body part in an error message, for example
+from a "401 Unauthorized" HTTP status, code to a separate "debug"
+window where it can be displayed without affecting the current
+document view.
+
+<H1>Libwww Threads</H1>
+
+Library version 3.0 had been designed to be thread compatible. It can
+either be used with conventional threads or with a new "libwww <A
+HREF="../Architecture/Threads.html">thread" concept</A> which allows
+an application to handle requests in a constrained asynchronous manner
+using non-blocking I/O and an event loop based on a select system
+call. As a result, I/O operations such as establishment of a TCP
+connection to a remote server and reading from the network can be
+handled without letting the user wait until the operation has
+terminated. Instead the user can issue new requests, interrupt ongoing
+requests, scroll a document etc. Version 3.1 of the Library has an
+enhanced thread model as it supports writing large amount of data from
+the application to the network, also using non-blocking I/O
+operations. This becomes useful in multi threaded server applications
+and in client applications with support for remote collaborative work
+through the <A HREF="../../../Protocols/">HTTP</A> methods <B>PUT</B>
+and <B>POST</B>. The Library has been designed to support libwww
+threads on a wide set of platforms with or without native support for
+threads, and this section describes the model behind libwww threads
+and how it affects applications.</P>
+
+<H2>Introduction</H2>
+
+In a single-process, single threaded environment all requests to, for
+example, the I/O interface blocks any further progress in the process.
+Any combination of a multiprocess or multi threaded implementation of
+the Library makes provision for the application to request several
+independent documents at the same time without getting blocked by slow
+I/O operations. As a Web application is expected to use much of the
+time doing I/O such as "connect" and "read", a high degree of
+optimization can be obtained if multiple threads can run at the same
+time.<P>
+
+Threads provide a light-weight technique for obtaining an environment
+with a multiple set of execution points. A thread is a smaller unit
+compared to a process in that it is a single, sequential flow of
+control within a process. When creating a new process much of the
+environment does never change and can therefore be reused. Threads
+takes the full consequence of this and creates an environment with
+multiple execution points within the same process. Hence threads
+provide a more lightweight solution than process forking and this is a
+part of the reason for their implementation in the W3C Reference
+Library.
+
+<A NAME="platform"><H2>Platform Independent Implementation</H2></A>
+
+The major concern in the design has been to make an implementation
+that is as platform independent as possible. This means that it has
+not been possible to use traditional thread packages like DECthreads
+which contain a code library with a complete set of thread handling
+routines and a consistent user interface. IEEE has publicized the
+POSIX standard 1003.4 for multi threaded programming but even this
+will eventually limit the portability of the code so that it will not
+be usable on platforms that don't support this thread model. Instead
+the multi threaded functionality has been designed to be used in a
+single-processor, single threaded, environment as illustrated in the
+figure.
+
+<P><IMG SRC="Thread.gif"><P>
+
+The difference between this technique (called "libwww threads") and
+"traditional" threads as <A HREF="#multistackthread">illustrated
+above</A> is that all information about a thread is stored in a data
+object which represents the thread and contains all the state
+information required to stop and start at various points while
+servicing the thread. This implies that the following rules must be
+kept regarding memory management: <P>
+
+<UL> 
+
+<LI>Global variables can be used only if they at all time are
+independent of the current state of the active thread.
+
+<LI>Automatic variables can be used only if they are initialized on
+every entry to the function and stay state independent of the current
+thread throughout their lifetime.
+
+<LI>All information necessary for completing a thread must be kept in
+an autonomous data object that is passed round the via the stack.
+
+</UL>
+
+<H3>Thread Methods</H3>
+
+The libwww threads are very basic as they are not intended to replace
+existing thread models. As a result, the set of methods is as follows:
+
+<DL>
+<DT>Create thread
+<DD>Create a data object and initialize the state machine to an initial state
+<DT>Remove thread
+<DD>Remove a data object after the state machine has reached a final state 
+<DT>Kill thread
+<DD>Force the state machine into a final state and remove the data object
+</DL>
+
+In section "<A HREF="HTTPFeatures.html">Usage of State machines</A>"
+we describe how state machines are employed as an integral part of the
+libwww thread model.
+
+<H3>Thread Interfaces</H3>
+
+The Library provides three different modes in the thread API and it is
+necessary to be aware of these modes in the design phase of an
+application as they have an impact on the architecture of the
+application. The Library can be used in multiple modes simultaneously
+and an application can change mode as a function of the action
+requested by the user. The three different modes are described in the
+following:</P>
+
+<DL>
+
+<DT><B>Base Mode</B>
+
+<DD>This mode is strictly single threaded and requires no special
+considerations in the design of the application. The difference
+between this mode and the other two is that all sockets are made
+blocking instead of non-blocking. The Library does still expect the
+definition of the set of call back functions as described in the
+section <A HREF="#callback">"Providing Call Back Functions"</A>, but
+they can be defined as dummy functions without any content. The mode
+preserves compatibility with Web applications with a single threaded
+approach, however it does not provide interruptible I/O as this
+requires an active event loop either internally or externally to the
+Library.
+
+<DT><B>Active Mode</B>
+
+<DD>In this mode the event loop is placed in the Library in the <A
+HREF="../../Implementation/HTEvent.html" >HTEvent module</A>. The mode
+can either be used by character based applications with a limited
+capability of user interaction, or it can be used by more advanced GUI
+clients where the window widget allows redirection of user events to
+one or more sockets that can be recognized by a select() call. It
+should be noted, that even though all sockets are non-blocking, the
+select() function is blocking if no sockets are pending so if no
+actions are pending, the select call will be put to sleep. <P>
+
+The <A HREF="../../Implementation/HTThread.html" >HTThread module</A>
+contains a thread scheduler which gives highest priority to the events
+on the redirected user events which allows a smooth operation on GUI
+applications with a fast response time. This mode has a major impact
+on the design of the application as much of the application code may
+find itself within call back functions. As an example, this mode is
+currently used by the <A HREF="../../../Arena/">Arena client</A> and
+the <A HREF="../../../LineMode/" >Line Mode Browser</A>.
+
+<DT><B>Passive mode</B>
+
+<DD>This mode is intended for applications where user events can not
+be redirected to a socket or there is already an event loop that can
+not work together with the event loop in the Library. The major
+difference from the <B>Active mode</B> is that instead of using the
+event loop defined in the <A
+HREF="../../Implementation/HTEvent.html">HTEvent module</A>, this
+module is overridden by the application as described in the <A
+HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
+same impact on the application architecture as the <B>Active mode</B>
+except for the event loop, as all library interactions with the
+application are based on call back function.  </DL>
+
+One important limitation in the libwww thread model is that the
+behavior is undefined if an external scheduler is provided using the
+internal threads in the Library with preemptive scheduling mechanism.
+The reason for this is that the Library is "libwww thread safe" when
+using one stack and one set of registers as in <B>Active mode</B> only
+when a change of active thread is done as a result of a blocking I/O
+operation. However, using an external thread model, this problem does
+not exist.</P>
+
+<A NAME="callback"><H3>Providing Call Back Functions</H3></A>
+
+The thread model in the Library is foreseen to work with native thread
+interfaces but can also be used in a non-threaded environment. In the
+latter case, the Library handles the creation and termination of its
+internal threads without any interaction required by the
+application. The thread model is based on call back functions of which
+at least one user event handler and a event terminator must must be
+supplied by the application. However, the application is free to
+register as many additional user event handlers as it wants.
+
+</P><IMG SRC="../Architecture/Internal.gif" ALT="Callback"></P>
+
+The dashed lines from the event loop to some of the access modules
+symbolizes that the access method is not yet implemented using
+non-blocking I/O, but the event loop is still a part of the
+call-stack.  In this situation the Library will automatically use
+blocking sockets which is equivalent to the <B>Base Mode</B>.</P>
+
+<DL>
+
+<DT>User Event Handlers
+
+<DD>An application can register a set of user event handlers to handle
+events on sockets defined by the application to contain actions taken
+by the user. This can for example be interrupting a request, start a
+new request, or scroll a page. However, this requires that the actual
+window manager supports redirection of event on sockets.
+
+<DT>Event Termination
+
+<DD>This function is called from the Library every time a request is
+terminated. It passes the result of the request so that the
+application can update the history list etc. depending on the
+result. From the Library's point of view there is little difference
+between a user event handler and this function, as it in both cases is
+a call back function.
+
+<DT>Timeout Handler
+
+<DD>In <B>Active mode</B>, the select()</CODE> function in the Library
+event loop is blocking even though the sockets are non-blocking. This
+means that if no actions are pending on any of the registered sockets
+then the application will block in the select() call. However, in
+order to avoid sockets hanging around forever, a timeout is provided
+so that hanging threads can be terminated.
+
+</DL>
+
+<H3><A NAME="control">Returning from a Call Back Function</A></H3>
+
+Often an event handler needs to return information about a change of
+state as a result of an action executed by the handler, for example if
+a new request is issued, a ongoing request is interrupted, the
+application is to terminated etc. This information can be handed back
+to the Library using the return values of the call back function.<P>
+
+There are several situations where a thread has to be killed before it
+has terminated normally. This can either be done internally by the
+Library or the application. The application indicates that a thread is
+to be interrupted, for example if the user has requested the operation
+to stop, by using a specific return value from one of the user event
+handlers. The Library then kills the thread immediately and the result
+is returned to the application.
+
+<H1>Usage of State machines</H1>
+
+A part of the libwww thread model is to keep track of the current
+state in the communication interface to the network. As an example,
+this section describes the current implementation of the <A
+HREF="../../Implementation/HTTP.html">HTTP module</A> and how it has
+been implemented as a state machine. The HTTP module is based on the
+HTTP 1.0 specification but is backwards compatible with the 0.9
+version. The major difference between the implementation before
+version 3.0 of the Library is that this version is a state machine
+based on the state diagram illustrated below. This implementation has
+several advantages even though the HTTP protocol is stateless by
+nature.
+
+<P><IMG SRC="HTTP.gif"><P>
+
+The individual states and the transitions between them are explained
+in the following sections.
+
+<DL>
+
+<DT><A NAME="initial">BEGIN State</A>
+
+<DD>This state is the idle state or initial state where the HTTP
+module awaits a new request passed from the application.
+
+<A NAME="connect"><DT>NEED_CONNECTION State</A>
+
+<DD>The HTTP module is now ready for setting up a connection to the
+remote host. The connection is always initiated by a <EM>connect</EM>
+system call. In order to minimize the access to the Domain Name
+Server, all host names to previous visited hosts are stored in a local
+host cache as explained in section "<A HREF="DNSCache.html">DNS Cache
+and Host Name Canonicalization</A>". The cache handles multi homed
+hosts in a special way in that it measures the time it takes to
+actually make a connection to one of the IP-addresses. This time is
+stored together with the specific IP-address and the host name in the
+cache and on the next connection to the same host the IP-address with
+the fastest connect time is chosen.
+
+<DT>NEED_REQUEST State
+
+<DD>The <A HREF="../../../Protocols/HTTP/Request.html">HTTP
+Request</A> is what the application sends to the remote HTTP server
+just after the establishment of the connection. The request consists
+of a HTTP header line, a set of HTTP Headers, and possibly a data
+object to be posted to the server. The header line has the following
+format:
+
+<PRE>
+	&lt;<A HREF="../../../Protocols/HTTP/Methods.html#">METHOD</A>&gt; &lt;<A HREF="ftp://nic.ddn.mil/rfc/rfc1630.txt">URI</A>&gt; &lt;HTTP-VERSION&gt; CRLF
+</PRE>
+ 
+<DT>SENT_REQUEST State
+
+<DD>When the request is sent the module waits until a response is
+given from the server or the connection is timed out in case or an
+error situation. As the module does not know whether the remote server
+is a HTTP 0.9 server or a HTTP 1.0 it must look at the first part of
+the response to figure out what version of HTTP is returned. The
+reason is that the HTTP protocol 0.9 does not contain a HTTP header
+line in the response. It simply starts to send the requested data
+object as soon as the GET request is handled. 
+
+<DT>NEED_ACCESS_AUTHORIZATION State
+
+<DD>If a <A HREF="../../../Protocols/HTTP/HTRESP.html">401
+Unauthorized</A> status code is returned the module asks the user for
+a user id and a password, see also the "<A HREF="../../../Protocols/">
+HTTP Basic Access Authorization Scheme</A>". The connection is closed
+before the user is asked for the user-id and password so any new
+request initiated upon a <A
+HREF="../../../Protocols/HTTP/HTRESP.html">401 status code</A> causes
+a new connection to be established. This is done in order to
+avoid having the connection hanging around waiting while the applications
+is waiting for user input.
+
+<DT>REDIRECTION State
+
+<DD>The remote server returns a redirection <A
+HREF="../../../Protocols/HTTP/HTRESP.html">status code</A> if the URI
+has either been moved temporarily or permanent to another location,
+possibly on another HTTP server or any other server supported by the
+WWW-model. The HTTP module supports both a temporarily and a permanent
+redirection code returned from the server:
+
+<DL>
+
+<DT><A HREF="../../../Protocols/HTTP/HTRESP.html#z8">301 Moved</A>
+
+<DD>The load procedure is recursively called on a 301 redirection
+code. The new URI is parsed back to the user as information via the <A
+HREF="../../../Library/Implementation/HTError.html">Error and
+Information module</A>, and a new request generated. The new request
+can be of any <A HREF="../../../Addressing/URL/4_1_Schemes.html">
+access scheme</A> accepted in a URI. An upper limit of redirections
+has been defined (default to 10) in order to avoid infinite loops.
+
+<DT><A HREF="../../../Protocols/HTTP/HTRESP.html#z8">302 Found</A>
+
+<DD>The functionality is the same as for a 301 Moved return status. A
+clever application can use the returned URI to change the document in
+which the URI originates so that the URI points to the new location.
+
+</DL>
+
+<DD>
+
+<DT>NO_DATA State
+
+<DD>When a return code indicates that no data object or resource
+follows the HTTP headers the HTTP module can terminate the request and
+pass control back to the application.
+
+<DT>NEED_BODY State
+
+<DD>If a body is included in the response from the server, the module
+must prepare to read the data from the network and direct it to the
+destination set up by the application. This is done by setting up a
+stream stack with the required conversions.
+
+<DT>GOT_DATA State
+
+<DD>When the data object has been parsed through the stream stack, the
+HTTP module terminates the request and handles control back to the
+application.
+
+<DT>ERROR or FAILURE State
+
+<DD>If at any point in the request handling a fatal error occurs the
+request is aborted and the connection closed. All information about
+the error is parsed back to the application via the <A
+HREF="../../../Library/Implementation/HTError.html">Error and
+Information Module</A>. As the HTTP protocol is stateless, all errors
+are fatal between the server and the server. If the erroneous request
+is to be repeated, the request starts in the <A
+HREF="#initial">initial state</A>.
+
+</DL>
+
+<H1>Post Webs - an API for PUT and POST</H1>
+
+The <A HREF="../../../Protocols/">HTTP</A> PUT and POST are required
+features when extending the <A HREF="http://www.w3.org">WWW</A> to a
+fully collaborative tool with features like remote authoring,
+annotations, update of data bases etc. Many Web applications are
+currently capable of transfering input data in a form from the client
+to the server, but a more generic mechanism than forms is needed for
+transmitting any data object from a client to a server. This document
+specifies how this functionality can be presented to the user and how
+it can be implemented using the <A HREF="../../../Library/">W3C
+Reference Library</A>, a.k.a. WWW Library of Common Code. It defines
+the term "Post Web" and the API to to the Library. It is important to
+note that neither of this requires any modification to the <A
+HREF="../../../Protocols/">HTTP/1.0</A> specification nor to the <A
+HREF="../../../MarkUp/">HTML</A> form definition. <P>
+
+<H2>What is a Post Web?</H2>
+
+A Post Web is used as the main abstraction mechanism for enabling the
+user to send data objects simultanously to multiple destinations. The
+purpose of the Post Web is to reflect a set of commonly used
+communication methods and put these methods into the Web model. For
+example, imagine a user writing a document wanting it to be posted to
+the following destinations:
+
+<UL>
+<LI>a news group
+<LI>a mailing list
+<LI>a college
+<LI>a HTTP server where it can be made available to the whole world
+</UL>
+
+Then this can be represented as a web consisting of 5 nodes:
+
+<P><IMG SRC="PostWebUser.gif"><P>
+
+The basic idea of the post interface to the Library is that when using
+POST, the user is often interested in posting the data object to more
+than one recipient, e.g. the user can send the same data object to two
+mailing lists, a news group and at the same time store the data object
+as a file on a remote HTTP server.
+
+There are three players in the Post Web model:
+
+<DL>
+<DT><A HREF="#user">The User</A>
+<DD>The User builds the Post Web by specifying the recepients of a data object to be posted.
+<DT><A HREF="#client">The Client</A>
+<DD>The Client converts the Post Web into a form that can be handed as a request to the W3C Reference Library
+<DT><A HREF="#library">The Library</A>
+<DD>The Library serves the client request and carry out the transactions with the network
+</DL>
+
+The different roles of the players are described in the following
+sections.
+
+<H2><A NAME="user">The User Builds a Post Web</A></H2>
+
+What is important is that the user has the same interface whether he
+or she is posting to a News group, a mailing list or a HTTP server,
+and that it is possible to post a data object simultanously to
+multiple destinations. The idea behind the Post Web is that the PUT
+and POST methods appear as protocol independent as idempotent methods
+for example GET or HEAD.
+
+The API is flexible enough to support not only the <A
+HREF="../../../Protocols/HTTP/Methods/Post.html">POST</A> method in
+the <A HREF="../../../Protocols/HTTP/HTTP2.html">HTTP Protocol</A>,
+but at the same time provide functionality for posting to email
+addresses using <A HREF="ftp://nic.ddn.mil/rfc/rfc821.txt">SMTP</A>
+and <A HREF="ftp://nic.ddn.mil/rfc/rfc977.txt">NNTP</A> news
+groups. Posting to other Internet servers such as <A
+HREF="ftp://nic.ddn.mil/rfc/rfc959.txt">FTP</A> servers is not
+considered in this document, but the concept is designed with the
+possibility of including additional Internet protocols.<P>
+
+<P><IMG SRC="PostWeb.gif"><P>
+
+As indicated in the figure, the user builds a "Post Web" around an <A
+HREF="../../../Architecture/Anchors.html">anchor element</A> before
+the POST is committed and passed to the Library.  The rounded boxes
+are remote logical data objects that are still to be created and the
+lines are logical links between the post anchor and the remote data
+objects. The two links to the NNTP box represents that the data object
+is to be posted to two different news groups. In practice only one
+physical link would actually exist to the NNTP as all posting to a
+NNTP Server is done in one single transaction.<P>
+
+The actual user interface is for the client to implement, but
+typically a GUI-client could use drag-and-drop icons for building the
+Web. The Post Web could be visualized using a user implemented menu of
+icons of the most used recipients and then let the user drag lines
+between the data object to be posted and the recipients. The Library
+helps the user building the Web by providing the functionality of <A
+HREF="../../Implementation/HTAnchor.html#links"> linking the anchors
+together</A>. <P>
+
+
+<H2><A NAME="client">The Client Generates a Request</A></H2>
+
+Creates the web and make sure it doesn't exist already!!<P>
+
+When the user has decided to commit the POST, the post anchor is
+passed from the client to the Library together with a <A
+HREF="../../Implementation/HTAccess.html#z1">request
+structure</A>. This is very similar to the current implementation of a
+<A HREF="../../../Protocols/HTTP/Methods.html">HTTP GET Method</A>. An
+important consideration in the design has been to include the
+multi-threaded functionality in the posting module so that both PUT
+and POST in principle behaves exactly like a GET or any other method
+using non-blocking I/O, see also the <A
+HREF="multithread.html#control">multi-threaded control flow</A>.
+
+<P><IMG SRC="POSTEvent.gif"> <P>
+
+However, PUT and POST methods are inherently different from the GET
+method as they require a data flow in both directions. This is
+especially the case using PUT as a data object often will be returned
+from the remote server.  <P>
+
+The routine for handling the POST in the Library parses the Post Web
+and groups the individual requests into protocol categories. In the
+case of a NNTP request, all POST requests are handled at the same time
+and send to the actual NNTP server. When the parsing of the Web is
+done, the post module recursively calls the protocol modules to
+execute the POST. <P>
+
+The posting mechanism is designed to be compatible with the <A
+HREF="multithread.html">multi-threaded structure</A> of the Library.
+This means that the client is asked for data based on an event driven
+action taken by the event loop.  The client then gets a <A
+HREF="../Guide/Stream.html"> stream</A> so that the document to be
+posted can be pumped down the stream and out on the net.
+
+
+<H2><A NAME="library">The Library Serves the Request</A></H2>
+
+When the application has created the source anchor information and
+handed it to the Library When a source anchor is handed to the
+Library, it walks through the set of destinations and creates an
+internal representation of the Post Web using <A
+HREF="../../../Implementation/HTAccess.html#z1">HTRequest
+structures</A> -- one for the source and each of the destinations.
+
+The result of the posting varies as a function of the protocol used.
+It is a general rule through out the design of the Library that other
+protocols than HTTP should be supported but not extended beyond their
+individual limitations. This means that the Library has to be flexible
+enough to handle more than one result from a posting transaction
+dependent on the protocol used.
+
+<UL>
+
+<LI>Posting to multiple destination must use either libwww threads or
+other thread implementations. In the case of libwww threads, it must
+use non-blocking, interruptible I/O.
+
+<LI>The Library must be capable of handling concurrent write and read
+operations to and from the network.
+
+<LI>It must be possible to perform data conversion from one media type
+to another on the fly when posting. The data conversion can either be
+performed on the data going to all destinations or on individual
+destinations.
+
+<LI>It must be possible to specify individual methods used for each
+destination, for example, if three destinations are specified then one
+can use PUT, another POST, and the third can use LINK.
+
+<LI>There must be no timing requirements that can lead to race
+conditions between any of the destinations and the source or between
+destinations.
+
+<LI>The Library must be able to handle Access Authentication and
+redirection on both the source and each of the destinations.
+
+<LI>The user must be able to specify a link relation ship between a
+source and any of the destinations, for example "Written by".
+ 
+</UL>
+
+
+<H3>Building a Request Tree</H3>
+
+
+<H3>Building a Stream Tree</H3>
+
+
+<H3>Dynamic Update of Trees</H3>
+
+
+<UL>
+<LI>partial success
+
+<LI>Access Authentication
+
+<LI>Redirection
+</UL>
+
+
+<P><IMG SRC="PostResult.gif"><P>
+
+An immediate result from a post transaction is available using NNTP or
+HTTP but when using SMTP, the result might be delayed several days. In
+practice there is no way that the client can await a response for that
+amount of time.
+
+
+
+
+
+<DL>
+
+<DT> http://remote.server/local/location/foo.bar
+
+<DD> The syntax of the generated HTTP URL as a result of a succeeded
+posting is identical to any other HTTP URL
+
+<DT> news:messageid@news.host 
+
+<DD> The message ID is a unique string generated by the Library NNTP Module.
+
+<DT> sentto:recipient@host.name
+
+<DD> As the success of a mail posting can not be guaranteed, the access
+scheme has changed from "mailto" to "sentto". Then it is for the user
+or client to decide what to do with the URL. One solution could be to
+keep a copy of the posted document in a local cache for a limited time
+period.  Though it is not foreseen that the World-Wide Web client can
+actually handle delayed return codes from the SMTP protocol, as the
+client can in fact be a HTTP Proxy server.
+
+</DL>
+
+In the figure, postings using SMTP are still rounded because it is not
+possible for the user to actually access the document using the URL
+returned from the Library. As the NNTP posting failed in the figure,
+the document is still non-existent. Only the HTTP posting has turned
+into a physical document reference on the remote server. <P>
+
+When all postings are terminated, a new anchor is generated containing
+the allocated links on the remote servers for future references
+(except in the SMTP case). The amount of links returned might be a
+subset of the requested recipients as only postings which terminated
+successfully are registered. Using this set, the client must determine
+what to do with failed postings. One possibility would be to try again
+using the failed part of the Post Web, or simply to discard it.
+
+
+<H2>Conclusion</H2>
+
+This document describes the posting interface between the client
+application and the World-Wide Web Library. The user first builds a
+"Post Web" where logical links are created between the document to be
+posted and the set of desired recipients. On commit of the posting the
+Post Web and a request structure is parsed to the general posting
+routine within the Library. The posting routine groups the postings
+and recursively calls the NNTP, SMTP and or the HTTP module of the
+Library until the Post Web is traversed. The NNTP module is only done
+once due to the NNTP protocol implementation of posting.<P>
+
+As mentioned in the introduction this document doesn't describe how
+the HTTP protocol should handle POST as this is all handled internally
+in the Library. However, the interface between the Library and the
+client stays the same regardless of the HTTP POST Implementation.
+
+<H1>DNS Cache and Host Name Canonicalization</H1>
+
+An excessive communication with remote Domain Name Servers (DNS) can
+produce a significant time-overhead in requesting a document from a
+remote server which can result in degraded performance of the
+application. This is often the case in spite of DNS's own cache, as
+the request still has to cross the network. In order to prevent this,
+the Library has its internal memory cache of host names which is
+updated every time a host name is looked up in the DNS cache. Once the
+host name has been resolved into an IP-address, it is stored in the
+cache. The entry stays in the cache until either an error occurs when
+connecting to the remote host or it is removed during garbage
+collection. However, as the information kept in the cache is fairly
+small, it can contain a large set of elements.<P>
+
+Multi-homed hosts are treated specially as all available IP-addresses
+returned from DNS are stored in the cache. Every time a request is
+made to the host, the time-to-connect is measured and a weight
+function is calculated to indicate how fast the IP-address was. The
+weight function used is
+
+<P><IMG ALT="Weight function" SRC="../Paper/Equation.gif"><P>
+
+where <IMG ALT=alpha" SRC="../Paper/alpha.gif"> indicates the
+sensitivity of the function and <IMG ALT="Delta"
+SRC="../Paper/Delta.gif"> is the connect time. If one IP-address is
+not reachable a penalty of x seconds is added to the weight where the
+penalty is a function of the error returned from the "connect"
+call. The next time a request is initiated to the remote host, the
+IP-address with the smallest weight is used. <P>
+
+A problem with both the host name cache and the data object cache is
+to detect when two URLs are equivalent. The only way this can be done
+internally in the Library is to canonicalize the URLs before they are
+compared. This has for some time been done by looking at the path
+segment of the URLs and remove redundant information by converting
+URLs like
+
+<PRE>
+	foo/./bar/ = foo/redundant/../bar/ = foo/bar/
+</PRE>
+
+The method is optimized and expanded so that also host names are
+canonicalized. Hence the following URLs are all recognized to be
+identical:
+
+<PRE>
+	http://info/ = http://info.cern.ch:80/ = http://INFO.CeRn.CH/ =
+	http://info.cern.ch./ = http://info.cern.ch/
+</PRE>
+
+However, the canonicalization does not recognize alias host names
+which would require that this information is stored in the cache. In
+order to do this, a separate resolver library must be provided as this
+information is normally not returned by the default resolver
+libraries. Also these library do not support non-blocking sockets and
+hence delay can not be avoided when resolving a host name. The
+solution is of course to write a resolver library which handles these
+features, and it is under consideration.
+
+<H1>Format Negotiation</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

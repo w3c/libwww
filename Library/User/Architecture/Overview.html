@@ -1,0 +1,85 @@
+<HTML>
+<HEAD>
+<TITLE>Libwww Architecture</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<IMG ALT="Architecture" SRC="../../../Icons/WWW/Spec48x.gif">
+
+<H1>Libwww Architecture</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>. <P>
+
+The W3C Reference Library, a.k.a. Library of Common Code, is a general
+code base that can be used as a basic for building clients, servers
+and many other Web applications. It contains reference code for
+accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local
+file system. Furthermore it provides modules for parsing, managing and
+presenting hypertext objects to the user and a wide spectra of generic
+programming utilities. The Library is the basis for many <A
+HREF="../">World-Wide Web</A> applications and the W3C reference
+applications are built on top of it. This document is the first of
+three documents that each describes different aspects of the Library:
+
+<DL>
+
+<DT><A HREF="Overview.html"><IMG ALT="Architecture" SRC="../../../Icons/WWW/Spec48x.gif"></A> <B>The Architecture</B>
+
+<DD>The current document is the first in the serie and it describes
+the architecture of the Library without referring directly to the code
+itself. This is the "designer view" where bugs are a unknown phenomenon.
+
+<DT><A HREF="../Using/"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A> <B>The User's Guide</B>
+
+<DD>The second document introduces the most common API which provides
+the basic basic functionality for most applications. This document is
+the "User view" and should be sufficient to use the Library without
+being aware of what's going on underneeth the interface. The
+description contains a set of examples.
+
+<DT><A HREF="../Guide/"><IMG ALT="Internals" SRC="../../../Icons/WWW/Tang48x.gif"></A> <B>The Internals and Programmer's Guide</B>
+
+<DD>The last document in the serie introduces all modules in the
+Library regardles if they are public or private. This is also known as
+the "hacker view" of the Library.
+
+</UL>
+
+<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
+Each part of the documentation is also available as <A
+HREF="choppy.html"><B>one big HTML file</B></A> intended for
+printout. As a result, the relative links in this document do not
+work!<P>
+
+The current documentation is based on version 3.1 which is to be
+released June 1995.<P>
+
+<H2>Table of Contents</H2>
+
+<DL>
+<LI><A HREF="Introduction.html">Introduction</A> <P>
+
+<LI><A HREF="DesignModel.html">Design Model</A>
+<LI><A HREF="ControlFlow.html">Control and Data Flow</A>
+
+<LI><A HREF="DataStructures.html">Central Data Structures</A>
+<LI><A HREF="Anchors.html">Anchor Objects</A>
+<LI><A HREF="Streams.html">Stream Objects</A> <P>
+
+<LI><A HREF="Threads.html">Description of libwww Threads</A>
+<LI><A HREF="HTTPFeatures.html">Usage of State machines</A>
+<LI><A HREF="PostWeb.html">Building a POST Web, an API for PUT and POST</A>
+<LI><A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>
+<LI><A HREF="Multiformat.html">Format Negotiation</A>
+</UL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,94 @@
+<HTML>
+<HEAD>
+<TITLE>Architecture - Design Model</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
+
+<H1>Design Model</H1>
+
+The Library is designed to be easily extended with new functionality
+as new Internet standards evolve for transportation and representation
+of data objects. This means that most of the functionality is placed
+in separate modules that can be hooked onto a basic set of modules
+called the "core entity". This design model is illustrated in the
+figure below:
+
+<P><IMG SRC="Design.gif" ALT="Design"><P>
+
+The figure is similar to a protocol stack where the lower layers
+provides a set of services to the upper layers. This is also the case
+in the Library where the "layering" is as follows:
+
+<DL>
+
+<DT>Generic tools
+
+<DD>The Library provides a large set of generic utility modules such
+as various container classes, string utilities etc. They have the
+important function to separate the upper layer code from platform
+specific implementations using a large set of macros that makes the
+Library more portable. The modules are used throughout the Library
+itself and can easily be employed in many applications.
+
+<DT>Core entity
+
+<DD>The fundamental part of the Library is actually quite small. The
+core entity is not a closed entity but an open frame construction that
+provides hooks for the dynamic modules. The core entity also contains
+the major access points for applications issuing requests, for example
+to access a data object. Many of the sections in this paper contain
+references to the core entity and explain the interaction between the
+core entity and an application.
+
+<DT>Access and stream modules
+
+<DD>These modules are often referred to as "dynamic modules" as they
+can be enabled or disabled dynamically during execution of an
+application (using static linking). There are several ways to
+initialize the dynamic modules:
+
+<OL>
+
+<LI>Through a configuration file (often called a rule file) which is
+parsed, for example at start up time;
+
+<LI>Using static initialization functions which are set up at compile
+time;
+
+<LI>By initializing the modules during execution as the application
+requires it.
+
+</OL>The Library has a set of default, static initialization functions
+which can be found in the <A HREF="../../Implementation/HTInit.html">
+HTInit module</A>. By default they enable all the dynamic modules in
+the Library, but this can be changed as described later.
+
+<DT>Application Modules
+
+<DD>The application modules are often specific for client applications
+including functions that require user interaction, management of
+history lists etc. The reference implementation of these modules in
+the reference code is mainly intended for character based applications
+like the <A HREF="../../../LineMode/">Line Mode Browser</A>. More
+advanced clients will often have to override them, that is, a module
+with an identical interface is provided by the application, and the
+loading of the default module suppressed.  </DL>
+
+When writing an application most of the code interacting with the
+Library will consist of access modules, stream modules, and
+application modules. These modules can either provide additional
+functionality or override existing functionality in the Library in
+order to make use of more platform dependent implementations. The
+latter will typically be the case with the application modules which
+must be adjusted to a given graphic platform.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

@@ -1,0 +1,76 @@
+<HTML>
+<HEAD>
+<TITLE>DNS Cache</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
+
+<H1>DNS Cache and Host Name Canonicalization</H1>
+
+An excessive communication with remote Domain Name Servers (DNS) can
+produce a significant time-overhead in requesting a document from a
+remote server which can result in degraded performance of the
+application. This is often the case in spite of DNS's own cache, as
+the request still has to cross the network. In order to prevent this,
+the Library has its internal memory cache of host names which is
+updated every time a host name is looked up in the DNS cache. Once the
+host name has been resolved into an IP-address, it is stored in the
+cache. The entry stays in the cache until either an error occurs when
+connecting to the remote host or it is removed during garbage
+collection. However, as the information kept in the cache is fairly
+small, it can contain a large set of elements.<P>
+
+Multi-homed hosts are treated specially as all available IP-addresses
+returned from DNS are stored in the cache. Every time a request is
+made to the host, the time-to-connect is measured and a weight
+function is calculated to indicate how fast the IP-address was. The
+weight function used is
+
+<P><IMG ALT="Weight function" SRC="../Paper/Equation.gif"><P>
+
+where <IMG ALT=alpha" SRC="../Paper/alpha.gif"> indicates the
+sensitivity of the function and <IMG ALT="Delta"
+SRC="../Paper/Delta.gif"> is the connect time. If one IP-address is
+not reachable a penalty of x seconds is added to the weight where the
+penalty is a function of the error returned from the "connect"
+call. The next time a request is initiated to the remote host, the
+IP-address with the smallest weight is used. <P>
+
+A problem with both the host name cache and the data object cache is
+to detect when two URLs are equivalent. The only way this can be done
+internally in the Library is to canonicalize the URLs before they are
+compared. This has for some time been done by looking at the path
+segment of the URLs and remove redundant information by converting
+URLs like
+
+<PRE>
+	foo/./bar/ = foo/redundant/../bar/ = foo/bar/
+</PRE>
+
+The method is optimized and expanded so that also host names are
+canonicalized. Hence the following URLs are all recognized to be
+identical:
+
+<PRE>
+	http://info/ = http://info.cern.ch:80/ = http://INFO.CeRn.CH/ =
+	http://info.cern.ch./ = http://info.cern.ch/
+</PRE>
+
+However, the canonicalization does not recognize alias host names
+which would require that this information is stored in the cache. In
+order to do this, a separate resolver library must be provided as this
+information is normally not returned by the default resolver
+libraries. Also these library do not support non-blocking sockets and
+hence delay can not be avoided when resolving a host name. The
+solution is of course to write a resolver library which handles these
+features, and it is under consideration.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>W3 Library Internals - Important Data Structures</TITLE>
+<TITLE>Architecture - Central Data Structures</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -9,150 +10,217 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
 
-<H1>Important Data Structures</H1>
+<H1>Central Data Structures</H1>
 
-**************
+The central data structures are the structures that are a part of the
+core entity. Each of the core modules as explained in section "<A
+HREF="ControlFlow.html">Control and Data Flow</A>"are relying on one
+or more of the central data structures. This section describes the
+relationship between the core modules and the central data structures
+<EM>and</EM> the relationship between the central data structures
+themselves. <P>
 
-The Library contains many data structures of which most are for
-internal only and will not normally be referenced directly from
-outside the Library. However, as the definition of a graphic object is
-done by the application and not by the Library, a the following figure
-gives a quick overview of the three most important data structures (or
-objects) and how they are interconnected.
+The figure below is very similar to the one in section "<A
+HREF="ControlFlow.html">Control and Data Flow</A>", but it also
+introduces the set of central data structures as boxes that represent
+the main structures connected to the corresponding core modules. This
+does not mean that these are the only existing relations, but it can
+be used as an indication.
 
-</P><IMG SRC="DataStruc.gif" ALT="Structures"></P>
-
-<DL>
-
-<DT><A NAME="request"
-HREF="../../Implementation/HTAccess.html#z1">HTRequest
-structure</A></DT>
-
-<DD>The <CODE>request</CODE> structure contains information intended
-for the client application, the server application and for the Library
-itself for how to fulfill a request. The default values of the
-structure are appropiate for a client loadinf a document from either
-an <A HREF="../../../Architecture/Anchors.html" >anchor</A> or a <A
-HREF="../../../Addressing/Addressing.html">URI</A>.
- Managing <CODE>requests</CODE> is described in section <A HREF="#request">
-The Request Object</A></DD>
-
-<DT><A HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor
-structure</A> </DT>
-
-<DD><A HREF="../Terms.html#anchor">Anchors</A> represent any objects
-which may be the sources or destinations of hypertext links. Anchors
-contain all information about the object, whether it has been loaded,
-known metainformation about the object (language, media type etc.),
-and relations to other objects. Managing <CODE>anchors</CODE> is
-described in section <A HREF="#anchor">The Anchor Object</A></DD>
-<DT><A HREF="../../../LineMode/Implementation/GridText.c">HyperDoc
-structure</A> </DT>
-
-<DD>The <CODE>HyperDoc</CODE> structure is only declared in the
-Library - the definition is left to the client application. For the <A
-HREF="../../../LineMode/Status.html">Line Mode Browser</A>, it is
-defined in the <A
-HREF="../../../LineMode/Implementation/GridText.c">GridText Module</A>
-where it is called <CODE>_HText</CODE>. It contains all information
-needed to present and manage a <A HREF="Overview#GraphicObject">
-graphic object</A>. The client is responsible for allocating and
-freeing all <CODE>graphic objects</CODE> which may entail tradeoffs of
-speed versus available resources. When the object is freed, the link
-from the <CODE>anchor structure</CODE> must be put to
-<CODE>NULL</CODE>. The dotted line symbolizes that it is free for the
-client to create a <CODE>HyperDoc</CODE> object including a link to
-the <CODE>request</CODE> structure.  </DD>
-
-</DL>
-
-**************
-
-The Library contains many data structures, which all are defined in
-the HTML files in the source code. This document introduces the most
-important data structures and how they are interconnected. The
-structures are illustrated in the figure:
-
-<P><IMG SRC="DataStructures.gif"><P>
+<P><IMG SRC="ModStruc.gif" ALT="Structures"><P>
 
 <DL>
 
-<DT><A NAME="request" HREF="../../Implementation/HTAccess.html#z1">HTRequest Structure</A>
+<DT><IMG ALIGN=BOTTOM SRC="R.gif" ALT="R"> <A NAME="request" HREF="../../Implementation/HTAccess.html#z1">HTRequest</A>
 
-<DD>The <CODE>request</CODE> contains information intended for the
-client application, the server application and for the Library itself
-for how to fulfill a request. As this is a normal C structure, any
-application can see all the information available. However, it is
-strongly recommended only to use the information specifically intended
-to be used by the application in question. The default values of the
-structure make it very easy for a client to load a document, either if
-it is using an <A HREF="Anchors.html">anchor</A> or an <A
-HREF="../../../Addressing/Addressing.html">URI</A>.
+<DD>The <EM>HTRequest</EM> structure contains information necessary to
+handle a request issued by the application. It contains information
+about the method to be used (for example "GET" and "PUT"), user
+preferences (language, content type etc.) specific for this request,
+where the output of the data object should go etc. The HTRequest
+structure ties together the other structures used by the core modules
+in order to handle the request. It is intended to live until the
+request reaches a final state, either success or failure, after which
+it can be discarded.<P>
 
-<DT><A HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor
-Structure</A>
+Normally, the HTRequest structure is created by the application, but
+the Library is capable of creating HTRequest structures on its own
+under certain circumstances. An example is when the Library creates a
+"Post Web" as explained in section "<A HREF="PostWeb.html">Building a
+POST Web, an API for PUT and POST</A>".
 
-<DD>The anchor structure is a generic superclass used for both
-<CODE>parent</CODE> anchors and <CODE>child</CODE> anchors. Both types
-have a specific structure which is a subclass of the generic
-structure. It contains all information about relations among URIs and
-whether they have been loaded or not.
+<DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> 
 
-<DT><A HREF="../../../LineMode/Implementation/GridText.c">HyperDoc
-Structure</A>
+<DD><A HREF="../Terms.html#anchor">Anchors</A> represent any data
+objects which may be the sources or destinations of hypertext
+links. The HTAnchor structure contains all information about the
+object, whether it has been loaded, metainformation like language,
+media type etc., and any relations to other objects. The Library
+defines two anchor classes: a parent anchor and a child anchor. The
+former contains information about whole data objects and the latter
+contains about subparts of a data object. The HTAnchor structure is a
+generic superclass of both parent anchors and child anchors. Section
+"<A HREF="Anchors.html">Anchor Objects</A>" describes anchors and
+their relations in more detail.
 
-<DD>The <CODE>HyperDoc</CODE> structure is only declared in the
-Library - the real definition is left to the client application. For
-the <A HREF="../../../LineMode/">Line Mode Browser</A>, it
-is defined in the <A
-HREF="../../../LineMode/Implementation/GridText.c">GridText Module</A>
-where it is called <CODE>_HText</CODE>. It contains all information
-needed to present and manage a <A
-HREF="Overview#GraphicObject">graphic object</A>. The client is
-responsible for allocating and freeing all <CODE>graphic
-objects</CODE> which is a question about speed versus available
-resources. When the object is freed, the link from the <CODE>anchor
-structure</CODE> must be put to <CODE>NULL</CODE>. The dotted line
-symbolizes that it is free for the client to create a
-<CODE>HyperDoc</CODE> object including a link to the
-<CODE>request</CODE> structure.
+<DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../Implementation/HTAccess.html#HTNetInfo">HTNetInfo</A>
 
-<DT><A HREF="../../Implementation/HTAccess.html#HTNetInfo">HTNetInfo
-Structure</A>
+<DD><EM>HTNetInfo</EM> is a network interface specific structure that
+contains all information required to read and write from the
+network. It contains the current socket descriptor (or ANSI C file
+descriptor) used for reading and writing, which input buffer to use
+and where to put the data once they are read. It also contains timing
+information on how long it takes to connect to a remote host and how
+many times it has tried to connect. This information is used by the <A
+HREF="DNSCache.html">DNS Cache</A> in order to optimize access on
+multi homed hosts. <P>
 
-<DD>This structure is an internal structure used by the <A
-HREF="Protocol.html">Protocol Modules</A> and contains the <A
-HREF="../../Implementation/HTFormat.html#z15">input read buffer</A>,
-socket number and other information relevant for the access to the
-network.
+The HTNetInfo structure is also a key structure in the libwww thread
+model where a thread is identified by this structure. The libwww
+thread model is explained in "<A HREF="Threads.html">Description of
+libwww Threads</A>".
+
+<DT><IMG ALIGN=BOTTOM SRC="C.gif" ALT="C"> <A NAME="cache" HREF="../../Implementation/HTFWrite.html#cacheitem">HTCacheInfo</A>
+
+<DD>The <EM>HTCacheInfo</EM> structure contains metainformation about
+every cached object like the amount of times it has been requested from
+the cache, the content type, the size, and how long it took to obtain
+the data from the network. As the cache manager is yet to be fully
+specified this structure is likely to change in the near future.
+
+<DT><IMG ALIGN=BOTTOM SRC="H.gif" ALT="H"> <A NAME="hyperdoc" HREF="../../../LineMode/Implementation/GridText.c">HyperDoc</A> 
+
+<DD>The <EM>HyperDoc</EM> structure is different from the other
+central data structures as it is only declared in the Library - the
+definition is left to the application. It is intended to contain
+information about data objects, especially hypertext objects that are
+to be presented to a user. As an example of a definition, you can look
+at the <A HREF="../../../LineMode/Status.html">Line Mode Browser</A>
+where it is defined in the <A
+HREF="../../../LineMode/Implementation/GridText.c"> GridText
+Module</A>. Here it is called "_HText" structure and it contains all
+information needed to present and manage a data object in a text based
+environment. <P>
+
+The memory management of the HyperDoc object is also left to the
+application along with the definition. The Library does not use any
+information from the object at all - the only interaction is that the
+access manager checks if a HyperDoc object exists for a given anchor
+or not as a part of servicing a request. The application can use this
+to maintain a set of HyperDoc objects in memory as a fast
+cache. Again, the Line Mode Browser can be used as an example as it
+keeps the 5 latest accessed hypertext objects in memory (regardless of
+their size) in order to allow fast back track for the user. The
+relation to the HTAnchor object requires that there is a link from the
+HyperDoc to the corresponding anchor in order for the application to
+do proper garbage collection of the HyperDoc objects.<P>
+
+Even though the Library does not interfere with the contents of the
+HyperDoc object it does provide an API for managing the object. This
+API is known as the "HText" API and it is described further in the <A
+HREF="../Using/">User's Guide</A>
+
+<DT><IMG ALIGN=BOTTOM SRC="E.gif" ALT="E"> <A NAME="error" HREF="../../Implementation/HTError.html#errorinfo">HTErrorInfo</A>
+
+<DD>The <EM>HTErrorInfo</EM> contains information about errors occured
+in the protocol manager. Each request (in form of a HTRequest
+structure) has an error stack which is a linked list of HTErrorInfo
+structures. The HTErrorInfo structure contains an error number that
+refers to a list of error messages, the severity of the error, any
+parameters registered together with the error, and if this specific
+error should be ignored by the application or not - independently of
+the severity. A parameter can for example be a file name causing the
+error.
+
+<DT><IMG ALIGN=BOTTOM SRC="S.gif" ALT="S"> <A NAME="stream" HREF="../../Implementation/HTStream.html">HTStream</A> 
+
+<DD>The <A HREF="../../Implementation/HTStream.html">stream</A>
+structure is an object which accepts sequences of characters. It is a
+destination of data which can be thought of much like an output stream
+in C++ or an ANSI C-file stream for writing data to a disk or another
+peripheral device. The broad definition makes streams very flexible
+and they are used as the main method to transport data from the
+application to the network and vise versa. The Library defines two
+stream classes: A generic stream class and a specialized stream class
+for structured data using SGML lexical tokens. The contents of the two
+classes is described in detail in section "<A
+HREF="Streams.html">Streams Objects</A>".
 
 </DL>
 
-When a resource is requested, the Library does the following to obtain
-the graphic object:
+The following figure illustrates the relations between the central
+data structures themselves. As before there might be other relations
+between the structures, but these are the main relations.
 
-<UL>
+<P><IMG SRC="DataStruc.gif" ALT="Structures"><P>
 
-<LI>Finds or creates an <A HREF="Anchors.html">anchor</A> object for
-the URI given
+<OL>
 
-<LI>Checks if link in the <CODE>anchor</CODE> structure to the
-<CODE>HyperDoc</CODE> is non-NULL. If this is the case, the object is
-already in memory and ready for presentation.
+<LI>When an application issues a request the access manager binds the
+anchor corresponding to a URL together with a request object. The
+binding exists until the request reaches a final state after which the
+application can discard the request object. Normally the anchor object
+stays in memory during the whole life time of the application as the
+set of anchors represent the part of the Web that the application has
+been in touch with including metainformation etc.
 
-<LI>If not then the <A HREF="Overview.html#ClientCache">local
-cache</A> (if any) is searched to find the resource. If it is found
-then the resource is parsed and the graphic object recreated.
+<LI>The application can make a binding between the request object and
+the desired destination for the data when it arrives, typically from
+the network. The request object is by default bound to a <A
+HREF="../../Implementation/HTML.html">presentation stream</A> which
+presents a hypertext object to the user on the screen, but it can also
+be written to a file, represented as source text etc.
 
-<LI>If the <A HREF="Overview#GraphicObject">graphic object</A> is not
-in memory and the resource is not stored in the local cache then the
-resource must be loaded through the network.
+<LI>If the file cache is enabled a cache object is created and linked
+to the anchor object by the cache manager so that the access manager
+on any future requests can use the cached version (if not stale). As
+mentioned, the cache manager is yet to be fully designed, and the
+current approach may change.
 
-</UL>
+<LI>If the data object is not found in the cache or in memory the
+protocol manager is called by the access manager. The protocol manager
+then executes a specific protocol module which creates a netinfo
+object and binds it to the request object. The netinfo object is
+maintained uniquely by the protocol module and is removed by the
+protocol module as soon as the communication with the remote server
+reaches a final state.
+
+<LI>The request object also has a link to any error information
+related to it. At the end of the request this information is handled
+by the error manager and an error message may be generated and passed
+to the user.
+
+<LI>When data starts arriving, typically from the network, it is
+directed down the stream chain which can either already exist or is
+created as data arrives (stream chains are described in the section
+"<A HREF="Streams.html">Stream Objects</A>". In the case where the
+application is transmitting a data object to a remote server, there
+are two steam chains directed in opposite directions: one from the
+application to the network and one from the network to the
+application.
+
+<LI>The end of the stream chain is the stream that the user may have
+defined when the request first was issued or it can be the default
+destination which is presenting the information on the screen. Between
+the first and the last stream in the stream chain there can be any
+number of other stream objects performing operations either directly
+on the data, or on the stream flow itself. A T-stream is an example of
+the latter where the stream flow is divided into two.
+
+<LI>The application receives the data arriving from the network via
+the "HText" object (or any of the other stream interfaces as explained
+in section <A HREF="../Using/HTMLParser.html">The HTML Parser</A> in
+the User's Guide).
+
+<LI>The HyperDoc object <EM>must</EM> have a link to the HTAnchor
+object in order to verify the anchor whether it has a data object
+attached to it or not. The HyperDoc may have a link to the request
+structure but this is not required.
+
+</OL>
 
 <P>
 <HR>
 <ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
-<HR>
 </BODY>
 </HTML>

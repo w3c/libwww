@@ -1,0 +1,238 @@
+<HTML>
+<HEAD>
+<TITLE>Post Webs - an API for PUT and POST</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Jun-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib"SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
+
+<H1>Post Webs - an API for PUT and POST</H1>
+
+The <A HREF="../../../Protocols/">HTTP</A> PUT and POST are required
+features when extending the <A HREF="http://www.w3.org">WWW</A> to a
+fully collaborative tool with features like remote authoring,
+annotations, update of data bases etc. Many Web applications are
+currently capable of transfering input data in a form from the client
+to the server, but a more generic mechanism than forms is needed for
+transmitting any data object from a client to a server. This document
+specifies how this functionality can be presented to the user and how
+it can be implemented using the <A HREF="../../../Library/">W3C
+Reference Library</A>, a.k.a. WWW Library of Common Code. It defines
+the term "Post Web" and the API to to the Library. It is important to
+note that neither of this requires any modification to the <A
+HREF="../../../Protocols/">HTTP/1.0</A> specification nor to the <A
+HREF="../../../MarkUp/">HTML</A> form definition. <P>
+
+<H2>What is a Post Web?</H2>
+
+A Post Web is used as the main abstraction mechanism for enabling the
+user to send data objects simultanously to multiple destinations. The
+purpose of the Post Web is to reflect a set of commonly used
+communication methods and put these methods into the Web model. For
+example, imagine a user writing a document wanting it to be posted to
+the following destinations:
+
+<UL>
+<LI>a news group
+<LI>a mailing list
+<LI>a college
+<LI>a HTTP server where it can be made available to the whole world
+</UL>
+
+Then this can be represented as a web consisting of 5 nodes:
+
+<P><IMG SRC="PostWebUser.gif"><P>
+
+The basic idea of the post interface to the Library is that when using
+POST, the user is often interested in posting the data object to more
+than one recipient, e.g. the user can send the same data object to two
+mailing lists, a news group and at the same time store the data object
+as a file on a remote HTTP server.
+
+There are three players in the Post Web model:
+
+<DL>
+<DT><A HREF="#user">The User</A>
+<DD>The User builds the Post Web by specifying the recepients of a data object to be posted.
+<DT><A HREF="#client">The Client</A>
+<DD>The Client converts the Post Web into a form that can be handed as a request to the W3C Reference Library
+<DT><A HREF="#library">The Library</A>
+<DD>The Library serves the client request and carry out the transactions with the network
+</DL>
+
+The different roles of the players are described in the following
+sections.
+
+<H2><A NAME="user">The User Builds a Post Web</A></H2>
+
+What is important is that the user has the same interface whether he
+or she is posting to a News group, a mailing list or a HTTP server,
+and that it is possible to post a data object simultanously to
+multiple destinations. The idea behind the Post Web is that the PUT
+and POST methods appear as protocol independent as idempotent methods
+for example GET or HEAD.
+
+The API is flexible enough to support not only the <A
+HREF="../../../Protocols/HTTP/Methods/Post.html">POST</A> method in
+the <A HREF="../../../Protocols/HTTP/HTTP2.html">HTTP Protocol</A>,
+but at the same time provide functionality for posting to email
+addresses using <A HREF="ftp://nic.ddn.mil/rfc/rfc821.txt">SMTP</A>
+and <A HREF="ftp://nic.ddn.mil/rfc/rfc977.txt">NNTP</A> news
+groups. Posting to other Internet servers such as <A
+HREF="ftp://nic.ddn.mil/rfc/rfc959.txt">FTP</A> servers is not
+considered in this document, but the concept is designed with the
+possibility of including additional Internet protocols.<P>
+
+<P><IMG SRC="PostWeb.gif"><P>
+
+As indicated in the figure, the user builds a "Post Web" around an <A
+HREF="../../../Architecture/Anchors.html">anchor element</A> before
+the POST is committed and passed to the Library.  The rounded boxes
+are remote logical data objects that are still to be created and the
+lines are logical links between the post anchor and the remote data
+objects. The two links to the NNTP box represents that the data object
+is to be posted to two different news groups. In practice only one
+physical link would actually exist to the NNTP as all posting to a
+NNTP Server is done in one single transaction.<P>
+
+The actual user interface is for the client to implement, but
+typically a GUI-client could use drag-and-drop icons for building the
+Web. The Post Web could be visualized using a user implemented menu of
+icons of the most used recipients and then let the user drag lines
+between the data object to be posted and the recipients. The Library
+helps the user building the Web by providing the functionality of <A
+HREF="../../Implementation/HTAnchor.html#links"> linking the anchors
+together</A>. <P>
+
+
+<H2><A NAME="client">The Client Generates a Request</A></H2>
+
+Creates the web and make sure it doesn't exist already!!<P>
+
+When the user has decided to commit the POST, the post anchor is
+passed from the client to the Library together with a <A
+HREF="../../Implementation/HTAccess.html#z1">request
+structure</A>. This is very similar to the current implementation of a
+<A HREF="../../../Protocols/HTTP/Methods.html">HTTP GET Method</A>. An
+important consideration in the design has been to include the
+multi-threaded functionality in the posting module so that both PUT
+and POST in principle behaves exactly like a GET or any other method
+using non-blocking I/O, see also the <A
+HREF="multithread.html#control">multi-threaded control flow</A>.
+
+<P><IMG SRC="POSTEvent.gif"> <P>
+
+However, PUT and POST methods are inherently different from the GET
+method as they require a data flow in both directions. This is
+especially the case using PUT as a data object often will be returned
+from the remote server.  <P>
+
+The routine for handling the POST in the Library parses the Post Web
+and groups the individual requests into protocol categories. In the
+case of a NNTP request, all POST requests are handled at the same time
+and send to the actual NNTP server. When the parsing of the Web is
+done, the post module recursively calls the protocol modules to
+execute the POST. <P>
+
+The posting mechanism is designed to be compatible with the <A
+HREF="multithread.html">multi-threaded structure</A> of the Library.
+This means that the client is asked for data based on an event driven
+action taken by the event loop.  The client then gets a <A
+HREF="../Guide/Stream.html"> stream</A> so that the document to be
+posted can be pumped down the stream and out on the net.
+
+
+<H2><A NAME="library">The Library Serves the Request</A></H2>
+
+When the application has created the source anchor information and
+handed it to the Library When a source anchor is handed to the
+Library, it walks through the set of destinations and creates an
+internal representation of the Post Web using <A
+HREF="../../../Implementation/HTAccess.html#z1">HTRequest
+structures</A> -- one for the source and each of the destinations.
+
+The result of the posting varies as a function of the protocol used.
+It is a general rule through out the design of the Library that other
+protocols than HTTP should be supported but not extended beyond their
+individual limitations. This means that the Library has to be flexible
+enough to handle more than one result from a posting transaction
+dependent on the protocol used.
+
+<UL>
+
+<LI>Posting to multiple destination must use either libwww threads or
+other thread implementations. In the case of libwww threads, it must
+use non-blocking, interruptible I/O.
+
+<LI>The Library must be capable of handling concurrent write and read
+operations to and from the network.
+
+<LI>It must be possible to perform data conversion from one media type
+to another on the fly when posting. The data conversion can either be
+performed on the data going to all destinations or on individual
+destinations.
+
+<LI>It must be possible to specify individual methods used for each
+destination, for example, if three destinations are specified then one
+can use PUT, another POST, and the third can use LINK.
+
+<LI>There must be no timing requirements that can lead to race
+conditions between any of the destinations and the source or between
+destinations.
+
+<LI>The Library must be able to handle Access Authentication and
+redirection on both the source and each of the destinations.
+
+<LI>The user must be able to specify a link relation ship between a
+source and any of the destinations, for example "Written by".
+ 
+</UL>
+
+
+<H3>Building a Request Tree</H3>
+
+
+<H3>Building a Stream Tree</H3>
+
+
+<H3>Dynamic Update of Trees</H3>
+
+
+<UL>
+<LI>partial success
+
+<LI>Access Authentication
+
+<LI>Redirection
+</UL>
+
+
+<P><IMG SRC="PostResult.gif"><P>
+
+An immediate result from a post transaction is available using NNTP or
+HTTP but when using SMTP, the result might be delayed several days. In
+practice there is no way that the client can await a response for that
+amount of time.
+
+In the figure, postings using SMTP are still rounded because it is not
+possible for the user to actually access the document using the URL
+returned from the Library. As the NNTP posting failed in the figure,
+the document is still non-existent. Only the HTTP posting has turned
+into a physical document reference on the remote server. <P>
+
+When all postings are terminated, a new anchor is generated containing
+the allocated links on the remote servers for future references
+(except in the SMTP case). The amount of links returned might be a
+subset of the requested recipients as only postings which terminated
+successfully are registered. Using this set, the client must determine
+what to do with failed postings. One possibility would be to try again
+using the failed part of the Post Web, or simply to discard it.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

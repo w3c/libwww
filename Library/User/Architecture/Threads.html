@@ -1,0 +1,254 @@
+<HTML>
+<HEAD>
+<TITLE>Architecture - Libwww Threads</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
+
+<H1>Libwww Threads</H1>
+
+Library version 3.0 had been designed to be thread compatible. It can
+either be used with conventional threads or with a new "libwww <A
+HREF="../Architecture/Threads.html">thread" concept</A> which allows
+an application to handle requests in a constrained asynchronous manner
+using non-blocking I/O and an event loop based on a select system
+call. As a result, I/O operations such as establishment of a TCP
+connection to a remote server and reading from the network can be
+handled without letting the user wait until the operation has
+terminated. Instead the user can issue new requests, interrupt ongoing
+requests, scroll a document etc. Version 3.1 of the Library has an
+enhanced thread model as it supports writing large amount of data from
+the application to the network, also using non-blocking I/O
+operations. This becomes useful in multi threaded server applications
+and in client applications with support for remote collaborative work
+through the <A HREF="../../../Protocols/">HTTP</A> methods <B>PUT</B>
+and <B>POST</B>. The Library has been designed to support libwww
+threads on a wide set of platforms with or without native support for
+threads, and this section describes the model behind libwww threads
+and how it affects applications.</P>
+
+<H2>Introduction</H2>
+
+In a single-process, single threaded environment all requests to, for
+example, the I/O interface blocks any further progress in the process.
+Any combination of a multiprocess or multi threaded implementation of
+the Library makes provision for the application to request several
+independent documents at the same time without getting blocked by slow
+I/O operations. As a Web application is expected to use much of the
+time doing I/O such as "connect" and "read", a high degree of
+optimization can be obtained if multiple threads can run at the same
+time.<P>
+
+Threads provide a light-weight technique for obtaining an environment
+with a multiple set of execution points. A thread is a smaller unit
+compared to a process in that it is a single, sequential flow of
+control within a process. When creating a new process much of the
+environment does never change and can therefore be reused. Threads
+takes the full consequence of this and creates an environment with
+multiple execution points within the same process. Hence threads
+provide a more lightweight solution than process forking and this is a
+part of the reason for their implementation in the W3C Reference
+Library.
+
+<A NAME="platform"><H2>Platform Independent Implementation</H2></A>
+
+The major concern in the design has been to make an implementation
+that is as platform independent as possible. This means that it has
+not been possible to use traditional thread packages like DECthreads
+which contain a code library with a complete set of thread handling
+routines and a consistent user interface. IEEE has publicized the
+POSIX standard 1003.4 for multi threaded programming but even this
+will eventually limit the portability of the code so that it will not
+be usable on platforms that don't support this thread model. Instead
+the multi threaded functionality has been designed to be used in a
+single-processor, single threaded, environment as illustrated in the
+figure.
+
+<P><IMG SRC="Thread.gif"><P>
+
+The difference between this technique (called "libwww threads") and
+"traditional" threads as <A HREF="#multistackthread">illustrated
+above</A> is that all information about a thread is stored in a data
+object which represents the thread and contains all the state
+information required to stop and start at various points while
+servicing the thread. This implies that the following rules must be
+kept regarding memory management: <P>
+
+<UL> 
+
+<LI>Global variables can be used only if they at all time are
+independent of the current state of the active thread.
+
+<LI>Automatic variables can be used only if they are initialized on
+every entry to the function and stay state independent of the current
+thread throughout their lifetime.
+
+<LI>All information necessary for completing a thread must be kept in
+an autonomous data object that is passed round the via the stack.
+
+</UL>
+
+<H3>Thread Methods</H3>
+
+The libwww threads are very basic as they are not intended to replace
+existing thread models. As a result, the set of methods is as follows:
+
+<DL>
+<DT>Create thread
+<DD>Create a data object and initialize the state machine to an initial state
+<DT>Remove thread
+<DD>Remove a data object after the state machine has reached a final state 
+<DT>Kill thread
+<DD>Force the state machine into a final state and remove the data object
+</DL>
+
+In section "<A HREF="HTTPFeatures.html">Usage of State machines</A>"
+we describe how state machines are employed as an integral part of the
+libwww thread model.
+
+<H3>Thread Interfaces</H3>
+
+The Library provides three different modes in the thread API and it is
+necessary to be aware of these modes in the design phase of an
+application as they have an impact on the architecture of the
+application. The Library can be used in multiple modes simultaneously
+and an application can change mode as a function of the action
+requested by the user. The three different modes are described in the
+following:</P>
+
+<DL>
+
+<DT><B>Base Mode</B>
+
+<DD>This mode is strictly single threaded and requires no special
+considerations in the design of the application. The difference
+between this mode and the other two is that all sockets are made
+blocking instead of non-blocking. The Library does still expect the
+definition of the set of call back functions as described in the
+section <A HREF="#callback">"Providing Call Back Functions"</A>, but
+they can be defined as dummy functions without any content. The mode
+preserves compatibility with Web applications with a single threaded
+approach, however it does not provide interruptible I/O as this
+requires an active event loop either internally or externally to the
+Library.
+
+<DT><B>Active Mode</B>
+
+<DD>In this mode the event loop is placed in the Library in the <A
+HREF="../../Implementation/HTEvent.html" >HTEvent module</A>. The mode
+can either be used by character based applications with a limited
+capability of user interaction, or it can be used by more advanced GUI
+clients where the window widget allows redirection of user events to
+one or more sockets that can be recognized by a select() call. It
+should be noted, that even though all sockets are non-blocking, the
+select() function is blocking if no sockets are pending so if no
+actions are pending, the select call will be put to sleep. <P>
+
+The <A HREF="../../Implementation/HTThread.html" >HTThread module</A>
+contains a thread scheduler which gives highest priority to the events
+on the redirected user events which allows a smooth operation on GUI
+applications with a fast response time. This mode has a major impact
+on the design of the application as much of the application code may
+find itself within call back functions. As an example, this mode is
+currently used by the <A HREF="../../../Arena/">Arena client</A> and
+the <A HREF="../../../LineMode/" >Line Mode Browser</A>.
+
+<DT><B>Passive mode</B>
+
+<DD>This mode is intended for applications where user events can not
+be redirected to a socket or there is already an event loop that can
+not work together with the event loop in the Library. The major
+difference from the <B>Active mode</B> is that instead of using the
+event loop defined in the <A
+HREF="../../Implementation/HTEvent.html">HTEvent module</A>, this
+module is overridden by the application as described in the <A
+HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
+same impact on the application architecture as the <B>Active mode</B>
+except for the event loop, as all library interactions with the
+application are based on call back function.  </DL>
+
+One important limitation in the libwww thread model is that the
+behavior is undefined if an external scheduler is provided using the
+internal threads in the Library with preemptive scheduling mechanism.
+The reason for this is that the Library is "libwww thread safe" when
+using one stack and one set of registers as in <B>Active mode</B> only
+when a change of active thread is done as a result of a blocking I/O
+operation. However, using an external thread model, this problem does
+not exist.</P>
+
+<A NAME="callback"><H3>Providing Call Back Functions</H3></A>
+
+The thread model in the Library is foreseen to work with native thread
+interfaces but can also be used in a non-threaded environment. In the
+latter case, the Library handles the creation and termination of its
+internal threads without any interaction required by the
+application. The thread model is based on call back functions of which
+at least one user event handler and a event terminator must must be
+supplied by the application. However, the application is free to
+register as many additional user event handlers as it wants.
+
+</P><IMG SRC="../Architecture/Internal.gif" ALT="Callback"></P>
+
+The dashed lines from the event loop to some of the access modules
+symbolizes that the access method is not yet implemented using
+non-blocking I/O, but the event loop is still a part of the
+call-stack.  In this situation the Library will automatically use
+blocking sockets which is equivalent to the <B>Base Mode</B>.</P>
+
+<DL>
+
+<DT>User Event Handlers
+
+<DD>An application can register a set of user event handlers to handle
+events on sockets defined by the application to contain actions taken
+by the user. This can for example be interrupting a request, start a
+new request, or scroll a page. However, this requires that the actual
+window manager supports redirection of event on sockets.
+
+<DT>Event Termination
+
+<DD>This function is called from the Library every time a request is
+terminated. It passes the result of the request so that the
+application can update the history list etc. depending on the
+result. From the Library's point of view there is little difference
+between a user event handler and this function, as it in both cases is
+a call back function.
+
+<DT>Timeout Handler
+
+<DD>In <B>Active mode</B>, the select()</CODE> function in the Library
+event loop is blocking even though the sockets are non-blocking. This
+means that if no actions are pending on any of the registered sockets
+then the application will block in the select() call. However, in
+order to avoid sockets hanging around forever, a timeout is provided
+so that hanging threads can be terminated.
+
+</DL>
+
+<H3><A NAME="control">Returning from a Call Back Function</A></H3>
+
+Often an event handler needs to return information about a change of
+state as a result of an action executed by the handler, for example if
+a new request is issued, a ongoing request is interrupted, the
+application is to terminated etc. This information can be handed back
+to the Library using the return values of the call back function.<P>
+
+There are several situations where a thread has to be killed before it
+has terminated normally. This can either be done internally by the
+Library or the application. The application indicates that a thread is
+to be interrupted, for example if the user has requested the operation
+to stop, by using a specific return value from one of the user event
+handlers. The Library then kills the thread immediately and the result
+is returned to the application.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>
+
+

@@ -1,0 +1,156 @@
+<HTML>
+<HEAD>
+<TITLE>Architectural Overview</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
+
+<H1>Architectural Overview</H1>
+
+Before starting on the design phase of an application, it is
+advantageous to get an overview of the fundamental concepts of the
+Library and how it interacts with an application. Largely, it is
+divided into four different categories of functions as indicated in
+the figure:</P>
+
+<P><IMG SRC="Modules.gif" ALT="Modules"><P>
+
+<DL>
+
+<DT>Core Entity</DT>
+
+<DD>This is the fundamental part of the Library. The core entity is not
+a closed entity but an open frame construction that provides hooks for
+the dynamic modules. It consists of an access manager, a thread manager,
+a stream manager, a cache manager and some fundamental data structures.
+The contents of the core entity is except for some major entry points
+largely  internal to the Library but the hooks are public and
+initialized dynamically. Many of the sections through out this paper
+contain references to the core entity and explain the interaction
+between the core entity and an application.</DD>
+
+<DT>Dynamic Modules</DT>
+
+<DD>The dynamic modules can be enabled or disabled dynamically during
+execution of an application. They consist of a set of converter streams
+and protocol modules which are explained in the sections <A HREF="#access">
+Access Methods</A> and <A HREF="#stream">Stream Interfaces</A>. There
+are several ways to initialize the dynamic modules:
+
+<OL>
+
+<LI>Through a configuration file (often called a rule file) which is
+parsed at start up time</LI>
+
+<LI>Using static initialization functions which are created at compile
+time</LI>
+
+<LI>By initializing the modules during execution as the application
+requires it</LI>
+
+</OL>The Library has a set of default, static initialization functions
+which can be found in the <A
+HREF="../../Implementation/HTInit.html">HTInit module</A>. By default
+they enable all the dynamic modules in the Library, but this can be
+changed as described later.</DD>
+
+<DT>Application Specific Modules</DT>
+
+<DD>These modules are often specific for client applications including
+functions that require user interaction, management of history lists
+etc. The default implementation of these modules in the reference code
+is often simple and intended for simple character based applications
+like the <A HREF="../../../LineMode/">Line Mode Browser</A> and more
+advanced clients will often have to override them. That is, a module
+with an identical interface is provided by the application, and the
+loading of the defailt module suppressed. This is explained in detail
+in the sections <A HREF="#history">Keeping Track of History</A> and <A
+HREF="#prompt" >User Prompts and Confirmations</A>.</DD>
+
+<DT>Generic Modules</DT>
+
+<DD>The Library provides a large set of generic utility modules such
+as various container classes, parsing modules etc. These modules are
+characterized by being public available to the application programmer
+so that they easily can be used in the application. They consist
+mainly of three different types of modules: <DL>
+
+<DT><A HREF="../Guide/Utils.html#Container">Container Modules</A></DT>
+<DD>Modules that support various types of  memory management</DD>
+
+<DT><A HREF="../Guide/Utils.html#URI">URI Management</A></DT>
+<DD>Code for parse, canonicalize, encode, and decode a URL</DD>
+
+<DT><A HREF="../Guide/Utils.html#Basic">Basic Utilities and Macro
+Definitions</A> </DT>
+
+<DD>These modules contain a large set of macros in order to make the
+code more portable</DD>
+</DL>
+
+The reader is referred to the <A HREF="../Guide/">Internals and
+Programmer's Guide</A> for a detailed description of these
+modules.</DD>
+</DL>
+
+The Library contains many data structures of which most are for
+internal only and will not normally be referenced directly from
+outside the Library. However, as the definition of a graphic object is
+done by the application and not by the Library, a the following figure
+gives a quick overview of the three most important data structures (or
+objects) and how they are interconnected.
+
+</P><IMG SRC="DataStruc.gif" ALT="Structures"></P>
+
+<DL>
+
+<DT><A NAME="request"
+HREF="../../Implementation/HTAccess.html#z1">HTRequest
+structure</A></DT>
+
+<DD>The <CODE>request</CODE> structure contains information intended
+for the client application, the server application and for the Library
+itself for how to fulfill a request. The default values of the
+structure are appropiate for a client loadinf a document from either
+an <A HREF="../../../Architecture/Anchors.html" >anchor</A> or a <A
+HREF="../../../Addressing/Addressing.html">URI</A>.
+ Managing <CODE>requests</CODE> is described in section <A HREF="#request">
+The Request Object</A></DD>
+
+<DT><A HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor
+structure</A> </DT>
+
+<DD><A HREF="../Terms.html#anchor">Anchors</A> represent any objects
+which may be the sources or destinations of hypertext links. Anchors
+contain all information about the object, whether it has been loaded,
+known metainformation about the object (language, media type etc.),
+and relations to other objects. Managing <CODE>anchors</CODE> is
+described in section <A HREF="#anchor">The Anchor Object</A></DD>
+<DT><A HREF="../../../LineMode/Implementation/GridText.c">HyperDoc
+structure</A> </DT>
+
+<DD>The <CODE>HyperDoc</CODE> structure is only declared in the
+Library - the definition is left to the client application. For the <A
+HREF="../../../LineMode/Status.html">Line Mode Browser</A>, it is
+defined in the <A
+HREF="../../../LineMode/Implementation/GridText.c">GridText Module</A>
+where it is called <CODE>_HText</CODE>. It contains all information
+needed to present and manage a <A HREF="Overview#GraphicObject">
+graphic object</A>. The client is responsible for allocating and
+freeing all <CODE>graphic objects</CODE> which may entail tradeoffs of
+speed versus available resources. When the object is freed, the link
+from the <CODE>anchor structure</CODE> must be put to
+<CODE>NULL</CODE>. The dotted line symbolizes that it is free for the
+client to create a <CODE>HyperDoc</CODE> object including a link to
+the <CODE>request</CODE> structure.  </DD>
+
+</DL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 
