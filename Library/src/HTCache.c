@@ -510,6 +510,7 @@ PUBLIC BOOL HTCacheIndex_read (const char * cache_root)
 {
     BOOL status = NO;
     if (cache_root && CacheTable == NULL) {
+	BOOL wasInteractive;
 	char * file = cache_index_name(cache_root);
 	char * index = HTParse(file, "cache:", PARSE_ALL);
 	HTAnchor * anchor = HTAnchor_findAddress(index);
@@ -518,9 +519,10 @@ PUBLIC BOOL HTCacheIndex_read (const char * cache_root)
 	HTRequest_setOutputFormat(request, WWW_SOURCE);
 	HTRequest_setOutputStream(request, HTCacheIndexReader(request));
 	HTRequest_setAnchor(request, anchor);
+	wasInteractive = HTAlert_interactive();
 	HTAlert_setInteractive(NO);
 	status = HTLoad(request, NO);
-	HTAlert_setInteractive(YES);
+	HTAlert_setInteractive(wasInteractive);
 	HTRequest_delete(request);
 	HT_FREE(file);
 	HT_FREE(index);
