@@ -20,6 +20,10 @@ extern char *Keyname_lookupVoid(void *);
 
 extern char *Keyname_lookupUser(HTUserProfile *);
 
+extern Tcl_HashEntry *CreateNewEntry(Tcl_HashTable *table, char *name, 
+				     char **final_keyname);
+
+
 extern Tcl_HashEntry *CreateNewAnchorEntry(char *, char **);
 
 extern Tcl_HashEntry *CreateNewListEntry(char *, char **);

@@ -31,9 +31,10 @@ Tcl_HashTable	HTableStream;
 Tcl_HashTable   HTableVoid;
 Tcl_HashTable   HTableUser;
 Tcl_HashTable   HTableAssoc;
-Tcl_HashTable   HTablePostCallback;
+Tcl_HashTable   HTableCallback;
 Tcl_HashTable   HTableHost;
 Tcl_HashTable   HTableChannel;
+Tcl_HashTable   HTableChunk;
 
 typedef struct{
     char           *name;
@@ -413,12 +414,57 @@ static LibraryFunction www_commands[] = {
   { "HTLib_userProfile",      HTLib_userProfile_tcl,          NULL, 0 },
   { "HTLib_setUserProfile",   HTLib_setUserProfile_tcl,       NULL, 0 },
   { "HTLoadAbsolute",         HTLoadAbsolute_tcl,             NULL, 0 },
-  { "HTLoadToStream",         HTLoadToStream_tcl,             NULL, 0 },
   { "HTLoadRelative",         HTLoadRelative_tcl,             NULL, 0 },
+  { "HTLoadToChunk",          HTLoadToChunk_tcl,              NULL, 0 },
+  { "HTLoadToFile",           HTLoadToFile_tcl,               NULL, 0 },
+  { "HTLoadToStream",         HTLoadToStream_tcl,             NULL, 0 },
   { "HTLoadAnchor",           HTLoadAnchor_tcl,               NULL, 0 },
+  { "HTLoadAnchorToChunk",    HTLoadAnchorToChunk_tcl,        NULL, 0 },
   { "HTLoadAnchorRecursive",  HTLoadAnchorRecursive_tcl,      NULL, 0 },
-  /*  { "HTSearch",               HTSearch_tcl,                   NULL, 0 },
-   */  { "HTSearchAbsolute",       HTSearchAbsolute_tcl,           NULL, 0 },
+  { "HTLoadRules",            HTLoadRules_tcl,                NULL, 0 },
+  { "HTSearchAbsolute",       HTSearchAbsolute_tcl,           NULL, 0 }, 
+  { "HTSearchRelative",       HTSearchRelative_tcl,           NULL, 0 },
+  { "HTSearchAnchor",         HTSearchAnchor_tcl,             NULL, 0 },
+  { "HTSearchString",         HTSearchString_tcl,             NULL, 0 },
+
+  { "HTGetFormAbsolute",      HTGetFormAbsolute_tcl,          NULL, 0 },
+  { "HTGetFormRelative",      HTGetFormRelative_tcl,          NULL, 0 },
+  { "HTGetFormAnchor",        HTGetFormAnchor_tcl,            NULL, 0 },
+
+  { "HTPostFormAbsolute",     HTPostFormAbsolute_tcl,         NULL, 0 },
+  { "HTPostFormRelative",     HTPostFormRelative_tcl,         NULL, 0 },
+  { "HTPostFormAnchor",       HTPostFormAnchor_tcl,           NULL, 0 },
+
+  { "HTHeadAbsolute",         HTHeadAbsolute_tcl,             NULL, 0 },
+  { "HTHeadRelative",         HTHeadRelative_tcl,             NULL, 0 },
+  { "HTHeadAnchor",           HTHeadAnchor_tcl,               NULL, 0 },
+
+  { "HTDeleteAbsolute",       HTDeleteAbsolute_tcl,           NULL, 0 },
+  { "HTDeleteRelative",       HTDeleteRelative_tcl,           NULL, 0 },
+  { "HTDeleteAnchor",         HTDeleteAnchor_tcl,             NULL, 0 },
+
+  { "HTPutAbsolute",          HTPutAbsolute_tcl,              NULL, 0 },
+  { "HTPutRelative",          HTPutRelative_tcl,              NULL, 0 },
+  { "HTPutAnchor",            HTPutAnchor_tcl,                NULL, 0 },
+
+  { "HTPutStructuredAbsolute",HTPutStructuredAbsolute_tcl,    NULL, 0 },
+  { "HTPutStructuredRelative",HTPutStructuredRelative_tcl,    NULL, 0 },
+  { "HTPutStructuredAnchor",  HTPutStructuredAnchor_tcl,      NULL, 0 },
+
+  { "HTPutDocumentAbsolute",  HTPutDocumentAbsolute_tcl,      NULL, 0 },
+  { "HTPutDocumentRelative",  HTPutDocumentRelative_tcl,      NULL, 0 },
+  { "HTPutDocumentAnchor",    HTPutDocumentAnchor_tcl,        NULL, 0 },
+
+  { "HTPostAbsolute",         HTPostAbsolute_tcl,             NULL, 0 },
+  { "HTPostRelative",         HTPostRelative_tcl,             NULL, 0 },
+  { "HTPostAnchor",           HTPostAnchor_tcl,               NULL, 0 },
+
+  { "HTOptionsAbsolute",      HTOptionsAbsolute_tcl,          NULL, 0 },
+  { "HTOptionsRelative",      HTOptionsRelative_tcl,          NULL, 0 },
+  { "HTOptionsAnchor",        HTOptionsAnchor_tcl,            NULL, 0 },
+
+ /*  { "HTSearch",               HTSearch_tcl,                  NULL, 0 }, */
+
   { "HTCopyAnchor",           HTCopyAnchor_tcl,               NULL, 0 },
   { "HTUploadAnchor",         HTUploadAnchor_tcl,             NULL, 0 },
   { "HTUpload_callback",      HTUpload_callback_tcl,          NULL, 0 },
@@ -438,8 +484,9 @@ int WWWLib_Init(Tcl_Interp *interp) {
   Tcl_InitHashTable(&HTableVoid, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableAssoc, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableUser, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTablePostCallback, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableCallback, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableHost, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableChunk, TCL_STRING_KEYS);
 
   /*added by xing, not sure if needed? */
 
@@ -463,9 +510,10 @@ void WWWLib_Terminate() {
     Tcl_DeleteHashTable(&HTableVoid);
     Tcl_DeleteHashTable(&HTableAssoc);
     Tcl_DeleteHashTable(&HTableUser);
-    Tcl_DeleteHashTable(&HTablePostCallback);
+    Tcl_DeleteHashTable(&HTableCallback);
     Tcl_DeleteHashTable(&HTableHost);
     Tcl_DeleteHashTable(&HTableChannel);
+    Tcl_DeleteHashTable(&HTableChunk);
 }
 
 /*=================================================*/

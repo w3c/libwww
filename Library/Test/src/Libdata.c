@@ -287,3 +287,21 @@ Tcl_HashEntry *CreateNewCallbackEntry(char *name, char **final_keyname) {
  *final_keyname = keyname;
  return entryPtr;
 }
+
+Tcl_HashEntry *CreateNewEntry(Tcl_HashTable *table, char *name, char **final_keyname) {
+  int new = 0;
+  int id = 0;
+  Tcl_HashEntry *entryPtr;
+  char *keyname = malloc(max_keyname);
+  
+  while (!new) {
+    sprintf(keyname, "%s_%d", name, id);
+    entryPtr = Tcl_CreateHashEntry(table, keyname, &new);
+    ++id;
+  }
+ *final_keyname = keyname;
+ return entryPtr;
+}
+
+
+
