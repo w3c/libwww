@@ -24,7 +24,7 @@ set setnum 0
 
 
 #Open example file
-set fp [open "./testsuite/$WWWTEST.test/HTEscape.tests" r]
+set fp [open "$srcdir/$W3CLIB.test/HTEscape.tests" r]
 
 #Since line becomes a flag of sorts for the while loop, initialize it null.
 set line ""

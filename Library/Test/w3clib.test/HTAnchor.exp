@@ -20,7 +20,7 @@ set canchor_id "ChildAnchor_"
 set anchor_id "Anchor_"
 	
 proc init_anchors { } {
-  global wwwtest_id
+  global w3clib_id
   global prompt  
 
   global address
@@ -196,11 +196,11 @@ set expected      $old_child
 set arguments     "$test_anchor $tag $addr $linktype"
 
 set command "HTAnchor_findChildAndLink $test_anchor $tag $addr $linktype"
-send -i $wwwtest_id "$command\r"
+send -i $w3clib_id "$command\r"
 verbose "$function $arguments" 1
 verbose "	Expected:		$expected" 2
 expect {
-	-i $wwwtest_id
+	-i $w3clib_id
 	-re "$old_child" {set actual $old_child
 			  pass $test}
 	-re "(.*)(($canchor_id)(.*))\r\n($prompt)" {set actual $expect_out(2,string)
@@ -209,11 +209,11 @@ expect {
 verbose "	Result:                 $actual" 2
 
 set command "set ChildAnchor(4) \[HTAnchor_findChild $new_anchor $tag]"
-send -i $wwwtest_id "$command\r"
+send -i $w3clib_id "$command\r"
 verbose "HTAnchor_findChild $new_anchor $tag" 1
 verbose "	Expected:		$expected" 2
 expect {
-	-i $wwwtest_id
+	-i $w3clib_id
 	-re "(.*)(($canchor_id)(.*))\r\n($prompt)" {set actual $expect_out(2,string)
 						 pass $test}
 	-re "$old_child" {set actual $old_child
@@ -237,8 +237,8 @@ runtest $function "$arguments" $expected $test
 
 set test "HTAnchor_delete 2"
 
-send -i $wwwtest_id "set test_anchor \[HTAnchor_findAddress ftp://ftp.foobar.com/]\r"
-expect -i $wwwtest_id "$prompt$"
+send -i $w3clib_id "set test_anchor \[HTAnchor_findAddress ftp://ftp.foobar.com/]\r"
+expect -i $w3clib_id "$prompt$"
 set test_anchor $test_anchor 
 set expected YES
 set arguments "$test_anchor"
@@ -941,7 +941,7 @@ set list [new_item "HTList_new"]
 set test_anchor $Anchor(1) 
 set expected $list
 set set_args "$test_anchor $list"
-set arguments " $test_anchor"
+set arguments "$test_anchor"
 
 set_test $set_function $set_args
 runtest $function $arguments $expected $test

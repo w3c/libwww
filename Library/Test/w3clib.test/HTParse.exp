@@ -26,7 +26,7 @@ set setnum 0
 
 #Open test file
 send_user "Opening test file......"
-set fp [open "./testsuite/$WWWTEST.test/HTParse.tests" r]
+set fp [open "$srcdir/$W3CLIB.test/HTParse.tests" r]
 send_user "file opened.\n"
 
 #Since line becomes a flag of sorts for the while loop, initialize it null.
@@ -84,14 +84,14 @@ while {![eof $fp]} {
       set give_ready [fix_string "($givencompare)"]
       set both [join [list $command_ready $give_ready] ""]
 
-      send -i $wwwtest_id "$command\r"
+      send -i $w3clib_id "$command\r"
 
       verbose $test 1
       verbose "$part($i):" 2
       verbose "	Expected:		$givencompare" 2
 
       expect {
-	-i $wwwtest_id
+	-i $w3clib_id
 	-re "$both\(\r\n)*($prompt)" {set actual $expect_out(2,string)
 				           pass $test}
 	-re "$command_ready\(.*)\r\n($prompt)" {set actual $expect_out(2,string)
@@ -124,7 +124,7 @@ set setnum 0
 
 #Open example file
 send_user "Opening test file......"
-set fp [open "./testsuite/$WWWTEST.test/HTRelative.tests" r]
+set fp [open "$srcdir/$W3CLIB.test/HTRelative.tests" r]
 send_user "file opened.\n"
 
 #Since line becomes a flag of sorts for the while loop, initialize it null.
@@ -160,11 +160,11 @@ while {![eof $fp]} {
     set test "HTRelative $aname $relname"
     set command "HTRelative \"$aname\" \"$relname\""    
 
-    send -i $wwwtest_id "$command\r"
+    send -i $w3clib_id "$command\r"
     verbose $test 1
     verbose "	Expected:		$relative"
     expect {
-      -i $wwwtest_id 
+      -i $w3clib_id 
       -re "($command)\r\n($relative)(\r\n)*($prompt)" {set actual $expect_out(2,string)
 							pass $test}
       timeout {send_user "Timed out..."
@@ -188,7 +188,7 @@ set testnum 0
 set setnum 0
 
 #Open example file
-set fp [open "./testsuite/$WWWTEST.test/HTSimplify.tests" r]
+set fp [open "$srcdir/$W3CLIB.test/HTSimplify.tests" r]
 
 #Since line becomes a flag of sorts for the while loop, initialize it null.
 set line ""
@@ -217,11 +217,11 @@ while {![eof $fp]} {
     incr setnum 1
     incr testnum 1
     set  test "HTSimplify $string"
-    send -i $wwwtest_id "HTSimplify $string\r"
+    send -i $w3clib_id "HTSimplify $string\r"
     verbose $test 1
     verbose "	Expected:		$simplified"
     expect {
-      -i $wwwtest_id 
+      -i $w3clib_id 
       "$simplified"  {set actual $expect_out(0,string)
 			pass $test}
       timeout {set actual "Timed out...."
@@ -248,7 +248,7 @@ set testnum 0
 set setnum 0
 
 #Open example file
-set fp [open "./testsuite/$WWWTEST.test/HTCleanTelnetString.tests" r]
+set fp [open "$srcdir/$W3CLIB.test/HTCleanTelnetString.tests" r]
 
 #Since line becomes a flag of sorts for the while loop, initialize it null.
 set line ""
@@ -277,13 +277,13 @@ if { 0 } {
   if {![eof $fp]} {
     incr setnum 1
     incr testnum 1
-    send -i $wwwtest_id "HTCleanTelnetString \"\[eval HTUnEscape $unclean\]\""
+    send -i $w3clib_id "HTCleanTelnetString \"\[eval HTUnEscape $unclean\]\""
     set test HTCleanTelnetString_($testnum)
     verbose $test 1
     verbose "	Expected:		$clean"
     set reg_ready [fix_string $clean]
     expect {
-      -i $wwwtest_id 
+      -i $w3clib_id 
       -re "$reg_ready" {set actual $expect_out(0,string)
 			pass $test}
       timeout {set actual "Timed out..."

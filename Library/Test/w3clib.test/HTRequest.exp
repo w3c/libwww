@@ -10,9 +10,9 @@ for {set test_num 1} {$test_num <= 8} {incr test_num} {
 
   set test "Creation $test_num"
   send_user "Creating Request($test_num)......"
-  send -i $wwwtest_id "set Request($test_num) \[HTRequest_new  ]\r"
+  send -i $w3clib_id "set Request($test_num) \[HTRequest_new  ]\r"
   expect {
-	-i $wwwtest_id
+	-i $w3clib_id
 	-re "(.*)((Request_)(.*))\r\n($prompt)" {
 		set Request($test_num) $expect_out(2,string)
 		pass $test
@@ -26,9 +26,9 @@ for {set test_num 1} {$test_num <= 3} {incr test_num} {
 
   set test "Duplication $test_num"
   send_user "Duplicating Request($test_num)....."
-  send -i $wwwtest_id "set Dup_Request($test_num) \[HTRequest_dup $Request($test_num)]\r"
+  send -i $w3clib_id "set Dup_Request($test_num) \[HTRequest_dup $Request($test_num)]\r"
   expect {
-	-i $wwwtest_id
+	-i $w3clib_id
 	-re "(.*)((Request_)(.*))\r\n($prompt)" {
 		set Dup_Request($test_num) $expect_out(2,string)
 		pass $test
@@ -47,9 +47,9 @@ for {set test_num 1} {$test_num <= 4} {incr test_num} {
 
   set test "Anchor creation $test_num"
   send_user "Creating Anchor($test_num)....."
-  send -i $wwwtest_id "set Anchor($test_num) \[HTAnchor_findAddress $address($test_num)]\r"
+  send -i $w3clib_id "set Anchor($test_num) \[HTAnchor_findAddress $address($test_num)]\r"
   expect {
-	-i $wwwtest_id
+	-i $w3clib_id
 	-re "(.*)((Anchor_)(.*))\r\n($prompt)" {
 		set Anchor($test_num) $expect_out(2,string)
 		pass $test
