@@ -1,4 +1,4 @@
-# Microsoft Developer Studio Generated NMAKE File, Format Version 4.00
+# Microsoft Developer Studio Generated NMAKE File, Format Version 40001
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
@@ -31,8 +31,8 @@ NULL=nul
 ################################################################################
 # Begin Project
 # PROP Target_Last_Scanned "webbot - Win32 Debug"
-CPP=cl.exe
 RSC=rc.exe
+CPP=cl.exe
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -54,15 +54,15 @@ ALL : "$(OUTDIR)\webbot.exe"
 CLEAN : 
 	-@erase ".\Release\webbot.exe"
 	-@erase ".\Release\HTStyle.obj"
-	-@erase ".\Release\SGML.obj"
 	-@erase ".\Release\HTBInit.obj"
-	-@erase ".\Release\HTML.obj"
+	-@erase ".\Release\SGML.obj"
+	-@erase ".\Release\HTMLPDTD.obj"
 	-@erase ".\Release\HTInit.obj"
-	-@erase ".\Release\HTHInit.obj"
+	-@erase ".\Release\HTML.obj"
 	-@erase ".\Release\HTPlain.obj"
 	-@erase ".\Release\HTRobot.obj"
-	-@erase ".\Release\HTMLPDTD.obj"
 	-@erase ".\Release\HTProfil.obj"
+	-@erase ".\Release\HTHInit.obj"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -88,35 +88,34 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  odbccp32.lib /nologo /subsystem:console /incremental:no\
  /pdb:"$(OUTDIR)/webbot.pdb" /machine:I386 /out:"$(OUTDIR)/webbot.exe" 
 LINK32_OBJS= \
-	".\Release\HTStyle.obj" \
-	".\Release\SGML.obj" \
-	".\Release\HTBInit.obj" \
-	".\Release\HTML.obj" \
-	".\Release\HTInit.obj" \
-	".\Release\HTHInit.obj" \
-	".\Release\HTPlain.obj" \
-	".\Release\HTRobot.obj" \
-	".\Release\HTMLPDTD.obj" \
-	".\Release\HTProfil.obj" \
-	"..\..\..\Bin\wwwtrans.lib" \
-	"..\..\..\Bin\wwwhtml.lib" \
-	"..\..\..\Bin\wwwdir.lib" \
-	"..\..\..\Bin\wwwmime.lib" \
+	"$(INTDIR)/HTStyle.obj" \
+	"$(INTDIR)/HTBInit.obj" \
+	"$(INTDIR)/SGML.obj" \
+	"$(INTDIR)/HTMLPDTD.obj" \
+	"$(INTDIR)/HTInit.obj" \
+	"$(INTDIR)/HTML.obj" \
+	"$(INTDIR)/HTPlain.obj" \
+	"$(INTDIR)/HTRobot.obj" \
+	"$(INTDIR)/HTProfil.obj" \
+	"$(INTDIR)/HTHInit.obj" \
 	"..\..\..\Bin\wwwtelnt.lib" \
-	"..\..\..\Bin\wwwhttp.lib" \
-	"..\..\..\Bin\wwwapp.lib" \
-	"..\..\..\Bin\wwwcore.lib" \
-	"..\..\..\Bin\wwwwais.lib" \
-	"..\..\..\Bin\wwwfile.lib" \
-	"..\..\..\Bin\wwwutils.lib" \
-	"..\..\..\Bin\pics.lib" \
-	"..\..\..\Bin\wwwstream.lib" \
-	"..\..\..\Bin\wwwcache.lib" \
-	"..\..\..\Bin\wwwgophe.lib" \
 	"..\..\..\Bin\wwwdll.lib" \
-	"..\..\..\Bin\wwwrules.lib" \
-	"..\..\..\Bin\wwwnews.lib" \
-	"..\..\..\Bin\wwwftp.lib"
+	"..\..\..\Bin\wwwutils.lib" \
+	"..\..\..\Bin\wwwtrans.lib" \
+	"..\..\..\Bin\wwwapp.lib" \
+	"..\..\..\Bin\wwwstream.lib" \
+	"..\..\..\Bin\pics.lib" \
+	"..\..\..\Bin\wwwdir.lib" \
+	"..\..\..\Bin\wwwgophe.lib" \
+	"..\..\..\Bin\wwwhtml.lib" \
+	"..\..\..\Bin\wwwfile.lib" \
+	"..\..\..\Bin\wwwmime.lib" \
+	"..\..\..\Bin\wwwhttp.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwcache.lib" \
+	"..\..\..\Bin\wwwftp.lib" \
+	"..\..\..\Bin\wwwwais.lib" \
+	"..\..\..\Bin\wwwnews.lib"
 
 "$(OUTDIR)\webbot.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -144,27 +143,27 @@ CLEAN :
 	-@erase "..\..\..\Bin\Debug\vc40.pdb"
 	-@erase "..\..\..\Bin\Debug\vc40.idb"
 	-@erase "..\..\..\Bin\Debug\webbot.bsc"
-	-@erase "..\..\..\Bin\Debug\HTHInit.sbr"
 	-@erase "..\..\..\Bin\Debug\HTPlain.sbr"
+	-@erase "..\..\..\Bin\Debug\HTProfil.sbr"
 	-@erase "..\..\..\Bin\Debug\HTInit.sbr"
 	-@erase "..\..\..\Bin\Debug\HTRobot.sbr"
-	-@erase "..\..\..\Bin\Debug\HTMLPDTD.sbr"
+	-@erase "..\..\..\Bin\Debug\SGML.sbr"
+	-@erase "..\..\..\Bin\Debug\HTHInit.sbr"
+	-@erase "..\..\..\Bin\Debug\HTML.sbr"
 	-@erase "..\..\..\Bin\Debug\HTStyle.sbr"
 	-@erase "..\..\..\Bin\Debug\HTBInit.sbr"
-	-@erase "..\..\..\Bin\Debug\SGML.sbr"
-	-@erase "..\..\..\Bin\Debug\HTML.sbr"
-	-@erase "..\..\..\Bin\Debug\HTProfil.sbr"
+	-@erase "..\..\..\Bin\Debug\HTMLPDTD.sbr"
 	-@erase "..\..\..\Bin\Debug\webbot.exe"
-	-@erase "..\..\..\Bin\Debug\HTML.obj"
-	-@erase "..\..\..\Bin\Debug\HTHInit.obj"
+	-@erase "..\..\..\Bin\Debug\HTBInit.obj"
+	-@erase "..\..\..\Bin\Debug\HTMLPDTD.obj"
 	-@erase "..\..\..\Bin\Debug\HTPlain.obj"
+	-@erase "..\..\..\Bin\Debug\HTProfil.obj"
 	-@erase "..\..\..\Bin\Debug\HTInit.obj"
 	-@erase "..\..\..\Bin\Debug\HTRobot.obj"
-	-@erase "..\..\..\Bin\Debug\HTMLPDTD.obj"
-	-@erase "..\..\..\Bin\Debug\HTStyle.obj"
-	-@erase "..\..\..\Bin\Debug\HTBInit.obj"
 	-@erase "..\..\..\Bin\Debug\SGML.obj"
-	-@erase "..\..\..\Bin\Debug\HTProfil.obj"
+	-@erase "..\..\..\Bin\Debug\HTHInit.obj"
+	-@erase "..\..\..\Bin\Debug\HTML.obj"
+	-@erase "..\..\..\Bin\Debug\HTStyle.obj"
 	-@erase "..\..\..\Bin\Debug\webbot.ilk"
 	-@erase "..\..\..\Bin\Debug\webbot.pdb"
 
@@ -185,16 +184,16 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o"$(OUTDIR)/webbot.bsc" 
 BSC32_SBRS= \
-	"..\..\..\Bin\Debug\HTHInit.sbr" \
-	"..\..\..\Bin\Debug\HTPlain.sbr" \
-	"..\..\..\Bin\Debug\HTInit.sbr" \
-	"..\..\..\Bin\Debug\HTRobot.sbr" \
-	"..\..\..\Bin\Debug\HTMLPDTD.sbr" \
-	"..\..\..\Bin\Debug\HTStyle.sbr" \
-	"..\..\..\Bin\Debug\HTBInit.sbr" \
-	"..\..\..\Bin\Debug\SGML.sbr" \
-	"..\..\..\Bin\Debug\HTML.sbr" \
-	"..\..\..\Bin\Debug\HTProfil.sbr"
+	"$(INTDIR)/HTPlain.sbr" \
+	"$(INTDIR)/HTProfil.sbr" \
+	"$(INTDIR)/HTInit.sbr" \
+	"$(INTDIR)/HTRobot.sbr" \
+	"$(INTDIR)/SGML.sbr" \
+	"$(INTDIR)/HTHInit.sbr" \
+	"$(INTDIR)/HTML.sbr" \
+	"$(INTDIR)/HTStyle.sbr" \
+	"$(INTDIR)/HTBInit.sbr" \
+	"$(INTDIR)/HTMLPDTD.sbr"
 
 "$(OUTDIR)\webbot.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -209,35 +208,34 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  odbccp32.lib /nologo /subsystem:console /incremental:yes\
  /pdb:"$(OUTDIR)/webbot.pdb" /debug /machine:I386 /out:"$(OUTDIR)/webbot.exe" 
 LINK32_OBJS= \
-	"..\..\..\Bin\Debug\HTML.obj" \
-	"..\..\..\Bin\Debug\HTHInit.obj" \
-	"..\..\..\Bin\Debug\HTPlain.obj" \
-	"..\..\..\Bin\Debug\HTInit.obj" \
-	"..\..\..\Bin\Debug\HTRobot.obj" \
-	"..\..\..\Bin\Debug\HTMLPDTD.obj" \
-	"..\..\..\Bin\Debug\HTStyle.obj" \
-	"..\..\..\Bin\Debug\HTBInit.obj" \
-	"..\..\..\Bin\Debug\SGML.obj" \
-	"..\..\..\Bin\Debug\HTProfil.obj" \
-	"..\..\..\Bin\wwwtrans.lib" \
-	"..\..\..\Bin\wwwhtml.lib" \
-	"..\..\..\Bin\wwwdir.lib" \
-	"..\..\..\Bin\wwwmime.lib" \
+	"$(INTDIR)/HTBInit.obj" \
+	"$(INTDIR)/HTMLPDTD.obj" \
+	"$(INTDIR)/HTPlain.obj" \
+	"$(INTDIR)/HTProfil.obj" \
+	"$(INTDIR)/HTInit.obj" \
+	"$(INTDIR)/HTRobot.obj" \
+	"$(INTDIR)/SGML.obj" \
+	"$(INTDIR)/HTHInit.obj" \
+	"$(INTDIR)/HTML.obj" \
+	"$(INTDIR)/HTStyle.obj" \
 	"..\..\..\Bin\wwwtelnt.lib" \
-	"..\..\..\Bin\wwwhttp.lib" \
-	"..\..\..\Bin\wwwapp.lib" \
-	"..\..\..\Bin\wwwcore.lib" \
-	"..\..\..\Bin\wwwwais.lib" \
-	"..\..\..\Bin\wwwfile.lib" \
-	"..\..\..\Bin\wwwutils.lib" \
-	"..\..\..\Bin\pics.lib" \
-	"..\..\..\Bin\wwwstream.lib" \
-	"..\..\..\Bin\wwwcache.lib" \
-	"..\..\..\Bin\wwwgophe.lib" \
 	"..\..\..\Bin\wwwdll.lib" \
-	"..\..\..\Bin\wwwrules.lib" \
-	"..\..\..\Bin\wwwnews.lib" \
-	"..\..\..\Bin\wwwftp.lib"
+	"..\..\..\Bin\wwwutils.lib" \
+	"..\..\..\Bin\wwwtrans.lib" \
+	"..\..\..\Bin\wwwapp.lib" \
+	"..\..\..\Bin\wwwstream.lib" \
+	"..\..\..\Bin\pics.lib" \
+	"..\..\..\Bin\wwwdir.lib" \
+	"..\..\..\Bin\wwwgophe.lib" \
+	"..\..\..\Bin\wwwhtml.lib" \
+	"..\..\..\Bin\wwwfile.lib" \
+	"..\..\..\Bin\wwwmime.lib" \
+	"..\..\..\Bin\wwwhttp.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwcache.lib" \
+	"..\..\..\Bin\wwwftp.lib" \
+	"..\..\..\Bin\wwwwais.lib" \
+	"..\..\..\Bin\wwwnews.lib"
 
 "$(OUTDIR)\webbot.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -283,46 +281,59 @@ SOURCE=..\HTRobot.c
 DEP_CPP_HTROB=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\WWWApp.h"\
-	".\..\..\..\Library\src\WWWRules.h"\
 	".\..\..\..\Library\src\WWWTrans.h"\
 	".\..\..\..\Library\src\WWWInit.h"\
 	".\..\..\..\Library\src\HText.h"\
 	".\..\HTRobot.h"\
 	".\..\..\..\Library\src\sysdep.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWCore.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTAssoc.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTEscape.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTWWWStr.h"\
+	".\..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTEvent.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTIOStream.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTDNS.h"\
+	".\..\..\..\Library\src\HTHost.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTInet.h"\
+	".\..\..\..\Library\src\HTTrans.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTChannl.h"\
 	".\..\..\..\Library\src\HTEvntrg.h"\
 	".\..\..\..\Library\src\HTHome.h"\
 	".\..\..\..\Library\src\HTDialog.h"\
 	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTRules.h"\
+	".\..\..\..\Library\src\HTProxy.h"\
 	".\..\..\..\Library\src\HTFilter.h"\
 	".\..\..\..\Library\src\HTLog.h"\
 	".\..\..\..\Library\src\HTHist.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTRules.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
 	".\..\..\..\Library\src\HTANSI.h"\
 	".\..\..\..\Library\src\HTLocal.h"\
 	".\..\..\..\Library\src\HTTCP.h"\
@@ -346,6 +357,7 @@ DEP_CPP_HTROB=\
 	".\..\..\..\Library\src\WWWHTML.h"\
 	".\..\..\..\Library\src\WWWStream.h"\
 	".\..\..\..\Library\src\WWWDir.h"\
+	"..\..\..\Library\src\WWWCache.h"\
 	".\..\..\..\Library\src\HTTPUtil.h"\
 	".\..\..\..\Library\src\HTTP.h"\
 	".\..\..\..\Library\src\HTTPServ.h"\
@@ -353,9 +365,9 @@ DEP_CPP_HTROB=\
 	".\..\..\..\Library\src\HTTPReq.h"\
 	".\..\..\..\Library\src\HTTPRes.h"\
 	".\..\..\..\Library\src\HTTChunk.h"\
+	"..\..\..\Library\src\HTPEP.h"\
 	".\..\..\..\Library\src\HTAAUtil.h"\
 	".\..\..\..\Library\src\HTAABrow.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTFile.h"\
 	".\..\..\..\Library\src\HTMulti.h"\
 	".\..\..\..\Library\src\HTFTP.h"\
@@ -363,6 +375,7 @@ DEP_CPP_HTROB=\
 	".\..\..\..\Library\src\HTGopher.h"\
 	".\..\..\..\Library\src\HTTelnet.h"\
 	".\..\..\..\Library\src\HTNews.h"\
+	"..\..\..\Library\src\HTNewsRq.h"\
 	".\..\..\..\Library\src\HTNewsLs.h"\
 	".\..\..\..\Library\src\HTNDir.h"\
 	".\..\..\..\Library\src\HTMIME.h"\
@@ -375,7 +388,6 @@ DEP_CPP_HTROB=\
 	".\..\..\..\Library\src\SGML.h"\
 	".\..\..\..\Library\src\HTMLGen.h"\
 	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTConLen.h"\
 	".\..\..\..\Library\src\HTGuess.h"\
 	".\..\..\..\Library\src\HTTee.h"\
@@ -384,21 +396,13 @@ DEP_CPP_HTROB=\
 	".\..\..\..\Library\src\HTDir.h"\
 	".\..\..\..\Library\src\HTIcons.h"\
 	".\..\..\..\Library\src\HTDescpt.h"\
+	"..\..\..\Library\src\HTCache.h"\
 	".\..\..\..\Library\src\HTML.h"\
 	".\..\..\..\Library\src\HTPlain.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTProt.h"\
 	".\..\..\..\Library\src\HTStyle.h"\
 	
 NODEP_CPP_HTROB=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	".\..\..\..\Library\src\HTWAIS.h"\
 	
 
@@ -572,18 +576,6 @@ SOURCE=..\..\..\Bin\wwwnews.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Bin\wwwrules.lib
-
-!IF  "$(CFG)" == "webbot - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "webbot - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=..\..\..\Bin\wwwstream.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -651,6 +643,8 @@ DEP_CPP_HTBIN=\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTBind.h"\
 	".\..\..\..\Library\src\HTBInit.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTStream.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
@@ -681,9 +675,13 @@ DEP_CPP_HTBIN=\
 	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTFWrite.h"\
 	".\..\..\..\Library\src\HTInet.h"\
 	".\..\..\..\Library\src\HTProt.h"\
+	
+NODEP_CPP_HTBIN=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -718,6 +716,8 @@ DEP_CPP_HTINI=\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
 	".\..\..\..\Library\src\HTInit.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -743,6 +743,7 @@ DEP_CPP_HTINI=\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTBind.h"\
 	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTIOStream.h"\
 	".\..\..\..\Library\src\HTFWrite.h"\
 	".\..\..\..\Library\src\HTDNS.h"\
@@ -766,11 +767,13 @@ DEP_CPP_HTINI=\
 	".\..\..\..\Library\src\WWWHTML.h"\
 	".\..\..\..\Library\src\WWWStream.h"\
 	".\..\..\..\Library\src\WWWDir.h"\
-	".\..\..\..\Library\src\WWWRules.h"\
+	"..\..\..\Library\src\WWWCache.h"\
 	".\..\..\..\Library\src\HTEvntrg.h"\
 	".\..\..\..\Library\src\HTHome.h"\
 	".\..\..\..\Library\src\HTDialog.h"\
 	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTRules.h"\
+	".\..\..\..\Library\src\HTProxy.h"\
 	".\..\..\..\Library\src\HTFilter.h"\
 	".\..\..\..\Library\src\HTLog.h"\
 	".\..\..\..\Library\src\HTHist.h"\
@@ -789,6 +792,7 @@ DEP_CPP_HTINI=\
 	".\..\..\..\Library\src\HTTPReq.h"\
 	".\..\..\..\Library\src\HTTPRes.h"\
 	".\..\..\..\Library\src\HTTChunk.h"\
+	"..\..\..\Library\src\HTPEP.h"\
 	".\..\..\..\Library\src\HTAAUtil.h"\
 	".\..\..\..\Library\src\HTAABrow.h"\
 	".\..\..\..\Library\src\HTFile.h"\
@@ -798,6 +802,7 @@ DEP_CPP_HTINI=\
 	".\..\..\..\Library\src\HTGopher.h"\
 	".\..\..\..\Library\src\HTTelnet.h"\
 	".\..\..\..\Library\src\HTNews.h"\
+	"..\..\..\Library\src\HTNewsRq.h"\
 	".\..\..\..\Library\src\HTNewsLs.h"\
 	".\..\..\..\Library\src\HTNDir.h"\
 	".\..\..\..\Library\src\HTMIME.h"\
@@ -810,7 +815,6 @@ DEP_CPP_HTINI=\
 	".\..\..\..\Library\src\SGML.h"\
 	".\..\..\..\Library\src\HTMLGen.h"\
 	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTConLen.h"\
 	".\..\..\..\Library\src\HTGuess.h"\
 	".\..\..\..\Library\src\HTTee.h"\
@@ -819,10 +823,10 @@ DEP_CPP_HTINI=\
 	".\..\..\..\Library\src\HTDir.h"\
 	".\..\..\..\Library\src\HTIcons.h"\
 	".\..\..\..\Library\src\HTDescpt.h"\
-	".\..\..\..\Library\src\HTRules.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
+	"..\..\..\Library\src\HTCache.h"\
 	
 NODEP_CPP_HTINI=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	".\..\..\..\Library\src\HTWAIS.h"\
 	
 
@@ -858,6 +862,8 @@ DEP_CPP_HTHIN=\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
 	".\..\..\..\Library\src\HTHInit.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -883,6 +889,7 @@ DEP_CPP_HTHIN=\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTBind.h"\
 	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTIOStream.h"\
 	".\..\..\..\Library\src\HTFWrite.h"\
 	".\..\..\..\Library\src\HTDNS.h"\
@@ -898,8 +905,10 @@ DEP_CPP_HTHIN=\
 	".\..\..\..\Library\src\HTTeXGen.h"\
 	".\..\..\..\Library\src\HTMLGen.h"\
 	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\SGML.h"\
+	
+NODEP_CPP_HTHIN=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -937,6 +946,8 @@ DEP_CPP_HTML_=\
 	".\..\..\..\Library\src\HText.h"\
 	".\..\..\..\Library\src\HTStyle.h"\
 	".\..\..\..\Library\src\HTML.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -962,6 +973,7 @@ DEP_CPP_HTML_=\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTBind.h"\
 	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTIOStream.h"\
 	".\..\..\..\Library\src\HTFWrite.h"\
 	".\..\..\..\Library\src\HTDNS.h"\
@@ -975,7 +987,9 @@ DEP_CPP_HTML_=\
 	".\..\..\..\Library\src\SGML.h"\
 	".\..\..\..\Library\src\HTMLGen.h"\
 	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
+	
+NODEP_CPP_HTML_=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -1009,11 +1023,16 @@ DEP_CPP_HTMLP=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTMLPDTD.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\SGML.h"\
 	".\..\..\..\Library\src\HTStream.h"\
 	".\..\..\..\Library\src\HTList.h"\
+	
+NODEP_CPP_HTMLP=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -1049,6 +1068,8 @@ DEP_CPP_HTPLA=\
 	".\..\..\..\Library\src\HText.h"\
 	".\..\..\..\Library\src\HTStyle.h"\
 	".\..\..\..\Library\src\HTPlain.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
 	".\..\..\..\Library\src\HTStruct.h"\
@@ -1077,6 +1098,9 @@ DEP_CPP_HTPLA=\
 	".\..\..\..\Library\src\HTIOStream.h"\
 	".\..\..\..\Library\src\HTMLPDTD.h"\
 	".\..\..\..\Library\src\SGML.h"\
+	
+NODEP_CPP_HTPLA=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -1111,6 +1135,8 @@ DEP_CPP_HTSTY=\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTString.h"\
 	".\..\..\..\Library\src\HTStyle.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
@@ -1138,6 +1164,9 @@ DEP_CPP_HTSTY=\
 	".\..\..\..\Library\src\HTMLPDTD.h"\
 	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\SGML.h"\
+	
+NODEP_CPP_HTSTY=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -1185,10 +1214,15 @@ DEP_CPP_SGML_=\
 	".\..\..\..\Library\src\HTString.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\SGML.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTStream.h"\
 	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTList.h"\
+	
+NODEP_CPP_SGML_=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
@@ -1222,7 +1256,10 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\HTProfil.h"\
+	"..\..\..\Library\src\WWWCache.h"\
+	".\..\..\..\Library\src\HTProfil.h"\
+	{$(INCLUDE)}"\sys\types.h"\
+	{$(INCLUDE)}"\sys\stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -1248,6 +1285,7 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTBind.h"\
 	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTIOStream.h"\
 	".\..\..\..\Library\src\HTFWrite.h"\
 	".\..\..\..\Library\src\HTDNS.h"\
@@ -1257,6 +1295,7 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\HTTrans.h"\
 	".\..\..\..\Library\src\HTProt.h"\
 	".\..\..\..\Library\src\HTChannl.h"\
+	"..\..\..\Library\src\HTCache.h"\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\WWWInit.h"\
 	".\..\..\..\Library\src\HTInit.h"\
@@ -1275,11 +1314,12 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\WWWHTML.h"\
 	".\..\..\..\Library\src\WWWStream.h"\
 	".\..\..\..\Library\src\WWWDir.h"\
-	".\..\..\..\Library\src\WWWRules.h"\
 	".\..\..\..\Library\src\HTEvntrg.h"\
 	".\..\..\..\Library\src\HTHome.h"\
 	".\..\..\..\Library\src\HTDialog.h"\
 	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTRules.h"\
+	".\..\..\..\Library\src\HTProxy.h"\
 	".\..\..\..\Library\src\HTFilter.h"\
 	".\..\..\..\Library\src\HTLog.h"\
 	".\..\..\..\Library\src\HTHist.h"\
@@ -1298,6 +1338,7 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\HTTPReq.h"\
 	".\..\..\..\Library\src\HTTPRes.h"\
 	".\..\..\..\Library\src\HTTChunk.h"\
+	"..\..\..\Library\src\HTPEP.h"\
 	".\..\..\..\Library\src\HTAAUtil.h"\
 	".\..\..\..\Library\src\HTAABrow.h"\
 	".\..\..\..\Library\src\HTFile.h"\
@@ -1307,6 +1348,7 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\HTGopher.h"\
 	".\..\..\..\Library\src\HTTelnet.h"\
 	".\..\..\..\Library\src\HTNews.h"\
+	"..\..\..\Library\src\HTNewsRq.h"\
 	".\..\..\..\Library\src\HTNewsLs.h"\
 	".\..\..\..\Library\src\HTNDir.h"\
 	".\..\..\..\Library\src\HTMIME.h"\
@@ -1319,7 +1361,6 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\SGML.h"\
 	".\..\..\..\Library\src\HTMLGen.h"\
 	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
 	".\..\..\..\Library\src\HTConLen.h"\
 	".\..\..\..\Library\src\HTGuess.h"\
 	".\..\..\..\Library\src\HTTee.h"\
@@ -1328,12 +1369,11 @@ DEP_CPP_HTPRO=\
 	".\..\..\..\Library\src\HTDir.h"\
 	".\..\..\..\Library\src\HTIcons.h"\
 	".\..\..\..\Library\src\HTDescpt.h"\
-	".\..\..\..\Library\src\HTRules.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
 	".\..\..\..\Library\src\HTML.h"\
 	".\..\..\..\Library\src\HTPlain.h"\
 	
 NODEP_CPP_HTPRO=\
+	"..\..\..\Library\src\HTVMSUtils.h"\
 	".\..\..\..\Library\src\HTWAIS.h"\
 	
 
