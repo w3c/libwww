@@ -30,10 +30,12 @@
 
 # defaults:
 $Plotwindow = 0;
-$Plot = '$from.".xplot"';
+$PlotTemplate = '$from[0].":".$fromPort."-".$to[0].":".$toPort.".xplot"';
 $Tcpdump = 'STDIN';
 $Usage_first = 1;
 $BreakOnSyns = 0;
+$Quiet = 0;
+$Cumulative = 0;
 
 # other initializations
 #$Packets;
@@ -41,17 +43,25 @@ $BreakOnSyns = 0;
 #$StartTime = 0;
 #$LastTime;
 #$State;	# 'synSent', 'synRecvd', 'synackSent', 'synackRecvd', 'finSent', 'finRecvd', 'finackSent', 'finackRecvd'
+#$ListFile;
 
 sub usage
 {
     return if (!$Usage_first);
     $Usage_first = 0;
     print <<"END_OF_USAGE";
-Usage: $0 [-w] [-s] [-plot<file>] [-?] [-help]
--w: plot window
--s: break up conversations on syns
--plot<file>: plot packets in <file>
--?/-help: this message
+Usage: $0 [-w] [-s] [-c] [-plot[filename]] [-list[filename]] [-?] [-help]
+-w: plot window.
+-s: break up conversations on syns.
+-c: cumulative - adds all data coming from a server
+-plot[filename]: plot packets in <filename>.
+    The <filename> may be built out of $from (host and port), $fromHost, 
+    $fromPort, $from[0..n] for the segments of the domain name. '$from.".xplot"'
+    would be abc.def.com:1234. The corresponding fields exist for the to field.
+    default: '$from[0].":".$fromPort."-".$to[0].":".$toPort.".xplot"'.
+-list[filename]: output the list of generated plot files to filename.
+-q: quiet - no visible output.
+-?/-help: this message.
 END_OF_USAGE
 }
 
@@ -66,8 +76,15 @@ sub ReadArg
 	$Plotwindow = 1;
     } elsif ($arg eq 's') {
 	$BreakOnSyns = 1;
+    } elsif ($arg eq 'c') {
+	$Cumulative = 1;
     } elsif (substr($arg, 0, 4) eq 'plot') {
-        $Plot = substr($arg, 4);
+        $PlotTemplate = substr($arg, 4);
+    } elsif (substr($arg, 0, 4) eq 'list') {
+        $ListFile = substr($arg, 4);
+	open($ListFile, ">$ListFile") || die "error opening \"$ListFile\" for writing: $!\n";
+    } elsif ($arg eq 'q') {
+	$Quiet = 1;
     } else {
 	&usage();
         print "unknown argument \"$arg\".\n";
@@ -94,13 +111,26 @@ sub subTimes
 sub newConversation
 {
     local($from, $to, $time) = @_;
-    local($name) = eval($Plot);
-    open($from, ">$name") || die "error opening \"$from\" for writing: $!\n";
-    $LastSendSeq{$from} = -1;
-    $LastSendSeqLast{$from} = -1;
+
+    # create variables for PlotTemplate
+    $from =~ /(.*)\.(\d+)$/;
+    local($fromHost, $fromPort) = ($1, $2);
+    local(@from) = split('\.', $fromHost);
+    $to =~ /(.*)\.(\d+)$/;
+    local($toHost, $toPort) = ($1, $2);
+    local(@to) = split('\.', $toHost);
+
+    # create Xplot file from template
+    $XplotName{$from} = eval($PlotTemplate);
+    open($from, ">$XplotName{$from}") || die "error opening \"$from\" for writing: $!\n";
     print $from "timeval signed\ntitle\n$from-->$to\n";
+
+    # initialize conversation
+    $To{$from} = $to;
+    $LastSendSeq{$from.'-'.$to} = -1;
     $StartTime{$from} = $time;
     push(@Froms, $from);
+    $AckOffset{$from} = $SeqOffset{$from} = 0;
 }
 
 sub closeOut
@@ -110,26 +140,33 @@ sub closeOut
     $TotalPackets += $Packets{$from};
     $TotalBytes += $Bytes{$from};
     print "$from: $Packets{$from} packets $Bytes{$from} bytes took ", 
-	&subTimes($LastTime{$from}, $StartTime{$from}), "\n";
+	&subTimes($LastTime{$from}, $StartTime{$from}), "\n" if (!Quiet);
+    print $ListFile "$from $To{$from} $Mode{$from} $XplotName{$from} $Packets{$from} $Bytes{$from} ", 
+	&subTimes($LastTime{$from}, $StartTime{$from}), ' ', $Bytes{$from}/($Bytes{$from} + $Packets{$from}*40), "\n" if $ListFile;
     $MaxLast = $LastTime{$from} if (!defined($MaxLast) || $LastTime{$from} > $MaxLast);
     $MinFirst = $StartTime{$from} if (!defined($MinFirst) || $StartTime{$from} < $MinFirst);
 }
 
 sub clearOut
 {
-    local($from) = @_;
-    delete $LastSendSeq{$from};
-    delete $LastSendSeqLast{$from};
+    local($from, $to) = @_;
+
+    # these attributes are specific to a conversation
+    delete $LastSendSeq{$from.'-'.$to};
+    delete $FirstSeq{$from.'-'.$to};
+    delete $LastAckTime{$from.'-'.$to};
+    delete $LastAckSeq{$from.'-'.$to};
+    delete $LastWind{$from.'-'.$to};
+
+    # these stats are aggregated for all converstaions on a server
     delete $Packets{$from};
     delete $Bytes{$from};
     delete $LastTime{$from};
     delete $StartTime{$from};
-    delete $firstseq{$from};
-    delete $last_time{$from};
-    delete $last_ack{$from};
-    delete $last_wind{$from};
     delete $Mode{$from};
     delete $Served{$from};	# not needed now because server is never cleared
+    delete $To{$from};
+    delete $XplotName{$from};
 }
 
 sub removeFrom
@@ -168,7 +205,7 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
 	    if ($BreakOnSyns) {
 		&closeOut($from);
 		&removeFrom($from);
-		&clearOut($from);
+		&clearOut($from, $to);
 		&newConversation($from, $to, $time);
 		$Mode{$from} = 'client';
 	    }
@@ -184,20 +221,17 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
     $Packets{$from}++;
 
     if (/$flags ([0-9]*):([0-9]*)\(([0-9]*)\) /) {
-	$LastSendSeq{$from} = $sendseq = $1;
-	if (!defined $firstseq{$from}) {
-	    $firstseq{$from} = $1;
+	$LastSendSeq{$from.'-'.$to} = $sendseq = $1;
+	if (!defined $FirstSeq{$from.'-'.$to}) {
+	    $FirstSeq{$from.'-'.$to} = $1;
 	}
-	$LastSendSeqLast{$from} = $sendseqlast = $2;
+	$sendseqlast = $2;
 	$datalength = $3;
 	$Bytes{$from} += $3;
     } else {
-	$sendseq = $LastSendSeq{$from};
-	$sendseqlast = $LastSendSeq{$from};
+	$sendseq = $LastSendSeq{$from.'-'.$to};
+	$sendseqlast = $LastSendSeq{$from.'-'.$to};
     }
-
-    $sendseq -= $firstseq{$from};
-    $sendseqlast -= $firstseq{$from};
 
     if (/win ([0-9]*)/) {	# remove space in "]*) /" to handle win <num><EOL> - EGP
 	$window = $1;
@@ -207,49 +241,84 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
 
     if (/ack ([0-9]*) /) {
 	$ack = $1;
-	$ack -= $firstseq{$to} if ($ack >= $firstseq{$to});
     } else {
 	$ack = -1;
     }
 
+    if ($Cumulative) {
+	# adjust sequence number to be relative to last ack.
+	$sendseqlast -= $sendseq - $SeqOffset{$from};
+	$sendseq = $SeqOffset{$from};
+	$SeqOffset{$from} = $sendseqlast;
+    } else {
+	# adjust sequence number to be relative to start of conversation.
+	$sendseq -= $FirstSeq{$from.'-'.$to};
+	$sendseqlast -= $FirstSeq{$from.'-'.$to};
+    }
     print $from "darrow $time $sendseq\n";
     print $from "uarrow $time $sendseqlast\n";
     print $from "line $time $sendseq $time $sendseqlast\n";
 
     if ($ack != -1) {
 	$winend = $ack + $window;
-	if (defined $last_time{$from}) {
-	    print $to "line $last_time{$from} $last_ack{$from} ";
-	    print $to "$time $last_ack{$from}\n";
-	    if ($last_ack{$from} != $ack) {
-		print $to "line $time $last_ack{$from} $time $ack\n";
+	if (defined $LastAckTime{$to.'-'.$from}) {
+	    local($lastAckSeq, $ackSeq) = ($LastAckSeq{$to.'-'.$from}, $ack);
+	    if ($Cumulative) {
+		# adjust sequence number to be relative to last ack.
+		$ackSeq -= $lastAckSeq - $AckOffset{$to};
+		$lastAckSeq = $AckOffset{$to};
+		$AckOffset{$to} = $ackSeq;
 	    } else {
-		print $to "dtick $time $ack\n";
+		# adjust sequence number to be relative to start of conversation.
+		$lastAckSeq -= $FirstSeq{$to.'-'.$from};
+		$ackSeq -= $FirstSeq{$to.'-'.$from};
+	    }
+
+	    print $to "line $LastAckTime{$to.'-'.$from} $lastAckSeq ";
+	    print $to "$time $lastAckSeq\n";
+	    if ($LastAckSeq{$to.'-'.$from} != $ack) {
+		print $to "line $time $lastAckSeq $time $ackSeq\n";
+	    } else {
+		print $to "dtick $time $ackSeq\n";
 	    }
 
 	    if ($Plotwindow) {
-		print $to "line $last_time{$from} $last_wind{$from} ";
-		print $to "$time $last_wind{$from}\n";
-		if ($last_wind{$from} != $winend) {
-		    print $to "line $time $last_wind{$from} $time $winend\n";
+		local($lastWinSeq, $winSeq) = ($LastWind{$to.'-'.$from}, $winend);
+		if ($Cumulative) {
+		    # adjust sequence number to be relative to last ack.
+		    $winSeq -= $lastWinSeq - $AckOffset{$to};
+		    $lastWinSeq = $AckOffset{$to};
 		} else {
-		    print $to "utick $time $winend\n";
+		    # adjust sequence number to be relative to start of conversation.
+		    $lastWinSeq -= $FirstSeq{$to.'-'.$from};
+		    $winSeq -= $FirstSeq{$to.'-'.$from};
+		}
+
+		print $to "line $LastAckTime{$to.'-'.$from} $lastWinSeq ";
+		print $to "$time $lastWinSeq\n";
+		if ($LastWind{$to.'-'.$from} != $winend) {
+		    print $to "line $time $lastWinSeq $time $winSeq\n";
+		} else {
+		    print $to "utick $time $winSeq\n";
 		}
 	    }
 	}
-	$last_time{$from} = $time;
-	$last_ack{$from} = $ack;
-	$last_wind{$from} = $winend;
+	$LastAckTime{$to.'-'.$from} = $time;
+	$LastAckSeq{$to.'-'.$from} = $ack;
+	$LastWind{$to.'-'.$from} = $winend;
     }
 }
 
 foreach $from (@Froms) {
     &closeOut($from);
 }
+print "summary: $TotalPackets packets $TotalBytes bytes took ", &subTimes($MaxLast, $MinFirst), 
+    " efficiency: ", $TotalBytes/($TotalBytes + $TotalPackets*40), "\n" if (!Queit);
 
-print "           total: $TotalPackets packets $TotalBytes bytes took ",
-    &subTimes($MaxLast, $MinFirst), "\n";
-print "      efficiency: ", $TotalBytes/($TotalBytes + $TotalPackets*40), "\n";
+print $ListFile "summary: $TotalPackets $TotalBytes ",
+    &subTimes($MaxLast, $MinFirst), " ", $TotalBytes/($TotalBytes + $TotalPackets*40), "\n" if ($ListFile);
+
+close($ListFile) if ($ListFile);
 
 exit 0;
 
