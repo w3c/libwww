@@ -80,6 +80,9 @@
 /* Define to enable mysql access. */
 #undef HT_MYSQL
 
+/* Define to enable expat XML parser. */
+#undef HT_EXPAT
+
 /* Define to enable Zlib compression / decompression support. */
 #undef HT_ZLIB
 
@@ -246,6 +249,9 @@
 
 /* Define if you have the timegm function.  */
 #undef HAVE_TIMEGM
+
+/* Define if you have the tzset function.  */
+#undef HAVE_TZSET
 
 /* Define if you have the <appkit.h> header file.  */
 #undef HAVE_APPKIT_H
@@ -462,6 +468,13 @@
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
+
 
 /* Define this if you have the external variable 'socket_errno'. */
 #undef HAVE_SOCKET_ERRNO

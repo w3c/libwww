@@ -1,7 +1,7 @@
-dnl aclocal.m4 generated automatically by aclocal 1.3
+dnl aclocal.m4 generated automatically by aclocal 1.4
 
-dnl Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
-dnl This Makefile.in is free software; the Free Software Foundation
+dnl Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
@@ -745,7 +745,7 @@ dnl Usage:
 dnl AM_INIT_AUTOMAKE(package,version, [no-define])
 
 AC_DEFUN(AM_INIT_AUTOMAKE,
-[AC_REQUIRE([AM_PROG_INSTALL])
+[AC_REQUIRE([AC_PROG_INSTALL])
 PACKAGE=[$1]
 AC_SUBST(PACKAGE)
 VERSION=[$2]
@@ -755,8 +755,8 @@ if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   AC_MSG_ERROR([source directory already configured; run "make distclean" there first])
 fi
 ifelse([$3],,
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION"))
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Name of package])
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Version number of package]))
 AC_REQUIRE([AM_SANITY_CHECK])
 AC_REQUIRE([AC_ARG_PROGRAM])
 dnl FIXME This is truly gross.
@@ -767,15 +767,6 @@ AM_MISSING_PROG(AUTOMAKE, automake, $missing_dir)
 AM_MISSING_PROG(AUTOHEADER, autoheader, $missing_dir)
 AM_MISSING_PROG(MAKEINFO, makeinfo, $missing_dir)
 AC_REQUIRE([AC_PROG_MAKE_SET])])
-
-
-# serial 1
-
-AC_DEFUN(AM_PROG_INSTALL,
-[AC_REQUIRE([AC_PROG_INSTALL])
-test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL_PROGRAM}'
-AC_SUBST(INSTALL_SCRIPT)dnl
-])
 
 #
 # Check to make sure that the build environment is sane.
@@ -859,21 +850,8 @@ for am_file in <<$1>>; do
 done<<>>dnl>>)
 changequote([,]))])
 
-# Check to see if we're running under Cygwin32, without using
-# AC_CANONICAL_*.  If so, set output variable CYGWIN32 to "yes".
-# Otherwise set it to "no".
 
-dnl AM_CYGWIN32()
-AC_DEFUN(AM_CYGWIN32,
-[AC_CACHE_CHECK(for Cygwin32 environment, am_cv_cygwin32,
-[AC_TRY_COMPILE(,[return __CYGWIN32__;],
-am_cv_cygwin32=yes, am_cv_cygwin32=no)
-rm -f conftest*])
-CYGWIN32=
-test "$am_cv_cygwin32" = yes && CYGWIN32=yes])
-
-
-# serial 24 AM_PROG_LIBTOOL
+# serial 25 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AM_ENABLE_SHARED])dnl
 AC_REQUIRE([AM_ENABLE_STATIC])dnl
@@ -927,9 +905,13 @@ esac
 # Actually configure libtool.  ac_aux_dir is where install-sh is found.
 CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" \
 LD="$LD" NM="$NM" RANLIB="$RANLIB" LN_S="$LN_S" \
-${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig \
+${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig --no-reexec \
 $libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
 || AC_MSG_ERROR([libtool configure failed])
+
+# Redirect the config.log output again, so that the ltconfig log is not
+# clobbered by the next message.
+exec 5>>./config.log
 ])
 
 # AM_ENABLE_SHARED - implement the --enable-shared flag
@@ -940,10 +922,8 @@ AC_DEFUN(AM_ENABLE_SHARED,
 [define([AM_ENABLE_SHARED_DEFAULT], ifelse($1, no, no, yes))dnl
 AC_ARG_ENABLE(shared,
 changequote(<<, >>)dnl
-<<  --enable-shared         build shared libraries [default=>>AM_ENABLE_SHARED_DEFAULT]
+<<  --enable-shared[=PKGS]  build shared libraries [default=>>AM_ENABLE_SHARED_DEFAULT],
 changequote([, ])dnl
-[  --enable-shared=PKGS    only build shared libraries if the current package
-                          appears as an element in the PKGS list],
 [p=${PACKAGE-default}
 case "$enableval" in
 yes) enable_shared=yes ;;
@@ -979,10 +959,8 @@ AC_DEFUN(AM_ENABLE_STATIC,
 [define([AM_ENABLE_STATIC_DEFAULT], ifelse($1, no, no, yes))dnl
 AC_ARG_ENABLE(static,
 changequote(<<, >>)dnl
-<<  --enable-static         build static libraries [default=>>AM_ENABLE_STATIC_DEFAULT]
+<<  --enable-static[=PKGS]  build static libraries [default=>>AM_ENABLE_STATIC_DEFAULT],
 changequote([, ])dnl
-[  --enable-static=PKGS    only build shared libraries if the current package
-                          appears as an element in the PKGS list],
 [p=${PACKAGE-default}
 case "$enableval" in
 yes) enable_static=yes ;;
@@ -1016,7 +994,9 @@ if test "$ac_cv_prog_gcc" = yes; then
   ac_prog=`($CC -print-prog-name=ld) 2>&5`
   case "$ac_prog" in
   # Accept absolute paths.
+changequote(,)dnl
   /* | [A-Za-z]:\\*)
+changequote([,])dnl
     test -z "$LD" && LD="$ac_prog"
     ;;
   "")
@@ -1079,11 +1059,10 @@ fi])
 AC_DEFUN(AM_PROG_NM,
 [AC_MSG_CHECKING([for BSD-compatible nm])
 AC_CACHE_VAL(ac_cv_path_NM,
-[case "$NM" in
-/* | [A-Za-z]:\\*)
-  ac_cv_path_NM="$NM" # Let the user override the test with a path.
-  ;;
-*)
+[if test -n "$NM"; then
+  # Let the user override the test.
+  ac_cv_path_NM="$NM"
+else
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
   for ac_dir in /usr/ucb /usr/ccs/bin $PATH /bin; do
     test -z "$ac_dir" && ac_dir=.
@@ -1103,8 +1082,7 @@ AC_CACHE_VAL(ac_cv_path_NM,
   done
   IFS="$ac_save_ifs"
   test -z "$ac_cv_path_NM" && ac_cv_path_NM=nm
-  ;;
-esac])
+fi])
 NM="$ac_cv_path_NM"
 AC_MSG_RESULT([$NM])
 AC_SUBST(NM)
