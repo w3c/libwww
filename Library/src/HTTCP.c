@@ -67,6 +67,17 @@
 #endif /* !EALREADY */
 #endif /* !(EAGAIN && EALREADY) */
 #endif /* !_WINSOCKAPI_ 				   done */
+
+#if defined(__svr4__) || defined (_WINSOCKAPI_)
+#define HT_HOSTUNREACHABLE(e)	((e)==ECONNREFUSED || (e)==ETIMEDOUT || \
+				 (e)==ENETUNREACH || (e)==EHOSTUNREACH || \
+				 (e)==EHOSTDOWN)
+#else
+#define HT_HOSTUNREACHABLE(e)	((e)==ECONNREFUSED || (e)==ETIMEDOUT || \
+				 (e)==ENETUNREACH || (e)==EHOSTUNREACH || \
+				 (e)==EHOSTDOWN || (e)==EINVAL)
+#endif
+
 /* ------------------------------------------------------------------------- */
 /*	       	      CONNECTION ESTABLISHMENT MANAGEMENT 		     */
 /* ------------------------------------------------------------------------- */
@@ -85,12 +96,10 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
 #else
     if ((sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
 #endif
-	{
-	HTRequest_addSystemError(request, ERR_FATAL, socerrno, 
-				 NO, "socket");
-	host->tcpstate = TCP_ERROR;
+    {
+	HTRequest_addSystemError(request, ERR_FATAL, socerrno, NO, "socket");
 	return -1;
-	}
+    }
     if (PROT_TRACE) HTTrace("Socket...... Created %d\n", sockfd);
 
     /* Increase the number of sockets by one */
@@ -252,8 +261,10 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    break;
 
 	  case TCP_NEED_SOCKET:
-	    if (_makeSocket(me, request, preemptive, net->transport) == -1)
-		break;
+	      if (_makeSocket(me, request, preemptive, net->transport) == -1) {
+		  me->tcpstate = TCP_ERROR;
+		  break;
+	      }
 
 	    /* If multi-homed host then start timer on connection */
 	    if (HTHost_retry(me)) me->connecttime = HTGetTimeInMillis();
@@ -312,15 +323,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    /* Added EINVAL `invalid argument' as this is what I 
 		       get back from a non-blocking connect where I should 
 		       get `connection refused' on BSD. SVR4 gives SIG_PIPE */
-#if defined(__svr4__) || defined (_WINSOCKAPI_)
-		    if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
-			socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
-			socerrno==EHOSTDOWN)
-#else
-		    if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
-			socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
-			socerrno==EHOSTDOWN || socerrno==EINVAL)
-#endif
+		    if (HT_HOSTUNREACHABLE(socerrno))
 		        me->connecttime += TCP_DELAY;
 		    else
 		        me->connecttime += TCP_PENALTY;
@@ -360,16 +363,14 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    HTHost_setRetry(me, 0);
 	    me->tcpstate = TCP_BEGIN;
 	    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_BEGIN.\n", me);
-	    return HT_ERROR;
+	    return HT_NO_HOST;
 	    break;
 
 	  case TCP_NEED_BIND:
 	  case TCP_NEED_LISTEN:
 	  case TCP_ERROR:
 	    if (HTChannel_socket(me->channel) != INVSOC) {
-	      /*	        HTEvent_unregister(HTChannel_socket(me->channel), (SockOps) FD_ALL); */
 		NETCLOSE(HTChannel_socket(me->channel));
-		/*		HTChannel_setSocket(me->channel, INVSOC); */
 #if 1 /* @@@ */
 		if (HTHost_isPersistent(me)) {	 /* Inherited socket */
 		    HTHost_setPersistent(me, NO, HT_TP_SINGLE);
@@ -382,14 +383,13 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 
 	    /* Do we have more homes to try? */
 	    HTHost_decreaseRetry(me);
-	    if (HTHost_retry(me) > 0) {
-	        HTRequest_addSystemError(request, ERR_NON_FATAL, socerrno, NO,
-			      "connect");
+	    if (HT_HOSTUNREACHABLE(socerrno) && HTHost_retry(me) > 0) {
+	        HTRequest_addSystemError(request, ERR_NON_FATAL, socerrno, NO,"connect");
 		me->tcpstate = TCP_DNS;
 		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_DNS.\n", me);
 		break;
 	    }
-	    HTRequest_addSystemError(request, ERR_FATAL,socerrno,NO,"connect");
+	    HTRequest_addSystemError(request, ERR_FATAL, socerrno, NO, "connect");
 	    HTDNS_delete(hostname);
 	    HTHost_setRetry(me, 0);
 	    me->tcpstate = TCP_BEGIN;
@@ -519,8 +519,10 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	    break;
 
 	case TCP_NEED_SOCKET:
-	    if (_makeSocket(me, request, preemptive, net->transport) == -1)
+	    if (_makeSocket(me, request, preemptive, net->transport) == -1) {
+		me->tcpstate = TCP_ERROR;
 		break;
+	    }
 
 	    /* Progress */
 	    {
