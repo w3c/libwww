@@ -689,6 +689,23 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
 				(int *)&texceptset, wt);
+#elif defined(_WINSOCKAPI_)
+	/*
+	 * yovavm@contact.com
+	 *
+	 * On some WINSOCK versions select() with 3 empty sets and NULL timeout
+	 * returns 0 and in some it returns -1.
+	 * If 0 is returned in such situation, we will go into an infinite loop
+	 * (cause the sets will stay empty forever ...),
+	 * so make sure to set the active_sockets = -1 which will take us out 
+	 * of the loop.
+	 */
+	if ((treadset.fd_count || twriteset.fd_count || texceptset.fd_count) 
+	    && wt)
+	     active_sockets = select(maxfds+1, &treadset, &twriteset,
+				     &texceptset, wt);
+	else
+	     active_sockets = -1;	
 #else
         active_sockets = select(maxfds+1, &treadset, &twriteset, &texceptset, wt);
 #endif

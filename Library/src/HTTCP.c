@@ -42,12 +42,20 @@
 /* x ms penalty on a multi-homed host if IP-address is down for unknown reason */
 #define TCP_PENALTY		60000
 
-/* imperical study in socket call error codes
+/* empirical study in socket call error codes
+   yovavm@contact.com : added handling for WSAEINVAL error code (Windows)
+   "When calling connect() in the second time, after the first call to 
+   connect() returned WSAEWOULDBLOCK, an error of WSAEINVAL is returned. 
+   It happens often on WinNT & Win95, and rarely on Win2K & Win98, where in 
+   most cases the second call to connect() returns WSAEISCON (10056).
+   jose@w3.org : didn't add that test for Unix, as the connect() doc (Linux
+   and Solaris) says it's not needed.
  */
 #ifdef _WINSOCKAPI_					/* windows */
 #define NETCALL_ERROR(ret)	(ret == SOCKET_ERROR)
 #define NETCALL_DEADSOCKET(err)	(err == WSAEBADF)
 #define NETCALL_WOULDBLOCK(err)	(err == WSAEWOULDBLOCK)
+#define NETCALL_INVAL(err)      (err == WSAEINVAL)
 #else /* _WINSOCKAPI_ 					   unix    */
 #define NETCALL_ERROR(ret)	(ret < 0)
 #define NETCALL_DEADSOCKET(err)	(err == EBADF)
@@ -319,6 +327,26 @@ PUBLIC int HTDoConnect (HTNet * net)
 		    HTHost_register(host, net, HTEvent_CONNECT);
 		    return HT_WOULD_BLOCK;
 		}
+#ifdef _WINSOCKAPI_
+		/*
+		 * yovavm@contact.com
+		 *
+		 * According to Microsoft docs, the error code WSAEALREADY is 
+		 * described as:
+		 * "A nonblocking connect call is in progress on the specified
+		 *  socket. Note In order to preserve backward compatibility, 
+		 *  this error is reported as WSAEINVAL to Windows Sockets 1.1
+		 *  applications that link to either Winsock.dll or
+		 *  Wsock32.dll."
+		 */
+		if (NETCALL_INVAL(socerrno)) {
+		    host->tcpstate = TCP_CONNECTED;
+		    HTTRACE(PROT_TRACE, "Connection to HTHost %p is already in
+progress.\n" _ host);
+		    break;
+		}
+#endif /* _WINSOCKAPI_ */
+
 		if (socerrno == EISCONN) {
 		    host->tcpstate = TCP_CONNECTED;
 		    HTTRACE(PROT_TRACE, "HTHost %p going to state TCP_CONNECTED.\n" _ host);
