@@ -52,7 +52,7 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 0,   "Gopher-server replies", 	"gopher.multi" },
     { 0,   "Data transfer Interrupted", "interrupt.multi" },
     { 0,   "CSO-server replies", 	"cso.multi" },
-    { 0,   "Message from System Call", 	"system.multi" }
+    { 0,   "Failed to execute",       	"system.multi" }
 };
 
 /* ------------------------------------------------------------------------- */
@@ -145,8 +145,11 @@ PUBLIC int HTErrorSysAdd ARGS4(HTRequest *, 	request,
     } else
 	HTInetStatus("Unspecified System Call");
     {
+	char temp[50];
 	char *errmsg = NULL;
-	StrAllocCopy(errmsg, HTErrnoString());
+	sprintf(temp, "`%.40s' because ", syscall);
+	StrAllocCopy(errmsg, temp);
+	StrAllocCat(errmsg, HTErrnoString());
 	newError->par = (void *) errmsg;
     }
     newError->par_length = (int) strlen(newError->par);

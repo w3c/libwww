@@ -996,10 +996,10 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		    fprintf(stderr, "%d  ", error_info[pres->element].code);
 		highest = NO;
 	    } else
-		fprintf(stderr, "This occurred because: ");
+		fprintf(stderr, "\nReason: ");
 
 	    /* Output error message */
-	    fprintf(stderr, "%s\n", error_info[pres->element].msg);
+	    fprintf(stderr, "%s ", error_info[pres->element].msg);
 
 	    /* Output parameters */
 	    if (pres->par && HTErrorShowMask & HT_ERR_SHOW_PARS) {
@@ -1017,7 +1017,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 			*nptr++ = *((char *)(pres->par)+cnt);
 		}
 		*nptr = '\0';
-		fprintf(stderr, " (%s)\n", tstr);
+		fprintf(stderr, "%s", tstr);
 		free(tstr);
 	    }
 
@@ -1031,5 +1031,9 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		break;
 	}
     }
+    fprintf(stderr, "\n");
     return;
 }
+
+
+
