@@ -211,7 +211,7 @@ PUBLIC BOOL HTParseFormInput (HTAssocList * list, const char * str)
 */
 PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 {
-#if defined(DEBUG) && defined(WWWTRACE)
+#if defined(HTDEBUG) && defined(WWWTRACE)
     WWWTRACE = 0;
     if (shortnames && *shortnames) {
 	char * ptr = (char *) shortnames;
