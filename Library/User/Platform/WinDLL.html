@@ -4,7 +4,7 @@
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" BORDER="0"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_home" BORDER="0"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" BORDER="0"></A>
 <A HREF="./"><IMG ALT="OS" SRC="../../../Icons/WWW/Platform48x" BORDER="0"></A>
 <H1>
@@ -58,7 +58,7 @@ then processes the registered sockets. When <CODE>select()</CODE> returns
 the Event Manager dispatches the appropriate handlers as the sockets get
 ready.
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Undefine</EM>
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Undefine</EM>
 <B>WWW_WIN_ASYNC</B> as a preprocessor directive when generating the project
 for the Library. Please make sure that <EM>all</EM> DLLs are compiled without
 this flag. <A NAME="async"></A>
@@ -75,7 +75,7 @@ a windows handle, the Library creates a <EM>hidden window</EM>. This window
 is <EM>not</EM> to be used explicitly by the application and the Library
 closes the window when exiting.
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Define</EM>
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Define</EM>
 <B>WWW_WIN_ASYNC</B> as preprocessor directives when generating the project
 for the Library. <A NAME="io"></A>
 <H2>
@@ -106,7 +106,7 @@ in order to build the browser as a Windows application. This is found in
 <A HREF="../../../LineMode/src/windows/lib.c">lib.c</A> provide the window
 for the application.
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Define
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Define
 <B>_WINDOWS</B> as preprocessor directives when generating the project for
 the Library. <A NAME="console"></A>
 <H3>
@@ -117,7 +117,7 @@ The console option is available only in Win32 in which case all user interaction
 happens through the Win32 console window. This model strongly resembles a
 Unix vt100 terminal interface.
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Define
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Define
 <B>_CONSOLE</B> as preprocessor directives when generating the project for
 the Library. <A NAME="lib"></A>
 <H2>
@@ -148,7 +148,7 @@ on <A HREF="#select">Select Options</A> and <A HREF="#io">Input/Output
 Options</A>, accumulate all the <CODE>#defines</CODE> that are required,
 and build the whole libwww with those <CODE>#defines</CODE>.
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Undefine</EM>
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Undefine</EM>
 <B>WWW_WIN_DLL</B> as preprocessor directives when generating the project
 for the Library. Please note, that it is not recommended to staticly link
 to the libraries if you are building a Win16 application as it creates segment
@@ -166,7 +166,7 @@ linking, dynamic linking requires that all the modules in a DLL be replaced
 at once. This is because the DLL needs all internal references to be resolved
 at build time.
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Define
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Define
 <B>WWW_WIN_DLL</B> as preprocessor directives when generating the project
 for the Library.
 <H3>
@@ -189,7 +189,7 @@ flag definition.
     - def (exports) files for the DLLs of the same names.
 </UL>
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Include the windll.dll
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Include the windll.dll
 as a part of your project and make sure that it is built as the first DLL.
 <H3>
   Exporting Functions from DLLs
@@ -202,7 +202,7 @@ by the <A HREF="../../../config/makedefs.pl">makeDefs.pl</A> perl script,
 see the description below. You can use the def files as a basis for generating
 the DLL projects for your compiler.
 <P>
-<IMG SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Generate the DLLs
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Generate the DLLs
 according to the def files so the exported interface is identical to the
 set of functions defined in the actual c files included in the DLL.
 <H2>

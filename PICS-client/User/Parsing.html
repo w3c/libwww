@@ -6,9 +6,9 @@
 </HEAD>
 <BODY>
 
-<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
-<A HREF="../"><IMG SRC="../../Icons/WWW/PICS48x.gif" ALT="Lib"></A>
-<IMG SRC="../../Icons/WWW/internals48x.gif">
+<A HREF="../../"><IMG BORDER="0" SRC="../../Icons/WWW/w3c_home.gif" ALT="W3C"></A>
+<A HREF="../"><IMG BORDER="0" SRC="../../Icons/WWW/PICS48x.gif" ALT="Lib"></A>
+<IMG BORDER="0" SRC="../../Icons/WWW/internals48x.gif">
 
 <H1>Parser Guide</H1>
 
@@ -74,7 +74,7 @@ StateToken_t ServiceInfo_stateTokens[] = {
      {            "close", <A NAME="ServiceInfo_D">SubState_D</A>, Punct_ALL,                   0,        0,   0, 0, &<A HREF="#LabelList_targetObject">LabelList_targetObject</A>, SubState_C, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0},
      {         "re-enter", SubState_E, Punct_ALL,                   0,        0,   0, 0, &<A HREF="#ServiceInfo_targetObject">ServiceInfo_targetObject</A>, SubState_N, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0}
     };
-TargetObject_t <A NAME="ServiceInfo_targetObject">ServiceInfo_targetObject</a> = {"ServiceInfo", ServiceInfo_open, &ServiceInfo_close, &ServiceInfo_destroy, ServiceInfo_stateTokens, raysize(ServiceInfo_stateTokens), CSLLSC_SERVICE};
+TargetObject_t <A NAME="ServiceInfo_targetObject">ServiceInfo_targetObject</A> = {"ServiceInfo", ServiceInfo_open, &ServiceInfo_close, &ServiceInfo_destroy, ServiceInfo_stateTokens, raysize(ServiceInfo_stateTokens), CSLLSC_SERVICE};
 
 </PRE>
 

@@ -5,9 +5,9 @@
 </HEAD>
 <BODY>
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww"SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"></A>
+<A HREF="../../"><IMG BORDER="0" ALT="libwww"SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
 <H1>
   Post Webs - a Generic Model for Posting on the Web
 </H1>
@@ -119,7 +119,7 @@ lists, a news group and at the same time store the data object on a remote
 HTTP server. This scenario can be graphically represented as a Post Web
 consisting of five nodes: one source and four destinations:
 <P>
-<IMG SRC="PostWebUser.gif" ALT="User's View" WIDTH="374" HEIGHT="283">
+<IMG BORDER="0" SRC="PostWebUser.gif" ALT="User's View" WIDTH="374" HEIGHT="283">
 <P>
 This document does not specify the user interface for building a Post Web
 as this is tightly connected to the platform involved, but obviously it should
@@ -153,7 +153,7 @@ exist then this will result in an error, but if a destination data object
 does exist then the post operation is committed then might result in replacement,
 deletion, update, or any other outcome as a result of the method applied.
 <P>
-<IMG SRC="PostWebApp.gif" ALT="Application's View" WIDTH="535" HEIGHT="328">
+<IMG BORDER="0" SRC="PostWebApp.gif" ALT="Application's View" WIDTH="535" HEIGHT="328">
 <P>
 The Library provides an API for handling anchor objects including how to
 link the objects together as indicated in the figure above. This is explained
@@ -202,7 +202,7 @@ object is used in the static binding between the source and the destinations
 and it is initialized as soon as the request is passed to the Library from
 the application.
 <P>
-<IMG SRC="PostWebReq.gif" ALT="libwww's Request View" WIDTH="388" HEIGHT="305">
+<IMG BORDER="0" SRC="PostWebReq.gif" ALT="libwww's Request View" WIDTH="388" HEIGHT="305">
 <P>
 At this point no information is known about the data object itself, so the
 static binding only contains information about who the source and the
@@ -212,7 +212,7 @@ dynamic binding is basically a stream chain that is established as this
 information gets available from the source server:
 <P>
 <P>
-<IMG SRC="PostWebStream.gif" ALT="libwww's Stream View" WIDTH="453" HEIGHT="303">
+<IMG BORDER="0" SRC="PostWebStream.gif" ALT="libwww's Stream View" WIDTH="453" HEIGHT="303">
 <P>
 <OL>
   <LI>
