@@ -10,18 +10,12 @@
 <H1>
   Getting Libwww from the CVS Repository
 </H1>
+<P>
 <DIV class="intro">
-  Using <A HREF="http://www.cyclic.com/cvs/info.html">CVS</A> allows <B>YOU</B>
-  to follow the development of <A HREF="./">libwww</A> and its
+  <A HREF="http://www.cyclic.com/cvs/info.html">CVS</A> allows <B>YOU</B> to
+  follow the development of <A HREF="./">libwww</A> and its
   <A HREF="User/Applications.html">sample applications</A> closely and to
-  contribute much easier with patches and new features. Before you start, make
-  sure that you are familiar with <A HREF="BeforeCommitting.html">our rules
-  for working with CVS</A>. The following requires that you are familiar with
-  CVS - if not then look at
-  <A HREF="http://www.cyclic.com/cvs/info.html">Cyclic's pages on CVS</A> or
-  the <A HREF="http://www.loria.fr/~molli/cvs-index.html">excellent
-  information</A> provided by
-  <A HREF="http://www.loria.fr/~molli/">Pascal.Molli</A>.
+  contribute with patches and new features.
   <UL>
     <LI>
       <A HREF="#Releases">How does libwww releases and CVS work together?</A>
@@ -38,6 +32,12 @@
     <LI>
       <A HREF="#Compiling">How to compile libwww</A>
   </UL>
+  <P>
+  The following requires that you are familiar with CVS - if not then look
+  at <A HREF="http://www.cyclic.com/cvs/info.html">Cyclic's pages on CVS</A>
+  or the <A HREF="http://www.loria.fr/~molli/cvs-index.html">excellent
+  information</A> provided by
+  <A HREF="http://www.loria.fr/~molli/">Pascal.Molli</A>.
 </DIV>
 <P>
   <HR>
@@ -45,9 +45,9 @@
   <A NAME="Releases">Libwww Releases</A>
 </H2>
 <P>
-First of all, using CVS allows you to use the very latest version of libwww
-- as soon as a fix or a new feature is commit'ed to the CVS repository then
-you can update your working version and you will have it right away.
+CVS allows you to use the very latest version of libwww - as soon as a fix
+or a new feature is commited to the CVS repository then you can update your
+working version and you will have it right away.
 <P>
 The purpose of "releases" is to say that now we believe that the code is
 stable with a well defined set of features. Until now, we have been giving
@@ -67,19 +67,21 @@ the code!
   <A NAME="Anonymous">Anonymous CVS Checkout</A>
 </H2>
 <P>
-This is read-only access which means that you can check out the code but
-not commit any changes. It is available to everybody, and it allows you to
-make up-to-date patches which are much easier for the libwww maintainers
-to integrate. The instructions should work for both
+Anonymous checkout is read-only access which allows you to get the latest
+edits and to provide patches to be integrated into the code base. The
+instructions should work for both
 <A HREF="http://www.cyclic.com/cvs/unix.html">Unix</A> and
-<A HREF="http://www.cyclic.com/cvs/windows.html">Windows</A>. Before you
-can check out the sources, you need to be running CVS 1.9 or later, and login
-by running the following command:
+<A HREF="http://www.cyclic.com/cvs/windows.html">Windows</A>. Make sure you
+are running at least CVS 1.9 or later. Start by login as follows:
 <PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public login</B>
 </PRE>
 <P>
-after which you type "<STRONG>anonymous</STRONG>" as password. To get the
-<STRONG>latest</STRONG> version from the CVS repository, run this command:
+after which you type "<STRONG>anonymous</STRONG>" as password.
+<H3>
+  <A NAME="latest">Checkout the Latest Version</A>
+</H3>
+<P>
+To get the <EM>latest</EM> version from the CVS repository, run this command:
 <PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 checkout libwww</B>
 </PRE>
 <P>
@@ -87,11 +89,11 @@ After which you will get all the code coming at you, you'd better have at
 least 10MBytes available on your machine. Now you are ready to
 <A HREF="#Boot">getting boot strapped</A>.
 <H3>
-  <A NAME="revision">Checkout of Specific Revision</A>
+  <A NAME="revision">Checkout a Specific Revision</A>
 </H3>
 <P>
 If you want to get a <A HREF="#Releases">specific release</A> using CVS tags
-then you can do this by uisng the the CVS "<TT>-r</TT>" option, for example
+then you can do this by using the the CVS "<TT>-r</TT>" option, for example
 <PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 -r Release-5-1m checkout libwww</B>
 </PRE>
 <P>
@@ -102,12 +104,24 @@ to the latest untagged version then you should use the following command:
 % <B>cvs -z3 update -A</B>
 </PRE>
 <H2>
+  <A NAME="Write">CVS Write Access</A>
+</H2>
+<P>
+In order to change our code base you need <A HREF="BeforeCommitting.html">CVS
+write access</A>. This privilege is reserved for
+<A HREF="Collaborators.html">libwww collaborators</A> who have intimate knowledge
+of the code base and have proven their ability to use this privilege to the
+benefit of the libwww user community. If you are considering becoming a libwww
+contributor then make sure that you have read the <A HREF="User/Style/">libwww
+style guide</A> as well as <A HREF="BeforeCommitting.html">the list of things
+to do</A> before committing changes to libwww.
+<H2>
   <A NAME="SSH">SSH Based CVS Checkout</A>
 </H2>
 <P>
-Read/Write access to the CVS repository is done through
-<A HREF="http://www.cs.hut.fi/ssh/">SSH</A>. However, it means that you
-<B>MUST</B> have SSH access to the repository. You setup CVS to use SSH as
+<A HREF="Collaborators.html">Libwww collaborators</A> can get read/write
+access to the CVS repository using
+<A HREF="http://www.cs.hut.fi/ssh/">SSH</A>. You setup CVS to use SSH as
 remote shell by setting the <CODE>CVS_RSH</CODE> env variable. Using bash
 or similar, it looks like this:
 <PRE>% <B>export CVS_RSH=/usr/local/bin/ssh</B>
@@ -127,7 +141,7 @@ The <A HREF="http://www.apache.org">Apache Group</A> has some
 <A HREF="http://dev.apache.org/nt-cvs-ssh.txt">special notes on how to use
 SSH for Windows</A>.
 <H2>
-  <A NAME="update">How to get the latest edits from CVS</A>
+  <A NAME="update">How to Get the Latest Updates</A>
 </H2>
 <P>
 The big advantage of using CVS is that you easily can keep your version of
@@ -139,10 +153,11 @@ mailing list (<A HREF="http://www.w3.org/Mail/Request">see here how to
 subscribe</A>) and also described in the <A HREF="User/ReleaseNotes.html">list
 of new features</A>.
 <P>
-Once you have checked out the libwww CVS tree (<A HREF="#revision">not a
-specific revision</A>), you can get any updates committed to the tree by
-using the <A HREF="http://www.loria.fr/~molli/cvs/doc/cvs_16.html#SEC148">cvs
-update command</A> like this
+Once you have <A HREF="#latest">checked out the libwww CVS tree</A>
+(<A HREF="#revision">not a specific revision</A>), you can get any updates
+committed to the tree by using the
+<A HREF="http://www.loria.fr/~molli/cvs/doc/cvs_16.html#SEC148">cvs update
+command</A> like this
 <PRE>% <B>cd libwww</B>
 % <B>cvs -z3 update -d</B>
 % <B>cd ..</B>
@@ -152,17 +167,8 @@ It is important that you use the "<TT>-d</TT>" flag so that you get new
 directories as well as updated files. Remember that some of the automatically
 generated header files (<TT>*.h</TT>) or the Windows DLL files
 (<TT>*.dll</TT>) may have to be regenerated after a checkout - please
-<A HREF="#Easy">repeat the first step from the bootstrapping mechianism</A>
+<A HREF="#Easy">repeat the first step from the bootstrapping mechanism</A>
 in order to do this.
-<H2>
-  <A NAME="Write">CVS Write Access</A>
-</H2>
-<P>
-<A HREF="BeforeCommitting.html">CVS Write access</A> is currently reserved
-to the <A HREF="/People/W3Cpeople.html">W3C team</A>. Before writing anything
-to the repository make sure that you have read the <A HREF="User/Style/">libwww
-style guide</A> as well as <A HREF="BeforeCommitting.html"><B>the list of
-things to do</B></A> before doing a CVS commit.
 <H2>
   <A NAME="Boot">Getting Bootstrapped</A>
 </H2>
@@ -200,10 +206,11 @@ number:
 <DL>
   <DT>
     <A HREF="http://www.gnu.org/order/ftp.html"><B>gcc</B></A> and
-    <A HREF="http://www.gnu.org/order/ftp.html"><B>gmake</B></A>
+    <A HREF="http://www.gnu.org/order/ftp.html"><B>GNU make</B></A>
   <DD>
-    Automake relies on features provided by gcc and gmake that don't come with
-    other compilers and makes
+    Automake relies on features provided by gcc and GNU make that don't come
+    with other compilers and makes. When compiling directly from our CVS repository
+    you MUST therefore use these tools.
   <DT>
     <B><A HREF="http://www.gnu.org/software/automake/index.html">GNU automake</A>
     (at least version 1.3)</B>
