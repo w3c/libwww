@@ -24,21 +24,24 @@ compiling. If you have already done that or if you started from a distribution
 file then you can continue installation here:
 <UL>
   <LI>
-    <A HREF="#Windows">Building on Windows</A>
+    <A HREF="#Windows">Building on Windows using MSVC</A>
   <LI>
-    <A HREF="#Unix">Building on Unix</A>
+    <A HREF="#Unix">Building on Unix or in the Cygwin Environment for Windows
+    NT, 95, and 98</A>
+  <LI>
+    After you have installed libwww, <A HREF="Library/libwww-config.html">checkout
+    how you can compile and link libwww apps</A>
 </UL>
 <P>
   <HR>
 <H2>
-  <A NAME="Windows">Building on Windows</A>
+  <A NAME="Windows">Building on Windows using MSVC</A>
 </H2>
 <P>
-Building on Windows is somewhat different than building on Unix. We therefore
-have a separate set of directions for doing this. We maintain a set of Microsoft
-Visual C make files which can be used directly if you want to use this compiler.
-We do not support help on any type of Windows based compiler including msvc,
-so be warned!
+We are trying to phase out Windows support based on MSVC and instead move
+to the <A HREF="http://sourceware.cygnus.com/cygwin/">Cygwin environment</A>
+which is a Win32 port of the popular GNU development tools for Windows NT,
+95, and 98 which allows us to use autoconf, automake, and libtool.
 <P>
 You can find some options determining how libwww is going to be compiled
 in the special <A HREF="Library/src/windows/config.h">windows config.h
@@ -137,15 +140,19 @@ If you are interested in the details of how we build libwww on windows then
 please continue by reading the special documentation on
 <A HREF="Library/User/Platform/WinDLL.html">how to install on Windows</A>.
 <H2>
-  <A NAME="Unix">Building on Unix</A>
+  <A NAME="Unix">Building on Unix and in the Cygwin Environment</A>
 </H2>
 <P>
-<IMG SRC="Icons/32x32/caution" ALT="Note" BORDER="0" WIDTH="32" HEIGHT="32">
 You probably need the <A HREF="http://www.delorie.com/gnu/docs/make/">GNU
 version of make</A> in order to build libwww. The reason is that some of
 the make files contain some syntax that most other makefiles don't understand.
 These installation instructions are based on the suggested instructions provided
 with <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU Autoconf</A>.
+<P>
+The <A HREF="http://sourceware.cygnus.com/cygwin/">Cygwin environment</A>
+is a Win32 port of the popular GNU development tools for Windows NT, 95,
+and 98. They function through the use of the Cygwin library which provides
+a UNIX-like API on top of the Win32 API.
 <P>
 The <I>configure</I> shell script attempts to guess correct values for various
 system-dependent variables used during compilation. It uses those values
