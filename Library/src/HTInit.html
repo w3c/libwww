@@ -120,11 +120,16 @@ call using non-blocking and interleaved sockets.
 The <EM>Converters</EM> are used to convert a media type to another media
 type, or to present it on screen. This is a part of the stream stack algorithm.
 The Presenters are also used in the stream stack, but are initialized separately.
-<PRE>#include "<A HREF="WWWMIME.html">WWWMIME.h</A>"
+<PRE>
+#include "<A HREF="WWWMIME.html">WWWMIME.h</A>"
 #include "<A HREF="WWWHTML.html">WWWHTML.h</A>"
 #include "<A HREF="WWWStream.html">WWWStream.h</A>"
 #include "<A HREF="WWWDir.html">WWWDir.h</A>"
 #include "<A HREF="WWWCache.html">WWWCache.h</A>"
+
+#ifdef HT_EXPAT
+#include "<A HREF="WWWXML.html">WWWXML.h</A>"
+#endif
 
 extern void HTConverterInit	(HTList * conversions);
 </PRE>
