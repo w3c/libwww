@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3 Library Internals Guide</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -250,7 +250,7 @@ be overwritten.
 <H2>Internal Event loop</H2>
 
 The internal event loop in the <A
-HREF="../../Implementation/HTEvntrg.html">HTEvent module</A> is made to
+HREF="../../Implementation/HTEvntrg.html">HTEvtrg module</A> is made to
 support <A HREF="../Architecture/Threads.html">libwww threads</A> If
 an application wants its own event loop, then this module must be
 overwritten.
@@ -317,7 +317,7 @@ extract information using a specific access method. When data arrives
 from the network, it is passed on to the format manager.<P>
 
 Most of the protocol modules are now implemented as state machines in
-order to support <A HREF="../Architecture/Thraeds.html">libwww
+order to support <A HREF="../Architecture/Threads.html">libwww
 Threads</A>.
 
 When the client parses a request to the library a <A
@@ -406,9 +406,9 @@ section.
 
 In order to prevent unauthorized access on a Web server, a basic
 authorization scheme has been developed, see <A
-HREF="../../../Protocols"> Access Authorization</A> for more details
-on the scheme. The access authorization is implemented in the
-following modules:
+HREF="../../../Protocols/"> Access
+Authorization</A> for more details on the scheme. The access
+authorization is implemented in the following modules:
 
 <DL>
 
@@ -442,7 +442,7 @@ functionality are:
 
 <DL>
 
-<DT><A HREF="../../Implementation/HTDirBrw.html">HTDirBrw</A>
+<DT><A HREF="../../Implementation/HTDir.html">HTDir</A>
 
 <DD>This is a very configurable module to actually present the listings
 
@@ -467,16 +467,16 @@ manager.
 <H1>Thread Modules</H1>
 
 From version 3.0 (unreleased) of the W3C Reference Library, support
-for <A HREF="../Architecture/HTThreads.html">libwww threads</A> and
+for <A HREF="../Architecture/Threads.html">libwww threads</A> and
 other thread models has been implemented multi threaded functionality
 has been added as an extra set of modules. For the moment, only the
 HTTP module can take full advantage of libwww threads but both FTP and
 Gopher are foreseen for the same functionality. The modules included
 are: <P>
 
-<H2>Thread Manager</H2>
+<H2>Net	Manager</H2>
 
-The <A HREF="../../Implementation/HTThread.html">HTThread</A> module
+The <A HREF="../../Implementation/HTNet.html">HTNet module</A>
 registers sockets as ready for read or write (this includes the
 connect statement that is basically a write request). It is an
 internal module to the Library.

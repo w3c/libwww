@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Change History for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
 <NEXTID N="z500">
 </HEAD>
 <BODY>
@@ -889,17 +889,14 @@ structured stream used during creation is reopen()ed if it is still
 needed to hold dcoument structure after the original load has been
 done. In this case it should later be freed.
 
-<LI>CHANGED INTERFACE to <A NAME="z9"
-HREF="../../Implementation/HTAccess.html">HTAccess</A> : Now an <A
-NAME="z10" HREF="../../Implementation/HTAccess.html#z1">HTRequest</A>
-environment is passed to almost all calls.  Allows better reentrant
-use of library for image embedding, etc.  Implies (minor) changes to
-all clients.
+<LI>CHANGED INTERFACE to <A
+HREF="../../Implementation/HTAccess.html">HTAccess</A>: Now an
+HTRequest environment is passed to almost all calls.  Allows better
+reentrant use of library for image embedding, etc.  Implies (minor)
+changes to all clients.
 
-<LI> Changed <A NAME="z11"
-HREF="../../Implementation/HTFormat.html#z12">HTConverter</A>
-definition. Should be internal only, uness you register new
-converters.  Now take more useful parameters.
+<LI> Changed HTConverter definition. Should be internal only, uness
+you register new converters.  Now take more useful parameters.
 
 <LI>HTSaveAndCallBack stream allows simple implementation of embedded
 graphics: just load them with all conversions you can hadle using
@@ -1032,12 +1029,10 @@ have a single authentication dialog box.
 
 <UL>
 
-<LI>Authroization in. See <A NAME="z7"
-HREF="../AccessAuthorization/Overview.html">Ari's documentation</A> .
-Everything is back-compatible, but there are large extenions to the
-rule file syntax, plus new ACL and protection setup files.
-Authorization is done by password in the clear now, with hooks for
-public key later.
+<LI>Authroization in. See Ari's documentation.  Everything is
+back-compatible, but there are large extenions to the rule file
+syntax, plus new ACL and protection setup files.  Authorization is
+done by password in the clear now, with hooks for public key later.
 
 <LI>Some other bug fixes.  Not all the reported ones.
 
@@ -1272,8 +1267,7 @@ used them all up. (Thanks Marc Andreessen)
 <LI>MIME parser takes content-type field from MIME messages and
 invokes appropriate registerd presentation method for each type.
 
-<LI>Local and remote <A NAME="z5" HREF="Multiformat.html">multiformat
-files</A>.
+<LI>Local and remote multiformat files.
 
 <LI>***HTSearch and HTLoadRelative parameters changed! HTMainAnchor
 and HTMainText globals are no longer used by the library.

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Known Bugs in W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -13,29 +13,40 @@
 
 The list of known bugs are in reverse chronological order.<P>
 
-<IMG SRC="../../../Icons/32x32/caution.gif"> If you (very unlikely) have
-discovered a new <B>BUG</B> or just have a great idea - pronounced
-patches ;-) then please mail <EM>libwww@w3.org</EM> noting the
-version of the Library. <P>
-
-See also the <A HREF="Workinglist.html">Working List</A> to see what
-we are planning to do. You can also find a list of bugs under the <A
-HREF="../../../Daemon/Bugs.html">CERN Server</A>, the <A
+<IMG SRC="../../../Icons/32x32/caution.gif"> If you (very unlikely) have discovered a new <B>BUG</B>
+or just have a great idea - pronounced patches ;-) then please mail <A
+HREF="mailto:libwww@w3.org">libwww@w3.org</A> noting the version of the Library. See also the <A
+HREF="Workinglist.html">Working List</A> to see what we are planning to do. You can also find a list
+of bugs under the <A HREF="../../../Daemon/Bugs.html">CERN Server</A>, the <A
 HREF="../../../Arena/">Arena Browser</A>, and the <A
 HREF="../../../LineMode/Defaults/Bugs.html">Line Mode Browser</A>.<P>
 
+<H2>Library 4.0</H2>
+
+<UL>
+
+<LI>HTML Machinary is still missing a great deal. However this part is now isolated into the
+SGML-HTML-HText stream pipe and will be replaced by a new parser as soon as possible in connection
+with the development of Arena.
+
+<LI>Directory listings do not work completely on Windows NT
+
+<LI>How do we get rid of the BUILD script?
+
+<LI>TRACE macro conflicts with macro on NT. Replace it with WWWTRACE
+</UL>
+
 <H2>Library 3.1</H2>
 
-<DL>
-<DT>Bug in time stamp on files in FTP directory listings
-<DD>The Library supports "long" directory listings for FTP Unix, VMS
-and Windows NT servers with file type, size, time and date
-etc. However, the time stamp is wrong by one hour for files created
-when dayligt savingtime is enabled. The reason is that the FTP module
-in the Library doesn't know the timezone of the remote FTP server and
-hence doesn't know when DSR is enabled or disabled.
+<UL>
 
-</DL>
+<LI>Bug in time stamp on files in FTP directory listings. The Library supports "long" directory
+listings for FTP Unix, VMS and Windows NT servers with file type, size, time and date etc. However,
+the time stamp is wrong by one hour for files created when dayligt savingtime is enabled. The reason
+is that the FTP module in the Library doesn't know the timezone of the remote FTP server and hence
+doesn't know when DSR is enabled or disabled.
+
+</UL>
 
 <H2><A NAME="z3">From Schulmberger Oct 93</H2>
 

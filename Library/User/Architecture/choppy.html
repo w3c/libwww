@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Libwww Architecture</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -466,17 +466,16 @@ POST Web, an API for PUT and POST</A>".
 
 <DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> 
 
-<DD><A HREF="../Terms.html#anchor">Anchors</A> represent any data
-objects which may be the sources or destinations of hypertext
-links. The HTAnchor structure contains all information about the
-object, whether it has been loaded, metainformation like language,
-media type etc., and any relations to other objects. The Library
-defines two anchor classes: a parent anchor and a child anchor. The
-former contains information about whole data objects and the latter
-contains about subparts of a data object. The HTAnchor structure is a
-generic superclass of both parent anchors and child anchors. Section
-"<A HREF="Anchors.html">Anchor Objects</A>" describes anchors and
-their relations in more detail.
+<DD>Anchors represent any data objects which may be the sources or
+destinations of hypertext links. The HTAnchor structure contains all
+information about the object, whether it has been loaded,
+metainformation like language, media type etc., and any relations to
+other objects. The Library defines two anchor classes: a parent anchor
+and a child anchor. The former contains information about whole data
+objects and the latter contains about subparts of a data object. The
+HTAnchor structure is a generic superclass of both parent anchors and
+child anchors. Section "<A HREF="Anchors.html">Anchor Objects</A>"
+describes anchors and their relations in more detail.
 
 <DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../Implementation/HTAccess.html#HTNetInfo">HTNetInfo</A>
 
@@ -624,7 +623,7 @@ the latter where the stream flow is divided into two.
 
 <LI>The application receives the data arriving from the network via
 the "HText" object (or any of the other stream interfaces as explained
-in section <A HREF="../Using/HTMLParser.html">The HTML Parser</A> in
+in section <A HREF="../Using/HTML.html">The HTML Parser</A> in
 the User's Guide).
 
 <LI>The HyperDoc object <EM>must</EM> have a link to the HTAnchor
@@ -636,11 +635,11 @@ structure but this is not required.
 
 <H1>The Anchor Object</H1>
 
-<A HREF="../../../Terms.html#anchor">Anchors</A> represent any
-references to data objects which may be the sources or destinations of
-hypertext links. This section contains a general description of the
-model used to bind anchors together in an internal representation in
-the <A HREF="../../">W3C Reference Library</A>.
+Anchors represent any references to data objects which may be the
+sources or destinations of hypertext links. This section contains a
+general description of the model used to bind anchors together in an
+internal representation in the <A HREF="../../">W3C Reference
+Library</A>.
 
 The anchors are organized into a <EM>sub-web</EM> which represents the
 part of the web that the application (often the user) has been in
@@ -927,7 +926,7 @@ requirement.
 <DT><B>Active Mode</B>
 
 <DD>In this mode the event loop is placed in the Library in the <A
-HREF="../../Implementation/HTEvent.html" >HTEvent module</A>. The mode
+HREF="../../Implementation/HTEvntrg.html" >HTEvntrg module</A>. The mode
 can either be used by character based applications with a limited
 capability of user interaction, or it can be used by more advanced GUI
 clients where the window widget allows redirection of user events to
@@ -936,7 +935,7 @@ should be noted, that even though all sockets are non-blocking, the
 select() function is blocking if no sockets are pending so if no
 actions are pending, the select call will be put to sleep. <P>
 
-The <A HREF="../../Implementation/HTThread.html" >HTThread module</A>
+The <A HREF="../../Implementation/HTNet.html">HTNet module</A>
 contains a thread scheduler which gives highest priority to the events
 on the redirected user events which allows a smooth operation on GUI
 applications with a fast response time. This mode has a major impact
@@ -952,7 +951,7 @@ be redirected to a socket or there is already an event loop that can
 not work together with the event loop in the Library. The major
 difference from the <B>Active mode</B> is that instead of using the
 event loop defined in the <A
-HREF="../../Implementation/HTEvent.html">HTEvent module</A>, this
+HREF="../../Implementation/HTEvntrg.html">HTEvntrg module</A>, this
 module is overridden by the application as described in the <A
 HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
 same impact on the application architecture as the <B>Active mode</B>
@@ -1275,7 +1274,6 @@ from a "401 Unauthorized" HTTP status, code to a separate "debug"
 window where it can be displayed without affecting the current
 document view.
 
-
 <H1>The Data Format Manager</H1>
 
 <IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
@@ -1283,10 +1281,6 @@ construction. Any suggestions or ideas are welcome at
 <EM>libwww@w3.org</EM>.
 
 <H1>Handling Error Situations</H1>
-
-<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
-construction. Any suggestions or ideas are welcome at
-<EM>libwww@w3.org</EM>.
 
 <H1>What is a libwww Request?</H1>
 
@@ -1336,15 +1330,14 @@ the fastest connect time is chosen.
 
 <DT>NEED_REQUEST State
 
-<DD>The <A HREF="../../../Protocols/HTTP/Request.html">HTTP
-Request</A> is what the application sends to the remote HTTP server
-just after the establishment of the connection. The request consists
-of a HTTP header line, a set of HTTP Headers, and possibly a data
-object to be posted to the server. The header line has the following
-format:
+<DD>The <A HREF="../../../Protocols/">HTTP Request</A> is what the
+application sends to the remote HTTP server just after the
+establishment of the connection. The request consists of a HTTP header
+line, a set of HTTP Headers, and possibly a data object to be posted
+to the server. The header line has the following format:
 
 <PRE>
-	&lt;<A HREF="../../../Protocols/HTTP/Methods.html#">METHOD</A>&gt; &lt;<A HREF="ftp://nic.ddn.mil/rfc/rfc1630.txt">URI</A>&gt; &lt;HTTP-VERSION&gt; CRLF
+	&lt;<A HREF="../../../Protocols/">METHOD</A>&gt; &lt;<A HREF="ftp://nic.ddn.mil/rfc/rfc1630.txt">URI</A>&gt; &lt;HTTP-VERSION&gt; CRLF
 </PRE>
  
 <DT>SENT_REQUEST State
@@ -1360,29 +1353,28 @@ object as soon as the GET request is handled.
 
 <DT>NEED_ACCESS_AUTHORIZATION State
 
-<DD>If a <A HREF="../../../Protocols/HTTP/HTRESP.html">401
-Unauthorized</A> status code is returned the module asks the user for
-a user id and a password, see also the "<A HREF="../../../Protocols/">
-HTTP Basic Access Authorization Scheme</A>". The connection is closed
-before the user is asked for the user-id and password so any new
-request initiated upon a <A
-HREF="../../../Protocols/HTTP/HTRESP.html">401 status code</A> causes
-a new connection to be established. This is done in order to
-avoid having the connection hanging around waiting while the applications
-is waiting for user input.
+<DD>If a <A HREF="../../../Protocols/">401 Unauthorized</A> status
+code is returned the module asks the user for a user id and a
+password, see also the "<A HREF="../../../Protocols/"> HTTP Basic
+Access Authorization Scheme</A>". The connection is closed before the
+user is asked for the user-id and password so any new request
+initiated upon a <A HREF="../../../Protocols/">401 status code</A>
+causes a new connection to be established. This is done in order to
+avoid having the connection hanging around waiting while the
+applications is waiting for user input.
 
 <DT>REDIRECTION State
 
 <DD>The remote server returns a redirection <A
-HREF="../../../Protocols/HTTP/HTRESP.html">status code</A> if the URI
-has either been moved temporarily or permanent to another location,
-possibly on another HTTP server or any other service, for example FTP
-or gopher. The HTTP module supports both a temporarily and a permanent
+HREF="../../../Protocols/">status code</A> if the URI has either been
+moved temporarily or permanent to another location, possibly on
+another HTTP server or any other service, for example FTP or
+gopher. The HTTP module supports both a temporarily and a permanent
 redirection code returned from the server:
 
 <DL>
 
-<DT><A HREF="../../../Protocols/HTTP/HTRESP.html#z8">301 Moved</A>
+<DT><A HREF="../../../Protocols/">301 Moved</A>
 
 <DD>The load procedure is recursively called on a 301 redirection
 code. The new URI is parsed back to the user as information via the <A
@@ -1392,7 +1384,7 @@ can be of any <A HREF="../../../Addressing/URL/4_1_Schemes.html">
 access scheme</A> accepted in a URI. An upper limit of redirections
 has been defined (default to 10) in order to avoid infinite loops.
 
-<DT><A HREF="../../../Protocols/HTTP/HTRESP.html#z8">302 Found</A>
+<DT><A HREF="../../../Protocols/">302 Found</A>
 
 <DD>The functionality is the same as for a 301 Moved return status. A
 clever application can use the returned URI to change the document in
@@ -1588,8 +1580,7 @@ result of the method applied.
 
 The Library provides an API for handling anchor objects including how
 to link the objects together as indicated in the figure above. This is
-explained in more detail in the <A HREF="User's Guide">User's
-Guide</A>. <P>
+explained in more detail in the <A HREF="../Guide/">User's Guide</A>. <P>
 
 <H2><A NAME="library">The Library Serves the Request</A></H2>
 
@@ -1632,7 +1623,7 @@ times during the handling of a request. <P>
 
 As described in the section "<A HREF="DataStructures.html#request">Central
 Data Structures</A>", the <A
-HREF="../../Implementation/HTRequest.html">HTRequest</A> structure is
+HREF="../../Implementation/HTReqMan.html">HTRequest</A> structure is
 one of the central data structures used to describe a request from the
 application. This structure is used in the static binding between the
 source and the destinations and it is initialized as soon as the

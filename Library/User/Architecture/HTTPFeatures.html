@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Usage of State machines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
 <NEXTID N="z10">
 </HEAD>
 <BODY>
@@ -52,15 +52,14 @@ the fastest connect time is chosen.
 
 <DT>NEED_REQUEST State
 
-<DD>The <A HREF="../../../Protocols/HTTP/Request.html">HTTP
-Request</A> is what the application sends to the remote HTTP server
-just after the establishment of the connection. The request consists
-of a HTTP header line, a set of HTTP Headers, and possibly a data
-object to be posted to the server. The header line has the following
-format:
+<DD>The <A HREF="../../../Protocols/">HTTP Request</A> is what the
+application sends to the remote HTTP server just after the
+establishment of the connection. The request consists of a HTTP header
+line, a set of HTTP Headers, and possibly a data object to be posted
+to the server. The header line has the following format:
 
 <PRE>
-	&lt;<A HREF="../../../Protocols/HTTP/Methods.html#">METHOD</A>&gt; &lt;<A HREF="ftp://nic.ddn.mil/rfc/rfc1630.txt">URI</A>&gt; &lt;HTTP-VERSION&gt; CRLF
+	&lt;<A HREF="../../../Protocols/">METHOD</A>&gt; &lt;<A HREF="ftp://nic.ddn.mil/rfc/rfc1630.txt">URI</A>&gt; &lt;HTTP-VERSION&gt; CRLF
 </PRE>
  
 <DT>SENT_REQUEST State
@@ -76,29 +75,28 @@ object as soon as the GET request is handled.
 
 <DT>NEED_ACCESS_AUTHORIZATION State
 
-<DD>If a <A HREF="../../../Protocols/HTTP/HTRESP.html">401
-Unauthorized</A> status code is returned the module asks the user for
-a user id and a password, see also the "<A HREF="../../../Protocols/">
-HTTP Basic Access Authorization Scheme</A>". The connection is closed
-before the user is asked for the user-id and password so any new
-request initiated upon a <A
-HREF="../../../Protocols/HTTP/HTRESP.html">401 status code</A> causes
-a new connection to be established. This is done in order to
-avoid having the connection hanging around waiting while the applications
-is waiting for user input.
+<DD>If a <A HREF="../../../Protocols/">401 Unauthorized</A> status
+code is returned the module asks the user for a user id and a
+password, see also the "<A HREF="../../../Protocols/"> HTTP Basic
+Access Authorization Scheme</A>". The connection is closed before the
+user is asked for the user-id and password so any new request
+initiated upon a <A HREF="../../../Protocols/">401 status code</A>
+causes a new connection to be established. This is done in order to
+avoid having the connection hanging around waiting while the
+applications is waiting for user input.
 
 <DT>REDIRECTION State
 
 <DD>The remote server returns a redirection <A
-HREF="../../../Protocols/HTTP/HTRESP.html">status code</A> if the URI
-has either been moved temporarily or permanent to another location,
-possibly on another HTTP server or any other service, for example FTP
-or gopher. The HTTP module supports both a temporarily and a permanent
+HREF="../../../Protocols/">status code</A> if the URI has either been
+moved temporarily or permanent to another location, possibly on
+another HTTP server or any other service, for example FTP or
+gopher. The HTTP module supports both a temporarily and a permanent
 redirection code returned from the server:
 
 <DL>
 
-<DT><A HREF="../../../Protocols/HTTP/HTRESP.html#z8">301 Moved</A>
+<DT><A HREF="../../../Protocols/">301 Moved</A>
 
 <DD>The load procedure is recursively called on a 301 redirection
 code. The new URI is parsed back to the user as information via the <A
@@ -108,7 +106,7 @@ can be of any <A HREF="../../../Addressing/URL/4_1_Schemes.html">
 access scheme</A> accepted in a URI. An upper limit of redirections
 has been defined (default to 10) in order to avoid infinite loops.
 
-<DT><A HREF="../../../Protocols/HTTP/HTRESP.html#z8">302 Found</A>
+<DT><A HREF="../../../Protocols/">302 Found</A>
 
 <DD>The functionality is the same as for a 301 Moved return status. A
 clever application can use the returned URI to change the document in

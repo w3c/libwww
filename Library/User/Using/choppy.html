@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -392,21 +392,20 @@ destination is defined as <A
 HREF="wais://www.w3.org:8001/">wais://www.w3.org:8001/</A> where a
 WAIS gateway is accepting connections.
 
+
 <H1>Registering Proxy Servers and Gateways</H1>
 
 An application can indirectly support an access method by redirecting
 the request to either a proxy or a gateway. The difference between a
-proxy server and a gateway is subtle and is described in <A
-HREF="../Guide/Config.html#proxy">Internals and Programmer's
-Guide</A>, but it does not affect the application using the Library
-and the redirection is normally transparent to the user. The Library
-supports both proxies and gateways through the <A
-HREF="../../Implementation/HTProxy.html" >HTProxy module</A> and all
-requests can be redirected to a proxy or a gateway, even requests on
-the local file system. Of course, the Library can also be used in
-proxy or gateway applications which in terms can use other proxies or
-gateways so that a single request can be passed through a series of
-intermediate agents.<P>
+proxy server and a gateway is not important here as it does not affect
+the application using the Library and the redirection is normally
+transparent to the user. The Library supports both proxies and
+gateways through the <A HREF="../../Implementation/HTProxy.html"
+>HTProxy module</A> and all requests can be redirected to a proxy or a
+gateway, even requests on the local file system. Of course, the
+Library can also be used in proxy or gateway applications which in
+terms can use other proxies or gateways so that a single request can
+be passed through a series of intermediate agents.<P>
 
 The set of public function to registere a gateway or a proxy are as
 follows:
@@ -477,6 +476,7 @@ access scheme or how to access the information directly. That way,
 powerful client applications can be built having direct support for,
 for example, HTTP only.
 
+
 <H1>Using Anchors</H1>
 
 <UL>
@@ -486,6 +486,7 @@ for example, HTTP only.
 <LI>relations between links
 <LI>memory management
 </UL>
+
 
 <H1>The Request Object</H1>
 
@@ -519,7 +520,7 @@ extern HTNetCallBack HTLoad_terminate;
 The request object is intended to live as long as the request is still
 active, but can be deleted as soon as it has terminatedk, for example
 in one of the request termination callback functions as described in
-the <A HREF="HTNet.html">Net Manager</A>. Only the anchor object stays
+the <A HREF="../../Implementation/HTNet.html">Net Manager</A>. Only the anchor object stays
 around after the request itself is terminated.
 
 <H3>Create new Object</H3>
@@ -563,7 +564,7 @@ protocol implementation to try and carry this operation out. However,
 not all operations can be implemented (or make sense) in all
 protocols. <P>
 
-Methods are handled by the <A HREF="HTMethod.html">Method Module</A>,
+Methods are handled by the <A HREF="../../Implementation/HTMethod.html">Method Module</A>,
 and the default value is "GET".
 
 <PRE>
@@ -632,7 +633,7 @@ The Accept family of headers is an important part of HTTP handling the
 format negotiation. The Library supports both a global set of accept
 headers that are used in <EM>all</EM> HTTP requests and a local set of
 accept headers that are used in specific requests only. The global
-ones are defined in the <A HREF="HTFormat.html">Format
+ones are defined in the <A HREF="../../Implementation/HTFormat.html">Format
 Manager</A>.  <P>
 
 Each request can have its local set of accept headers that either are
@@ -647,8 +648,8 @@ else <EM>both</EM> local and global headers are used.
 Th <EM>local</EM> list of specific conversions which the format
 manager can do in order to fulfill the request.  It typically points
 to a list set up on initialisation time for example by <A
-HREF="HTInit.html">HTInit()</A>. There is also a <A
-HREF="HTFormat.html#z17"><EM>global</EM></A> list of conversions which
+HREF="../../Implementation/HTInit.html">HTInit()</A>. There is also a <A
+HREF="../../Implementation/HTFormat.html#z17"><EM>global</EM></A> list of conversions which
 contains a generic set of possible conversions.
 
 <PRE>
@@ -748,7 +749,7 @@ extern HTRqHd HTRequest_rqHd (HTRequest *request);
 <H3><A NAME="enhd">Entity Header Mask</A></H3>
 
 The entity headers contain information about the object sent in the
-HTTP transaction. See the <A HREF="HTAnchor.html">Anchor module</A>,
+HTTP transaction. See the <A HREF="../../Implementation/HTAnchor.html">Anchor module</A>,
 for the storage of entity headers. This flag defines which headers are
 to be sent in a request together with an entity body. All headers are
 optional but the default value is <EM>ALL ENTITY HEADERS IF
@@ -782,8 +783,7 @@ extern HTEnHd HTRequest_enHd (HTRequest *request);
 
 If this parameter is set then a `Referer: &lt;parent address&gt; can
 be generated in the request to the server, see <A
-HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">
-Referer field in a HTTP Request</A>
+HREF="../../../Protocols/"> HTTP Protocol</A>
 
 <PRE>
 extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
@@ -819,7 +819,7 @@ extern HTStream *HTRequest_OutputStream (HTRequest *request);
 
 The desired format of the output stream. This can be used to get
 unconverted data etc. from the library. If <CODE>NULL</CODE>, then <A
-HREF="HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
+HREF="../../Implementation/HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
 
 <PRE>
 extern void HTRequest_setOutputFormat (HTRequest *request, HTFormat format);
@@ -917,17 +917,17 @@ extern HTList *HTRequest_errorStack (HTRequest *request);
 This function returns the bytes read in the current request. For a
 deeper description of what the current request is, please read the
 user's guide. This function can be used in for example the <A
-HREF="HTAlert.html">HTAlert module</A> to give the number of bytes
+HREF="../../Implementation/HTAlert.html">HTAlert module</A> to give the number of bytes
 read in a progress message.
 
 <PRE>
 extern long HTRequest_bytesRead(HTRequest * request);
 </PRE>
 
+
 <H1>Managing the HyperDoc Object</H1>
 
 <B>MORE</B>
-
 
 <H1>The Access Manager</H1>
 
@@ -1002,6 +1002,7 @@ HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>
 by providing the registration mechanism of a call back function and a
 pointer to an arbitrary data structure to be passed to that call back
 function. <P>
+
 
 <H1>The Protocol Manager</H1>
 
@@ -1182,10 +1183,10 @@ where <CODE>HTExpiresMode</CODE> can take any of the values:
 
 <B>MORE</B>
 
-
 <H1>The Event Manager</H1>
 
 <B>MORE</B>
+
 
 <H1>The Log Module</H1>
 
@@ -1234,7 +1235,6 @@ Some of the navigation steps supported by the module are "back",
 "forward", and jump to a position in the list. The details of the
 module is listed in the declaration part of the <A
 HREF="../../Implementation/HTHist.html">HTHist module</A>.
-
 
 <H1>The HTTP/MIME Parser</H1>
 
@@ -1439,7 +1439,7 @@ confirmations. </P>
 
 In case the
 application has its own event loop, and wants to use the Library in <B>Passive
-mode</B> then the internal <A HREF="../../Implementation/HTEvent.html">HTEvent
+mode</B> then the internal <A HREF="../../Implementation/HTEvntrg.html">HTEvent
 module</A> must be replaced by a new definition in the application.
 </P>
 
@@ -1468,7 +1468,7 @@ environment, many global variables have been replaced with thread-safe
 representations. However, many modules do still contain state
 independent global variables defining display options, global
 time-outs, trace options etc. Typical examples are the module to
-generate <A HREF="../../Implementation/HTDirBrw.html">directory
+generate <A HREF="../../Implementation/HTDir.html">directory
 listings</A> for HTTP, FTP, and local file access to directories and
 the <A HREF="../../Implementation/HTError.html" >error handling
 module</A>.
