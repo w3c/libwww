@@ -21,6 +21,7 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "WWWStream.h"
 #include "HTReqMan.h"
 #include "HTBound.h"					 /* Implemented here */
 
@@ -71,7 +72,7 @@ PRIVATE int HTBoundary_put_block (HTStream * me, const char * b, int l)
 	    }
 	    if (*b == '-') {
 		me->dash++;
-	    } else if (*b != LF) {
+	    } else if (*b != CR && *b != LF) {
 		me->dash = 0;
 		me->state = EOL_BEGIN;
 	    }
@@ -88,7 +89,7 @@ PRIVATE int HTBoundary_put_block (HTStream * me, const char * b, int l)
 	    }
 	    if (*b == '-') {
 		me->dash++;
-	    } else if (*b != LF) {
+	    } else if (*b != CR && *b != LF) {
 		me->dash = 0;
 		me->state = EOL_BEGIN;
 	    }
@@ -97,7 +98,8 @@ PRIVATE int HTBoundary_put_block (HTStream * me, const char * b, int l)
 	    int status;
 	    if (me->body) {
 		if (me->target) FREE_TARGET;
-		me->target = HTStreamStack(WWW_MIME,me->format,me->orig_target,
+		me->target = HTStreamStack(WWW_MIME,me->format,
+					   HTMerge(me->orig_target, 2),
 					   me->request, YES);
 		if (end > start) {
 		    if ((status = PUTBLOCK(start, end-start)) != HT_OK)
@@ -178,8 +180,11 @@ PUBLIC HTStream * HTBoundary   (HTRequest *	request,
 				HTFormat	output_format,
 				HTStream *	output_stream)
 {
+    HTResponse * response = HTRequest_response(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAssocList * type_param = HTAnchor_formatParam(anchor);
+    HTAssocList * type_param = response ?
+	HTResponse_formatParam(response) :
+	HTAnchor_formatParam(anchor);
     char * boundary = HTAssocList_findObject(type_param, "boundary");
     if (boundary) {
 	HTStream * me;
