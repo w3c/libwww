@@ -31,8 +31,7 @@ AM_CONFIG_HEADER(wwwconf.h)
 
 dnl Regular configure...
 AC_PROG_CC
-AC_PROG_CXX
-dnl AC_CYGWIN32 	dnl   You should probably
+dnl AC_CYGWIN 	dnl   You should probably
 dnl AC_MINGW32  	dnl   use all three of these
 dnl AC_EXEEXT   	dnl   for maximum portability
 AM_PROG_LIBTOOL
@@ -205,7 +204,7 @@ AC_CHECK_FUNCS(getcwd gethostname getdomainname getwd  \
 		select socket strerror strtol opendir getpid strchr memcpy \
 		getlogin getpass fcntl readdir sysinfo ioctl chdir tempnam \
 		getsockopt setsockopt \
-		gettimeofday mktime timegm)
+		gettimeofday mktime timegm tzset)
 AC_CHECK_FUNC(unlink, , AC_CHECK_FUNC(remove, AC_DEFINE(unlink, remove)))
 
 dnl THINGS TO CONSIDER
@@ -420,7 +419,8 @@ AC_ARG_WITH(expat,
     HTXML=""
     ;;
   *)
-    AC_MSG_RESULT(no)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_EXPAT)
     HTXML="HTXML.lo"
     ;;
   esac ],
