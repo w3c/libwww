@@ -805,8 +805,10 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	    /*
 	    ** Send out the request if we're not blocked on write
 	    */
+#if 0
 	    if (!(host->registeredFor & HTEvent_BITS(HTEvent_WRITE)))
 		status = HTHost_launchPending(host) == YES ? HT_OK : HT_ERROR;
+#endif
 	} else {
 	    if (CORE_TRACE) HTTrace("Host info... Add Net %p as pending\n", net);
 	    if (!host->pending) host->pending = HTList_new();
@@ -821,7 +823,9 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 PUBLIC BOOL HTHost_free (HTHost * host, int status)
 {
     if (host->channel == NULL) return NO;
-    if (host->persistent) {
+    if (host->persistent && !(host->reqsMade >= host->reqsPerConnection && HTList_count(host->pipeline) <= 1))
+/*    if (host->persistent) */
+    {
 	if (CORE_TRACE)
 	    HTTrace("Host Object. keeping socket %d\n", HTChannel_socket(host->channel));
 	HTChannel_delete(host->channel, status);
@@ -833,6 +837,10 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 	**  By lowering the semaphore we make sure that the channel
 	**  is gonna be deleted
 	*/
+#if 1
+	HTChannel_downSemaphore(host->channel);
+	HTHost_clearChannel(host, status);
+#else
 	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
 	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
 	host->registeredFor = 0;
@@ -840,6 +848,7 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 	HTChannel_delete(host->channel, status);
 	host->channel = NULL;
 	host->tcpstate = TCP_BEGIN;
+#endif
     }
     return YES;
 }
@@ -920,6 +929,7 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
     **  This can either be reusing an existing connection or opening a new one
     */
     if (available > 0 || host->mode >= HT_TP_PIPELINE) {
+	HTNet * net;
 
 	/*
 	**  In pipeline we can only have one doing writing at a time.
@@ -927,17 +937,20 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
 	**  registered for write
 	*/
 	if (host->mode == HT_TP_PIPELINE) {
-	    HTNet * last = (HTNet *) HTList_lastObject(host->pipeline);
-	    if (last && last->registeredFor == HTEvent_WRITE)
+	    net = (HTNet *) HTList_lastObject(host->pipeline);
+	    if (net && net->registeredFor == HTEvent_WRITE)
 		return NO;
 	}
 
 	/*
 	**  Check the current Host object for pending Net objects
+	**
+	**  Send out as many as will fit in pipe.
 	*/
-	if (host && _roomInPipe(host)) {
-	    HTNet * net = HTHost_nextPendingNet(host);
-	    if (net) return HTNet_execute(net, HTEvent_WRITE);
+	while (_roomInPipe(host) && (net = HTHost_nextPendingNet(host))) {
+	    int status = HTNet_execute(net, HTEvent_WRITE);
+	    if (status != HT_OK)
+		return status;
 	}
 
 	/*
