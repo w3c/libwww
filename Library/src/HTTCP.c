@@ -41,6 +41,10 @@
 #define MAX_ACCEPT_POLL		30
 #define FCNTL(r, s, t)		fcntl(r, s, t)
 
+#ifndef RESOLV_CONF
+#define RESOLV_CONF "/etc/resolv.conf"
+#endif
+
 /* Globals */
 PUBLIC unsigned int	HTConCacheSize = 512;	 /* Number of cached servers */
 
@@ -327,7 +331,7 @@ PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
     if ((new = (host_info *) calloc(1, sizeof(host_info))) == NULL ||
 	(new->addrlist = (char **)
 	 calloc(1, sizeof element->h_addr_list)) == NULL)
-	outofmem(__FILE__, "HTParseInet");
+	outofmem(__FILE__, "HTTCPCacheAddElement");
     new->hostname = host;
 
     if ((homes = (sizeof element->h_addr_list) / element->h_length) > 1) {
@@ -421,7 +425,7 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin, BOOL *, multi)
 	while ((pres = (host_info *) HTList_nextObject(cur)) != NULL) {
 	    if (pres->hostname == hostatom) {
 		if (TRACE)
-		    fprintf(stderr, "ParseInet... Host `%s\' found in cache.\n", host);
+		    fprintf(stderr, "HostByName.. Host `%s\' found in cache.\n", host);
 		break;
 	    }
 	}
@@ -452,7 +456,7 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin, BOOL *, multi)
 	    fprintf(stderr, "HTTCP: gethostbyname(%s)\n", host);
 #endif
 	if ((hostelement = gethostbyname(host)) == NULL) {
-	    if (TRACE) fprintf(stderr, "ParseInet... Can't find internet node name `%s'.\n", host);
+	    if (TRACE) fprintf(stderr, "HostByName.. Can't find internet node name `%s'.\n", host);
 	    return -1;
 	}
 	
@@ -608,7 +612,7 @@ PRIVATE void get_host_details NOARGS
     
     if (hostname) return;		/* Already done */
     gethostname(name, namelength);	/* Without domain */
-    CTRACE(tfp, "TCP......... Local host name is %s\n", name);
+    if (TRACE) fprintf(stderr, "TCP......... Local host name is %s\n", name);
     StrAllocCopy(hostname, name);
 
 #ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
@@ -620,7 +624,8 @@ PRIVATE void get_host_details NOARGS
 	return;  /* Fail! */
     }
     StrAllocCopy(hostname, phost->h_name);
-    CTRACE(tfp, "TCP......... Full local host name is %s\n", hostname);
+    if (TRACE)
+	fprintf(stderr, "TCP......... Full local host name is %s\n", hostname);
 
 #ifdef NEED_HOST_ADDRESS		/* no -- needs name server! */
     memcpy(&HTHostAddress, &phost->h_addr, phost->h_length);
@@ -633,45 +638,93 @@ PRIVATE void get_host_details NOARGS
 #endif /* OLD_CODE */
 
 /*								HTHostName
-**	Returns the name of this host. It first uses gethostname()
-**	and if it not finds any domain name then it tries getdomainname.
-**	If using the DNS and we are on a multi homed host, then the first
-**	entry is used.
+**	Returns the name of this host. It uses the following algoritm:
+**
+**	1) gethostname()
+**	2) if the hostname doesn't contain any '.' try to read
+**	   /etc/resolv.conf. If there is no domain line in this file then
+**	3) Try getdomainname and do as the man pages say for resolv.conf (sun)
+**		If there is no domain line in this file, then it is derived
+**		from the domain name set by the domainname(1) command, usually
+**		by removing the first component. For example, if the domain-
+**		name is set to ``foo.podunk.edu'' then the default domain name
+**		used will be ``pudunk.edu''.
+**
+**	This is the same procedure as used by res_init() and sendmail.
 **
 **	Return: hostname on success else NULL
 */
 PUBLIC CONST char * HTHostName NOARGS
 {
+    BOOL got_it = NO;
+    FILE *fp;
     char name[MAXHOSTNAMELEN+1];
-    if (hostname)					  /* If already done */
-	return hostname;
+    if (hostname) {		       			  /* If already done */
+	if (*hostname)
+	    return hostname;
+	else
+	    return NULL;		    /* We couldn't get the last time */
+    }
     *(name+MAXHOSTNAMELEN) = '\0';
     if (gethostname(name, MAXHOSTNAMELEN)) { 	     /* Maybe without domain */
 	if (TRACE)
 	    fprintf(stderr, "HostName.... Can't get host name\n");
 	return NULL;
     }
-    CTRACE(tfp, "HostName.... Local host name is %s\n", name);
+    if (TRACE)
+	fprintf(stderr, "HostName.... Local host name is %s\n", name);
     StrAllocCopy(hostname, name);
 
-#ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
-#ifdef sun						/* Don't use the DNS */
-    if (getdomainname(name, MAXHOSTNAMELEN)) {
-	if (TRACE)
-	    fprintf(stderr, "HostName.... Can't get domain name\n");
-	FREE(hostname);
-	return NULL;
+    /* Now try the resolver config file */
+    if ((fp = fopen(RESOLV_CONF, "r")) != NULL) {
+	char buffer[80];
+	*(buffer+79) = '\0';
+	while (fgets(buffer, 79, fp)) {
+	    if (!strncasecomp(buffer, "domain", 6)) {	
+		char *domainstr = buffer+6;
+		char *end;
+		while (*domainstr == ' ' || *domainstr == '\t')
+		    domainstr++;
+		end = domainstr;
+		while (*end && !isspace(*end))
+		    end++;
+		*end = '\0';
+		if (*domainstr) {
+		    StrAllocCat(hostname, ".");
+		    StrAllocCat(hostname, domainstr);
+		    got_it = YES;
+		    break;
+		}
+	    }
+	}
+	fclose(fp);
     }
 
-    /* If the host name and the first part of the domain name are different
-       then use the former as it is more exact (I guess) */
-    if (strncmp(name, hostname, (int) strlen(hostname))) {
-	char *domain = strchr(name, '.');
-	if (!domain)
-	    domain = name;
-	StrAllocCat(hostname, domain);
+    /* If everything else has failed then try getdomainname */
+    if (!got_it) {
+	if (getdomainname(name, MAXHOSTNAMELEN)) {
+	    if (TRACE)
+		fprintf(stderr, "HostName.... Can't get domain name\n");
+	    *hostname = '\0';
+	    return NULL;
+	}
+
+	/* If the host name and the first part of the domain name are different
+	   then use the former as it is more exact (I guess) */
+	if (strncmp(name, hostname, (int) strlen(hostname))) {
+	    char *domain = strchr(name, '.');
+	    if (!domain)
+		domain = name;
+	    StrAllocCat(hostname, domain);
+	}
     }
-#else			      /* Now we try to get information on the domain */
+    if (TRACE)
+	fprintf(stderr, "HostName.... Full local host name is %s\n", hostname);
+    return hostname;
+
+#ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
+#ifdef OLD_CODE
+			      /* Now we try to get information on the domain */
     {
 	struct hostent *hostelement;
 	if ((hostelement = gethostbyname(hostname)) == NULL) {
@@ -682,10 +735,8 @@ PUBLIC CONST char * HTHostName NOARGS
 	}
 	StrAllocCopy(hostname, (char *) hostelement->h_name);
     }
-#endif /* DNS access */
+#endif /* OLD_CODE */
 #endif /* not Decnet */
-    CTRACE(tfp, "HostName.... Full local host name is %s\n", hostname);
-    return hostname;
 }
 
 
