@@ -1127,6 +1127,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    if (!ctrl->sent) {
 		char *cmd = (data->type=='L') ? "LIST" :
 		    (data->type=='N') ? "NLST" : "RETR";
+	        if (HTRequest_method(request) == METHOD_PUT) cmd = "STOR";
 		StrAllocCopy(segment, data->offset);
 		HTUnEscape(segment);
 		HTCleanTelnetString(segment);
@@ -1238,10 +1239,29 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	  case NEED_BODY:
 	      HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_BODY\n");
 	      if (data_is_active) {
+		  if (HTRequest_method(request) == METHOD_PUT) {
+		      HTParentAnchor * entity = HTRequest_entityAnchor(request);
+		      const char * document = (const char *) HTAnchor_document(entity);
+		      int length = (int)HTAnchor_length(entity);
+		      HTStream * output = 
+			  (HTStream *)HTChannel_output(HTNet_host(dnet)->channel);
+		      status = (*output->isa->put_block)(output,document,length);
+		      if (status == HT_WOULD_BLOCK) {
+			  return HT_WOULD_BLOCK;
+		      } else if ( status == HT_OK ) {
+			  ctrl->substate = SUB_SUCCESS;
+			  data->complete |= 3;
+		      } else {
+			  ctrl->substate = SUB_ERROR;
+			  data->stream_error = YES;
+		      }
+		      continue;
+		  } else {
 		  status = HTHost_read(HTNet_host(dnet), dnet);
+		  }
 		  if (status == HT_WOULD_BLOCK)
 		      return HT_WOULD_BLOCK;
-		  else if (status == HT_LOADED || status == HT_CLOSED) {
+		  else if (status == HT_LOADED || status == HT_CLOSED || status == HT_OK) {
 		      data->complete |= 1; 
 		      if (data->complete >= 3)
 			  ctrl->substate = SUB_SUCCESS;
@@ -1380,8 +1400,9 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_BEGIN\n");
 
 	      /* Only handle GET requests for now */
-	      if (HTRequest_method(request) != METHOD_GET) {
-		  HTTRACE(PROT_TRACE, "FTP Event... This module only supports the GET method\n");
+	      if (HTRequest_method(request) != METHOD_GET &&
+	          HTRequest_method(request) != METHOD_PUT ) {
+		  HTTRACE(PROT_TRACE, "FTP Event... This module only supports the GET or PUT methods\n");
 		  ctrl->state = FTP_ERROR;
 		  break;
 	      }
@@ -1520,6 +1541,8 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		ctrl->state = FTP_SUCCESS;
 	    else if (status == HT_OK)
 		ctrl->state = FTP_NEED_DCON;
+	    else if (HTRequest_method(request) == METHOD_PUT)
+		ctrl->state = FTP_ERROR;
 	    else if (!FTP_DIR(data) && !data->stream_error) {
 		FTPListType(data, ctrl->server);
 		ctrl->state = FTP_NEED_SERVER;         /* Try a dir instead? */
