@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Internals - Presentation Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -23,9 +23,9 @@ overwrite</A>.
 
 As mentioned in the <A HREF="../Using.html">how to get started
 guide</A>, the definition of a graphic object is free for the
-application. Some graphic objects work by storing the whole structure
-of the document.  Others work by converting the nested structure into
-a linear sequence of styled text for display. <P>
+application. Some graphic objects work by storing the whole document.
+Others work by converting the nested structure into a linear sequence
+of styled text for display. <P>
 
 Generally, a new platform has a new implementation of the hypertext
 object. A GUI client must overwrite the graphic object modules in the
@@ -64,10 +64,9 @@ place to connect your code.
 
 </DL>
 
-You are free to define the structure of the hypertext object (the
-structure is left undefined in the <A
-HREF="../../Implementation/HText.html">HText module</A>. You may want to
-define your own styles and font definitions. <P>
+You are free to define the structure of the hypertext object declared
+in the <A HREF="../../Implementation/HText.html">HText module</A>. You
+may want to define your own styles and font definitions. <P>
 
 </DL>
 

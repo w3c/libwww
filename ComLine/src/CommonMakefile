@@ -68,6 +68,7 @@ SOURCES=$(CFILES) $(HFILES) \
 	$(CL)/Version.make \
 	$(CL)/CommonMakefile \
 	$(CL)/README \
+	$(WWW)/ComLine/README \
 	$(WWW)/Makefile \
 	$(WWW)/BUILD \
 	$(WWW)/BUILD.SH
@@ -93,6 +94,7 @@ DOCS =	$(CL)/*.html \
 	`find $(DOC) -follow \( -name \*.html -o -name \*.gif \) -print`
 
 SPECIFIC = \
+	$(WWW)/All/Makefile.include \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
@@ -134,7 +136,7 @@ lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
 inc :	$(HFILES)
-	@echo "Include files generated from member"
+	@echo "Include files generated from hypertext"
 
 #	Make a copy of the binary and documentation on this machine
 install :	$(PROD)
@@ -218,20 +220,20 @@ $(FTP)/$(PROD)_$(VT)_src.zip : $(SOURCES)
 #	Hypertext supplied in text format
 #	---------------------------------
 
-$(TOP)/WELCOME : /afs/w3.org/member/WELCOME.html
-	www -p -na http://www.w3.org/member/WELCOME.html -o $(TOP)/WELCOME
+$(TOP)/WELCOME : /afs/w3.org/devel/WELCOME.html
+	www -p -na http://www.w3.org/devel/WELCOME.html -o $(TOP)/WELCOME
 
-$(WWW)/README : /afs/w3.org/member/WWW/README.html
-	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
+$(WWW)/README : /afs/w3.org/devel/WWW/README.html
+	www -p -na http://www.w3.org/devel/WWW/README.html -o $(WWW)/README
 
-$(WWW)/COPYRIGHT : /afs/w3.org/member/WWW/COPYRIGHT.html
-	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
+$(WWW)/COPYRIGH : /afs/w3.org/devel/WWW/COPYRIGHT.html
+	www -p -na http://www.w3.org/devel/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
-$(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html
-	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
+$(WWW)/PATCHES : /afs/w3.org/devel/WWW/PATCHES.html
+	www -p -na http://www.w3.org/devel/WWW/PATCHES.html -o $(WWW)/PATCHES
 
-$(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
-	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
+$(WWW)/CERN : /afs/w3.org/devel/WWW/CERN.html
+	www -p -na http://www.w3.org/devel/WWW/CERN.html -o $(WWW)/CERN
 
 #	OBJECT GENERATION
 #	=================

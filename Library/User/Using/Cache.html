@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>  
 <BODY>
 
@@ -27,14 +27,14 @@ maintained in the Library.</P>
 
 The memory cache is largely managed by the application as it simply
 consists of keeping the graphic objects described by the
-<CODE>HyperDoc</CODE> structure in memory as the user keeps requesting
-new documents. The <CODE>HyperDoc</CODE> structure is only declared in
+<CODE>HyperDoc</CODE> object in memory as the user keeps requesting
+new documents. The <CODE>HyperDoc</CODE> object is only declared in
 the Library - the real definition is left to the application as it is
 for the application to handle graphic objects. The Line Mode Browser
-has its own definition of the <CODE>HyperDoc</CODE> structure called
+has its own definition of the <CODE>HyperDoc</CODE> object called
 <A HREF="../../../LineMode/Implementation/GridText.html"
 ><CODE>HText</CODE></A>. Before a request is processed over the net,
-the anchor object is searched for a <CODE>HyperDoc</CODE> structure
+the anchor object is searched for a <CODE>HyperDoc</CODE> object
 and a new request is issued only if this is not present or the Library
 explicitly has been asked to reload the document, which is described
 in the section <A HREF="#reload">Short Circuiting the Cache</A></P>
@@ -55,9 +55,9 @@ the same no matter how the garbage collector is implemented. </P>
 
 The file cache is intended for intermediate term storage of documents
 or data objects that can not be represented by the
-<CODE>HyperDoc</CODE> structure which is referenced by the
+<CODE>HyperDoc</CODE> object which is referenced by the
 <CODE>HTAnchor</CODE> object. As the definition of the
-<CODE>HyperDoc</CODE> structure is done by the application there is no
+<CODE>HyperDoc</CODE> object is done by the application there is no
 explicit rule of what graphic objects that can not be described by the
 <CODE>HyperDoc</CODE>, but often it is binary objects, like images
 etc.</P>

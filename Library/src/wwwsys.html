@@ -1002,6 +1002,14 @@ These are a default unix where not already defined specifically.
 #define HAVE_STRERROR
 #endif
 
+#ifdef __FreeBSD__
+#define NO_TIMEZONE
+#define HAVE_STRERROR
+#define NO_GETWD
+#define HAS_GETCWD
+#define FULL_TELNET
+#endif
+
 </PRE>
 
 <H3>Directory reading stuff - BSD or SYS V</H3>

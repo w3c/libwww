@@ -1,5 +1,5 @@
 
-		 WELCOME TO THE W3C REFERENCE LIBRARY
+		 WELCOME TO THE W3C LINE MODE BROWSER
 		 ====================================
 
 (c) COPYRIGHT MIT 1995.
@@ -10,14 +10,14 @@ CERN. This acknowledgement shall be mentioned in full in any product
 which includes the CERN computer software included herein or parts
 thereof."
 
-This part of the source code contains VMS specific code.
+This part of the Line Mode contains Microsoft Windows specific code.
 
-For more information on the Library, please look at the page
+For more information on the Line Mode, please look at the page
 
-	http://www.w3.org/pub/WWW/Library/
+	http://www.w3.org/pub/WWW/LineMode/
 
 Have fun!
 
 --
 
-libwww@w3.org, December 1995
+libwww@w3.org, May 1995

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Core Objects and Managers</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -12,209 +12,116 @@
 
 <H1>Core Objects and Managers</H1>
 
-The central data structures are the structures that are a part of the
-core entity. Each of the core modules as explained in section "<A
-HREF="ControlFlow.html">Control and Data Flow</A>"are relying on one
-or more of the central data structures. This section describes the
-relationship between the core modules and the central data structures
-<EM>and</EM> the relationship between the central data structures
-themselves. <P>
+The Library Core contains a set of objects central to the Library. Each of the core modules as
+explained in section "<A HREF="ControlFlow.html">Control and Data Flow</A>"are relying on one or
+more of these objects. This section describes the relationship between the core modules, the core
+objects <EM>and</EM> the relationship between the core objects themselves. <P>
 
-The figure below is very similar to the one in section "<A
-HREF="ControlFlow.html">Control and Data Flow</A>", but it also
-introduces the set of central data structures as boxes that represent
-the main structures connected to the corresponding core modules. This
-does not mean that these are the only existing relations, but it can
-be used as an indication.
+The figure below is very similar to the one in section "<A HREF="ControlFlow.html">Control and Data
+Flow</A>", but it also introduces the core objects associated.
 
 <P><IMG SRC="ModStruc.gif" ALT="Structures"><P>
 
 <DL>
 
-<DT><IMG ALIGN=BOTTOM SRC="R.gif" ALT="R"> <A NAME="request" HREF="../../Implementation/HTAccess.html#z1">HTRequest</A>
+<DT><IMG ALIGN=BOTTOM SRC="R.gif" ALT="R"> <A NAME="request" HREF="../../Implementation/HTReq.html">HTRequest</A>
 
-<DD>The <EM>HTRequest</EM> structure contains information necessary to
-handle a request issued by the application. It contains information
-about the method to be used (for example "GET" and "PUT"), user
-preferences (language, content type etc.) specific for this request,
-where the output of the data object should go etc. The HTRequest
-structure ties together the other structures used by the core modules
-in order to handle the request. It is intended to live until the
-request reaches a final state, either success or failure, after which
-it can be discarded.<P>
-
-Normally, the HTRequest structure is created by the application, but
-the Library is capable of creating HTRequest structures on its own
-under certain circumstances. An example is when the Library creates a
-"Post Web" as explained in section "<A HREF="PostWeb.html">Building a
-POST Web, an API for PUT and POST</A>".
+<DD>The <EM>HTRequest</EM> object contains information necessary to handle a request issued by the
+application. It contains information about the method to be used (for example "GET" and "PUT"), user
+preferences (language, content type etc.) specific for this request, where the output of the data
+object should go etc. A HTRequest object exists until the request reaches a final state, either
+success or failure, after which it can be discarded. Normally, a HTRequest object is created by the
+application, but the Library is capable of creating them on its own under certain circumstances. An
+example is when the Library creates a "Post Web" as explained in section "<A
+HREF="PostWeb.html">Building a POST Web, an API for PUT and POST</A>".
 
 <DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> 
 
-<DD>Anchors represent any data objects which may be the sources or
-destinations of hypertext links. The HTAnchor structure contains all
-information about the object, whether it has been loaded,
-metainformation like language, media type etc., and any relations to
-other objects. The Library defines two anchor classes: a parent anchor
-and a child anchor. The former contains information about whole data
-objects and the latter contains about subparts of a data object. The
-HTAnchor structure is a generic superclass of both parent anchors and
-child anchors. Section "<A HREF="Anchors.html">Anchor Objects</A>"
-describes anchors and their relations in more detail.
+<DD><EM>HTAnchor</EM> objects represent any document which may be the source or destination of
+hypertext links. The HTAnchor object contains all information about the object, whether it has been
+loaded, metainformation like language, media type etc., and any relations to other objects. The
+Library defines two anchor classes: a parent anchor and a child anchor. The former contains
+information about whole data objects and the latter contains about subparts of a data object. The
+HTAnchor object is a generic superclass of both parent anchors and child anchors. Section "<A
+HREF="Anchors.html">Anchor Objects</A>" describes anchors and their relations in more detail.
 
-<DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../Implementation/HTAccess.html#HTNetInfo">HTNetInfo</A>
+<DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../Implementation/HTNet.html">HTNet</A>
 
-<DD><EM>HTNetInfo</EM> is a network interface specific structure that
-contains all information required to read and write from the
-network. It contains the current socket descriptor (or ANSI C file
-descriptor) used for reading and writing, which input buffer to use
-and where to put the data once they are read. It also contains timing
-information on how long it takes to connect to a remote host and how
-many times it has tried to connect. This information is used by the <A
-HREF="DNSCache.html">DNS Cache</A> in order to optimize access on
-multi homed hosts. <P>
+<DD>The <EM>HTNet</EM> is a network object which contains all information required to read and write
+from the network. It contains the current socket descriptor (or ANSI C file descriptor) used for
+reading and writing, which input buffer to use and where to put the data once they are read. It also
+contains timing information on how long it takes to connect to a remote host and how many times it
+has tried to connect. This information is used by the <A HREF="DNSCache.html">DNS Cache</A> in order
+to optimize access on multi homed hosts. The HTNet object is also a key element in the libwww thread
+model where it is used to identify a "thread". The libwww thread model is explained in "<A
+HREF="Threads.html">Description of libwww Threads</A>".
 
-The HTNetInfo structure is also a key structure in the libwww thread
-model where a thread is identified by this structure. The libwww
-thread model is explained in "<A HREF="Threads.html">Description of
-libwww Threads</A>".
+<DT><IMG ALIGN=BOTTOM SRC="E.gif" ALT="E"> <A NAME="error" HREF="../../Implementation/HTError.html">HTError</A>
 
-<DT><IMG ALIGN=BOTTOM SRC="C.gif" ALT="C"> <A NAME="cache" HREF="../../Implementation/HTFWrite.html#cacheitem">HTCache</A>
-
-<DD>The <EM>HTCache</EM> structure contains metainformation about
-every cached object like the amount of times it has been requested from
-the cache, the content type, the size, and how long it took to obtain
-the data from the network. As the cache manager is yet to be fully
-specified this structure is likely to change in the near future.
-
-<DT><IMG ALIGN=BOTTOM SRC="H.gif" ALT="H"> <A NAME="hyperdoc" HREF="../../../LineMode/Implementation/GridText.c">HyperDoc</A> 
-
-<DD>The <EM>HyperDoc</EM> structure is different from the other
-central data structures as it is only declared in the Library - the
-definition is left to the application. It is intended to contain
-information about data objects, especially hypertext objects that are
-to be presented to a user. As an example of a definition, you can look
-at the <A HREF="../../../LineMode/">Line Mode Browser</A>
-where it is defined in the <A
-HREF="../../../LineMode/Implementation/GridText.c"> GridText
-Module</A>. Here it is called "_HText" structure and it contains all
-information needed to present and manage a data object in a text based
-environment. <P>
-
-The memory management of the HyperDoc object is also left to the
-application along with the definition. The Library does not use any
-information from the object at all - the only interaction is that the
-access manager checks if a HyperDoc object exists for a given anchor
-or not as a part of servicing a request. The application can use this
-to maintain a set of HyperDoc objects in memory as a fast
-cache. Again, the Line Mode Browser can be used as an example as it
-keeps the 5 latest accessed hypertext objects in memory (regardless of
-their size) in order to allow fast back track for the user. The
-relation to the HTAnchor object requires that there is a link from the
-HyperDoc to the corresponding anchor in order for the application to
-do proper garbage collection of the HyperDoc objects.<P>
-
-Even though the Library does not interfere with the contents of the
-HyperDoc object it does provide an API for managing the object. This
-API is known as the "HText" API and it is described further in the <A
-HREF="../Using/">User's Guide</A>
-
-<DT><IMG ALIGN=BOTTOM SRC="E.gif" ALT="E"> <A NAME="error" HREF="../../Implementation/HTError.html#errorinfo">HTErrorInfo</A>
-
-<DD>The <EM>HTErrorInfo</EM> contains information about errors occured
-in the protocol manager. Each request (in form of a HTRequest
-structure) has an error stack which is a linked list of HTErrorInfo
-structures. The HTErrorInfo structure contains an error number that
-refers to a list of error messages, the severity of the error, any
-parameters registered together with the error, and if this specific
-error should be ignored by the application or not - independently of
-the severity. A parameter can for example be a file name causing the
-error.
+<DD>The <EM>HTError</EM> object contains information about errors occured along the way when a
+request is handled by the Library. Errors can be nested and the object is independent of the natural
+langue used to pass information to the User. The definition of the messages may be handled by the
+application - or it can ignore it all together.
 
 <DT><IMG ALIGN=BOTTOM SRC="S.gif" ALT="S"> <A NAME="stream" HREF="../../Implementation/HTStream.html">HTStream</A> 
 
-<DD>The <A HREF="../../Implementation/HTStream.html">stream</A>
-structure is an object which accepts sequences of characters. It is a
-destination of data which can be thought of much like an output stream
-in C++ or an ANSI C-file stream for writing data to a disk or another
-peripheral device. The broad definition makes streams very flexible
-and they are used as the main method to transport data from the
-application to the network and vise versa. The Library defines two
-stream classes: A generic stream class and a specialized stream class
-for structured data using SGML lexical tokens. The contents of the two
-classes is described in detail in section "<A
-HREF="Streams.html">Streams Objects</A>".
+<DD>The <A HREF="../../Implementation/HTStream.html">stream</A> object accepts sequences of
+characters. It is a destination of data which can be thought of much like an output stream in C++ or
+an ANSI C-file stream for writing data to a disk or another peripheral device. The broad definition
+makes streams very flexible and they are used as the main method to transport data from the
+application to the network and vise versa. The Library defines two stream classes: A generic stream
+class and a specialized stream class for structured data using SGML lexical tokens. The contents of
+the two classes is described in detail in section "<A HREF="Streams.html">Streams Objects</A>".
 
 </DL>
 
-The following figure illustrates the relations between the central
-data structures themselves. As before there might be other relations
-between the structures, but these are the main relations.
+The following figure illustrates the relations between the core objects themselves.
 
 <P><IMG SRC="DataStruc.gif" ALT="Structures"><P>
 
 <OL>
 
-<LI>When an application issues a request the access manager binds the
-anchor corresponding to a URL together with a request object. The
-binding exists until the request reaches a final state after which the
-application can discard the request object. Normally the anchor object
-stays in memory during the whole life time of the application as the
-set of anchors represent the part of the Web that the application has
-been in touch with including metainformation etc.
+<LI>When an application issues a request the access manager binds the anchor corresponding to a URL
+together with a request object. The binding exists until the request reaches a final state after
+which the application can discard the request object. Normally the anchor object stays in memory
+during the whole life time of the application as the set of anchors represent the part of the Web
+that the application has been in touch with including metainformation etc.
 
-<LI>The application can make a binding between the request object and
-the desired destination for the data when it arrives, typically from
-the network. The request object is by default bound to a <A
-HREF="../../Implementation/HTML.html">presentation stream</A> which
-presents a hypertext object to the user on the screen, but it can also
-be written to a file, represented as source text etc.
+<LI>The application can make a binding between the request object and the desired destination for
+the data when it arrives, typically from the network. The request object is by default bound to a <A
+HREF="../../Implementation/HTML.html">presentation stream</A> which presents a hypertext object to
+the user on the screen, but it can also be written to a file, represented as source text etc.
 
-<LI>If the file cache is enabled a cache object is created and linked
-to the anchor object by the cache manager so that the access manager
-on any future requests can use the cached version (if not stale). As
-mentioned, the cache manager is yet to be fully designed, and the
-current approach may change.
+<LI>If the file cache is enabled a cache object is created and linked to the anchor object by the
+cache manager so that the access manager on any future requests can use the cached version (if not
+stale). As mentioned, the cache manager is yet to be fully designed, and the current approach may
+change.
 
-<LI>If the data object is not found in the cache or in memory the
-protocol manager is called by the access manager. The protocol manager
-then executes a specific protocol module which creates a netinfo
-object and binds it to the request object. The netinfo object is
-maintained uniquely by the protocol module and is removed by the
-protocol module as soon as the communication with the remote server
+<LI>If the data object is not found in the cache or in memory the protocol manager is called by the
+access manager. The protocol manager then executes a specific protocol module which creates a HTNet
+object and binds it to the request object. The HTNet object is maintained uniquely by the protocol
+module and is removed by the protocol module as soon as the communication with the remote server
 reaches a final state.
 
-<LI>The request object also has a link to any error information
-related to it. At the end of the request this information is handled
-by the error manager and an error message may be generated and passed
-to the user.
+<LI>The request object also has a link to any error information related to it. At the end of the
+request this information is handled by the error manager and an error message may be generated and
+passed to the user.
 
-<LI>When data starts arriving, typically from the network, it is
-directed down the stream chain which can either already exist or is
-created as data arrives (stream chains are described in the section
-"<A HREF="Streams.html">Stream Objects</A>". In the case where the
-application is transmitting a data object to a remote server, there
-are two steam chains directed in opposite directions: one from the
-application to the network and one from the network to the
-application.
+<LI>When data starts arriving, typically from the network, it is directed down the stream chain
+which can either already exist or is created as data arrives (stream chains are described in the
+section "<A HREF="Streams.html">Stream Objects</A>". In the case where the application is
+transmitting a data object to a remote server, there are two steam chains directed in opposite
+directions: one from the application to the network and one from the network to the application.
 
-<LI>The end of the stream chain is the stream that the user may have
-defined when the request first was issued or it can be the default
-destination which is presenting the information on the screen. Between
-the first and the last stream in the stream chain there can be any
-number of other stream objects performing operations either directly
-on the data, or on the stream flow itself. A T-stream is an example of
-the latter where the stream flow is divided into two.
+<LI>The end of the stream chain is the stream that the user may have defined when the request first
+was issued or it can be the default destination which is presenting the information on the
+screen. Between the first and the last stream in the stream chain there can be any number of other
+stream objects performing operations either directly on the data, or on the stream flow itself. A
+T-stream is an example of the latter where the stream flow is divided into two.
 
-<LI>The application receives the data arriving from the network via
-the "HText" object (or any of the other stream interfaces as explained
-in section <A HREF="../Using/HTML.html">The HTML Parser</A> in
-the User's Guide).
-
-<LI>The HyperDoc object <EM>must</EM> have a link to the HTAnchor
-object in order to verify the anchor whether it has a data object
-attached to it or not. The HyperDoc may have a link to the request
-structure but this is not required.
+<LI>The application receives the data arriving from the network via the "HText" object (or any of
+the other stream interfaces as explained in section <A HREF="../Using/HTML.html">The HTML Parser</A>
+in the User's Guide).
 
 </OL>
 

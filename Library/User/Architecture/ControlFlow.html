@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Overview of the Core</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Dec-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -60,98 +60,53 @@ be set up. The numbers refer to the figure above.
 
 <OL>
 
-<LI>The event manager is waiting for an event from the application.
-This can for example be a user clicking the mouse on a link or types a
-number on the keyboard.
+<LI>The event manager is waiting for an event from the application.  This can for example be a user
+clicking the mouse on a link or types a number on the keyboard. When an event arrives, the event
+manager calls the user event handler provided by the application.
 
-<LI>When an event arrives, the event manager calls the user event
-handler provided by the application.
+<LI>The user event handler creates a request object and uses one of the load methods.
 
-<LI>The user event handler issues a request by calling the access
+<LI>The Request object creates a new Net object.
+
+<LI>The Net object calls any call back functions registered to be called <EM>before</EM> the request
+is actually started. This can for example be mapping the URL to another destination, checking the
+cache, look for proxy servers and gateways etc.
+
+<LI>if the request has to access the net then the Net object passes it to the protocol object 
+
+<LI>The <EM>after</EM> callback functions are called when the request is terminated. Types of
+operations you want to make here can for example be logging, history update etc. If the
+<EM>before</EM> call back functions implies that no net access is required then the protocol object
+is not used at all.
+
+<LI>The event callback function is now called to actually get the document.
+
+<LI>When data is arriving then the Format manager is contacted to build a stream stack.
+
+<LI>The converted data is either handed from the network to the application <EM>or</EM> from the
+application to the network as it gets ready. If no data is ready, control is given back to the event
 manager.
 
-<LI>The access manager contacts the cache manager to see if the object
-is already cached. If data is to be sent <EM>to</EM> the network (for
-example using the HTTP PUT method) then the cache manager is not
-requested.
-
-<LI>If the cache manager says "no" then the protocol manager is
-contacted to down load the object. If "yes" then the cache file is
-accessed.
-
-<LI>The cache manager can also contact the protocol manager directly
-if the cached object turns out to be stale or a reload has explicit
-requested by the application.
-
-<LI>If the protocol manager successfully can access the data object
-then the cache manager is contacted in order to cache or refresh the
-object.
-
-<LI>When data is arriving, either from the cache manager or the
-protocol manager it is passed to the format manager that handles any
-data format conversion as requested by the application.
-
-<LI>The protocol can recursively call the access manager in case of
-redirections and inadequate access authentication for the request
-(after prompting the user).
-
-<LI>The converted data is either handed from the network to the
-application <EM>or</EM> from the application to the network as it gets
-ready. If no data is ready, control is given back to the event
-manager.
-
-<LI>When data is ready to be sent or received from the network, the
-event manager calls the protocol manager directly to handle the data.
-
-<LI>When the request is terminated the application is called with the
-result of the request so that it for example can update a history list
-of visited documents.
+<LI>If an error occurs then a dialog callback function is called to notify the user
 
 </OL>
 
 This description is the "macro" description of how the core modules
 interact and in the rest of this document we shall see more of the
-details of what is going on inside the core modules and what data
-structures are involved. Note that by using a threaded model, the
-Library can handle multiple requests simultaneously. An example on how
-to do this is described in the section "<A HREF="Threads.html">Libwww
+details of what is going on inside the core modules and what objects
+are involved. Note that by using a threaded model, the Library can
+handle multiple requests simultaneously. An example on how to do this
+is described in the section "<A HREF="Threads.html">Libwww
 Threads</A>".
 
 <DL>
 
-<DT><A HREF="../../Implementation/HTAccess.html">Access Manager</A>
-<DD>The access manager is the main entry point for requesting a data
-object pointed to by a URI. It has a set of methods that allows the
-application to request different services, for example to get a URI,
-post a URI, or to search a URI. When the application issues a request,
-the access manager does the following:
+<DT><A HREF="../../Implementation/HTReq.html">Request Object</A>
+<DD>The access manager is the main entry point for requesting a data object pointed to by a URI. It
+has a set of methods that allows the application to request different services, for example to get a
+URI, post a URI, or to search a URI.
 
-<OL>
-
-<LI>Translates the URI according to the rules given, for example by a
-rule file. It also looks for gateways or proxies that should be
-contacted for a specific access method. Rules can be registered
-dynamically as described in the <A HREF="../Using/">User's Guide</A>.
-
-<LI>If the request is on the local file system, the access manager
-verifies that access to local files is allowed. This might not always
-be the case, as is the case when the <A HREF="../../../LineMode/">Line
-Mode Browser</A> is used as a login shell for telnet sessions.
-
-<LI>Then the cache manager is contacted to see if the object
-already has been accessed. The application might administer a memory
-cache in which cache this is consulted before the cache.
-
-<LI>If the data object is not cached then the protocol module is
-called to actually perform the access to the network.
-
-<LI>When a request is to be terminated, the access manager can log the
-result of the request to a local file so that the "browse route" can
-be reconstructed.
-
-</OL>
-
-<DT><A HREF="../../Implementation/HTProt.html">Protocol Manager</A>
+<DT><A HREF="../../Implementation/HTProt.html">Protocol Object</A>
 
 <DD>The protocol manager is invoked by the access manager in order to
 access a document not found in memory or in cache. The manager
@@ -175,15 +130,7 @@ selecting the best conversion. As the protocol modules, data format
 converters can be registered dynamically, and the current set of
 streams includes among others: MIME, SGML, HTML, and LaTeX.
 
-<DT><A HREF="../../Implementation/HTCache.html">Cache Manager</A>
-
-<DD>The cache manager is used to save data objects once they have been
-down loaded from the network. The cache uses the hierarchy indicated
-in the URLs as a way to identify items in the cache but is still under
-construction and requires a lot of work to be a highly efficient cache
-manager!
-
-<DT><A HREF="../../Implementation/HTError.html">Error Manager</A>
+<DT><A HREF="../../Implementation/HTError.html">Error Object</A>
 
 <DD>This module manages an information stack which contains
 information of all errors occurred during the communication with a
@@ -194,12 +141,12 @@ according to its impact on the current request, for example "Fatal",
 "Non-Fatal", "Warning" etc. The filtering can be used to decide which
 level of messages will be passed back to the user.
 
-<DT><A HREF="../../Implementation/HTNet.html">Net Manager</A>
+<DT><A HREF="../../Implementation/HTNet.html">Net Object</A>
 
 <DD>The net manager provides an interface for handling asynchronous
 sockets which is an integral part of the Library.
 
-<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager </A>
+<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager</A>
 
 <DD>The event manager is a "session layer" handling which thread
 should be the active thread. A thread can either be an internal libwww

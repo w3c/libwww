@@ -47,7 +47,7 @@ WIN = $(CL)/windows
 BIN = $(WWW)/Robot/$(WWW_MACH)
 LIBWWW = $(LIB)/libwww.a
 PROD= webbot
-FTP = /afs/w3.org/devel/Dist/Robot
+FTP = /afs/w3.org/devel/Dist/robot
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(CL)
 LFLAGS2 = $(LFLAGS) -L$(LIB) $(WAISLIB) $(MATHLIB) -lwww $(SYSLIBS)
@@ -67,6 +67,7 @@ SOURCES=$(CFILES) $(HFILES) \
 	$(CL)/Version.make \
 	$(CL)/CommonMakefile \
 	$(CL)/README \
+	$(WWW)/Robot/README \
 	$(WWW)/Makefile \
 	$(WWW)/BUILD \
 	$(WWW)/BUILD.SH
@@ -91,6 +92,7 @@ DOCS =	$(CL)/*.html \
 	`find $(DOC) -follow \( -name \*.html -o -name \*.gif \) -print`
 
 SPECIFIC = \
+	$(WWW)/All/Makefile.include \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
@@ -132,7 +134,7 @@ lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
 inc :	$(HFILES)
-	@echo "Include files generated from member"
+	@echo "Include files generated from hypertext"
 
 #	Make a copy of the binary and documentation on this machine
 install :	$(PROD)
@@ -216,17 +218,20 @@ $(FTP)/$(PROD)_$(VR)_src.zip : $(SOURCES)
 #	Hypertext supplied in text format
 #	---------------------------------
 
-$(WWW)/README : /afs/w3.org/member/WWW/README.html
-	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
+$(TOP)/WELCOME : /afs/w3.org/devel/WELCOME.html
+	www -p -na http://www.w3.org/devel/WELCOME.html -o $(TOP)/WELCOME
 
-$(WWW)/COPYRIGHT : /afs/w3.org/member/WWW/COPYRIGHT.html
-	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
+$(WWW)/README : /afs/w3.org/devel/WWW/README.html
+	www -p -na http://www.w3.org/devel/WWW/README.html -o $(WWW)/README
 
-$(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html
-	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
+$(WWW)/COPYRIGH : /afs/w3.org/devel/WWW/COPYRIGHT.html
+	www -p -na http://www.w3.org/devel/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
-$(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
-	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
+$(WWW)/PATCHES : /afs/w3.org/devel/WWW/PATCHES.html
+	www -p -na http://www.w3.org/devel/WWW/PATCHES.html -o $(WWW)/PATCHES
+
+$(WWW)/CERN : /afs/w3.org/devel/WWW/CERN.html
+	www -p -na http://www.w3.org/devel/WWW/CERN.html -o $(WWW)/CERN
 
 #	OBJECT GENERATION
 #	=================

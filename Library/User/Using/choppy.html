@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
 </HEAD>  
 <BODY>
 
@@ -59,6 +59,24 @@ all links in this version work!<P>
 <LI><A HREF="Flags.html">Trace Messages and Preprocessor Defines</A>
 </UL>
 </OL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+
+
+<HTML>
+<HEAD>
+<TITLE>Getting Started</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Getting Started</H1>
 
@@ -344,6 +362,23 @@ In the next chapters we shall see that protocol modules and converters only is a
 registered in the Library and that the application can specify many other types of preferences and
 capabilities.
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>User Guide - The Library Core</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>The Library Core</H1>
 
 As mentioned earlier in this guide, the Core of the W3C Reference Library is the set of modules that
@@ -360,6 +395,22 @@ HREF="../Architecture/ControlFlow.html">chapter on the model behind the Core of 
 the Architecture document. In this section we will concentrate on the APIs defined by the <A
 HREF="../../Implementation/WWWCore.html">WWWCore.h</A> include file and how to use the Core in a
 real application.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>User's Guide - Preferences</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Request Preferences</H1>
 
@@ -747,6 +798,22 @@ are likely to be changed often as the application is executed. In the next secti
 look at a slightly different registration mechanism which is more suited for topics that only rarely
 are registered multiple times during the execution of an application.
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Using - Access Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1><A NAME="methods">Enabling Access Modules</A></H1>
 
 The Library comes with a wide set of access modules that gives access to most popular Internet
@@ -812,6 +879,22 @@ databases. WAIS has its own code Library called <A HREF="http://www.cnidr.org/" 
 is required in order to directly access wais URLs. We shall not describe in describe in detail here
 how this can be enabled as it is described in the <A HREF="../../../Gateways/WAISGate.html">the
 WWW-WAIS gateway</A>.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Bindings to the local File system</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Bindings to the local File system</H1>
 
@@ -898,6 +981,22 @@ extern BOOL HTBind_addLanguage	(CONST char *	suffix,
 In all cases, it should be mentioned, that any of the suffixes <EM>can</EM> contain characters that
 normally must be escaped in a URL, for example space &lt; &gt;. However, they should <EM>not</EM> be
 encoded when parsed as the <CODE>suffix</CODE> parameter but left as is.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Registering Protocol Headers</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Registering Protocol Headers</H1>
 
@@ -1176,6 +1275,24 @@ The easy way of cleaning up all global lists at once is calling the following fu
 extern void HTHeader_deleteAll (void);
 </PRE>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+
+<HTML>
+<HEAD>
+<TITLE>User Guide - Request Callback functions</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>Request Callback functions</H1>
 
 As we have seen in the previous chapters, the core part of the Library knows nothing about how to
@@ -1343,6 +1460,23 @@ extern BOOL HTNet_setAfter	(HTList * list);
 extern BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status);
 </PRE>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>User Guide - Error Messages and Dialogs</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>Error Messages and Dialogs</H1>
 
 The Library deals with two categories of errors: user errors and application errors. The former are
@@ -1354,7 +1488,7 @@ HREF="../../Implementation/HTError.html">Error Manager</A> which handles user er
 section we will have a look at how to control the application errors at an application debug
 level using trace messages.<P>
 
-As a part of the core Library, the error manager is intended to pass information about errors and
+As a part of the core Library, the error object is intended to pass information about errors and
 messages occuring in the Library back to the application. Each error is kept as an object so
 multiple errors can be nested together using the well-known <A
 HREF="../../Implementation/HTList.html">HTList object</A>. Nested error management can be used to
@@ -1589,6 +1723,23 @@ extern BOOL HTError_deleteAll (HTList * list);
 extern BOOL HTError_deleteLast (HTList * list);
 </PRE>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>User Guide - Using Streams</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>The Format Manager</H1>
 
 <B>MORE</B>
@@ -1600,6 +1751,22 @@ extern BOOL HTError_deleteLast (HTList * list);
 <LI>explain why converters have an input and an output format: chains
 </UL>
 
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Using - Anchors</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Using Anchors</H1>
 
@@ -1613,31 +1780,35 @@ extern BOOL HTError_deleteLast (HTList * list);
 <LI>memory management
 </UL>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>The Request Object</H1>
 
-The request manager consists of two parts: a public part and a private
-part. The public part contains all the information needed to define a
-request the parameters to be used when requesting a resource from the
-network or local file system. When a request is handled, all kinds of
-things about it need to be passed along together with a request.  <P>
+The request object contains all the information needed to define a request the parameters to be used
+when requesting a resource from the network or local file system. When a request is handled, all
+kinds of things about it need to be passed along together with a request.  <P>
 
 <H2>Request a resource</H2>
 
-This is an internal routine, which has an address AND a matching
-anchor.  (The public routines are called with one OR the other.)
+This is an internal routine, which has an address AND a matching anchor.  (The public routines are
+called with one OR the other.)
 
 <PRE>
 extern BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive);
-</PRE>
-
-<H2>Request Terminate Call Back Function</H2>
-
-This function is registered at startup time by HTLibInit() in order to
-probably terminate a request to the Library. The application can
-register addtional call back functions in the same manner:
-
-<PRE>
-extern HTNetCallBack HTLoad_terminate;
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>
@@ -1989,9 +2160,9 @@ extern HTRequestCallback *HTRequest_callback (HTRequest *request);
 </PRE>
 
 The callback function can be passed an arbitrary pointer (the void
-part) which can describe the context of the current request
-structure. If such context information is required then it can be set
-using the following methods:
+part) which can describe the context of the current request object. If
+such context information is required then it can be set using the
+following methods:
 
 <PRE>
 extern void HTRequest_setContext (HTRequest *request, void *context);
@@ -2048,6 +2219,22 @@ read in a progress message.
 <PRE>
 extern long HTRequest_bytesRead(HTRequest * request);
 </PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>The Access Manager</H1>
 
@@ -2106,6 +2293,7 @@ Library to automatically retry the request, this is uniquely for the
 application to decide. 
 
 <DT><CODE>HT_WOULD_BLOCK</CODE>
+
 <DD>An I/O operation would block and the request must pause. As the
 request is not yet terminated, the operation will continue at a later
 time when the blocking situation has ceased to exist.
@@ -2114,14 +2302,30 @@ time when the blocking situation has ceased to exist.
 
 <H2>Context Swapping</H2>
 
-In a multithreaded environment it is necessary to keep track of the
-context of each simultanous requests issued to the Library as the
-response might return in another order than the one they were
+In a multithreaded environment it is necessary to keep track of the context of each simultanous
+requests issued to the Library as the response might return in another order than the one they were
 issued. The Library allows such a context registration in the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>
-by providing the registration mechanism of a call back function and a
-pointer to an arbitrary data structure to be passed to that call back
-function. 
+HREF="../../Implementation/HTReq.html">HTRequest object</A> by providing the registration mechanism
+of a call back function and a pointer to an arbitrary data object to be passed to that call back
+function. <P>
+
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>User Guide - Event Handling</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>The Event Manager</H1>
 
@@ -2132,6 +2336,24 @@ detail in the <A HREF="../Architecture/Events.html">Library Architecture</A> doc
 
 <B>MORE</B>
 
+<P>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>User Guide - Application modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Application modules</H1>
 
@@ -2146,6 +2368,22 @@ HREF="../../Implementation/WWWApp.html">WWWApp.h</A> which includes all the modu
 this section. This include file <EM>may</EM> be included in an application but is not required. <P>
 
 OK, let's continue and get an overview of the functionality provided by the application modules.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>The Cache Manager</H2>
 
@@ -2165,14 +2403,14 @@ maintained in the Library.</P>
 
 The memory cache is largely managed by the application as it simply
 consists of keeping the graphic objects described by the
-<CODE>HyperDoc</CODE> structure in memory as the user keeps requesting
-new documents. The <CODE>HyperDoc</CODE> structure is only declared in
+<CODE>HyperDoc</CODE> object in memory as the user keeps requesting
+new documents. The <CODE>HyperDoc</CODE> object is only declared in
 the Library - the real definition is left to the application as it is
 for the application to handle graphic objects. The Line Mode Browser
-has its own definition of the <CODE>HyperDoc</CODE> structure called
+has its own definition of the <CODE>HyperDoc</CODE> object called
 <A HREF="../../../LineMode/Implementation/GridText.html"
 ><CODE>HText</CODE></A>. Before a request is processed over the net,
-the anchor object is searched for a <CODE>HyperDoc</CODE> structure
+the anchor object is searched for a <CODE>HyperDoc</CODE> object
 and a new request is issued only if this is not present or the Library
 explicitly has been asked to reload the document, which is described
 in the section <A HREF="#reload">Short Circuiting the Cache</A></P>
@@ -2193,9 +2431,9 @@ the same no matter how the garbage collector is implemented. </P>
 
 The file cache is intended for intermediate term storage of documents
 or data objects that can not be represented by the
-<CODE>HyperDoc</CODE> structure which is referenced by the
+<CODE>HyperDoc</CODE> object which is referenced by the
 <CODE>HTAnchor</CODE> object. As the definition of the
-<CODE>HyperDoc</CODE> structure is done by the application there is no
+<CODE>HyperDoc</CODE> object is done by the application there is no
 explicit rule of what graphic objects that can not be described by the
 <CODE>HyperDoc</CODE>, but often it is binary objects, like images
 etc.</P>
@@ -2307,6 +2545,22 @@ where <CODE>HTExpiresMode</CODE> can take any of the values:
     HT_EXPIRES_NOTIFY
     HT_EXPIRES_AUTO
 </PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>User's Guide - Proxies and Gateways</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Registering Proxy Servers and Gateways</H1>
 
@@ -2424,6 +2678,23 @@ with a specific access scheme without knowing about the semantics of this access
 access the information directly. That way, powerful client applications can be built having direct
 support for, for example, HTTP only.
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>User Guide - Rule Files</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 21-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>Rule Files</H1>
 
 The W3C Library provides this module for handling configuration files (a.k.a.  rule files). Rule
@@ -2491,6 +2762,22 @@ then it is a copy of the original.
 extern char * HTRule_translate (HTList * list, CONST char * token, BOOL ignore_case);
 </PRE>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>The Log Module</H1>
 
 It is possible to log the result of a request to the Library whether
@@ -2509,6 +2796,22 @@ time. However, it is also for the application to disable the logging
 in order to close any open file descriptors etc. The exact log API is
 described in the <A HREF="../../Implementation/HTLog.html">Log
 Manager</A>.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Keeping Track of History</H1>
 
@@ -2529,7 +2832,7 @@ are:
 
 <UL>
 <LI>The module can handle multiple history lists
-<LI>The underlying data structure is a linear list structure
+<LI>The underlying data model is linear lists
 <LI>The module keeps a position pointer into this list
 <LI>The application can refer to an element in the list by an index
 </UL>
@@ -2538,6 +2841,22 @@ Some of the navigation steps supported by the module are "back",
 "forward", and jump to a position in the list. The details of the
 module is listed in the declaration part of the <A
 HREF="../../Implementation/HTHist.html">HTHist module</A>.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Presentation Modules</H1>
 
@@ -2595,12 +2914,45 @@ Library, which hopefully will ease the use of the internal HTML
 parser. The current parser can be overriding as described in section
 <A HREF="#override">Application Specific Modules</A>.
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>User Guide - The Library Utilities</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>The Library Utilities</H1>
 
 The Library contains a set of basic utility modules which are used throughour all the Library
 code. The APIs defined by the <A HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A> include file
 provides basic memory management and container modules. You can see a list of the utility modules in
 the <A HREF="../Guide/Utils.html">Library Internals</A>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Using - Global Flags</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>Trace Messages and Preprocessor Defines</H1>
 

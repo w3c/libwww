@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Cache</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>  
 <BODY>
 
@@ -46,12 +46,12 @@ Library on each request. The details of this registration is described
 in the <A HREF="../Using/Cache.html">User's Guide</A>. <P>
 
 Traditionally, the memory cache is based on handling the graphic
-objects described by the <CODE>HyperDoc</CODE> structure in memory as
+objects described by the <CODE>HyperDoc</CODE> object in memory as
 the user keeps requesting new documents. The <CODE>HyperDoc</CODE>
-structure is only declared in the Library - the real definition is
+object is only declared in the Library - the real definition is
 left to the application as it is for the application to handle graphic
 objects. For example, the Line Mode Browser has its own definition of
-the <CODE>HyperDoc</CODE> structure called <A
+the <CODE>HyperDoc</CODE> object called <A
 HREF="../../../LineMode/Implementation/GridText.html"
 ><CODE>HText</CODE></A> which describes a fully parsed HTML object
 with enough information to display itself to the user. However, the

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Dynamic Array Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -25,7 +25,11 @@ character when counting the size of the chunk. <P>
 
 This module is implemented by <A HREF="HTChunk.c">HTChunk.c</A>, and
 it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
+Reference Library</A>. <P>
+
+<IMG SRC="../../Icons/32x32/caution.gif" ALT="NOTE"> The names
+without a "_" (made as a <CODE>#define</CODE>'s) are only provided for
+backwards compatibility and should not be used.
 
 <PRE>
 #ifndef HTCHUNK_H
@@ -35,7 +39,7 @@ Reference Library</A>.
 
 <H2>Private Data Structure</H2>
 
-This structure should not be referenced outside this module
+This structure should not be referenced outside this module!
 
 <PRE>
 typedef struct {

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>  
 <BODY>
 
@@ -11,29 +11,17 @@
 
 <H1>The Request Object</H1>
 
-The request manager consists of two parts: a public part and a private
-part. The public part contains all the information needed to define a
-request the parameters to be used when requesting a resource from the
-network or local file system. When a request is handled, all kinds of
-things about it need to be passed along together with a request.  <P>
+The request object contains all the information needed to define a request the parameters to be used
+when requesting a resource from the network or local file system. When a request is handled, all
+kinds of things about it need to be passed along together with a request.  <P>
 
 <H2>Request a resource</H2>
 
-This is an internal routine, which has an address AND a matching
-anchor.  (The public routines are called with one OR the other.)
+This is an internal routine, which has an address AND a matching anchor.  (The public routines are
+called with one OR the other.)
 
 <PRE>
 extern BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive);
-</PRE>
-
-<H2>Request Terminate Call Back Function</H2>
-
-This function is registered at startup time by HTLibInit() in order to
-probably terminate a request to the Library. The application can
-register addtional call back functions in the same manner:
-
-<PRE>
-extern HTNetCallBack HTLoad_terminate;
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>
@@ -385,9 +373,9 @@ extern HTRequestCallback *HTRequest_callback (HTRequest *request);
 </PRE>
 
 The callback function can be passed an arbitrary pointer (the void
-part) which can describe the context of the current request
-structure. If such context information is required then it can be set
-using the following methods:
+part) which can describe the context of the current request object. If
+such context information is required then it can be set using the
+following methods:
 
 <PRE>
 extern void HTRequest_setContext (HTRequest *request, void *context);

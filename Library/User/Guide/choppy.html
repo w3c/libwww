@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Library Internals</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Oct-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -66,7 +66,26 @@ using by typing
 
 Also remember that when editing the module interfaces or adding
 functionality then always use the HTML files and not the .h
-files!
+files! <P>
+
+<HR>
+
+<ADDRESS>Henrik Frystyk, <A
+HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Core Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/internals48x.gif" ALT="Internals"></A>
 
 <H1>Core Modules</H1>
 
@@ -138,6 +157,22 @@ thread Modules</A>
 
 </DL>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Application Preferences</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
 <H1>Application Preferences</H1>
 
 These modules handles all the modules that can be registered either
@@ -192,6 +227,22 @@ dynamically. This has traditionally been handled by environment
 variables, but is now a registration module just like the registration
 of access schemes.
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Application Specific Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
 <H1>Application Specific Modules</H1>
 
 When all public functions and variables within a module are
@@ -236,6 +287,23 @@ HREF="../../Implementation/HTAccess.html#Library">HTLibInit()</A>. Often
 you can take this module and just override it with your own
 preferences.
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Network Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
 <H1>Network Modules</H1>
 
 Network modules handles all the network access including DNS access,
@@ -272,6 +340,23 @@ descriptor. <P>
 The module is currently being transformed into a completely reentrant
 version, but the old non-reentrant interface is still needed for some
 functions. However, it will be taken out as soon as possible.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Protocol Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
 
 <H1>Protocol Modules</H1>
 
@@ -367,6 +452,23 @@ program</A>.
 
 </DL>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Protocol Utility Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Oct-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
 <H1>Protocol Utility Modules</H1>
 
 The protocol modules themselves can be registered dynamically (using
@@ -435,6 +537,23 @@ The <A HREF="../../Implementation/HTLog.html">HTLog Module</A> is a
 simple log manager that can log the result of a request to the access
 manager.
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Thread Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
 <H1>Thread Modules</H1>
 
 From version 3.0 (unreleased) of the W3C Reference Library, support
@@ -463,34 +582,43 @@ overwrite it with their own even-loop. Note, that GUI-clients
 ported to Windows NT thanks to <A
 HREF="mailto:cbrooks@osf.org">Charlie Brooks</A>
 
-<H1>Central Data Structures</H1>
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Core Objects</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+</HEAD>
+<BODY>
 
-The central data structures are the structures that are a part of the
-core entity. Each of the core modules as explained in section "<A
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
+<H1>Core Objects</H1>
+
+The core objects are the structures that are a part of the core
+entity. Each of the core modules as explained in section "<A
 HREF="../Architecture/ControlFlow.html">Control and Data Flow</A>"are
-relying on one or more of the central data structures. This section
-describes the relationship between the core modules and the central
-data structures <EM>and</EM> the relationship between the central data
-structures themselves. <P>
+relying on one or more of the core objects. This section describes the
+relationship between the core objects<P>
 
-<H2>Anchors</H2>
+<H2>Anchor Objects</H2>
 
 All anchor management is handled by the <A
 HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor module</A>. You
 should normally not have to look directly into the HTAnchor structure,
 but use the methods provided by the anchor manager.
 
-<H2>Request</H2>
+<H2>Request Objects</H2>
 
-The <A HREF="../../Implementation/HTAccess.html#z1">HTRequest
-structure</A> is defined in the <A
-HREF="../../Implementation/HTAccess.html">access manager</A>. It is
-currently not a completely opaque data structure but it will soon be
-so be prepared to use methods like the ones to handle the <A
-HREF="../../Implementation/HTAnchor.html">HTAnchor Object</A> Then we
-can also better call it an object and not a data structure ;-).
+The <A HREF="../../Implementation/HTReq.html">HTRequest object</A>
+contains all information neccessary in order to handle a request.
 
-<H2>Streams</H2>
+<H2>Stream Objects</H2>
 
 Almost each stream module has its specific implementation of the
 stream structure, but the generic one is defined in the <A
@@ -501,23 +629,22 @@ these modules have any code directly associated with - this is left to
 the specific stream modules, for example the <A
 HREF="../../Implementation/HTFWrite.html">HTFWrite stream</A>.
 
-<H2>HyperDoc Structure</H2>
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Stream Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
 
-The HyperDoc structure is different from the other central data
-structures as it is only declared in the Library - the definition is
-left to the application. It is intended to contain information about
-data objects, especially hypertext objects that are to be presented to
-a user. As an example of a definition, you can look at the <A
-HREF="../../../LineMode/">Line Mode Browser</A> where it is defined in
-the <A HREF="../../../LineMode/Implementation/GridText.html">GridText
-module</A>. Here it is called "_HText" structure and it contains all
-information needed to present and manage a data object in a text based
-environment. <P>
-
-Even though the Library does not interfere with the contents of the
-HyperDoc object it does provide an API for managing the object. This
-API is known as the "<A HREF="../../Implementation/HText.html">HText
-API</A>" and it is described further in the User's Guide
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/internals48x.gif" ALT="Internals"></A>
 
 <H1>Stream Modules</H1>
 
@@ -641,6 +768,23 @@ but required in order to cascade streams.
 
 </DL>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Structured Stream Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/internals48x.gif" ALT="Internals"></A>
+
 <H1>Structured Stream Modules</H1>
 
 The <A HREF="../../Implementation/SGML.html">SGML stream</A> generates
@@ -684,6 +828,23 @@ it into plain text using the styles in the "HText API"
 
 </DL>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Presentation Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
 <H1>Presentation Modules</H1>
 
 <H2>Generating a Graphic Object</H2>
@@ -697,9 +858,9 @@ overwrite</A>.
 
 As mentioned in the <A HREF="../Using.html">how to get started
 guide</A>, the definition of a graphic object is free for the
-application. Some graphic objects work by storing the whole structure
-of the document.  Others work by converting the nested structure into
-a linear sequence of styled text for display. <P>
+application. Some graphic objects work by storing the whole document.
+Others work by converting the nested structure into a linear sequence
+of styled text for display. <P>
 
 Generally, a new platform has a new implementation of the hypertext
 object. A GUI client must overwrite the graphic object modules in the
@@ -738,12 +899,28 @@ place to connect your code.
 
 </DL>
 
-You are free to define the structure of the hypertext object (the
-structure is left undefined in the <A
-HREF="../../Implementation/HText.html">HText module</A>. You may want to
-define your own styles and font definitions. <P>
+You are free to define the structure of the hypertext object declared
+in the <A HREF="../../Implementation/HText.html">HText module</A>. You
+may want to define your own styles and font definitions. <P>
 
 </DL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Style Sheets</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
 
 <H1>Style Sheets</H1>
 
@@ -760,6 +937,23 @@ HREF="../../Implementation/HTML.html">HTML module</A> with your own,
 to prevent the library version from being loaded.<P>
 
 </DL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - URI Management</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
 
 <H1>URI Management</H1>
 
@@ -783,6 +977,23 @@ Specifications</A>.
 
 </DL>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Internals - Utilities</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+
 <H1>Utilities</H1>
 
 This document covers the basic programming utilities that can be used
@@ -790,10 +1001,11 @@ in the client or server to make life easier.
 
 <H2>Container Modules</H2>
 
-These modules are generic data object storage modules that might be used
-wherever convenient. The general rule for freeing memory from these modules is
-that free methods handles data structures generated within the modules whereas
-user data is for the caller to free. The modules consist of:<P>
+These modules are generic data object storage modules that might be
+used wherever convenient. The general rule for freeing memory from
+these modules is that free methods handles data object generated
+within the modules whereas user data is for the caller to free. The
+modules consist of:<P>
 
 <DL>
 <DT><A NAME="z59" HREF="../../Implementation/HTBTree.html">Binary Trees</A>

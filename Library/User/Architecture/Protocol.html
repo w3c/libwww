@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Protocol Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
+<TITLE>Architecture - The Protocol Object</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -9,11 +9,29 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x.gif" ALT="Architecture"></A>
 
-<H1>Protocol Manager</H1>
+<H1>The Protocol Object</H1>
 
-<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
-construction. Any suggestions or ideas are welcome at
-<EM>libwww@w3.org</EM>.
+The Core Library doesn't know anything about protocol modules. This has the big advantage that an
+application can register any number of protocols including access to the local file system. The
+Library core is independent of whether you make an application capable of speaking all known Internet
+protocols or only can access, for example a HTTP server - to the Library it's all a set of callback
+functions. <P>
+
+The Protocol object handles two types of callback functions: one for a client application and one
+for a server application. This means that you can register not only any type of protocol clients but
+also their server counterparts. Whether it is a client module or a server module, a protocol module
+is identified by an access scheme which is identical to the access scheme known from the URL syntax,
+for example
+
+<PRE>
+	<B>http</B>://www.w3.org
+	<B>ftp</B>://ftp.w3.org
+	etc.
+</PRE>
+
+The <A HREF="../Using/Methods.html">User's Guide</A> describes in detail how you can set up the
+protocol modules in your application.
+
 
 <P>
 <HR>

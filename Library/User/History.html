@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Change History for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 <NEXTID N="z500">
 </HEAD>
 <BODY>
@@ -109,7 +109,7 @@ please do read this and remember that comments are welcome! <P>
 <UL>
 
 <LI>The Post Web model is supported by the following methods to handle
-the HTRequest structure
+the HTRequest object
 
 <UL>
 <LI>HTRequest_removeDestination()
@@ -160,11 +160,11 @@ all be enabled/disabled using a bitmask.
 
 <LI>Introduced REMOVE and RMDIR as macros instead of direct system calls
 
-<LI>Removed HTRequest_clear() - it's not safe to reuse a request structure!
+<LI>Removed HTRequest_clear() - it's not safe to reuse a request object
 
 <LI>HTStrip() is now placed in the HTString module
 
-<LI>introducing the method used in the link structure in the anchor
+<LI>introducing the method used in the link object in the anchor
 
 <LI>HTTP modified to support PostWeb
 
@@ -230,7 +230,7 @@ HREF="../../Implementation/HTStruct.html">HTStruct.h</A>)
 <LI>Original reason messages are now passed back as a parameter by the
 error handler when talking to a remote HTTP server
 
-<LI>Introduction of error_format in the request structure. This can be
+<LI>Introduction of error_format in the request object. This can be
 used to get debug information out of the Library
 
 <LI>Better handling of media types in FTP and Gopher including
@@ -312,7 +312,7 @@ but uses macros. This should ensure portability to Windows NT.
 definition whereas `local' errno can still use the well-known version.
 
 <LI>Introduced <CODE>error_stream</CODE> as field a HTRequest
-structure. All information contained in HTTP responses which don't
+object. All information contained in HTTP responses which don't
 naturally contain a body entity, for example redirection codes (3xx)
 and client error codes (4xx) will be put down this stream so that it
 can be put into a debug window.
@@ -343,7 +343,7 @@ HREF="../../Implementation/tcp.html">tcp module</A>
 <LI>Bug fixed if UserID/passwd was not correct and don't want to retry
 <LI>HTErrorAdd and HTErrorSysAdd no always return HT_ERROR
 <LI>Fixed bug in HTGetDomainName when no domain name is present at all
-<LI>Add output_flush to request structure
+<LI>Add output_flush to request object
 <LI>Uses IOCTL as a macro now - not fcntl
 <LI><EM>and a lot of other stuff...</EM>
 </UL>
@@ -370,8 +370,8 @@ request pointer can be modified from the client
 <CODE>HTLoadRelative()</CODE> where wrong return code was returned
 (BOOL instead of int)
 
-<LI>Introduced BlockingIO field in the request structure to override
-the the mode registered in the protocol structure. This can be used as
+<LI>Introduced BlockingIO field in the request object to override
+the the mode registered in the protocol object. This can be used as
 an easy way to make blocking I/O
 
 </UL>
@@ -394,7 +394,7 @@ called _STANDARD_CODE_ so that _cplusplus also handles this
 
 <LI>`new' and `template' not used a names anymore (confuses C++)
 
-<LI>Removed from field in HTRequest structure. This is now handled by
+<LI>Removed from field in HTRequest object. This is now handled by
 the functions HTGetMailAddres and HTSetMailAddress and the flag
 HTEnableFrom in the HTTP module.
 
@@ -406,7 +406,7 @@ with the arguments to a stream converter, so that we don't loose any
 information while putting up the stream stack.
 
 <LI>HTOutputSource variable is removed. You should use WWW_SOURCE in
-the request structure
+the request object
 
 <LI>HTGuess stream is a a converter compatible stream so that it
 actually can be setup as a converter
@@ -540,7 +540,7 @@ to host 0.0.0.0 that is localhost. Some hosts do have an alias for
 this address
 
 <LI>Fixed free memory read in redirections. Put redirection counter
-into request structure. Now no more than (default) 10 redirections are
+into request object. Now no more than (default) 10 redirections are
 allowed
 
 <LI>Fixed bug in FTP module to handle really slow hosts in the select
@@ -767,7 +767,7 @@ thing is to peek the title of the HTML files.
 <H4>Error and Information Message Management</H4>
 
 A new error handling module is introduced in <A HREF="../../Implementation/HTError.html"></A>HTError. It uses the error_stack entry in the
-<A HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>. It
+<A HREF="../../Implementation/HTReq.html">HTRequest object</A>. It
 handles nested error messages so that we can give a reason for the error, e.g.
 <PRE>
     Error in ...

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User's Guide - HyperDoc Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>  
 <BODY>
 
@@ -11,7 +11,26 @@
 
 <H1>Managing the HyperDoc Object</H1>
 
-<B>MORE</B>
+The <EM>HyperDoc</EM> object is intended to contain information about data objects, especially
+hypertext objects that are to be presented to a user. As an example of a definition, you can look at
+the <A HREF="../../../LineMode/">Line Mode Browser</A> where it is defined in the <A
+HREF="../../../LineMode/Implementation/GridText.c"> GridText Module</A>. Here it is called "_HText"
+object and it contains all information needed to present and manage a data object in a text based
+environment. <P>
+
+The memory management of the HyperDoc object is also left to the application along with the
+definition. The Library does not use any information from the object at all - the only interaction
+is that the access manager checks if a HyperDoc object exists for a given anchor or not as a part of
+servicing a request. The application can use this to maintain a set of HyperDoc objects in memory as
+a fast cache. Again, the Line Mode Browser can be used as an example as it keeps the 5 latest
+accessed hypertext objects in memory (regardless of their size) in order to allow fast back track
+for the user. The relation to the HTAnchor object requires that there is a link from the HyperDoc to
+the corresponding anchor in order for the application to do proper garbage collection of the
+HyperDoc objects.<P>
+
+Even though the Library does not interfere with the contents of the HyperDoc object it does provide
+an API for managing the object. This API is known as the "HText" API and it is described further in
+the <A HREF="../Using/">User's Guide</A>
 
 <P>
 <HR>

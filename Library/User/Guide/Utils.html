@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Internals - Utilities</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -17,10 +17,11 @@ in the client or server to make life easier.
 
 <H2>Container Modules</H2>
 
-These modules are generic data object storage modules that might be used
-wherever convenient. The general rule for freeing memory from these modules is
-that free methods handles data structures generated within the modules whereas
-user data is for the caller to free. The modules consist of:<P>
+These modules are generic data object storage modules that might be
+used wherever convenient. The general rule for freeing memory from
+these modules is that free methods handles data object generated
+within the modules whereas user data is for the caller to free. The
+modules consist of:<P>
 
 <DL>
 <DT><A NAME="z59" HREF="../../Implementation/HTBTree.html">Binary Trees</A>

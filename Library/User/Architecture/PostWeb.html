@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Post Webs - an API for PUT and POST</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -204,13 +204,11 @@ Post Web. The dynamic binding can be set up and taken down
 independently of the static binding, and often this happens multiple
 times during the handling of a request. <P>
 
-As described in the section "<A HREF="DataStructures.html#request">Central
-Data Structures</A>", the <A
-HREF="../../Implementation/HTReqMan.html">HTRequest</A> structure is
-one of the central data structures used to describe a request from the
-application. This structure is used in the static binding between the
-source and the destinations and it is initialized as soon as the
-request is passed to the Library from the application.
+As described in the section "<A HREF="DataStructures.html#request">Core Objects </A>", the <A
+HREF="../../Implementation/HTReqMan.html">HTRequest</A> object is one of the core objects used to
+describe a request from the application. This object is used in the static binding between the
+source and the destinations and it is initialized as soon as the request is passed to the Library
+from the application.
 
 <P><IMG SRC="PostWebReq.gif" ALT="libwww's Request View"><P>
 

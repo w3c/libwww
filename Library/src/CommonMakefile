@@ -142,8 +142,13 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)WWWNews.h $(CMN)WWWHTTP.h $(CMN)WWWMIME.h
 
 SOURCES = $(CFILES) $(HFILES) \
-	$(CMN)Version.make $(CMN)CommonMakefile $(CMN)README \
-	$(WWW)/BUILD $(WWW)/BUILD.SH $(WWW)/Makefile
+	$(CMN)Version.make \
+	$(CMN)CommonMakefile \
+	$(CMN)README \
+	$(WWW)/Library/README \
+	$(WWW)/Makefile \
+	$(WWW)/BUILD \
+	$(WWW)/BUILD.SH
 
 ICONS = $(ICON)/WWW/Bug48x.gif \
 	$(ICON)/WWW/Lib48x.gif \
@@ -169,6 +174,7 @@ DOCS =	$(CMN)*.html \
 	`find $(DOC) -follow \( -name \*.html -o -name \*.gif \) -print`
 
 SPECIFIC = \
+	$(WWW)/All/Makefile.include \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
@@ -295,20 +301,20 @@ $(FTP)/$(PROD)_$(VC)_src.zip : $(SOURCES)
 #	Hypertext supplied in text format
 #	---------------------------------
 
-$(TOP)/WELCOME : /afs/w3.org/member/WELCOME.html
-	www -p -na http://www.w3.org/member/WELCOME.html -o $(TOP)/WELCOME
+$(TOP)/WELCOME : /afs/w3.org/devel/WELCOME.html
+	www -p -na http://www.w3.org/devel/WELCOME.html -o $(TOP)/WELCOME
 
-$(WWW)/README : /afs/w3.org/member/WWW/README.html
-	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
+$(WWW)/README : /afs/w3.org/devel/WWW/README.html
+	www -p -na http://www.w3.org/devel/WWW/README.html -o $(WWW)/README
 
-$(WWW)/COPYRIGH : /afs/w3.org/member/WWW/COPYRIGHT.html
-	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
+$(WWW)/COPYRIGH : /afs/w3.org/devel/WWW/COPYRIGHT.html
+	www -p -na http://www.w3.org/devel/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
-$(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html
-	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
+$(WWW)/PATCHES : /afs/w3.org/devel/WWW/PATCHES.html
+	www -p -na http://www.w3.org/devel/WWW/PATCHES.html -o $(WWW)/PATCHES
 
-$(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
-	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
+$(WWW)/CERN : /afs/w3.org/devel/WWW/CERN.html
+	www -p -na http://www.w3.org/devel/WWW/CERN.html -o $(WWW)/CERN
 
 # 			Common code
 #			-----------

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Libwww Threads and Net objects</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -9,69 +9,60 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x.gif" ALT="Architecture"></A>
 
-<H1>Libwww Threads and Net Objects</H1>
+<H1>Net Objects and Libwww Threads</H1>
 
-In a single-process, single threaded environment all requests to, for
-example, the I/O interface blocks any further progress in the process.
-Any combination of a multiprocess or multi threaded implementation of
-the Library makes provision for the application to request several
-independent documents at the same time without getting blocked by slow
-I/O operations. As a Web application is expected to use much of the
-time doing I/O such as "connect" and "read", a high degree of
-optimization can be obtained if multiple threads can run at the same
-time.<P>
+In a single-process, single threaded environment all requests to, for example, the I/O interface
+blocks any further progress in the process.  Any combination of a multiprocess or multi threaded
+implementation of the Library makes provision for the application to request several independent
+documents at the same time without getting blocked by slow I/O operations. As a Web application is
+expected to use much of the time doing I/O such as "connect" and "read", a high degree of
+optimization can be obtained if multiple threads can run at the same time.<P>
 
-Library version 3.0 was designed to be thread compatible. It can
-either be used with conventional threads or with the <A
-HREF="../Architecture/Threads.html">"libwww thread" concept</A> which
-allows an application to handle requests in a constrained asynchronous
-manner using non-blocking I/O and an event loop based on a select
-system call. As a result, I/O operations such as establishment of a
-TCP connection to a remote server and reading from the network can be
-handled without letting the user wait until the operation has
-terminated. Instead the user can issue new requests, interrupt ongoing
+Library version 3.0 was designed to be thread compatible. It can either be used with conventional
+threads or with the <A HREF="../Architecture/Threads.html">"libwww thread" concept</A> which allows
+an application to handle requests in a constrained asynchronous manner using non-blocking I/O and an
+event loop based on a select system call. As a result, I/O operations such as establishment of a TCP
+connection to a remote server and reading from the network can be handled without letting the user
+wait until the operation has terminated. Instead the user can issue new requests, interrupt ongoing
 requests, scroll a document etc. <P>
 
-Version 3.1 of the Library has an enhanced libwww thread model as it
-supports writing large amount of data from the application to the
-network, also using non-blocking I/O operations. The main purpose of
-Librray 3.1 was to provide a basic support for remote collaborative
-work through the <A HREF="../../../Protocols/">HTTP</A> methods
-<B>PUT</B> and <B>POST</B>. <P>
+Version 3.1 of the Library has an enhanced libwww thread model as it supports writing large amount
+of data from the application to the network, also using non-blocking I/O operations. The main
+purpose of Librray 3.1 was to provide a basic support for remote collaborative work through the <A
+HREF="../../../Protocols/">HTTP</A> methods <B>PUT</B> and <B>POST</B>. <P>
 
-As libwww threads are not really threads but a notion of using
-non-blocking I/O for accessing data objects from the network (or local
-file system), it can be used on any number of platforms with or
-without native support for threads, and this section describes the
-model behind libwww threads and how it affects applications.</P>
+As libwww threads are not really threads but a notion of using non-blocking I/O for accessing data
+objects from the network (or local file system), it can be used on any number of platforms with or
+without native support for threads, and this section describes the model behind libwww threads and
+how it affects applications.</P>
 
 <H2>The Net object</H2>
 
-The <EM>Net object</EM> contains all the state information required to
-stop and start execute a request using asynchronous IO. The use of
-aynchronous IO has an important implication on the implementation of
-the access modules in the Library, for example the HTTP module which
-is explained later: <P>
+The <EM>Net object</EM> contains all the state information required to stop and start execute a
+request using asynchronous IO. The use of aynchronous IO has an important implication on the
+implementation of the access modules in the Library, for example the HTTP module which is explained
+later: <P>
 
 <UL> 
-<LI>Global variables can be used only if they at all time are
-independent of the current state of the active Net object.
-<LI>Automatic variables can be used only if they are initialized on
-every entry to the function and stay state independent of the current
-request throughout their lifetime.
-<LI>All information necessary for completing a request must be kept in
-an autonomous data object that is passed round the via the stack.
+
+<LI>Global variables can be used only if they at all time are independent of the current state of
+the active Net object.
+
+<LI>Automatic variables can be used only if they are initialized on every entry to the function and
+stay state independent of the current request throughout their lifetime.
+
+<LI>All information necessary for completing a request must be kept in an autonomous data object
+that is passed round the via the stack.
+
 </UL>
 
 <P><IMG SRC="Thread.gif"><P>
 
-The main reason for keeping the Net object separate from the Request
-object is that some requests require more than one Net object, for
-example FTP which has a Net object for the control TCP connection and a
-Net object for each data TCP connection. In the case of HTTP/1.0 and
-HTTP/1.1, there is a 1:1 correspondance between a Net object and a
-request object. In HTTP/1.2 a Net object can live longer than a single
-request as persistent connections might handle a set of requests over
+The main reason for keeping the Net object separate from the Request object is that some requests
+require more than one Net object, for example FTP which has a Net object for the control TCP
+connection and a Net object for each data TCP connection. In the case of HTTP/1.0 and HTTP/1.1,
+there is a 1:1 correspondance between a Net object and a request object. In HTTP/1.2 a Net object
+can live longer than a single request as persistent connections might handle a set of requests over
 the same TCP socket. Net objects can be used in three different ways:
 
 <OL>
@@ -80,82 +71,25 @@ the same TCP socket. Net objects can be used in three different ways:
 <LI>Requests are non-preemtive managed by an <EM>external</EM> event loop
 </OL>
 
-The three modes are described in more detail in the section on <A
-HREF="Events.html">Internal and External Events</A>. In mode 2) the Net
-objects is used to make the binding between the socket based internal
-event loop (using a <CODE>select()</CODE> call) and a request, so that
-a socket ready for an I/O action can make the corresponing libwww
-thread active. In mode 1) and 3) Net objects represents the socket
-interface of a request.
-
-<H2>Families and Groups</H2>
-
-Net objects are often related to other Net objects and hence it is useful to
-introduce a mechanism by which related Net objects can be treated
-together. The Library provides two ways of grouping Net objects:
-
-<DL>
-
-<DT>Family
-
-<DD>A <EM>Family</EM> is a set of Net objects that are logically
-related to eachother, for example a HTML document with a set of
-inlined objects (images, video, audio etc). On a GUI client a family
-can be regarded as a set of objects to be displayed in the same
-widget. Members of a family does not have to come from the same origin
-server even though it in the case of inlined images often is the case
-- what is important is the logical connection between them. There are
-especially two situations that concerns a whole family:
-
-<UL>
-<LI>The user hits the interrupt button in a widget and all the treads
-in the family are to be killed.
-<LI>Each family can be assigned a <EM>priority</EM> that allows
-background families to be loaded with a lower priority than the
-foreground family.
-</UL>
-
-Families are typically created by the application, as the logical
-relation often is known at the application level only. However, the
-Library might add a Net object to a family for example in the case of
-FTP where multiple Net objects are related to the same request.
-
-<DT>Group
-
-<DD>A <EM>Group</EM> is a set of Net objects that all are requesting a
-(possibly different) resource from the same server. The Net objects do
-not have to be logically related - they can belong to different
-families but they have one thing in common: they are all pointing to
-the same remote server. A group is used to support persistent
-connection management which is the case in HTTP/1.2 and HTTP-NG. In
-the case of a proxy server, all requests to that proxy server will
-belong to the same group. <P>
-
-Groups also serve to manage the number of open TCP connections an
-application uses at any one point in time in order not to overload
-either the application or the network. Groups are typically created by
-the Library as the final destination for a request is often known at
-the Library level only.
-
-</DL>
+The three modes are described in more detail in the section on <A HREF="Events.html">Internal and
+External Events</A>. In mode 2) the Net objects is used to make the binding between the socket based
+internal event loop (using a <CODE>select()</CODE> call) and a request, so that a socket ready for
+an I/O action can make the corresponing libwww thread active. In mode 1) and 3) Net objects
+represents the socket interface of a request.
 
 <H2>Creation and Termination of a Net object</H2>
 
-A Net object is created by the Net manager from within the Request
-manager every time a request is passed to the Library. A request can
-either be issued by the application or the Library itself for example
-as a result of redirection, access authentication, or when a new data
-connection is created in a FTP request. All new Net objects are
-automatically associated with a group which might already exist or be
-created together with the new Net object.<P>
+A Net object is created by the Net manager from within the Request manager every time a request is
+passed to the Library. A request can either be issued by the application or the Library itself for
+example as a result of redirection, access authentication, or when a new data connection is created
+in a FTP request. All new Net objects are automatically associated with a group which might already
+exist or be created together with the new Net object.<P>
 
-When a Net object has been created, the Request manager returns
-immediately to the caller and does not see the request before it has
-terminated either with a success or an error as result. The request
-can either be started immediately by the Net manager or put into a
-queue if the maximum number of open TCP connections is reached. When a
-request is terminated there are typically a set of tasks that the
-application would like to do:
+When a Net object has been created, the Request manager returns immediately to the caller and does
+not see the request before it has terminated either with a success or an error as result. The
+request can either be started immediately by the Net manager or put into a queue if the maximum
+number of open TCP connections is reached. When a request is terminated there are typically a set of
+tasks that the application would like to do:
 
 <UL>
 <LI>Update the history list
@@ -164,15 +98,12 @@ application would like to do:
 <LI>etc.
 </UL>
 
-Handling the termination of a request is based on call back functions
-that can be registered in the Net manager dynamically at run
-time. Multiple call back functions can be registered in which case
-they are all called from the Net manager in the sequence they were
-registered. As an example, the Request manager registers a call back
-function to handle the status of the request regarding to some
-internal actions. This function is registered at initialization time
-of the Library. The application can add its own call back functions to
-be called on termination of a request.
+Handling the termination of a request is based on call back functions that can be registered in the
+Net manager dynamically at run time. Multiple call back functions can be registered in which case
+they are all called from the Net manager in the sequence they were registered. As an example, the
+Request manager registers a call back function to handle the status of the request regarding to some
+internal actions. This function is registered at initialization time of the Library. The application
+can add its own call back functions to be called on termination of a request.
 
 <P>
 <HR>

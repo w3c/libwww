@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>  
 <BODY>
 
@@ -66,6 +66,7 @@ Library to automatically retry the request, this is uniquely for the
 application to decide. 
 
 <DT><CODE>HT_WOULD_BLOCK</CODE>
+
 <DD>An I/O operation would block and the request must pause. As the
 request is not yet terminated, the operation will continue at a later
 time when the blocking situation has ceased to exist.
@@ -74,13 +75,11 @@ time when the blocking situation has ceased to exist.
 
 <H2>Context Swapping</H2>
 
-In a multithreaded environment it is necessary to keep track of the
-context of each simultanous requests issued to the Library as the
-response might return in another order than the one they were
+In a multithreaded environment it is necessary to keep track of the context of each simultanous
+requests issued to the Library as the response might return in another order than the one they were
 issued. The Library allows such a context registration in the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>
-by providing the registration mechanism of a call back function and a
-pointer to an arbitrary data structure to be passed to that call back
+HREF="../../Implementation/HTReq.html">HTRequest object</A> by providing the registration mechanism
+of a call back function and a pointer to an arbitrary data object to be passed to that call back
 function. <P>
 
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 30-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -180,7 +180,7 @@ The Library has now undergone a major restructuring in order to define the APIs 
 parts and to make it more modular. The new architecture is described in the <A
 HREF="Architecture/DesignModel.html">Architecture document</A> and includes a new Net manager that
 handles a request queue, a DNS manager that handles persistent connections and a well defined
-Request manager where the HTRequest structure is an opaque object.
+Request manager where the HTRequest object is an opaque object.
 
 <H3>Core Modules</H3>
 
@@ -235,7 +235,7 @@ HREF="../Implementation/HTAccess.html">HTAccess module</A> is now a user interfa
 Manager but it doesn't have to be used - you can use the Request Manager directly but often it is
 easier to go through the Access Module.
 
-<LI>The Protocol structure has been turned into an object internal to the <A
+<LI>The Protocol object has been turned into an object internal to the <A
 HREF="../Implementation/HTProt.html">Protocol manager</A>. This means that protocol information can
 be accessed via a set of methods provided by the manager.
 
