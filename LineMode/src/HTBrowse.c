@@ -60,6 +60,8 @@
 
 #include "GridText.h"				     /* Hypertext definition */
 #include "HTBrowse.h"			     /* Things exported, short names */
+#include "CSLApp.h" /* the PICApp library should provide everything the app needs */
+#include "CSUser.h"
 
 #ifndef W3C_VERSION
 #define W3C_VERSION		"Unspecified"
@@ -694,6 +696,52 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
+Pics_error LoadedUsersCallback(CSUser_t * pCSUser, int index, void * pVoid)
+{
+    LineMode * lm = (LineMode *)pVoid;
+    OutputData(lm->pView, "%d: %s\n", index, CSUser_getName(pCSUser));
+    return 0;
+}
+
+Pics_error UserListCallback(char * username, char * url, int index, void * pVoid)
+{
+    LineMode * lm = (LineMode *)pVoid;
+    OutputData(lm->pView, "%d: %s %s\n", index, username, url);
+    return 0;
+}
+
+PRIVATE BOOL ShowPICSUsers(LineMode * lm)
+{
+    OutputData(lm->pView, "Loaded users:\n");
+    CSLoadedUsers_enum(&LoadedUsersCallback, (void *)lm);
+    OutputData(lm->pView, "Listed users:\n");
+    CSUserList_enum(&UserListCallback, (void *)lm);
+    return YES;
+}
+
+PRIVATE BOOL SetPICSUser(HTRequest * req, char * userName)
+{
+    char * username = NULL;
+    char * password = NULL;
+    HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
+    BOOL ret;
+	HTAlertPar * reply;
+
+    if (!cbf)
+		return NO;
+	reply = HTAlert_newReply();
+	if (((*cbf)(req, HT_A_USER_PW, HT_MSG_NULL, userName,
+		    NULL, reply))) {
+	    username = HTAlert_replyMessage(reply);
+	    password = HTAlert_replySecret(reply);
+	}
+	HTAlert_deleteReply(reply);
+	ret = Pics_registerDefaultUserByName(username, password);
+	HT_FREE(username);
+	HT_FREE(password);
+	return ret;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				EVENT FUNCTIONS				     */
 /* ------------------------------------------------------------------------- */
@@ -1045,7 +1093,18 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
       case 'U':
 	if (CHECK_INPUT("UP", token)) {		      /* Scroll up one page  */
 	    HText_scrollUp(HTMainText);
-	} else
+	} else if (CHECK_INPUT("USER", token)) {
+	    if (next_word) {
+			if (!strcasecomp(next_word, "?")) {
+				ShowPICSUsers(lm);
+				SetPICSUser(lm->console, 0);
+			} else {
+				SetPICSUser(lm->console, next_word);
+			}
+	    } else {
+	        SetPICSUser(lm->console, 0);
+		}
+	} else 
 	    found = NO;
 	break;
 	
@@ -1353,8 +1412,13 @@ PRIVATE int redirection_handler (HTRequest * request, int status)
 PRIVATE int terminate_handler (HTRequest * request, int status) 
 {
     Context * context = (Context *) HTRequest_context(request);
-    LineMode * lm = context->lm;
-    BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+    LineMode * lm;
+    BOOL is_index;
+
+    if (!context)
+        return HT_OK; /* not a LineMode request */
+    lm = context->lm;
+    is_index = HTAnchor_isIndex(HTMainAnchor);
     if (status == HT_LOADED) {
 
 	if (HTAlert_interactive()) {
@@ -1411,14 +1475,23 @@ PRIVATE int header_handler (HTRequest * request, const char * token)
 
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
-#ifdef WWW_PICS
-#include "CSLApp.h" /* the PICApp library should provide everything the app needs */
 Pics_callback Pics_appCallback; /* forward reference for strong typechecking */
-Pics_error Pics_appCallback(HTRequest* pReq, Pics_error disposition)
+Pics_error Pics_appCallback(HTRequest* pReq, Pics_error disposition, void * pVoid)
 {
+    LineMode * lm = (LineMode *)pVoid;
+    switch (disposition) {
+        case iteratorError_OK:break;
+        case iteratorError_RATING_VALUE:OutputData(lm->pView, "iteratorError_RATING_VALUE\n");break;
+        case iteratorError_RATING_RANGE:OutputData(lm->pView, "iteratorError_RATING_RANGE\n");break;
+        case iteratorError_RATING_MISSING:OutputData(lm->pView, "iteratorError_RATING_MISSING\n");break;
+        case iteratorError_SERVICE_MISSING:OutputData(lm->pView, "iteratorError_SERVICE_MISSING\n");break;
+        case iteratorError_SERVICE_NONE:OutputData(lm->pView, "iteratorError_SERVICE_NONE\n");break;
+        case iteratorError_RATING_NONE:OutputData(lm->pView, "iteratorError_RATING_NONE\n");break;
+        case iteratorError_BAD_DATE:OutputData(lm->pView, "iteratorError_BAD_DATE\n");break;
+        default:HTTrace("default\n");break;
+    }
     return disposition;
 }
-#endif /* WWW_PICS */
 
 /* ------------------------------------------------------------------------- */
 
@@ -1430,6 +1503,7 @@ int main (int argc, char ** argv)
     int		keycnt = 0;
     HTRequest *	request = NULL;
     LineMode *	lm;
+    char *      picsUser = NULL;
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -1616,6 +1690,11 @@ int main (int argc, char ** argv)
 		    atoi(argv[++arg]) : -1;
 		if (timeout > 0) lm->tv->tv_sec = timeout;
 
+	    /* PICS user */
+	    } else if (!strcmp(argv[arg], "-u")) {
+		picsUser = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : "dad";
+
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
 		HTRequest_setPreemptive(request, YES);
@@ -1795,15 +1874,6 @@ int main (int argc, char ** argv)
 	HTLoadSocket(STDIN_FILENO, request, FD_NONE);
 #endif
 	Cleanup(lm, 0);
-#ifdef WWW_PICS
-	Pics_registerApp(Pics_appCallback, Pics_callOnBad|Pics_callOnGood);
-	Pics_registerDefaultUserByName("dad", "d");
-#if 0
-	Pics_AddService("http://www.gcf.org");
-    	Pics_AddService("http://www.joe.bob.com");
-#endif
-#endif /* WWW_PICS */
-
     }
 
     /* Register our User Prompts etc in the Alert Manager */
@@ -1840,8 +1910,8 @@ int main (int argc, char ** argv)
     HTNetCall_addAfter(terminate_handler, HT_ALL);
 
     /* Register our own MIME header handler for extra headers */
-    HTHeader_addParser("*", NO, header_handler);
-
+/*    HTHeader_addParser("*", NO, header_handler);
+*/
     /* Set timeout on sockets */
     if (lm->tv->tv_sec < 0) {
 	lm->tv->tv_sec = HTAlert_interactive() ?
@@ -1854,6 +1924,10 @@ int main (int argc, char ** argv)
 
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
+
+    Pics_registerApp(Pics_appCallback, Pics_callOnBad|Pics_callOnGood, (void *)lm);
+    if (picsUser)
+        SetPICSUser(lm->console, picsUser);
 
     /* Start the request */
     if (keywords)
