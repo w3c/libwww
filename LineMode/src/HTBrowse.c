@@ -21,7 +21,7 @@
 **  18 Mar 91:  The feature of history mechanism was included, enabling a  
 **              record of previous nodes visited to be kept.
 **   6 Apr 91:  When a node is accessed, it is immediately read into a 
-**              buffer, in an unformatted state, as soon as the connection is   
+**              buffer, in an unformatted state, as soon as the connection is  
 **              made, so that the server is freed as quickly as possible. 
 **              The program now also uses the additional modules HTBufferFile.c
 **              and HTBufferFile.h.
@@ -50,6 +50,40 @@
 **	END_MARK	String to be used to denote the end of a document
 **	VL		Version number, quoted eg "1.2a"
 */
+
+#include <ctype.h>
+#include "HTUtils.h"	/* WWW general purpose macros */
+#include "HTBrowse.h"	/* Things exported, short names */
+#include "GridText.h"	/* Hypertext definition */
+
+#include "HTFormat.h"
+#include "HTTCP.h"	/* TCP/IP utilities */
+#include "HTAnchor.h"   /* Anchor class */
+#include "HTParse.h"    /* WWW address manipulation */
+#include "HTAccess.h"   /* WWW document access network code */
+#include "HTHistory.h"	/* Navigational aids */
+#include "HTML.h"	/* For parser */
+#include "HTFWriter.h"	/* For non-interactive output */
+#include "HTMLGen.h"	/* For reformatting HTML */
+#include "HTFile.h"	/* For Dir access flags */
+#include "HTRules.h"    /* For loading rule file */
+#include "HTError.h"
+#include "HTAlert.h"
+#include "HTTPMulti.h"
+#include "HTEvent.h"
+
+/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC		
+#include "a_stdio.h"
+#endif
+
+#ifdef THINK_C			     /* Macintosh Think C development system */
+#include <console.h>
+#include <time.h>
+extern int socketdebug;		   /* Must be declared in the socket library */
+#endif
+
+/* Macros and other defines */
 #ifndef VL
 #define VL "unspecified"
 #endif
@@ -75,59 +109,6 @@
 #define DEFAULT_REF_HEAD		"*** References from this document ***"
 #endif
 
-/* Check Statements */
-/* ================ */
-
-#define NAME_CHECK	0	/* Trace to show NAME anchors */
-/* #define LONG_PROMPT	1 */	/* Long or short user prompt */
-
-
-/* Include Files */
-/* ============= */
-
-#include <ctype.h>
-#include "HTUtils.h"	/* WWW general purpose macros */
-
-#include "HTBrowse.h"	/* Things exported, short names */
-
-#include "GridText.h"	/* Hypertext definition */
-
-/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
-#ifdef CYRILLIC		
-#include "a_stdio.h"
-#endif
-
-#include "HTFormat.h"
-#include "HTTCP.h"	/* TCP/IP utilities */
-#include "HTAnchor.h"   /* Anchor class */
-#include "HTParse.h"    /* WWW address manipulation */
-#include "HTAccess.h"   /* WWW document access network code */
-#include "HTHistory.h"	/* Navigational aids */
-#include "HTML.h"	/* For parser */
-#include "HTFWriter.h"	/* For non-interactive output */
-#include "HTMLGen.h"	/* For reformatting HTML */
-#include "HTFile.h"	/* For Dir access flags */
-#include "HTRules.h"    /* For loading rule file */
-#include "HTError.h"
-#include "HTAlert.h"
-#include "HTTP.h"
-
-#ifdef THINK_C					 /* Macintosh Think C development system */
-#include <console.h>
-#include <time.h>
-	extern int socketdebug;  /* Must be declared in the socket library */
-#endif
-
-extern HTStyleSheet * styleSheet;
-
-/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
-#ifdef CYRILLIC
-struct ARc arc;
-#endif
-
-/* Define Statements */
-/* ================= */
-
 #ifndef REF_MARK		/* May be redefined on command line */
 #ifdef VIOLA
 #define REF_MARK "[\017%d\016]"	/* Shift-in, shift-out around number */
@@ -149,11 +130,6 @@ struct ARc arc;
 #define END_MARK "     [End]"
 #endif
 #endif
-
-#ifndef EOF
-#define EOF (-1)  /* End of file character defined as -1 */
-#endif
-
 
 #ifdef NEWLIB
 #define SCREEN_WIDTH		78
@@ -183,62 +159,54 @@ struct ARc arc;
 #define MAX_SCREEN_HEIGHT	200	 
 #endif
 
-#ifdef VM   			/* Needed to flush out the prompt line..*/
-#ifndef NEWLIB		/* except on NEWLIB which can wrap. */
-#define NEWLINE_PROMPT  /* before input */
-#endif
-#endif
-
 #define INFINITY		1024		                     /*!! BUG*/
 #define ADDRESS_LENGTH		INFINITY   /* Maximum address length of node */
-#define TITLE_LENGTH		INFINITY	/* Maximum length of a title */
 #define RESPONSE_LENGTH		INFINITY /* Maximum length of users response */
 
 #ifndef MAXPATHLEN
 #define NO_GETWD                      /* Assume no  getwd() if no MAXPATHLEN */
 #endif
 
-/*	Public Variables
-**	================
-*/
+/* #define LONG_PROMPT	1 */			/* Long or short user prompt */
 
-PUBLIC char * HTAppName = "CERN-LineMode";	         /* Application name */
-PUBLIC char * HTAppVersion = VL; 	              /* Application version */
-PUBLIC  int   HTScreenWidth   = SCREEN_WIDTH;		       /* By default */
-PUBLIC  int   HTScreenHeight  = -1;	         		/* Undefined */
-PUBLIC BOOL   display_anchors = YES;	    /* anchor will be shown in text? */
+#if defined(ultrix) || defined(__osf__)
+#define GET_SCREEN_SIZE
+#endif
 
-#ifdef OLD_CODE
-#ifdef VMS
-PUBLIC  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
-#else /* not VMS */
-PRIVATE  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
-#endif /* not VMS */
-#endif /* OLD_CODE */
-					   
-PUBLIC char * start_reference = NULL;      /* Format string for start anchor */
-PUBLIC char * end_reference = REF_MARK;     		   /* for end anchor */
-PUBLIC char * reference_mark = "[%d] ";     	      /* for reference lists */
-PUBLIC char * end_mark = END_MARK;          	  /* Format string for [End] */
+#define Check_User_Input(command) \
+    (!strncasecomp (command, this_word, strlen(this_word)))
+
+/* Public Variables etc. */
+/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC
+struct ARc arc;
+#endif
+
+PUBLIC char *		HTAppName = "CERN-LineMode";     /* Application name */
+PUBLIC char *		HTAppVersion = VL;            /* Application version */
+PUBLIC int		HTScreenWidth   = SCREEN_WIDTH;	       /* By default */
+PUBLIC int		HTScreenHeight  = -1;		   /* -1 = Undefined */
+PUBLIC BOOL		display_anchors = YES;	    /* Show anchors in text? */
+PUBLIC char *		start_reference = NULL;   /* Format for start anchor */
+PUBLIC char *		end_reference = REF_MARK;	   /* for end anchor */
+PUBLIC char *		reference_mark = "[%d] ";     /* for reference lists */
+PUBLIC char *		end_mark = END_MARK;   	  /* Format string for [End] */
  
- /*	Private variables
- **	=================
- */
-/* Arrays for storing the HyperText References */
-
-PRIVATE HTParentAnchor * home_anchor = NULL;	    /* First document anchor */
-PRIVATE char keywords[ADDRESS_LENGTH];     /* Search terms from command line */
-PRIVATE char * output_file_name = NULL;                          /* -o xxxx */
-PRIVATE char        choice[RESPONSE_LENGTH];    /* Users response  */
-PRIVATE char * refhead = DEFAULT_REF_HEAD;  	   /* Reference list heading */
-PRIVATE char *	     logfile_root = 0;	      	/* Log file name */
-PRIVATE BOOL	     filter=0;		     	/* Load from stdin? */
-PRIVATE BOOL	     reformat_html=0;		 /* Reformat html? */
-PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
-PRIVATE HTRequest * request;
-PRIVATE BOOL  OutSource = NO;			    /* Output source, YES/NO */
-PRIVATE char *HTLogFileName = 0;	      	    /* Root of log file name */
-PRIVATE int OldTraceFlag = SHOW_ALL_TRACE;	/* Storage for WWW_traceFlag */
+/* Type definitions and global variables local to this module */
+PRIVATE HTRequest *	request = NULL;
+PRIVATE	HTList *	reqlist = NULL;		  /* List of active requests */
+PRIVATE HTParentAnchor*	home_anchor = NULL;	    /* First document anchor */
+PRIVATE char		keywords[ADDRESS_LENGTH];       /* From command line */
+PRIVATE char *		output_file_name = NULL;		  /* -o xxxx */
+PRIVATE char		choice[RESPONSE_LENGTH];	  /* Users response  */
+PRIVATE char *		refhead = DEFAULT_REF_HEAD;	 /* Ref list heading */
+PRIVATE char *		logfile_root = NULL;	 	    /* Log file name */
+PRIVATE BOOL		filter = NO;		      	 /* Load from stdin? */
+PRIVATE BOOL		reformat_html = NO;		   /* Reformat html? */
+PRIVATE BOOL		listrefs_option = NO;	  /* -listrefs option used?  */
+PRIVATE BOOL		OutSource = NO;		    /* Output source, YES/NO */
+PRIVATE char *		HTLogFileName = NULL;  	    /* Root of log file name */
+PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
 
 #ifdef VMS
 PRIVATE FILE *       output;		/* assignment done in main */
@@ -254,36 +222,16 @@ PUBLIC char *HTSearchScript;
 PRIVATE FILE *	     output = stdout;
 #endif /* not VMS */ 
 
-/* Forward Declaration of Functions */
-/* ================================ */
-
-PRIVATE void History_List NOPARAMS; 
-PRIVATE BOOL Selection_Prompt NOPARAMS;
-PRIVATE void Error_Selection NOPARAMS;
-PRIVATE void help_screen NOPARAMS;
-PRIVATE void Reference_List PARAMS((BOOL titles));
-PRIVATE void ErrMsg PARAMS((char *Msg, char *Str));
-PRIVATE BOOL SaveOutputStream PARAMS((char *This, char *Next));
-
-
-#ifdef ultrix
-#define GET_SCREEN_SIZE
-#endif
-
-#ifdef __osf__
-#define GET_SCREEN_SIZE
-#endif
+/* ------------------------------------------------------------------------- */
+/*				HELP FUNCTIONS				     */
+/* ------------------------------------------------------------------------- */
 
 #ifdef GET_SCREEN_SIZE
 #include <sys/ioctl.h>
-
 /*
- * Get size of the output screen. Stolen from less.
- */
-void
-scrsize(p_height, p_width)
-      int *p_height;
-      int *p_width;
+** Get size of the output screen. Stolen from less.
+*/
+PRIVATE void scrsize ARGS2(int *, p_height, int *, p_width)
 {
       register char *s;
       int ioctl();
@@ -308,551 +256,12 @@ scrsize(p_height, p_width)
 #endif /* GET_SCREEN_SIZE, BSN */
 
 
-/* MAIN PROGRAM
-** ------------
-*/
-
-int main
-#ifdef __STDC__
-		(int argc, char * argv[])
-#else
-		(argc, argv)
-			int argc;
-			char * argv[];
-#endif
-
-{
-    int  return_status = 0;	
-    int  arg;		         /* Argument number as we scan */
-    BOOL argument_found = NO;
-    BOOL logfile_flag = NO;
-    BOOL interactive = YES;		      /* Default is interactive mode */
-    BOOL first_keyword = YES;
-    char* default_default=0;	 /* Parse home relative to this */
-    HTFormat input_format = WWW_HTML;	                 /* Used with filter */
-
-#if defined(ultrix) || defined(__osf__)
-    int scr_height, scr_width;
-#endif /* ultrix and OSF/1 */
-
-#ifdef THINK_C /* command line from Think_C */
-    int i;
-    argc=ccommand(&argv);
-#endif
-    
-/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
-#ifdef CYRILLIC
-    arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
-#endif
-
-    request =  HTRequest_new();
-    /* request->conversions = HTList_new(); See HTRequest_new() HFN 180294 */
-    HTEnableFrom = YES;
-    
-#ifdef VMS
-    output = stdout;
-#endif /* VMS */
-	
-    StrAllocCopy(default_default, "file://");
-    StrAllocCat(default_default, HTGetHostName()); /*eg file://dxcern.cern.ch*/
-
-#ifdef GET_SCREEN_SIZE
-    scrsize(&scr_height, &scr_width);
-    HTScreenHeight = scr_height;
-#endif /* ultrix or OSF/1, BSN */
-
-#ifndef MAXPATHLEN
-#define NO_GETWD		/* Assume no  getwd() if no MAXPATHLEN */
-#endif
-
-#ifdef NO_GETWD  		/* No getwd() on this machine */
-#ifdef HAS_GETCWD		/* System V variant SIGN CHANGED TBL 921006 !! */
-
-    {
-	char wd[1024];			/*!! Arbitrary*/
-	char * result = getcwd(wd, sizeof(wd)); 
-	if (result) {
-
-#ifdef VMS 
-            /* convert directory name to Unix-style syntax */
-	    char * disk = strchr (wd, ':');
-	    char * dir = strchr (wd, '[');
-	    if (disk) {
-	        *disk = '\0';
-		StrAllocCat (default_default, "/");  /* needs delimiter */
-		StrAllocCat (default_default, wd);
-	    }
-	    if (dir) {
-		char *p;
-		*dir = '/';  /* Convert leading '[' */
-		for (p = dir ; *p != ']'; ++p)
-			if (*p == '.') *p = '/';
-		*p = '\0';  /* Cut on final ']' */
-		StrAllocCat (default_default, dir);
-	    }
-#else  /* not VMS */
-	    StrAllocCat (default_default, wd);
-#endif  /* not VMS */
-	    } else {
-	        ErrMsg("Can't read working directory (getcwd)", NULL);
-	    }
-	}  /* end if good getcwd result */
-	
-#else   /* has NO getcwd */
-
-	ErrMsg("This platform does not support getwd() or getcwd()", NULL);
-
-#endif	/* has no getcwd */
-
-#else   /* has getwd */
-	{
-      	    char wd[MAXPATHLEN];
-      	    char * result = (char *) getwd(wd);
-	    if (result) {
-	        StrAllocCat(default_default, wd);
-	    } else {
-	        ErrMsg("Can't read working directory.", NULL);
-	    }
-	}
-#endif
-		
-      StrAllocCat(default_default, "/default.html");
-
-/*	Check for command line options
-**	------------------------------
-*/
-    keywords[0] = 0;				/* Clear string */
-    for (arg=1; arg<argc ; arg++) {
-	if (*argv[arg] == '-') {
-
-	    /* - alone => filter */
-	    if (argv[arg][1] == 0) {
-		filter = YES;	   
-		interactive = NO;     /* From stdin, Force non-interactive */
-	    
-	    /* -? or -help: show the command line help page */
-	    } else if (!strcmp(argv[arg], "-?") ||
-		       !strcmp(argv[arg], "-help")) {
-		home_anchor = (HTParentAnchor *)
-		    HTAnchor_findAddress(COM_HELP_FILE);
-		argument_found = YES;	    /* Don't try to find other pages */
-
-	    /* from -- Initial represntation (only with filter) */
-
-	    } else if (!strcmp(argv[arg], "-from")) {
-		input_format = (arg+1 >= argc || *argv[arg+1] == '-') ?
-		    WWW_HTML : HTAtom_for(argv[++arg]);
-
-#ifdef CYRILLIC
-	    /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org
-	       (Anton Tropashko) */
-	    } else if (!strcmp(argv[arg], "-koi2alt")) {
-	        doia2k(); printf("Ahak2a!");
-#endif
-
-	    /* Page size */
-	    } else if (!strncmp(argv[arg], "-p", 2)) {
-		if (*(argv[arg]+2)) {
-		    if (sscanf(argv[arg]+2, "%d", &HTScreenHeight) < 1)
-			HTScreenHeight = -1;		
-		    else {
-			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
-			    HTScreenHeight = MIN_SCREEN_HEIGHT;
-			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
-			    HTScreenHeight = MAX_SCREEN_HEIGHT;
-		    }
-		} else if (arg+1 < argc && *argv[arg+1] != '-') {
-		    if (sscanf(argv[++arg], "%d", &HTScreenHeight) < 1)
-			HTScreenHeight = -1;
-		    else {
-			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
-			    HTScreenHeight = MIN_SCREEN_HEIGHT;
-			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
-			    HTScreenHeight = MAX_SCREEN_HEIGHT;
-		    }
-		}
-
-	    /* Page width */
-	    } else if (!strncmp(argv[arg], "-w", 2)) {
-		if (*(argv[arg]+2)) {
-		    if (sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1)
-			HTScreenWidth = SCREEN_WIDTH;
-		} else if (arg+1 < argc && *argv[arg+1] != '-') {
-		    if (sscanf(argv[++arg], "%d", &HTScreenWidth) < 1)
-			HTScreenWidth = SCREEN_WIDTH;
-		}
-		if(HTScreenWidth < MIN_SCREEN_WIDTH)
-		    HTScreenWidth = MIN_SCREEN_WIDTH;
-		if(HTScreenWidth > MAX_SCREEN_WIDTH)
-		    HTScreenWidth = MAX_SCREEN_WIDTH;
-		    
-	    /* reformat html */
-	    } else if (!strcmp(argv[arg], "-reformat")) {
-		request->output_format = WWW_HTML;
-		    interactive = NO;
-		    reformat_html = YES;
-
-	    /* to -- Final represntation */
-	    } else if (!strcmp(argv[arg], "-to")) {
-		request->output_format =
-		    (arg+1 >= argc || *argv[arg+1] == '-') ?
-		    	WWW_PRESENT : 
-		    	HTAtom_for(argv[++arg]);
-		    interactive = NO;			/* JFG */
-
-	    /* Telnet from */
-	    } else if (!strcmp(argv[arg], "-h")) {
-		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    HTClientHost = argv[++arg]; 	    /* Use host name */
-		}
-
-	    /* Log file */
-	    } else if (!strcmp(argv[arg], "-l")) {
-		if (arg+1 < argc && *argv[arg+1] != '-')
-		    logfile_root = argv[++arg];
-		logfile_flag = YES;
-		    
-	    /* List References */
-	    } else if (!strcmp(argv[arg], "-listrefs")) {
-		listrefs_option = YES;
-		interactive = NO;			/* non-interactive */
-
-	    /* Method Used (Currently on GET and HEAD are supported) */
-	    } else if (!strcmp(argv[arg], "-m")) {
-		interactive = NO;
-		if (++arg < argc) {
-		    if (!strcasecomp(argv[arg], "head")) {
-			request->method = METHOD_HEAD;
-			request->output_format = WWW_MIME;
-		    } else if (!strcasecomp(argv[arg], "get"))
-			request->method = METHOD_GET;
-		    else
-			request->method = METHOD_INVALID;
-		}
-
-	    /* Non-interactive */
-	    } else if (!strcmp(argv[arg], "-n")) {
-		interactive = NO;
-
-	    /* Output filename */
-	    } else if (!strcmp(argv[arg], "-o")) { 
-		output_file_name = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_OUTPUT_FILE;
-		    interactive = NO;
-		    
-	    /* Anchor format */
-	    } else if (!strcmp(argv[arg], "-a")) { 
-		if (arg+1 < argc && *argv[arg+1] != '-')
-		    end_reference = argv[++arg];      /* New representation */
-
-	    /* Anchor format */
-	    } else if (!strcmp(argv[arg], "-ar")) { 
-		if (arg+1 < argc && *argv[arg+1] != '-')
-		    reference_mark = argv[++arg];  /* Change representation */
-
-	    /* Anchor format */
-	    } else if (!strcmp(argv[arg], "-as")) { 
-		if (arg+1 < argc && *argv[arg+1] != '-')
-		    start_reference = argv[++arg]; /* Change representation */
-
-	    /* No anchors */
-	    } else if (!strcmp(argv[arg], "-na")) { 
-		    display_anchors = NO;
-
-#ifndef NO_RULES
-	    } else if (!strcmp(argv[arg], "-r")) {
-	        if (arg+1 < argc && *argv[arg+1] != '-') { 
-		    if (HTLoadRules(argv[++arg]) < 0) {
-			ErrMsg("Can't open rule file", argv[arg]);
-			return_status = -1;
-			goto endproc;
-		    }
-		}
-#endif
-#ifndef NO_DIR_OPTIONS
-	    } else if (!strncmp(argv[arg], "-d", 2)) {
-	    	char *p = argv[arg]+2;
-		for(;*p;p++) {
-		    switch (argv[arg][2]) {
-		    case 'b':	HTDirReadme = HT_DIR_README_BOTTOM; break;
-		    case 'n':	HTDirAccess = HT_DIR_FORBID; break;
-		    case 'r':	HTDirReadme = HT_DIR_README_NONE; break;
-		    case 's':   HTDirAccess = HT_DIR_SELECTIVE; break;
-		    case 't':	HTDirReadme = HT_DIR_README_TOP; break;
-		    case 'y':	HTDirAccess = HT_DIR_OK; break;
-		    default:
-			ErrMsg("Bad parameter for directory listing -d option",
-			       argv[arg]);
-			return_status = -4;
-		        goto endproc;
-		    }
-		} /* loop over characters */
-#endif
-	    /* Reference list heading */
-	    } else if (!strcmp(argv[arg], "-refhead")) { 
-		if (arg+1 < argc && *argv[arg+1] != '-')
-		    refhead = argv[++arg];
-
-	    /* Print version and exit */
-	    } else if (!strcmp(argv[arg], "-version")) { 
-    		printf("WWW LineMode Browser version %s (WWW Library %s)\n",
-			    VL, HTLibraryVersion);
-		goto endproc;				
-
-#ifdef TRACE
-	   /* Verify: Turns on trace */
-	    } else if (!strncmp(argv[arg], "-v", 2)) {
-	    	char *p = argv[arg]+2;
-		WWW_TraceFlag = 0;
-		for(; *p; p++) {
-		    switch (*p) {
-		      case 'a': WWW_TraceFlag += SHOW_ANCHOR_TRACE; break;
-		      case 'p':	WWW_TraceFlag += SHOW_PROTOCOL_TRACE; break;
-		      case 's':	WWW_TraceFlag += SHOW_SGML_TRACE; break;
-		      case 'u': WWW_TraceFlag += SHOW_URI_TRACE; break;
-		      default:
-			ErrMsg("Bad parameter for verbose mode", argv[arg]);
-		    }
-		}/* loop over characters */
-		if (!WWW_TraceFlag)
-		    WWW_TraceFlag = SHOW_ALL_TRACE;
-		OldTraceFlag = WWW_TraceFlag;		 /* Remember setting */
-#endif
-	    
-	    /* Source please */
-	    } else if (!strcmp(argv[arg], "-source")) {
-		    request->output_format = WWW_SOURCE;
-		    HTOutputSource = YES;		/* Turn on shortcut */
-		    interactive = NO;			/* JFG */
-
-#ifdef THINK_C
-	    /* Echo to file */
-	    } else if (!strcmp(argv[arg], "-e")){
-		struct tm *tm_now; time_t time_now;
-		cecho2file("ThinkCconsole",FALSE,stdout);
-		time_now=time(NULL);tm_now=localtime(&time_now);
-		printf("\n--------------------------------------------"
-			"\n Time: %d.%.2d.%.2d %d:%d:%d\n"
-			"--------------------------------------------\n",
-			(*tm_now).tm_year,
-			(*tm_now).tm_mon+1,
-			(*tm_now).tm_mday,
-			(*tm_now).tm_hour,
-			(*tm_now).tm_min,
-			(*tm_now).tm_sec);
-    
-	    /* debug socket library */
-	    } else if (!strcmp(argv[arg], "-s")) {
-		socketdebug=1;
-#endif
-	      /* endif long list of argument options */
-
-	    } else {
-		ErrMsg("Bad Command Line Argument", argv[arg]);
-	    }
-	} else {  /* it doesn't start with a dash */
-
-/*      Check for main argument
-**      -----------------------
-*/
-    	    if (!argument_found) {
-		char * ref = HTParse(argv[arg], default_default, PARSE_ALL);
-		home_anchor = (HTParentAnchor*)HTAnchor_findAddress(ref);
-		free(ref);
-		argument_found = YES;
-		    
-
-/*      Check for successive keyword arguments
-**      -------------------------------------
-*/
-	    } else {   /* Argument already found */
-		/* Collect keywords */
-		if (first_keyword){
-		    first_keyword = NO;
-		} else {
-		    strcat(keywords, " ");
-		}
-		strcat(keywords,HTStrip(argv[arg]));
-
-	    } /* argument already found */
-	} /* Not an option '-'*/
-    } /* End of argument loop */
-
-    if (HTClientHost) HTSecure = YES;
-    
-    if (HTScreenHeight == -1)		/* Default page size */
-	HTScreenHeight = interactive ? SCREEN_HEIGHT : 999999;
-
-#ifndef NO_RULES
-    {
-    	char * rules = getenv("WWW_CONFIG");
-	if (rules && HTLoadRules(rules) < 0) {
-	    ErrMsg("Cant't open rule file", rules);
-	}
-    }
-#endif
-
-/* Force predefined presentations etc to be set up. Now it is taking
-   care of non-interactive, where no HTSaveLocally() of call backs are used */
-    if (interactive)
-	HTFormatInit(request->conversions);
-    else {
-	HTFormatInitNIM(request->conversions);
-	HTInteractive = NO;			  /* No prompts from HTAlert */
-    }
-
-/*	Open output file
-**	----------------
-*/
-    if (!interactive)	{		/* check for file name @@@@@ */
-    	if (output_file_name) {
-	    FILE * fp = fopen(output_file_name, "w");
-	    if (!fp) {
-	        ErrMsg("Can't open file for writing", output_file_name);
-		return_status = -3;
-		goto endproc;
-	    }
-	    output = fp;
-	}
-	request->output_stream = HTFWriter_new(output, 
-					       output == stdout ? YES : NO);  
-	/* Just pump to stdout but YES: leave it open */
-	
-	/*	To reformat HTML, just put it through a parser running
-	**	into a regenerator   tbl 940613 */
-	
-	if (reformat_html) {
-	    request->output_stream = SGML_new(&HTMLP_dtd,
-	    			  HTMLGenerator(request->output_stream));
-
-	}
-    }
-    
-    
-/* Open Log File. Logfile via Telnet is now optional (HENRIK 11/02-94)
-**	--------------------------
-*/
-
-/* OLD VERSION
-   if (!logfile_root && HTClientHost)
-     {
-	logfile_root = DEFAULT_LOGFILE;
-    }
-*/
-    if (logfile_flag) {
-        if(!logfile_root)
-            logfile_root = HTClientHost ?
-		DEFAULT_LOGFILE : DEFAULT_LOCAL_LOGFILE;
-	HTLogFileName = (char*) malloc(strlen(logfile_root)+20);
-
-#ifdef NO_GETPID
-	sprintf(HTLogFileName, "%s", logfile_root);  /* No getpid() */
-#else
-	sprintf(HTLogFileName, "%s-%d", logfile_root, (int) getpid());
-#endif
-	HTlogfile = fopen(HTLogFileName, "a");
-	if (!HTlogfile)
-	    ErrMsg("Can't open log file", HTLogFileName);
-    };
-
-/*	Enable local directory access
-*/
-    HTDirReadme = HT_DIR_README_TOP;	/* Readme presentation */
-    HTDirAccess = HTClientHost ? HT_DIR_SELECTIVE : HT_DIR_OK;	/* browsing */
-    
-
-/*	Make home page address
-**	----------------------
-*/    
-    if (!home_anchor)
-	home_anchor = HTHomeAnchor ();
-
-
-/*	Non-interactive use
-**	-------------------
-*/
-    if (filter) {			             /* Just convert formats */
-	HTBindAnchor((HTAnchor*)home_anchor, request);
-     	HTParseSocket(input_format, 0, request);      /* From std UNIX input */
-	    goto endproc;
-    }
-
-/*	Load first document
-**	-------------------
-*/
-    if ( *keywords ? HTSearch(keywords, home_anchor, request)
-    		   : HTLoadAnchor((HTAnchor*) home_anchor, request)) {
-    	HTHistory_record((HTAnchor *)home_anchor);
-	
-    } else {	/* Can't even get last resort: give up */
-    
-	char *addr = HTAnchor_address((HTAnchor *)home_anchor);
-
-	ErrMsg("Can't access document", addr);
-	free(addr);
-	if (!HTMainText) {
-	    return_status = -2; /* Can't get first page */
-	    goto endproc;
-        }
-    }
-
-    if (!HTMainText)
-	goto endproc;			/* Hypertext object was not created */
-    
-
-/* 	Main "Event Loop"
-**	----------------
-*/
-    if (interactive) {
-	while (Selection_Prompt());
-	
-    } else if (listrefs_option) {
-	    Reference_List(NO);		/* List without titles */
-    }
-
-endproc:
-    HTRequest_delete(request);
-    if(default_default)
-	free(default_default);
-
-    if(!return_status) {		/* Good! */
-#ifdef VMS 
-    return 1;
-#else
-    return 0; /* Good */
-#endif
-    }
-    return return_status;		/* Bad! */
-} /* main() */
-
-
-
-/*	Error_Selection
-**	---------------
-** Produce an error message.
-**
-*/                       
-
-#ifdef __STDC__
-PRIVATE void Error_Selection(void)
-#else
-PRIVATE void Error_Selection()
-#endif
-
-{    
-    fprintf(stderr, "%s", "Bad command, for list of commands type help.\n");
-    return;
-}
-
-
 /*		Display Help screen	 		 Help_screen
 **		-------------------
-**
-** Produce a help screen, displaying the current document address and a list of 
-** available commands *in this context*.
-** ?? Perhaps this should be a hypertext page, not included in the history list.
+** Produce a help screen, displaying the current document address and
+** a list of * available commands *in this context*.  * ?? Perhaps this
+** should be a hypertext page, not included in the history list.
 */
-
 PRIVATE void help_screen NOARGS {
 
     char * current_address = HTAnchor_address((HTAnchor*)HTMainAnchor);
@@ -937,6 +346,7 @@ PRIVATE void help_screen NOARGS {
 } /* End of help_screen */
 
 
+#ifdef OLD_CODE
 /*		Select_Reference
 **		----------------
 **
@@ -949,7 +359,7 @@ PRIVATE void help_screen NOARGS {
 */
 
 BOOL Select_Reference ARGS1(int,reference_num) {
-
+ 
     HTAnchor 		* destination;
     HTChildAnchor * source = HText_childNumber(HTMainText, reference_num);
     
@@ -963,7 +373,7 @@ BOOL Select_Reference ARGS1(int,reference_num) {
     return YES;
     
 } /* Select_Reference*/
-
+#endif
 
 /* 	Reference_List
 **	--------------
@@ -978,12 +388,9 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 
 {
     int  n;
-    
     if (HText_sourceAnchors(HTMainText) == 0) {
-	fprintf(output,
-	"\n\n     There are no references from this document.\n\n");
+	fprintf(output, "\n\nThere are no references from this document.\n\n");
     } else {
-	
 	fprintf(output, "\n%s\n", refhead);
 	for (n=1; n<=HText_sourceAnchors(HTMainText); n++) {
 	    HTAnchor * destination =
@@ -1000,8 +407,7 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 		    (char *)(title ? title : address));
 	    free(address);
 	}
-		
-	fprintf(output, "\n");
+	fflush(stdout);
     }
 }      
 
@@ -1045,55 +451,17 @@ PRIVATE void History_List NOARGS {
     } while (YES);
 
     printf("\n");
-}      
+}
 
 
-/*
-**	Check_User_Input
-**	----------------
+/*								MakeCommandLine
 **
-** Accepts shortened versions of commands.
-**
-**  On Entry:
-**       char *s  Correct and full version of command, to which the user's 
-**                input is compared.
-**
-**  On Exit:
-**         returns  YES  User's input corresponds to the command.
-**                   NO  Not a recognized command.  
+**	Generate the Prompt line and flush it to the user
 */
-
-#define Check_User_Input(command) \
-    (!strncasecomp (command, this_word, strlen(this_word)))
-
-
-/*			USER INTERFACE
-**			==============
-*/
-
-/* Selection_Prompt
-** ----------------
-** Produces a prompt at the bottom of a page full of text. The prompt varies 
-** depending on the options avaliable.
-*/
-
-#ifdef __STDC__
-PRIVATE BOOL Selection_Prompt(void)
-#else
-PRIVATE BOOL Selection_Prompt()
-#endif
-{ 
+PRIVATE void MakeCommandLine ARGS1(BOOL, is_index)
+{
     int length_of_prompt = 0;
-    BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
-    
-    if (!HText_canScrollDown(HTMainText) &&
-	!HTAnchor_hasChildren(HTMainAnchor) && !is_index && 
-	(!HTHistory_canBacktrack())) {
-	ErrMsg("No way out of here, so I exit!", NULL);	    
-	return NO;	                         /* Exit if no other options */
-    }
-    HText_setStale(HTMainText);                /* We corrupt the display */
-	
+
 #ifndef VM	/* Normal prompt */
     if (is_index){	
 	printf("FIND <keywords>, ");
@@ -1103,7 +471,7 @@ PRIVATE BOOL Selection_Prompt()
 	int refs = HText_sourceAnchors(HTMainText);
 	if (refs>1) {
 	    printf("1-%d, ", refs);
-	    length_of_prompt = length_of_prompt + 6;	/* Roughly */
+	    length_of_prompt = length_of_prompt + 6;		  /* Roughly */
 	}
 	else {
 	    printf("1, ");	
@@ -1169,416 +537,17 @@ PRIVATE BOOL Selection_Prompt()
     if (length_of_prompt<70) printf("PF11=Help");	                /* 9 */
                                                                  /* EQUAL 82 */
 #endif
-	
-/* Read in the user's input, and deal with it as necessary.
+
+    printf("\n");  	           	  /* For use to flush out the prompt */
+    return;
+}
+
+/*									 ErrMsg
 **
-**	Any Command which works returns from the routine. If nothing
-**	works then a search or error message down at the bottom.
+**   General Error Message for Line Mode Browser. If verbose mode is on, then
+**   the message is passed to stderr.
+**
 */
-    {   
-	int  reference_num;
-	char * the_choice = 0;		           /* preserved user command */
-	char * this_word = 0;        	   	    /* First word of command */
-	char * this_command;       	          /* this_word and following */
-	char * next_word;		                      /* Second word */
-	char * other_words;		        /* Second word and following */
-	
-#ifdef NEWLINE_PROMPT
-	printf("\n");  	            /* For use on VM to flush out the prompt */
-#endif
-	if (!fgets(choice, RESPONSE_LENGTH, stdin))	  /* Read User Input */
-	    return NO;					      /* Exit if EOF */
-
-	StrAllocCopy (the_choice, choice);             /* Remember it as is, */
-	if (the_choice[strlen(the_choice)-1] == '\n')        /* The final \n */
-	    the_choice[strlen(the_choice)-1] = '\0';
-	
-#ifdef VM  /* Clear the screen (on screen-mode systems) */
-	clear_screen();
-#endif	
-	this_word = strtok (choice, " \t\n\r");       /* Tokenize user input */
-	this_command = the_choice;
-	if (this_word) {
-	    next_word = strtok (NULL, " \t\n\r");
-	    other_words = the_choice + (next_word - choice);
-	}
-	else
-	    goto down;  /* Empty input : scroll down */
-
-/*		Process Command
-**		---------------
-*/
-/* Giant switch for incoming commands, many of which are single-letter. */
-loop:   switch (TOUPPER(*this_word)) {
-
-          case '0':
-          case '1':
-	  case '2':
-	  case '3':
-	  case '4':
-	  case '5':
-	  case '6':
-	  case '7':
-	  case '8':
-	  case '9':
-	    sscanf(this_word,"%d",&reference_num);
-	    if ((reference_num >= 1) &&
-		(reference_num <= HText_sourceAnchors(HTMainText))) {
-		Select_Reference(reference_num);       /* Select a reference */
-		goto ret;
-	    }
-	    break;
-
-	  case 'B':		
-	    if (Check_User_Input("BACK")) {       /* Return to previous node */
-		if (HTHistory_canBacktrack()) {
-		    HTLoadAnchor(HTHistory_backtrack(), request);
-		} else {
-		    printf("\n  The BACK command cannot be used,");
-		    printf(" as there are no previous documents\n"); 
-		}
-	    }
-	    else if (Check_User_Input("BOTTOM")) {      /* Scroll to bottom  */
-		HText_scrollBottom(HTMainText);
-	    }
-	    goto ret;
-	    break;
-
-#ifdef unix
-	  case 'C':
-	    if (Check_User_Input("CD"))	       /* Change working directory ? */
-		goto lcd;
-	    break;
-#endif
-
-	  case 'D':
-	    if (Check_User_Input("DOWN")) {         /* Scroll down one page  */
-down:		if (HText_canScrollDown(HTMainText))
-                    HText_scrollDown(HTMainText);
-		goto ret;
-            }
-	    break;
-
-	  case 'E': /* Quit program ? Alternative command */
-	    if (Check_User_Input("EXIT"))
-		goto stop;
-	    break;
-	  
-	  case 'F':                                      /* Keyword search ? */
-	    if (is_index && Check_User_Input("FIND")) {
-find:	       	if (next_word && HTSearch(other_words, HTMainAnchor, request))
-                    HTHistory_record((HTAnchor*)HTMainAnchor);
-                goto ret;
-            }
-	    break;
-
-	  case 'G':
-	    if (Check_User_Input("GOTO")) { 			     /* GOTO */
-		if (next_word &&
-		    HTLoadRelative(next_word, HTMainAnchor, request))
-		    HTHistory_record((HTAnchor*) HTMainAnchor);
-		goto ret;
-	    }
-	    break;
-	
-	  case '?':
-		help_screen();
-		goto ret;
-
-	  case 'H':
-	    if (Check_User_Input("HELP")){                   /* help menu, ..*/
-		help_screen();                    /*!! or a keyword search ? */
-		goto ret; 
-	    }
-	    else if (Check_User_Input("HOME")) { 		/* back HOME */
-		if (!HTHistory_canBacktrack()){ 
-		    HText_scrollTop(HTMainText);
-		} else {
-		    HTLoadAnchor(HTHistory_recall(1), request);
-		    /*!! this assumes history is kept.*/
-		}
-		goto ret;
-	    } /* if HOME */
-	    break;
-
-	  case 'K':                                      /* Keyword search ? */
-	    if (is_index && Check_User_Input("KEYWORDS")) {
-		goto find;
-	    }
-	    break;
-
-	  case 'L':
-	    if (Check_User_Input("LIST")){           /* List of references ? */
-		Reference_List(!OutSource);
-		goto ret;
-	    }
-#ifdef unix
-	    else if (Check_User_Input ("LCD")) {       /* Local change dir ? */
-	    extern int chdir();
-lcd:	        if (!next_word) {                        /* Missing argument */
-                    printf ("\nPlease specify the name of the new local directory.\n");
-		    goto ret;
-		}
-                if (chdir (next_word)) {                 /* failed : say why */
-		    fprintf (stderr, "\n  ");
-		    perror (next_word);
-		}
-		else {  /* Success : display new local directory */
-		    /* AS Sep 93 */
-#ifdef NO_GETWD     /* No getwd() on this machine */
-#ifdef HAS_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
-		    printf ("\nLocal directory is now:\n %s\n",
-			    getcwd (choice, sizeof(choice)));
-#else   /* has NO getcwd */
-		    ErrMsg("This platform does not support getwd() or getcwd()", NULL);
-#endif	/* has no getcwd */
-#else   /* has getwd */
-		    printf("\nLocal directory is now:\n %s\n",
-			   (char *) getwd (choice));
-#endif  /* has getwd */
-		    /* End AS Sep 93 */
-		}
-                goto ret;
-            }
-#endif
-	    break;
-
-	  case 'M':
-	    if (Check_User_Input("MANUAL")){ 	         /* Read User manual */
-		if (HTLoadRelative(MANUAL, HTMainAnchor, request))
-		    HTHistory_record((HTAnchor*)HTMainAnchor);
-		goto ret;
-	    }
-	    break;
-	
-	  case 'N':                    
-	    if (Check_User_Input("NEXT")) {
-		if (!HTHistory_canMoveBy(1)) {   /* No nodes to jump back to */
-		    printf("\n  Can't take the NEXT link from the last");
-		    if (!HTHistory_canBacktrack())
-			printf(" document as there is no last");
-		    printf(" document.\n");
-		    goto ret; 
-		}
-		HTLoadAnchor(HTHistory_moveBy(1), request);
-		goto ret;
-	    }
-	    break;
-
-	  case 'P':                    
-	    if (Check_User_Input("PREVIOUS")) {
-		if (!HTHistory_canMoveBy(-1)){ 
-		    printf("\n  Can't take the PREVIOUS link from the last");
-		    if (!HTHistory_canBacktrack())
-			printf(" document as there is no last");
-		    printf(" document.\n");
-		    goto ret;
-		}
-		HTLoadAnchor(HTHistory_moveBy(-1), request);
-		goto ret;
-	    }
-#ifdef GOT_SYSTEM	    
-	    else if (!HTClientHost && Check_User_Input("PRINT")) {
-		char * address = HTAnchor_address((HTAnchor*)HTMainAnchor);
-		char * command;
-		char * template = (char*)getenv("WWW_PRINT_COMMAND");
-		int result;
-			
-		if (!template) template = "www -n -na -p66 '%s' | lpr";
-		command = (char *) malloc(strlen(address)+strlen(template)+20);
-		sprintf(command, template, address);
-		result = system(command);
-		free(address);
-		free(command);
-		if (result) printf("  %s\n  returns %d\n", command, result);
-		goto ret;
-	    }
-#endif
-	    /* this command prints the entire current text to the
-	    terminal's printer; at the end it displays the top of the text */
-#ifdef SLAVE_PRINTER
-#define SLAVE_PRINTER_ON  "\033\133\065\151"
-#define SLAVE_PRINTER_OFF "\033\133\064\151"
-	    
-	    if (Check_User_Input("PS")) {
-		printf ("%s",SLAVE_PRINTER_ON);
-		printf("\f");                      /* Form feed for new page */
-		HText_scrollTop(HTMainText);
-		while(HText_canScrollDown(HTMainText)) {
-		    HText_scrollDown(HTMainText);
-		}
-		printf("\f");  /* Form feed for new page */
-		printf ("%s",SLAVE_PRINTER_OFF);
-		HText_scrollTop(HTMainText);
-		goto ret;
-	    }	
-#endif
-	    break;
-
-	  case 'Q':                                        /* Quit program ? */
-	    if (Check_User_Input("QUIT")) {
-#ifdef VM
-		if (HTHistory_canBacktrack()){       /* Means one level only */
-		    HTLoadAnchor(HTHistory_backtrack(), request);
-		    goto ret;
-		} else {
-		    goto stop;		              /* On last level, exit */
-		}
-#endif
-
-/* 	JFG 9/7/92, following a complaint of 'q' mis-typed for '1'.
-	JFG Then made optional because I hate it !!!
-	TBL made it only affect remote logged on users. 921122 */
-
-		if (HTClientHost && (strcasecomp(this_word, "quit") != 0) ) {
-		    printf ("\n Please type \"quit\" in full to leave www.\n");
-		    goto ret;
-		}
-		goto stop;
-	    }
-	    break;
-
-	  case 'R':	
-#ifdef VM
-	    if (Check_User_Input("RETURN"))	       /* Means quit program */
-		goto stop;
-#endif	    
-	    if (Check_User_Input("RECALL")) {
-		int  recall_node_num;
-		
-		if (!HTHistory_canBacktrack()) {       /* No nodes to recall */
-		    printf("\n  No other documents to recall.\n");
-		    goto ret;
-		}
-		
-		/* Previous node number exists, or does the user just */
-		/* require a list of nodes visited? */
-		if (next_word) {
-		    if ((recall_node_num = atoi(next_word)) > 0)  /* Parm OK */
-		    	HTLoadAnchor(HTHistory_recall(recall_node_num),
-				     request);
-		    else
-		    	Error_Selection();
-		}
-		else 
-		    History_List();
-		goto ret;
-	    } else if (Check_User_Input("REFRESH")){
-	        HText_select(HTMainText);		   /* Refresh screen */
-		goto ret;
-	    }
-	    break;
-
-	  case 'S':					       /* TBL 921009 */
-	    if (Check_User_Input("SOURCE")) {     	  /* Apply to source */
-		if (!next_word) goto ret;    /* Should refresh as source @@@ */
-		OutSource = YES;		 /* Load and print as source */
-		this_word = next_word;		         /* Move up one word */
-		next_word = strtok (NULL, " \t\n\r");
-		this_command = the_choice + (this_word - choice);
-		other_words = the_choice + (next_word - choice);
-		goto loop;	               	       /* Go treat as before */
-	    } else if (Check_User_Input("SET")) {                  /* config */
-		HTSetConfiguration(other_words);
-		goto ret;
-	    }
-	    break;
-
-	  case 'T':
-	    if (Check_User_Input("TOP")) {                 /* Return to top  */
-		HText_scrollTop(HTMainText);
-		goto ret;
-	    }
-	    break;
-	    
-	  case 'U':
-	    if (Check_User_Input("UP")) {             /* Scroll up one page  */
-		HText_scrollUp(HTMainText);
-		goto ret;
-	    }
-	    break;
-
-	  case 'V':
-	    if (Check_User_Input("VERBOSE")) {       /* Switch verbose mode  */
-		WWW_TraceFlag = WWW_TraceFlag ? 0 : OldTraceFlag;
-		printf ("\n  Verbose mode %s.\n", WWW_TraceFlag ? "ON":"OFF");
-		goto ret;
-	    }
-	    break;
-	
-	  case '>':
-	    if (!HTClientHost) {
-		SaveOutputStream(this_word, next_word);
-		goto ret;
-	    }
-	    break;
-	 
-#ifdef GOT_PIPE
-	  case '|':
-	    if (!HTClientHost) {	                   /* Local only!!!! */
-		char * address = HTAnchor_address((HTAnchor*) HTMainAnchor);
-		char * command;
-		int result;
-	    
-		command = (char*) malloc(strlen(address)
-					 +strlen(this_command)+30);
-
-#ifdef VM	
-		sprintf(command, "PIPE CMS WWW %s \"%s\" | %s",
-		/* Note format is | > */ 
-#else	
-	        sprintf(command, "www %s \"%s\" %s", 
-#endif
-		OutSource ? "-source" : "-n -na -p", address, this_command);
-
-		printf("Command: %s\n", command);
-		result = system(command);
-	        if (result)
-		    printf("  %s  returns %d\n", command, result);
-		free(command);
-	        free(address);
-	        goto ret;
-	    }
-#endif
-
-#ifdef GOT_SYSTEM
-	  case '!':
-	    if (!HTClientHost) {	                /* Local only!!!!!!! */
-		int result;
-		ErrMsg("Executing", this_command);
-		result = system(strchr(this_command, '!') + 1);
-		if (result) printf("  %s  returns %d\n",
-				   strchr(this_command, '!') + 1, result);
-		goto ret;
-	    }
-#endif
-	  default:
-	    break;
-        } /* Switch on 1st character */
-	
-	if (is_index && *this_word) {        /* No commands, search keywords */
-	    next_word = other_words = this_command;
-	    goto find;
-	} else {             
-	    Error_Selection();
-	}
-
-ret:
-	free (the_choice);
-	return YES;
-
-stop:   free(the_choice);
-	return NO;
-    }	/* Get user selection */
-}  /* Selection_Prompt */
-
-
-/* -------------------------------------------------------------------------
-   General Error Message for Line Mode Browser. If verbose mode is on, then
-   the message is passed to stderr.
-
-   Henrik Frystyk 02/03-94
-   ------------------------------------------------------------------------- */
 PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
 {
     if (TRACE) {
@@ -1589,14 +558,64 @@ PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
     }
 }
 
+/* ------------------------------------------------------------------------- */
+/*				EVENT FUNCTIONS				     */
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------
-   This function puts up a stream to a file in order to save a document. This
-   is activated by '>', '>>' or '>!' from the prompt line.
-   Returns NO if Error and YES if OK
+/*
+**  This function creates a new request structure and adds it to the global
+**  list of active threads
+*/
+PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
+{
+    HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
+    if (!reqlist)
+	reqlist = HTList_new();
+    HTList_addObject(reqlist, (void *) newreq);
+    if (Interactive)
+	HTFormatInit(newreq->conversions);
+    else
+	HTFormatInitNIM(newreq->conversions);
+    return newreq;
+}
 
-   Henrik Frystyk 02/03-94
-   ------------------------------------------------------------------------- */
+
+/*
+**  This function deletes a request structure and takes it out of the list
+**  of active threads.
+*/
+PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
+{
+    if (oldreq) {
+	if (reqlist)
+	    HTList_removeObject(reqlist, (void *) oldreq);
+	HTRequest_delete(oldreq);
+    }
+}
+
+/*
+**  This function deletes the whole list of active threads.
+*/
+PRIVATE void Thread_deleteAll NOARGS
+{
+    if (reqlist) {
+	HTList *cur = reqlist;
+	HTRequest* pres;
+	while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
+	    HTRequest_delete(pres);
+	HTList_delete(reqlist);
+	reqlist = NULL;
+    }
+}
+
+
+/*
+**  This function puts up a stream to a file in order to save a document. This
+**  is activated by '>', '>>' or '>!' from the prompt line.
+**  Returns NO if Error and YES if OK
+**
+**  Henrik Frystyk 02/03-94
+*/
 PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 {
     FILE *fp;
@@ -1632,17 +651,876 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
     if (TRACE) fprintf(stderr, "Saving to file %s\n", fname);
     {
 	BOOL ret = NO;
-	HTRequest *req = HTRequest_new(); 	     /* Set up a new request */
-	HTFormatInitNIM(req->conversions);	     /* Non-interactive mode */
+	HTRequest *req = Thread_new(NO); 	     /* Set up a new request */
 	if(OutSource)
 	    req->output_format = WWW_SOURCE;
 	req->output_stream = HTFWriter_new(fp, NO);
 	HTForceReload = YES;
 	ret = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	HTForceReload = NO;
-	HTRequest_delete(req);
 	return ret;
     }
+}
+
+
+/*								   EventHandler
+**
+**	Read in the user's input, and deal with it as necessary.
+**
+**	Any Command which works returns from the routine. If nothing
+**	works then a search or error message down at the bottom.
+*/
+PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
+{ 
+    int  ref_num;
+    char * the_choice = 0;		           /* preserved user command */
+    char * this_word = 0;        	   	    /* First word of command */
+    char * this_command;	       	          /* this_word and following */
+    char * next_word;			                      /* Second word */
+    char * other_words;				/* Second word and following */
+    BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+
+    if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
+	return EVENT_QUIT;				      /* Exit if EOF */
+    
+    StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
+    if (the_choice[strlen(the_choice)-1] == '\n')            /* The final \n */
+	the_choice[strlen(the_choice)-1] = '\0';
+    
+#ifdef VM  /* Clear the screen (on screen-mode systems) */
+    clear_screen();
+#endif	
+    this_word = strtok (choice, " \t\n\r");	      /* Tokenize user input */
+    this_command = the_choice;
+    if (this_word) {
+	next_word = strtok (NULL, " \t\n\r");
+	other_words = the_choice + (next_word - choice);
+    }
+    else
+	goto down;				/* Empty input : scroll down */
+    
+    /* Process Command */
+  loop:
+    switch (TOUPPER(*this_word)) {
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+	sscanf(this_word,"%d",&ref_num);
+	if (ref_num>0 && ref_num<=HText_sourceAnchors(HTMainText)) {
+	    HTAnchor *destination;
+	    HTChildAnchor *source = HText_childNumber(HTMainText, ref_num);
+	    HTRequest *newreq = Thread_new(YES);
+	    if (!source) return EVENT_QUIT;			/* No anchor */
+	    destination = HTAnchor_followMainLink((HTAnchor*) source);
+	    HTMainAnchor = HTAnchor_parent((HTAnchor *) source);
+	    HTLoadAnchor(destination, newreq);
+	    return EVENT_OK;
+	}
+	break;
+	
+      case 'B':		
+	if (Check_User_Input("BACK")) {		  /* Return to previous node */
+	    if (HTHistory_canBacktrack()) {
+		HTLoadAnchor(HTHistory_backtrack(), actreq);
+	    } else {
+		printf("\n  The BACK command cannot be used,");
+		printf(" as there are no previous documents\n"); 
+	    }
+	}
+	else if (Check_User_Input("BOTTOM")) {		/* Scroll to bottom  */
+	    HText_scrollBottom(HTMainText);
+	}
+	goto ret;
+	break;
+	
+#ifdef unix
+      case 'C':
+	if (Check_User_Input("CD"))	       /* Change working directory ? */
+	    goto lcd;
+	break;
+#endif
+	
+      case 'D':
+	if (Check_User_Input("DOWN")) {		    /* Scroll down one page  */
+	  down:
+	    if (HText_canScrollDown(HTMainText))
+		HText_scrollDown(HTMainText);
+	    goto ret;
+	}
+	break;
+	
+      case 'E':			       /* Quit program ? Alternative command */
+	if (Check_User_Input("EXIT"))
+	    goto stop;
+	break;
+	
+      case 'F':						 /* Keyword search ? */
+	if (is_index && Check_User_Input("FIND")) {
+	  find:
+	    if (next_word && HTSearch(other_words, HTMainAnchor, actreq))
+		HTHistory_record((HTAnchor *) HTMainAnchor);
+	    goto ret;
+	}
+	break;
+	
+      case 'G':
+	if (Check_User_Input("GOTO")) {				     /* GOTO */
+	    if (next_word) {
+		HTRequest *newreq = Thread_new(YES);
+		HTLoadRelative(next_word, HTMainAnchor, newreq);
+		return EVENT_OK;
+	    }
+	}
+	break;
+	
+      case '?':
+	help_screen();
+	goto ret;
+	
+      case 'H':
+	if (Check_User_Input("HELP")){			     /* help menu, ..*/
+	    help_screen();			  /*!! or a keyword search ? */
+	    goto ret; 
+	}
+	else if (Check_User_Input("HOME")) {			/* back HOME */
+	    if (!HTHistory_canBacktrack()){ 
+		HText_scrollTop(HTMainText);
+	    } else {
+		HTLoadAnchor(HTHistory_recall(1), actreq);
+		/* !! this assumes history is kept.*/
+	    }
+	    goto ret;
+	}
+	break;
+	
+      case 'K':						 /* Keyword search ? */
+	if (is_index && Check_User_Input("KEYWORDS")) {
+	    goto find;
+	}
+	break;
+	
+      case 'L':
+	if (Check_User_Input("LIST")){		     /* List of references ? */
+	    Reference_List(!OutSource);
+	    goto ret;
+	}
+#ifdef unix
+	else if (Check_User_Input ("LCD")) {	       /* Local change dir ? */
+	    extern int chdir();
+	  lcd:
+	    if (!next_word) {				 /* Missing argument */
+		printf ("\nName of the new local directory missing.\n");
+		goto ret;
+	    }
+	    if (chdir (next_word)) {			 /* failed : say why */
+		fprintf (stderr, "\n  ");
+		perror (next_word);
+	    }
+	    else {		    /* Success : display new local directory */
+		/* AS Sep 93 */
+#ifdef NO_GETWD     /* No getwd() on this machine */
+#ifdef HAS_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
+		printf ("\nLocal directory is now:\n %s\n",
+			getcwd (choice, sizeof(choice)));
+#else   /* has NO getcwd */
+		ErrMsg("This platform does not support getwd() or getcwd()",
+		       NULL);
+#endif	/* has no getcwd */
+#else   /* has getwd */
+		printf("\nLocal directory is now:\n %s\n",
+		       (char *) getwd (choice));
+#endif  /* has getwd */
+		/* End AS Sep 93 */
+	    }
+	    goto ret;
+	}
+#endif
+	break;
+	
+      case 'M':
+	if (Check_User_Input("MANUAL")) {		 /* Read User manual */
+	    if (HTLoadRelative(MANUAL, HTMainAnchor, actreq))
+		HTHistory_record((HTAnchor *) HTMainAnchor);
+	    goto ret;
+	}
+	break;
+	
+      case 'N':                    
+	if (Check_User_Input("NEXT")) {
+	    if (!HTHistory_canMoveBy(1)) {	 /* No nodes to jump back to */
+		printf("\n  Can't take the NEXT link from the last");
+		if (!HTHistory_canBacktrack())
+		    printf(" document as there is no last");
+		printf(" document.\n");
+		goto ret; 
+	    }
+	    HTLoadAnchor(HTHistory_moveBy(1), actreq);
+	    goto ret;
+	}
+	break;
+	
+      case 'P':                    
+	if (Check_User_Input("PREVIOUS")) {
+	    if (!HTHistory_canMoveBy(-1)){ 
+		printf("\n  Can't take the PREVIOUS link from the last");
+		if (!HTHistory_canBacktrack())
+		    printf(" document as there is no last");
+		printf(" document.\n");
+		goto ret;
+	    }
+	    HTLoadAnchor(HTHistory_moveBy(-1), actreq);
+	    goto ret;
+	}
+#ifdef GOT_SYSTEM	    
+	else if (!HTClientHost && Check_User_Input("PRINT")) {
+	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
+	    char * command;
+	    char * template = (char*)getenv("WWW_PRINT_COMMAND");
+	    int result;
+	    
+	    if (!template) template = "www -n -na -p66 '%s' | lpr";
+	    command = (char *) malloc(strlen(address)+strlen(template)+20);
+	    sprintf(command, template, address);
+	    result = system(command);
+	    free(address);
+	    free(command);
+	    if (result) printf("  %s\n  returns %d\n", command, result);
+	    goto ret;
+	}
+#endif
+	/* this command prints the entire current text to the
+	   terminal's printer; at the end it displays the top of the text */
+#ifdef SLAVE_PRINTER
+#define SLAVE_PRINTER_ON  "\033\133\065\151"
+#define SLAVE_PRINTER_OFF "\033\133\064\151"
+	
+	if (Check_User_Input("PS")) {
+	    printf ("%s",SLAVE_PRINTER_ON);
+	    printf("\f");			   /* Form feed for new page */
+	    HText_scrollTop(HTMainText);
+	    while(HText_canScrollDown(HTMainText)) {
+		HText_scrollDown(HTMainText);
+	    }
+	    printf("\f");  /* Form feed for new page */
+	    printf ("%s",SLAVE_PRINTER_OFF);
+	    HText_scrollTop(HTMainText);
+	    goto ret;
+	}	
+#endif
+	break;
+	
+      case 'Q':						   /* Quit program ? */
+	if (Check_User_Input("QUIT")) {
+#ifdef VM
+	    if (HTHistory_canBacktrack()){       /* Means one level only */
+		HTLoadAnchor(HTHistory_backtrack(), actreq);
+		goto ret;
+	    } else {
+		goto stop;		              /* On last level, exit */
+	    }
+#endif
+	    
+	    /* 	JFG 9/7/92, following a complaint of 'q' mis-typed for '1'.
+		JFG Then made optional because I hate it !!!
+		TBL made it only affect remote logged on users. 921122 */
+	    
+	    if (HTClientHost && (strcasecomp(this_word, "quit") != 0) ) {
+		printf ("\n Please type \"quit\" in full to leave www.\n");
+		goto ret;
+	    }
+	    goto stop;
+	}
+	break;
+	
+      case 'R':	
+#ifdef VM
+	if (Check_User_Input("RETURN"))		       /* Means quit program */
+	    goto stop;
+#endif	    
+	if (Check_User_Input("RECALL")) {
+	    int  recall_node_num;
+	    
+	    if (!HTHistory_canBacktrack()) {	       /* No nodes to recall */
+		printf("\n  No other documents to recall.\n");
+		goto ret;
+	    }
+	    
+	    /* Previous node number exists, or does the user just */
+	    /* require a list of nodes visited? */
+	    if (next_word) {
+		if ((recall_node_num = atoi(next_word)) > 0)  /* Parm OK */
+		    HTLoadAnchor(HTHistory_recall(recall_node_num),
+				 actreq);
+		else
+		    ErrMsg("Bad command, for list of commands type help.",
+			   this_command);
+	    }
+	    else 
+		History_List();
+	    goto ret;
+	} else if (Check_User_Input("REFRESH")) {
+	    HText_select(HTMainText);			   /* Refresh screen */
+	    goto ret;
+	}
+	break;
+	
+      case 'S':						       /* TBL 921009 */
+	if (Check_User_Input("SOURCE")) {     	  	  /* Apply to source */
+	    if (!next_word) goto ret;        /* Should refresh as source @@@ */
+	    OutSource = YES;		 	 /* Load and print as source */
+	    this_word = next_word;		         /* Move up one word */
+	    next_word = strtok (NULL, " \t\n\r");
+	    this_command = the_choice + (this_word - choice);
+	    other_words = the_choice + (next_word - choice);
+	    goto loop;	               	       	       /* Go treat as before */
+	} else if (Check_User_Input("SET")) {          	           /* config */
+	    HTSetConfiguration(other_words);
+	    goto ret;
+	}
+	break;
+	
+      case 'T':
+	if (Check_User_Input("TOP")) {			   /* Return to top  */
+	    HText_scrollTop(HTMainText);
+	    goto ret;
+	}
+	break;
+	
+      case 'U':
+	if (Check_User_Input("UP")) {		      /* Scroll up one page  */
+	    HText_scrollUp(HTMainText);
+	    goto ret;
+	}
+	break;
+	
+      case 'V':
+	if (Check_User_Input("VERBOSE")) {	     /* Switch verbose mode  */
+	    WWW_TraceFlag = WWW_TraceFlag ? 0 : OldTraceFlag;
+	    printf ("\n  Verbose mode %s.\n", WWW_TraceFlag ? "ON":"OFF");
+	    goto ret;
+	}
+	break;
+	
+      case 'Z':
+	return EVENT_INTR;
+
+      case '>':
+	if (!HTClientHost) {
+	    SaveOutputStream(this_word, next_word);
+	    goto ret;
+	}
+	break;
+	
+#ifdef GOT_PIPE
+      case '|':
+	if (!HTClientHost) {	             	           /* Local only!!!! */
+	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
+	    char * command;
+	    int result;
+	    command = (char*) malloc(strlen(address) +strlen(this_command)+30);
+	    
+#ifdef VM	
+	    sprintf(command, "PIPE CMS WWW %s \"%s\" | %s",
+		    OutSource ? "-source" : "-n -na -p", address,this_command);
+
+#else	
+	    sprintf(command, "www %s \"%s\" %s", 
+		    OutSource ? "-source" : "-n -na -p", address,this_command);
+#endif
+	    printf("Command: %s\n", command);
+	    result = system(command);
+	    if (result)
+	        printf("  %s  returns %d\n", command, result);
+	    free(command);
+     	    free(address);
+	    goto ret;
+	}
+#endif
+	    
+#ifdef GOT_SYSTEM
+      case '!':
+	if (!HTClientHost) {				      /* Local only! */
+	    int result;
+	    ErrMsg("Executing", this_command);
+	    result = system(strchr(this_command, '!') + 1);
+	    if (result) printf("  %s  returns %d\n",
+			       strchr(this_command, '!') + 1, result);
+	    goto ret;
+	}
+#endif
+      default:
+	break;
+    } /* Switch on 1st character */
+	
+    if (is_index && *this_word) {	     /* No commands, search keywords */
+	next_word = other_words = this_command;
+	goto find;
+    } else {             
+	ErrMsg("Bad command, for list of commands type help.", this_command);
+    }
+	
+  ret:
+    MakeCommandLine(is_index);
+    free (the_choice);
+    return EVENT_OK;
+	
+  stop:
+    free(the_choice);
+    return EVENT_QUIT;
+}
+
+
+/*						        HTEventRequestTerminate
+**
+**	React to the status of the terminated request
+*/
+PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
+						  int,		status) 
+{
+    BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+    if (status == HT_LOADED) {
+	if (actreq->parentAnchor) {
+	    HTParentAnchor *parent = actreq->parentAnchor;
+	    HTParentAnchor *destination = actreq->anchor;
+	    HTHistory_leavingFrom((HTAnchor *) parent);
+	    HTHistory_record((HTAnchor *) destination);
+	    actreq->parentAnchor = NULL;
+	}
+
+	/* Now generate the new prompt line as a function of the result */
+	if (!HText_canScrollDown(HTMainText) &&
+	    !HTAnchor_hasChildren(HTMainAnchor) && !is_index &&
+	    (!HTHistory_canBacktrack())) {
+	    ErrMsg("No way out of here, so I exit!", NULL);	    
+	    return EVENT_QUIT;	                 /* Exit if no other options */
+	}
+	HText_setStale(HTMainText);		   /* We corrupt the display */
+	MakeCommandLine(is_index);
+    } else if (!HTMainText)			      /* If first try failed */
+	return EVENT_QUIT;
+    return EVENT_OK;
+}
+
+/* ------------------------------------------------------------------------- */
+/*				  MAIN PROGRAM				     */
+/* ------------------------------------------------------------------------- */
+
+int main ARGS2(int, argc, char **, argv)
+{
+    int		return_status = 0;	
+    int		arg;			       /* Argument number as we scan */
+    BOOL	argument_found = NO;
+    BOOL	logfile_flag = NO;
+    BOOL	first_keyword = YES;
+    char *	default_default = HTFindRelatedName();
+    HTFormat	input_format = WWW_HTML;	         /* Used with filter */
+    HTEventCallBack user;		/* To register STDIN for user events */
+
+#ifdef THINK_C /* command line from Think_C */
+    int i;
+    argc=ccommand(&argv);
+#endif
+    
+    /* HWL 18/7/94: applied patch from
+       agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC
+    arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
+#endif
+
+    /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
+       to a port where er should get `connection refused'. We ignore this 
+       using the following function call */
+#ifdef WWWLIB_SIG
+    HTSetSignal();
+#endif
+
+#ifdef VMS
+    output = stdout;
+#endif /* VMS */
+	
+    request =  HTRequest_new();
+
+    /* Check for command line options */
+    *keywords = '\0';
+    for (arg=1; arg<argc ; arg++) {
+	if (*argv[arg] == '-') {
+
+	    /* - alone => filter */
+	    if (argv[arg][1] == 0) {
+		filter = YES;	   
+		HTInteractive = NO;     /* From stdin, Force non-interactive */
+	    
+	    /* -? or -help: show the command line help page */
+	    } else if (!strcmp(argv[arg], "-?") ||
+		       !strcmp(argv[arg], "-help")) {
+		home_anchor = (HTParentAnchor *)
+		    HTAnchor_findAddress(COM_HELP_FILE);
+		argument_found = YES;	    /* Don't try to find other pages */
+
+	    /* from -- Initial represntation (only with filter) */
+
+	    } else if (!strcmp(argv[arg], "-from")) {
+		input_format = (arg+1 >= argc || *argv[arg+1] == '-') ?
+		    WWW_HTML : HTAtom_for(argv[++arg]);
+
+#ifdef CYRILLIC
+	    /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org
+	       (Anton Tropashko) */
+	    } else if (!strcmp(argv[arg], "-koi2alt")) {
+	        doia2k(); printf("Ahak2a!");
+#endif
+
+	    /* Page size */
+	    } else if (!strncmp(argv[arg], "-p", 2)) {
+		if (*(argv[arg]+2)) {
+		    if (sscanf(argv[arg]+2, "%d", &HTScreenHeight) < 1)
+			HTScreenHeight = -1;		
+		    else {
+			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
+			    HTScreenHeight = MIN_SCREEN_HEIGHT;
+			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
+			    HTScreenHeight = MAX_SCREEN_HEIGHT;
+		    }
+		} else if (arg+1 < argc && *argv[arg+1] != '-') {
+		    if (sscanf(argv[++arg], "%d", &HTScreenHeight) < 1)
+			HTScreenHeight = -1;
+		    else {
+			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
+			    HTScreenHeight = MIN_SCREEN_HEIGHT;
+			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
+			    HTScreenHeight = MAX_SCREEN_HEIGHT;
+		    }
+		}
+
+	    /* Page width */
+	    } else if (!strncmp(argv[arg], "-w", 2)) {
+		if (*(argv[arg]+2)) {
+		    if (sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1)
+			HTScreenWidth = SCREEN_WIDTH;
+		} else if (arg+1 < argc && *argv[arg+1] != '-') {
+		    if (sscanf(argv[++arg], "%d", &HTScreenWidth) < 1)
+			HTScreenWidth = SCREEN_WIDTH;
+		}
+		if(HTScreenWidth < MIN_SCREEN_WIDTH)
+		    HTScreenWidth = MIN_SCREEN_WIDTH;
+		if(HTScreenWidth > MAX_SCREEN_WIDTH)
+		    HTScreenWidth = MAX_SCREEN_WIDTH;
+		    
+	    /* reformat html */
+	    } else if (!strcmp(argv[arg], "-reformat")) {
+		request->output_format = WWW_HTML;
+		    HTInteractive = NO;
+		    reformat_html = YES;
+
+	    /* to -- Final represntation */
+	    } else if (!strcmp(argv[arg], "-to")) {
+		request->output_format =
+		    (arg+1 >= argc || *argv[arg+1] == '-') ?
+		    	WWW_PRESENT : 
+		    	HTAtom_for(argv[++arg]);
+		    HTInteractive = NO;			/* JFG */
+
+	    /* Telnet from */
+	    } else if (!strcmp(argv[arg], "-h")) {
+		if (arg+1 < argc && *argv[arg+1] != '-') {
+		    HTClientHost = argv[++arg]; 	    /* Use host name */
+		}
+
+	    /* Log file */
+	    } else if (!strcmp(argv[arg], "-l")) {
+		if (arg+1 < argc && *argv[arg+1] != '-')
+		    logfile_root = argv[++arg];
+		logfile_flag = YES;
+		    
+	    /* List References */
+	    } else if (!strcmp(argv[arg], "-listrefs")) {
+		listrefs_option = YES;
+		HTInteractive = NO;			/* non-interactive */
+
+	    /* Method Used (Currently on GET and HEAD are supported) */
+	    } else if (!strcmp(argv[arg], "-m")) {
+		HTInteractive = NO;
+		if (++arg < argc) {
+		    if (!strcasecomp(argv[arg], "head")) {
+			request->method = METHOD_HEAD;
+			request->output_format = WWW_MIME;
+		    } else if (!strcasecomp(argv[arg], "get"))
+			request->method = METHOD_GET;
+		    else
+			request->method = METHOD_INVALID;
+		}
+
+	    /* Non-interactive */
+	    } else if (!strcmp(argv[arg], "-n")) {
+		HTInteractive = NO;
+
+	    /* Output filename */
+	    } else if (!strcmp(argv[arg], "-o")) { 
+		output_file_name = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_OUTPUT_FILE;
+		    HTInteractive = NO;
+		    
+	    /* Anchor format */
+	    } else if (!strcmp(argv[arg], "-a")) { 
+		if (arg+1 < argc && *argv[arg+1] != '-')
+		    end_reference = argv[++arg];      /* New representation */
+
+	    /* Anchor format */
+	    } else if (!strcmp(argv[arg], "-ar")) { 
+		if (arg+1 < argc && *argv[arg+1] != '-')
+		    reference_mark = argv[++arg];  /* Change representation */
+
+	    /* Anchor format */
+	    } else if (!strcmp(argv[arg], "-as")) { 
+		if (arg+1 < argc && *argv[arg+1] != '-')
+		    start_reference = argv[++arg]; /* Change representation */
+
+	    /* No anchors */
+	    } else if (!strcmp(argv[arg], "-na")) { 
+		    display_anchors = NO;
+
+#ifndef NO_RULES
+	    } else if (!strcmp(argv[arg], "-r")) {
+	        if (arg+1 < argc && *argv[arg+1] != '-') { 
+		    if (HTLoadRules(argv[++arg]) < 0) {
+			ErrMsg("Can't open rule file", argv[arg]);
+			return_status = -1;
+			goto endproc;
+		    }
+		}
+#endif
+#ifndef NO_DIR_OPTIONS
+	    } else if (!strncmp(argv[arg], "-d", 2)) {
+	    	char *p = argv[arg]+2;
+		for(;*p;p++) {
+		    switch (argv[arg][2]) {
+		    case 'b':	HTDirReadme = HT_DIR_README_BOTTOM; break;
+		    case 'n':	HTDirAccess = HT_DIR_FORBID; break;
+		    case 'r':	HTDirReadme = HT_DIR_README_NONE; break;
+		    case 's':   HTDirAccess = HT_DIR_SELECTIVE; break;
+		    case 't':	HTDirReadme = HT_DIR_README_TOP; break;
+		    case 'y':	HTDirAccess = HT_DIR_OK; break;
+		    default:
+			ErrMsg("Bad parameter for directory listing -d option",
+			       argv[arg]);
+			return_status = -4;
+		        goto endproc;
+		    }
+		} /* loop over characters */
+#endif
+	    /* Reference list heading */
+	    } else if (!strcmp(argv[arg], "-refhead")) { 
+		if (arg+1 < argc && *argv[arg+1] != '-')
+		    refhead = argv[++arg];
+
+	    /* Print version and exit */
+	    } else if (!strcmp(argv[arg], "-version")) { 
+    		printf("WWW LineMode Browser version %s (WWW Library %s)\n",
+			    VL, HTLibraryVersion);
+		goto endproc;				
+
+#ifdef TRACE
+	   /* Verify: Turns on trace */
+	    } else if (!strncmp(argv[arg], "-v", 2)) {
+	    	char *p = argv[arg]+2;
+		WWW_TraceFlag = 0;
+		for(; *p; p++) {
+		    switch (*p) {
+		      case 'a': WWW_TraceFlag += SHOW_ANCHOR_TRACE; break;
+		      case 'p':	WWW_TraceFlag += SHOW_PROTOCOL_TRACE; break;
+		      case 's':	WWW_TraceFlag += SHOW_SGML_TRACE; break;
+		      case 't':	WWW_TraceFlag += SHOW_THREAD_TRACE; break;
+		      case 'u': WWW_TraceFlag += SHOW_URI_TRACE; break;
+		      default:
+			ErrMsg("Bad parameter for verbose mode", argv[arg]);
+		    }
+		}/* loop over characters */
+		if (!WWW_TraceFlag)
+		    WWW_TraceFlag = SHOW_ALL_TRACE;
+		OldTraceFlag = WWW_TraceFlag;		 /* Remember setting */
+#endif
+	    
+	    /* Source please */
+	    } else if (!strcmp(argv[arg], "-source")) {
+		    request->output_format = WWW_SOURCE;
+		    HTInteractive = NO;			/* JFG */
+
+#ifdef THINK_C
+	    /* Echo to file */
+	    } else if (!strcmp(argv[arg], "-e")){
+		struct tm *tm_now; time_t time_now;
+		cecho2file("ThinkCconsole",FALSE,stdout);
+		time_now=time(NULL);tm_now=localtime(&time_now);
+		printf("\n--------------------------------------------"
+			"\n Time: %d.%.2d.%.2d %d:%d:%d\n"
+			"--------------------------------------------\n",
+			(*tm_now).tm_year,
+			(*tm_now).tm_mon+1,
+			(*tm_now).tm_mday,
+			(*tm_now).tm_hour,
+			(*tm_now).tm_min,
+			(*tm_now).tm_sec);
+    
+	    /* debug socket library */
+	    } else if (!strcmp(argv[arg], "-s")) {
+		socketdebug=1;
+#endif
+	      /* endif long list of argument options */
+
+	    } else {
+		ErrMsg("Bad Command Line Argument", argv[arg]);
+	    }
+	} else {	   /* If no leading `-' then check for main argument */
+    	    if (!argument_found) {
+		char * ref = HTParse(argv[arg], default_default, PARSE_ALL);
+		home_anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
+		free(ref);
+		argument_found = YES;
+	    } else {		   /* Check for successive keyword arguments */
+		if (first_keyword) {			/* Collect keywords */
+		    first_keyword = NO;
+		} else {
+		    strcat(keywords, " ");
+		}
+		strcat(keywords,HTStrip(argv[arg]));
+	    } /* argument already found */
+	} /* Not an option '-'*/
+    } /* End of argument loop */
+
+    /* Initialization */
+    if (HTClientHost) HTSecure = YES;		   /* Access to local files? */
+    HTEnableFrom = YES;			     /* Send `From:' in the request? */
+    if (HTScreenHeight == -1) {				/* Default page size */
+	if (HTInteractive) {
+#ifdef GET_SCREEN_SIZE
+	    int scr_height, scr_width;
+	    scrsize(&scr_height, &scr_width);
+	    HTScreenHeight = scr_height;
+#else
+	    HTScreenHeight = 999999;
+#endif
+	} else
+	    HTScreenHeight = SCREEN_HEIGHT;
+    }
+
+    /* Enable local directory access */
+    HTDirReadme = HT_DIR_README_TOP;		      /* Readme presentation */
+    HTDirAccess = HTClientHost ? HT_DIR_SELECTIVE : HT_DIR_OK;	 /* browsing */
+
+#ifndef NO_RULES
+    {
+    	char * rules = getenv("WWW_CONFIG");
+	if (rules && HTLoadRules(rules) < 0) {
+	    ErrMsg("Cant't open rule file", rules);
+	}
+    }
+#endif
+
+    /* Force predefined presentations etc to be set up */
+    if (HTInteractive)
+	HTFormatInit(request->conversions);
+    else
+	HTFormatInitNIM(request->conversions);
+
+    /* Open output file */
+    if (!HTInteractive)	{
+    	if (output_file_name) {
+	    FILE * fp = fopen(output_file_name, "w");
+	    if (!fp) {
+	        ErrMsg("Can't open file for writing", output_file_name);
+		return_status = -3;
+		goto endproc;
+	    }
+	    output = fp;
+	}
+	request->output_stream = HTFWriter_new(output, 
+					       output == stdout ? YES : NO);  
+	/* Just pump to stdout but YES: leave it open */
+	
+	/*	To reformat HTML, just put it through a parser running
+	**	into a regenerator   tbl 940613 */
+	
+	if (reformat_html) {
+	    request->output_stream = SGML_new(&HTMLP_dtd,
+	    			  HTMLGenerator(request->output_stream));
+
+	}
+    }
+    
+    /* Open Log File. Logfile via Telnet is now optional (HENRIK 11/02-94) */
+    if (logfile_flag) {
+        if(!logfile_root)
+            logfile_root = HTClientHost ?
+		DEFAULT_LOGFILE : DEFAULT_LOCAL_LOGFILE;
+	HTLogFileName = (char*) malloc(strlen(logfile_root)+20);
+
+#ifdef NO_GETPID
+	sprintf(HTLogFileName, "%s", logfile_root);  /* No getpid() */
+#else
+	sprintf(HTLogFileName, "%s-%d", logfile_root, (int) getpid());
+#endif
+	HTlogfile = fopen(HTLogFileName, "a");
+	if (!HTlogfile)
+	    ErrMsg("Can't open log file", HTLogFileName);
+    };
+
+    /* Make home page address */
+    if (!home_anchor)
+	home_anchor = HTHomeAnchor();
+
+    /* Now we are ready to start the program! If in interactive mode then start
+       the event loop which will run until the program terminates */
+    if (filter) {			             /* Just convert formats */
+	HTBindAnchor((HTAnchor*)home_anchor, request);
+     	HTParseSocket(input_format, 0, request);      /* From std UNIX input */
+	    goto endproc;
+    }
+    if (HTInteractive) {
+	reqlist = HTList_new();
+	user.sockfd = STDIN_FILENO;
+	user.callback = EventHandler;
+	HTList_addObject(reqlist, (void *) request);
+	HTEventRegister(&user);
+	return_status = HTEventLoop(request, home_anchor,
+				    (keywords && *keywords) ? keywords : NULL);
+    } else {
+	if (((keywords && *keywords) ?
+	     HTSearch(keywords, home_anchor, request) :
+	     HTLoadAnchor((HTAnchor*) home_anchor, request)) != HT_LOADED) {
+	    char *addr = HTAnchor_address((HTAnchor *) home_anchor);
+	    ErrMsg("Can't access document", addr);
+	    free(addr);
+	    if (!HTMainText) {
+		return_status = -2;		     /* Can't get first page */
+	    } else if (listrefs_option) {
+		Reference_List(NO);		      /* List without titles */
+	    }
+	}
+    }
+
+endproc:
+
+    /* HERE WE SHOULD DO SOME CLEANUP SO THAT IT ALSO WORKS ON A PC! */
+
+    Thread_deleteAll();
+    if(default_default)
+	free(default_default);
+
+    if(!return_status) {			/* Everything is working :-) */
+#ifdef VMS 
+	return 1;
+#else
+	return 0;	/* Good */
+#endif
+    }
+    return return_status;		       /* An error occured somewhere */
 }
 
 /* End HTBrowse.c */
