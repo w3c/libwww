@@ -84,14 +84,13 @@ while {![eof $fp]} {
       set give_ready [fix_string "($givencompare)"]
       set both [join [list $command_ready $give_ready] ""]
 
-      send -i $w3clib_id "$command\r"
+      send "$command\r"
 
       verbose $test 1
       verbose "$part($i):" 2
       verbose "	Expected:		$givencompare" 2
 
       expect {
-	-i $w3clib_id
 	-re "$both\(\r\n)*($prompt)" {set actual $expect_out(2,string)
 				           pass $test}
 	-re "$command_ready\(.*)\r\n($prompt)" {set actual $expect_out(2,string)
@@ -160,11 +159,10 @@ while {![eof $fp]} {
     set test "HTRelative $aname $relname"
     set command "HTRelative \"$aname\" \"$relname\""    
 
-    send -i $w3clib_id "$command\r"
+    send "$command\r"
     verbose $test 1
     verbose "	Expected:		$relative"
-    expect {
-      -i $w3clib_id 
+    expect {      
       -re "($command)\r\n($relative)(\r\n)*($prompt)" {set actual $expect_out(2,string)
 							pass $test}
       timeout {send_user "Timed out..."
@@ -217,11 +215,10 @@ while {![eof $fp]} {
     incr setnum 1
     incr testnum 1
     set  test "HTSimplify $string"
-    send -i $w3clib_id "HTSimplify $string\r"
+    send "HTSimplify $string\r"
     verbose $test 1
     verbose "	Expected:		$simplified"
     expect {
-      -i $w3clib_id 
       "$simplified"  {set actual $expect_out(0,string)
 			pass $test}
       timeout {set actual "Timed out...."
@@ -277,13 +274,12 @@ if { 0 } {
   if {![eof $fp]} {
     incr setnum 1
     incr testnum 1
-    send -i $w3clib_id "HTCleanTelnetString \"\[eval HTUnEscape $unclean\]\""
+    send "HTCleanTelnetString \"\[eval HTUnEscape $unclean\]\""
     set test HTCleanTelnetString_($testnum)
     verbose $test 1
     verbose "	Expected:		$clean"
     set reg_ready [fix_string $clean]
-    expect {
-      -i $w3clib_id 
+    expect {      
       -re "$reg_ready" {set actual $expect_out(0,string)
 			pass $test}
       timeout {set actual "Timed out..."

@@ -9,7 +9,6 @@
 #
 
 proc init_anchors { } {
-  global wwwtest_id
   global prompt  
 
   global address
@@ -56,7 +55,7 @@ proc init_anchors { } {
 
     set test "HTAnchor_findChild $test_num"
     send_user "HTAnchor_findChild $Anchor($test_num) $child_tag($test_num)\n"
-    set ChildAnchor($test_num) [new_item  "HTAnchor_findChild $Anchor($test_num) $child_tag($test_num)"]
+    set ChildAnchor($test_num) [new_item "HTAnchor_findChild $Anchor($test_num) $child_tag($test_num)"]
 
   }
 }
@@ -111,7 +110,7 @@ proc init_links { } {
   }
 }
 
-init_anchors
+#init_anchors
 init_links
 
 set function HTLink_find
