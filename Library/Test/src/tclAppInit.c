@@ -14,6 +14,7 @@
 static char sccsid[] = "@(#) tclAppInit.c 1.13 95/06/08 10:55:54";
 
 #include "tcl.h"
+#include "glue.h"
 
 /*
  * The following variable is a special hack that is needed in order for

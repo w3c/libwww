@@ -1,5 +1,6 @@
 #include "tcl.h"
 #include "WWWLib.h"
+#include "WWWInit.h"
 #include "HText.h"
 #include "HTParse_glue.h"
 #include "HTAnchor_glue.h"
@@ -13,19 +14,22 @@
 #include "HTBind_glue.h"
 #include "HTHost_glue.h"
 #include "URLgen.h"
+#include "Tcl_Interface.h"
 #include "HTFormat_glue.h"
 #include "HTProt_glue.h"
 #include "HTLog_glue.h"
 #include "HTError_glue.h"
 #include "HTAlert_glue.h"
 
-#define appname     "WWWtest"
-#define appversion  "1.0"
+#define CMDLINE 1
+
+#define APP_NAME     "WWWtest"
+#define APP_VERSION  "1.0"
 #define bad_vars    "Invalid variable names or non-existent entries."
 #define err_string  "Wrong # of args\n"
 
 char 		*HTAppVersion = NULL;
-char 		*HTAppName = NULL;
+char 		*HTApp_Name = NULL;
 HTStyleSheet 	*styleSheet = NULL;
 
 Tcl_HashTable   HTableAnchor;
@@ -46,6 +50,9 @@ Tcl_HashTable   HTableCoder;
 Tcl_HashTable   HTableAlertCallback;
 Tcl_HashTable   HTableAlertPar;
 Tcl_HashTable   HTableError;
+Tcl_HashTable	HTableMIMEParseSet;
+Tcl_HashTable	HTableCallback;
+Tcl_HashTable	HTableNet;
 
 typedef struct{
     char           *name;
@@ -57,7 +64,7 @@ typedef struct{
 static int version_tcl(ClientData clientData, Tcl_Interp *interp, 
 			  int argc, char **argv) {
   if (argc == 1) {
-    Tcl_AppendResult(interp, appname , appversion, NULL);
+    Tcl_AppendResult(interp, APP_NAME , APP_VERSION, NULL);
     return TCL_OK;
   }
   else {
@@ -106,6 +113,17 @@ static int HTUnEscape_tcl(ClientData clientData, Tcl_Interp *interp,
 }
 
 static LibraryFunction www_commands[] = {
+
+  /* TCL INTERFACE */
+  
+  { "GetURL",			GetURL_tcl,			NULL, 0 },
+  { "PutURL",			PutURL_tcl,			NULL, 0 },
+  { "DeleteURL",		DeleteURL_tcl,			NULL, 0 },
+  { "PostURL",			PostURL_tcl,			NULL, 0 },
+  { "OptionsURL",		OptionsURL_tcl,			NULL, 0 },
+  { "TraceURL",			TraceURL_tcl,			NULL, 0 },
+
+  /* RANDOM GENERAL FUNCTIONS */
 
   { "version",			version_tcl,			NULL, 0 },
   { "random",	        	random_tcl,			NULL, 0 },
@@ -355,8 +373,10 @@ static LibraryFunction www_commands[] = {
     { "HTRequest_bytesRead",	HTRequest_bytesRead_tcl,      	NULL, 0 },
     { "HTRequest_bytesWritten",	HTRequest_bytesWritten_tcl,     NULL, 0 },
 
+#if 0
     { "HTRequest_setAccess",	HTRequest_setAccess_tcl,       	NULL, 0 },
     { "HTRequest_access",	HTRequest_access_tcl,       	NULL, 0 },
+#endif
 
     /* HTAssoc */
     
@@ -566,42 +586,52 @@ static LibraryFunction www_commands[] = {
     { 0 }
 };
 
-int WWWLib_Init(Tcl_Interp *interp) {
-  
-  LibraryFunction *c;
-  HTLibInit(appname, appversion);
-  Tcl_InitHashTable(&HTableAnchor, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableLink, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableList, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableReq, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableStream, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableVoid, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableAssoc, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableUser, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableCallback, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableHost, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableChunk, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableProt,  TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableConverter, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableCoder, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableAlertCallback, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableAlertPar, TCL_STRING_KEYS);
-  Tcl_InitHashTable(&HTableError, TCL_STRING_KEYS);
+int WWWLib_Init(Tcl_Interp *interp) 
+{  
+    LibraryFunction *c;
 
-  /*added by xing, not sure if needed? */
+#ifdef CMDLINE
+    HTProfile_newClient(APP_NAME, APP_VERSION);
+#else
+    HTLibInit(APP_NAME, APP_VERSION);
+#endif
 
-  Tcl_InitHashTable(&HTableChannel, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableAnchor, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableLink, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableList, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableReq, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableStream, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableVoid, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableAssoc, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableUser, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableCallback, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableHost, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableChunk, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableProt,  TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableConverter, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableCoder, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableAlertCallback, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableAlertPar, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableError, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableMIMEParseSet, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableCallback, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableNet, TCL_STRING_KEYS);
 
-  random_seed();
-  init_strings();
-  for(c = www_commands; c->name; c++){
-    Tcl_CreateCommand(interp, c->name, c->proc, c->data,
-		      NULL /* delete proc???*/);
-  }
-  return TCL_OK;
+    /*added by xing, not sure if needed? */
+
+    Tcl_InitHashTable(&HTableChannel, TCL_STRING_KEYS);
+
+    random_seed();
+    init_strings();
+    for(c = www_commands; c->name; c++){
+	Tcl_CreateCommand(interp, c->name, c->proc, c->data,
+			  NULL /* delete proc???*/);
+    }
+    return TCL_OK;
 }
 
-void WWWLib_Terminate() {
+void WWWLib_Terminate() 
+{
     HTLibTerminate();
     Tcl_DeleteHashTable(&HTableAnchor);    
     Tcl_DeleteHashTable(&HTableLink);    
@@ -620,45 +650,31 @@ void WWWLib_Terminate() {
     Tcl_DeleteHashTable(&HTableAlertCallback);
     Tcl_DeleteHashTable(&HTableAlertPar);
     Tcl_DeleteHashTable(&HTableError);
+    Tcl_DeleteHashTable(&HTableMIMEParseSet);
+    Tcl_DeleteHashTable(&HTableCallback);
+    Tcl_DeleteHashTable(&HTableNet);
 }
 
 /*=================================================*/
 
 
+#if 0
 void HText_beginAppend (HText * text) {
 }
-
 
 void HText_endAppend(HText *text) {
 }
 
-
-void HText_setStyle (HText * text, HTStyle * style) {
+void HText_appendCharacter (HText * text, char ch) {
 }
 
-void HText_appendCharacter (HText * text, char ch) {
+void HText_setStyle (HText * text, HTStyle * style) {
 }
 
 void HText_appendText (HText * text, CONST char * str) {
 }
 
 void HText_appendParagraph (HText * text) {
-}
-
-void HText_appendLineBreak (HText * text) {
-}
-
-void HText_appendHorizontalRule (HText * text) {
-}
-
-void HText_beginAnchor (HText * text, HTChildAnchor * anc) {
-}
-
-void HText_endAnchor (HText * text) {
-}
-
-void HText_setNextId (HText *         text,
-                      CONST char *    s) {
 }
 
 void HText_appendImage (HText *         text,
@@ -668,6 +684,26 @@ void HText_appendImage (HText *         text,
         BOOL            isMap) {
 }
 
+void HText_beginAnchor (HText * text, HTChildAnchor * anc) {
+}
+
+void HText_endAnchor (HText * text) {
+}
+
+#endif
+
+void HText_appendLineBreak (HText * text) {
+}
+
+void HText_appendHorizontalRule (HText * text) {
+}
+
+
+
+void HText_setNextId (HText *         text,
+                      CONST char *    s) {
+}
+
 BOOL HText_selectAnchor(HText * text, HTChildAnchor* anchor) {
   return YES;
 }
@@ -675,8 +711,6 @@ BOOL HText_selectAnchor(HText * text, HTChildAnchor* anchor) {
 BOOL HText_select (HText * text) {
   return YES;
 }
-
-
 
 
 

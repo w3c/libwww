@@ -138,11 +138,12 @@ int HTAnchor_delete_tcl(ClientData clientData, Tcl_Interp *interp,
 int HTAnchor_deleteAll_tcl(ClientData clientData, Tcl_Interp *interp, 
 			   int argc, char **argv) {
   if (argc == 2) {
-    BOOL   result;
+    BOOL result;
     char *keyname = malloc(50);
     char *check = malloc(50);
     HTList *list;
     char   *listname         = argv[1];
+    Tcl_HashSearch search;	
     if (listname) {
       Tcl_HashEntry *listPtr = Tcl_FindHashEntry(&HTableList, listname);
       if (listPtr) {
@@ -154,9 +155,13 @@ int HTAnchor_deleteAll_tcl(ClientData clientData, Tcl_Interp *interp,
         result               = HTAnchor_deleteAll(list);
         Tcl_SetHashValue(listPtr, list);
       }
-      check                  = Tcl_SetVar(interp, listname, keyname, 0);
-      Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
-      return TCL_OK;
+
+    for (listPtr = Tcl_FirstHashEntry(&HTableAnchor, &search); listPtr ; listPtr = Tcl_NextHashEntry(&search)) {
+      Tcl_DeleteHashEntry(listPtr);
+    }
+    check                  = Tcl_SetVar(interp, listname, keyname, 0);
+    Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
+    return TCL_OK;
     }
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
@@ -1276,7 +1281,7 @@ int HTAnchor_length_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTParentAnchor *p_anchor  = Tcl_GetHashValue(anchor_entry);
 	long int result           = HTAnchor_length(p_anchor);
 	char *string=malloc(sizeof(result));
-	sprintf(string, "%d", result);
+	sprintf(string, "%ld", result);
 	Tcl_AppendResult(interp, string, NULL);
 	return TCL_OK;
       }
@@ -1519,7 +1524,7 @@ int HTAnchor_date_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTParentAnchor *p_anchor  = Tcl_GetHashValue(anchor_entry);
 	time_t date 	          = HTAnchor_date(p_anchor);
 	char *result	          = malloc(sizeof(date));	
-	sprintf(result, "%d", date); 
+	sprintf(result, "%ld", date); 
 	Tcl_AppendResult(interp, result, NULL);
 	return TCL_OK;
       }
@@ -1569,7 +1574,7 @@ int HTAnchor_lastModified_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTParentAnchor *p_anchor  = Tcl_GetHashValue(anchor_entry);
 	time_t date 		  = HTAnchor_lastModified(p_anchor);
 	char *result		  = malloc(sizeof(date));	
-	sprintf(result, "%d", date); 
+	sprintf(result, "%ld", date); 
 	Tcl_AppendResult(interp, result, NULL);
 	return TCL_OK;
       }
@@ -1688,7 +1693,7 @@ int HTAnchor_expires_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTParentAnchor *p_anchor  = Tcl_GetHashValue(anchor_entry);
 	time_t date 	          = HTAnchor_expires(p_anchor);
 	char *result	          = malloc(sizeof(date));	
-	sprintf(result, "%d", date); 
+	sprintf(result, "%ld", date); 
 	Tcl_AppendResult(interp, result, NULL);
 	return TCL_OK;
       }

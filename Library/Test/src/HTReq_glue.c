@@ -12,6 +12,9 @@ Tcl_HashTable	HTableStream;
 Tcl_HashTable	HTableAssoc;
 Tcl_HashTable	HTableVoid;
 Tcl_HashTable	HTableUser;
+Tcl_HashTable	HTableMIMEParseSet;
+Tcl_HashTable	HTableCallback;
+Tcl_HashTable	HTableNet;
 
 /*****************************
 *         HTRequest          *
@@ -753,7 +756,7 @@ int HTRequest_retryTime_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
 	time_t time 		   = HTRequest_retryTime(request);
 	char *result 		   = malloc(sizeof(time));
-	sprintf(result, "%d", (int) time);
+	sprintf(result, "%ld", time);
 	Tcl_AppendResult(interp, result, NULL);
 	return TCL_OK;
       }
@@ -1433,16 +1436,16 @@ int HTRequest_setMIMEParseSet_tcl(ClientData clientData, Tcl_Interp *interp,
   if (argc == 4) {
     int override;
     char *req_keyname		   = argv[1];
-    char *list_keyname		   = argv[2];
+    char *set_keyname		   = argv[2];
     char *override_str     	   = argv[3];
-    if (req_keyname && list_keyname && (Tcl_GetBoolean(interp, override_str, &override) == TCL_OK)) {
+    if (req_keyname && set_keyname && (Tcl_GetBoolean(interp, override_str, &override) == TCL_OK)) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
-      Tcl_HashEntry *list_entry    = Tcl_FindHashEntry(&HTableList, list_keyname);	
-      if (request_entry && list_entry) {
-	/*	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
-	HTList *list    	   = Tcl_GetHashValue(list_entry);
-	HTRequest_setMIMEParseSet(request, list, (BOOL) override);
-	*/ return TCL_OK;
+      Tcl_HashEntry *set_entry    = Tcl_FindHashEntry(&HTableMIMEParseSet, set_keyname);	
+      if (request_entry && set_entry) {
+	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
+	HTMIMEParseSet *set    	   = Tcl_GetHashValue(set_entry);
+	HTRequest_setMIMEParseSet(request, set, override);
+	return TCL_OK;
       }
     }
     Tcl_AppendResult(interp, bad_vars, NULL);
@@ -1457,18 +1460,19 @@ int HTRequest_setMIMEParseSet_tcl(ClientData clientData, Tcl_Interp *interp,
 int HTRequest_MIMEParseSet_tcl(ClientData clientData, Tcl_Interp *interp, 
 			       int argc, char **argv) {
   if (argc == 3) {
-    /*    BOOL override;*/
+    BOOL local;
     char *req_keyname		   = argv[1];
-    char *override_str		   = argv[2];
-    if (req_keyname && override_str) {
+    char *local_str		   = argv[2];
+    if (req_keyname && local_str) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
       if (request_entry) {
-	/*	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
-	HTList *list 		   = HTRequest_MIMEParseSet(request, &override);
-	char *listname 		   = Keyname_lookupList(list);
-	char *check		   = Tcl_SetVar(interp, override_str, override ? "YES" : "NO", 0);
-	Tcl_AppendResult(interp, listname, NULL);
-	*/	return TCL_OK;
+	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
+	HTMIMEParseSet *set 	   = HTRequest_MIMEParseSet(request, &local);
+	char *setname 		   = Keyname_lookupHTMIMEParseSet(set);
+	char *check		   = Tcl_SetVar(interp, local_str, local ? "YES" : "NO", 0);
+
+	if (check) Tcl_AppendResult(interp, setname, NULL);
+	return TCL_OK;
       }
     }
     Tcl_AppendResult(interp, bad_vars, NULL);
@@ -2067,7 +2071,6 @@ int HTRequest_addAfter_tcl(ClientData clientData, Tcl_Interp *interp,
 int HTRequest_deleteAfter_tcl(ClientData clientData, Tcl_Interp *interp, 
 			    int argc, char **argv) {
   if (argc == 6) {
-
     char *req_keyname		   = argv[1];
     char *net_keyname		   = argv[2];
     if (req_keyname && net_keyname) {
@@ -2147,14 +2150,14 @@ int HTRequest_after_tcl(ClientData clientData, Tcl_Interp *interp,
 int HTRequest_setCallback_tcl(ClientData clientData, Tcl_Interp *interp, 
 			      int argc, char **argv) {
   if (argc == 3) {
-    int callback_int;
     char *req_keyname		   = argv[1];
-    char *callback_str		   = argv[2];
-    if (req_keyname && (Tcl_GetInt(interp, callback_str, &callback_int) == TCL_OK)) {
-      HTRequestCallback *callback  = (HTRequestCallback *) callback_int;
+    char *callback_keyname	   = argv[2];
+    if (req_keyname && callback_keyname) {
+      Tcl_HashEntry *callback_entry = Tcl_FindHashEntry(&HTableCallback, callback_keyname);
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
-      if (request_entry) {
+      if (request_entry && callback_entry) {
 	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
+	HTRequestCallback *callback = Tcl_GetHashValue(callback_entry);
 	HTRequest_setCallback(request, callback);
 	return TCL_OK;
       }
@@ -2169,23 +2172,24 @@ int HTRequest_setCallback_tcl(ClientData clientData, Tcl_Interp *interp,
 }
 
 int HTRequest_callback_tcl(ClientData clientData, Tcl_Interp *interp, 
-			   int argc, char **argv) {
-  if (argc == 2) {
-    char *req_keyname		   = argv[1];
-    if (req_keyname) {
-      char *callback_str 	   = NULL;
-      Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
-      if (request_entry) {
-	/*	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
-		    HTRequestCallback callback = HTRequest_callback(request);
-		    sprintf(callback_str, "%d", callback);
-		    */	    Tcl_AppendResult(interp, callback_str, NULL);
-		    return TCL_OK;
-      }
+			   int argc, char **argv) 
+{
+    if (argc == 2) {
+	char *req_keyname		   = argv[1];
+	if (req_keyname) {
+	    Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
+	    if (request_entry) {
+		HTRequest *request 	   = Tcl_GetHashValue(request_entry);
+		HTRequestCallback *callback = HTRequest_callback(request);
+		 char *callback_str = Keyname_lookupCallback(callback);
+		
+		Tcl_AppendResult(interp, callback_str, NULL);
+		return TCL_OK;
+	    }
+	}
+	Tcl_AppendResult(interp, bad_vars, NULL);
+	return TCL_ERROR;
     }
-    Tcl_AppendResult(interp, bad_vars, NULL);
-    return TCL_ERROR;
-  }
   else {
     Tcl_AppendResult(interp, err_string, argv[0], "request", NULL);
     return TCL_ERROR;
@@ -2402,13 +2406,14 @@ int HTRequest_setNet_tcl(ClientData clientData, Tcl_Interp *interp,
 			      int argc, char **argv) {
   if (argc == 3) {
     char *req_keyname		   = argv[1];
-    /*    char *net_keyname		   = argv[2];
-     */
-    if (req_keyname) {
-      HTNet *net;
+    char *net_keyname		   = argv[2];
+
+    if (req_keyname && net_keyname) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
-      if (request_entry) {
+      Tcl_HashEntry *net_entry = Tcl_FindHashEntry(&HTableNet, net_keyname);
+      if (request_entry && net_entry) {
 	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
+	HTNet *net		   = Tcl_GetHashValue(net_entry);
 	BOOL result 		   = HTRequest_setNet(request, net);
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 	return TCL_OK;
@@ -2426,16 +2431,15 @@ int HTRequest_setNet_tcl(ClientData clientData, Tcl_Interp *interp,
 int HTRequest_net_tcl(ClientData clientData, Tcl_Interp *interp, 
 			  int argc, char **argv) {
   if (argc == 2) {
-    /*    HTNet *net; */
-    char *result = NULL;
     char *req_keyname		   = argv[1];
     if (req_keyname) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
       if (request_entry) {
-	/*HTRequest *request 	   = Tcl_GetHashValue(request_entry);
-	 net = HTRequest_net(request);
-	  sprintf(result, "%ul", net);*/
-	Tcl_AppendResult(interp, result, NULL);
+	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
+	HTNet *net 		   = HTRequest_net(request);
+	char *net_str		   = Keyname_lookupNet(net);
+
+	Tcl_AppendResult(interp, net_str, NULL);
 	return TCL_OK;
       }
     }
@@ -2668,7 +2672,7 @@ int HTRequest_bytesRead_tcl(ClientData clientData, Tcl_Interp *interp,
       if (request_entry) {
 	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
 	long result 		   = HTRequest_bytesRead(request);
-	sprintf(result_string, "%d", (int) result);
+	sprintf(result_string, "%ld", result);
 	Tcl_AppendResult(interp, result_string, NULL);
 	return TCL_OK;
       }
@@ -2694,7 +2698,7 @@ int HTRequest_bytesWritten_tcl(ClientData clientData, Tcl_Interp *interp,
       if (request_entry) {
 	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
 	long result 		   = HTRequest_bytesWritten(request);
-	sprintf(result_string, "%d", (int) result);
+	sprintf(result_string, "%ld", result);
 	Tcl_AppendResult(interp, result_string, NULL);
 	return TCL_OK;
       }
@@ -2727,7 +2731,7 @@ extern BOOL HTRequest_internal (HTRequest * request);
 
 
 
-
+#if 0
 /* ACCESS */
 
 int HTRequest_setAccess_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -2738,9 +2742,9 @@ int HTRequest_setAccess_tcl(ClientData clientData, Tcl_Interp *interp,
     if (req_keyname && access) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
       if (request_entry) {
-	/*	HTRequest *request         = Tcl_GetHashValue(request_entry);
-	HTRequest_setAccess(request, access);*/
-	/* Only for servers...*/
+	HTRequest *request         = Tcl_GetHashValue(request_entry);
+	HTRequest_setAccess(request, access);
+/*        Only for servers...*/
 	return TCL_ERROR;
       }
     }
@@ -2751,6 +2755,7 @@ int HTRequest_setAccess_tcl(ClientData clientData, Tcl_Interp *interp,
   return TCL_ERROR;
 }
 
+
 int HTRequest_access_tcl(ClientData clientData, Tcl_Interp *interp, 
 			 int argc, char **argv) {
   if (argc == 2) {
@@ -2758,9 +2763,9 @@ int HTRequest_access_tcl(ClientData clientData, Tcl_Interp *interp,
     if (req_keyname) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, req_keyname);
       if (request_entry) {
-	/*HTRequest *request 	   = Tcl_GetHashValue(request_entry);
-      	    char *access   = HTRequest_access(request);
-	Tcl_AppendResult(interp, access, NULL);*/
+	HTRequest *request 	   = Tcl_GetHashValue(request_entry);
+	char *access   		   = HTRequest_access(request);
+	Tcl_AppendResult(interp, access, NULL);
 	return TCL_OK;
       }
     }
@@ -2772,3 +2777,5 @@ int HTRequest_access_tcl(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 }
+#endif
+

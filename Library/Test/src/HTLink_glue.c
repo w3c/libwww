@@ -387,7 +387,7 @@ int HTLink_result_tcl(ClientData clientData, Tcl_Interp *interp,
   }
 }
 
-
+#if 0
 /* MOVEALL */
 
 int HTLink_moveall_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -402,7 +402,7 @@ int HTLink_moveall_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTAnchor *s_anchor      = Tcl_GetHashValue(source_entry);	
 	HTAnchor *d_anchor      = Tcl_GetHashValue(dest_entry);
 
-	/*	BOOL result = HTLink_moveall(s_anchor, d_anchor);*/
+	BOOL result = HTLink_moveall(s_anchor, d_anchor);
 	BOOL result = TRUE;
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 	return TCL_OK;
@@ -416,3 +416,4 @@ int HTLink_moveall_tcl(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 }
+#endif

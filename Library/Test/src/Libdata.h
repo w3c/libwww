@@ -20,6 +20,12 @@ extern char *Keyname_lookupVoid(void *);
 
 extern char *Keyname_lookupUser(HTUserProfile *);
 
+extern char *Keyname_lookupHTMIMEParseSet(HTMIMEParseSet *);
+
+extern char *Keyname_lookupCallback(HTRequestCallback *);
+
+extern char *Keyname_lookupNet(HTNet *);
+
 extern Tcl_HashEntry *CreateNewEntry(Tcl_HashTable *table, char *name, 
 				     char **final_keyname);
 

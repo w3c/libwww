@@ -76,7 +76,7 @@ int HTCleanTelnetString_tcl(ClientData clientData, Tcl_Interp *interp,
     char *str     = argv[1];
     if (str) {
       BOOL result = HTCleanTelnetString(str);
-      Tcl_AppendResult(interp, str, NULL);
+      Tcl_AppendResult(interp, result ? "YES" : "NO", str, NULL);
       return TCL_OK;
     }
     Tcl_AppendResult(interp, bad_vars, NULL);

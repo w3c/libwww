@@ -219,9 +219,7 @@ char *generate_login() {
     }
     StrAllocCat(login, "@");
   }
-
   StrAllocCat(login, generate_hostport());
-
   return(login);
 }
 
@@ -344,7 +342,7 @@ int generate_char_tcl(ClientData clientData, Tcl_Interp *interp,
 		      int argc, char **argv) {
   if (argc == 2) {
     char *str = argv[1];
-    Tcl_AppendResult(interp, generate_char(str), NULL);  
+    Tcl_AppendResult(interp, generate_char(str), NULL);      
     return TCL_OK;
   }
   return TCL_ERROR;
