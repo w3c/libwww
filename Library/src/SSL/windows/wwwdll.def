@@ -1,0 +1,8 @@
+;LIBRARY     htdll
+DESCRIPTION 'Core functions from the wwwlib.'
+
+EXPORTS
+;HTDLL.c
+;PpTTYPrint = PTTYPrint	@ 801 NONAME CONSTANT
+PTTYPrint		@ 801 CONSTANT
+WWW_TraceFlag		@ 802 CONSTANT
