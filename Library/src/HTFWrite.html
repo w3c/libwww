@@ -48,16 +48,19 @@ This stream simply absorbs data without doing anything what so ever.
 extern HTStream * HTBlackHole NOPARAMS;
 </PRE>
 
-<H2><A NAME="write">Set up a Stream to a File</A></H2>
+<A NAME="converters"><H2>Converters</H2></A>
 
-This function puts up a new stream given an open file descripter. If the file
-is not to be closed afterwards, then set leave_open = NO.
+This is the set of functions that can be registered as
+converters. Note that the cache writer stream is also a converter!
 
-<PRE>extern HTStream * HTFWriter_new PARAMS((FILE *	fp,
-					     BOOL	leave_open));
+<PRE>
+#ifndef pyramid
+extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack,
+       HTThroughLine, HTCacheWriter;
+#endif
 </PRE>
 
-<A NAME="converters"><H2>Converters</H2></A>
+<A NAME="tmp"><H2>Location of Temporary Files</H2></A>
 
 <CODE>HTSaveAndCallBack</CODE> will save to a cache file and call the
 request-&gt;callback function with the filename as parameter. The
@@ -71,23 +74,17 @@ extern void  HTTmp_freeRoot		NOPARAMS;
 </PRE>
 
 The <CODE>HTTmp_freeRoot</CODE> is called by the <A
-HREF="HTAccess.html#Library">HTLibTerminate</A> function
+HREF="HTAccess.html#Library">HTLibTerminate</A> function. The default
+value is defined in <A
+HREF="HTAccess.html#Addresses">HTAccess.html</A>
 
-<PRE>
-#ifndef pyramid
-extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack,
-       HTThroughLine;
-#endif
-</PRE>
+<H2><A NAME="write">Set up a Stream to a File</A></H2>
 
-<H3>Stream for writing to cache</H3>
+This function puts up a new stream given an open file descripter. If the file
+is not to be closed afterwards, then set leave_open = NO.
 
-Note that HTSaveAndCallBack will also generate a cache file.
-
-<PRE>
-#ifndef pyramid
-extern HTConverter HTCacheWriter;
-#endif
+<PRE>extern HTStream * HTFWriter_new PARAMS((FILE *	fp,
+					     BOOL	leave_open));
 </PRE>
 
 <H2><A NAME="z3">The Cache Manager</A></H2>

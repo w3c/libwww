@@ -531,9 +531,14 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
 	    path--;
 	}
     }
-    /* Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp) */
+    /* Chop off port if `:', `:80' (http), `:70' (gopher), or `:21' (ftp) */
     if (port) {
-	if ((!strncmp(access, "http", 4) &&
+	if (!*(port+1) || *(port+1)=='/') {
+	    if (!newname) {
+		char *orig=port, *dest=port+1;
+		while((*orig++ = *dest++));
+	    }
+	} else if ((!strncmp(access, "http", 4) &&
 	     (*(port+1)=='8'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||
 	    (!strncmp(access, "gopher", 6) &&
 	     (*(port+1)=='7'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||

@@ -320,7 +320,8 @@ PUBLIC char * HTProxy_getProxy ARGS1(CONST char *, url)
 	while ((pres = (HTProxy *) HTList_nextObject(cur)) != NULL) {
 	    if (!strcmp(pres->access, access)) {
 		StrAllocCopy(proxy, pres->url);
-		fprintf(TDEST, "GetProxy.... Proxy found: `%s\'\n", pres->url);
+		if (PROT_TRACE)
+		    fprintf(TDEST, "GetProxy.... Found: `%s\'\n", pres->url);
 		break;
 	    }
 	}
@@ -357,7 +358,8 @@ PUBLIC char * HTProxy_getGateway ARGS1(CONST char *, url)
 	while ((pres = (HTProxy *) HTList_nextObject(cur)) != NULL) {
 	    if (!strcmp(pres->access, access)) {
 		StrAllocCopy(gateway, pres->url);
-		fprintf(TDEST, "GetGateway.. Found: `%s\'\n", pres->url);
+		if (PROT_TRACE)
+		    fprintf(TDEST, "GetGateway.. Found: `%s\'\n", pres->url);
 		break;
 	    }
 	}

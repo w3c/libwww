@@ -137,11 +137,11 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	    if ((!list && ((cur=HTCharsets) != NULL)) ||
 		(list && ((cur=request->charsets) != NULL))) {
 		HTAcceptNode *pres;
-		if (first) {
-		    HTChunkPuts(header, "Accept-Charset: ");
-		    first=NO;
-		}
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+		    if (first) {
+			HTChunkPuts(header, "Accept-Charset: ");
+			first=NO;
+		    }
 		    if (cur->next)
 			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
 		    else
@@ -160,11 +160,11 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	    if ((!list && ((cur=HTEncodings) != NULL)) ||
 		(list && ((cur=request->encodings) != NULL))) {
 		HTAcceptNode *pres;
-		if (first) {
-		    HTChunkPuts(header, "Accept-Encoding: ");
-		    first=NO;
-		}
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+		    if (first) {
+			HTChunkPuts(header, "Accept-Encoding: ");
+			first=NO;
+		    }
 		    if (cur->next)
 			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
 		    else
@@ -183,11 +183,11 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	    if ((!list && ((cur=HTLanguages) != NULL)) ||
 		(list && ((cur=request->languages) != NULL))) {
 		HTAcceptNode *pres;
-		if (first) {
-		    HTChunkPuts(header, "Accept-Language: ");
-		    first=NO;
-		}
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+		    if (first) {
+			HTChunkPuts(header, "Accept-Language: ");
+			first=NO;
+		    }
 		    if (cur->next)
 			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
 		    else

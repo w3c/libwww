@@ -31,7 +31,7 @@
 #include "HTNews.h"
 
 #ifdef HT_DIRECT_WAIS
-#include HTWAIS.h
+#include "HTWAIS.h"
 #endif
 
 #include "HTInit.h"				         /* Implemented here */

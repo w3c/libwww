@@ -448,6 +448,8 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 			if (PROT_TRACE)
 			    fprintf(TDEST, "HTLoadFile.. Can't stat %s\n",
 				    file->localname);
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+				   NULL, 0, "HTLoadFile");
 			file->state = FILE_ERROR;
 			break;
 		    }
@@ -470,7 +472,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    request->anchor->header_parsed = YES;
 
 		    if (!editable && !stat_info.st_size) {
-			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_RESPONSE,
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
 				   NULL, 0, "HTLoadFile");
 			file->state = FILE_NO_DATA;
 		    } else

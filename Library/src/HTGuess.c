@@ -91,7 +91,7 @@ PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
 	
 	if (!me->ctrl_cnt ||
 	    me->text_cnt + me->lf_cnt >= 16 * (me->ctrl_cnt + me->high_cnt)) {
-	    
+	    char *ptr;
 	    /* some kind of text */
 	    
 	    *me->write_ptr = 0;	/* terminate buffer */
@@ -112,8 +112,12 @@ PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
 		     strstr(me->buffer, "_bits"))
 		CONTENT_TYPE("image/x-xbitmap");
 	    
+	    else if ((ptr = strstr(me->buffer, "converted with BinHex"))!=NULL)
+		CONTENT_ENCODING("macbinhex");
+
 	    else if (!strncmp(me->buffer, "begin ", 6))
 		CONTENT_ENCODING("base64");
+
 	    else
 		CONTENT_TYPE("text/plain");
 	}

@@ -162,7 +162,7 @@ extern int socketdebug;		   /* Must be declared in the socket library */
 struct ARc arc;
 #endif
 
-PUBLIC char *		HTAppName = "CERN-LineMode";     /* Application name */
+PUBLIC char *		HTAppName = "LineModeBrowser";   /* Application name */
 PUBLIC char *		HTAppVersion = VL;            /* Application version */
 PUBLIC int		HTScreenWidth   = SCREEN_WIDTH;	       /* By default */
 PUBLIC int		HTScreenHeight  = -1;		   /* -1 = Undefined */
@@ -176,8 +176,6 @@ PUBLIC char *		end_mark = END_MARK;   	  /* Format string for [End] */
 PRIVATE	HTList *	reqlist = NULL;		  /* List of active requests */
 PRIVATE HTRequest *	request = NULL;
 PRIVATE HTParentAnchor*	home_anchor = NULL;	    /* First document anchor */
-PRIVATE HTRequest *	post_request = NULL;
-PRIVATE HTParentAnchor*	post_anchor = NULL;	         /* Document to post */
 
 PRIVATE char		keywords[ADDRESS_LENGTH];       /* From command line */
 
@@ -721,13 +719,26 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	
       case 'C':
 	if (Check_User_Input("COPY")) {
-	    if (next_word) {
-		post_anchor = (HTParentAnchor*)HTAnchor_findAddress(next_word);
-		post_request = Thread_new(YES);
-		*actreq = Thread_new(YES);
-		post_request->method = METHOD_PUT;
-		loadstat = HTCopyAnchor((HTAnchor *) HTMainAnchor, *actreq,
-					post_anchor, post_request);
+	    char *this_addr = HTAnchor_address((HTAnchor*) HTMainAnchor);
+	    char *source, *dest;
+	    if ((source = HTPrompt("Source:", this_addr)) != NULL &&
+		(dest = HTPrompt("Destination:", NULL)) != NULL) {
+		HTRequest * dest_request = Thread_new(YES);
+		char * full_dest = HTParse(HTStrip(dest), this_addr,
+					   PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+		char * full_source = HTParse(HTStrip(source), this_addr,
+					     PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+		HTParentAnchor*	dest_anchor = (HTParentAnchor*) HTAnchor_findAddress(full_dest);
+		HTParentAnchor*	source_anchor = (HTParentAnchor*) HTAnchor_findAddress(full_source);
+		*actreq = Thread_new(YES);	       /* This is the source */
+		dest_request->method = METHOD_PUT;
+		loadstat = HTCopyAnchor((HTAnchor *) source_anchor, *actreq,
+					dest_anchor, dest_request);
+		free(this_addr);
+		free(source);
+		free(dest);
+		free(full_dest);
+		free(full_source);
 	    }
 #ifdef unix
 	} else if (Check_User_Input("CD")) {   /* Change working directory ? */
@@ -1133,6 +1144,7 @@ int main ARGS2(int, argc, char **, argv)
     /* Start up Library of Common Code */
     HTLibInit();
     HTStdIconInit(NULL);
+    HTProxy_getEnvVar();		   /* Read the environment variables */
 
 #ifdef THINK_C /* command line from Think_C */
     int i;
@@ -1254,12 +1266,14 @@ int main ARGS2(int, argc, char **, argv)
 		HTInteractive = NO;
 
 	    /* @@@ NOT FINISHED @@@ */
+#if 0
 	    } else if (!strcasecomp(argv[arg], "-post")) {    /* POST Method */
 		if (arg+1 < argc && *argv[arg+1] != '-') {
 		    char *ref = HTParse(argv[arg], default_default, PARSE_ALL);
 		    post_anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
 		    free(ref);
 		}
+#endif
 
 	    /* Non-interactive */
 	    } else if (!strcmp(argv[arg], "-n")) {
@@ -1440,6 +1454,15 @@ int main ARGS2(int, argc, char **, argv)
     HTConverterInit(HTConversions);		       /* Set up global list */
     if (HTInteractive)
 	HTPresenterInit(request->conversions);		       /* Local list */
+
+#if 0
+    /* Examples of initialization of global lists... */
+    HTAcceptLanguage(HTLanguages, "dk", 1.0);
+    HTAcceptLanguage(HTLanguages, "se", 1.0);
+    HTAcceptEncoding(HTEncodings, "compress", 1.0);
+    HTAcceptEncoding(HTEncodings, "gzip", 1.0);
+    HTAcceptCharset(HTCharsets, "iso-8859-5", 1.0);
+#endif
 
     /* Open output file */
     if (!HTInteractive)	{

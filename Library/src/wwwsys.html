@@ -727,7 +727,7 @@ typedef mode_t		int;
 
 <H2>Solaris</H2>
 
-Includes Linux (thanks to Rainer Klute) and other SVR5 based systems
+Includes Linux (thanks to Rainer Klute) and other SVR4 based systems
 
 <PRE>
 #if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
@@ -941,7 +941,7 @@ These are a default unix where not already defined specifically.
 
 <H3>Directory reading stuff - BSD or SYS V</H3>
 <PRE>
-#ifdef unix                    	  /* if this is to compile on a UNIX machine */
+#if defined(unix) || defined(__unix__)   /* If UNIX (thanks to Rainer Klute) */
 
 #define GOT_PIPE				        /* We do have a pipe */
 
@@ -1180,7 +1180,7 @@ is turned off.
 
 <PRE>
 #ifndef CACHE_FILE_PREFIX
-#ifdef unix
+#if defined(unix) || defined(__unix__)
 #define CACHE_FILE_PREFIX  "/usr/wsrc/"
 #endif
 #endif

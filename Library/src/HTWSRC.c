@@ -18,6 +18,7 @@
 #include "HTString.h"
 #include "HTML.h"
 #include "HTParse.h"
+#include "HTProxy.h"
 #include "HTWSRC.h"					 /* Implemented here */
 
 #define BIG 10000		/* Arbitrary limit to value length */
@@ -83,6 +84,7 @@ enum tokenstate { beginning, before_tag, colon, before_value,
 struct _HTStream {
 	CONST HTStreamClass *	isa;
 	HTStructured *		target;
+	HTRequest *		request;
 	char *			par_value[PAR_COUNT];
 	enum tokenstate 	state;
 	char 			param[BIG+1];
@@ -285,7 +287,7 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 
 {
     if (me->par_value[PAR_DATABASE_NAME]) {
-	char * shortname = 0;
+	char * shortname = NULL;
 	int l;
 	StrAllocCopy(shortname, me->par_value[PAR_DATABASE_NAME]);
 	l = strlen(shortname);
@@ -302,42 +304,45 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	PUTS(shortname);
 	PUTS(source_file ? " description" : " index");
 	END(HTML_H1);
+	free(shortname);				  /* memleak, henrik */
     }
     
     START(HTML_DL);		/* Definition list of details */
     
     if (source_file) {
 	START(HTML_DT);
-	PUTS("Access links");
+	PUTS("Access link");
 	START(HTML_DD);
 	if (me->par_value[PAR_IP_NAME] &&
 	    me->par_value[PAR_DATABASE_NAME]) {
-    
 	    char WSRC_address[256];
-	    char * www_database;
-	    www_database = HTEscape(me->par_value[PAR_DATABASE_NAME],
-	    	URL_XALPHAS);
-	    sprintf(WSRC_address, "wais://%s%s%s/%s",
-		me->par_value[PAR_IP_NAME],
-		me->par_value[PAR_TCP_PORT] ? ":" : "",
-		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] :"",
-		www_database);
-	
-	    HTStartAnchor(me->target, NULL, WSRC_address);
-	    PUTS("Direct access");
-	    END(HTML_A);
-	    
-	    PUTS(" or ");
-	    
-	    sprintf(WSRC_address, "http://www.w3.org:8001//%s%s%s/%s",
-		me->par_value[PAR_IP_NAME],
-		me->par_value[PAR_TCP_PORT] ? ":" : "",
-		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] :"",
-		www_database);
-	    HTStartAnchor(me->target, NULL, WSRC_address);
-	    PUTS("through CERN gateway");
-	    END(HTML_A);
-	    
+	    char *addr = HTAnchor_address((HTAnchor*) me->request->anchor);
+	    char *gate = HTProxy_getGateway(addr);
+	    char *www_database = HTEscape(me->par_value[PAR_DATABASE_NAME],
+					  URL_XALPHAS);
+	    if (!gate) {
+		sprintf(WSRC_address, "wais://%s%s%s/%s",
+			me->par_value[PAR_IP_NAME],
+			me->par_value[PAR_TCP_PORT] ? ":" : "",
+			me->par_value[PAR_TCP_PORT] ?
+			me->par_value[PAR_TCP_PORT] :"", www_database);
+		HTStartAnchor(me->target, NULL, WSRC_address);
+		PUTS("Direct access");
+		END(HTML_A);
+	    } else {
+		sprintf(WSRC_address, "%s%s%s%s/%s",
+			gate,
+			me->par_value[PAR_IP_NAME],
+			me->par_value[PAR_TCP_PORT] ? ":" : "",
+			me->par_value[PAR_TCP_PORT] ?
+			me->par_value[PAR_TCP_PORT] : "",
+			www_database);
+		HTStartAnchor(me->target, NULL, WSRC_address);
+		PUTS("Through a gateway");
+		END(HTML_A);
+	    }
+	    FREE(gate);
+	    free(addr);
 	    free(www_database);
 	    
 	} else {
@@ -447,19 +452,12 @@ PUBLIC HTStream* HTWSRCConvert ARGS5(
 	HTFormat,		output_format,
 	HTStream *,		output_stream)
 {
-    HTStream * me = (HTStream*) malloc(sizeof(*me));
+    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTWSRCConvert");
-
     me->isa = &WSRCParserClass;
     me->target = HTML_new(request,
     		param, input_format, output_format,output_stream);
-
-    {
-	int p;
-	for(p=0; p < PAR_COUNT; p++) {	/* Clear out parameter values */
-	    me->par_value[p] = 0;
-	}
-    }
+    me->request = request;
     me->state = beginning;
 
     return me;

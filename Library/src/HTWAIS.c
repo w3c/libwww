@@ -18,6 +18,7 @@
 **	   Feb 91	TBL Generated HTML cleaned up a bit (quotes, escaping)
 **			    Refers to lists of sources. 
 **	   Mar 93	TBL   Lib 2.0 compatible module made.	
+**	   May 95       CHJ modified for freeWAIS-0.5
 **
 ** Bugs
 **	Uses C stream i/o to read and write sockets, which won't work
@@ -1019,7 +1020,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     status = HT_LOADED;
 
   cleanup:
-    if (connection) close_connection(connection);
+    if (connection) close_connection_to_server(connection);
     if (wais_database) free(wais_database);
     if (request_message) s_free(request_message);
     if (response_message) s_free(response_message);

@@ -197,8 +197,6 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
       case 201:
       case 202:
       case 203:
-      case 205:
-      case 206:
 	me->http->next = HTTP_GOT_DATA;
 	break;
 

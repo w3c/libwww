@@ -33,7 +33,7 @@ LM =  $(WWW)/LineMode/Implementation/
 LMD = $(WWW)/LineMode/Defaults
 CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
-FTP = /afs/w3.org/ftp/pub
+FTP = /afs/w3.org/member/Dist
 
 # PURIFY_LOG = $(HOME)/purify-output
 PURIFY_CACHE = $(HOME)/purify-cache
@@ -184,8 +184,8 @@ cleanall : clean
 #  to make binay or asis on a weird machine doesn't try to build $(PROD)!
 
 binary : $(PROD)_$(VL)
-	-mkdir $(FTP)/www/bin/$(WWW_MACH)
-	cp $(PROD)_$(VL) $(FTP)/www/bin/$(WWW_MACH)/$(PROD)_$(VL)
+	-mkdir $(FTP)/bin/$(WWW_MACH)
+	cp $(PROD)_$(VL) $(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VL)
 
 #	ASIS installation
 #	-----------------
@@ -265,28 +265,29 @@ distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
-	$(FTP)/www/src/WWWLineMode_$(VL).tar.Z)
-	(cd ../Implementation; cvs tag \
-	    `sed -e 's/V. = /v/' Version.make | sed -e 's?\.?/?'` )
+	$(FTP)/src/WWWLineMode_$(VL).tar.Z)
+	(cd $(WWW); cvs tag \
+	    `sed -e 's/V. = /v/' WWW/LineMode/Implementation/Version.make | sed -e 's?\.?/?'` \
+	    LineMode)
 	@echo Distribution of Line Mode version $(VC) up to date.
 
-$(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
-	tar cvf $(FTP)/www/src/WWWLineMode_$(VL).tar \
+$(FTP)/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
+	tar cvf $(FTP)/src/WWWLineMode_$(VL).tar \
 	    $(SOURCES) \
 	    $(DISTRIBUTION) \
 	    $(SPECIFIC) \
 	    $(LM)*.html
-	compress -f $(FTP)/www/src/WWWLineMode_$(VL).tar
+	compress -f $(FTP)/src/WWWLineMode_$(VL).tar
 
 zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
-	$(FTP)/www/src/WWWLineMode_$(VL).zip)
+	$(FTP)/src/WWWLineMode_$(VL).zip)
 	@echo Distribution of LineMode version $(VL) up to date.
 
-$(FTP)/www/src/WWWLineMode_$(VL).zip : $(SOURCES)
-	zip -v $(FTP)/www/src/WWWLineMode_$(VL).zip \
+$(FTP)/src/WWWLineMode_$(VL).zip : $(SOURCES)
+	zip -v $(FTP)/src/WWWLineMode_$(VL).zip \
 	    $(SOURCES) \
 	    $(DISTRIBUTION) \
 	    $(SPECIFIC) \
@@ -332,10 +333,10 @@ QUICKGUIDE = \
 	$(LMD)/Bugs.html \
 	$(LMD)/Features.html
 
-doc : $(FTP)/www/doc/line-mode-guide.txt
+doc : $(FTP)/doc/line-mode-guide.txt
 	@echo line mode browser guide exists.
 
-$(FTP)/www/doc/line-mode-guide.txt : $(LMD)/line-mode-guide.txt
+$(FTP)/doc/line-mode-guide.txt : $(LMD)/line-mode-guide.txt
 	cp $? $@
 
 $(LMD)/line-mode-guide.txt : $(QUICKGUIDE)

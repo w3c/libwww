@@ -35,7 +35,9 @@ PUBLIC HTList * HTLanguages = NULL;
 
 /* Varlables and typedefs local to this moduel */
 PRIVATE double HTMaxSecs = 1e10;		/* No effective limit */
+#if 0
 PRIVATE double HTMaxLength = 1e10;		/* No effective limit */
+#endif
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
