@@ -1,6 +1,6 @@
 
-	 WELCOME TO THE WORLD-WIDE WEB LIBRARY OF COMMON CODE
-	 ====================================================
+		 WELCOME TO THE W3C REFERENCE LIBRARY
+		 ====================================
 
 (c) COPYRIGHT MIT 1995.
 Please first read the full copyright statement in the file COPYRIGH.
@@ -10,14 +10,14 @@ CERN. This acknowledgement shall be mentioned in full in any product
 which includes the CERN computer software included herein or parts
 thereof."
 
-The World-Wide Web Library of Common Code is a general code base that
-can be used to build clients, servers, and other applications. It
-contains code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet
-servers, and the local file system. Furthermore it provides modules
-for parsing, managing and presenting hypertext objects to the user and
-a wide spectra of generic programming utilities. The Library is the
-basis for many World-Wide Web applications and all the W3C software is
-build on top of it.
+The W3C Reference Library is a general code base written in C. It can
+be used to build clients, servers, and other applications. It contains
+code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and
+the local file system. Furthermore it provides modules for parsing,
+managing and presenting hypertext objects to the user and a wide
+spectra of generic programming utilities. The Library is the basis for
+many World-Wide Web applications and all the W3C software is build on
+top of it.
 
 For more information on the Library, please look at the page
 
@@ -27,4 +27,4 @@ Have fun!
 
 --
 
-libwww@w3.org, May 1995
+libwww@w3.org, July 1995
