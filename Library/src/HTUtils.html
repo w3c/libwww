@@ -169,6 +169,7 @@ that start or end with an "<CODE>_</CODE>" if they are to be used in a trace
 message.
 <PRE>
 #ifdef HTDEBUG
+#undef _
 #define _ ,
 #define HTTRACE(TYPE, FMT) \
 	do { if (TYPE) HTTrace(FMT); } while (0);
