@@ -814,11 +814,23 @@ PUBLIC BOOL HTHost_recoverPipe (HTHost * host)
 {
     if (host) {
 	int piped = HTList_count(host->pipeline);
+
+	/*
+	**  First check that we haven't already recovered more than we want
+	*/
+	if (host->recovered > MAX_HOST_RECOVER) {
+	    HTTRACE(CORE_TRACE, "Host recover %p already %d times - not doing it anymore\n" _ host _ host->recovered);
+	    return NO;
+	}
+
+	/*
+	**  If we decided to recover and actually have something in the pipe
+	**  then go ahead.
+	*/
 	if (piped > 0) {
 	    int cnt;
 	    host->recovered++;
-	    HTTRACE(CORE_TRACE, "Host recovered %d times. Moving %d Net objects from pipe line to pending queue\n" _ 
-			host->recovered _ piped);
+	    HTTRACE(CORE_TRACE, "Host recover %p recovered %d times. Moving %d Net objects from pipe line to pending queue\n" _ host _ host->recovered _ piped);
 	    
 	    /*
 	    **  Unregister this host for all events

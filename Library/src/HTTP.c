@@ -186,6 +186,7 @@ PRIVATE BOOL HTTPInformation (HTStream * me)
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPInformation");
 #endif
+	http->result = HT_CONTINUE;
 	return YES;
 	break;
 
@@ -1020,11 +1021,12 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
         /*
         ** It is OK to get a close if a) we don't pipeline and b)
-        ** we have the expected amount of data. In case we don't
+        ** we have the expected amount of data, and c) we haven't
+	** recieved a 100 Continue code. In case we don't
         ** know how much data to expect, we must accept it asis.
         */
         if (HTHost_numberOfOutstandingNetObjects(host) == 1 &&
-            (doc_len<0 || doc_len==read_len)) {
+	    http->result != HT_CONTINUE && (doc_len<0 || doc_len==read_len)) {
 	    HTTPCleanup(request, HT_LOADED);
         } else {
             HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
@@ -1260,7 +1262,18 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      if (HTHost_isPersistent(host) && !HTHost_closeNotification(host)) {
 		  if (host == NULL) return HT_ERROR;
 		  HTRequest_setFlush(request, YES);
-		  HTHost_recoverPipe(host);
+
+		  /*
+		  **  If we already have recovered more than we want and
+		  **  this call returns NO then simply kill the pipe.
+		  **  Otherwise we may loop forever.
+		  */
+		  if (HTHost_recoverPipe(host) != YES) {
+		      HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+					 NULL, 0, "HTTPEvent");
+		      http->state = HTTP_KILL_PIPE;
+		      break;
+		  }
 		  return HT_OK;
 	      } else
 		  http->state = HTTP_OK;
