@@ -674,6 +674,7 @@ PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 		return YES;
 	    }
 	} else if (HTResponse_isCachable(response) == HT_CACHE_ALL) {
+	    char * etag = HTResponse_etag(response);
 	    if (ANCH_TRACE)
 		HTTrace("HTAnchor.... Updating metainformation for %p\n", me);
 
@@ -687,6 +688,9 @@ PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 	    me->type_parameters = HTResponse_formatParam(response);
 	    me->content_encoding = HTResponse_encoding(response);
 	
+            /* Don't forget the etag as well */
+       	    if (etag) HTAnchor_setEtag(me, etag);
+
 	    /*
 	    **  Inherit all the unparsed headers - we may need them later!
 	    */
