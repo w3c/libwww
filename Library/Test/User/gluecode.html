@@ -1,0 +1,241 @@
+<HTML>
+<HEAD>
+  <TITLE>Glue code for the LibWWW to Tcl</TITLE>
+</HEAD>
+<BODY>
+<P>
+<FONT SIZE=+2> Creating glue code for the LibWWW </FONT>
+  <HR size=3 width="90%" ALIGN=LEFT>
+<P>
+<UL>
+  <LI>
+    <A HREF="#Intro">Introduction</A>
+  <LI>
+    <A HREF="#creating">Creating Glue Code</A>
+  <LI>
+    <A HREF="#adding">Adding Glue Code to the Interpreter</A>
+</UL>
+<P>
+  <HR size=3 width="90%" ALIGN=LEFT>
+<A TAG=Intro></A>
+<H3>
+  <A TAG=Intro>Introduction:</A>
+</H3>
+<P>
+<A TAG=Intro>The glue code from C to Tcl of the LibWWW was created to create
+Tcl scripts to test the Library. The main software tool utilized isDejaGnu,
+but it is not fully used. The glue code was created for the testing of individual
+core functions of the library. With glue code, they became functions in the
+Tcl interpreter. The Tcl interpreter was altered to include the glue code,
+and the Dejagnu standard testing was altered to remove the expect functions.
+A fault of this system is that it cannot test failures. This just crashes
+the interpreter.</A>
+<P>
+<A TAG=Intro></A> <A TAG=creating></A>
+<H3>
+  <A TAG=creating>Creating Tcl glue code</A>
+</H3>
+<P>
+<A TAG=creating>The glue code itself follows a standard format:</A>
+<BLOCKQUOTE>
+  <PRE><A TAG=creating>
+int function_name_tcl(ClientData clientData, Tcl_Interp *interp, 
+		      int argc, char **argv) {
+    if (argc == 2) {
+	char *str    = argv[1];
+	
+	....variable initialization....
+	
+	....function calls...
+
+	Tcl_AppendResult(interp, result, NULL);
+	return TCL_OK;
+    }
+    else {
+	char *args;
+	sprintf(args, "\"%s string\"", argv[0]);
+	Tcl_AppendResult(interp,"Wrong # of args: should be ", args, NULL);
+	return TCL_ERROR;
+    }
+}
+</A>
+</PRE>
+</BLOCKQUOTE>
+<P>
+<A TAG=creating>The tcl function can be broken up into a number of possible
+parts:</A>
+<UL>
+  <LI>
+    <A TAG=creating>Arguments </A>
+  <LI>
+    <A TAG=creating>Variable Initialization </A>
+  <LI>
+    <A TAG=creating>Hash Table retrieving </A>
+  <LI>
+    <A TAG=creating>Function calling </A>
+  <LI>
+    <A TAG=creating>Hash Table storing </A>
+  <LI>
+    <A TAG=creating>Converting function output to strings for Tcl </A>
+  <LI>
+    <A TAG=creating>Errors </A>
+  <LI>
+    <A TAG=creating>Tcl Status </A>
+</UL>
+<H4>
+  <A TAG=creating>Arguments</A>
+</H4>
+<P>
+<A TAG=creating>Function arguments are treated just like command line arguments
+for C. To check the function has the right number of parameters, you check
+argc. Otherwise you return an error statement.</A>
+<H4>
+  <A TAG=creating>Variable Intialization</A>
+</H4>
+<P>
+<A TAG=creating>All variables in connection to the function need to be
+initialized. This includes all variables for the function parameters and
+function outputs. Also, there is also the need to initialize enough Tcl hash
+table pointers for the number of data structures you have.</A>
+<H4>
+  <A TAG=creating>Hash Table retrieving</A>
+</H4>
+<P>
+<A TAG=creating>This is only used if there are data structures that can't
+be represented by the standard things like numbers, characters or strings.
+Retrieval involves creating an entry pointer to the hash table with the proper
+associated keyname. If there is no such keyname, it will return NULL, which
+should be checked for. Then the structures need to be retrieved out of the
+table.</A>
+<H4>
+  <A TAG=creating>Function calling</A>
+</H4>
+<P>
+<A TAG=creating>Once the data structures are retrieved, the function can
+be called with all the necessary parameters.</A>
+<H4>
+  <A TAG=creating>Hash Table storing</A>
+</H4>
+<P>
+<A TAG=creating>If there is an output from the function that is a data structure
+that needs to be added to the hash table, you store it with a unique keyname.
+The keyname should be returned to the tcl interpreter, so it may be called
+again.</A>
+<H4>
+  <A TAG=creating>Converting function output to strings for Tcl</A>
+</H4>
+<P>
+<A TAG=creating>Since the Tcl interpreter always wants a string output, it
+is necessary to convert outputs to strings. For numbers, this just involves
+printing the number to a string. For enumerations, the options are to print
+the associated value, or create a function to return the proper name. For
+data structures, returning the keyname associated with the hash table is
+the proper representation.</A>
+<H4>
+  <A TAG=creating>Errors</A>
+</H4>
+<P>
+<A TAG=creating>For any case, where checks do not return the proper boolean,
+you should always try to output a string the the Tcl Interpreter describing
+the error.</A>
+<H4>
+  <A TAG=creating>Tcl Status</A>
+</H4>
+<P>
+<A TAG=creating>To properly exit the function, and to give Tcl notification
+of what kind of failure took place, you should return a Tcl flag. This should
+be usually TCL_OK or TCL_ERROR. I believe there are others.</A>
+<P>
+<A TAG=creating><A HREF="HTAnchor_glue.c">Examples of Tcl glue code. </A>
+</A> <A TAG=adding></A>
+<H3>
+  <A TAG=adding>Adding to it Tcl Interpreter</A>
+</H3>
+<P>
+<A TAG=adding>Adding functions to the library involves creating a main program
+which will be a new Tcl interpreter with your functions. Here's a rough coding
+of what should be there:</A>
+<BLOCKQUOTE>
+  <PRE><A TAG=adding>
+
+#include "tcl.h" /*This includes the Tcl libraries and Expect Libraries*/
+
+...other includes
+
+Tcl_HashTable hash_table_name   /*Intializing hash tables*/
+
+typedef struct{
+    char           *name;
+    Tcl_CmdProc    *proc;
+    ClientData     data;
+    int            flags;
+} LibraryFunction;
+
+<STRONG></STRONG></A>
+<A TAG=adding><STRONG>static LibraryFunction www_commands[] = {</STRONG></A>
+<A TAG=adding><STRONG>    { "C_function_name", C_function_name_tcl,		   NULL, 0 },</STRONG></A>
+<A TAG=adding><STRONG>	...other functions...</STRONG></A>
+<A TAG=adding><STRONG>    {0}</STRONG></A>
+<A TAG=adding><STRONG>};</STRONG></A>
+<A TAG=adding>
+
+int main_Init(Tcl_Interp *interp) {
+    LibraryFunction *c;
+
+    /*Hash Table initialization*/
+    Tcl_InitHashTable(&amp;Hash_Table_name, TCL_STRING_KEYS);
+    for(c = www_commands; c-&gt;name; c++){
+	Tcl_CreateCommand(interp, c-&gt;name, c-&gt;proc, c-&gt;data,
+			  NULL /* delete proc*/);
+    }
+}
+
+void main_Terminate() {
+    Tcl_DeleteHashTable(&amp;Hash_Table_name);
+}
+</A>
+<PRE><A TAG=adding>
+</A>
+</PRE></PRE>
+</BLOCKQUOTE>
+<P>
+<A TAG=adding>What's important here is adding the function name to the
+www_commands[]. This adds your function to the </A>tcl interpreter.
+  <HR>
+<P>
+<FONT SIZE=+1><FONT SIZE=+1>Standard Methods for variable
+input/output:</FONT></FONT>
+<P>
+<FONT SIZE=+1>Boolean Input</FONT>
+<PRE><CODE>int boolean_var;</CODE>
+<CODE>char *boolean_string = argv[?];</CODE>
+<CODE>if (Tcl_GetBoolean(interp, boolean_string, &amp;boolean_var)==TCL_OK) {</CODE>
+<CODE></CODE>....body....
+<CODE>}</CODE>
+</PRE>
+<P>
+<FONT SIZE=+1>Integer Input</FONT>
+<P>
+int input;
+<PRE>char *integer_string = argv[?];
+if (Tcl_GetInt(interp, integer_string, &amp;input) == TCL_OK) {
+....body....
+}
+</PRE>
+<P>
+<FONT SIZE=+1>Boolean Output</FONT>
+<PRE>BOOL result = Somefunction(some_argument);
+Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
+</PRE>
+<P>
+<FONT SIZE=+1>Setting a Variable passed in the parameters </FONT>
+<P>
+In the cases where a pointer to a variable is passed in to a function, and
+the assignment must be passed out, use this function from Tcl.
+<PRE>
+Tcl_SetVar(interp, tcl_var_name, char* newValue, int flags);
+
+<HR>
+<ADDRESS>alian@mit.edu &nbsp;(neon@w3.org) Alexander Lian. July 19.1996
+</ADDRESS></PRE>
+</BODY></HTML>

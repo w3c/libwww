@@ -820,13 +820,18 @@ PUBLIC int HTRequest_maxRetry (void)
     return HTMaxRetry;
 }
 
+PUBLIC int HTRequest_retrys (HTRequest * request)
+{
+    return request ? request->retrys : 0;
+}
+
 /*
 **	Should we try again?
 **	--------------------
 **	Returns YES if we are to retry the load, NO otherwise. We check
 **	this so that we don't go into an infinte loop
 */
-PUBLIC BOOL HTRequest_retry (HTRequest *request)
+PUBLIC BOOL HTRequest_doRetry (HTRequest *request)
 {
     return (request && request->retrys < HTMaxRetry-1);
 }

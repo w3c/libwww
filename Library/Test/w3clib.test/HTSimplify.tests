@@ -1,0 +1,61 @@
+
+string: http://www.w3.org/../a/b/c/d/e/f/../../g
+simplified: http://www.w3.org/../a/b/c/d/g
+
+***********
+
+string: http://www.w3.org/a/b/c/../f/g/
+simplified: http://www.w3.org/a/b/f/g/
+
+***********
+
+string: /etc/junk/../fred
+simplified: /etc/fred
+
+***********
+
+string: /etc/junk/./fred
+simplified: /etc/junk/fred
+
+***********
+
+string: http://fred.xxx.edu/../..
+simplified: http://fred.xxx.edu/../..
+
+***********
+
+string: ../../albert.html
+simplified: ../../albert.html
+
+***********
+
+string: ./
+simplified: ./
+
+***********
+
+string: //
+simplified: //
+
+***********
+
+string: /fred/..
+simplified: /
+
+***********
+
+string: /fred/././..
+simplified: /
+
+***********
+
+string: /fred/.././junk/.././
+simplified: /
+
+***********
+
+string: http://www.w3.org://www.org.com/a/b/c/d/../://bob.com/a/b/c/d/.././../
+simplified: http://www.w3.org://www.org.com/a/b/c/d/../://bob.com/a/b/
+
+***********
+ 

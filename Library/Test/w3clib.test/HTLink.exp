@@ -1,0 +1,306 @@
+#
+#
+#HTLink Link Testing
+#
+#
+
+#
+# NOTE! NEED ANCHORS FROM ANCHOR TESTS? OR CREATE NEW SET OF ANCHORS 1-5
+#
+
+proc init_anchors { } {
+  global wwwtest_id
+  global prompt  
+
+  global address
+  global child_tag
+  global link_address
+  global Anchor
+  global ChildAnchor
+#
+# Addresses, links and tags for anchor and link creations
+#
+
+  set address(1) "http://www.w3.org/"
+  set address(2) "http://www.foobar.com/"
+  set address(3) "http://www.mit.edu:8001/"
+  set address(4) "ftp://to.be.deleted.com/"
+  set address(5) "http://web.mit.edu/"
+
+  set child_tag(1) "html3"
+  set child_tag(2) "foo"
+  set child_tag(3) "bar"
+
+  set link_address(1) "http://www.w3.org/pub/info"
+  set link_address(2) "news://news.mit.edu/"
+  set link_address(3) "ftp://ftp.nic.net/"
+  set link_address(4) "http://www.to.be.deleted.com/"
+
+#
+# Creating Anchors
+#
+
+  set function HTAnchor_findAddress
+
+  for {set test_num 1} {$test_num <= 5} {incr test_num} {
+
+    set test "HTAnchor_findAddress $test_num"
+    send_user "HTAnchor_findAddress $address($test_num)\n"
+    set Anchor($test_num) [new_item "HTAnchor_findAddress $address($test_num)"]
+
+  }
+
+  set function HTAnchor_findChild
+
+  for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+    set test "HTAnchor_findChild $test_num"
+    send_user "HTAnchor_findChild $Anchor($test_num) $child_tag($test_num)\n"
+    set ChildAnchor($test_num) [new_item  "HTAnchor_findChild $Anchor($test_num) $child_tag($test_num)"]
+
+  }
+}
+
+proc init_links { } {
+
+  global Anchor
+  global ChildAnchor
+
+  global Linktype
+  global Method
+  global Link
+  global source_list
+  global dest_list
+
+  set function HTLink_add
+
+  set Linktype(1) standard
+  set Linktype(2) not-standard
+  set Linktype(3) child
+
+  set Method(1)   PUT
+  set Method(2)   POST
+
+  set source_list(1) $Anchor(1)
+  set source_list(2) $Anchor(1)
+  set source_list(3) $Anchor(2)
+  set source_list(4) $Anchor(3)
+  set source_list(5) $Anchor(3)
+  set source_list(6) $Anchor(1)
+
+  set dest_list(1) $Anchor(2)
+  set dest_list(2) $Anchor(3)
+  set dest_list(3) $Anchor(5)
+  set dest_list(4) $Anchor(1)
+  set dest_list(5) $Anchor(2)
+  set dest_list(6) $ChildAnchor(1)
+
+  set link_args(1) "$Anchor(1) $Anchor(2) $Linktype(1) $Method(1)"
+  set link_args(2) "$Anchor(1) $Anchor(3) $Linktype(2) $Method(1)"
+  set link_args(3) "$Anchor(2) $Anchor(5) $Linktype(1) $Method(1)"
+  set link_args(4) "$Anchor(3) $Anchor(1) $Linktype(2) $Method(2)"
+  set link_args(5) "$Anchor(3) $Anchor(2) $Linktype(2) $Method(2)"
+  set link_args(6) "$Anchor(1) $ChildAnchor(1) $Linktype(3) $Method(2)"
+
+ for {set test_num 1} {$test_num <= 6} {incr test_num} {
+
+    send_user "HTLink_add $link_args($test_num)\n"
+
+    run_command "$function $link_args($test_num)"
+    set Link($test_num) [new_item "HTLink_find $source_list($test_num) $dest_list($test_num)"]
+  }
+}
+
+init_anchors
+init_links
+
+set function HTLink_find
+
+set test "Hash Table Check 1"
+
+set source $Anchor(1) 
+set dest   $Anchor(2) 
+set expected $Link(1)
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set test "Hash Table Check 2"
+
+set source $Anchor(1) 
+set dest   $Anchor(3) 
+set expected $Link(2)
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set test "Hash Table Check 3"
+
+set source $Anchor(2) 
+set dest   $Anchor(5)
+set expected $Link(3)
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set test "Hash Table Check 4"
+
+set source $Anchor(3) 
+set dest   $Anchor(1) 
+set expected $Link(4)
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set test "Hash Table Check 5"
+
+set source $Anchor(3) 
+set dest   $Anchor(2) 
+set expected $Link(5)
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set test "Hash Table Check 6"
+
+set source $Anchor(1) 
+set dest   $ChildAnchor(1)
+set expected $Link(6)
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set test "Hash Table Check 7"
+
+set source $Anchor(2) 
+set dest   $Anchor(3) 
+set expected ""
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set function HTLink_destination
+set set_function HTLink_setDestination
+
+set test "HTLink_destination"
+
+set link $Link(6)
+set test_anchor $Anchor(1) 
+set new_dest $ChildAnchor(2)
+set expected $new_dest
+set set_args "$link $new_dest"
+set arguments "$link"
+
+set_test $set_function $set_args
+runtest $function $arguments $expected $test
+
+set function HTLink_type
+set set_function HTLink_setType
+
+set test "HTLink_type"
+
+set link $Link(2)
+set test_anchor $Anchor(1) 
+set type link_type
+set expected $type
+set set_args  "$link $type"
+set arguments "$link"
+
+set_test $set_function $set_args
+runtest $function $arguments $expected $test
+
+set function HTLink_method
+set set_function HTLink_setMethod
+
+set test "HTLink_method"
+
+set link      $Link(6)
+set method    PUT
+set expected  $method
+set set_args  "$link $method"
+set arguments "$link"
+
+set_test $set_function "$set_args"
+runtest $function $arguments $expected $test
+
+set function HTLink_result
+set set_function HTLink_setResult
+
+set test "HTLink_result"
+
+set link $Link(1)
+set test_anchor $Anchor(1) 
+set link_result HT_LINK_OK
+set expected $link_result
+set set_args "$link $link_result"
+set arguments "$link"
+
+set_test $set_function $set_args
+runtest $function $arguments $expected $test
+
+set function HTLink_remove
+
+set test "HTLink_remove 1.1"
+
+set link $Link(3)
+set source $Anchor(2) 
+set dest $Anchor(5)
+
+set expected YES
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set test "HTLink_remove 1.2"
+
+set function HTLink_find
+set expected ""
+set arguments "$source $dest"
+
+runtest $function $arguments $expected $test
+
+set function HTLink_removeAll
+
+set test "HTLink_removeAll 1.1"
+
+set test_anchor $Anchor(1) 
+set expected YES
+set arguments $test_anchor
+
+runtest $function $arguments $expected $test
+
+set test "HTLink_removeAll 1.2"
+
+set function HTAnchor_subLinks
+set expected ""
+set arguments $test_anchor
+
+runtest $function $arguments $expected $test
+
+
+# MOVEALL is not visible, thus cannot be tested
+
+set function HTAnchor_subLinks
+set set_function HTLink_moveAll
+
+set test "HTLink_moveAll 1"
+
+set new_anchor $Anchor(5)
+set test_anchor $Anchor(1) 
+set expected [new_item "HTAnchor_subLinks $test_anchor"]
+set set_args "$test_anchor $new_anchor"
+set arguments $new_anchor
+
+#set_test $set_function $set_args
+#runtest $function $arguments $expected $test
+
+set test "HTAnchor_moveAllLinks 2"
+
+set new_anchor $Anchor(1) 
+set test_anchor $Anchor(5)
+set expected [new_item "HTAnchor_subLinks $test_anchor"]
+set set_args "$test_anchor $new_anchor"
+set arguments $new_anchor
+
+#set_test $set_function $set_args
+#runtest $function $arguments $expected $test

@@ -347,7 +347,7 @@ PUBLIC void HTMIMEInit (void)
 	{"max-forwards", &HTMIME_maxForwards}, 
 	{"mime-version", NULL}, 
 	{"pragma", &HTMIME_pragma},
-	{"proxy-authenticate", &HTMIME_proxyAuthenticate},
+	{"proxy-authenticate", &HTMIME_authenticate},
 	{"proxy-authorization", &HTMIME_proxyAuthorization},
 	{"public", &HTMIME_public},
 	{"range", &HTMIME_range},

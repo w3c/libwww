@@ -198,7 +198,7 @@ PUBLIC HTParentAnchor * HTTmpAnchor (HTUserProfile * up)
 	char * result;
 	if (!(result = (char *) HT_MALLOC(strlen(tmpurl)+20)))
 	    HT_OUTOFMEM("HTTmpAnchor");
-	sprintf(result, "%s.%d.%d", tmpurl, t, offset++);
+	sprintf(result, "%s.%ld.%d", tmpurl, t, offset++);
 	if (APP_TRACE) HTTrace("Tmp Anchor.. With location `%s\'\n", result);
 	return HTAnchor_parent(HTAnchor_findAddress(result));
 	HT_FREE(result);

@@ -304,7 +304,7 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 	HT_FREE(file->local);
 	HT_FREE(file);
     }
-    HTNet_delete(net, HTRequest_internal(req) ? HT_IGNORE : status);
+    HTNet_delete(net, status);
     return YES;
 }
 

@@ -1,135 +1,126 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww PROXIES AND GATEWAYS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww Proxies and Gateways</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Proxy and gateway Manager</H1>
-
+<H1>
+  Proxy and gateway Manager
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module keeps a list of proxies and gateways to be contacted on a
-request in stead of requesting it directly from the origin server. The
-module replaces the old system of environment variables for gateways
-and proxies. However for backward compatibility there is a function
-that reads the environment variables at start up. Note that there is a
-difference between a proxy and a gateway - the difference is the way
-the URL is set up in the <EM>RequestLine</EM> of the HTTP request. If
-the original, full URL looks like
-<CODE>"http://www.w3.org/test.html"</CODE> then the result will for a
-proxy is <CODE>"http://www.w3.org/test.html"</CODE> and a gateway
-<CODE>"/www.w3.org/test.html"</CODE> <P>
-
-The module is implemented by <A HREF="HTProxy.c">HTProxy.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
-<PRE>
-#ifndef HTPROXY_H
+<P>
+This module keeps a list of proxies and gateways to be contacted on a request
+in stead of requesting it directly from the origin server. The module replaces
+the old system of environment variables for gateways and proxies. However
+for backward compatibility there is a function that reads the environment
+variables at start up. Note that there is a difference between a proxy and
+a gateway - the difference is the way the URL is set up in the
+<EM>RequestLine</EM> of the HTTP request. If the original, full URL looks
+like <CODE>"http://www.w3.org/test.html"</CODE> then the result will for
+a proxy is <CODE>"http://www.w3.org/test.html"</CODE> and a gateway
+<CODE>"/www.w3.org/test.html"</CODE>
+<P>
+The module is implemented by <A HREF="HTProxy.c">HTProxy.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>#ifndef HTPROXY_H
 #define HTPROXY_H
 
 #include "HTList.h"
 </PRE>
-
-<A NAME="proxy"><H2>Registering a proxy server</H2></A>
-
-A proxy server is registered with a corresponding access method, for
-example <EM>http</EM>, <EM>ftp</EM> etc. The `proxy' parameter should
-be a fully valid name, like <CODE>http://proxy.w3.org:8001</CODE> but
-domain name is not required. If an entry exists for this access then
-delete it and use the new one.
-
+<H2>
+  Registering a proxy server
+</H2>
+<P>
+A proxy server is registered with a corresponding access method, for example
+<EM>http</EM>, <EM>ftp</EM> etc. The `proxy' parameter should be a fully
+valid name, like <CODE>http://proxy.w3.org:8001</CODE> but domain name is
+not required. If an entry exists for this access then delete it and use the
+new one.
 <PRE>
 extern BOOL HTProxy_add		(const char * access, const char * proxy);
 extern BOOL HTProxy_deleteAll	(void);
 </PRE>
-
-The remove function removes all registered proxies. This is
-automatically done in <A HREF="HTLib.html">
-HTLibTerminate()</A>
-
-<A NAME="noproxy"><H2>Registering a host or domain with no proxy</H2></A>
-
-The <EM>noproxy</EM> list is a list of host names and domain names
-where we don't contact a proxy even though a proxy is in fact
-registered for this particular access method . When registering a
-<EM>noproxy</EM> item, you can specify a specific port for this access
-method in which case it isvalid only for requests to this port. If
-`port' is '0' then it applies to all ports and if `access' is NULL
-then it applies to to all access methods. Examples of host names are
-<CODE>w3.org</CODE> and <CODE>www.close.com</CODE>
-
+<P>
+The remove function removes all registered proxies. This is automatically
+done in <A HREF="HTLib.html"> HTLibTerminate()</A> <A NAME="noproxy"></A>
+<H2>
+  Registering a host or domain with no proxy
+</H2>
+<P>
+The <EM>noproxy</EM> list is a list of host names and domain names where
+we don't contact a proxy even though a proxy is in fact registered for this
+particular access method . When registering a <EM>noproxy</EM> item, you
+can specify a specific port for this access method in which case it isvalid
+only for requests to this port. If `port' is '0' then it applies to all ports
+and if `access' is NULL then it applies to to all access methods. Examples
+of host names are <CODE>w3.org</CODE> and <CODE>www.close.com</CODE>
 <PRE>
 extern BOOL HTNoProxy_add	(const char * host, const char * access,
 				 unsigned port);
 extern BOOL HTNoProxy_deleteAll	(void);
 </PRE>
-
-The remove function removes all entries in the list. This is
-automatically done in <A HREF="HTLib.html">
-HTLibTerminate()</A>
-
-<H2>Look for a Proxy server</H2>
-
-This function evaluates the lists of registered proxies and if
-one is found for the actual access method and it is not registered
-in the `noproxy' list, then a URL containing the host to be contacted
-is returned to the caller. This string must be freed be the caller.
-
+<P>
+The remove function removes all entries in the list. This is automatically
+done in <A HREF="HTLib.html"> HTLibTerminate()</A>
+<H2>
+  Look for a Proxy server
+</H2>
+<P>
+This function evaluates the lists of registered proxies and if one is found
+for the actual access method and it is not registered in the `noproxy' list,
+then a URL containing the host to be contacted is returned to the caller.
+This string must be freed be the caller.
 <PRE>
 extern char * HTProxy_find	(const char * url);
 </PRE>
-
-<A NAME="gateway"><H2>Registering a gateway</H2></A>
-
-A gateway is registered with a corresponding access method, for
-example <EM>http</EM>, <EM>ftp</EM> etc. The `gate' parameter should
-be a fully valid name, like <CODE>http://gateway.w3.org:8001</CODE>
-but domain name is not required. If an entry exists for this access
-then delete it and use the new one.
-
+<H2>
+  Registering a gateway
+</H2>
+<P>
+A gateway is registered with a corresponding access method, for example
+<EM>http</EM>, <EM>ftp</EM> etc. The `gate' parameter should be a fully valid
+name, like <CODE>http://gateway.w3.org:8001</CODE> but domain name is not
+required. If an entry exists for this access then delete it and use the new
+one.
 <PRE>
 extern BOOL HTGateway_add	(const char * access, const char * gate);
 extern BOOL HTGateway_deleteAll	(void);
 </PRE>
-
-The remove function removes all registered proxies. This is
-automatically done in <A HREF="HTLib.html">
-HTLibTerminate()</A>
-
-<H2>Look for a Gateway</H2>
-
-This function evaluates the lists of registered gateways and if one is
-found for the actual access method then it is returned and must be
-freed by the caller.
-
+<P>
+The remove function removes all registered proxies. This is automatically
+done in <A HREF="HTLib.html"> HTLibTerminate()</A>
+<H2>
+  Look for a Gateway
+</H2>
+<P>
+This function evaluates the lists of registered gateways and if one is found
+for the actual access method then it is returned and must be freed by the
+caller.
 <PRE>
 extern char * HTGateway_find	(const char * url);
 </PRE>
-
-<H2>Backwards Compability with Environment Variables</H2>
-
-This function maintains backwards compatibility with the old
-environment variables and searches for the most common values: http,
-ftp, news, wais, and gopher
-
+<H2>
+  Backwards Compability with Environment Variables
+</H2>
+<P>
+This function maintains backwards compatibility with the old environment
+variables and searches for the most common values: http, ftp, news, wais,
+and gopher
 <PRE>
 extern void HTProxy_getEnvVar	(void);
 </PRE>
-
 <PRE>
 #endif /* HTPROXY_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -31,9 +31,9 @@ NULL=nul
 ################################################################################
 # Begin Project
 # PROP Target_Last_Scanned "pics - Win32 Debug"
+MTL=mktyplib.exe
 CPP=cl.exe
 RSC=rc.exe
-MTL=mktyplib.exe
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -44,36 +44,33 @@ MTL=mktyplib.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\Bin"
+# PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-OUTDIR=.\..\..\..\Bin
+OUTDIR=.\Release
 INTDIR=.\Release
 
 ALL : "$(OUTDIR)\pics.dll"
 
 CLEAN : 
 	-@erase "..\..\..\Bin\Release\pics.dll"
-	-@erase ".\Release\CSKwik.obj"
-	-@erase ".\Release\CSApp.obj"
 	-@erase ".\Release\CSLLURLs.obj"
-	-@erase ".\Release\CSUser.obj"
-	-@erase ".\Release\CSMem.obj"
-	-@erase ".\Release\CSStream.obj"
-	-@erase ".\Release\CSChkLab.obj"
-	-@erase ".\Release\CSParse.obj"
+	-@erase ".\Release\CSApp.obj"
 	-@erase ".\Release\CSMacRed.obj"
 	-@erase ".\Release\CSLLOut.obj"
 	-@erase ".\Release\CSLabel.obj"
+	-@erase ".\Release\CSStream.obj"
+	-@erase ".\Release\CSChkLab.obj"
+	-@erase ".\Release\CSKwik.obj"
+	-@erase ".\Release\CSParse.obj"
+	-@erase ".\Release\CSUser.obj"
 	-@erase ".\Release\CSUsrLst.obj"
-	-@erase "..\..\..\Bin\pics.lib"
-	-@erase "..\..\..\Bin\pics.exp"
+	-@erase ".\Release\CSMem.obj"
+	-@erase ".\Release\pics.lib"
+	-@erase ".\Release\pics.exp"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
-"$(INTDIR)" :
-    if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\Library\src" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
@@ -99,27 +96,27 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:windows /dll /incremental:no\
  /pdb:"$(OUTDIR)/pics.pdb" /machine:I386 /def:".\pics.def"\
- /out:"$(OUTDIR)/Release\pics.dll" /implib:"$(OUTDIR)/pics.lib" 
+ /out:"../../../Bin/Release/pics.dll" /implib:"$(OUTDIR)/pics.lib" 
 DEF_FILE= \
 	".\pics.def"
 LINK32_OBJS= \
-	".\Release\CSKwik.obj" \
-	".\Release\CSApp.obj" \
-	".\Release\CSLLURLs.obj" \
-	".\Release\CSUser.obj" \
-	".\Release\CSMem.obj" \
-	".\Release\CSStream.obj" \
-	".\Release\CSChkLab.obj" \
-	".\Release\CSParse.obj" \
-	".\Release\CSMacRed.obj" \
-	".\Release\CSLLOut.obj" \
-	".\Release\CSLabel.obj" \
-	".\Release\CSUsrLst.obj" \
-	"..\..\..\Bin\wwwutils.lib" \
-	"..\..\..\Bin\wwwmime.lib" \
-	"..\..\..\Bin\wwwdll.lib" \
-	"..\..\..\Bin\wwwcore.lib" \
-	"..\..\..\Bin\wwwapp.lib"
+	"$(INTDIR)/CSLLURLs.obj" \
+	"$(INTDIR)/CSApp.obj" \
+	"$(INTDIR)/CSMacRed.obj" \
+	"$(INTDIR)/CSLLOut.obj" \
+	"$(INTDIR)/CSLabel.obj" \
+	"$(INTDIR)/CSStream.obj" \
+	"$(INTDIR)/CSChkLab.obj" \
+	"$(INTDIR)/CSKwik.obj" \
+	"$(INTDIR)/CSParse.obj" \
+	"$(INTDIR)/CSUser.obj" \
+	"$(INTDIR)/CSUsrLst.obj" \
+	"$(INTDIR)/CSMem.obj" \
+	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
+	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib" \
+	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
+	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
+	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib"
 
 "$(OUTDIR)\pics.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -135,40 +132,37 @@ LINK32_OBJS= \
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\Bin"
+# PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-OUTDIR=.\..\..\..\Bin
+OUTDIR=.\Debug
 INTDIR=.\Debug
 
-ALL : "..\..\..\Bin\Debug\pics.dll"
+ALL : "$(OUTDIR)\pics.dll"
 
 CLEAN : 
 	-@erase ".\Debug\vc40.pdb"
 	-@erase ".\Debug\vc40.idb"
 	-@erase "..\..\..\Bin\Debug\pics.dll"
-	-@erase ".\Debug\CSMacRed.obj"
-	-@erase ".\Debug\CSMem.obj"
-	-@erase ".\Debug\CSUsrLst.obj"
-	-@erase ".\Debug\CSApp.obj"
 	-@erase ".\Debug\CSLLURLs.obj"
+	-@erase ".\Debug\CSApp.obj"
 	-@erase ".\Debug\CSKwik.obj"
-	-@erase ".\Debug\CSParse.obj"
-	-@erase ".\Debug\CSLLOut.obj"
-	-@erase ".\Debug\CSUser.obj"
 	-@erase ".\Debug\CSStream.obj"
+	-@erase ".\Debug\CSLLOut.obj"
 	-@erase ".\Debug\CSLabel.obj"
 	-@erase ".\Debug\CSChkLab.obj"
+	-@erase ".\Debug\CSUser.obj"
+	-@erase ".\Debug\CSMacRed.obj"
+	-@erase ".\Debug\CSUsrLst.obj"
+	-@erase ".\Debug\CSParse.obj"
+	-@erase ".\Debug\CSMem.obj"
 	-@erase "..\..\..\Bin\Debug\pics.ilk"
-	-@erase "..\..\..\Bin\pics.lib"
-	-@erase "..\..\..\Bin\pics.exp"
-	-@erase "..\..\..\Bin\pics.pdb"
+	-@erase ".\Debug\pics.lib"
+	-@erase ".\Debug\pics.exp"
+	-@erase ".\Debug\pics.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
-"$(INTDIR)" :
-    if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\src" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
@@ -194,29 +188,29 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:windows /dll /incremental:yes\
  /pdb:"$(OUTDIR)/pics.pdb" /debug /machine:I386 /def:".\pics.def"\
- /out:"$(OUTDIR)/Debug\pics.dll" /implib:"$(OUTDIR)/pics.lib" 
+ /out:"../../../Bin/Debug/pics.dll" /implib:"$(OUTDIR)/pics.lib" 
 DEF_FILE= \
 	".\pics.def"
 LINK32_OBJS= \
-	".\Debug\CSMacRed.obj" \
-	".\Debug\CSMem.obj" \
-	".\Debug\CSUsrLst.obj" \
-	".\Debug\CSApp.obj" \
-	".\Debug\CSLLURLs.obj" \
-	".\Debug\CSKwik.obj" \
-	".\Debug\CSParse.obj" \
-	".\Debug\CSLLOut.obj" \
-	".\Debug\CSUser.obj" \
-	".\Debug\CSStream.obj" \
-	".\Debug\CSLabel.obj" \
-	".\Debug\CSChkLab.obj" \
-	"..\..\..\Bin\wwwutils.lib" \
-	"..\..\..\Bin\wwwmime.lib" \
-	"..\..\..\Bin\wwwdll.lib" \
-	"..\..\..\Bin\wwwcore.lib" \
-	"..\..\..\Bin\wwwapp.lib"
+	"$(INTDIR)/CSLLURLs.obj" \
+	"$(INTDIR)/CSApp.obj" \
+	"$(INTDIR)/CSKwik.obj" \
+	"$(INTDIR)/CSStream.obj" \
+	"$(INTDIR)/CSLLOut.obj" \
+	"$(INTDIR)/CSLabel.obj" \
+	"$(INTDIR)/CSChkLab.obj" \
+	"$(INTDIR)/CSUser.obj" \
+	"$(INTDIR)/CSMacRed.obj" \
+	"$(INTDIR)/CSUsrLst.obj" \
+	"$(INTDIR)/CSParse.obj" \
+	"$(INTDIR)/CSMem.obj" \
+	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
+	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib" \
+	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
+	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
+	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib"
 
-"..\..\..\Bin\Debug\pics.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"$(OUTDIR)\pics.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -256,15 +250,15 @@ LINK32_OBJS= \
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSUsrLst.c"
+SOURCE=..\CSUsrLst.c
 DEP_CPP_CSUSR=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLApp.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -305,15 +299,27 @@ NODEP_CPP_CSUSR=\
 	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
+!IF  "$(CFG)" == "pics - Win32 Release"
+
+
 "$(INTDIR)\CSUsrLst.obj" : $(SOURCE) $(DEP_CPP_CSUSR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
+
+
+"$(INTDIR)\CSUsrLst.obj" : $(SOURCE) $(DEP_CPP_CSUSR) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSChkLab.c"
+SOURCE=..\CSChkLab.c
 DEP_CPP_CSCHK=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
@@ -324,8 +330,8 @@ DEP_CPP_CSCHK=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -373,14 +379,14 @@ NODEP_CPP_CSCHK=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSKwik.c"
+SOURCE=..\CSKwik.c
 DEP_CPP_CSKWI=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -428,7 +434,7 @@ NODEP_CPP_CSKWI=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSLabel.c"
+SOURCE=..\CSLabel.c
 DEP_CPP_CSLAB=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTList.h"\
@@ -436,8 +442,8 @@ DEP_CPP_CSLAB=\
 	".\..\CSParse.h"\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -455,7 +461,7 @@ NODEP_CPP_CSLAB=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSLLOut.c"
+SOURCE=..\CSLLOut.c
 DEP_CPP_CSLLO=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
@@ -464,8 +470,8 @@ DEP_CPP_CSLLO=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -513,7 +519,7 @@ NODEP_CPP_CSLLO=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSLLURLs.c"
+SOURCE=..\CSLLURLs.c
 DEP_CPP_CSLLU=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
@@ -522,8 +528,8 @@ DEP_CPP_CSLLU=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -571,7 +577,7 @@ NODEP_CPP_CSLLU=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSMacRed.c"
+SOURCE=..\CSMacRed.c
 DEP_CPP_CSMAC=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -579,8 +585,8 @@ DEP_CPP_CSMAC=\
 	".\..\CSParse.h"\
 	".\..\CSMR.h"\
 	".\..\CSMRSt.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
@@ -598,15 +604,15 @@ NODEP_CPP_CSMAC=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSMem.c"
+SOURCE=..\CSMem.c
 DEP_CPP_CSMEM=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -654,15 +660,15 @@ NODEP_CPP_CSMEM=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSParse.c"
+SOURCE=..\CSParse.c
 DEP_CPP_CSPAR=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTString.h"\
 	".\..\CSLUtils.h"\
 	".\..\CSParse.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
@@ -679,7 +685,7 @@ NODEP_CPP_CSPAR=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSStream.c"
+SOURCE=..\CSStream.c
 DEP_CPP_CSSTR=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\HTProxy.h"\
@@ -692,8 +698,8 @@ DEP_CPP_CSSTR=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -741,7 +747,7 @@ NODEP_CPP_CSSTR=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSUser.c"
+SOURCE=..\CSUser.c
 DEP_CPP_CSUSE=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -751,8 +757,8 @@ DEP_CPP_CSUSE=\
 	".\..\CSParse.h"\
 	".\..\CSUser.h"\
 	".\..\CSUserSt.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
@@ -770,7 +776,7 @@ NODEP_CPP_CSUSE=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\PICS-client\src\CSApp.c"
+SOURCE=..\CSApp.c
 DEP_CPP_CSAPP=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\WWWApp.h"\
@@ -785,8 +791,8 @@ DEP_CPP_CSAPP=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	{$(INCLUDE)}"\sys\STAT.H"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
@@ -853,7 +859,7 @@ SOURCE=.\pics.def
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Bin\wwwutils.lib"
+SOURCE=..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -865,7 +871,7 @@ SOURCE="..\..\..\Bin\wwwutils.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Bin\wwwmime.lib"
+SOURCE=..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -877,7 +883,7 @@ SOURCE="..\..\..\Bin\wwwmime.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Bin\wwwdll.lib"
+SOURCE=..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -889,7 +895,7 @@ SOURCE="..\..\..\Bin\wwwdll.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Bin\wwwcore.lib"
+SOURCE=..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -901,7 +907,7 @@ SOURCE="..\..\..\Bin\wwwcore.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Bin\wwwapp.lib"
+SOURCE=..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 

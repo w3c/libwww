@@ -1,0 +1,224 @@
+
+if ![info exists prompt] then {
+    set prompt "% "
+}
+
+#
+# wwwtest_version -- extract and print the version number of wwwtest
+#
+
+proc wwwtest_version {} {
+	global WWWTEST
+	global prompt
+
+	clone_output "[which $WWWTEST] version 1.0\n"
+}
+
+# wwwtest_load -- loads the program
+
+proc wwwtest_load { } {
+}
+
+#
+# wwwtest_exit -- quit and cleanup
+#
+proc wwwtest_exit {} {
+	send "exit\r"
+}
+
+#
+# wwwtest_start -- start wwwtest running
+#
+
+proc wwwtest_start {} {
+	global WWWTEST
+	global prompt
+	global spawn_id
+	global verbose
+	global wwwtest_id
+	global eol
+
+	if { $verbose > 1 } {
+		send_user "starting $WWWTEST\n"
+	}
+
+	send_user "Spawning $WWWTEST..."
+	spawn "./$WWWTEST"
+	set wwwtest_id $spawn_id
+	send_user "$WWWTEST active.\n"
+	expect {
+		-i $wwwtest_id
+		-re "No such file.*" { error "Can't start $WWWTEST"; exit 1 }
+		-re "$prompt$" { }
+		timeout { error "Failed to spawn $WWWTEST (timeout)"; exit 1 }
+	}
+	send -i $wwwtest_id "\r"
+	expect {
+		-i $wwwtest_id
+		-re "($prompt)(.*)($prompt)" {set eol $expect_out(2,string)}
+		timeout { }
+	}
+}
+
+#
+# To deal with unfriendly characters in reg expressions...
+#
+
+proc fix_string { str } {
+	for {set i 0} {$i <= [string length $str]} {incr i} {
+		if {[regexp {[\-\*\.\$\+\?\|\^\\]} [set character [string index $str $i]]] == 1} {
+			lappend new_str "\\$character"
+		} else {
+			lappend new_str $character
+		}
+	}
+	return [join $new_str ""]
+}
+
+#
+# Test the # of args for a function
+#
+
+proc test_args { function } {
+  global wwwtest_id
+  global prompt
+
+  verbose "Argument # test: $function" 1
+  set test "$function 0"
+  set command "$function"
+  set error_str "Wrong # of args. "
+  send -i $wwwtest_id "$command\r"
+  expect {
+	-i $wwwtest_id
+	-re "(.*)($error_str)(\r\n)*($function )(.*)(\r\n)*($prompt)" {
+		verbose "Arguments: $expect_out(4,string)" 2
+		pass $test}
+	-re "(.*)\r\n(.*)\r\n($prompt)" {send_user "Unexpected argument number. Check test.\n"
+					 xpass $test}
+	timeout {fail $test}
+  }
+}
+
+#
+# To generalize code and reduce large repetition
+#
+
+proc runtest { function arguments expected test } {
+  global wwwtest_id
+  global prompt
+  global WWWTEST
+
+  set command "$function $arguments"
+  send -i $wwwtest_id "$command\r"
+  verbose "$function $arguments" 1
+  verbose "	Expected:		$expected" 2
+  set command [fix_string $command]
+  set error_str "Wrong # of args. "
+  set invalid "Invalid variable names or non-existent entries."
+  set actual "expect function skipped?!"
+
+  expect {
+	-i $wwwtest_id
+	-re "([fix_string $expected])(.*)($prompt)" {
+		set actual $expected
+		 pass $test
+	}
+	-re "(.*)($invalid)(\r\n)*(.*)($prompt)" {
+		set actual "Improper test setup, invalid variable name.\n"
+		fail $test
+	}
+	-re "(.*)($error_str)(\r\n)*($function)(.*)($prompt)" {
+		set actual "Improper test setup. Wrong # of args.\n"
+		fail $test
+	}
+	-re "($command)\r\n(.*)(\r\n)*($prompt)" {
+		set actual $expect_out(2,string)
+		fail $test
+	}
+	timeout {set actual "Timed out..."
+		 fail $test
+	}
+	eof {set actual "wwwtest crashed"
+		fail $test
+		spawn "./$WWWTEST"
+		set wwwtest_id $spawn_id
+	}
+  }
+  verbose "	Result:			$actual" 2
+  return $actual
+}
+
+#
+# For the set functions
+#
+
+proc set_test { function arguments } {
+  global wwwtest_id
+  global prompt
+
+  set command "$function $arguments"
+  send -i $wwwtest_id "$command\r"
+  set error_str "Wrong # of args. "
+  expect {
+	-i $wwwtest_id
+	-re "(.*)(invalid command name \"$function\")(.*)($prompt)" {
+		send_user "Improper test setup, improper function name.\n"
+	}
+	-re "(.*)($error_str)(\r\n)*($function)(.*)($prompt)" {
+		send_user "Improper test setup. Wrong # args.\n"
+	}
+	-re "($command)\r\n(.*)(\r\n)*($prompt)" {
+		return $expect_out(2,string)
+	}
+	-re "(.*)($prompt)" {
+		send_user "Couldn't set function\n"
+	}
+	timeout {
+		send_user "Timed out...\n"
+	}
+	eof {fail $test
+	     send_user "wwwtest crashed.\n"
+	}
+  }
+}
+
+proc get_data { tcl_name identifier } {
+  global wwwtest_id
+  global prompt
+
+  send -i $wwwtest_id "set $tcl_name\r"
+  expect {
+	  -i $wwwtest_id
+	  -re "(.*)(($identifier)(.*))\r\n($prompt)" {return $expect_out(2,string)}
+  }
+  return "couldn't find it"
+}
+
+proc new_item { command } {
+  global wwwtest_id
+  global prompt
+
+  send -i $wwwtest_id "$command\r"
+  expect {
+ 	-i $wwwtest_id
+	-re "($command)\r\n((\[A-Za-z_ ]*)(\[0-9]*))(.*)($prompt)" {
+		return $expect_out(2,string)
+	}
+  }
+}
+
+proc run_command { command } {
+  global wwwtest_id
+  global prompt
+
+  send -i $wwwtest_id "$command\r"
+  expect {
+ 	-i $wwwtest_id
+	-re "($command)\r\n((\[A-Za-z_ ]*)(\[0-9]*))(.*)($prompt)" {
+		return $expect_out(2,string)
+	timeout {return "Did not work."}
+	}
+  }
+}
+
+wwwtest_start

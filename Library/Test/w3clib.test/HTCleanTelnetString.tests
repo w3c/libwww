@@ -1,0 +1,350 @@
+!!!!!!!!!*****************************00-1F: Inclusive
+
+unclean: abc%00def
+clean: abc
+
+***********
+
+unclean: def%01ghi
+clean: def
+
+***********
+
+unclean: ghi%02jkl
+clean: ghi
+
+***********
+
+unclean: jkl%03mno
+clean: jkl
+
+***********
+
+unclean: mno%04pqr
+clean: mno
+
+***********
+
+unclean: pqr%05stu
+clean: pqr
+
+***********
+
+unclean: stu%06vwx
+clean: stu
+
+***********
+
+unclean: vwx%07yz
+clean: vwx
+
+***********
+
+unclean: yz%08ABC
+clean: yz
+
+***********
+
+unclean: ABC%09DEF
+clean: ABC	DEF
+
+***********
+
+unclean: DEF%0AGHI
+clean: DEF
+
+***********
+
+unclean: GHI%0BJKL
+clean: GHI
+
+***********
+
+unclean: JKL%0CMNO
+clean: JKL
+
+***********
+
+unclean: MNO%0DPQR
+clean: MNO
+
+***********
+
+unclean: PQR%0ESTU
+clean: PQR
+
+***********
+
+unclean: STU%0FVWX
+clean: STU
+
+***********
+
+unclean: VWX%10YZ
+clean: VWX
+
+***********
+
+unclean: YZ%1101
+clean: YZ
+
+***********
+
+unclean: 01%1223
+clean: 01
+
+***********
+
+unclean: 23%1345
+clean: 23
+
+***********
+
+unclean: 45%1467
+clean: 45
+
+***********
+
+unclean: 67%1589
+clean: 67
+
+***********
+
+unclean: 89%16%20%21
+clean: 89
+
+***********
+
+unclean: %20%21%17%5C%22%23
+clean:  !
+
+***********
+
+unclean: %5C%22%23%5C%22%18%24%25
+clean: "#"
+
+***********
+
+unclean: %24%25%19%26%27
+clean: $%
+
+***********
+
+unclean: %26%27%1A%28%29
+clean: &'
+
+***********
+
+unclean: %28%29%1B%2A%2B
+clean: ()
+
+***********
+
+unclean: %2A%2B%1C%2C%2D
+clean: *+
+
+***********
+
+unclean: %2C%2D%1D%2E%2F
+clean: ,-
+
+***********
+
+unclean: %2E%2F%1E%3A%3B
+clean: ./
+
+***********
+
+unclean: %3A%3B%1F%3C%3D
+clean: :;
+
+***********
+
+!!!!!!!!******************************** 7F-9F: Inclusive
+
+unclean: %3C%3D%7F%3E%3F
+clean: <=
+
+***********
+
+unclean: %3E%3F%80%40%7B
+clean: >?
+
+***********
+
+unclean: %40%7B%81%7C%7D
+clean: @{
+
+***********
+
+unclean: %7C%7D%82%7E%A0
+clean: |}
+
+***********
+
+!!!!!!!!!!!!************These are getting truncated! Why??
+
+unclean: %7E%A0%83%A1%A2
+clean: ~ 
+
+***********
+
+unclean: %A1%A2%84%A3%A4
+clean: ¡¢
+
+***********
+
+unclean: %A3%A4%85%A5%A6
+clean: £¤
+
+***********
+
+unclean: %A5%A6%86%A7%A8
+clean: ¥¦
+
+***********
+
+unclean: %A7%A8%87%A9%AA
+clean: §¨
+
+***********
+
+unclean: %A9%AA%87%AB%AC
+clean: ©ª
+
+***********
+
+unclean: %AB%AC%88%AD%AE
+clean: «¬
+
+***********
+
+unclean: %AD%AE%89%AF%B0
+clean: ­®
+
+***********
+
+unclean: %AF%B0%8A%B1%B2
+clean: ¯°
+
+***********
+
+unclean: %B1%B2%8B%B1%B2
+clean: ±²
+
+***********
+
+unclean: %B1%B2%8C%B3%B4
+clean: ±²
+
+***********
+
+unclean: %B3%B4%8D%B5%B6
+clean: ³´
+
+***********
+
+unclean: %B5%B6%8E%B7%B8
+clean: µ¶
+
+***********
+
+unclean: %B7%B8%8F%B9%BA
+clean: ·¸
+
+***********
+
+unclean: %B9%BA%90%BB%BC
+clean: ¹º
+
+***********
+
+unclean: %BB%BC%91%BD%BE
+clean: »¼
+
+***********
+
+unclean: %BD%BE%92%BF%C0
+clean: ½¾
+
+***********
+
+unclean: %BF%C0%93%C1%C2
+clean: ¿À
+
+***********
+
+unclean: %C1%C2%94%C3%C4
+clean: ÁÂ
+
+***********
+
+unclean: %C3%C4%95%C5%C6
+clean: ÃÄ
+
+***********
+
+unclean: %C5%C6%96%C7%C8
+clean: ÅÆ
+
+***********
+
+unclean: %C7%C8%97%C9%CA
+clean: ÇÈ
+
+***********
+
+unclean: %C9%CA%98%CB%CC
+clean: ÉÊ
+
+***********
+
+unclean: %CB%CC%99%CD%CE
+clean: ËÌ
+
+***********
+
+unclean: %CD%CE%9A%CF%D0
+clean: ÍÎ
+
+***********
+
+unclean: %CF%D0%9B%D1%D2
+clean: ÏÐ
+
+***********
+
+unclean: %D1%D2%9C%D3%D4
+clean: ÑÒ
+
+***********
+
+unclean: %D3%D4%9D%D5%D6
+clean: ÓÔ
+
+***********
+
+unclean: %D5%D6%9E%D7%D8
+clean: ÕÖ
+
+***********
+
+unclean: %D7%D8%9F%D9%DA
+clean: ×Ø
+
+***********
+
+unclean: %D9%DA%FF%DB%DC
+clean: ÙÚ
+
+***********
+
+unclean: %DB%DC%DD%DE%DF%E0%E1%E2%E3%E4%E5%E6%E7%E8%E9%EA%EB%EC%ED%EE%EF
+clean: ÛÜÝÞßàáâãäåæçèéêëìíîï
+
+***********
+
+unclean: %F0%F1%F2%F3%F4%F5%F6%F7%F8%F9%FA%FB%FC%FD%FE
+clean: ðñòóôõö÷øùúûüýþ
+
+***********

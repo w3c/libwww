@@ -39,8 +39,8 @@ struct _HTStream {
 };
 
 typedef enum _HTPutState {
-    HT_PUT_SOURCE	= 0,
-    HT_PUT_DESTINATION
+    HT_LOAD_SOURCE	= 0,
+    HT_SAVE_DEST
 } HTPutState;
 
 typedef struct _HTPutContext {
@@ -526,15 +526,18 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 	char * document = (char *) HTAnchor_document(entity);
 	int len = HTAnchor_length(entity);
 	status = (*target->isa->put_block)(target, document, len);
-	if (status == HT_OK)
-	    return (*target->isa->flush)(target);
+	if (status == HT_LOADED) {
+	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED\n");
+	    (*target->isa->flush)(target);
+	    return HT_LOADED;
+	}
 	if (status == HT_WOULD_BLOCK) {
 	    if (PROT_TRACE)HTTrace("Posting Data Target WOULD BLOCK\n");
 	    return HT_WOULD_BLOCK;
 	} else if (status == HT_PAUSE) {
 	    if (PROT_TRACE) HTTrace("Posting Data. Target PAUSED\n");
 	    return HT_PAUSE;
-	} else if (status > 0) {	      /* Stream specific return code */
+	} else if (status >= 0) {	      /* Stream specific return code */
 	    if (PROT_TRACE)
 		HTTrace("Posting Data. Target returns %d\n", status);
 	    return status;
@@ -647,7 +650,7 @@ PUBLIC HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
 /* --------------------------------------------------------------------------*/
 /*				PUT A DOCUMENT 				     */
 /* --------------------------------------------------------------------------*/ 
-PRIVATE BOOL setup_put (HTRequest * request,
+PRIVATE BOOL setup_anchors (HTRequest * request,
 			HTParentAnchor * source, HTParentAnchor * dest)
 {
     /*
@@ -743,12 +746,87 @@ PUBLIC BOOL HTPutAnchor (HTParentAnchor *	source,
 {
     HTParentAnchor * dest = HTAnchor_parent(destination);
     if (source && dest && request) {
-	if (setup_put(request, source, dest) == YES) {
+	if (setup_anchors(request, source, dest) == YES) {
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
+	    HTRequest_setAnchor(request, destination);
+
+	    /* Add the entity callback function to provide the form data */
+	    HTRequest_setPostCallback(request, HTEntity_callback);
+
+	    /* Now start the load normally */
+	    return launch_request(request, NO);
+	}
+    }
+    return NO;
+}
+
+/*	Send an Anchor using POST from absolute name
+**	-------------------------------------------
+**	Upload a document referenced by an absolute URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPostAbsolute (HTParentAnchor *	source,
+			   const char *		destination,
+			   HTRequest *		request)
+{
+    if (source && destination && request) {
+	HTAnchor * dest = HTAnchor_findAddress(destination);
+	return HTPostAnchor(source, dest, request);
+    }
+    return NO;
+}
+
+/*	Send an Anchor using POST from relative name
+**	-------------------------------------------
+**	Upload a document referenced by a relative URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPostRelative (HTParentAnchor *	source,
+			   const char * 	relative,
+			   HTParentAnchor *	destination_base,
+			   HTRequest *		request)
+{
+    if (source && relative && destination_base && request) {
+	BOOL status;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) destination_base);
+	full_url=HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTPostAbsolute(source, full_url, request);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+	return status;
+    }
+    return NO;
+}
+
+/*	Send an Anchor using POST from an anchor
+**	---------------------------------------
+**	Upload a document referenced by an anchor object appended
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPostAnchor (HTParentAnchor *	source,
+			 HTAnchor *		destination,
+			 HTRequest *	 	request)
+{
+    HTParentAnchor * dest = HTAnchor_parent(destination);
+    if (source && dest && request) {
+	if (setup_anchors(request, source, dest) == YES) {
+
+	    /* Set up the request object */
+	    HTRequest_addGnHd(request, HT_G_DATE);
+	    HTRequest_setEntityAnchor(request, source);
+	    HTRequest_setMethod(request, METHOD_POST);
 	    HTRequest_setAnchor(request, destination);
 
 	    /* Add the entity callback function to provide the form data */
@@ -821,7 +899,7 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 {
     HTParentAnchor * dest = HTAnchor_parent(destination);
     if (source && dest && request) {
-	if (setup_put(request, source, dest) == YES) {
+	if (setup_anchors(request, source, dest) == YES) {
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
@@ -850,6 +928,15 @@ PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
 		me, me->state+0x30);
 
     /*
+    **  Just ignore authentication in the hope that some other filter will
+    **  handle this.
+    */
+    if (status == HT_NO_ACCESS || status == HT_NO_PROXY_ACCESS) {
+	if (APP_TRACE) HTTrace("Save Filter. Waiting for authentication\n");
+	return HT_OK;
+    }
+
+    /*
     **  If either the source or the destination has moved then ask the user
     **  what to do. If there is no user then stop
     */
@@ -857,7 +944,7 @@ PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
 	HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
 	HTAnchor * redirection = HTRequest_redirection(request);
 	if (prompt && redirection) {
-	    if (me->state == HT_PUT_SOURCE) {
+	    if (me->state == HT_LOAD_SOURCE) {
 		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_SOURCE_MOVED,
 			      NULL, NULL, NULL) == YES) {
 		    me->source = HTAnchor_parent(redirection);
@@ -871,17 +958,14 @@ PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
 		}
 	    }
 	}
-    } else if (status != HT_LOADED && status != HT_ERROR) {
-	if (APP_TRACE) HTTrace("Save Filter. No action...\n");
-	return HT_OK;
     }
 
     /*
-    ** If this is the second time we're here then do the clean up. If it is 
-    ** the first time then start the new load (if we have succeeded in getting
-    ** the source)
+    ** If we succeeded getting the source then start the PUT itself. Otherwise
+    ** cleanup the mess
     */
-    if (me->state == HT_PUT_SOURCE && status == HT_LOADED) {
+    if (me->state == HT_LOAD_SOURCE && status == HT_LOADED &&
+	!HTError_hasSeverity(HTRequest_error(request), ERR_INFO)) {
 
 	/* Swap the document in the anchor with the new one */
 	me->placeholder = HTAnchor_document(me->source);
@@ -895,12 +979,15 @@ PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
 	HTRequest_setOutputFormat(request, me->format);
 	HTRequest_setOutputStream(request, me->target);
 
+	/* Turn progress notifications back on */
+	HTRequest_setInternal(request, NO);
+
 	/* Add the entity callback function to provide the form data */
 	HTRequest_setPostCallback(request, HTEntity_callback);
 
 	/* Now start the load normally */
 	me->state = launch_request(request, NO) ?
-	    HT_PUT_DESTINATION : HT_PUT_SOURCE;
+	    HT_SAVE_DEST : HT_LOAD_SOURCE;
 
 	/*
 	**  By returning HT_ERROR we make sure that this is the last handler to
@@ -976,7 +1063,7 @@ PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 {
     HTParentAnchor * dest = HTAnchor_parent(destination);
     if (source && dest && request) {
-	if (setup_put(request, source, dest) == YES) {
+	if (setup_anchors(request, source, dest) == YES) {
 	    HTPutContext * context = NULL;
 
 	    /*
@@ -989,6 +1076,9 @@ PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 	    context->source = source;
 	    context->destination = destination;
 	    HTRequest_addAfter(request, HTSaveFilter, context, HT_ALL, NO);
+
+	    /* Turn off progress notifications */
+	    HTRequest_setInternal(request, YES);
 
 	    /*
 	    **  We make sure that we are not using a memory cached element.

@@ -446,10 +446,22 @@ extern HTHost * HTNet_host (HTNet * net);
 <H3>
   The DNS Object
 </H3>
+
+The DNS object keeps track of the DNS entries that we have already
+checked out.
 <PRE>
 extern BOOL HTNet_setDns (HTNet * net, HTdns * dns);
 extern HTdns * HTNet_dns (HTNet * net);
 </PRE>
+
+If we are talking to a multi-homed host then we may
+connect to any of the homes. In that case we store the current home in
+the Net object so that we can query about it later.
+
+<PRE>
+extern int HTNet_home (HTNet * net);
+</PRE>
+
 <PRE>
 #endif /* HTNET_H */
 </PRE>

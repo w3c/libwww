@@ -909,6 +909,10 @@ PUBLIC HTdns * HTNet_dns (HTNet * net)
     return (net ? net->dns : NULL);
 }
 
+PUBLIC int HTNet_home (HTNet * net)
+{
+    return (net ? net->home : 0);
+}
 
 /*
 **	Create the input stream and bind it to the channel

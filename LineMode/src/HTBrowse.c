@@ -373,7 +373,6 @@ PRIVATE void scrsize (int * p_height, int * p_width)
 {
 #if defined(HAVE_IOCTL) && defined(HAVE_WINSIZE)
     register char *s;
-    int ioctl();
     struct winsize w;
     if (ioctl(2, TIOCGWINSZ, &w) == 0 && w.ws_row > 0)
 	*p_height = w.ws_row;
@@ -602,54 +601,6 @@ PRIVATE int DeleteAnchor (LineMode * lm, HTRequest * request)
 	HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
 	status = HTDeleteAnchor((HTAnchor *) HTMainAnchor, new_request);
     }
-    return status;
-}
-
-/*
-**  Upload a document either from local file or from a HTTP server
-**  to a HTTP server. The method can be either PUT or POST.
-**  Returns the result of the load function.
-*/
-PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
-{
-    char * base = HTAnchor_address((HTAnchor*) HTMainAnchor);
-    char * scr_url = NULL;
-    char * dest_url = NULL;
-    int status = HT_INTERNAL;
-    if ((scr_url = AskUser(req, "Source:", base)) != NULL &&
-	(dest_url = AskUser(req, "Destination:", NULL)) != NULL) {
-	BOOL doit = YES;
-	char * fd = HTParse(HTStrip(dest_url), base, PARSE_ALL);
-	char * fs = HTParse(HTStrip(scr_url), base, PARSE_ALL);
-	HTParentAnchor * dest = (HTParentAnchor *) HTAnchor_findAddress(fd);
-	HTParentAnchor * src = (HTParentAnchor *) HTAnchor_findAddress(fs);
-	HTLink * link = HTLink_find((HTAnchor *) src, (HTAnchor *) dest);
-	
-	/* Now link the two anchors together if not already done */
-	if (link) {
-	    char *msg;
-	    if ((msg = (char  *) HT_MALLOC(128)) == NULL)
-	        HT_OUTOFMEM("Upload");
-	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
-		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
-	    doit = confirm(req, msg);
-	    HT_FREE(msg);
-	} else {
-	    HTLink_removeAll((HTAnchor *) src);
-	    HTLink_add((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
-	}
-	if (doit) {
-	    HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
-	    Context * new_context = (Context *) HTRequest_context(new_request);
-	    new_context->source = src;
-	    status = HTCopyAnchor((HTAnchor *) src, new_request);
-	}
-	HT_FREE(fd);
-	HT_FREE(fs);
-    }
-    HT_FREE(scr_url);
-    HT_FREE(dest_url);
-    HT_FREE(base);
     return status;
 }
 
@@ -1074,7 +1025,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case 'P':                    
 	if (CHECK_INPUT("POST", token)) {
-	    status = Upload(lm, req, METHOD_POST);
+	    status = PutAnchor(lm, req);
 	}
 
 #ifdef HAVE_SYSTEM	    
@@ -1113,7 +1064,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	}	
 #endif
 	else if (CHECK_INPUT("PUT", token)) {
-	    status = Upload(lm, req, METHOD_PUT);
+	    status = PutAnchor(lm, req);
 	} else
 	    found = NO;
 	break;
@@ -1447,6 +1398,10 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
     LineMode * lm;
     BOOL is_index;
 
+    /*    if (!(Context *)HTRequest_context(request))
+        request = CSApp_originalRequest(request); */
+    if (!context)
+        return HT_OK;
     lm = context->lm;
     if (context->state == LM_IGNORE) return HT_OK;
     if (CSApp_unregisterReq(request) == NO)
@@ -1488,6 +1443,8 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
 */
 PRIVATE int timeout_handler (HTRequest * request)
 {
+    if (!(Context *)HTRequest_context(request))
+        request = CSApp_originalRequest(request);
     if (!HTAlert_interactive()) {
 	Context * context = (Context *) HTRequest_context(request);
 	LineMode * lm = context->lm;
@@ -1869,16 +1826,11 @@ int main (int argc, char ** argv)
 	Cleanup(lm, 0);
     }
 
-    /* Add our own filter to update the history list */
-    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
-
     /* Set timeout on sockets */
     if (lm->tv->tv_sec < 0) {
 	lm->tv->tv_sec = HTAlert_interactive() ?
 	    DEFAULT_I_TIMEOUT : DEFAULT_NI_TIMEOUT;
     }
-    HTEventrg_registerTimeout(lm->tv, request, timeout_handler, NO);
-
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
 
@@ -1893,6 +1845,10 @@ int main (int argc, char ** argv)
     /* Set up PICS machinary */
     CSApp_registerApp(PICSCallback, CSApp_callOnBad, PICS_userCallback, 
 		      (void *)lm);
+     /* Add our own filter to update the history list */
+    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
+    HTEventrg_registerTimeout(lm->tv, request, timeout_handler, NO);
+
 /*    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))
         HTTrace("Unable to load PICS user list \"%s\".\n", picsUserList); */
     if (picsUser && !LoadPICSUser(lm, picsUser))

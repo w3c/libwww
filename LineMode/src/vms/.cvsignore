@@ -1,1 +1,1 @@
-*.h .www_browsable Makefile.in
+Makefile *.h .www_browsable Makefile.in

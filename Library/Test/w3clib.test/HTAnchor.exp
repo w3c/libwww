@@ -1,0 +1,961 @@
+#################################################################################
+#				HTANCHOR.EXP					#
+#################################################################################
+
+
+send_user "Creating anchors for testing.....\n"
+
+###########################
+# Setting Local variables #
+###########################
+
+set listnum 0
+
+# To check the functions for arg numbers, need string to check against.
+# Zero test always will check args
+
+set error_str "Wrong # of args. "
+
+set canchor_id "ChildAnchor_"
+set anchor_id "Anchor_"
+	
+proc init_anchors { } {
+  global wwwtest_id
+  global prompt  
+
+  global address
+  global child_tag
+  global link_address
+  global Anchor
+  global ChildAnchor
+#
+# Addresses, links and tags for anchor and link creations
+#
+
+  set address(1) "http://www.w3.org/"
+  set address(2) "http://www.foobar.com/"
+  set address(3) "http://www.mit.edu:8001/"
+  set address(4) "ftp://to.be.deleted.com/"
+  set address(5) "http://web.mit.edu/"
+
+  set child_tag(1) "html3"
+  set child_tag(2) "foo"
+  set child_tag(3) "bar"
+
+  set link_address(1) "http://www.w3.org/pub/info"
+  set link_address(2) "news://news.mit.edu/"
+  set link_address(3) "ftp://ftp.nic.net/"
+  set link_address(4) "http://www.to.be.deleted.com/"
+
+#
+# Creating Anchors
+#
+
+  set function HTAnchor_findAddress
+
+  for {set test_num 1} {$test_num <= 5} {incr test_num} {
+
+    set test "HTAnchor_findAddress $test_num"
+    send_user "HTAnchor_findAddress $address($test_num)\n"
+    set Anchor($test_num) [new_item "HTAnchor_findAddress $address($test_num)"]
+
+  }
+
+  set function HTAnchor_findChild
+
+  for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+    set test "HTAnchor_findChild $test_num"
+    send_user "HTAnchor_findChild $Anchor($test_num) $child_tag($test_num)\n"
+    set ChildAnchor($test_num) [new_item  "HTAnchor_findChild $Anchor($test_num) $child_tag($test_num)"]
+
+  }
+
+}
+
+proc init_links { } {
+
+  global Anchor
+  global ChildAnchor
+
+  global Linktype
+  global Method
+  global Link
+  global source_list
+  global dest_list
+
+  set function HTLink_add
+
+  set Linktype(1) standard
+  set Linktype(2) not-standard
+  set Linktype(3) child
+
+  set Method(1)   PUT
+  set Method(2)   POST
+
+  set source_list(1) $Anchor(1)
+  set source_list(2) $Anchor(1)
+  set source_list(3) $Anchor(2)
+  set source_list(4) $Anchor(3)
+  set source_list(5) $Anchor(3)
+  set source_list(6) $Anchor(1)
+
+  set dest_list(1) $Anchor(2)
+  set dest_list(2) $Anchor(3)
+  set dest_list(3) $Anchor(5)
+  set dest_list(4) $Anchor(1)
+  set dest_list(5) $Anchor(2)
+  set dest_list(6) $ChildAnchor(1)
+
+  set link_args(1) "$Anchor(1) $Anchor(2) $Linktype(1) $Method(1)"
+  set link_args(2) "$Anchor(1) $Anchor(3) $Linktype(2) $Method(1)"
+  set link_args(3) "$Anchor(2) $Anchor(5) $Linktype(1) $Method(1)"
+  set link_args(4) "$Anchor(3) $Anchor(1) $Linktype(2) $Method(2)"
+  set link_args(5) "$Anchor(3) $Anchor(2) $Linktype(2) $Method(2)"
+  set link_args(6) "$Anchor(1) $ChildAnchor(1) $Linktype(3) $Method(2)"
+
+ for {set test_num 1} {$test_num <= 6} {incr test_num} {
+
+    send_user "HTLink_add $link_args($test_num)\n"
+
+    run_command "$function $link_args($test_num)"
+    set Link($test_num) [new_item "HTLink_find $source_list($test_num) $dest_list($test_num)"]
+  }
+}
+
+#set ChildAnchor(4) [HTAnchor_findChildAndLink $Anchor(1) $child_tag(3) $Anchor(4) linktype??]
+
+#send_user "HTAnchor_findChildAndLink Anchor(1) $child_tag(3) $Anchor(4) linktype??"
+
+
+###################################
+# Initialize and start the tests. #
+###################################
+
+init_anchors
+init_links
+
+send_user "\n\nRunning Tests:\n\n"
+
+#
+# Hash Checking for HTAnchor_findAddress
+#
+
+set function HTAnchor_findAddress
+
+test_args $function
+
+for {set test_num 1} {$test_num <= 5} {incr test_num} {
+
+  set test "Hash table check $test_num"
+
+  set addr       $address($test_num)
+  set test_anchor $Anchor($test_num) 
+  set expected    $test_anchor
+  set arguments "$addr"
+
+  runtest $function "$arguments" $expected $test
+
+#	-re "(.*)(($anchor_id)(.*))\r\n($prompt)" {set actual $expect_out(2,string)
+#						fail $test}
+
+}
+
+#
+# Hash Checking for HTAnchor_findAddress
+#
+
+set function HTAnchor_findChild
+
+test_args $function
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set test "Hash table check [expr $test_num+5]"
+
+  set addr         $address($test_num)
+  set test_anchor  $Anchor($test_num) 
+  set test_canchor $ChildAnchor($test_num)
+  set expected     $test_canchor
+  set arguments    "$test_anchor $child_tag($test_num)"
+
+  runtest $function "$arguments" $expected $test
+}
+
+set function HTAnchor_findChildAndLink
+
+set test "HTAnchor_findChildAndLink"
+
+set test_anchor   $Anchor(1) 
+set tag           $child_tag(1)
+set addr	  $address(3)
+set new_anchor    $Anchor(3) 
+set linktype	  linktype
+set old_child     $ChildAnchor(1)
+set expected      $old_child
+set arguments     "$test_anchor $tag $addr $linktype"
+
+set command "HTAnchor_findChildAndLink $test_anchor $tag $addr $linktype"
+send -i $wwwtest_id "$command\r"
+verbose "$function $arguments" 1
+verbose "	Expected:		$expected" 2
+expect {
+	-i $wwwtest_id
+	-re "$old_child" {set actual $old_child
+			  pass $test}
+	-re "(.*)(($canchor_id)(.*))\r\n($prompt)" {set actual $expect_out(2,string)
+						fail $test}
+}
+verbose "	Result:                 $actual" 2
+
+set command "set ChildAnchor(4) \[HTAnchor_findChild $new_anchor $tag]"
+send -i $wwwtest_id "$command\r"
+verbose "HTAnchor_findChild $new_anchor $tag" 1
+verbose "	Expected:		$expected" 2
+expect {
+	-i $wwwtest_id
+	-re "(.*)(($canchor_id)(.*))\r\n($prompt)" {set actual $expect_out(2,string)
+						 pass $test}
+	-re "$old_child" {set actual $old_child
+			  fail $test}
+}
+verbose "	Result:                 $actual" 2
+
+#
+# Delete some Anchors
+#
+
+set function HTAnchor_delete
+
+set test "HTAnchor_delete 1"
+
+set test_anchor $Anchor(4) 
+set expected YES
+set arguments "$test_anchor"
+
+runtest $function "$arguments" $expected $test
+
+set test "HTAnchor_delete 2"
+
+send -i $wwwtest_id "set test_anchor \[HTAnchor_findAddress ftp://ftp.foobar.com/]\r"
+expect -i $wwwtest_id "$prompt$"
+set test_anchor $test_anchor 
+set expected YES
+set arguments "$test_anchor"
+
+runtest $function "$arguments" $expected $test
+
+#
+#HTAnchor_deleteAll at end.....
+#
+
+#
+# PARENT
+#
+
+set function HTAnchor_parent
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set test "HTAnchor_parent $test_num"
+
+  set test_anchor $Anchor($test_num) 
+  set parent      $Anchor($test_num) 
+  set expected    $parent
+  set arguments   "$test_anchor"
+
+  runtest $function "$arguments" $expected $test
+
+}
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set test "HTAnchor_parent [expr $test_num + 3]"
+
+  set test_anchor  $ChildAnchor($test_num)
+  set parent	   $Anchor($test_num) 
+  set expected	   "$parent"
+  set arguments    "$test_anchor"
+
+  runtest $function "$arguments" $expected $test
+
+}
+
+#
+# HASCHILDREN
+#
+
+set function HTAnchor_hasChildren
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set test "HTAnchor_hasChildren $test_num"
+
+  set test_anchor  $Anchor($test_num) 
+  set expected	   YES
+  set arguments    "$test_anchor"
+
+  runtest $function "$arguments" $expected $test
+
+}
+
+set test "HTAnchor_hasChildren 4"
+
+set test_anchor $Anchor(5) 
+set expected	NO
+set arguments   "$test_anchor"
+
+runtest $function "$arguments" $expected $test
+
+#
+#HTAnchor_document can now be checked.
+#Though, it still does not work.
+#
+
+set function HTAnchor_document
+
+set test "HTAnchor_document 1"
+
+set test_anchor $Anchor(1) 
+set doc $Anchor(2) 
+set expected $doc
+set arguments "$test_anchor $doc"
+
+#expected to fail
+#runtest $function "$arguments" $expected $test
+
+
+#
+# ADDRESS
+#
+
+set function HTAnchor_address
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+set test "HTAnchor_address $test_num"
+
+set test_anchor  $Anchor($test_num) 
+set addr         $address($test_num)
+set expected	 $addr
+set arguments    "$test_anchor"
+
+runtest $function "$arguments" $expected $test
+
+}
+
+set test "HTAnchor_address 4"
+
+#FIX
+#set test_anchor $Anchor(5) 
+#set addr    $address(5)
+#set expected	 $addr
+#set arguments "$test_anchor"
+
+#runtest $function "$arguments" $expected $test
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set test "HTAnchor_address [expr $test_num+4]"
+
+  set test_anchor $ChildAnchor($test_num)
+  set tag		  $child_tag($test_num)
+  set addr         $address($test_num)
+  set expected   "$addr#$tag"
+  set arguments   "$test_anchor"
+
+  runtest $function "$arguments" $expected $test
+}
+
+set test "HTAnchor_address 8"
+
+#FIX
+#set test_anchor $ChildAnchor(4)
+#set tag		$child_tag(3)
+#set addr        $address(3)
+#set expected    "$addr#$tag"
+#set arguments   "$test_anchor"
+
+#runtest $function "$arguments" $expected $test
+
+#
+# CACHEHIT
+#
+
+set function HTAnchor_cacheHit
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set set_function HTAnchor_setCacheHit
+
+  set test "HTAnchor_cacheHit $test_num.1"
+
+  set test_anchor $Anchor($test_num) 
+  set input	  YES
+  set expected    YES
+  set set_args    "$test_anchor $input"
+  set arguments   "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+  set test "HTAnchor_cacheHit $test_num.2"
+
+  set test_anchor $Anchor($test_num) 
+  set input	  NO
+  set expected    NO
+  set set_args    "$test_anchor $input"
+  set arguments   "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+}
+
+set test "HTAnchor_cacheHit 3.1"
+
+set test_anchor $ChildAnchor(1)
+set input	     YES
+set expected          YES
+set set_args    "$test_anchor $input"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+set test "HTAnchor_cacheHit 3.2"
+
+set test_anchor $ChildAnchor(1)
+set input	    FALSE
+set expected           NO
+set set_args    "$test_anchor $input"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# PHYSICAL
+#
+
+set function HTAnchor_physical
+set set_function HTAnchor_setPhysical
+
+set test "HTAnchor_physical 1.1"
+
+set test_anchor  $Anchor(1) 
+set physical "http://www.foobar.com/"
+set expected $physical
+set set_args "$test_anchor $physical"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+set test "HTAnchor_physical 1.2"
+
+set test_anchor  $Anchor(1) 
+set physical "ftp://ftp.net.org/"
+set expected $physical
+set set_args "$test_anchor $physical"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+set test "HTAnchor_physical 2.1"
+
+set test_anchor  $Anchor(2) 
+set physical    $address(1)
+set expected     $physical
+set set_args "$test_anchor $physical"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+set test "HTAnchor_physical 2.2"
+
+set test_anchor  $Anchor(2) 
+set physical    $address(2)
+set expected     $physical
+set set_args "$test_anchor $physical"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# ISINDEX
+#
+
+set function HTAnchor_isIndex
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set set_function HTAnchor_setIndex
+
+  set test "HTAnchor_isIndex $test_num.1"
+
+  set test_anchor  $Anchor($test_num) 
+  set expected     YES
+  set set_args     "$test_anchor"
+  set arguments    "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+  set test "HTAnchor_isIndex $test_num.2"
+
+  set set_function HTAnchor_clearIndex
+ 
+  set test_anchor  $Anchor($test_num) 
+  set expected     NO
+  set set_args	   "$test_anchor"
+  set arguments    "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+}
+
+#
+# TITLE
+#
+
+set function HTAnchor_title
+
+for {set test_num 1} {$test_num <= 2} {incr test_num} {
+
+  set set_function HTAnchor_setTitle
+
+  set test "HTAnchor_title $test_num"
+
+  set test_anchor   $Anchor($test_num) 
+  set str           "Title $test_num for testing"
+  set expected      $str
+  set set_args      "$test_anchor \"$str\""
+  set arguments     "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+  set test "HTAnchor_appendTitle $test_num"
+
+  set set_function HTAnchor_appendTitle
+
+  set test_anchor  $Anchor($test_num) 
+  set appended     " with appended title"
+  set expected     "$str$appended"
+  set set_args     "$test_anchor \"$appended\""
+  set arguments    "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+}
+
+set test "HTAnchor_appendTitle 3"
+
+set test_anchor   $Anchor(2) 
+set appended      " and another appended title"
+set old           " with appended title"
+set expected      "$str$old$appended"
+set set_args      "$test_anchor \"$appended\""
+set arguments     "$test_anchor "
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# FORMAT
+#
+
+set f(1) www/void
+set f(2) */*
+set f(3) www/present
+set f(4) www/debug
+set f(5) www/unknown
+set f(6) text/html
+set f(7) text/plain
+set f(8) message/rfc822
+
+set function HTAnchor_format
+set set_function HTAnchor_setFormat
+
+for {set test_num 1} {$test_num <= 8} {incr test_num} {
+
+  set test "HTAnchor_format $test_num"
+
+  set format $f($test_num)
+  set test_anchor $Anchor([expr ($test_num / 3)+1]) 
+  set expected $format
+  set set_args "$test_anchor $format"
+  set arguments "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+}
+
+#
+# CHARSET
+#
+
+set function HTAnchor_charset
+set set_function HTAnchor_setCharset
+
+set c(1) US
+set c(2) ASCII
+
+for {set test_num 1} {$test_num <= 2} {incr test_num} {
+
+  set test "HTAnchor_charset $test_num"
+
+  set test_anchor $Anchor(1) 
+  set charset $c($test_num)
+  set expected $charset
+  set set_args "$test_anchor $charset"
+  set arguments "$test_anchor"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+}
+
+#
+# LEVEL
+#
+
+set function HTAnchor_level
+set set_function HTAnchor_setLevel
+
+set test "HTAnchor_level"
+
+set test_anchor $Anchor(1) 
+set level 5
+set expected $level
+set set_args "$test_anchor $level"
+set arguments $test_anchor
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# LANGUAGE
+#
+
+set function HTAnchor_language
+set set_function HTAnchor_addLanguage
+
+set l(1) US
+set l(2) Francais
+
+for {set test_num 1} {$test_num <= 2} {incr test_num} {
+
+  set test "HTAnchor_language $test_num"
+
+  set test_anchor $Anchor(1) 
+  set language $l($test_num)
+  set expected HTList_$listnum
+  set set_args "$test_anchor $language"
+  set arguments $test_anchor
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+}
+  incr listnum 1
+
+#
+# ENCODING
+#
+
+set function HTAnchor_encoding
+set set_function HTAnchor_addEncoding
+
+set e(1) WWW_ENC_7BIT
+
+for {set test_num 1} {$test_num <= 1} {incr test_num} {
+
+  set test "HTAnchor_encoding $test_num"
+
+  set test_anchor $Anchor(1) 
+  set encoding $e($test_num)
+  set expected HTList_$listnum
+  set set_args "$test_anchor $encoding"
+  set arguments $test_anchor
+  incr listnum 1
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+}
+
+#
+# TRANSFER
+#
+
+set function HTAnchor_transfer
+set set_function HTAnchor_setTransfer
+
+set test "HTAnchor_transfer"
+
+set test_anchor $Anchor(1) 
+set transfer RSA
+set expected $transfer
+set set_args "$test_anchor $transfer"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# LENGTH
+#
+
+set function HTAnchor_length
+set set_function HTAnchor_setLength
+
+set test "HTAnchor_length"
+
+set test_anchor $Anchor(1) 
+set length 32768
+set expected $length
+set set_args "$test_anchor $length"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+set set_function HTAnchor_addLength
+
+set test "HTAnchor_addLength"
+
+set test_anchor $Anchor(1) 
+set addlength 32
+set expected [expr $length+$addlength]
+set set_args "$test_anchor $addlength"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# METHODS
+#
+
+set function HTAnchor_methods
+set set_function HTAnchor_setMethods
+
+set test "HTAnchor_methods"
+
+set test_anchor $Anchor(1) 
+set method  45
+set expected $method
+set set_args "$test_anchor $method"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+set set_function HTAnchor_appendMethods
+
+set test "HTAnchor_appendMethods"
+
+set test_anchor $Anchor(1) 
+set method  45
+set append  4
+set expected [expr $method|$append]
+set set_args "$test_anchor $append"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# VERSION
+#
+
+set function HTAnchor_version
+set set_function HTAnchor_setVersion
+
+set test "HTAnchor_version"
+
+set test_anchor $Anchor(1) 
+set version ver3.0
+set expected $version
+set set_args "$test_anchor $version"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# DATE
+#
+
+set function HTAnchor_date
+set set_function HTAnchor_setDate
+
+set test "HTAnchor_date"
+
+set test_anchor $Anchor(1) 
+set date 24332
+set expected $date
+set set_args "$test_anchor $date"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# LASTMODIFIED
+#
+
+set function HTAnchor_lastModified
+set set_function HTAnchor_setLastModified
+
+set test "HTAnchor_lastModified"
+
+set test_anchor $Anchor(1) 
+set modified 1235332
+set expected $modified
+set set_args "$test_anchor $modified"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# EXPIRES
+#
+
+set function HTAnchor_expires
+set set_function HTAnchor_setExpires
+
+set test "HTAnchor_expires"
+
+set test_anchor $Anchor(1) 
+set expire 12353432
+set expected $expire
+set set_args "$test_anchor $expire"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# DERIVED
+#
+
+set function HTAnchor_derived
+set set_function HTAnchor_setDerived
+
+set test "HTAnchor_derived"
+
+set test_anchor $Anchor(1) 
+set derived $Anchor(2) 
+set expected $derived
+set set_args "$test_anchor $derived"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# EXTRA
+#
+
+set function HTAnchor_extra
+set set_function HTAnchor_addExtra
+
+set test "HTAnchor_extra"
+
+set test_anchor $Anchor(1) 
+set extra "Extra Header"
+set expected  HTList_$listnum
+set set_args "$test_anchor $extra"
+set arguments "$test_anchor"
+incr listnum 1
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# MAINLINK
+#
+
+set function HTAnchor_mainLink
+set set_function HTAnchor_setMainLink
+
+set test "HTAnchor_mainLink 1"
+
+set link $Link(1)
+set test_anchor $Anchor(1) 
+set expected $link
+set set_args "$test_anchor $link"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+set test "HTAnchor_mainLink 2"
+
+set link $Link(2) 
+set test_anchor $Anchor(1) 
+set expected $link
+set set_args "$test_anchor $link"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# FOLLOWMAINLINK
+#
+
+set function HTAnchor_followMainLink
+set set_function HTAnchor_setMainLink
+
+set test "HTAnchor_followMainLink"
+
+set link $Link(1)
+set test_anchor $Anchor(1) 
+set expected $Anchor(3) 
+set set_args "$test_anchor $link"
+set arguments "$test_anchor"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+
+#
+# SUBLINKS
+#
+
+set function HTAnchor_subLinks
+set function HTAnchor_setSubLinks
+
+set test "HTAnchor_subLinks"
+
+set list [new_item "HTAnchor_subLinks $Anchor(1)"]
+set test_anchor $Anchor(1) 
+set expected $list
+set set_args "$test_anchor $list"
+set arguments " $test_anchor"
+
+set_test $set_function $set_args
+runtest $function $arguments $expected $test
+
+#
+# DELETEALL
+#
+
+set function HTAnchor_deleteAll
+
+set test "HTAnchor_deleteAll"
+
+set listname "somelist"
+set expected YES
+set arguments "$listname"
+
+runtest $function "$arguments" $expected $test

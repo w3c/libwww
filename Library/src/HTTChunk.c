@@ -195,7 +195,7 @@ PRIVATE int HTChunkEncode_block (HTStream * me, const char * b, int l)
 
     PUTC(CR);
     PUTC(LF);
-    return HT_OK;
+    return HT_LOADED;
 }
 
 PRIVATE int HTChunkEncode_string (HTStream * me, const char * s)

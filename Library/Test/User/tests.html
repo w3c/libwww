@@ -1,0 +1,185 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Alex Lian, 26-Apr-1996 -->
+  <TITLE>Glue code for the LibWWW to Tcl</TITLE>
+</HEAD>
+<BODY>
+<P>
+<FONT SIZE=+2> Creating glue code for the LibWWW </FONT>
+  <HR size=3 width="90%" ALIGN=LEFT>
+<P>
+<UL>
+  <LI>
+    <A HREF="#Intro">Introduction</A>
+  <LI>
+    <A HREF="#creating">Creating Test Scripts</A>
+  <LI>
+    <A HREF="#standard">Standard procedures used</A>
+</UL>
+<P>
+  <HR size=3 width="90%" ALIGN=LEFT>
+<A TAG=Intro></A>
+<H3>
+  <A TAG=Intro>Introduction</A>
+</H3>
+<P>
+<A TAG=Intro>The tests are simply scripts run in the Expect/Tcl language.
+They rely on the glue code which relys on the library, so changes in the
+library require twice the number of changes to test the basic functions.<BR>
+To keep the tests readable, I've kept them in a pretty simple format, and
+created some standard procedures to run them through their paces.<BR>
+There are some problems interfacing with Tcl to C, and vice versa. If the
+function faults, the whole program is liable to crash. I mostly catch all
+these problems, but I have yet to create initialization scripts to renew
+all the variables so that the rest of the tests don't fail. Also, some strings
+have to be handled oddly, since Tcl is a string based language, while C is
+not. </A> 
+<H3>
+  <A TAG="creating">Creating the tests</A>
+</H3>
+<P>
+<A TAG="creating">If you've never used Tcl before, I'll give you a quick
+rundown on how things work:</A>
+<DL>
+  <P>
+  <A TAG="creating"><DI>Assigning variables:<DI> </A>
+  <DD>
+    <A TAG="creating"><B>set</B> <I>var_name</I> value</A>
+    <P>
+    <A TAG="creating"><DI>Retrieving variable values:</DI> </A>
+  <DD>
+    <A TAG="creating"><B>$</B><I>var_name</I></A>
+    <P>
+    <A TAG="creating"><DI>Assigning the result of a procedure to a variable:</DI>
+    </A>
+  <DD>
+    <A TAG="creating"><B>set</B> <I>var_name</I> [proc_name arguments.....]</A>
+    <P>
+    <A TAG="creating"><DI>Comments:</DI> </A>
+  <DD>
+    <A TAG="creating">From a '#' to the end of the line</A>
+</DL>
+<H4>
+  <A TAG="creating">An Example Test:</A>
+</H4>
+<BLOCKQUOTE>
+  <PRE><A TAG="creating">
+
+#set arguments "$test_anchor $tag"
+
+set function "HTLib_function"</A>
+<A TAG="creating">set set_function "HTLib_setFunction"</A>
+<A TAG="creating"></A>
+<A TAG="creating">set test  "Hash table check 4"
+
+set value           $somevalue
+set test_anchor     $Anchor_1
+set expected        $value
+set set_args        "$test_anchor $value"</A>
+<A TAG="creating">set arguments       "$test_anchor"
+</A>
+set_test $set_function $set_args
+<A TAG="creating">runtest $function $arguments $expected $test
+</A>
+</PRE>
+</BLOCKQUOTE>
+<P>
+  <HR>
+<H3>
+  <A TAG="standard">Standard procedures used in tests:</A>
+</H3>
+<P>
+Forgive me for my regexp patterns. I've gotten them functional, but they
+are certainly not that elegant.
+<P>
+The main save-all function. I tried to generalize it enough to apply to just
+about anything. Notice I've specified the spawn_id. I did this mostly for
+changes in the future, where I might have expect go spawn a server and a
+reader, etc...
+<PRE>proc runtest { function arguments expected test } {
+  global wwwtest_id
+  global prompt
+  global WWWTEST
+
+  set command "$function $arguments"
+  send -i $wwwtest_id "$command\r"
+  verbose "$function $arguments" 1
+  verbose "	Expected:		$expected" 2
+  set command [fix_string $command]
+  set error_str "Wrong # of args. "
+  set invalid "Invalid variable names or non-existent entries."
+  set actual "expect function skipped?!"
+
+  expect {
+	-i $wwwtest_id
+	-re "([fix_string $expected])(.*)($prompt)" {
+		set actual $expected
+		 pass $test
+	}
+	-re "(.*)($invalid)(\r\n)*(.*)($prompt)" {
+		set actual "Improper test setup, invalid variable name.\n"
+		fail $test
+	}
+	-re "(.*)($error_str)(\r\n)*($function)(.*)($prompt)" {
+		set actual "Improper test setup. Wrong # of args.\n"
+		fail $test
+	}
+	-re "($command)\r\n(.*)(\r\n)*($prompt)" {
+		set actual $expect_out(2,string)
+		fail $test
+	}
+	timeout {set actual "Timed out..."
+		 fail $test
+	}
+	eof {set actual "wwwtest crashed"
+		fail $test
+		spawn "./$WWWTEST"
+		set wwwtest_id $spawn_id
+	}
+  }
+  verbose "	Result:			$actual" 2
+  return $actual
+}
+</PRE>
+<P>
+<P>
+Here's the set_test procedure. It mainly tries to deal with the functions
+which place values in structures.
+<PRE>
+proc set_test { function arguments } {
+  global wwwtest_id
+  global prompt
+
+  set command "$function $arguments"
+  send -i $wwwtest_id "$command\r"
+  set error_str "Wrong # of args. "
+  expect {
+	-i $wwwtest_id
+	-re "(.*)(invalid command name \"$function\")(.*)($prompt)" {
+		send_user "Improper test setup, improper function name.\n"
+	}
+	-re "(.*)($error_str)(\r\n)*($function)(.*)($prompt)" {
+		send_user "Improper test setup. Wrong # args.\n"
+	}
+	-re "($command)\r\n(.*)(\r\n)*($prompt)" {
+		return $expect_out(2,string)
+	}
+	-re "(.*)($prompt)" {
+		send_user "Couldn't set function\n"
+	}
+	timeout {
+		send_user "Timed out...\n"
+	}
+	eof {fail $test
+	     send_user "wwwtest crashed.\n"
+	}
+  }
+}
+
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  alian@mit.edu &nbsp;(neon@w3.org) Alexander Lian. July 19.1996
+</ADDRESS>
+</BODY></HTML>

@@ -11,6 +11,66 @@
 <H1>
   Library 4.1 Release Notes
 </H1>
+<P>
+The focus for version 4.1 of the <A HREF="../">W3C Reference Library</A>
+is to provide a set of higher level, application specific APIs for accessing
+the Web. These APIs - called <A HREF="../src/HTProfil.html">profiles</A>
+- will help the application, a W3b client for example, to more easily use
+the full potential of the application independent Library core. Also, the
+Library contains a significantly better interface for easy access to the
+Web through a <A HREF="../src/HTAccess.html">large set of functions</A>
+specialized to perform certain Web operations like <CODE>PUT</CODE>,
+<CODE>POST</CODE>, <CODE>DELETE</CODE>, <CODE>GET</CODE> and
+<CODE>HEAD</CODE>.
+<H2>
+  Release 4.1b3 July 20 1996
+</H2>
+<P>
+This release contains a <A HREF="../../Robot/">TCL add-on to the Robot
+</A>example application and a <A HREF="../Test/User/">Deja GNU Test suite</A>
+for the Library. Also, it support <A HREF="../../Protocols/">HTTP/1.1</A>
+including persistent connections, two-way <CODE>PUT</CODE>, and the
+<CODE>host</CODE> header. There is also a sample <A HREF="../src/HTPEP.c">PEP
+implementation</A>, that although incomplete can give an idea of where we're
+headed using PEP.
+<P>
+The file access module now does content negotiation by default. This means
+that all local file access (including from client applications) do content
+negotiation when accessing local files. Content negotiation can be turned
+off by setting a flag in the request object
+<P>
+Other new features and changes
+<UL>
+  <LI>
+    Introduced <A HREF="../src/HTUser.html">HTUserprofile</A> class to handle
+    host and user specific information
+  <LI>
+    A host name is not expanded to a <B>fqdn</B> name as it is not reliable enough
+  <LI>
+    Updated <A HREF="../src/HTML.html">HTML parser</A> to support
+    <CODE>BASE</CODE> tag and <CODE>LINK</CODE> tag
+  <LI>
+    Added new access methods to the <A HREF="../src/HTAccess.html">HTAccess
+    module</A>. It is now part of the <A HREF="../src/WWWApp.html">WWWApp
+    interface</A>
+  <LI>
+    Updated the <A HREF="../src/HTIcons.html">Icon module</A> and added icons
+    to the distribution file
+  <LI>
+    Added a <A HREF="../src/HTSChunk.html">Stream to Chunk converter </A>for
+    easier conversion of streams into dynamic memory buffers
+  <LI>
+    Introduced <A HREF="../src/HTLib.html">HTLib</A> as a new core module. It
+    contains generic information about the core which used to be in the HTAccess
+    module.
+  <LI>
+    Added support for <A HREF="../../Protocols/">HTTP/1.1</A>
+  <LI>
+    Fixed problem in the rule file parser. It didn't parse the last line of the
+    config file
+  <LI>
+    Added <A HREF="../src/HTTChunk.html">Chunked decoding and encoding module</A>
+</UL>
 <H2>
   Release 4.1b1 May 20 1996
 </H2>
@@ -80,7 +140,7 @@
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
   <P>
   @(#) $Id$
 </ADDRESS>

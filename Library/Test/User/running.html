@@ -1,0 +1,45 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Alex Lian, 28-Jun-1996 -->
+  <TITLE>Testing of the LibWWW</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Running the Function Testing
+</H1>
+<P>
+Basically, we're using the standard Dejagnu setup. At first, I had compile
+expect in and was more or less scripting some sort of testing, but I realized
+that wasn't the way to go. As glue code is not the best means of showing
+data structures, a number of tests are some what crippled by this.
+<P>
+As dejagnu is concerned, having the newest Tcl 7.5 installed causes problems.
+So, I'd recommend getting the most recent version of dejagnu and installing
+it instead. However, here is the basic rundown:
+<P>
+<FONT SIZE=+1><FONT SIZE=+1>Installing and Running the
+Tests</FONT></FONT><BR>
+<OL>
+  <LI>
+    Compile the WWW Reference Library and wwwtest
+  <LI>
+    Download dejagnu and follow the compiling/installation instructions.
+  <LI>
+    Link the dejagnu-?.? directory to Library/Test/
+  <LI>
+    Link the wwwtest binary into the Library/Test/
+  <LI>
+    Make sure the TCL_LIBRARY variable points to the dejagnu's version of Tcl.
+    (dejagnu/tcl/library)
+  <LI>
+    Run make check.
+</OL>
+<P>
+If you want to specify a module, edit the makefile and replace the TEST_FILES
+variable to the specific script.
+<P>
+  <HR>
+<ADDRESS>
+  alian@mit.edu &nbsp;(neon@w3.org) Alexander Lian. July 19.1996
+</ADDRESS>
+</BODY></HTML>

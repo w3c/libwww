@@ -338,9 +338,10 @@ PUBLIC void * HTAA_updateNode (char const * scheme,
 */
 PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
 {
-    char * url = HTAnchor_physical(HTRequest_anchor(request));
+    char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
     const char * realm = HTRequest_realm(request);
     HTAAElement * element = HTAA_findElement(realm, url); 
+    HT_FREE(url);
 
     /* Delete any old challenges if any */
     if (element) {

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Error Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Jul-1996 -->
 </HEAD>
 <BODY>
 <H1>
@@ -213,7 +213,7 @@ Deletes the last error entry added to the list. Return YES if OK, else NO
 extern BOOL HTError_deleteLast (HTList * list);
 </PRE>
 <H2>
-  Error Object Methods
+  Object Methods
 </H2>
 <H3>
   Show the Error Entry?
@@ -248,8 +248,14 @@ extern int HTError_index		(HTError * info);
 <H3>
   Error Severity
 </H3>
-<PRE>
-extern HTSeverity HTError_severity	(HTError * info);
+<P>
+This function returns the severity of the error object passed by the caller
+<PRE>extern HTSeverity HTError_severity	(HTError * info);
+</PRE>
+<P>
+You can ask whether a list of errors contains any error object with a severity
+level which is higher than the one specifed.
+<PRE>extern BOOL HTError_hasSeverity 	(HTList * list, HTSeverity severity);
 </PRE>
 <H3>
   Parameters Asscotiated with Error

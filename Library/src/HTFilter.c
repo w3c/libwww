@@ -235,9 +235,12 @@ PUBLIC int HTRedirectFilter (HTRequest * request, void * param, int status)
     ** Only do redirect on GET and HEAD
     */
     if (!HTMethod_isSafe(method) || !new_anchor) { 
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_AUTO_REDIRECT,
-			   NULL, 0, "RedirectionFilter");
-	return HT_ERROR;
+	HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+	if (prompt) {
+	    if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_REDIRECTION,
+			  NULL, NULL, NULL) != YES)
+		return HT_ERROR;
+	}
     } 
  
     /*
@@ -247,7 +250,7 @@ PUBLIC int HTRedirectFilter (HTRequest * request, void * param, int status)
     **  allows us in an easy way to keep track of the number of redirections
     **	so that we can detect endless loops.
     */ 
-    if (HTRequest_retry(request)) { 
+    if (HTRequest_doRetry(request)) { 
 	HTLoadAnchor(new_anchor, request);
     } else {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
@@ -299,14 +302,7 @@ PUBLIC int HTAuthFilter (HTRequest * request, void * param, int status)
     ** that understands this scheme
     */
     if (HTAA_afterFilter(request, param, status) == HT_OK) {
-	HTMethod method = HTRequest_method(request);
 
-	if (HTMethod_hasEntity(method)) { 
-	    if (APP_TRACE)
-		HTTrace("Auth filter. Can't authenticate PUT or POST\n");
-	    return HT_ERROR;
-	} 
- 
 	/*
 	** Start request with new credentials. As with the redirection filter
 	** we reuse the same request object which means that we must

@@ -1,0 +1,12 @@
+
+aname: http://www.w3.org/a/b/c/d
+relname: http://www.w3.org/a/
+relative: b/c/d
+
+***********
+
+aname: http://www.w3.org/a/b/c/d
+relname: ftp://ftp.w3.org/
+relative: http://www.w3.org/a/b/c/d
+
+***********

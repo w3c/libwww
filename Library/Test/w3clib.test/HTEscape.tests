@@ -1,0 +1,34 @@
+
+unencoded: 234 sd ^%#$% foo.bar
+mask: 2
+encoded: 234%20sd%20%5E%25%23%24%25%20foo.bar
+
+***********
+
+unencoded: 231 sd ^%#$% foo.bar
+mask: 2
+encoded: 231%20sd%20%5E%25%23%24%25%20foo.bar
+
+***********
+
+unencoded: %20%F3%76^$!foo test< foo1
+mask: 1
+encoded: %2520%25F3%2576%5E%24%21foo%20test%3C%20foo1
+
+***********
+
+unencoded: ftp ftp.netscape.com:342
+mask: 1
+encoded: ftp%20ftp.netscape.com%3A342
+
+***********
+
+unencoded: www http://www.w3.org/
+mask: 4
+encoded: www%20http%3A//www.w3.org/
+
+***********
+
+unencoded: ftp://ftp.foo.com/~foo.bar/foo bar/foo@bar/?:foobar#bar
+mask: 4
+encoded: ftp%3A//ftp.foo.com/%7Efoo.bar/foo%20bar/foo@bar/%3F%3Afoobar%23bar 

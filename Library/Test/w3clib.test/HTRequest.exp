@@ -1,0 +1,597 @@
+send_user "Creating requests for testing.....\n"
+
+set listnum 0
+
+#
+# Create requests
+#
+
+for {set test_num 1} {$test_num <= 8} {incr test_num} {
+
+  set test "Creation $test_num"
+  send_user "Creating Request($test_num)......"
+  send -i $wwwtest_id "set Request($test_num) \[HTRequest_new  ]\r"
+  expect {
+	-i $wwwtest_id
+	-re "(.*)((Request_)(.*))\r\n($prompt)" {
+		set Request($test_num) $expect_out(2,string)
+		pass $test
+	}
+	timeout {fail $test}
+  }
+  send_user "done.\n"
+}
+
+for {set test_num 1} {$test_num <= 3} {incr test_num} {
+
+  set test "Duplication $test_num"
+  send_user "Duplicating Request($test_num)....."
+  send -i $wwwtest_id "set Dup_Request($test_num) \[HTRequest_dup $Request($test_num)]\r"
+  expect {
+	-i $wwwtest_id
+	-re "(.*)((Request_)(.*))\r\n($prompt)" {
+		set Dup_Request($test_num) $expect_out(2,string)
+		pass $test
+	}
+	timeout {fail $test}
+  }
+  send_user "done.\n"
+}
+
+set address(1) http://www.w3.org/
+set address(2) http://www.mit.edu/
+set address(3) ftp://ftp.net.org/
+set address(4) http://www.w3.org/html3.html
+
+for {set test_num 1} {$test_num <= 4} {incr test_num} {
+
+  set test "Anchor creation $test_num"
+  send_user "Creating Anchor($test_num)....."
+  send -i $wwwtest_id "set Anchor($test_num) \[HTAnchor_findAddress $address($test_num)]\r"
+  expect {
+	-i $wwwtest_id
+	-re "(.*)((Anchor_)(.*))\r\n($prompt)" {
+		set Anchor($test_num) $expect_out(2,string)
+		pass $test
+	}
+	timeout {fail $test}
+  }
+  send_user "done.\n"
+}
+
+
+#Begin tests:
+
+#
+# ANCHOR
+#
+
+send_user "\n\nRunning Tests:\n\n"
+
+set function HTRequest_anchor
+set set_function HTRequest_setAnchor
+
+for {set test_num 1} {$test_num <= 4} {incr test_num} {
+
+  set test "HTRequest_anchor $test_num"
+
+  set test_anchor  $Anchor($test_num)
+  set test_request $Request($test_num)
+  set expected     $test_anchor
+  set set_args     "$test_request $test_anchor"
+  set arguments    "$test_request"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected $test
+
+} 
+
+for {set test_num 1} {$test_num <= 2} {incr test_num} {
+
+  set test "HTRequest_anchor [expr $test_num+4]"
+
+  set test_anchor  $Anchor($test_num)
+  set test_request $Dup_Request($test_num)
+  set expected     $test_anchor
+  set set_args     "$test_request $test_anchor"
+  set arguments    "$test_request"
+
+  set_test $set_function $set_args
+  runtest $function "$arguments" $expected "$test"
+}
+
+#HTRequest_access is for servers
+
+set function HTRequest_method
+set set_function HTRequest_setMethod
+
+set test "HTRequest_method 1"
+
+set method	 METHOD_HEAD
+set test_request $Request(1)
+set expected     0
+set set_args     "$test_request $method"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_reloadMode
+set set_function HTRequest_setReloadMode
+
+set test "HTRequest_reloadMode 1"
+
+set mode	 HT_ANY_VERSION
+set test_request $Request(1)
+set expected     0
+set set_args     "$test_request $mode"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_reloadMode 2"
+
+set mode	 HT_MEM_REFRESH
+set test_request $Request(2)
+set expected     1
+set set_args     "$test_request $mode"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_reloadMode 3"
+
+set mode	 HT_CACHE_REFRESH
+set test_request $Request(3)
+set expected     2
+set set_args     "$test_request $mode"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_reloadMode 4"
+
+set mode	 HT_FORCE_RELOAD
+set test_request $Request(4)
+set expected     4
+set set_args "$test_request $mode"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_redirection
+set set_function HTRequest_setRedirection
+
+set test "HTRequest_redirection"
+
+set test_request $Request(1)
+set test_anchor  $Anchor(1)
+set expected     $test_anchor
+set set_args     "$test_request $test_anchor"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_maxRetry
+set function HTRequest_setMaxRetry
+
+set test "HTRequest_maxRetry"
+
+set retry      6
+set expected   $retry
+set set_args   "$retry"
+set arguments  ""
+
+string trimleft $arguments "\""
+string trimright $arguments "\""
+
+set_test $set_function $set_args
+runtest $function $arguments $expected "$test"
+
+set function HTRequest_doRetry
+
+set test "HTRequest_doRetry"
+
+set test_request $Request(2)
+set expected     YES
+set arguments "$test_request"
+
+runtest $function "$arguments" "$expected" "$test"
+
+set function HTRequest_retryTime
+
+set test "HTRequest_retryTime"
+
+set test_request $Request(2)
+set expected     -1
+set arguments "$test_request"
+
+runtest $function "$arguments" "$expected" "$test"
+
+set function HTRequest_conversion
+set set_function HTRequest_setConversion
+
+set test "HTRequest_conversion"
+
+set htlist [new_item HTList_new]
+set override	 YES
+set test_request $Request(1)
+set expected     $htlist
+set set_args "$test_request $htlist $override"
+set arguments "$test_request"
+incr listnum 1
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_encoding
+set set_function HTRequest_setEncoding
+
+set test "HTRequest_encoding"
+
+set htlist	 [new_item HTList_new]
+set override	 YES
+set test_request $Request(1)
+set expected     $htlist
+set set_args "$test_request $htlist $override"
+set arguments "$test_request"
+incr listnum 1
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_language
+set set_function HTRequest_setLanguage
+
+set test "HTRequest_language"
+
+set htlist	 [new_item HTList_new]
+set override	 YES
+set test_request $Request(1)
+set expected     $htlist
+set set_args "$test_request $htlist $override"
+set arguments "$test_request"
+incr listnum 1
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_charset
+set set_function HTRequest_setCharset
+
+set test "HTRequest_charset"
+
+set htlist	 [new_item HTList_new]
+set override	 YES
+set test_request $Request(1)
+set expected     $htlist
+set set_args  "$test_request $htlist $override"
+set arguments "$test_request"
+incr listnum 1
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_gnHd
+set set_function HTRequest_setGnHd
+
+set test "HTRequest_gnHd"
+
+set gnhd	 HT_G_CONNECTION
+set test_request $Request(1)
+set expected     10
+set set_args     "$test_request $gnhd"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_addGnHd"
+
+set set_function HTRequest_addGnHd
+
+set gnhd	 HT_G_NO_CACHE
+set test_request $Request(1)
+set expected     30
+set set_args     "$test_request $gnhd"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_addGnHd"
+
+set gnhd	 HT_G_FORWARDED
+set test_request $Request(1)
+set expected     32
+set set_args "$test_request $gnhd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_rqHd
+set set_function HTRequest_setRqHd
+
+set test "HTRequest_rqHd"
+
+set rqhd	 HT_C_USER_AGENT
+set test_request $Request(1)
+set expected     200
+set set_args "$test_request $rqhd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_addRqHd"
+
+set set_function HTRequest_addRqHd
+
+set rqhd	 HT_C_FROM
+set test_request $Request(1)
+set expected     210
+set set_args "$test_request $rqhd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_addRqhd"
+
+set rqhd	 HT_C_ACCEPT_ENC
+set test_request $Request(1)
+set expected     214
+set set_args "$test_request $rqhd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_rsHd
+set set_function HTRequest_setRsHd
+
+set test "HTRequest_rshd"
+
+set rshd	 HT_S_WWW_AUTH
+set test_request $Request(1)
+set expected     20
+set set_args "$test_request $rshd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_addRsHd"
+
+set set_function HTRequest_addRsHd
+
+set rshd	 HT_S_LOCATION
+set test_request $Request(1)
+set expected     21
+set set_args "$test_request $rshd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_enHd
+set set_function HTRequest_setEnHd
+
+set test "HTRequest_enHd"
+
+set enhd	 HT_E_URI
+set test_request $Request(1)
+set expected     1000
+set set_args "$test_request $enhd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set test "HTRequest_addEnhd"
+
+set set_function HTRequest_addEnHd
+
+set enhd	 HT_E_CONTENT_LANGUAGE
+set test_request $Request(1)
+set expected     1004
+set set_args "$test_request $enhd"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_parent
+set set_function HTRequest_setParent
+
+set test "HTRequest_parent"
+
+set test_anchor	 $Anchor(1)
+set test_request $Request(1)
+set expected     $test_anchor
+set set_args "$test_request $test_anchor"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_generator
+set set_function HTRequest_setGenerator
+
+set test "HTRequest_generator"
+
+set generator	 [new_item HTList_new]
+set override     YES
+set test_request $Request(1)
+set expected     $generator
+set set_args "$test_request $generator $override"
+set arguments "$test_request $override"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected $test
+#HTList_delete $generator
+
+set function HTRequest_outputStream
+set set_function HTRequest_setOutputStream
+
+set test "HTRequest_outputStream"
+
+set stream	 [new_item HTBlackHole]
+set test_request $Request(1)
+set expected     $stream
+set set_args     "$test_request $stream"
+set arguments    "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_outputFormat
+set set_function HTRequest_setOutputFormat
+
+set test "HTRequest_outputFormat"
+
+set format	 WWW_RAW
+set test_request $Request(1)
+set expected     $format
+set set_args "$test_request $format"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_debugStream
+set set_function HTRequest_setDebugStream
+
+set test "HTRequest_debugStream"
+
+set stream	 [new_item HTBlackHole]
+set test_request $Request(1)
+set expected     $stream
+set set_args "$test_request $stream"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_debugFormat
+set set_function HTRequest_setDebugFormat
+
+set test "HTRequest_debugFormat"
+
+set format	 WWW_SOURCE
+set test_request $Request(1)
+set expected     $format
+set set_args "$test_request $format"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_callback
+set set_function HTRequest_setCallback
+
+set test "HTRequest_callback"
+
+set callback	 some_callback
+set test_request $Request(1)
+set expected     $callback
+set set_args "$test_request $callback"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+#Can't really test because can't use HTRequest_context
+#HTRequest_setCallback $test_request $callback
+#runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_context
+set set_function HTRequest_setContext
+
+set test "HTRequest_context"
+
+set context	 some_context
+set test_request $Request(1)
+set expected     $context
+set set_args "$test_request $context"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+#HTRequest_setContext $test_request $context
+#runtest $function "$arguments" $expected "$test"
+#Can't run because uses void argument
+
+set function HTRequest_preemptive
+set set_function HTRequest_setPreemptive
+
+set test "HTRequest_preemptive"
+
+set preemptive	 YES
+set test_request $Request(1)
+set expected     $preemptive
+set set_args "$test_request $preemptive"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_priority
+set set_function HTRequest_setPriority
+
+set test "HTRequest_priority"
+
+set priority	 HT_PRIORITY_INV
+set test_request $Request(1)
+set expected     $priority
+set set_args "$test_request $priority"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_net
+set set_function HTRequest_setNet
+
+set test "HTRequest_net"
+
+set net	 htnet
+set test_request $Request(1)
+set expected     $net
+set set_args "$test_request $net"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+#HTRequest_setNet $test_request $net
+#runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_negotiation
+set set_function HTRequest_setNegotiation
+
+set test "HTRequest_negotiation"
+
+set negotiation	 YES
+set test_request $Request(1)
+set expected     $negotiation
+set set_args "$test_request $negotiation"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"
+
+set function HTRequest_error
+set set_function HTRequest_setError
+
+set test "HTRequest_error"
+
+set error	 [new_item HTList_new]
+set test_request $Request(1)
+set expected     $error
+set set_args "$test_request $error"
+set arguments "$test_request"
+
+set_test $set_function $set_args
+runtest $function "$arguments" $expected "$test"

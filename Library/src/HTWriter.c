@@ -123,6 +123,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		HTEvent_register(soc, net->request, (SockOps) FD_WRITE,
 				 net->cbf, net->priority);
 		return HT_WOULD_BLOCK;
+#ifdef EINTR
 	    } else if (socerrno == EINTR) {
 		/*
 		**	EINTR	A signal was caught during the  write  opera-
@@ -131,6 +132,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		if (PROT_TRACE)
 		    HTTrace("Write Socket call interruted - try again\n");
 		continue;
+#endif
 	    } else {
 		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 					 "NETWRITE");
@@ -143,7 +145,9 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	if (PROT_TRACE)
 	    HTTrace("Write Socket %d bytes written to socket %d\n",
 		    b_write, soc);
+#if 0
 	net->bytes_written += b_write;
+#endif
 	{
 	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
 	    if (cbf) (*cbf)(net->request, HT_PROG_WRITE,

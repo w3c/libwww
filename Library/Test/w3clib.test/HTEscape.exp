@@ -1,0 +1,71 @@
+####################
+#     HTEscape     #
+####################
+
+#
+#For masks
+#
+
+set URL_XALPHAS  1
+set URL_XPALPHAS 2
+set URL_PATH     4
+
+#
+#For creating unique test names...
+#
+
+set testnum 0
+
+#
+#To more easily identify the set it belongs to...
+#
+
+set setnum 0
+
+
+#Open example file
+set fp [open "./testsuite/$WWWTEST.test/HTEscape.tests" r]
+
+#Since line becomes a flag of sorts for the while loop, initialize it null.
+set line ""
+
+while {![eof $fp]} {
+
+#I use the * markers as the point to stop and run the test.
+
+#
+#Read in the data from the testfile
+#
+  while {(![eof $fp]) && ([string compare $line "***********"] != 0)} {
+    gets $fp line
+    if {[string compare $line ""] != 0} {
+      set ind  [string first ": " $line]
+      set type [string range $line 0 [expr $ind-1]]
+      switch $type {
+	"unencoded" {set unencoded [string range $line [expr $ind+2] end]}
+	"mask"      {set mask      [string range $line [expr $ind+2] end]}
+	"encoded"   {set encoded   [string range $line [expr $ind+2] end]}
+      }
+    }
+  }
+
+#
+#Run the tests
+#
+
+  if {![eof $fp]} {
+    incr setnum 1
+    incr testnum 1
+    set test "HTEscape \"$unencoded\" $mask"
+    runtest HTEscape "\"$unencoded\" $mask" "$encoded" "$test"
+
+    set test "HTUnEscape $encoded"
+    runtest HTUnEscape $encoded $unencoded "$test"
+  }		
+
+#Reset the line from the * markers
+
+  set line ""
+}
+
+close $fp

@@ -290,7 +290,7 @@ PUBLIC char * HTGetHostName (void)
     char name[MAXHOSTNAMELEN+1];
     *(name+MAXHOSTNAMELEN) = '\0';
 
-#ifdef HAVE_SYSINFO
+#if defined(HAVE_SYSINFO) && defined(SI_HOSTNAME)
     if (!fqdn && sysinfo(SI_HOSTNAME, name, MAXHOSTNAMELEN) > 0) {
 	char * dot = strchr(name, '.');
 	if (PROT_TRACE) HTTrace("HostName.... sysinfo says `%s\'\n", name);

@@ -79,20 +79,25 @@ PUBLIC int HTBasic_delete (void * context)
 */
 PRIVATE char * make_template (const char * docname)
 {
-    char *tmplate = NULL;
-    char *slash = NULL;
+    char * tmplate = NULL;
     if (docname) {
-	StrAllocCopy(tmplate, docname);
-	slash = strrchr(tmplate, '/');
-	if (slash) slash++;
-	else slash = tmplate;
-	*slash = '\0';
-	StrAllocCat(tmplate, "*");
-    }
-    else StrAllocCopy(tmplate, "*");
+	char * host = HTParse(docname, "", PARSE_ACCESS|PARSE_HOST|PARSE_PUNCTUATION);
+	char * path = HTParse(docname, "", PARSE_PATH|PARSE_PUNCTUATION);
+	char * slash = strrchr(path, '/');
+	if (slash) {
+	    if (*(slash+1)) {		
+		strcpy(slash, "*");
+		StrAllocCat(host, path);
+	    } else
+		StrAllocCat(host, "*");
+	}
+	HT_FREE(path);
+	tmplate = host;
+    } else
+	StrAllocCopy(tmplate, "*");
     if (AUTH_TRACE)
 	HTTrace("Template.... Made template `%s' for file `%s'\n",
-		tmplate, docname);
+		tmplate, docname ? docname : "<null>");
     return tmplate;
 }
 
@@ -180,16 +185,18 @@ PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
 
 	/* If we don't have a basic context then add a new one to the tree */
 	if (!basic) {
-	    char * url = HTAnchor_physical(HTRequest_anchor(request));
+	    char *url = HTAnchor_address((HTAnchor*)HTRequest_anchor(request));
 	    basic = HTBasic_new();
 	    HTAA_updateNode(BASIC_AUTH, realm, url, basic);
+	    HT_FREE(url);
 	}
 
 	/*
 	** If we have a set of credentials (or the user provides a new set)
 	** then store it in the request object as the credentials
 	*/
-	if (basic->retry && prompt_user(request, realm, basic) == HT_OK) {
+	if ((basic->retry && prompt_user(request, realm, basic) == HT_OK) ||
+	    (!basic->retry && basic->uid)) {
 	    basic->retry = NO;
 	    return basic_credentials(request, basic);
 	} else
@@ -220,11 +227,12 @@ PUBLIC int HTBasic_parse (HTRequest * request, void * context, int status)
 	** store this information in our authentication URL Tree
 	*/
 	if (realm && !strcasecomp(realm, "realm") && rm) {
-	    char * url = HTAnchor_physical(HTRequest_anchor(request));
+	    char *url=HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
 	    char * tmplate = make_template(url);
 	    if (AUTH_TRACE) HTTrace("Basic Parse. Realm `%s\' found\n", rm);
 	    basic = (HTBasic *) HTAA_updateNode(BASIC_AUTH, rm, tmplate, NULL);
 	    HTRequest_setRealm(request, rm);
+	    HT_FREE(url);
 	    HT_FREE(tmplate);
 	}
 

@@ -656,7 +656,10 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 #ifdef _WINSOCKAPI_
     unsigned ui ;
 #endif
+    struct timeval tvsave;
 
+
+    HTEndLoop = 0;
     /* Don't leave this loop until we the application */
     do { 
         treadset = read_fds;
@@ -713,13 +716,19 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 	if (THD_TRACE)
 	    HTTrace("Event Loop.. calling select: maxfds is %d\n",
 		    maxfds);
+/*
+ *  timeval struct copy needed for linux, as it set the value to the remaining
+ *  timeout while exiting the select. (and perhaps for other OS).
+ */
+	tvsave.tv_sec = tvptr->tv_sec;
+	tvsave.tv_usec = tvptr->tv_usec;
 
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
-				(int *)&texceptset, (struct timeval *) tvptr);
+				(int *)&texceptset, (struct timeval *) &tvsave);
 #else
         active_sockets = select(maxfds+1, &treadset, &twriteset, &texceptset,
-				(struct timeval *) tvptr);
+				(struct timeval *) &tvsave);
 #endif
 	if (THD_TRACE)
 	    HTTrace("Event Loop.. select returns %d\n",active_sockets);
@@ -802,13 +811,13 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 	    	return status;
         }
 
-        if (writings) { 
-            if ((status= __ProcessFds(&twriteset, FD_WRITE, "Write")) != HT_OK)
+        if (readings) {
+            if ((status = __ProcessFds(&treadset, FD_READ, "Read")) != HT_OK)
 	    	return status;
         }
 
-        if (readings) {
-            if ((status = __ProcessFds(&treadset, FD_READ, "Read")) != HT_OK)
+        if (writings) { 
+            if ((status= __ProcessFds(&twriteset, FD_WRITE, "Write")) != HT_OK)
 	    	return status;
         }
 
@@ -947,11 +956,19 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 #endif /* WWW_WIN_ASYNC */
         *rqpp = rqp->next ;
 
-	/* NB we only count network sockets, NOT the console/display socket */
-	if (console_in_use && rqp->s != (SOCKET)console_handle) { 
-	    if (socketsInUse-- == 0)
-	    	socketsInUse = 0;
-	}
+        /* JK: Made a slight correction so socketsInUse will be correctly
+        ** decremented. This "bug" had no effect whatsoever on libwww,
+        ** but it's useful for debugging
+        */
+
+        /* NB we only count network sockets, NOT the console/display socket */
+        if (console_in_use) {
+                if(rqp->s != (SOCKET)console_handle)
+                        if (--socketsInUse <= 0)  /* why this comparition? */
+                                socketsInUse = 0;
+        } else
+                socketsInUse--;
+ 
         HT_FREE(rqp);
     }  /* if all unregistered */
     else { 

@@ -1190,6 +1190,13 @@ This is necessary in order to support Windows NT...
 #ifndef DEFAULT_SUFFIXES
 #define DEFAULT_SUFFIXES	".,_"
 #endif
+
+#ifndef F_OK
+#define R_OK    4
+#define W_OK    2
+#define X_OK    1
+#define F_OK    0
+#endif
 </PRE>
 <H2>
   Macros for manipulating masks for select()

@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Alex Lian, 28-Jun-1996 -->
+  <TITLE>Testing of the LibWWW</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Core Function Testing (beta version)
+</H1>
+<P>
+To aid the development and progress of the
+<A HREF="../../User/Overview.html">World Wide Web Reference Library</A>,
+we have added tests to the library. Largely aiding the developers into showing
+which functions are working and when in fixing the library, which functions
+break.
+<P>
+Documentation on this testing is a little sparse and inadequate. Improvements
+will be made especially concerning documentation.
+<P>
+Ultimately, core function testing just amounts to writing lots of glue code
+and scripting. Large chunks are pretty repetitive, while others add lots
+of variance in patterns. What it amounts to is trying to capture all the
+possible failures in the glue code, such that the scripting language will
+not crash while being run in dejagnu. Unfortunately, I haven't been too good
+at capturing everything, but it suffices to show that the functions work.
+<P>
+I believe another UROPer will be working on the glue code to solidify the
+functionality between Tcl and C, so that quick implementations can be done
+using Tk and such. That will also result in a nice testing interface. Currently,
+my work has caught typos, small bugs and such, with the largest noticable
+flaw in the core library being in the parsing. The parsing functions do not
+hold to rfc1808.
+<P>
+This code is mostly here to show you that the library is functional, and
+does what it says. It is not a very robust testing method, as it can crash
+easily with improper setup. Also, a lot of this testing is black box testing...we
+need to peer into a lot of the data structures to test some of the results.
+However, I haven't got around to creating functions to output the elements
+of data structures like HTList for example.
+<P>
+Also, a lot of functions that have unique data structures (i.e. are the only
+function or so to use it.) haven't been implemented.
+<P>
+I've tried to make the glue code as complete as possible for the modules
+listed. A couple modules were only done simply to get at creation controls
+to pass them along to other functions.
+<P>
+<UL>
+  <LI>
+    <A HREF="gluecode.html">Creating the Glue code. </A>
+  <LI>
+    <A HREF="tests.html">Creating the tests. </A>
+  <LI>
+    <A HREF="running.html">Running the tests. </A>
+</UL>
+<P>
+Current Modules Supported fully with WWWLib 4.1:<BR>
+<UL>
+  <LI>
+    HTParse
+  <LI>
+    HTEscape
+  <LI>
+    HTLink
+  <LI>
+    HTAnchor
+  <LI>
+    HTRequest
+</UL>
+<P>
+Current Modules only Partially supported:<BR>
+<UL>
+  <LI>
+    HTAssoc
+  <LI>
+    HTFWriter
+  <LI>
+    HTList
+  <LI>
+    HTUserProfile
+</UL>
+<P>
+  <HR>
+<FONT SIZE=+1><FONT SIZE=+1>Current Lingering Problems</FONT></FONT><BR>
+<UL>
+  <LI>
+    Parsing Errors. These errors are attributed to the library itself. The code
+    does not support the new rfc concerning relative urls and has trouble simplifying
+    directory structures.
+  <LI>
+    Parsing errors due to the method in which tcl handles strings. Have not yet
+    found work around.
+  <LI>
+    Avoid HTCleanTelnetString tests. They have characters causing havoc to dejagnu.
+    Either test individual modules or remove it.
+  <LI>
+    Showing enumerations: current solution is to output the octal value.
+  <LI>
+    functions using (void *) are not currently fully functional.
+  <LI>
+    Escape characters are causing problems with tcl/expect. When trying to run
+    HTCleanTelnetString tests, it eventually fails the rest as the program apparently
+    is spewing a specific escape character.
+  <LI>
+    extern void HTRequest_setPostCallback (HTRequest * request, HTPostCallback
+    * cbf) not implemented
+  <LI>
+    extern HTPostCallback * HTRequest_postCallback (HTRequest * request) not
+    implemented
+  <LI>
+    Nagging error with processing HTRequest.exp. Apparently the header functions
+    (i.e. gnhd, rqhd, etc.) are crashing wwwtest. I have yet to isolate the cause.
+</UL>
+<P>
+  <HR>
+<ADDRESS>
+  alian@mit.edu &nbsp;(neon@w3.org) Alexander Lian. July 19.1996
+</ADDRESS>
+</BODY></HTML>

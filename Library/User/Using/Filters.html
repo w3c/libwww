@@ -1,0 +1,61 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <TITLE>Architecture - Before and After Filters</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<H1>
+  Before and After Filters
+</H1>
+<P>
+Until now we have not mentioned a lot about what the Library actually can
+do. The fact is that the core part of libwww actually doesn't do much. All
+the functionality must be registered by the application - in orther words
+- the application programmer builds a libwww profile for an application by
+registrering a specific set of protocol modules, callbacks and filters.
+<H2>
+  Use the Standard Filters
+</H2>
+<P>
+The libwww distribution package somes with a large set of
+<A HREF="../src/HTFilter.html">standard filters</A>. These are filters that
+can be used in most applications and will do 80% of the job. The standard
+filters cover the following functions
+<P>
+Proxy and Gateway redirection
+<P>
+Memory and Persistent cache
+<P>
+Rule Files
+<P>
+Logging
+<P>
+Error Message Generation
+<P>
+Redirection
+<P>
+Authentication
+<H2>
+  Where the Standard Filters Aren't Enough
+</H2>
+<P>
+In some situations, you can not use the standard filters
+<H2>
+  Write you own Filters
+</H2>
+<P>
+A great way extending the fucntionallity of your application is to write
+a new filter that can either be hooked in globally or locally depending on
+its nature.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

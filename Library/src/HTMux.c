@@ -386,6 +386,7 @@ PRIVATE int HTDemux_put_block (HTStream * me, const char * b, int len)
 	    status = DEMUX_BLOCK(b, len);
 	}
     }
+    return HT_OK;
 }
 
 PRIVATE int HTDemux_put_string (HTStream * me, const char * s)

@@ -349,12 +349,6 @@ PUBLIC int HTMIME_pragma (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
-PUBLIC int HTMIME_proxyAuthenticate (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
 PUBLIC int HTMIME_proxyAuthorization (HTRequest * request, char * token, char * value)
 {
 

@@ -21,9 +21,6 @@ SUFFIXES = .h .html
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
-inc: $(BUILT_SOURCES)
-	@echo Generated built sources
-
 www_SOURCES = \
 	HTBrowse.c	GridText.c	ConView.c \
 	GridStyle.c	DefaultStyles.c
@@ -33,6 +30,9 @@ BUILT_SOURCES = \
 	HTFont.h
 
 PURIFY_CACHE = /home2/frystyk/purify-cache
+
+inc: $(BUILT_SOURCES)
+	@echo Generated built sources
 
 purify: $(www_OBJECTS) $(www_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \

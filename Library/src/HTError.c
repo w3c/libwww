@@ -205,6 +205,25 @@ PUBLIC HTSeverity HTError_severity (HTError *info)
     return info ? info->severity : ERR_UNKNOWN;
 }
 
+
+/*
+**	Any error more serious than this?
+*/
+PUBLIC BOOL HTError_hasSeverity (HTList * list, HTSeverity severity)
+{
+    if (list) {
+	HTList * cur = list;
+	HTError * pres;
+	while ((pres = (HTError *) HTList_nextObject(cur))) {
+	    if (pres->severity < severity) {
+		if (CORE_TRACE) HTTrace("Severity.... Found a severe error\n");
+		return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
 PUBLIC int HTError_index (HTError * info)
 {
     return info ? info->element : HTERR_INTERNAL;

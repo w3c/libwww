@@ -55,7 +55,8 @@ typedef enum _HTTPState {
     HTTP_PERM_REDIRECT,
     HTTP_TEMP_REDIRECT,
     HTTP_NOT_MODIFIED,
-    HTTP_AA
+    HTTP_AA,
+    HTTP_PROXY_AA
 } HTTPState;
 
 /* This is the context structure for the this module */
@@ -111,7 +112,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     }
 
     /* Remove the request object and our own context structure for http */
-    HTNet_delete(net, HTRequest_internal(req) ? HT_IGNORE : status);
+    HTNet_delete(net, status);
     HT_FREE(http);
     return YES;
 }
@@ -211,7 +212,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	break;
 
       case 304:						     /* Not Modified */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_MODIFIED,
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NOT_MODIFIED,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPNextState");
 	me->http->next = HTTP_NOT_MODIFIED;
@@ -262,7 +263,7 @@ PRIVATE void HTTPNextState (HTStream * me)
       case 407:			       	    /* Proxy Authentication Required */
 	HTRequest_addError(me->request, ERR_FATAL, NO,HTERR_PROXY_UNAUTHORIZED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
-	me->http->next = HTTP_ERROR;
+	me->http->next = HTTP_PROXY_AA;
 	break;
 
       case 408:						  /* Request Timeout */
@@ -684,18 +685,21 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		{
 		    HTStream * input = HTRequest_inputStream(request);
 		    HTPostCallback * pcbf = HTRequest_postCallback(request);
-		    status = pcbf ? pcbf(request, input) :
-			(*input->isa->flush)(input);
-		    if (status == HT_WOULD_BLOCK)
-			return HT_OK;
-		    else
+		    if (pcbf) {
+			status = pcbf(request, input);
+			if (status == HT_PAUSE || status == HT_LOADED)
+			    ops = FD_READ;
+		    } else {
+			status = (*input->isa->flush)(input);
 			ops = FD_READ;	  /* Trick to ensure that we do READ */
+		    }
+		    if (status == HT_WOULD_BLOCK) return HT_OK;
 		}
 	    } else if (ops == FD_READ) {
 		status = (*net->input->isa->read)(net->input);
-		if (status == HT_WOULD_BLOCK || status == HT_PAUSE)
+		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
-		else if (status==HT_CONTINUE) {
+		else if (status == HT_CONTINUE) {
 		    if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
 		    ops = FD_WRITE;
 		    continue;
@@ -755,6 +759,21 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		HTRequest_killPostWeb(request);
 	    }
 	    HTTPCleanup(request, HT_NO_ACCESS);
+	    return HT_OK;
+	    break;
+
+	  case HTTP_PROXY_AA:
+	    if (HTRequest_isPostWeb(request)) {
+		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
+		    HTLink *link =
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
+					  (HTAnchor *) anchor);
+		    HTLink_setResult(link, HT_LINK_ERROR);
+		}
+		HTRequest_killPostWeb(request);
+	    }
+	    HTTPCleanup(request, HT_NO_PROXY_ACCESS);
 	    return HT_OK;
 	    break;
 

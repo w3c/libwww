@@ -278,7 +278,9 @@ reloads is 6.
 <PRE>
 extern BOOL HTRequest_setMaxRetry (int newmax);
 extern int  HTRequest_maxRetry (void);
-extern BOOL HTRequest_retry (HTRequest *request);
+
+extern int HTRequest_retrys (HTRequest * request);
+extern BOOL HTRequest_doRetry (HTRequest *request);
 </PRE>
 <H2>
   Retry Request After

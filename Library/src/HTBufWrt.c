@@ -66,7 +66,9 @@ PRIVATE int HTBufferWriter_abort (HTOutputStream * me, HTList * e)
 
 PRIVATE int HTBufferWriter_write (HTOutputStream *me, const char *buf, int len)
 {
+    long total = len;
     int status;
+
     if (me->bb > 0) {
 	len -= (me->block - buf);
 	if ((status = PUTBLOCK(me->block, me->bb)) != HT_OK) return status;
@@ -87,8 +89,8 @@ PRIVATE int HTBufferWriter_write (HTOutputStream *me, const char *buf, int len)
 	if (me->read > me->data) {
 	    memcpy(me->read, buf, available);
 	    me->block = (char *) buf+available;
+	    if ((status = PUTBLOCK(me->data, me->size))!=HT_OK) return status;
 	}
-	if ((status = PUTBLOCK(me->data, me->size)) != HT_OK) return status;
 
 	/* If more data then write n times buffer size */
 	if (!me->block)
@@ -110,6 +112,8 @@ PRIVATE int HTBufferWriter_write (HTOutputStream *me, const char *buf, int len)
     } else
 	me->read = me->data;
     me->block = NULL;
+    me->net->bytes_written += total;
+    if (WWWTRACE) HTTrace("TESTTESTTEST size %ld\n", me->net->bytes_written);
     return HT_OK;
 }
 

@@ -31,6 +31,7 @@ struct _HTStream {
     const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
+    BOOL			put_fix;
     BOOL			endHeader;
     BOOL			transparent;
 };
@@ -202,9 +203,14 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 
 PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 {
-    if (me->transparent)
-	return b ? PUTBLOCK(b, l) : HT_OK;
-    else {
+    HTNet * net = HTRequest_net(me->request);
+    if (me->transparent) {
+	if (me->put_fix) {
+	    HTNet * net = HTRequest_net(me->request);
+	    HTEvent_unregister(net->sockfd, FD_READ);
+	    me->put_fix = NO;
+	}
+    } else {
 	MIMEMakeRequest(me, me->request);
 	if (HTRequest_isDestination(me->request)) {
 	    HTNet * net = HTRequest_net(me->request);
@@ -218,17 +224,45 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 	**  an entity body then wait until we have received a 100 response
 	*/
 	if (HTMethod_hasEntity(HTRequest_method(me->request))) {
-	    HTNet * net = HTRequest_net(me->request);
 	    HTHost * host = HTNet_host(net);
 	    char * class = HTHost_class(host);
-	    if (class && !strcmp(class, "http") && HTHost_version(host) >= 3) {
-		if (STREAM_TRACE) HTTrace("MIME........ Waiting for 100...\n");
-		(*me->target->isa->flush)(me->target);
-		return HT_PAUSE;
+	    if (class && !strcmp(class, "http")) {
+
+		/*
+		** If this is a HTTP/1.1 or later then wait for 100 code. If
+		** it is a HTTP/1.0 server then wait a bit and hope the best.
+		*/
+		if (HTHost_version(host) >= 3) {
+		    if (STREAM_TRACE)
+			HTTrace("MIME........ Waiting for 100...\n");
+		    (*me->target->isa->flush)(me->target);
+		    return HT_PAUSE;
+		} else {
+		    HTNet * net = HTRequest_net(me->request);
+		    int zzzz = HTRequest_retrys(me->request);
+		    zzzz = zzzz ? zzzz * 2 : 2;
+		    if (STREAM_TRACE)
+			HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
+		    (*me->target->isa->flush)(me->target);
+		    HTEvent_register(net->sockfd, me->request,
+				     (SockOps) FD_READ | FD_WRITE,
+				     net->cbf, net->priority);
+		    SLEEP(zzzz);
+		    me->put_fix = YES;
+		    return HT_WOULD_BLOCK;
+		}
 	    }
 	}
-	return b ? PUTBLOCK(b, l) : HT_OK;
     }
+
+    /* Check if we have written it all */
+    if (b) {
+	HTParentAnchor * entity = HTRequest_entityAnchor(me->request);
+	long cl = HTAnchor_length(entity);
+	return (cl>=0 && HTNet_bytesWritten(net) >= cl) ?
+	    HT_LOADED : PUTBLOCK(b, l);
+    }
+    return HT_OK;
 }
 
 PRIVATE int MIMERequest_put_character (HTStream * me, char c)

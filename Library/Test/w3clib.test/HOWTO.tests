@@ -1,0 +1,13 @@
+The tests are set up pretty simply. Adding more to the suite is easy,
+unfortunately, since I'm not a great programmer, I can't give much
+freedom in the format of the test files.... as long as you follow the
+examples you're pretty safe. Just some hints:
+
+For those that have spaces within the text use quotes. 
+
+Avoid the dollar sign with text directly following it.
+
+Also, the format requires there to be a space between the
+descriptive tag (i.e. access: ) and the data.
+
+Between every test set, use the delimiting * barrier. It should be 11.

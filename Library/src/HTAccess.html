@@ -546,6 +546,66 @@ extern BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 				 HTRequest *	 	request);
 </PRE>
 <H2>
+  <A NAME="PostASIS">Save a Document ASIS (Method = POST)</A>
+</H2>
+<P>
+You can upload a document to a remote server using the following methods.
+The document that you want to POST must be in the form of an anchor. The
+reason for this is that when we are posting a document we must have some
+metainformation available. Metainformation can be the media type, the document
+length, the lamguage, or any other metainformation that you can find associated
+with the Anchor object.
+<P>
+This set of functions takes the contents of the anchor <B>ASIS</B> - that
+it the <I>exact</I> content of the document associated with this anchor will
+be sent to the remote server.
+<P>
+If your application is an Web editor, then you may want to create a new anchor
+on the fly for temporary backups on local disk before you save it to a remote
+server. An easy way to get a new anchor with a local file URL pointing into
+local file space is by using the <A HREF="HTHome.html#temp">HTTmpAnchor()</A>
+function which is part of the <A HREF="WWWApp.html">WWWApp interface</A>.
+<H3>
+  Save a Document ASIS from Absolute URL using POST
+</H3>
+<P>
+Upload a document referenced by an absolute URL. The URL can <I>NOT</I> contain
+any fragment identifier - that is, it must be a parent anchor! The list of
+form data must be given as an association list where the name is the field
+name and the value is the value of the field.
+<PRE>
+extern BOOL HTPostAbsolute (HTParentAnchor *	source,
+			   const char *		destination,
+			   HTRequest *		request);
+</PRE>
+<H3>
+  Save a Document ASIS from Relative URL using POST
+</H3>
+<P>
+Upload a document referenced by a relative URL appended. The URL can
+<I>NOT</I> contain any fragment identifier! The list of form data must be
+given as an association list where the name is the field name and the value
+is the value of the field.
+<PRE>
+extern BOOL HTPostRelative (HTParentAnchor *	source,
+			   const char * 	relative,
+			   HTParentAnchor *	destination_base,
+			   HTRequest *		request);
+</PRE>
+<H3>
+  Save a Document ASIS Using an Anchor and the POST Method
+</H3>
+<P>
+Upload a document referenced by an anchor object appended The URL can
+<I>NOT</I> contain any fragment identifier! The list of form data must be
+given as an association list where the name is the field name and the value
+is the value of the field.
+<PRE>
+extern BOOL HTPostAnchor (HTParentAnchor *	source,
+			 HTAnchor *		dest,
+			 HTRequest *	 	request);
+</PRE>
+<H2>
   Get Available Options for a Document (Method = OPTIONS)
 </H2>
 <P>

@@ -318,7 +318,7 @@ PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
 	} else {
 	    if (CORE_TRACE)
 		HTTrace("Host info... no room for persistent socket %d\n",
-			socket);
+			sockfd);
 	}
     }
     return NO;

@@ -1,0 +1,298 @@
+#################################################################################
+#				HTPARSE.C					#
+#################################################################################
+
+#################################################################################
+#			HTParse(Aname, Relname, bitflag)			#
+#################################################################################
+
+remove_nulls 0
+
+send_user "Starting HTParse testing...\n"
+
+#For bit flags
+set PARSEACCESS     16
+set PARSEHOST        8
+set PARSEPATH        4
+set PARSEANCHOR      2
+set PARSEPUNCTUATION 1
+set PARSEALL        31
+
+#For creating unique test names...
+set testnum 0
+
+#To more easily identify the set it belongs to...
+set setnum 0
+
+#Open test file
+send_user "Opening test file......"
+set fp [open "./testsuite/$WWWTEST.test/HTParse.tests" r]
+send_user "file opened.\n"
+
+#Since line becomes a flag of sorts for the while loop, initialize it null.
+set line ""
+
+set part(2) Anchor
+set part(4) Path
+set part(8) Hostport
+set part(16) Access
+
+while {![eof $fp]} {
+
+#I use the * markers as the point to stop and run the test.
+#
+#Read in the data from the testfile
+#
+  while {(![eof $fp]) && ([string compare $line "***********"] != 0)} {
+    gets $fp line
+    if {[string compare $line ""] != 0} {
+      set ind  [string first ": " $line]
+      set type [string range $line 0 [expr $ind-1]]
+      switch $type {
+	"name"         {set name     [string range $line [expr $ind+2] end]}
+	"absolutename" {set absname  [string range $line [expr $ind+2] end]}
+	"access"       {set access   [string range $line [expr $ind+2] end]}
+	"hostport"     {set hostport [string range $line [expr $ind+2] end]}
+	"path"         {set path     [string range $line [expr $ind+2] end]}
+	"anchor"       {set anchor   [string range $line [expr $ind+2] end]}
+      }
+    }
+  }
+#
+#Run the tests
+#
+
+  if {![eof $fp]} {
+    incr setnum 1
+    verbose "\nParse set number:   $setnum\n	Name: $name\n	AbsoluteName:	$absname" 2
+#    if {$setnum  == 8} {exp_internal 1}
+    for {set i $PARSEANCHOR} {$i <= 16} {incr i $i} {
+      incr testnum 1
+      switch $i {
+	2	{set givencompare $anchor}
+	4	{set givencompare $path}
+	8	{set givencompare $hostport}
+	16	{set givencompare $access}
+      }
+      set test HTParse_($setnum)_($i)
+      set command "HTParse \"$name\" \"$absname\" [expr $i+$PARSEPUNCTUATION]"
+
+# Have to parse the strings and add slashes for regexp characters that
+# need to be literals
+
+      set command_ready [join [list [fix_string "($command)"] "\r\n"] ""]
+      set give_ready [fix_string "($givencompare)"]
+      set both [join [list $command_ready $give_ready] ""]
+
+      send -i $wwwtest_id "$command\r"
+
+      verbose $test 1
+      verbose "$part($i):" 2
+      verbose "	Expected:		$givencompare" 2
+
+      expect {
+	-i $wwwtest_id
+	-re "$both\(\r\n)*($prompt)" {set actual $expect_out(2,string)
+				           pass $test}
+	-re "$command_ready\(.*)\r\n($prompt)" {set actual $expect_out(2,string)
+					        fail $test}
+	timeout {set actual "Timed out..."		 
+		 fail $test}
+      }
+      verbose "	Result:                 $actual" 2
+    }
+  }
+
+#Reset the line from the * markers
+
+  set line ""
+
+}
+close $fp
+
+#################################################################################
+#			HTRelative(Aname, Relname)				#
+#################################################################################
+
+send_user "Starting HTRelative testing...\n"
+
+#For creating unique test names...
+set testnum 0
+
+#To more easily identify the set it belongs to...
+set setnum 0
+
+#Open example file
+send_user "Opening test file......"
+set fp [open "./testsuite/$WWWTEST.test/HTRelative.tests" r]
+send_user "file opened.\n"
+
+#Since line becomes a flag of sorts for the while loop, initialize it null.
+set line ""
+
+while {![eof $fp]} {
+
+#I use the * markers as the point to stop and run the test.
+#
+#Read in the data from the testfile
+#
+
+  while {(![eof $fp]) && ([string compare $line "***********"] != 0)} {
+    gets $fp line
+    if {[string compare $line ""] != 0} {	
+      set ind  [string first ": " $line]
+      set type [string range $line 0 [expr $ind-1]]
+      switch $type {		
+	"aname"    {set aname    [string range $line [expr $ind+2] end]}
+	"relname"  {set relname  [string range $line [expr $ind+2] end]}
+	"relative" {set relative [string range $line [expr $ind+2] end]}
+      }
+    }
+  }
+
+#
+#Run the tests
+#
+
+  if {![eof $fp]} {
+    incr setnum 1
+    incr testnum 1
+    set test "HTRelative $aname $relname"
+    set command "HTRelative \"$aname\" \"$relname\""    
+
+    send -i $wwwtest_id "$command\r"
+    verbose $test 1
+    verbose "	Expected:		$relative"
+    expect {
+      -i $wwwtest_id 
+      -re "($command)\r\n($relative)(\r\n)*($prompt)" {set actual $expect_out(2,string)
+							pass $test}
+      timeout {send_user "Timed out..."
+ 	       fail $test}
+    }
+    verbose "	Result:                 $actual" 2 
+  }
+#Reset the line from the * markers
+  set line ""
+}
+close $fp
+
+#################################################################################
+#			HTSimplify(string)					#
+#################################################################################
+
+#For creating unique test names...
+set testnum 0
+
+#To more easily identify the set it belongs to...
+set setnum 0
+
+#Open example file
+set fp [open "./testsuite/$WWWTEST.test/HTSimplify.tests" r]
+
+#Since line becomes a flag of sorts for the while loop, initialize it null.
+set line ""
+
+while {![eof $fp]} {
+
+#I use the * markers as the point to stop and run the test.
+#
+#Read in the data from the testfile
+#
+  while {(![eof $fp]) && ([string compare $line "***********"] != 0)} {
+    gets $fp line
+    if {[string compare $line ""] != 0} {	
+      set ind  [string first ": " $line]
+      set type [string range $line 0 [expr $ind-1]]
+      switch $type {
+	"string"     {set string     [string range $line [expr $ind+2] end]}
+	"simplified" {set simplified [string range $line [expr $ind+2] end]}
+      }
+    }
+  }
+#
+#Run the tests
+#
+  if {![eof $fp]} {
+    incr setnum 1
+    incr testnum 1
+    set  test "HTSimplify $string"
+    send -i $wwwtest_id "HTSimplify $string\r"
+    verbose $test 1
+    verbose "	Expected:		$simplified"
+    expect {
+      -i $wwwtest_id 
+      "$simplified"  {set actual $expect_out(0,string)
+			pass $test}
+      timeout {set actual "Timed out...."
+		fail $test}
+    }
+  verbose "	Result:                 $actual" 2 
+  }
+
+#Reset the line from the * markers
+  set line ""
+}
+close $fp
+
+#################################################################################
+#			HTCleanTelnetString(string)				#
+#################################################################################
+
+#exp_internal 1
+
+#For creating unique test names...
+set testnum 0
+
+#To more easily identify the set it belongs to...
+set setnum 0
+
+#Open example file
+set fp [open "./testsuite/$WWWTEST.test/HTCleanTelnetString.tests" r]
+
+#Since line becomes a flag of sorts for the while loop, initialize it null.
+set line ""
+
+while {![eof $fp]} {
+
+#I use the * markers as the point to stop and run the test.
+#Read in the data from the testfile
+#
+  while {(![eof $fp]) && ([string compare $line "***********"] != 0)} {
+    gets $fp line
+    if {[string compare $line ""] != 0} {	
+      set ind  [string first ": " $line]
+      set type [string range $line 0 [expr $ind-1]]
+      switch $type {
+	"unclean" {set unclean [string range $line [expr $ind+2] end]}
+	"clean"   {set clean   [string range $line [expr $ind+2] end]}
+      }
+    }
+  }
+
+#
+#Run the tests
+#
+if { 0 } {
+  if {![eof $fp]} {
+    incr setnum 1
+    incr testnum 1
+    send -i $wwwtest_id "HTCleanTelnetString \"\[eval HTUnEscape $unclean\]\""
+    set test HTCleanTelnetString_($testnum)
+    verbose $test 1
+    verbose "	Expected:		$clean"
+    set reg_ready [fix_string $clean]
+    expect {
+      -i $wwwtest_id 
+      -re "$reg_ready" {set actual $expect_out(0,string)
+			pass $test}
+      timeout {set actual "Timed out..."
+		fail $test}
+    }
+  verbose "	Result:                 $actual" 2 
+  }
+}
+#Reset the line from the * markers
+  set line ""
+}
+close $fp

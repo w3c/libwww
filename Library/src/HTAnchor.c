@@ -84,7 +84,6 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
 
     /* Find a hash for this tag (if any) */
     {
-	HTList ** children = parent->children;
 	int hash = 0;
 	/*
 	** If tag is empty then use hash value 0
@@ -94,13 +93,13 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
 	    for(; *ptr; ptr++)
 		hash = (int) ((hash*3 + (*(unsigned char*)ptr)) % CHILD_HASH_SIZE);
 	}
-	if (!children) {
-	    if (!(children = (HTList **)	
+	if (!parent->children) {
+	    if (!(parent->children = (HTList **)	
 		  HT_CALLOC(CHILD_HASH_SIZE, sizeof(HTList *))))
 		HT_OUTOFMEM("HTAnchor_findChild");
 	}
-	if (!children[hash]) children[hash] = HTList_new();
-	kids = children[hash];
+	if (!parent->children[hash]) parent->children[hash] = HTList_new();
+	kids = parent->children[hash];
     }
 
     /* First search list of children to see if tag is already there */

@@ -154,7 +154,7 @@ PRIVATE HTUTemplate * HTUTree_findTemplate (HTUTree * tree, const char * path)
 	while ((pres = (HTUTemplate *) HTList_nextObject(cur))) {
 	    if (!HTStrMatch(pres->tmplate, path)) {
 		if (CORE_TRACE)
-		    HTTrace("URL Node.... Template for for `%s\'\n", path);
+		    HTTrace("URL Node.... Did find template for for `%s\'\n", path);
 		return pres;
 	    }
 	}

@@ -28,15 +28,17 @@ PRIVATE const char * HTDialogs[HT_MSG_ELEMENTS] = {
     "Password:",
     "Please give name of file to save in:",
     "Plase enter account:",
-    "It might not be allowed to use this method on this URL, continue?",
+    "You might not be allowed to use this method here, continue?",
     "Location has moved, continue?",
     "A new set of rules is to be added to your setup - continue?",
     "This file already exists - replace existing file?",
     "Authentication failed - retry?",
+    "Proxy authentication failed - retry?",
     "This method has already been performed - repeat operation?",
     "This document is very big - continue operation?",
     "The source document for this operation has moved - continue operation with new location?",
     "The destination document for this operation has moved - continue operation with new location?",
+    "A redirection may change the behavior of this method - proceed anyway?"
 };
 
 /*
@@ -134,10 +136,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 			int msgnum, const char * dfault, void * input,
 			HTAlertPar * reply)
 {
-    if (!request) {
-	if (WWWTRACE) HTTrace("HTProgress.. Bad argument\n");
-	return NO;
-    }
+    if (!request || HTRequest_internal(request)) return NO;
     switch (op) {
       case HT_PROG_DNS:
 	HTTrace("Looking up %s\n", input ? (char *) input : "");

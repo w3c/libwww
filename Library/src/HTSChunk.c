@@ -25,6 +25,7 @@ struct _HTStream {
     int			cur_size;
     int			max_size;
     BOOL		give_up;
+    BOOL		ignore;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -63,11 +64,11 @@ PRIVATE int HTSC_putBlock (HTStream * me, const char * b, int l)
     ** buffer. In the case of puting a document we could also just start 
     ** sending data.
     */
-    if (me->cur_size > me->max_size) {
+    if (!me->ignore && me->cur_size > me->max_size) {
 	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
 	if ((cbf && (*cbf)(me->request, HT_A_CONFIRM, HT_MSG_BIG_PUT,
 			   NULL, NULL, NULL)))
-	    me->max_size *= 4;
+	    me->ignore = YES;
 	else
 	    me->give_up = YES;
     }
