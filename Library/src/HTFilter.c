@@ -351,6 +351,11 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 	HTLoad(request, YES);
 	return HT_ERROR;
 #endif /* SINGLE_CACHE_LOAD */
+    } else {
+
+	/* If entry doesn't already exist then create a new entry */
+	HTCache_touch(request, response, anchor);
+
     }
     return HT_OK;
 }
