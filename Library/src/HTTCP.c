@@ -300,6 +300,21 @@ PUBLIC int HTDoConnect (HTNet * net)
 
 	case TCP_NEED_CONNECT:
 #ifdef _WINSOCKAPI_
+	    /* 2000/08/02 Jens Meggers (jens@meggers.com):
+            ** In HTDoConnect(), the connect command is done before the
+            ** WSAAsyncSelect() that is called when 
+            ** HTHost_register(host, net, HTEvent_CONNECT); is executed. 
+            ** Although that is in line with the WinSock2 and Microsoft 
+            ** documentation, it does _not_ work all the time. I have done 
+            ** extensive tests on Win2000 and Win 4.0 SP5. In very rare cases,
+            ** the connect is finished between the connect() command itself and 
+            ** the WSAAsyncSelect(). In this unlikely case, WinSock does not 
+            ** (always) send the FD_CONNECT message. As a result, when using 
+            ** the Async mode, the event loop hangs because there is no 
+            ** timeout procedure registered for FD_CONNECT.
+	    ** JK: what happens if status returns an error? Do we have to
+	    ** unregister the HTEvent_CONNECT event then?                       
+            */
 	    HTHost_register(host, net, HTEvent_CONNECT);
 #endif /* _WINSOCKAPI_ */
 	    status = connect(HTChannel_socket(host->channel), (struct sockaddr *) &host->sock_addr,
