@@ -22,7 +22,7 @@ AC_ARG_PROGRAM
 dnl Variables for Automake.
 PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
-VERSION=4.1b5
+VERSION=5.0
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
 
@@ -141,9 +141,12 @@ AC_CHECK_LIB(dl, dlopen)
 
 dnl Checks for TcL Library
 AC_PATH_TCL(
-	AC_DEFINE(TCL),
-	AC_MSG_WARN(Cannot find TCL; code will be built without it)
+	[AC_DEFINE(TCL)
+	 W3CLIB="w3clib"],
+	[AC_MSG_WARN(Cannot find TCL; code will be built without it)
+	 W3CLIB=""]
 )
+AC_SUBST(W3CLIB)
 AC_SUBST(LIBTCL)
 
 dnl Checks for header files:

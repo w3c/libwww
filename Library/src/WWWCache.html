@@ -27,14 +27,6 @@ The cache contains details of persietent files which contain the contents
 of remote documents. The existing cache manager is somewhat naive - especially
 in its garbage collection but it is just an example of how it can be done.
 More advanced implementations are welcome!
-<P>
-There are various ways of handling the <CODE>Expires</CODE> header when met
-in a history list. Either it can be ignored all together, the user can be
-notified with a warning, or the document can be reloaded automatically. This
-flag decides what action to be taken. The default action is
-<CODE>HT_EXPIRES_IGNORE</CODE>. In <CODE>HT_EXPIRES_NOTIFY</CODE> mode we
-push a message on to the <A HREF="HTError.html">Error stack</A> which is
-presented to the user.
 <PRE>
 #ifndef WWWCACHE_H
 #define WWWCACHE_H
@@ -58,8 +50,8 @@ is that the Internet world is more complicated than Posix and ANSI.
   Caching Manager
 </H3>
 <P>
-The cache interface is currently quite simple but at least it shows that
-it can be done!
+The cache interface defines a persistent cache manager based on accessing
+files.
 <PRE>#include "<A HREF="HTCache.html">HTCache.h</A>"
 </PRE>
 <PRE>

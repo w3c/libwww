@@ -9,7 +9,7 @@
 <A HREF="../"><IMG ALT="libwww" SRC="../../Icons/WWW/Lib48x"></A>
 <IMG SRC="../../Icons/WWW/relnotes48x" ALT="RELEASE">
 <H1>
-  Library 4.1 Release Notes
+  Library 5.0Release Notes
 </H1>
 <P>
 If you are reading the text version of this document then you can find a
@@ -17,7 +17,12 @@ HTML version in
 <PRE>	Library/User/ReleaseNotes.html
 </PRE>
 <P>
-The focus for version 4.1 of the <A HREF="../">W3C Reference Library</A>
+This release was originally called 4.1 but because we now have a complete
+<A HREF="../../Protocols/">HTTP/1.1</A> client side implemenation including
+a <A HREF="../src/WWWCache/html">persistent cache manager</A> and full support
+for uploading documents, we decided to call it <B>version 5.0</B> instead.
+<P>
+The focus for version 5.0 of the <A HREF="../">W3C Reference Library</A>
 is to provide a set of higher level, application specific APIs for accessing
 the Web. These APIs - called <A HREF="../src/HTProfil.html">profiles</A>
 - will help the application, a Web client for example, to more easily use
@@ -28,15 +33,46 @@ a significantly better interface for easy access to the Web through a
 perform certain Web operations like <CODE>PUT</CODE>, <CODE>POST</CODE>,
 <CODE>DELETE</CODE>, <CODE>GET</CODE> and <CODE>HEAD</CODE>.
 <P>
+This release contains a <A HREF="../../Robot/">TCL add-on to the Robot
+</A>example application and a <A HREF="../Test/User/">Deja GNU Test suite</A>
+for the Library. Also, it support <A HREF="../../Protocols/">HTTP/1.1</A>
+including persistent connections, two-way <CODE>PUT</CODE>, and the
+<CODE>host</CODE> header. There is also a sample <A HREF="../src/HTPEP.c">PEP
+implementation</A>, that although incomplete can give an idea of where we're
+headed using PEP.
+<P>
 <IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> <B>Check out the latest
 &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
+<H2>
+  Release 5.0 September 10 1996
+</H2>
+<P>
+The 5.0 release has now a full persistent cache manager which works on Unix,
+and Windows NT. It has not been tested on other platforms, but it is based
+on strict ANSI C and has been designed to be portable.
+<H3>
+  Bug Fixes
+</H3>
+<UL>
+  <LI>
+    Changed <CODE><A HREF="../src/HTInet.html">HTGetTmpName</A></CODE> not to
+    use tempnam() anymore as it caused problems.
+  <LI>
+    Added argument to
+    <CODE><A HREF="../src/HTWWWStr.html">HTParseTime</A></CODE> so that we can
+    decide whether we want to expand relative times or not.
+  <LI>
+    The request pointer passed to a <A HREF="../src/HTAlert.html">progress
+    notification</A> may be <CODE>NULL</CODE> -be aware!
+</UL>
 <H2>
   Release 4.1b5 August 24 1996
 </H2>
 <P>
 Release 4.1b5 is mainly a bug fix release after intensive testing against
 the <A HREF="http://wilson.ai.mit.edu">Common Lisp Server </A>which also
-isa HTTP/1.1 application. However, it also has a few new features worth noting.
+is a HTTP/1.1 application. However, it also has a few new features worth
+noting.
 <H3>
   New Features
 </H3>
@@ -184,14 +220,6 @@ the <A HREF="../src/HTHost.html">Host object</A> and the
 <H2>
   Release 4.1b3 July 20 1996
 </H2>
-<P>
-This release contains a <A HREF="../../Robot/">TCL add-on to the Robot
-</A>example application and a <A HREF="../Test/User/">Deja GNU Test suite</A>
-for the Library. Also, it support <A HREF="../../Protocols/">HTTP/1.1</A>
-including persistent connections, two-way <CODE>PUT</CODE>, and the
-<CODE>host</CODE> header. There is also a sample <A HREF="../src/HTPEP.c">PEP
-implementation</A>, that although incomplete can give an idea of where we're
-headed using PEP.
 <P>
 The <A HREF="../src/HTFile.html">file access module</A> now does content
 negotiation by default. This means that all local file access (including

@@ -22,6 +22,7 @@ legal : $(BUILT_SOURCES)
 	@echo Generated built sources
 
 EXTRA_DIST = \
+	acinclude.m4 \
 	INSTALL.html \
 	README.html
 
@@ -73,8 +74,9 @@ cvs-diff:
 	cvs -f rdiff -c -r $$prevver -r $$thisver $(PACKAGE) \
 	    > $(PACKAGE)-$$prevno-$(VERSION).diff
 
+FULLDIRS = $(CVSDIRS) PICS-client
 inc:
-	for subdir in $(CVSDIRS); do		\
+	for subdir in $(FULLDIRS); do		\
 	  target=`echo $@ | sed s/-recursive//`; \
 	  echo making $$target in $$subdir;	\
 	  (cd $$subdir/src && $(MAKE) $$target)	\

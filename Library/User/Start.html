@@ -32,14 +32,16 @@ accessing HTTP and FTP servers, parsing
 the core knows about it. You can either register the parts directly through
 the many initialization functions in the Initialization Interface or you
 can use these "precompiled" profiles which are set up to contain the features
-often used by the a specific type of application, for example a client, a
-server, a robot etc.
+often used by the a specific type of application, for example a client and
+a robot.
 <H3>
   Client Profile
 </H3>
 <P>
 The <A HREF="../src/HTProf.html#Client">Client profile</A> initializes a
-large set of features often used in client applications. These include
+large set of features often used in client applications. These include features
+like:
+<P>
 <UL>
   <LI>
     HTTP, FTP, Gopher, News, Telnet Access , local file access and optionally
@@ -60,23 +62,21 @@ large set of features often used in client applications. These include
 <H3>
   Robot Profile
 </H3>
+<P>
 <UL>
   <LI>
-    MORE
-</UL>
-<H3>
-  Proxy Profile
-</H3>
-<UL>
+    HTTP, FTP, Gopher, News, Telnet Access , local file access and optionally
+    WAIS access
   <LI>
-    MORE
-</UL>
-<H3>
-  Server Profile
-</H3>
-<UL>
+    MIME parser
   <LI>
-    MORE
+    Access authentication and Automatic redirection
+  <LI>
+    Rule file management, proxy server and gateway support
+  <LI>
+    Chunked Encoders and decoders
+  <LI>
+    Request Log Manager
 </UL>
 <H2>
   Issuing a Request

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <TITLE>Status of the W3C Reference Library</TITLE>
+  <TITLE>Status of the W3C Reference Library (libwww)</TITLE>
 </HEAD>
 <BODY>
 <P>
@@ -10,33 +10,45 @@
   W3C Reference Library
 </H1>
 <P>
-
-The W3C Reference Library (libwww) is a general-purpose Web API
-written in C. It is a highly modular extensible API which can be used
-as the code base for writing Web clients, servers, proxies etc. Libwww
-provides reference code for HTTP and other Internet protocols and also
-for handling many media types including HTML.<P>
-
-<A HREF="../Member/"><IMG SRC="../Icons/WWW/w3cm_48x48" ALT="W3C Member"></A> If you are a W3C member
-then please <A HREF="/member/WWW/Library/">jump to the our member
-area</A> for the very latest version.
-
+The W3C Reference Library (libwww) is a general-purpose Web API written in
+C. It is a highly modular extensible API which can be used as the code base
+for writing Web clients, servers, proxies etc. The purpose of Libwww is to
+provide a reference code for HTTP and other Internet protocols and also to
+serve as a generic Web API.
+<P>
+<A HREF="../Member/"><IMG SRC="../Icons/WWW/w3cm_48x48" ALT="W3C Member"></A>
+<I>W3C members have exclusive access to new versions one month before the
+reference code becomes publicly available. If you are a W3C member then please
+<A HREF="/member/WWW/Library/">jump to the our member area</A> for the latest
+version.</I>
 <H2>
   <IMG SRC="../Icons/WWW/relnotes48x" ALT="NEWS"> News and Updates -
-  <B><A HREF="Distribution.html">4.1 beta 5</A> has been released August 25</B>
-  <IMG SRC="../Icons/WWW/new_red" ALT="NEW">
+  <B><A HREF="Distribution.html">Version 5.0</A> has been released September
+  10</B> <IMG SRC="../Icons/WWW/new_red" ALT="NEW">
 </H2>
 <P>
-
-<A HREF="Distribution.html">Libwww 4.1 beta 5</A> is a minor update
-from version 4.1b4. The main difference is some bug fixes after
-intensive testing against the <a
-HREF="http://wilson.ai.mit.edu">Common Lisp Server</A>. The release
-can be <A HREF="Distribution.html">downloaded</A> now. As version
-4.1b4, it includes a HTTP/1.1 conforming test implementation and many
-<A HREF="User/ReleaseNotes.html">other new features</A>.
-
+<A HREF="Distribution.html">Libwww version 5.0</A> is a major upgrade of
+libwww from previous versions. It contains a full HTTP/1.1 reference
+implementation and a new persistent cache which optimizes access to the Net.
+It has been tested against <A HREF="../Jigsaw/">Jigsaw</A> by Anselm Baird-Smith
+and the <A HREF="http://wilson.ai.mit.edu">Common List Server</A> written
+by John Mallory.
+<P>
 <UL>
+  <LI>
+    Check out the <A HREF="User/ReleaseNotes.html">long list of new features</A>.
+  <LI>
+    <A HREF="src/HTCache.html">Complete HTTP/1.1 compliant persistent cache
+    manager</A>
+  <LI>
+    Libwww includes a <A HREF="Test/src/Tcl_Interface.h">simple Tcl Interface</A>
+    for all the HTTP/1.1 methods
+  <LI>
+    The libwww <A HREF="../Robot/">robot test application</A> has a
+    <A HREF="../Robot/src/Robot.tcl">Tcl-Tk-based user interface</A>
+  <LI>
+    A <A HREF="Test/User/">Deja GNU based test suite</A> for checking core parts
+    of the Library
   <LI>
     Check out the new <A HREF="User/Extrnals.html">complete index of public
     function</A>
@@ -56,18 +68,16 @@ can be <A HREF="Distribution.html">downloaded</A> now. As version
     <A HREF="../People.html#Frystyk">Henrik Frystyk Nielsen</A>,
     <A HREF="../People.html#BernersLee">Tim Berners-Lee</A>, Eric Prud'hommeaux,
     <A HREF="../People/howcome/">H&aring;kon W. Lie</A>,
-    <A HREF="../People.html#Groff">Jean-Francois Groff</A>, and a large group
-    of contributors.
+    <A HREF="../People.html#Groff">Jean-Francois Groff</A>, and many others
+    throughout the lifetime of libwww.
   <DT>
-    Status
+    Release Status
   <DD>
-    Stable. Bug fixes and evolution from time to time.
-  <DT>
-    Plans and Activities
-  <DD>
-    The final <B>Version 4.1</B> is to be released <B>August 1996</B>. If you
-    are a <A HREF="../Consortium/Member/List.html"><EM>W3C member</EM></A> then
-    you can take a peek at the latest developments from our
+    The final <B>Version 5.0 </B>has been released <I>September 10 1996</I> for
+    W3C members only .It will become publicly available <I>October 10 1996</I>
+    following the normal W3C distribution rules. If you are a
+    <A HREF="../Consortium/Member/List.html"><EM>W3C member</EM></A> then you
+    can take a peek at the latest developments from our
     <A HREF="/devel/WWW/Library/">developer's area</A>. The
     <A HREF="Activity.html">W3C Activity statement</A> gives the status of which
     direction W3C is going regarding the W3C Reference Library.
@@ -75,21 +85,19 @@ can be <A HREF="Distribution.html">downloaded</A> now. As version
     Platforms
   <DD>
     The Library is known to compile on the following
-    <A HREF="User/Platform/">Platforms</A>. See also the
-    <A HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">VMS
-    version</A>, and the special notes on
-    <A HREF="User/Platform/WinDLL.html">Windows</A>
+    <A HREF="User/Platform/">Platforms</A>. See also the special notes for
+    <A HREF="User/Platform/WinDLL.html">building on Windows</A>
   <DT>
     Getting the Source Code
   <DD>
     The latest source code is available in the following formats:
     <UL>
       <LI>
-	<A HREF="w3c-libwww.tar.Z">compressed tar file (ca. 1.8M)</A>
+	<A HREF="w3c-libwww.tar.Z">compressed tar file (ca. 2.1M)</A>
       <LI>
-	<A HREF="w3c-libwww.tar.gz">gzip'ed tar file (ca. 1.2M)</A>
+	<A HREF="w3c-libwww.tar.gz">gzip'ed tar file (ca. 1.4M)</A>
       <LI>
-	<A HREF="w3c-libwww.zip">zip file (ca. 1.5M)</A>
+	<A HREF="w3c-libwww.zip">zip file (ca. 1.8M)</A>
     </UL>
     <P>
     You can find old versions of the source code and diffs together with many
