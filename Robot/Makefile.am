@@ -1,3 +1,3 @@
 ## Process this file with Automake to create Makefile.in.
 
-SUBDIRS = src User
+SUBDIRS = src User tcl

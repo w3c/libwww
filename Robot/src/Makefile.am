@@ -34,7 +34,6 @@ BUILT_SOURCES = \
 
 EXTRA_DIST = \
 	 $(BUILT_SOURCES) \
-	Robot.tcl \
 	robot.sh
 
 inc: $(BUILT_SOURCES)
