@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:NIST="http://www.nist.gov/RDFschema/"
+     xmlns:m="http://www.w3.org/TR/REC-MathML#">
+  <Description about="http://www.some.org/publication.html">
+    <NIST:Title rdf:ParseType="Literal">Investigations of <m:mathml>e=m<m:sup>2</m:sup></m:mathml></NIST:Title>
+  </Description>
+</RDF>

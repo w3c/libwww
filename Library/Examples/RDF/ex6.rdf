@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<RDF xmlns:DC='http://purl.org/metadata/dublin_core#'
+     xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<Description ID="example">
+  <subject resource="http://www.foo.com/bar.html" />
+  <predicate resource="http://purl.org/metadata/dublin_core#author" />
+  <object>Janne Saarela</object>
+  <type resource="http://w3.org/TR/1999/PR-rdf-syntax-19990105#Statement" />
+  <extensible element="from" future="namespace" />
+</Description>
+</RDF>
