@@ -51,7 +51,9 @@
 #include "HTTee.h"
 #include "HTError.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
+#include "HTFile.h"
 #include "HTThread.h"
+#include "HTEvent.h"
 
 /* These flags may be set to modify the operation of this module */
 PUBLIC char * HTCacheDir = NULL;  /* Root for cached files or 0 for no cache */
@@ -65,17 +67,9 @@ PUBLIC BOOL using_proxy = NO;	/* are we using a proxy gateway? */
 PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
 PUBLIC BOOL HTImProxy = NO;	/* cern_httpd as a proxy? */
 
+PRIVATE HTList * protocols = NULL;          /* List of registered protocols */
 
-/*	To generate other things, play with these:
-*/
-
-/* PUBLIC HTFormat HTOutputFormat = NULL;	use request->output_format */
-/* PUBLIC HTStream* HTOutputStream = NULL;	use request->output_stream */ 
-
-PRIVATE HTList * protocols = NULL;   /* List of registered protocol descriptors */
-
-/* 	Superclass defn */
-
+/* Superclass defn */
 struct _HTStream {
 	HTStreamClass * isa;
 	/* ... */
@@ -218,8 +212,8 @@ PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
 /*		      Management of the HTProtocol structure		     */
 /* --------------------------------------------------------------------------*/
 
-/*	Register a Protocol				HTRegisterProtocol
-**	-------------------
+/*
+**	Register a Protocol as an active access method
 */
 PUBLIC BOOL HTRegisterProtocol ARGS1(HTProtocol *, protocol)
 {
@@ -228,15 +222,30 @@ PUBLIC BOOL HTRegisterProtocol ARGS1(HTProtocol *, protocol)
     return YES;
 }
 
-PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
+
+/*
+**	Delete the list of registered access methods. This is called from
+**	within HTLibTerminate. Written by Eric Sink, eric@spyglass.com
+*/
+PUBLIC void HTDisposeProtocols NOARGS
 {
-    if (me && me->anchor && me->anchor->protocol &&
-	((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK)
-	return YES;
-    else
-	return NO;
+    if (protocols) {
+	HTList_delete(protocols);
+	protocols = NULL;
+    }
 }
 
+
+/*
+**	Is a protocol registered as BLOCKING? returns YES or NO
+*/
+PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
+{
+    if (HTInteractive)
+	return (me && me->anchor && me->anchor->protocol &&
+		((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK);
+    return YES;
+}
 
 /* --------------------------------------------------------------------------*/
 /*	           Initialization and Termination of the Library	     */
@@ -292,8 +301,11 @@ PUBLIC BOOL HTLibInit NOARGS
 {
     if (TRACE)
 	fprintf(stderr, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
+
+#ifndef NO_INIT
     if (!protocols)
 	HTAccessInit();			     /* Initilizing protocol modules */
+#endif
 
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
@@ -311,12 +323,19 @@ PUBLIC BOOL HTLibInit NOARGS
 /*								 HTLibTerminate
 **
 **	This function frees memory kept by the Library and should be called
-**	before exit of an application.
+**	before exit of an application (if you are on a PC platform)
 */
 PUBLIC BOOL HTLibTerminate NOARGS
 {
     if (TRACE)
-	fprintf(stderr, "WWWLibTerm.. Cleaning up LIBRARY OF COMMOND CODE\n");
+	fprintf(stderr, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+    HTAtom_deleteAll();
+    HTDisposeProtocols();
+    HTDisposeConversions();
+    HTFile_deleteSuffixes();
+    HTTCPCacheRemoveAll();
+    HTFreeHostName();
+    HTFreeMailAddress();
     return YES;
 }
 
@@ -747,8 +766,9 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
     
     if (!request->output_format) request->output_format = WWW_PRESENT;
 
+    /* Check if document is already loaded */
     if (!HTForceReload && (text=(HText *)HTAnchor_document(request->anchor)))
-    {	/* Already loaded */
+    {
         if (PROT_TRACE)
 	    fprintf(stderr, "HTAccess.... Document already in memory.\n");
 	if (request->childAnchor) {
@@ -846,9 +866,9 @@ PUBLIC int HTLoadToStream ARGS3(CONST char *,	addr,
 				BOOL, 		filter,
 				HTRequest*,	request)
 {
-   HTAnchor * anchor = HTAnchor_findAddress(addr);
-   request->anchor = HTAnchor_parent(anchor);
-   request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL :
+    HTAnchor * anchor = HTAnchor_findAddress(addr);
+    request->anchor = HTAnchor_parent(anchor);
+    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL :
    	(HTChildAnchor*) anchor;
     request->output_stream = request->output_stream;
     return HTLoadDocument(request, NO);

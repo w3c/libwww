@@ -641,8 +641,7 @@ request is already valid (made valid by HTAccess).
 <PRE>
 typedef enum _HTSocBlock {
     SOC_BLOCK,
-    SOC_NON_BLOCK,
-    SOC_WAS_NON_BLOCK
+    SOC_NON_BLOCK
 } HTSocBlock;
 
 typedef struct _HTProtocol {
@@ -655,12 +654,14 @@ typedef struct _HTProtocol {
 } HTProtocol;
 
 extern BOOL HTRegisterProtocol PARAMS((HTProtocol * protocol));
+extern void HTDisposeProtocols NOPARAMS;
 </PRE>
 
 <H3>Uses Protocol Blocking IO</H3>
 
 A small function to make life easier. Returns <CODE>YES</CODE> or
-<CODE>NO</CODE>.
+<CODE>NO</CODE>. If the Library is run in NON-INTERACTIVE MODE then
+the function always returns YES;
 
 <PRE>
 extern BOOL HTProtocolBlocking	PARAMS((HTRequest *	request));

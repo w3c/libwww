@@ -26,6 +26,10 @@
 PRIVATE HTAtom * hash_table[HASH_SIZE];
 PRIVATE BOOL initialised = NO;
 
+/*
+**	Finds an atom representation for a string. The atom doesn't have to be
+**	a new one but can be an already existing atom.
+*/
 PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
 {
     int hash;
@@ -68,6 +72,30 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
     hash_table[hash] = a;
 /*    if (TRACE) fprintf(stderr, "HTAtom: New atom %p for `%s'\n", a, string); */
     return a;
+}
+
+
+/*
+**	This function cleans up the memory used by atoms.
+**	Written by Eric Sink, eric@spyglass.com
+*/
+PUBLIC void HTAtom_deleteAll NOARGS
+{
+    int i;
+    HTAtom *cur;
+    HTAtom *next;
+    
+    for (i=0; i<HASH_SIZE; i++) {
+	if (hash_table[i]) {
+	    cur = hash_table[i];
+	    while (cur) {
+		next = cur->next;
+		free(cur->name);
+		free(cur);
+		cur = next;	
+	    }	
+	}
+    }
 }
 
 

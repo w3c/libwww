@@ -288,6 +288,30 @@ PRIVATE void HTTCPCacheRemoveElement ARGS1(host_info *, element)
 }
 
 
+/*                                                     	HTTCPCacheRemoveAll
+**
+**	Cleans up the memory. Called by HTLibTerminate
+*/
+PUBLIC void HTTCPCacheRemoveAll NOARGS
+{
+    if (hostcache) {
+	HTList *cur = hostcache;
+	host_info *pres;
+	while ((pres = (host_info *) HTList_nextObject(cur))) {
+	    if (*pres->addrlist)
+		free(*pres->addrlist);
+	    if (pres->addrlist)
+		free(pres->addrlist);
+	    if (pres->weight)
+		free(pres->weight);
+	    free(pres);
+	}
+	HTList_delete(hostcache);
+	hostcache = NULL;
+    }
+}
+
+
 /*                                                     HTTCPCacheRemoveHost
 **
 **	Removes the corresponding entrance in the cache
@@ -896,6 +920,15 @@ PUBLIC CONST char * HTGetHostName NOARGS
 }
 
 
+/*
+**	Free the host name. Called from HTLibTerminate
+*/
+PUBLIC void HTFreeHostName NOARGS
+{
+    FREE(hostname);
+}
+
+
 /*							       HTSetMailAddress
 **	Sets the current mail address plus host name and domain name.
 **	If this is not set then the default approach is used using
@@ -982,6 +1015,16 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
     }
     return NULL;
 }
+
+
+/*
+**	Free the mail address. Called from HTLibTerminate
+*/
+PUBLIC void HTFreeMailAddress NOARGS
+{
+    FREE(mailaddress);
+}
+
 
 /* ------------------------------------------------------------------------- */
 /*	       	      CONNECTION ESTABLISHMENT MANAGEMENT 		     */

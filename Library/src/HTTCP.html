@@ -98,6 +98,15 @@ exponentially for all the entries.
 extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
 </PRE>
 
+<H3>Cleanup the Memory</H3>
+
+This function is called from <A
+HREF="HTAccess.html#Library">HTLibTerminate</A>.
+
+<PRE>
+extern void HTTCPCacheRemoveAll NOPARAMS;
+</PRE>
+
 <H3>Control Variables</H3>
 
 This parameter determines the maximum number of hosts in the cache. The
@@ -231,6 +240,13 @@ function will use the new host and domain name.
 extern void HTSetHostName PARAMS((char * host));
 </PRE>
 
+<H3>Cleanup Memory</H3>
+
+Called from <A HREF="HTAccess.html#Library">HTLibTerminate</A>
+
+<PRE>
+extern void HTFreeHostName NOPARAMS;
+</PRE>
 
 <H3>Get Domain Name of This Machine</H3>
 
@@ -262,6 +278,14 @@ be set by the user to change the value in the  <A HREF="http://info.cern.ch/hype
 
 <PRE>
 extern void HTSetMailAddress PARAMS((char * address));
+</PRE>
+
+<H3>Free Memory</H3>
+
+Called by <A HREF="HTAccess.html#Library">HTLibTerminate</A>
+
+<PRE>
+extern void HTFreeMailAddress NOPARAMS;
 </PRE>
 
 <H2>Signal Handling</H2>

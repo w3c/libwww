@@ -188,7 +188,7 @@ $(FTP)/www/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
 	cp libwww.a $(FTP)/www/bin/$(WWW_MACH)/libwww_$(VC).a
 
 #	Source Distribution:
-distribute : $(WWW)/README $(WWW)/COPYRIGHT
+distribute : $(WWW)/README $(WWW)/COPYRIGHT $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \

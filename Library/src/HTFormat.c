@@ -65,17 +65,16 @@ typedef struct _HTAcceptNode {
 */
 PUBLIC void HTFormatDelete ARGS1(HTRequest *, request)
 {
-    HTList *cur;
-    HTPresentation *pres;
-    if (!request || !request->conversions)
-	return;
-    cur = request->conversions;
-    while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
-	FREE(pres->command);			 /* Leak fixed AL 6 Feb 1994 */
-	free(pres);
+    if (request && request->conversions) {
+	HTList *cur = request->conversions;
+	HTPresentation *pres;
+	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
+	    FREE(pres->command); /* Leak fixed AL 6 Feb 1994 */
+	    free(pres);
+	}
+	HTList_delete(request->conversions);
+	request->conversions = NULL;
     }
-    HTList_delete(request->conversions);
-    request->conversions = NULL;
 }
 
 
@@ -140,6 +139,20 @@ PUBLIC void HTSetConversion ARGS7(
     pres->secs = secs;
     pres->secs_per_byte = secs_per_byte;
     HTList_addObject(conversions, pres);
+}
+
+
+/*
+**	Cleanup memory after the GLOBAL list of converters. Note that there
+**	is also a LOCAL conversion list associated with each HTRequest
+**	structure. Written by Eric Sink, eric@spyglass.com
+*/
+PUBLIC void HTDisposeConversions NOARGS
+{
+    if (HTConversions) {
+	HTList_delete(HTConversions);
+	HTConversions = NULL;
+    }
 }
 
 

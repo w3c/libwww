@@ -386,13 +386,21 @@ extern void HTFormatInitNIM	PARAMS((HTList * conversions));
 
 <H3>Remove presentations and conversions</H3>
 
-This function deletes the list of <CODE>converters</CODE> and
-<CODE>presenters</CODE>.
+This function deletes the <EM>LOCAL </EM>list of
+<CODE>converters</CODE> and <CODE>presenters</CODE> associated with
+each <A HREF="HTAccess.html#z1">HTRequest structure</A>.
 
 <PRE>
 extern void HTFormatDelete	PARAMS((HTRequest * request));
 </PRE>
 
+This function cleans up the <EM>GLOBAL</EM> list of converters. The
+function is called from <A
+HREF="HTAccess.html#Library">HTLibTerminate</A>.
+
+<PRE>
+extern void HTDisposeConversions NOPARAMS;
+</PRE>
 
 <A NAME="Rank"><H2>Ranking of Accepted Formats</H2></A>
 

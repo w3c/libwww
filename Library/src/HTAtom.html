@@ -78,6 +78,16 @@ list of all MIME-types of type <CODE>text</CODE>.
 
 <PRE>
 extern HTList * HTAtom_templateMatches PARAMS((CONST char * templ));
+</PRE>
+
+<H3>Cleanup Memory</H3>
+
+In order to cleanup memory, call this function. This is done
+automaticly from the <A
+HREF="HTAccess.html#Library">HTLibTerminate</A> function.
+
+<PRE>
+extern void HTAtom_deleteAll NOPARAMS;
 
 #endif
 </PRE>

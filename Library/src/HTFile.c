@@ -176,6 +176,24 @@ PUBLIC void HTSetSuffix ARGS5(CONST char *,	suffix,
     suff->quality = value;
 }
 
+/*
+**	Cleans up the memory allocated by file suffixes
+**	Written by Eric Sink, eric@spyglass.com, and Henrik
+*/
+PUBLIC void HTFile_deleteSuffixes NOARGS
+{
+    HTList *cur = HTSuffixes;
+    HTSuffix *pres;
+    if (cur) {
+	while ((pres = (HTSuffix *) HTList_nextObject(cur))) {
+	    FREE(pres->suffix);
+	    free(pres);
+	}
+	HTList_delete(HTSuffixes);
+	HTSuffixes = NULL;
+    }
+}
+
 
 PRIVATE BOOL is_separator ARGS1(char, ch)
 {

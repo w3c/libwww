@@ -51,39 +51,41 @@ Library of Common Code</A>.
 <PRE>
 extern int HTSplitFilename PARAMS((char *	s_str,
 				   char **	s_arr));
-
 </PRE>
 
 <H3>Get Content Description According to Suffixes</H3>
+
 <PRE>
 extern HTContentDescription * HTGetContentDescription PARAMS((char ** actual,
 							      int	  n));
 
 #define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
 #define MAX_SUFF 15		/* Maximum number of suffixes for a file */
-
 </PRE>
 
 <H2>Convert filenames between local and WWW formats</H2>
-<PRE>extern char * HTLocalName PARAMS((CONST char * name));
 
-
+<PRE>
+extern char * HTLocalName PARAMS((CONST char * name));
 </PRE>
-<H2>Make a WWW name from a full local
-path name</H2>
-<PRE>extern char * WWW_nameOfFile PARAMS((const char * name));
 
+<H2>Make a WWW name from a full local path name</H2>
 
+<PRE>
+extern char * WWW_nameOfFile PARAMS((const char * name));
 </PRE>
+
 <H2>Generate the name of a cache file</H2>
-<PRE>extern char * HTCacheFileName PARAMS((CONST char * name));
+
+<PRE>
+extern char * HTCacheFileName PARAMS((CONST char * name));
 </PRE>
 
-<H2><A
-NAME="z1">HTSetSuffix: Define the representation
-for a file suffix</A></H2>This defines a mapping between local
-file suffixes and file content types
-and encodings.
+<H2><A NAME="z1">Define the Representation for a File Suffix</A></H2>
+
+This defines a mapping between local file suffixes and file content
+types and encodings.
+
 <H3>On entry,</H3>
 <DL>
 <DT>suffix
@@ -127,9 +129,11 @@ extern void HTAddLanguage PARAMS((CONST char *	suffix,
 				  float		quality));
 
 
+extern void HTFile_deleteSuffixes NOPARAMS;
 </PRE>
-<H2>HTFileFormat: Get Representation
-and Encoding from file name</H2>
+
+<H2>Get Representation and Encoding from file name</H2>
+
 <H3>On exit,</H3>
 <DL>
 <DT>return
