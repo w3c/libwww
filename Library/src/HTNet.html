@@ -285,7 +285,7 @@ You can call both the local and the global AFTER filters (if any)
 extern int HTNet_executeAfterAll (HTRequest * request, int status);
 </PRE>
 <H2>
-  Socket Resource Management
+  <A NAME="Resources">Socket Resource Management</A>
 </H2>
 <P>
 The request queue ensures that no more than a fixed number of TCP connections
@@ -512,23 +512,38 @@ extern BOOL HTNet_setPersistent (HTNet *           net,
                                  HTTransportMode   mode);
 </PRE>
 <H3>
-  Kill a Request
+  Kill one or more Requests
 </H3>
+<H4>
+  Kill this request and all requests in the Pipeline
+</H4>
 <P>
+When pipelining, it is not possible to kill a single request as we then loose
+track of where we are in the pipe. It is therefore necessary to kill the
+whole pipeline.
+<PRE>
+extern BOOL HTNet_killPipe (HTNet * net);
+</PRE>
+<H4>
+  Kill a single Request
+</H4>
+<P>
+This is not often used anymore, consider using the pipeline version above.
 Kill the request by calling the call back function with a request for closing
 the connection. Does not remove the object. This is done by HTNet_delete()
 function which is called by the load routine. Returns OK if success, NO on
-error
+error.
 <PRE>
 extern BOOL HTNet_kill (HTNet * me);
 </PRE>
-<H3>
-  Kill ALL requests
-</H3>
+<H4>
+  Kill ALL Requests
+</H4>
 <P>
-Kills all registered (active+pending) requests by calling the call back function
-with a request for closing the connection. We do not remove the HTNet object
-as it is done by HTNet_delete(). Returns OK if success, NO on error
+Kills <B>all</B> registered (active as well as pending) requests by calling
+the call back function with a request for closing the connection. We do not
+remove the HTNet object as it is done by HTNet_delete(). Returns OK if success,
+NO on error
 <PRE>
 extern BOOL HTNet_killAll (void);
 </PRE>

@@ -159,25 +159,23 @@ extern char * HTHost_rangeUnits  (HTHost * host);
 extern BOOL HTHost_setRangeUnits (HTHost * host, const char * units);
 extern BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit);
 </PRE>
-
-
 <H3>
-User Defined Contexts
+  User Defined Contexts
 </H3>
-     
-This can be used for anything that the application would like to keep tabs on.
-    
+<P>
+This can be used for anything that the application would like to keep tabs
+on.
 <PRE>
 extern void HTHost_setContext (HTHost * me, void * context);
 extern void * HTHost_context  (HTHost * me);
 </PRE>
-
 <H2>
   Persistent Connections
 </H2>
 <P>
-We don't want more than MaxSockets-2 connections to be persistent in order
-to avoid deadlock.
+We don't want more than <TT>(Max open sockets) - 2</TT> connections to be
+persistent in order to avoid deadlock. You can set the max number of simultaneous
+open connection in the <A HREF="HTNet.html#Resources">HTNet manager</A>.
 <PRE>
 extern int HTHost_catchClose (SOCKET soc, void * context, HTEventType type);
 extern BOOL HTHost_setPersistent (HTHost * host, BOOL persistent,
@@ -240,9 +238,10 @@ Requests are queued in the Host object until we have resources to start them.
 The request is in the form of a Net object as we may have multiple socket
 requests per <A HREF="HTReq.html">Request object</A>. This is for example
 the case with <A HREF="WWWFTp.html">FTP</A> which uses two connections.
-<PRE>extern int HTHost_addNet     (HTHost * host, HTNet * net);
-extern BOOL HTHost_free      (HTHost * host, int status);
-extern BOOL HTHost_deleteNet (HTHost * host, HTNet * net);
+<PRE>
+extern int  HTHost_addNet    (HTHost * host, HTNet * net);
+extern BOOL HTHost_deleteNet (HTHost * host, HTNet * net, int status);
+
 extern HTList * HTHost_net   (HTHost * host);
 </PRE>
 <H3>
@@ -295,21 +294,18 @@ extern int HTHost_connect (HTHost * host, HTNet * net, char * url,
 <P>
 HTHost clients can use the host for all IO and take advantage of host
 multiplexing and pipelining.
-
 <H3>
   How many Requests can we Pipeline onto the same Connection?
 </H3>
-
-Use these functions to set the max number of requests that can be
-pipelined at any one time on a single, persistent connection. The
-higher the number, the more we have to recover if the server closes
-the connection prematurely.
-
+<P>
+Use these functions to set the max number of requests that can be pipelined
+at any one time on a single, persistent connection. The higher the number,
+the more we have to recover if the server closes the connection prematurely.
+The default is about 50 requests which is enough to fill most links.
 <PRE>
 extern BOOL HTHost_setMaxPipelinedRequests (int max);
 extern int HTHost_maxPipelinedRequests (void);
 </PRE>
-
 <H2>
   Event Management
 </H2>
@@ -365,16 +361,6 @@ extern HTNet * HTHost_getReadNet  (HTHost * host);
 extern HTNet * HTHost_getWriteNet (HTHost * host);
 </PRE>
 <H3>
-  Automatic Connection Recovery
-</H3>
-<P>
-In case a pipeline is broken then we have to recover it and start again.
-This is handled automatically by the host object
-<PRE>
-extern BOOL HTHost_recoverPipe (HTHost * host);
-extern BOOL HTHost_doRecover (HTHost * host);
-</PRE>
-<H3>
   Get input and output Streams for this Host
 </H3>
 <PRE>
@@ -399,6 +385,35 @@ extern int HTHost_read(HTHost * host, HTNet * net);
 extern BOOL HTHost_setConsumed(HTHost * host, size_t bytes);
 </PRE>
 <H2>
+  <A NAME="Pipeline">Handling a Pipeline</A>
+</H2>
+<P>
+Pipelines normally run by themselves (requests are issued and responses
+recieved). However, it may be necessry to either prematurely abort a pipeline
+or to recover a broken pipeline due to communication problems with the server.
+<H3>
+  Pipeline Recovery
+</H3>
+<P>
+In case a pipeline is broken then we have to recover it and start again.
+This is handled automatically by the host object, so you do not have to call
+this one explicitly.
+<PRE>
+extern BOOL HTHost_recoverPipe (HTHost * host);
+extern BOOL HTHost_doRecover (HTHost * host);
+</PRE>
+<H3>
+  Kill a Pipeline
+</H3>
+<P>
+Call this function to terminate all requests (pending as well as active)
+registered with a host object. This is typically the function that handles
+timeout, abort (user hits the red button, etc). You can also use the
+<A HREF="HTNet.html">HTNet object kill method</A> which in terms call this
+function.
+<PRE>extern BOOL HTHost_killPipe (HTHost * host);
+</PRE>
+<H2>
   Multi homed Host Management
 </H2>
 <P>
@@ -414,26 +429,23 @@ extern BOOL HTHost_setRetry (HTHost * host, int retry);
 extern int HTHost_retry (HTHost * host);
 extern BOOL HTHost_decreaseRetry (HTHost * host);
 </PRE>
-
+<H2>
+  Notify Request that it has become Active
+</H2>
 <P>
 A new callback plugged to the activation of a request. Allows to simplify
 Amaya's use of libwww.
-</P>
 <PRE>
 typedef int HTHost_ActivateRequestCallback (HTRequest *);
 extern void HTHost_setActivateRequestCallback (HTHost_ActivateRequestCallback *
 cbf);
 </PRE>
-
 <P>
 Controls whether pending requests should be automatically activated.
-</P>
-
 <PRE>
 extern void HTHost_enable_PendingReqLaunch (void);
 extern void HTHost_disable_PendingReqLaunch (void);
 </PRE>
-
 <PRE>
 #endif /* HTHOST_H */
 </PRE>

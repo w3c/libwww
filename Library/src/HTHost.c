@@ -105,6 +105,61 @@ PRIVATE BOOL isLastInPipe (HTHost * host, HTNet * net)
     return HTList_lastObject(host->pipeline) == net;
 }
 
+PRIVATE BOOL killPipeline (HTHost * host, HTEventType type)
+{
+    if (host) {
+	int piped = HTList_count(host->pipeline);
+	int pending = HTList_count(host->pending);
+	int cnt;
+
+	if (CORE_TRACE)
+	    HTTrace("Host kill... Pipeline due to %s event\n", HTEvent_type2str(type));
+
+	/* Terminate all net objects in pending queue */
+	for (cnt=0; cnt<pending; cnt++) {
+	    HTNet * net = HTList_removeLastObject(host->pending);
+	    if (CORE_TRACE) HTTrace("Host kill... Terminating net object %p from pending queue\n", net);
+	    net->registeredFor = 0;
+	    (*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
+	}
+
+	/* Terminate all net objects in pipeline */
+	if (piped >= 1) {
+	    
+#if 0
+	    /*
+	    **  Unregister this host for all events
+	    */
+	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
+	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
+	    host->registeredFor = 0;
+
+	    /*
+	    **  Set new mode to single until we know what is going on
+	    */
+	    host->mode = HT_TP_SINGLE;
+#endif
+	    /*
+	    **  Terminte all net objects in the pipeline
+	    */
+	    for (cnt=0; cnt<piped; cnt++) {
+		HTNet * net = HTList_firstObject(host->pipeline);
+		if (CORE_TRACE) HTTrace("Host kill... Terminating net object %p from pipe line\n", net);
+		net->registeredFor = 0;
+		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
+	    }
+
+#if 0
+	    HTChannel_setSemaphore(host->channel, 0);
+	    HTHost_clearChannel(host, HT_INTERRUPTED);
+#endif
+
+	}
+	return YES;
+    }
+    return NO;
+}
+
 /*
 **  Silently close an idle persistent connection after 
 **  TCP_IDLE_ACTIVE secs
@@ -117,55 +172,6 @@ PRIVATE int IdleTimeoutEvent (HTTimer * timer, void * param, HTEventType type)
     HTTimer_delete(timer);
     host->timer = NULL;
     return result;
-}
-
-PRIVATE BOOL BusyTimeoutHandler (HTHost * host)
-{
-    if (host) {
-	int piped = HTList_count(host->pipeline);
-	int pending = HTList_count(host->pending);
-	int cnt;
-
-	/* Terminate all net objects in pending queue */
-	for (cnt=0; cnt<pending; cnt++) {
-	    HTNet * net = HTList_removeLastObject(host->pending);
-	    if (CORE_TRACE) HTTrace("Host timeout Terminating net object %p from pending queue\n", net);
-	    net->registeredFor = 0;
-	    (*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, HTEvent_TIMEOUT);
-	}
-
-	/* Terminate all net objects in pipeline */
-	if (piped >= 1) {
-	    
-	    /*
-	    **  Unregister this host for all events
-	    */
-	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
-	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
-	    host->registeredFor = 0;
-
-	    /*
-	    **  Set new mode to single until we know what is going on
-	    */
-	    host->mode = HT_TP_SINGLE;
-
-	    /*
-	    **  Terminte all net objects in the pipeline
-	    */
-	    for (cnt=0; cnt<piped; cnt++) {
-		HTNet * net = HTList_firstObject(host->pipeline);
-		if (CORE_TRACE) HTTrace("Host timeout Terminating net object %p from pipe line\n", net);
-		net->registeredFor = 0;
-		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, HTEvent_TIMEOUT);
-	    }
-
-	    HTChannel_setSemaphore(host->channel, 0);
-	    HTHost_clearChannel(host, HT_INTERRUPTED);
-
-	}
-	return YES;
-    }
-    return NO;
 }
 
 /*
@@ -253,7 +259,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	HTTrace("Host Event.. Who wants to write to `%s\'?\n", host->hostname);
 	return HT_ERROR;
     } else if (type == HTEvent_TIMEOUT) {
-	BusyTimeoutHandler(host);
+	killPipeline(host, HTEvent_TIMEOUT);
     } else {
 	HTTrace("Don't know how to handle OOB data from `%s\'?\n", 
 		host->hostname);
@@ -322,7 +328,7 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
             */
             if (pres->expires > 0) {
                 time_t t = time(NULL);
-                if (pres->expires < t) {	   /* Cached channel is cold */
+                if (HTHost_isIdle(pres) && pres->expires < t) {
                     if (CORE_TRACE)
                         HTTrace("Host info... Persistent channel %p gotten cold\n",
                         pres->channel);
@@ -645,6 +651,8 @@ PUBLIC BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit)
 */
 PUBLIC int HTHost_catchClose (SOCKET soc, void * context, HTEventType type)
 {
+#if 0
+    /* Not used anymore */
     HTNet * net = (HTNet *)context;
     HTHost * host = net->host;
     if (CORE_TRACE)
@@ -662,6 +670,8 @@ PUBLIC int HTHost_catchClose (SOCKET soc, void * context, HTEventType type)
     }
     HTHost_unregister(host, net, HTEvent_CLOSE);
     return HT_OK;
+#endif
+    return HT_ERROR;
 }
 
 /*
@@ -848,6 +858,15 @@ PUBLIC BOOL HTHost_recoverPipe (HTHost * host)
 }
 
 /*
+**	Terminate a pipeline prematurely, for example because of timeout,
+**	interruption, etc.
+*/
+PUBLIC BOOL HTHost_killPipe (HTHost * host)
+{
+    return killPipeline(host, HTEvent_CLOSE);
+}
+
+/*
 **	Handle the connection mode. The mode may change mode in the 
 **	middle of a connection.
 */
@@ -927,7 +946,8 @@ PRIVATE BOOL _roomInPipe (HTHost * host)
     case HT_TP_SINGLE:
 	return count <= 0;
     case HT_TP_PIPELINE:
-	return count < MaxPipelinedRequests;
+	return (host->recovered < MAX_HOST_RECOVER) ?
+	    (count < MaxPipelinedRequests) : (count <= 0);
     case HT_TP_INTERLEAVE:
 	return YES;
     }
@@ -1031,7 +1051,7 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
     return HT_ERROR;
 }
 
-PUBLIC BOOL HTHost_free (HTHost * host, int status)
+PRIVATE BOOL HTHost_free (HTHost * host, int status)
 {
     if (host->channel) {
 
@@ -1093,11 +1113,17 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
     return NO;
 }
 
-PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
+PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net, int status)
 {
     if (host && net) {
         if (CORE_TRACE) HTTrace("Host info... Remove %p from pipe\n", net);
-	HTList_removeObjectAll(host->pipeline, net);
+
+	/* If the Net object is in the pipeline then also update the channel */
+	if (host->pipeline && HTList_indexOf(host->pipeline, net) >= 0) {
+	    HTHost_free(host, status);
+	    HTList_removeObjectAll(host->pipeline, net);
+	}
+
 	HTList_removeObjectAll(host->pending, net); /* just to make sure */
 	return YES;
     }

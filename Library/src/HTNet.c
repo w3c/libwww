@@ -828,8 +828,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 			    request, HTRequest_retrys(request), net);
 		return YES;
 	    }
-	    HTHost_free(net->host, status);
-            HTHost_deleteNet(net->host, net);
+            HTHost_deleteNet(net->host, net, status);
 	    if (HTHost_doRecover(net->host)) HTHost_recoverPipe(net->host);
         }
 
@@ -868,6 +867,16 @@ PUBLIC BOOL HTNet_deleteAll (void)
 	return YES;
     }
     return NO;
+}
+
+/*
+**	When pipelining, it is not possible to kill a single request 
+**	as we then loose track of where we are in the pipe. It is 
+**	therefore necessary to kill the whole pipeline.
+*/
+PUBLIC BOOL HTNet_killPipe (HTNet * net)
+{
+    return (net && net->host) ? HTHost_killPipe(net->host) : NO;
 }
 
 /*	HTNet_kill
