@@ -90,8 +90,17 @@ SPECIFIC =  \
 # recursive invocation
 include $(ABS)$(LM)Version.make
 
+PURIFY = purify \
+	-logfile=/home2/frystyk/purify-output \
+	-cache-dir=/home2/frystyk/purify-cache
+
 $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
 	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(WWWLIB) $(WAISLIB) $(LFLAGS)
+	-rm $(BIN)/$(PROD)
+	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
+
+purify : $(OBJS) $(USELIBDIR)/libwww.a
+	$(PURIFY) $(CC) -o $(PROD)_$(VL) $(OBJS) $(WWWLIB) $(WAISLIB) $(LFLAGS)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 

@@ -58,6 +58,10 @@
 #define MANUAL "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
 #endif
 
+#ifndef COM_HELP_FILE
+#define COM_HELP_FILE "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/CommandLine.html"
+#endif
+
 #ifndef DEFAULT_LOCAL_LOGFILE
 #define DEFAULT_LOCAL_LOGFILE		"WWW-log"	/* Log file name for local execution */
 #endif
@@ -424,6 +428,13 @@ int main
 		filter = YES;	   
 		interactive = NO;     /* From stdin, Force non-interactive */
 	    
+	    /* -? or -help: show the command line help page */
+	    } else if (!strcmp(argv[arg], "-?") ||
+		       !strcmp(argv[arg], "-help")) {
+		home_anchor = (HTParentAnchor *)
+		    HTAnchor_findAddress(COM_HELP_FILE);
+		argument_found = YES;	    /* Don't try to find other pages */
+
 	    /* from -- Initial represntation (only with filter) */
 	    } else if (!strcmp(argv[arg], "-from")) {
 		input_format = (arg+1 >= argc || *argv[arg+1] == '-') ?
