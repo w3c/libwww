@@ -18,7 +18,11 @@
 /* Uses: */
 #include "HTParse.h"
 #include "HTUtils.h"
+
+/* System dependent stuff */
 #include "tcp.h"
+
+/* Library Includes */
 #include "HTTCP.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
@@ -69,11 +73,13 @@ typedef enum _HTTPState {
 } HTTPState;
 
 typedef struct _http_info {
-    int                         sockfd;   /* Socket number for communication */
-    HTInputSocket *		isoc;			     /* Input buffer */
-    HTRequest *		   	request;		/* Request structure */
-    HTTPState			state;		  /* State of the connection */
-    int				redirections;	   /* Number of redirections */
+    int			sockfd;		  /* Socket number for communication */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    int 		addressCount; /* No. of attempts if multi-homed host */
+    BOOL		CRLFdotCRLF;	       /* Transmission end like this */
+    HTRequest *		request;			/* Request structure */
+
+    HTTPState		state;			  /* State of the connection */
 } http_info;
 
 /* ------------------------------------------------------------------------- */
@@ -374,7 +380,7 @@ PRIVATE int HTTPGetBody ARGS4(HTRequest *, request, http_info *, http,
 **      Reads the response from a 3xx server status code. Only the first line
 **	is read. The format expected is
 **
-**	Location: <url> String CrLf
+**	Location: <url> String CrLf	OR	URI: <url> String CrLf 
 **
 **	The comment string is ignored!
 **
@@ -395,7 +401,8 @@ PRIVATE HTAnchor *HTTPRedirect ARGS3(HTRequest *, request,
 	if (*strptr) {
 	    while (*strptr && *strptr == ' ')	      /* Skip leading spaces */
 		strptr++;
-	    if (!strncasecomp(strptr, "location:", 9)) {
+	    if (!strncasecomp(strptr, "location:", 9) ||
+		!strncasecomp(strptr, "uri:", 4)) {
 		char *url = strchr(strptr, ' ');
 		char *comment;
 		while (*url && *url == ' ')	      /* Skip leading spaces */
@@ -458,7 +465,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
         return -1;
     }
     url = HTAnchor_physical(request->anchor);
-    HTSimplify(url);				  /* Working on the original */
     if (TRACE) fprintf(stderr, "HTTP........ Looking for `%s\'\n", url);
 
     /* Initiate a new http structure and bind to request structure */
@@ -487,7 +493,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     }
 
     /* Now let's set up a connection and input buffer */
-    if ((status = HTDoConnect((HTNetInfo *) http, url, TCP_PORT, NULL)) < 0) {
+    if ((status = HTDoConnect((HTNetInfo *) http, url, TCP_PORT,
+			      NULL, NO)) < 0) {
 	if (TRACE)
 	    fprintf(stderr, "HTTP........ Connection not established\n");
 	if (status != HT_INTERRUPTED) {
@@ -502,7 +509,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	HTTPCleanup(http);
 	return status;
     }
-    http->isoc = HTInputSocket_new(http->sockfd);
     if (TRACE) fprintf(stderr, "HTTP........ Connected, socket %d\n",
 		       http->sockfd);
 
@@ -560,13 +566,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	*/
 	HTCopy(http->sockfd, request->output_stream);
 	(*request->output_stream->isa->_free)(request->output_stream);
-	HTInputSocket_free(http->isoc);
 	HTTPCleanup(http);
 	return HT_LOADED;
     } else {						    /* read response */
 
 	HTFormat format_in;		/* Format arriving in the message */
 	char *status_line = NULL;
+	http->isoc = HTInputSocket_new(http->sockfd);
 	status_line = HTInputSocket_getStatusLine(http->isoc);
 
 /* Kludge to trap binary responses from illegal HTTP0.9 servers.
@@ -582,7 +588,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 **	characters < 128 will be read as ASCII.
 */
 	/* If HTTP 0 response, then DO NOT CACHE (Henrik 14/02-94) */
-	if (!status_line) {	
+	if (!status_line) {
+	    if (PROT_TRACE)
+		fprintf(stderr,	
+			"HTTP........ This seems like a HTTP 0.9 server\n");
 	    if (HTInputSocket_seemsBinary(http->isoc)) {
 		format_in = HTAtom_for("www/unknown");
 	    } else {
@@ -658,12 +667,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			    free(status_line);
 			    HTInputSocket_free(http->isoc);
 			    HTTPCleanup(http);
+			    request->redirections++;
 
 			    /* If we have not reached the roof for redirects
 			       then call HTLoadAnchor recursively but keep
 			       the error_stack so that the user knows what
 			       is going on */
-			    if (http->redirections < HTMaxRedirections) {
+			    if (request->redirections < HTMaxRedirections) {
 				if (HTLoadAnchorRecursive((HTAnchor *) anchor,
 							  request) == YES)
 				    return HT_LOADED;
@@ -709,23 +719,82 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    
 	      case 4:		/* Access Authorization problem */
 		switch (server_status) {
+		  case 400:
+		    {
+			char *unescaped = NULL;
+			StrAllocCopy(unescaped, url);
+			HTUnEscape(unescaped);
+			HTErrorAdd(request, ERR_FATAL, NO,
+				   HTERR_BAD_REQUEST, (void *) unescaped,
+				   (int) strlen(unescaped), "HTLoadHTTP");
+			free(unescaped);
+		    }
+		    status = -1;
+		    break;
 		  case 401:
 		    parse_401_headers(request, http->isoc);
-
-		    if (TRACE) fprintf(stderr, "%s %d %s\n",
-				       "HTTP: close socket", http->sockfd,
-				       "to retry with Access Authorization");
+		    if (TRACE) fprintf(stderr, "HTTP........ Closing socket %d to retry with Access Autorization\n", http->sockfd);
+		    if ((status = NETCLOSE(http->sockfd)) < 0) {
+			HTErrorSysAdd(http->request, ERR_FATAL, NO,"NETCLOSE");
+			break;
+		    }
+		    http->sockfd = -1;
 		    if (HTAA_retryWithAuth(request, HTLoadHTTP)) {
 			status = HT_LOADED;/* @@ THIS ONLY WORKS ON LINEMODE */
 			break;
+		    } else {
+			char *unescaped = NULL;
+			StrAllocCopy(unescaped, url);
+			HTUnEscape(unescaped);
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+				   (void *) unescaped,
+				   (int) strlen(unescaped), "HTLoadHTTP");
+			free(unescaped);
+			status = -1;
 		    }
-		    /* else falltrough */
+		    break;
+		  case 402:
+		    {
+			char *unescaped = NULL;
+			StrAllocCopy(unescaped, url);
+			HTUnEscape(unescaped);
+			HTErrorAdd(request, ERR_FATAL, NO,
+				   HTERR_PAYMENT_REQUIRED, (void *) unescaped,
+				   (int) strlen(unescaped), "HTLoadHTTP");
+			free(unescaped);
+		    }
+		    status = -1;
+		    break;
+		  case 403:
+		    {
+			char *unescaped = NULL;
+			StrAllocCopy(unescaped, url);
+			HTUnEscape(unescaped);
+			HTErrorAdd(request, ERR_FATAL, NO,
+				   HTERR_FORBIDDEN, (void *) unescaped,
+				   (int) strlen(unescaped), "HTLoadHTTP");
+			free(unescaped);
+		    }
+		    status = -1;
+		    break;
+		  case 404:
+		    {
+			char *unescaped = NULL;
+			StrAllocCopy(unescaped, url);
+			HTUnEscape(unescaped);
+			HTErrorAdd(request, ERR_FATAL, NO,
+				   HTERR_NOT_FOUND, (void *) unescaped,
+				   (int) strlen(unescaped), "HTLoadHTTP");
+			free(unescaped);
+		    }
+		    status = -1;
+		    break;
 		  default:
 		    {
 			char *unescaped = NULL;
 			StrAllocCopy(unescaped, url);
 			HTUnEscape(unescaped);
-			HTErrorAdd(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 				   (void *) unescaped,
 				   (int) strlen(unescaped), "HTLoadHTTP");
 			free(unescaped);

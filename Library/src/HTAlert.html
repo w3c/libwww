@@ -14,20 +14,26 @@ a portable way.
 <LI>May 92 Created By C.T. Barker
 <LI>Feb 93 Portablized etc TBL
 </UL>
-<PRE>#include <A
-NAME="z1" HREF="HTUtils.html">"HTUtils.h"</A>
-#include <A
-NAME="z2" HREF="tcp.html">"tcp.h"</A>
+<PRE>
+#include <A NAME="z1" HREF="HTUtils.html">"HTUtils.h"</A>
 
 #ifdef SHORT_NAMES
 #define HTPrPass	HTPromptPassword
 #define HTPUnAPw	HTPromptUsernameAndPassword
 #endif /*SHORT_NAMES*/
-
 </PRE>
-<H2>HTPrompt and HTPromptPassword: Display
-a message and get the input</H2>HTPromptPassword() doesn't echo reply
-on the screen.
+
+<H2>Flags for This Module</H2>
+
+<PRE>
+extern BOOL HTInteractive;      	    /* Any prompts from the Library? */
+</PRE>
+
+<H2>HTPrompt and HTPromptPassword: Display a message and get the
+input</H2>
+
+HTPromptPassword() doesn't echo reply on the screen.
+
 <H3>On entry,</H3>
 <DL>
 <DT>Msg

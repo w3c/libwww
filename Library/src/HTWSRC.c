@@ -9,17 +9,10 @@
 **	8 Jul 94  FM	Insulate free() from _free structure element.
 */
 
-#include "HTWSRC.h"
-
-
-/* #include <sys/types.h>	already in tcp.h */
-/* #include <sys/stat.h>  	this too         */
-#include <stdio.h>
 #include "HTML.h"
-
 #include "HTUtils.h"
-#include "tcp.h"
 #include "HTParse.h"
+#include "HTWSRC.h"					 /* Implemented here */
 
 #define BIG 10000		/* Arbitrary limit to value length */
 #define PARAM_MAX BIG

@@ -5,8 +5,9 @@
 **	May 12 94	TAB added as legal char in HTCleanTelnetString
 **
 */
-#include "tcp.h"
+
 #include "HTUtils.h"
+#include "HTTCP.h"
 #include "HTParse.h"
 
 #define HEX_ESCAPE '%'
@@ -199,16 +200,18 @@ char * HTParse(aName, relatedName, wanted)
 	
     if (wanted & PARSE_HOST)
         if(given.host || related.host) {
-	    char * tail = result + strlen(result);
 	    if(wanted & PARSE_PUNCTUATION) strcat(result, "//");
 	    strcat(result, given.host ? given.host : related.host);
+#if 0
+/* This is now done in HTCanon */
 #define CLEAN_URLS
+#endif
 #ifdef CLEAN_URLS
 	    /* Ignore default port numbers, and trailing dots on FQDNs
 	       which will only cause identical adreesses to look different */
 	    {
-	    	char * p;
-		p = strchr(tail, ':');
+		char *tail = result + strlen(result);
+	    	char *p = strchr(tail, ':');
 		if (p && access) {		/* Port specified */
 		    if (  (   strcmp(access, "http") == 0
 		    	   && strcmp(p, ":80") == 0 )
@@ -247,7 +250,7 @@ char * HTParse(aName, relatedName, wanted)
 		for (; *p!='/'; p--);	/* last / */
 		p[1]=0;					/* Remove filename */
 		strcat(result, given.relative);		/* Add given one */
-		HTSimplify (result);
+		result = HTSimplify (result);
 	    }
 	} else if(given.relative) {
 	    strcat(result, given.relative);		/* what we've got */
@@ -322,119 +325,91 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 // If more than one set of `://' is found (several proxies in cascade) then
 // only the part after the last `://' is simplified.
 */
-PUBLIC void HTSimplify ARGS1(char *, filename)
+PUBLIC char *HTSimplify ARGS1(char *, filename)
 {
-    int tokcnt = 0;
-    char *strptr;
-    char *urlptr;
-    BOOL prefix = NO;	 /* If prefix == YES then we can delete all segments */
-    if (!filename || !*filename)                         /* Just to be sure! */
-	return;
+    char *path;
+    char *p;
 
-    if (TRACE)
+    if (!filename) {
+	if (URI_TRACE)
+	    fprintf(stderr, "HTSimplify.. Bad argument\n");
+	return filename;
+    }
+    if (URI_TRACE)
 	fprintf(stderr, "HTSimplify.. `%s\' ", filename);
 
-    /* Skip prefix, starting ./ and starting ///<etc> */
-    if ((urlptr = strstr(filename, "://")) != NULL) {	      /* Find prefix */
+    if ((path = strstr(filename, "://")) != NULL) {	   /* Find host name */
 	char *newptr;
-	urlptr += 3;
-	while ((newptr = strstr(urlptr, "://")) != NULL)
-	    urlptr = newptr+3;
-	prefix = YES;
-    } else if ((urlptr = strstr(filename, ":/")) != NULL) {
-	urlptr += 2;
-	prefix = YES;
+	path += 3;
+	while ((newptr = strstr(path, "://")) != NULL)
+	    path = newptr+3;
+	path = HTCanon(&filename, path);       	      /* We have a host name */
+    } else if ((path = strstr(filename, ":/")) != NULL) {
+	path += 2;
     } else
-	urlptr = filename;
-    if (*urlptr == '.' && *(urlptr+1) == '/') {          /* Starting ./<etc> */
-	urlptr += 2;
-	prefix = YES;
-    } else if (*urlptr == '/') {	         /* Some URLs start //<file> */
-	while (*++urlptr == '/');
-	prefix = YES;
-    }
-    if (!*urlptr) {					  /* If nothing left */
-	if (TRACE)
-	    fprintf(stderr, "No simplification possible\n");
-	return;
-    }
-
-    /* Now we have the string we want to work with */
-    strptr = urlptr;
-    while (*strptr++) {                        /* Count number of delimiters */
-	if (*strptr == '/')
-	    tokcnt++;
-    }
-    {
-	BOOL slashtail = NO;
-	int segcnt = 0;	     /* Number of 'real segments' (not '.' and '..') */
-	char *empty = "";
-	char *url = NULL;
-	char **tokptr;
-	char **tokstart;
-	StrAllocCopy(url, urlptr);
-
-	/* Does the URL end with a slash? */
-	if(*(filename+strlen(filename)-1) == '/')
-	    slashtail = YES;
-	
-	/* I allocate cnt+2 as I don't know if the url is terminated by '/' */
-	if ((tokstart = (char **) calloc(tokcnt+2, sizeof(char *))) == NULL)
-	    outofmem(__FILE__, "HTSimplify");
-
-	/* Read the tokens forwards and count `real' segments */
-	tokptr = tokstart;
-	*tokptr = strtok(url, "/");
-	if (strcmp(*tokptr, ".") && strcmp(*tokptr, ".."))
-	    segcnt++;
-	tokptr++;
-	while ((strptr = strtok(NULL, "/")) != NULL) {
-	    if (strcmp(strptr, ".") && strcmp(strptr, ".."))
-		segcnt++;
-	    else if (!strcmp(strptr, "..") && !segcnt)
-		prefix = YES;
-	    *tokptr++ = strptr;
+	path = filename;
+    if (*path == '/' && *(path+1)=='/') {	  /* Some URLs start //<foo> */
+	path += 1;
+    } else if (!strncmp(path, "news:", 5)) {	    /* Make group lower case */
+	char *group = path+5;
+	while (*group && *group!='@' && *group!='/') {
+	    *group = TOLOWER(*group);
+	    group++;
 	}
+	if (URI_TRACE)
+	    fprintf(stderr, "into\n............ `%s'\n", filename);
+	return filename;		      /* Doesn't need to do any more */
+    }
+    if ((p = path)) {
+	int segments = 0;
 
-	/* Scan backwards for '.' and '..' */
-	tokptr--;
-	while(tokptr >= tokstart) {
-	    if (!strcmp(*tokptr, ".")) {
-		*tokptr = empty;
-	    } else if (!strcmp(*tokptr, "..")) {
-		char **pptr = tokptr-1;
-		while (pptr >= tokstart) {
-		    if (**pptr && strcmp(*pptr, "..") && strcmp(*pptr, ".") &&
-			(segcnt > 1 || prefix)) {
-			*pptr = empty;
-			*tokptr = empty;
-			segcnt--;
-			break;
+	/* Parse string first time to find number of `real' tokens */
+	while (*p) {
+	    if (*p=='/' || p==path) {
+		if (!((*(p+1)=='/' || !*(p+1)) ||
+		      (*(p+1)=='.' && (*(p+2)=='/' || !*(p+2))) ||
+		      (*(p+1)=='.' && *(p+2)=='.' &&(*(p+3)=='/' || !*(p+3)))))
+		    segments++;
+	    }
+	    p++;
+	}
+	
+	/* Parse string second time to simplify */
+	p = path;
+	while(*p) {
+	    if (*p=='/') {
+		if (p>path && *(p+1)=='.' && (*(p+2)=='/' || !*(p+2))) {
+		    char *orig=p, *dest=p+2;
+		    while ((*orig++ = *dest++)); /* Remove a slash and a dot */
+		    p--;
+		} else if (segments>1 && *(p+1)=='.' && *(p+2)=='.' &&
+		    (*(p+3)=='/' || !*(p+3))) {
+		    char *q = p;
+		    while (q>path && *--q!='/');	       /* prev slash */
+		    if (strncmp(q, "/../", 4) && strncmp(q, "/./", 3) &&
+			strncmp(q, "./", 2)) {
+			char *orig=q, *dest=p+3;
+			if (*q!='/') dest++;
+			while ((*orig++ = *dest++));	   /* Remove /xxx/.. */
+			segments--;
+			p = q-1;	      /* Start again with prev slash */
+		    } else
+			p++;
+		} else if (*(p+1)=='/') {
+		    while (*(p+1)=='/') {
+			char *orig=p, *dest=p+1;
+			while ((*orig++ = *dest++));  /* Remove multiple /'s */
 		    }
-		    pptr--;
 		}
 	    }
-	    tokptr--;
-	}
-
-	/* Write the rest out forwards */
-	*urlptr = '\0';
-	while (*++tokptr) {
-	    if (**tokptr) {
-		if (*urlptr)		  /* Don't want two in the beginning */
-		    strcat(urlptr, "/");
-		strcat(urlptr, *tokptr);
-	    }
-	}
-
-	if (slashtail == YES && *(urlptr+(int)strlen(urlptr)-1) != '/')
-	    strcat(urlptr, "/");
-	free(url);
-	free(tokstart);
+	    p++;
+	}  /* end while (*p) */
     }
-    if (TRACE)
+    if (URI_TRACE)
 	fprintf(stderr, "into\n............ `%s'\n", filename);
+    return filename;
 }
+
 #ifdef OLD_CODE
     char * p = filename;
     char * q;
@@ -534,10 +509,93 @@ char * HTRelative(aName, relatedName)
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);
     }
-    if (TRACE) fprintf(stderr,
+    if (URI_TRACE) fprintf(stderr,
 		      "HTRelative.. `%s' expressed relative to `%s' is `%s'\n",
 		       aName, relatedName, result);
     return result;
+}
+
+
+/*							       HTCanon
+**
+**	Canonicalizes the URL in the following manner starting from the host
+**	pointer:
+**
+**	1) The host name is converted to lowercase
+**	2) Expands the host name of the URL from a local name to a full
+**	   domain name. A host name is started by `://'.
+**	3) The default port indication :80, :70, and :21 for are stripped
+**
+**	Return: OK	The position of the current path part of the URL
+*/
+PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
+{
+    char *new = NULL;
+    char *port;
+    char *strptr;
+    char *path;
+
+    if ((path = strchr(host, '/')) == NULL)			/* Find path */
+	path = host + strlen(host);
+    if ((strptr = strchr(host, '@')) != NULL && strptr<path)	   /* UserId */
+	host = strptr;
+    port = strchr(host, ':');				      /* Port number */
+
+    strptr = host;				    /* Convert to lower-case */
+    while (strptr<path) {
+	*strptr = TOLOWER(*strptr);
+	strptr++;
+    }
+    
+    /* Does the URL contain a full domain name? This also works for a
+       numerical host name. The domain name is already made lower-case
+       and without a trailing dot. */
+    if ((strptr = strchr(host, '.')) == NULL || strptr >= path) {
+	CONST char *domain = HTGetDomainName();
+	if (domain) {
+	    if ((new = (char *) calloc(1, strlen(*filename) +
+				       strlen(domain)+2)) == NULL)
+		outofmem(__FILE__, "HTCanon");
+	    if (port)
+		strncpy(new, *filename, (int) (port-*filename));
+	    else
+		strncpy(new, *filename, (int) (path-*filename));
+	    strcat(new, ".");
+	    strcat(new, domain);
+	}
+    } else {					  /* Look for a trailing dot */
+	char *dot = port ? port : path;
+	if (dot > *filename && *--dot=='.') {
+	    char *orig=dot, *dest=dot+1;
+	    while((*orig++ = *dest++));
+	    if (port) port--;
+	    path--;
+	}
+    }
+
+    /* Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp) */
+    if (port) {
+	if ((*(port+1)=='8' && *(port+2)=='0' &&
+	     (*(port+3)=='/' || !*(port+3))) ||
+	    (*(port+1)=='2' && *(port+2)=='1' &&
+	     (*(port+3)=='/' || !*(port+3))) ||
+	    (*(port+1)=='7' && *(port+2)=='0' &&
+	     (*(port+3)=='/' || !*(port+3)))) {
+	    if (!new) {
+		char *orig=port, *dest=port+3;
+		while((*orig++ = *dest++));
+	    }
+	} else if (new)
+	    strncat(new, port, (int) (path-port));
+    }
+    if (new) {
+	char *newpath = new+strlen(new);
+	strcat(new, path);
+	path = newpath;
+	free(*filename);				    /* Free old copy */
+	*filename = new;
+    }
+    return path;
 }
 
 
@@ -628,7 +686,7 @@ PUBLIC char * HTUnEscape ARGS1( char *, str)
     char * q = str;
 
     if (!str) {					      /* Just for safety ;-) */
-	if (TRACE)
+	if (URI_TRACE)
 	    fprintf(stderr, "HTUnEscape.. Called with NULL argument.\n");
 	return "";
     }
@@ -672,9 +730,11 @@ PUBLIC BOOL HTCleanTelnetString ARGS1(char *, str)
     while (*cur) {
 	int a = TOASCII(*cur);
 	if (a != 0x9 && (a < 0x20 || (a > 0x7E && a < 0xA0) ||  a > 0xFE)) {
-	    CTRACE(stderr, "Illegal..... character in URL: \"%s\"\n",str);
+	    if (URI_TRACE)
+		fprintf(stderr, "Illegal..... character in URL: \"%s\"\n",str);
 	    *cur = 0;
-	    CTRACE(stderr, "Truncated... \"%s\"\n",str);
+	    if (URI_TRACE)
+		fprintf(stderr, "Truncated... \"%s\"\n",str);
 	    return YES;
 	}
 	cur++;

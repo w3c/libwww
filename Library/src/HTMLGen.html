@@ -1,27 +1,27 @@
 <HTML>
 <HEAD>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTMLGen.html</TITLE></HEAD>
+<TITLE>HTML Generator</TITLE>
+</HEAD>
 <BODY>
-<H1>HTML generator</H1>This module converts structed stream
-into stream.  That is, given a stream
-to write to, it will give you a structured
-stream to 
-<PRE>#ifndef HTMLGEN_H
+
+<H1>HTML generator</H1>
+
+This module converts structed stream into stream.  That is, given a
+stream to write to, it will give you a structured stream to
+
+<PRE>
+#ifndef HTMLGEN_H
 #define HTMLGEN_H
 
 #include "HTML.h"
 #include "HTStream.h"
 
-/* Subclass:
-*/
-/* extern CONST HTStructuredClass HTMLGeneration; */
-
-/* Special Creation:
-*/
+/* Special Creation: */
 extern HTStructured * HTMLGenerator PARAMS((HTStream * output));
 
+#ifndef pyramid
 extern HTConverter HTPlainToHTML;
-
+#endif
 
 #endif
 

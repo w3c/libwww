@@ -16,18 +16,13 @@
 **
 */
 
-#define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
-
-/* Implements:
-*/
-#include "HTMLGen.h"
-
-#include <stdio.h>
 #include "HTMLPDTD.h"
 #include "HTStream.h"
 #include "SGML.h"
 #include "HTFormat.h"
-#include "tcp.h"
+#include "HTMLGen.h"				         /* Implemented here */
+
+#define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
 
 #define PUTC(c) (*me->targetClass.put_character)(me->target, c)
 /* #define PUTS(s) (*me->targetClass.put_string)(me->target, s) */

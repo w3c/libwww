@@ -1,35 +1,48 @@
 <HEADER>
-<TITLE>HTParse:  URL parsing in the WWW Library</TITLE>
+<TITLE>HTParse:  URI parsing in the WWW Library</TITLE>
 <NEXTID N="1">
 </HEADER>
 <BODY>
-<H1>HTParse</H1>This module of the WWW library contains
-code to parse URLs and various related
-things.  Implemented by <A
-NAME=z0 HREF="HTParse.c">HTParse.c</A>
-.
-<PRE>#ifndef HTPARSE_H
+<H1>HTParse</H1>
+
+This module is a part of the <A HREF="Overview.html">CERN Common WWW Library</A>. It contains code to parse URIs and various related things such as:
+
+<UL>
+<LI> Parse a URI relative to another URI
+<LI> Get the URI relative to another URI 
+<LI> Remove redundant data from the URI (HTSimplify and HTCanon)
+<LI> Expand a local host name into a full domain name (HTExpand)
+<LI> Search a URI for illigal characters in order to prevent security holes
+<LI> Escape and Unescape a URI for <A HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/4_URI_Recommentations.html">reserved characters in URLs</A>
+</UL>
+
+Implemented by <A NAME=z0 HREF="HTParse.c">HTParse.c</A>.
+
+<PRE>
+#ifndef HTPARSE_H
 #define HTPARSE_H
 #include "HTUtils.h"
+</PRE>
 
-</PRE>The following are flag bits which
-may be ORed together to form a number
-to give the 'wanted' argument to
-HTParse.
-<PRE>#define PARSE_ACCESS		16
+<H2>HTParse:  Parse a URI relative to another URI</H2>
+
+This returns those parts of a name which are given (and requested) substituting
+bits from the related name where necessary.
+
+<H3>Control Flags for HTParse</H3>
+
+The following are flag bits which may be ORed together to form a number
+to give the 'wanted' argument to HTParse.
+
+<PRE>
+#define PARSE_ACCESS		16
 #define PARSE_HOST		 8
 #define PARSE_PATH		 4
 #define PARSE_ANCHOR		 2
 #define PARSE_PUNCTUATION	 1
 #define PARSE_ALL		31
-
-
 </PRE>
-<H2>HTParse:  Parse a URL relative to
-another URL</H2>This returns those parts of a name
-which are given (and requested) substituting
-bits from the related name where
-necessary.
+
 <H3>On entry</H3>
 <DL>
 <DT>aName
@@ -50,12 +63,13 @@ which MUST BE FREED
 </DL>
 
 <PRE>
-extern char * HTParse  PARAMS((const char * aName, const char * relatedName, int wanted));
-
-
+PUBLIC char * HTParse  PARAMS((	const char * aName,
+				const char * relatedName,
+				int wanted));
 </PRE>
-<H2>HTStrip: Strip white space off a
-string</H2>
+
+<H2>HTStrip: Strip white space off a string</H2>
+
 <H3>On exit</H3>Return value points to first non-white
 character, or to 0 if none.<P>
 All trailing white space is OVERWRITTEN
@@ -65,30 +79,51 @@ extern char * HTStrip(char * s);
 #else
 extern char * HTStrip();
 #endif
-
 </PRE>
-<H2>HTSimplify: Simplify a UTL</H2>A URL is allowed to contain the seqeunce
-xxx/../ which may be replaced by
-"" , and the seqeunce "/./" which
-may be replaced by "/". Simplification
-helps us recognize duplicate filenames.
-It doesn't deal with soft links,
-though. The new (shorter) filename
-overwrites the old.
-<PRE>/*
-**	Thus, 	/etc/junk/../fred 	becomes	/etc/fred
-**		/etc/junk/./fred	becomes	/etc/junk/fred
-*/
-#ifdef __STDC__
-extern void HTSimplify(char * filename);
-#else
-extern void HTSimplify();
-#endif
 
+<H2>HTSimplify: Simplify a UTL</H2>
 
+A URI is allowed to contain the seqeunce xxx/../ which may be
+replaced by "" , and the seqeunce "/./" which may be replaced by "/".
+Simplification helps us recognize duplicate URIs. Thus, the following
+transformations are done:
+
+<UL>
+<LI> /etc/junk/../fred 	becomes	/etc/fred
+<LI> /etc/junk/./fred	becomes	/etc/junk/fred
+</UL>
+
+but we should NOT change
+<UL>
+<LI> http://fred.xxx.edu/../.. or
+<LI> ../../albert.html
+</UL>
+
+In the same manner, the following prefixed are preserved:
+
+<UL>
+<LI> ./<etc>
+<LI> //<etc>
+</UL>
+
+In order to avoid empty URIs the following URIs become:
+
+<UL>
+<LI> /fred/..		becomes /fred/..
+<LI> /fred/././..		becomes /fred/..
+<LI> /fred/.././junk/.././	becomes /fred/..
+</UL>
+
+If more than one set of `://' is found (several proxies in cascade) then
+only the part after the last `://' is simplified.
+
+<PRE>
+PUBLIC char *HTSimplify PARAMS((char *filename));
 </PRE>
+
+
 <H2>HTRelative:  Make Relative (Partial)
-URL</H2>This function creates and returns
+URI</H2>This function creates and returns
 a string which gives an expression
 of one address as related to another.
 Where there is no relation, an absolute
@@ -106,36 +141,51 @@ extern char * HTRelative(const char * aName, const char *relatedName);
 #else
 extern char * HTRelative();
 #endif
-
-
 </PRE>
-<H2>HTEscape:  Encode unacceptable characters
-in string</H2>This funtion takes a string containing
+
+<H2>HTExpand: Expand a Local Host Name Into a Full Domain Name</H2>
+
+This function expands the host name of the URI from a local name to a
+full domain name, converts the host name to lower case and takes away
+`:80', `:70' and `:21'. The advantage by doing this is that we only have
+one entry in the host case and one entry in the document cache.
+
+<PRE>
+PUBLIC char *HTCanon PARAMS ((	char **	filename,
+				char *	host));
+</PRE>
+
+<H2>HTEscape: Encode unacceptable characters in string</H2>
+
+This funtion takes a string containing
 any sequence of ASCII characters,
 and returns a malloced string containing
 the same infromation but with all
 "unacceptable" characters represented
 in the form %xy where X and Y are
 two hex digits.
-<PRE>extern char * HTEscape PARAMS((CONST char * str, unsigned char mask));
 
-</PRE>The following are valid mask values.
-The terms are the BNF names in the
-URL document.
-<PRE>#define URL_XALPHAS	(unsigned char) 1
+<PRE>
+PUBLIC char * HTEscape PARAMS((CONST char * str, unsigned char mask));
+</PRE>
+
+The following are valid mask values. The terms are the BNF names in the
+URI document.
+
+<PRE>
+#define URL_XALPHAS	(unsigned char) 1
 #define URL_XPALPHAS	(unsigned char) 2
 #define URL_PATH	(unsigned char) 4
-
-
 </PRE>
-<H2>HTUnEscape: Decode %xx escaped characters</H2>This function takes a pointer to
-a string in which character smay
-have been encoded in %xy form, where
-xy is the acsii hex code for character
-16x+y. The string is converted in
-place, as it will never grow.
-<PRE>extern char * HTUnEscape PARAMS(( char * str));
 
+<H2>HTUnEscape: Decode %xx escaped characters</H2>
+
+This function takes a pointer to a string in which character smay
+have been encoded in %xy form, where xy is the acsii hex code for character
+16x+y. The string is converted in place, as it will never grow.
+
+<PRE>
+extern char * HTUnEscape PARAMS(( char * str));
 </PRE>
 
 
@@ -154,17 +204,16 @@ inclusive.
 <DD> YES, if the string was modified.
      NO, otherwise.
 </DL>
+
 <PRE>
-
 PUBLIC BOOL HTCleanTelnetString PARAMS((char * str));
-
 </PRE>
 
-
 <PRE>
-
 #endif	/* HTPARSE_H */
+</PRE>
 
-
-</PRE>end of HTParse</A><P>
+End of HTParse Module
 </BODY>
+</HTML>
+

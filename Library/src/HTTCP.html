@@ -11,8 +11,6 @@ Library</A>.
 #ifndef HTTCP_H
 #define HTTCP_H
 
-#include "tcp.h"
-
 #include "HTUtils.h"
 #include "HTAccess.h"
 
@@ -25,7 +23,7 @@ Library</A>.
 
 <H2>Connection Management</H2>
 
-All connections are established through theese two functions.
+All connections are established through these two functions.
 
 <H3>Active Connection Establishment</H3>
 
@@ -36,10 +34,11 @@ a multihomed host then HTDoConnect measures the time to do the connection and
 updates the calculated weights in the cache of visited hosts. 
 
 <PRE>
-extern int HTDoConnect PARAMS((	HTNetInfo  	*net,
+PUBLIC int HTDoConnect PARAMS((	HTNetInfo  	*net,
 				char		*url,
 			     	u_short		default_port,
-			    	u_long 		*addr));
+			    	u_long 		*addr,
+				BOOL		use_cur));
 </PRE>
 
 
@@ -49,7 +48,7 @@ This function makes a non-blocking accept on a port and polls every second
 until MAX_ACCEPT_POLL is reached.
 
 <PRE>
-extern int HTDoAccept PARAMS((HTNetInfo *net));
+PUBLIC int HTDoAccept PARAMS((HTNetInfo *net));
 </PRE>
 
 <H2>Caching Hosts Names</H2>
@@ -73,7 +72,7 @@ On every connect to a multihomed host, the average connect time is updated
 exponentially for all the entries.
 
 <PRE>
-extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
+PUBLIC void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
 </PRE>
 
 <H3>Control Variables</H3>
@@ -94,7 +93,7 @@ Theese functions return an explanation if an error has occured.
 Return error message corresponding to current errno, just like strerror().
 
 <PRE>
-extern CONST char * HTErrnoString NOPARAMS;
+PUBLIC CONST char * HTErrnoString NOPARAMS;
 </PRE>
 
 <H3>Description of what Caused the Error</H3>
@@ -107,7 +106,7 @@ function HTErrorAdd() should be used as then the error is parsed all the way
 to the user. The function returns a negative status in the unix way.
 
 <PRE>
-extern int HTInetStatus PARAMS((char * where));
+PUBLIC int HTInetStatus PARAMS((char * where));
 </PRE>
 
 <H3>Parse a Cardinal Value</H3>
@@ -145,7 +144,7 @@ pointer returned points to static memory which must be copied if it is to be
 kept.
 
 <PRE>
-extern CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
+PUBLIC CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
 </PRE>
 
 <H3>Parse an internet node address and port</H3>
@@ -156,13 +155,11 @@ trailing colon and port number. sin points to the binary internet or decnet
 address field. <P>
 
 On exit *sin is filled in. If no port is specified in str, that field is left
-unchanged in *sin. If it is a multihomed host then multihomed is returned as
-YES. This is used for knowing when to measure the setup time for a connection
-in order to use the fastest IP-address on the multihomed host.
+unchanged in *sin. On success, the number of homes on the host is returned.
 <PRE>
-extern int HTParseInet PARAMS((struct sockaddr_in *	sin,
-			       CONST char *		str,
-			       BOOL *			multihomed));
+PUBLIC int HTParseInet PARAMS((	struct sockaddr_in *	sin,
+			       	CONST char *		str,
+				BOOL			use_cur));
 </PRE>
 
 <H3>Name of a Machine on the Other Side of a Socket</H3>
@@ -174,28 +171,28 @@ reasons this is not the case. <P>
 this is now used to find you own host name, see <A HREF="HTTCP.html#HTGetHostName">HTGetHostName()</A></EM>
 
 <PRE>
-extern char * HTGetHostBySock PARAMS((int soc));
+PUBLIC char * HTGetHostBySock PARAMS((int soc));
 </PRE>
 
 <H3>Host address retuned for specified host name</H3>
 
 This function gets the address of the host and puts it in to the socket
 structure. It maintains its own cache of connections so that the communication
-to the Domain Name Server is minimized. If it is a multihomed host, then 
-`multi' is set to YES.
+to the Domain Name Server is minimized. If OK and single homed host then
+it returns 0 but if it is a multi-homed host then 1 is returned.
 
 <PRE>
-extern char * HTGetHostByName PARAMS((char *host, SockA *sin, BOOL *multi));
+PUBLIC int HTGetHostByName PARAMS((char *host, SockA *sin, BOOL use_cur));
 </PRE>
 
 
 <A NAME="HTGetHostName"><H3>Get Name of This Machine</H3></A>
 
-This functions a char pointer to a static location containing the name of this
-host.
+This function returns a CONET char pointer to a static location containing
+the name of this host or NULL if not available.
 
 <PRE>
-extern CONST char * HTGetHostName NOPARAMS;
+PUBLIC CONST char * HTGetHostName NOPARAMS;
 </PRE>
 
 
@@ -203,10 +200,23 @@ extern CONST char * HTGetHostName NOPARAMS;
 
 This function overwrites any other value of current host name. This might
 be set by the user to change the value in the ID value parsed to a news host
-when posting.
+when posting. The change doesn't influence the <A HREF="HTTCP.html#Mailaddress">Mail Address</A> as they are stored in two different locations. If, however,
+the change is done before the first call to HTGetMailAddress() then this 
+function will use the new host and domain name.
 
 <PRE>
-extern void HTSetHostName PARAMS((char * host));
+PUBLIC void HTSetHostName PARAMS((char * host));
+</PRE>
+
+
+<H3>Get Domain Name of This Machine</H3>
+
+This function rerturns the domain name part of the host name as returned by
+HTGetHostName() function. Changing the domain name requires a call to 
+HTSetHostname().
+
+<PRE>
+PUBLIC CONST char *HTGetDomainName NOPARAMS;
 </PRE>
 
 
@@ -218,7 +228,7 @@ one of the current host name so different values can be assigned. The default
 value is &lt;USER&gt;@hostname where hostname is as returned by HTGetHostName().
 
 <PRE>
-extern CONST char * HTGetMailAddress NOPARAMS;
+PUBLIC CONST char * HTGetMailAddress NOPARAMS;
 </PRE>
 
 
@@ -228,7 +238,7 @@ This function overwrites any other value of current mail address. This might
 be set by the user to change the value in the  <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A> in the <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTTP2.html">HTTP Protocol</A>.
 
 <PRE>
-extern void HTSetMailAddress PARAMS((char * address));
+PUBLIC void HTSetMailAddress PARAMS((char * address));
 </PRE>
 
 

@@ -135,58 +135,76 @@ because of circular references.
 #include <A
 NAME="z14" HREF="HTAccess.html">"HTAccess.h"</A>   /* Required for HTRequest definition */
 		
-</PRE>These macros (which used to be constants)
-define some basic internally referenced
-representations. 
-<H3>Internal ones</H3>The www/xxx ones are of course not
-MIME standard.<P>
-star/star  is an output format which
-leaves the input untouched. It is
-useful for diagnostics, and for users
-who want to see the original, whatever
-it is.
-<H3></H3>
-<PRE>#define WWW_SOURCE HTAtom_for("*/*")	/* Whatever it was originally*/
-
-</PRE>www/present represents the user's
-perception of the document.  If you
-convert to www/present, you present
-the material to the user. 
-<PRE>#define WWW_PRESENT HTAtom_for("www/present")	/* The user's perception */
-
-</PRE>The message/rfc822 format means a
-MIME message or a plain text message
-with no MIME header. This is what
-is returned by an HTTP server.
-<PRE>#define WWW_MIME HTAtom_for("www/mime")		/* A MIME message */
-
-</PRE>www/print is like www/present except
-it represents a printed copy.
-<PRE>#define WWW_PRINT HTAtom_for("www/print")	/* A printed copy */
-
-</PRE>www/unknown is a really unknown type.
-Some default action is appropriate.
-<PRE>#define WWW_UNKNOWN     HTAtom_for("www/unknown")
-
-
-
 </PRE>
-<H3>MIME ones (a few)</H3>These are regular MIME types.  HTML
-is assumed to be added by the W3
-code. application/octet-stream was
-mistakenly application/binary in
+
+These macros (which used to be constants) define some basic internally
+referenced representations.
+
+<H3>Internal ones</H3>
+
+The www/xxx ones are of course not MIME standard.<P>
+
+star/star is an output format which leaves the input untouched. It is
+useful for diagnostics, and for users who want to see the original,
+whatever it is.
+
+<PRE>
+#define WWW_SOURCE	HTAtom_for("*/*")      /* Whatever it was originally */
+</PRE>
+
+www/present represents the user's perception of the document.  If you
+convert to www/present, you present the material to the user.
+
+<PRE>
+#define WWW_PRESENT	HTAtom_for("www/present")   /* The user's perception */
+</PRE>
+
+The message/rfc822 format means a MIME message or a plain text message
+with no MIME header. This is what is returned by an HTTP server.
+
+<PRE>
+#define WWW_MIME	HTAtom_for("www/mime")		   /* A MIME message */
+</PRE>
+
+www/print is like www/present except it represents a printed copy.
+
+<PRE>
+#define WWW_PRINT	HTAtom_for("www/print")		   /* A printed copy */
+</PRE>
+
+www/unknown is a really unknown type.  Some default action is
+appropriate.
+
+<PRE>
+#define WWW_UNKNOWN     HTAtom_for("www/unknown")
+</PRE>
+
+
+<H3>MIME ones (a few)</H3>
+
+These are regular MIME types.  HTML is assumed to be added by the W3
+code. application/octet-stream was mistakenly application/binary in
 earlier libwww versions (pre 2.11).
-<PRE>#define WWW_PLAINTEXT 	HTAtom_for("text/plain")
+
+<PRE>
+#define WWW_PLAINTEXT 	HTAtom_for("text/plain")
 #define WWW_POSTSCRIPT 	HTAtom_for("application/postscript")
 #define WWW_RICHTEXT 	HTAtom_for("application/rtf")
 #define WWW_AUDIO       HTAtom_for("audio/basic")
 #define WWW_HTML 	HTAtom_for("text/html")
 #define WWW_BINARY 	HTAtom_for("application/octet-stream")
 #define WWW_VIDEO 	HTAtom_for("video/mpeg")
+</PRE>
 
-</PRE>We must include the following file
-after defining HTFormat, to which
+Extra types used in the library
+
+<PRE>
+#define WWW_NEWSLIST 	HTAtom_for("text/newslist")
+</PRE>
+
+We must include the following file after defining HTFormat, to which
 it makes reference.
+
 <H2>The HTEncoding type</H2>
 <PRE>typedef HTAtom* HTEncoding;
 
@@ -202,23 +220,22 @@ MIME types:
 #include "HTAnchor.h"
 
 </PRE>
-<H2>The HTPresentation and HTConverter
-types</H2>This HTPresentation structure represents
-a possible conversion algorithm from
-one format to annother.  It includes
-a pointer to a conversion routine.
-The conversion routine returns a
-stream to which data should be fed.
-See also <A
-NAME="z5" HREF="#z3">HTStreamStack</A> which scans
-the list of registered converters
-and calls one. See the <A
-NAME="z6" HREF="HTInit.html">initialisation
-module</A> for a list of conversion routines.
-<PRE>typedef struct _HTPresentation HTPresentation;
 
-typedef HTStream * <A
-NAME="z12">HTConverter</A> PARAMS((
+<H2>The HTPresentation and HTConverter types</H2>
+
+This HTPresentation structure represents a possible conversion
+algorithm from one format to annother.  It includes a pointer to a
+conversion routine.  The conversion routine returns a stream to which
+data should be fed.  See also <A NAME="z5"
+HREF="#z3">HTStreamStack</A> which scans the list of registered
+converters and calls one. See the <A NAME="z6"
+HREF="HTInit.html">initialisation module</A> for a list of conversion
+routines.
+
+<PRE>
+typedef struct _HTPresentation HTPresentation;
+
+typedef HTStream * <A NAME="z12">HTConverter</A> PARAMS((
 	HTRequest *		request,
 	void *			param,
 	HTFormat		input_format,
@@ -234,15 +251,13 @@ struct _HTPresentation {
 	float   secs;
 	float   secs_per_byte;
 };
+</PRE>
 
-</PRE>A global list of converters is kept
-by this module.  It is also scanned
-by modules which want to know the
-set of formats supported. for example.
-Note there is also an additional
-list associated with each <A
-NAME="z16" HREF="HTAccess.html#z5">request</A>
-.
+A global list of converters is kept by this module.  It is also
+scanned by modules which want to know the set of formats supported.
+for example.  Note there is also an additional list associated with
+each <A NAME="z16" HREF="HTAccess.html#z5">request</A>.
+
 <PRE>extern HTList * <A
 NAME="z17">HTConversions</A> ;
 

@@ -14,17 +14,14 @@
 */
 
 #define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
-#define WORD_DELIMITERS ",/;:\"[]()"
+#define WORD_DELIMITERS ",;:[]()"
 
 /* Implements: */
 #include "HTTeXGen.h"
-#include <stdio.h>
 #include "HTMLPDTD.h"
 #include "HTStream.h"
 #include "SGML.h"
 #include "HTFormat.h"
-#include "tcp.h"
-
 
 /*		HTML Object
 **		-----------
@@ -97,7 +94,7 @@ PRIVATE char *TeX_names[HTMLP_ELEMENTS][2] = {
     { "",		""		},    	/* HTML_HTMLPLUS	*/
     { "{\\it ",		"}"		},	/* HTML_I		*/
     { "",		""		},	/* HTML_IMAGE		*/
-    { "",		""		},	/* HTML_IMG		*/
+    { "_FIGUR_",	""		},	/* HTML_IMG		*/
     { "",		""		},	/* HTML_INPUT		*/
     { "",		""		},	/* HTML_ISINDEX		*/
     { "{\\tt ",		"}"		},	/* HTML_KBD		*/
@@ -142,7 +139,7 @@ PRIVATE char *TeX_names[HTMLP_ELEMENTS][2] = {
     { "{\\sf ",		"}"		}	/* HTML_XMP		*/
 };
 
-PRIVATE char *TeX_entities[] = {
+PRIVATE char *TeX_entities[HTML_ENTITIES] = {
     "\\AE ",		/*"AElig",	 capital AE diphthong (ligature) */ 
     "\\\'{A}",		/*"Aacute",	 capital A, acute accent */ 
     "\\^{A}",		/*"Acirc",	 capital A, circumflex accent */ 
@@ -200,6 +197,7 @@ PRIVATE char *TeX_entities[] = {
     "\\o ",            	/*"oslash",	 small o, slash */ 
     "\\~{o}",         	/*"otilde",	 small o, tilde */ 
     "\\\"{o}",	   	/*"ouml",	 small o, dieresis or umlaut mark */ 
+    "\"",	   	/*"quot",	 double quote sign - June 1994 */ 
     "\\ss ",		/*"szlig",	 small sharp s, German (sz ligature)*/ 
     " ",       	/*"thorn",	 small thorn, Icelandic */ 
     "\\\'{u}",        	/*"uacute",	 small u, acute accent */ 
@@ -280,7 +278,10 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 
     /* Flush buffer out when full */
     if (me->write_pointer >= me->buffer+BUFFER_SIZE-3) {
+#if 0
 	if (me->markup || me->preformatted) {
+#endif
+	if (me->preformatted) {
 	    *me->write_pointer = '\n';
 	    (*me->targetClass.put_block)(me->target,
 					 me->buffer,

@@ -60,7 +60,7 @@ system-specific sections later on. There is also a bunch of
 #define NETWRITE write	    /* Routine to write to a TCP-IP socket	*/
 
 /* Unless stated otherwise, */
-#define SELECT			/* Can handle >1 channel.		*/
+#define SELECT			/* Can handle &gt;1 channel.		*/
 #define GOT_SYSTEM		/* Can call shell with string		*/
 
 #ifdef unix
@@ -77,7 +77,7 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #endif
 </PRE>
 
-<H1><A NAME="z1">Platform Specific Stuff</H1>
+<A NAME="z1"><H1>Platform Specific Stuff</H1></A>
 Information below this line is general for most platforms. <P>
 
 See also <A NAME="z6" HREF="#z2">General Stuff</A>
@@ -159,16 +159,16 @@ define NO_SOCKET_DEFS on top. This is a temporary hack.
 #define LINEFEED 10
 #define ANON_FTP_HOSTNAME
 #ifndef NO_SOCKET_DEFS
-#include &lt;MacSockDefs.h>
+#include &lt;MacSockDefs.h&gt;
 #endif /* NO_SOCKET_DEFS */
 
-#include &lt;socket.ext.h>
-#include &lt;string.h>
+#include &lt;socket.ext.h&gt;
+#include &lt;string.h&gt;
 
 #endif /* MPW */
 
 #ifndef STDIO_H
-#include &lt;stdio.h>
+#include &lt;stdio.h&gt;
 #define STDIO_H
 #endif
 </PRE>
@@ -214,7 +214,7 @@ compile options seem to come across in lower case.
 
 /*	VM doesn't have a built-in predefined token, so we cheat: */
 #ifndef VM
-#include &lt;string.h>		/* For bzero etc - not  VM */
+#include &lt;string.h&gt;		/* For bzero etc - not  VM */
 #endif
 
 /*	Note:	All include file names must have 8 chars max (+".h")
@@ -233,36 +233,36 @@ compile options seem to come across in lower case.
 #ifndef SHORT_NAMES
 #define SHORT_NAMES		/* 8 character uniqueness for globals */
 #endif
-#include &lt;manifest.h>
-#include &lt;bsdtypes.h>
-#include &lt;stdefs.h>
-#include &lt;socket.h>
-#include &lt;in.h>
-#include &lt;inet.h>
-#include &lt;netdb.h>
-#include &lt;errno.h>	    /* independent */
+#include &lt;manifest.h&gt;
+#include &lt;bsdtypes.h&gt;
+#include &lt;stdefs.h&gt;
+#include &lt;socket.h&gt;
+#include &lt;in.h&gt;
+#include &lt;inet.h&gt;
+#include &lt;netdb.h&gt;
+#include &lt;errno.h&gt;	    /* independent */
 extern char asciitoebcdic[], ebcdictoascii[];
 #define TOASCII(c)   (c=='\n' ?  10  : ebcdictoascii[c])
 #define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])
-#include &lt;bsdtime.h>
-#include &lt;time.h>
-#include &lt;string.h>
+#include &lt;bsdtime.h&gt;
+#include &lt;time.h&gt;
+#include &lt;string.h&gt;
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
 #endif
 </PRE>
 
 <H2>IBM-PC running MS-DOS with SunNFS for TCP/IP</H2>
-This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl>
+This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
 
 <PRE>
 #ifdef PCNFS
-#include &lt;sys/types.h>
-#include &lt;string.h>
-#include &lt;errno.h>	    /* independent */
-#include &lt;sys/time.h>	    /* independent */
-#include &lt;sys/stat.h>
-#include &lt;fcntl.h>	    /* In place of sys/param and sys/file */
+#include &lt;sys/types.h&gt;
+#include &lt;string.h&gt;
+#include &lt;errno.h&gt;	    /* independent */
+#include &lt;sys/time.h&gt;	    /* independent */
+#include &lt;sys/stat.h&gt;
+#include &lt;fcntl.h&gt;	    /* In place of sys/param and sys/file */
 #define INCLUDES_DONE
 #define FD_SET(fd,pmask) (*(unsigned*)(pmask)) |=  (1&lt;&lt;(fd))
 #define FD_CLR(fd,pmask) (*(unsigned*)(pmask)) &amp;= ~(1&lt;&lt;(fd))
@@ -273,7 +273,7 @@ This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl>
 </PRE>
 
 <H2>IBM-PC running Windows NT</H2>
-These parameters providede by  Susan C. Weber &lt;sweber@kyle.eitech.com>.
+These parameters providede by  Susan C. Weber &lt;sweber@kyle.eitech.com&gt;.
 
 <PRE>
 #ifdef _WINDOWS
@@ -284,16 +284,16 @@ These parameters providede by  Susan C. Weber &lt;sweber@kyle.eitech.com>.
 #undef NETREAD
 #undef NETWRITE
 #undef NETCLOSE
-#define NETREAD(s,b,l)	((s)>10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
-#define NETWRITE(s,b,l)	((s)>10 ? send((s),(b),(l),0) : write((s),(b),(l)))
-#define NETCLOSE(s) 	((s)>10 ? closesocket(s) : close(s))
-#include &lt;io.h>
-#include &lt;string.h>
-#include &lt;process.h>
-#include &lt;time.h>
-#include &lt;direct.h>
-#include &lt;stdio.h>
-#include &lt;winsock.h>
+#define NETREAD(s,b,l)	((s)&gt;10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
+#define NETWRITE(s,b,l)	((s)&gt;10 ? send((s),(b),(l),0) : write((s),(b),(l)))
+#define NETCLOSE(s) 	((s)&gt;10 ? closesocket(s) : close(s))
+#include &lt;io.h&gt;
+#include &lt;string.h&gt;
+#include &lt;process.h&gt;
+#include &lt;time.h&gt;
+#include &lt;direct.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;winsock.h&gt;
 typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
@@ -334,19 +334,19 @@ works.
 #undef NETREAD
 #undef NETWRITE
 #undef NETCLOSE
-#define NETREAD(s,b,l)	((s)>10 ? netread((s),(b),(l)) : read((s),(b),(l)))
-#define NETWRITE(s,b,l)	((s)>10 ? netwrite((s),(b),(l)) : write((s),(b),(l)))
-#define NETCLOSE(s) 	((s)>10 ? netclose(s) : close(s))
+#define NETREAD(s,b,l)	((s)&gt;10 ? netread((s),(b),(l)) : read((s),(b),(l)))
+#define NETWRITE(s,b,l)	((s)&gt;10 ? netwrite((s),(b),(l)) : write((s),(b),(l)))
+#define NETCLOSE(s) 	((s)&gt;10 ? netclose(s) : close(s))
 #endif /* WIN_TCP */
 
 #ifdef MULTINET
 #undef NETCLOSE
 #undef NETREAD
 #undef NETWRITE
-#define NETREAD(s,b,l)	((s)>10 ? socket_read((s),(b),(l)) : read((s),(b),(l)))
-#define NETWRITE(s,b,l)	((s)>10 ? socket_write((s),(b),(l)) : \
+#define NETREAD(s,b,l)	((s)&gt;10 ? socket_read((s),(b),(l)) : read((s),(b),(l)))
+#define NETWRITE(s,b,l)	((s)&gt;10 ? socket_write((s),(b),(l)) : \
 				write((s),(b),(l)))
-#define NETCLOSE(s) 	((s)>10 ? socket_close(s) : close(s))
+#define NETCLOSE(s) 	((s)&gt;10 ? socket_close(s) : close(s))
 #endif /* MULTINET */
 
 #ifdef DECNET
@@ -354,15 +354,15 @@ works.
 #undef NETREAD
 #undef NETWRITE
 #undef NETCLOSE
-#define NETREAD(s,b,l)	((s)>10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
-#define NETWRITE(s,b,l)	((s)>10 ? send((s),(b),(l),0) : write((s),(b),(l)))
-#define NETCLOSE(s) 	((s)>10 ? socket_close(s) : close(s))
+#define NETREAD(s,b,l)	((s)&gt;10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
+#define NETWRITE(s,b,l)	((s)&gt;10 ? send((s),(b),(l),0) : write((s),(b),(l)))
+#define NETCLOSE(s) 	((s)&gt;10 ? socket_close(s) : close(s))
 #endif /* Decnet */
          
 /*	Certainly this works for UCX and Multinet; not tried for Wollongong
 */
 #ifdef MULTINET
-#include &lt;time.h>
+#include &lt;time.h&gt;
 #ifdef __TIME_T
 #define __TYPES
 #define __TYPES_LOADED
@@ -377,9 +377,9 @@ works.
 #endif /* __TIME_LOADED */
 #include "multinet_root:[multinet.include.sys]time.h"
 #else /* not MULTINET */
-#include &lt;types.h>
-#include &lt;errno.h>
-#include &lt;time.h>
+#include &lt;types.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;time.h&gt;
 #endif /* not MULTINET */
 
 #include string
@@ -419,11 +419,11 @@ works.
 #ifdef CADDR_T
 #define __CADDR_T
 #endif /* problem with xlib.h inclusion */
-#include &lt;socket.h>
-#include &lt;in.h>
-#include &lt;inet.h>
-#include &lt;netdb.h>
-#include &lt;ucx$inetdef.h>
+#include &lt;socket.h&gt;
+#include &lt;in.h&gt;
+#include &lt;inet.h&gt;
+#include &lt;netdb.h&gt;
+#include &lt;ucx$inetdef.h&gt;
 
 #endif  /* not DECNET */
 #endif  /* of Multinet or other TCP includes */
@@ -481,11 +481,16 @@ can stat them.
 
 <H2>SCO ODT unix version</H2>
 
+(by Brian King)
+
 <PRE>
 #ifdef sco
-#include &lt;unistd.h>
-#include &lt;sys/fcntl.h>
+#include &lt;grp.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/fcntl.h&gt;
+#include &lt;time.h&gt;
 #define USE_DIRENT
+#define NEED_INITGROUPS
 #endif
 </PRE>
 
@@ -499,7 +504,8 @@ typedef mode_t		int;
 #define S_ENFMT		S_ISGID		/* record locking enforcement flag */
 #define S_ISCHR(m)	(m & S_IFCHR)
 #define S_ISBLK(m)	(m & S_IFBLK)
-#define WEXITSTATUS(s)	(((s).w_status >> 8) & 0377)
+#define WEXITSTATUS(s)	(((s).w_status &gt;&gt; 8) & 0377)
+#define NO_STRFTIME
 </PRE>
 
 <H3>File Permissions</H3>
@@ -523,30 +529,53 @@ typedef mode_t		int;
 </PRE>
 
 <H2>Solaris</H2>
-(And Linux, thanks to Rainer Klute)
+
+Includes Linux (thanks to Rainer Klute) and other SVR5 based systems
+
 <PRE>
 #if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
+
+#ifdef UTS4				      /* UTS wants sys/types.h first */
+#include &lt;sys/types.h&gt;
+#endif
+
 #include &lt;unistd.h&gt;
-#ifdef AIX
+
+#ifdef UTS4
+#include &lt;sys/fcntl.h&gt;
+#define POSIXWAIT
+#endif
+
+#ifdef AIX						       /* Apple Unix */
 #include &lt;fcntl.h&gt;
 #else
 #include &lt;sys/fcntl.h&gt;
 #endif
-#endif
 </PRE>
 
-<H2>SCO</H2>
-(by Brian King)
+This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
+<EM>Alex Podlecki, &lt;a.podlecki@att.com&gt;</EM>
+
 <PRE>
-#ifdef sco
+#ifndef NGROUPS_MAX		
+#include &lt;limits.h&gt;
+#endif 
 
-#include &lt;time.h&gt;
-
-#define NEED_INITGROUPS
-
-#endif
+#endif /* Solaris and SVR5 */
 </PRE>
 
+<H2>UTS 2.1 (BSD-like)</H2>
+<PRE>
+#ifdef UTS2
+#include &lt;time.h&gt;
+#include &lt;fcntl.h&gt;
+
+#define	NO_STRFTIME
+#define	WEXITSTATUS(x)	((int)((x).w_T.w_Retcode))
+
+#undef POSIXWAIT
+#endif /* UTS2 */
+</PRE>
 
 <H2>OSF/1</H2>
 <PRE>
@@ -642,6 +671,18 @@ typedef unsigned short mode_t;
 #endif /* NeXT */
 </PRE>
 
+<H2>A/UX Apple UNIX</H2>
+
+<ADDRESS>Kelly King, bhutab@apple.com and Jim Jagielski,
+jim@jagubox.gsfc.nasa.gov</ADDRESS>
+
+<PRE>
+#ifdef _AUX
+#include &lt;time.h&gt;
+#define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
+#endif
+</PRE>
+
 <H2><A NAME="z10">Regular BSD unix versions</H2>
 
 These are a default unix where not already defined specifically.
@@ -649,15 +690,14 @@ These are a default unix where not already defined specifically.
 <PRE>
 #ifndef INCLUDES_DONE
 
-#include &lt;sys/types.h>
-/* #include &lt;streams/streams.h>			not ultrix */
-#include &lt;string.h>
+#include &lt;sys/types.h&gt;
+#include &lt;string.h&gt;
 
-#include &lt;errno.h>		    /* independent */
-#include &lt;sys/time.h>	    /* independent */
-#include &lt;sys/stat.h>
-#include &lt;sys/param.h>
-#include &lt;sys/file.h>	    /* For open() etc */
+#include &lt;errno.h&gt;	    /* independent */
+#include &lt;sys/time.h&gt;	    /* independent */
+#include &lt;sys/stat.h&gt;
+#include &lt;sys/param.h&gt;
+#include &lt;sys/file.h&gt;	    /* For open() etc */
 #define INCLUDES_DONE
 #endif	/* Normal includes */
 </PRE>
@@ -671,16 +711,16 @@ These are a default unix where not already defined specifically.
 #define USE_DIRENT		  /* Try this all the time, Henrik May 29 94 */
 #endif
 #ifdef USE_DIRENT             			 	    /* sys v version */
-#include &lt;dirent.h>
+#include &lt;dirent.h&gt;
 #define STRUCT_DIRENT struct dirent
 #else
-#include &lt;sys/dir.h>
+#include &lt;sys/dir.h&gt;
 #define STRUCT_DIRENT struct direct
 #endif
 
 #if defined(sun) &amp;&amp; defined(__svr4__)
-#include &lt;sys/fcntl.h>
-#include &lt;limits.h>
+#include &lt;sys/fcntl.h&gt;
+#include &lt;limits.h&gt;
 #endif
 #ifndef FNDELAY
 #define FNDELAY		O_NDELAY
@@ -697,15 +737,15 @@ See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
 <H3>Include files for TCP</H3>
 <PRE>
 #ifndef TCP_INCLUDES_DONE
-#include &lt;sys/socket.h>
-#include &lt;netinet/in.h>
+#include &lt;sys/socket.h&gt;
+#include &lt;netinet/in.h&gt;
 
 /* #ifndef __hpux */ /* this may or may not be good -marc -- according
 			to somebody, it wasn't a good thing...(?) -- Ari */
-#include &lt;arpa/inet.h>	    /* Must be after netinet/in.h */
+#include &lt;arpa/inet.h&gt;	    /* Must be after netinet/in.h */
 /* #endif */
 
-#include &lt;netdb.h>
+#include &lt;netdb.h&gt;
 #endif	/* TCP includes */
 </PRE>
 
@@ -769,6 +809,14 @@ typedef unsigned int fd_set;
 #define TOASCII(c) (c)
 #define FROMASCII(c) (c)                                   
 #endif
+</PRE>
+
+<H3>White Characters</H3>
+
+Is character c white space? For speed, include all control characters
+
+<PRE>
+#define WHITE(c) (((unsigned char)(TOASCII(c))) &lt;= 32)
 </PRE>
 
 <H3>Cache file prefix</H3>

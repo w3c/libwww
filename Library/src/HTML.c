@@ -189,6 +189,7 @@ static char * ISO_Latin1[] = {
   	"\370",	/* small o, slash */ 
   	"\365",	/* small o, tilde */ 
   	"\366",	/* small o, dieresis or umlaut mark */ 
+        "\042", /* double quote sign - June 94 */
   	"\337",	/* small sharp s, German (sz ligature) */ 
   	"\376",	/* small thorn, Icelandic */ 
   	"\372",	/* small u, acute accent */ 
@@ -263,6 +264,7 @@ static char * NeXTCharacters[] = {
   	"\371",	/* small o, slash */ 
   	"\357",	/* small o, tilde */ 
   	"\360",	/* small o, dieresis or umlaut mark */ 
+        "\042", /* double quote sign - June 94 */
   	"\373",	/* small sharp s, German (sz ligature) */ 
   	"\374",	/* small thorn, Icelandic */ 
   	"\363",	/* small u, acute accent */ 
@@ -463,7 +465,9 @@ PRIVATE void HTML_start_element ARGS4(
 	    char * href = NULL;
 	    if (present[HTML_A_HREF]) {
 	    	StrAllocCopy(href, value[HTML_A_HREF]);
+#ifdef OLD_CODE
 		HTSimplify(href);
+#endif
 	    }
 	    source = HTAnchor_findChildAndLink(
 		me->node_anchor,				/* parent */
@@ -571,7 +575,9 @@ PRIVATE void HTML_start_element ARGS4(
 	    char *src = NULL;
 	    if (present[HTML_IMG_SRC]) {
 		StrAllocCopy(src, value[HTML_IMG_SRC]);
+#ifdef OLD_CODE
 		HTSimplify(src);
+#endif
 	    }
 	    source = HTAnchor_findChildAndLink(
 					       me->node_anchor,	   /* parent */
@@ -861,7 +867,7 @@ PUBLIC HTStream* HTMLToPlain ARGS5(
 /*	HTConverter for HTML to C code
 **	------------------------------
 **
-**	C copde is like plain text but all non-preformatted code
+**	C code is like plain text but all non-preformatted code
 **	is commented out.
 **	This will convert from HTML to presentation or plain text.
 */
@@ -875,12 +881,11 @@ PUBLIC HTStream* HTMLToC ARGS5(
     
     HTStructured * html;
     
-    (*output_stream->isa->put_string)(output_stream, "/* "); /* Before even title */
+    (*output_stream->isa->put_string)(output_stream, "/* "); /* Before title */
     html = HTML_new(request, NULL, input_format, output_format, output_stream);
     html->comment_start = "/* ";
     html->dtd = &DTD;
     html->comment_end = " */\n";	/* Must start in col 1 for cpp */
-/*    HTML_put_string(html,html->comment_start); */
     return SGML_new(&DTD, html);
 }
 

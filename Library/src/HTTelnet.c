@@ -15,26 +15,17 @@
 **		  and user names (code from Mosaic/Eric Bina).
 */
 
-/* Implements:
-*/
-#include "HTTelnet.h"
-
 #include "HTParse.h"
 #include "HTUtils.h"
 #include "HTAnchor.h"
 #include "HTTP.h"
 #include "HTFile.h"
-#include <errno.h>
-#include <stdio.h>
-
-#include "tcp.h"
-#include "HText.h"
-
 #include "HTAccess.h"
 #include "HTAlert.h"
 
-#define HT_NO_DATA -9999
+#include "HTTelnet.h"					 /* Implemented here */
 
+/* ------------------------------------------------------------------------- */
 
 /*	make a string secure for passage to the
 **	system() command.  Make it contain only alphanumneric

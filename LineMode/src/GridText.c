@@ -637,7 +637,7 @@ PUBLIC void HText_setStyle ARGS2(HText *,text, HTStyle *,style)
     if (!style) return;				/* Safety */
     after = text->style->spaceAfter;
     before = style->spaceBefore;
-    if (TRACE) fprintf(stderr, "HTML: Change to style %s\n", style->name);
+    if (SGML_TRACE) fprintf(stderr, "HTML: Change to style %s\n", style->name);
 
     blank_lines (text, after>before ? after : before);
 

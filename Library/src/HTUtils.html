@@ -1,21 +1,22 @@
 <HTML>
 <HEAD>
-<TITLE>Utitlity macros for the W3 code library</TITLE>
+<TITLE>Utility macros for the W3 code library</TITLE>
 <NEXTID N="z2">
 </HEAD>
 <BODY>
-<H1>Macros for general use</H1>Generates: <A
-NAME="z1" HREF="HTUtils.h">HTUtils.h</A><P>
-See also: the system dependent file<A
-NAME="z0" HREF="tcp.html">
-"tcp.h"</A>
+<H1>Macros for general use</H1>
+
+This module is a very basic module of the <A HREF="Overview.html">CERN
+Common Code Library</A> See also: the system dependent file<A NAME="z0"
+HREF="tcp.html">"tcp.h"</A> for system specific information.
+
 <PRE>
-#ifndef DEBUG
-#define DEBUG	/* Noone ever turns this off as trace is too important */
-#endif		/* Keeep option for really small memory applications tho */
-		
 #ifndef HTUTILS_H
 #define HTUTILS_H
+
+#ifndef DEBUG
+#define DEBUG	/* No one ever turns this off as trace is too important */
+#endif		/* Keep option for really small memory applications too */
 
 #ifdef _WINDOWS				/* SCW */
 #include "windef.h"
@@ -26,27 +27,66 @@ NAME="z0" HREF="tcp.html">
 #define WWW_TraceFlag HTTrFlag
 #endif
 
-</PRE>
-<H2>Debug message control.</H2>
-<PRE>#ifndef STDIO_H
+#ifndef STDIO_H
 #include &lt;stdio.h>
 #define STDIO_H
 #endif
-
-#ifdef DEBUG
-#define TRACE (WWW_TraceFlag)
-#define PROGRESS(str) printf(str)
-	extern int WWW_TraceFlag;
-#else
-#define TRACE 0
-#define PROGRESS(str) /* nothing for now */
-#endif
-
-#define CTRACE if(TRACE)fprintf
-#define tfp stderr
-
 </PRE>
-<H3>Error type</H3>
+
+<H2>Debug message control</H2>
+
+This is the global flag for setting the TRACE options.
+
+<PRE>
+extern int WWW_TraceFlag;		     /* Global flag for all W3 trace */
+</PRE>
+
+The verbose mode is no longer a simple boolean but a bit field so that it is
+possible to see parts of the output messages. The <EM>TRACE</EM> define still
+outputs all messages if verbose mode is active, but in addition the following
+TRACE defines have been made:
+
+<PRE>
+typedef enum _HTTraceFlags {
+    SHOW_SGML_TRACE	= 0xF,				/*		1111 */
+    SHOW_PROTOCOL_TRACE = 0xF0,				/* 	   1111.0000 */
+    SHOW_URI_TRACE	= 0x300,			/* 	11.0000.0000 */
+    SHOW_ANCHOR_TRACE	= 0xC00,			/*   11.00.0000.0000 */
+    SHOW_ALL_TRACE	= 0xFFF				/*   11.11.1111.1111 */
+} HTTraceFlags;
+</PRE>
+
+The flags are made so that they can serve as a group flag for correlated
+trace messages, e.g. showing messages for SGML and HTML at the same time. 
+
+<PRE>
+#ifdef DEBUG
+#define TRACE		(WWW_TraceFlag)
+#define SGML_TRACE	(WWW_TraceFlag & SHOW_SGML_TRACE)
+#define PROT_TRACE	(WWW_TraceFlag & SHOW_PROTOCOL_TRACE)
+#define URI_TRACE	(WWW_TraceFlag & SHOW_URI_TRACE)
+#define ANCH_TRACE	(WWW_TraceFlag & SHOW_ANCHOR_TRACE)
+#define PROGRESS(str)	printf(str)
+#else
+#define TRACE		0
+#define SGML_TRACE	0
+#define PROT_TRACE	0
+#define URI_TRACE	0
+#define ANCH_TRACE	0
+#define PROGRESS(str)	/* nothing for now */
+#endif
+</PRE>
+
+<EM><B>Note: </B> The CTRACE flag might interfere with other if () else
+constructions in the code</EM>
+
+<PRE>
+#define CTRACE if(TRACE) fprintf
+#define tfp stderr
+</PRE>
+
+
+<H2>Error type</H2>
 
 THIS IS NOW OBSOLETE AND WILL BE REMOVED IN FUTURE RELEASES <P>
 
@@ -216,11 +256,6 @@ Macrides).
 #define DNP_OBJ 80	/* This one doesn't look busy, but we must check */
 			/* That one was for decnet */
 
-/*	Inline Function WHITE: Is character c white space? */
-/*	For speed, include all control characters */
-
-#define WHITE(c) (((unsigned char)(TOASCII(c))) &lt;= 32)
-
 </PRE>
 <H2>Return Codes for Protocol Modules</H2>
 
@@ -230,11 +265,10 @@ failure (&lt;0) codes
 #define HT_NO_DATA		-9999	/* OK but no data was loaded */
 					/* Typically, other app started */
 #define HT_INTERRUPTED 		-29998	/* Note the negative value! */
-#define HT_LOADED 29999			/* Instead of a socket */
-#define HT_REDIRECTION_ON_FLY 29998	/* Redo the retrieve with a new URL */
+#define HT_LOADED		 29999	/* Instead of a socket */
+#define HT_REDIRECTION_ON_FLY	 29998	/* Redo the retrieve with a new URL */
 
-#define HT_OK		0		/* Generic success*/
-
+#define HT_OK		  0		/* Generic success*/
 #define HT_NO_ACCESS	-10		/* Access not available */
 #define HT_FORBIDDEN	-11		/* Access forbidden */
 #define HT_INTERNAL	-12		/* Weird -- should never happen. */

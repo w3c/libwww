@@ -36,27 +36,18 @@ are therefore two creation routines.
 
 #include "HTStream.h"
 #include "HTAnchor.h"
-
 </PRE>
-<H3>Input: Local text</H3>
-<PRE>/* extern HTStream * HTMIMEConvert PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
-*/
-extern HTConverter HTMIMEConvert;
 
-</PRE>
-<H3>Input: Net ASCII</H3>
-<PRE>/* extern HTStream * HTNetMIME PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
-*/
-extern HTConverter HTNetMIME;
+<H3>Converters in this Module</H3>
 
-
+<PRE>
+#ifndef pyramid
+extern HTConverter HTMIMEConvert, HTNetMIME;
 #endif
 
-</PRE>end of HTMIME</BODY>
+#endif
+</PRE>
+
+End of HTMIME
+</BODY>
 </HTML>

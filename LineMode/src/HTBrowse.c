@@ -109,6 +109,9 @@
 #include "HTFile.h"	/* For Dir access flags */
 #include "HTRules.h"    /* For loading rule file */
 #include "HTError.h"
+#include "HTAlert.h"
+#include "HTTP.h"
+#include "HTArray.h"
 
 #ifdef THINK_C					 /* Macintosh Think C development system */
 #include <console.h>
@@ -218,12 +221,6 @@ PUBLIC char * start_reference = NULL;      /* Format string for start anchor */
 PUBLIC char * end_reference = REF_MARK;     		   /* for end anchor */
 PUBLIC char * reference_mark = "[%d] ";     	      /* for reference lists */
 PUBLIC char * end_mark = END_MARK;          	  /* Format string for [End] */
-
-/* Moved into other files: */
-
-/* PUBLIC char * HTClientHost = 0;	  HTAccess */
-/* PUBLIC  int  WWW_TraceFlag   = 0;      HTString */
-/* PUBLIC FILE * logfile = 0;		  HTAccess */
  
  /*	Private variables
  **	=================
@@ -242,7 +239,7 @@ PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
 PRIVATE HTRequest * request;
 PRIVATE BOOL  OutSource = NO;			    /* Output source, YES/NO */
 PRIVATE char *HTLogFileName = 0;	      	    /* Root of log file name */
-
+PRIVATE int OldTraceFlag = SHOW_ALL_TRACE;	/* Storage for WWW_traceFlag */
 
 #ifdef VMS
 PRIVATE FILE *       output;		/* assignment done in main */
@@ -350,8 +347,9 @@ int main
 #endif
 
     request =  HTRequest_new();
-    /* request->conversions = HTList_new(); Done by HTRequest_new() Henrik 18/02-94 */
-	 
+    /* request->conversions = HTList_new(); See HTRequest_new() HFN 180294 */
+    HTEnableFrom = YES;
+    
 #ifdef VMS
     output = stdout;
 #endif /* VMS */
@@ -446,14 +444,9 @@ int main
 		input_format = (arg+1 >= argc || *argv[arg+1] == '-') ?
 		    WWW_HTML : HTAtom_for(argv[++arg]);
 
-#ifdef TRACE
-	   /* Verify: Turns on trace */
-	    } else if (!strcmp(argv[arg], "-v")) {
-		WWW_TraceFlag = 1;
-#endif
-
-/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
 #ifdef CYRILLIC
+	    /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org
+	       (Anton Tropashko) */
 	    } else if (!strcmp(argv[arg], "-koi2alt")) {
 	        doia2k(); printf("Ahak2a!");
 #endif
@@ -525,6 +518,19 @@ int main
 		listrefs_option = YES;
 		interactive = NO;			/* non-interactive */
 
+	    /* Method Used (Currently on GET and HEAD are supported) */
+	    } else if (!strcmp(argv[arg], "-m")) {
+		interactive = NO;
+		if (++arg < argc) {
+		    if (!strcasecomp(argv[arg], "head")) {
+			request->method = METHOD_HEAD;
+			request->output_format = WWW_MIME;
+		    } else if (!strcasecomp(argv[arg], "get"))
+			request->method = METHOD_GET;
+		    else
+			request->method = METHOD_INVALID;
+		}
+
 	    /* Non-interactive */
 	    } else if (!strcmp(argv[arg], "-n")) {
 		interactive = NO;
@@ -576,7 +582,8 @@ int main
 		    case 't':	HTDirReadme = HT_DIR_README_TOP; break;
 		    case 'y':	HTDirAccess = HT_DIR_OK; break;
 		    default:
-			ErrMsg("HTDaemon: bad -d option", argv[arg]);
+			ErrMsg("Bad parameter for directory listing -d option",
+			       argv[arg]);
 			return_status = -4;
 		        goto endproc;
 		    }
@@ -593,6 +600,26 @@ int main
 			    VL, HTLibraryVersion);
 		goto endproc;				
 
+#ifdef TRACE
+	   /* Verify: Turns on trace */
+	    } else if (!strncmp(argv[arg], "-v", 2)) {
+	    	char *p = argv[arg]+2;
+		WWW_TraceFlag = 0;
+		for(; *p; p++) {
+		    switch (*p) {
+		      case 'a': WWW_TraceFlag += SHOW_ANCHOR_TRACE; break;
+		      case 'p':	WWW_TraceFlag += SHOW_PROTOCOL_TRACE; break;
+		      case 's':	WWW_TraceFlag += SHOW_SGML_TRACE; break;
+		      case 'u': WWW_TraceFlag += SHOW_URI_TRACE; break;
+		      default:
+			ErrMsg("Bad parameter for verbose mode", argv[arg]);
+		    }
+		}/* loop over characters */
+		if (!WWW_TraceFlag)
+		    WWW_TraceFlag = SHOW_ALL_TRACE;
+		OldTraceFlag = WWW_TraceFlag;		 /* Remember setting */
+#endif
+	    
 	    /* Source please */
 	    } else if (!strcmp(argv[arg], "-source")) {
 		    request->output_format = WWW_SOURCE;
@@ -670,8 +697,10 @@ int main
    care of non-interactive, where no HTSaveLocally() of call backs are used */
     if (interactive)
 	HTFormatInit(request->conversions);
-    else
+    else {
 	HTFormatInitNIM(request->conversions);
+	HTInteractive = NO;			  /* No prompts from HTAlert */
+    }
 
 /*	Open output file
 **	----------------
@@ -748,7 +777,7 @@ int main
      	HTParseSocket(input_format, 0, request);      /* From std UNIX input */
 	    goto endproc;
     }
-    
+
 /*	Load first document
 **	-------------------
 */
@@ -1472,7 +1501,7 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 
 	  case 'V':
 	    if (Check_User_Input("VERBOSE")) {       /* Switch verbose mode  */
-		WWW_TraceFlag = ! WWW_TraceFlag;
+		WWW_TraceFlag = WWW_TraceFlag ? 0 : OldTraceFlag;
 		printf ("\n  Verbose mode %s.\n", WWW_TraceFlag ? "ON":"OFF");
 		goto ret;
 	    }

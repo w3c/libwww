@@ -20,35 +20,40 @@
 #include "HTMIME.h"
 #include "HTWSRC.h"
 #include "HTFWriter.h"
+#include "HTNews.h"
 
-PUBLIC void HTFormatInit ARGS1(HTList *, c)	/* Note: Wildcard is no longer * (see further dovn) */
+/* Note: Wildcard is no longer `*' (see further dovn) */
+PUBLIC void HTFormatInit ARGS1(HTList *, c)
 {
 #ifdef NeXT
     HTSetPresentation(c,"application/postscript", "open %s",	1.0, 2.0, 0.0);
     /* The following needs the GIF previewer -- you might not have it. */
     HTSetPresentation(c,"image/gif", 		"open %s", 	0.3, 2.0, 0.0);
-    HTSetPresentation(c,"image/x-tiff", 		"open %s", 	1.0, 2.0, 0.0);
+    HTSetPresentation(c,"image/x-tiff", 	"open %s", 	1.0, 2.0, 0.0);
     HTSetPresentation(c,"audio/basic", 		"open %s", 	1.0, 2.0, 0.0);
     HTSetPresentation(c,"*/*", 			"open %s", 	0.05, 0.0, 0.0); 
 #else
     if (getenv("DISPLAY")) {	/* Must have X11 */
 	HTSetPresentation(c,"application/postscript", "ghostview %s",	1.0, 3.0, 0.0);
-	HTSetPresentation(c,"image/gif", 		"xv %s",	1.0, 3.0, 0.0);
+	HTSetPresentation(c,"image/gif", 	"xv %s",	1.0, 3.0, 0.0);
 	HTSetPresentation(c,"image/x-tiff", 	"xv %s",	1.0, 3.0, 0.0);
 	HTSetPresentation(c,"image/jpeg", 	"xv %s",	1.0, 3.0, 0.0);
     }
 #endif
-    HTSetConversion(c,"www/mime",			"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"application/x-wais-source","*/*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
+    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"application/octet-stream",	"www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
+#ifdef NEW_CODE
+    HTSetConversion(c,"text/newslist",		"www/present",	HTNewsList,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/newslist",		"text/html",	HTNewsList,	1.0, 0.0, 0.0);
+#endif
+    HTSetConversion(c,"application/octet-stream","www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
+    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
     HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
-    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
-    /* www/source is replaced by star/star */
 }
 
 
@@ -61,15 +66,19 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)	/* Note: Wildcard is no longer * (se
 PUBLIC void HTFormatInitNIM ARGS1(HTList *, c)
 {
     HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
+#ifdef NEW_CODE
+    HTSetConversion(c,"text/newslist",		"www/present",	HTNewsList,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/newslist",		"text/html",	HTNewsList,	1.0, 0.0, 0.0);
+#endif
+    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
     HTSetConversion(c,"application/octet-stream","www/present",	HTThroughLine,	0.1, 0.0, 0.0);
     HTSetConversion(c,"*/*",			"www/present",	HTThroughLine,	0.3, 0.0, 0.0);
-    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
 }
 
 

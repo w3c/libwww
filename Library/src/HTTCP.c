@@ -24,6 +24,7 @@
 #include "HTParse.h"
 #include "HTAccess.h"
 #include "HTError.h"
+#include "HTTCP.h"					 /* Implemented here */
 
 #ifdef VMS 
 #include "HTVMSUtils.h"
@@ -47,6 +48,13 @@
 #endif /* VMS */
 
 /* Macros and other defines */
+/* x seconds penalty on a multi-homed host if IP-address is down */
+#define TCP_PENALTY		1200
+
+/* x seconds penalty on a multi-homed host if IP-address is timed out */
+#define TCP_DELAY		600
+
+/* Max number of non-blocking accepts */
 #define MAX_ACCEPT_POLL		30
 #define FCNTL(r, s, t)		fcntl(r, s, t)
 
@@ -67,7 +75,7 @@ typedef struct _host_info {
     HTAtom *		hostname;		    /* Official name of host */
     int			hits;		/* Total number of hits on this host */
     int			addrlength;	       /* Length of address in bytes */
-    int			multihomed;    /* Number of IP addresses on the host */
+    int			homes;	       /* Number of IP addresses on the host */
     int			offset;         /* Offset value of active IP address */
     char **		addrlist;      /* List of addresses from name server */
     float *		weight;			   /* Weight on each address */
@@ -300,15 +308,14 @@ PRIVATE void HTTCPCacheGarbage NOARGS
 **
 **	Add an element to the cache of visited hosts. Note that this function
 **	requires the system implemented structure hostent and not our own
-**	host_info. If multihomed host then multihome indicates the number of
-**	IP addresses found. If not then multihome=0
+**	host_info. The homes variable indicates the number of
+**	IP addresses found.
 **
 **      Returns new element if OK NULL if error
 */
 PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
 					      struct hostent *, element)
 {
-    int homes;				      /* Number of homes on the host */
     host_info *new;
     char *addr;
     char **index = element->h_addr_list;
@@ -331,20 +338,21 @@ PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
 	*(new->addrlist+cnt) = addr+cnt*element->h_length;
 	memcpy((void *) *(new->addrlist+cnt++), *index++, element->h_length);
     }
-    if ((homes = (sizeof element->h_addr_list) / element->h_length) > 1) {
-	new->multihomed = homes;
-	if ((new->weight = (float *) calloc(homes, sizeof(float))) == NULL)
-	    outofmem(__FILE__, "HTTCPCacheAddElement");
-    }
+    new->homes = cnt;
+    if ((new->weight = (float *) calloc(new->homes, sizeof(float))) == NULL)
+	outofmem(__FILE__, "HTTCPCacheAddElement");
+
     new->addrlength = element->h_length;
     if (!hostcache)
 	hostcache = HTList_new();
 
     if (TRACE) {
-	if (new->multihomed)
-	    fprintf(stderr, "HostCache... Adding multihomed host `%s' having %d homes\n", HTAtom_name(host), new->multihomed);
+	if (new->homes == 1)
+	    fprintf(stderr, "HostCache... Adding single-homed host `%s'\n",
+		    HTAtom_name(host));
 	else
-	    fprintf(stderr, "HostCache... Adding `%s'\n", HTAtom_name(host));
+	    fprintf(stderr, "HostCache... Adding host `%s' with %d homes\n",
+		    HTAtom_name(host), new->homes);
     }
     HTList_addObject(hostcache, (void *) new);
     HTCacheSize++;				/* Update number of elements */
@@ -375,29 +383,44 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
 	fprintf(stderr, "HostCache... Weights not calculated, no cache\n");
 	return;
     }
+    /* Skip any port number from host name */
+    if (strchr(host, ':')) {
+	char *newhost = NULL;
+	char *strptr;
+	StrAllocCopy(newhost, host);
+	strptr = strchr(newhost, ':');
+	*strptr = '\0';
+	hostatom = HTAtom_for(newhost);
+	free(newhost);
+    } else
+	hostatom = HTAtom_for(host);
+    
     while ((pres = (host_info *) HTList_nextObject(cur)) != NULL) {
 	if (pres->hostname == hostatom) {
 	    break;
 	}
     }
-    if (pres && pres->multihomed) {
+    if (pres) {
 	int cnt;
 	CONST float passive = 0.9; 	  /* Factor for all passive IP_addrs */
 #if 0
 	CONST int Neff = 3;
 	CONST float alpha = exp(-1.0/Neff);
 #else
-	CONST float alpha = 0.716531310574;
+	CONST float alpha = 0.716531310574;	/* Doesn't need the math lib */
 #endif
-	for (cnt=0; cnt<pres->multihomed; cnt++) {
+	for (cnt=0; cnt<pres->homes; cnt++) {
 	    if (cnt == pres->offset) {
 		*(pres->weight+pres->offset) = *(pres->weight+pres->offset)*alpha + (1.0-alpha)*deltatime;
 	    } else {
 		*(pres->weight+cnt) = *(pres->weight+cnt) * passive;
 	    }
+	    if (PROT_TRACE)
+		fprintf(stderr, "AddrWeights. Home %d has weight %4.2f\n", cnt,
+			*(pres->weight+cnt));
 	}
     } else if (TRACE) {
-	fprintf(stderr, "HostCache... Weights not calculated, host not found in cache or is not multihomed: `%s\'\n", host);
+	fprintf(stderr, "HostCache... Weights not calculated, host not found in cache: `%s\'\n", host);
     }
 }
 
@@ -418,7 +441,7 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
 PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 {
 #if 0
-    /* This dumps core on some Sun systems :-(. Yhe problem is now, that 
+    /* This dumps core on some Sun systems :-(. The problem is now, that 
        the current implememtation only works for IP-addresses and not in
        other address spaces. */
     return inet_ntoa(sin->sin_addr);
@@ -439,9 +462,11 @@ PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 **	Searched first the local cache then asks the DNS for an address of
 **	the host specified.
 **
-**      Returns 0 if OK else -1
+**      Returns:	>0 if OK the number of homes are returned
+**		     	-1 if error
 */
-PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin, BOOL *, multi)
+PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
+				 BOOL, use_cur)
 {
     HTAtom *hostatom = HTAtom_for(host);
     host_info *pres = NULL;
@@ -459,28 +484,25 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin, BOOL *, multi)
     }
     
     /* If the host was not found in the cache, then do gethostbyname.
-       If cache found then find the best address if more than one. If we
-       are talking to a multi homed host then take the IP address with the
-       lowest weight */
+       If we are talking to a multi homed host then take the IP address with
+       the lowest weight. If `use_cur'=YES then use current IP-address */
     if (pres) {
-	if (pres->multihomed) {
+	if (pres->homes > 1 && !use_cur) {
 	    int cnt;
 	    float best_weight = 1e30;		    /* Should be FLT_MAX :-( */
-	    for (cnt=0; cnt<pres->multihomed; cnt++) {
+	    for (cnt=0; cnt<pres->homes; cnt++) {
 		if (*(pres->weight+cnt) < best_weight) {
 		    best_weight = *(pres->weight+cnt);
 		    pres->offset = cnt;
 		}
 	    }
-	    *multi = YES;
-	} else
-	    *multi = NO;
-	pres->hits++;				    /* Update number of hits */
+	}
+	pres->hits++;	 	 /* Update total number of hits on this host */
     } else {						/* Go and ask for it */
 	struct hostent *hostelement;			      /* see netdb.h */
 #ifdef MVS	/* Outstanding problem with crash in MVS gethostbyname */
 	if (TRACE)
-	    fprintf(stderr, "HTTCP: gethostbyname(%s)\n", host);
+	    fprintf(stderr, "HTTCP on MVS gethostbyname(%s)\n", host);
 #endif
 	if ((hostelement = gethostbyname(host)) == NULL) {
 	    if (TRACE) fprintf(stderr, "HostByName.. Can't find internet node name `%s'.\n", host);
@@ -498,7 +520,7 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin, BOOL *, multi)
     /* Update socket structure using the element with the lowest weight. On
        single homed hosts it means the first value */
     memcpy(&sin->sin_addr, *(pres->addrlist+pres->offset), pres->addrlength);
-    return 0;
+    return pres->homes;
 }
 
 
@@ -546,20 +568,22 @@ PUBLIC char * HTGetHostBySock ARGS1(int, soc)
 **		with optional trailing colon and port number.
 **	sin	points to the binary internet or decnet address field.
 **
-** On exit,
+** On exit,	-1	If error
+**		>0	If OK the number of homes on the host
 **	*sin	is filled in. If no port is specified in str, that
 **		field is left unchanged in *sin.
 **
 ** NOTE:	It is assumed that any portnumber and numeric host address
 **		is given in decimal notation. Separation character is '.'
 */
-PUBLIC int HTParseInet ARGS3(SockA *,sin, CONST char *,str, BOOL *, multihome)
+PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
+			     BOOL, use_cur)
 {
     char *host = NULL;
+    int status = 0;
     StrAllocCopy(host, str);		      /* Take a copy we can mutilate */
 
     /* Parse port number if present. */    
-    *multihome = NO;
     {
 	char *port;
 	if ((port=strchr(host, ':'))) {
@@ -571,7 +595,10 @@ PUBLIC int HTParseInet ARGS3(SockA *,sin, CONST char *,str, BOOL *, multihome)
 		sin->sin_port = htons(atol(port));
 #endif
 	    } else {
-		fprintf(stderr, "ParseInet... No port indicated\n");
+		if (PROT_TRACE)
+		    fprintf(stderr, "ParseInet... No port indicated\n");
+		free(host);
+		return -1;
 	    }
 	}
     }
@@ -604,7 +631,7 @@ PUBLIC int HTParseInet ARGS3(SockA *,sin, CONST char *,str, BOOL *, multihome)
 	if (numeric) {
 	    sin->sin_addr.s_addr = inet_addr(host);	  /* See arpa/inet.h */
 	} else {
-	    if (HTGetHostByName(host, sin, multihome)) {
+	    if ((status = HTGetHostByName(host, sin, use_cur)) < 0) {
 		free(host);
 		return -1;
 	    }
@@ -617,7 +644,7 @@ PUBLIC int HTParseInet ARGS3(SockA *,sin, CONST char *,str, BOOL *, multihome)
     }
 #endif  /* Internet vs. Decnet */
     free(host);
-    return 0;	/* OK */
+    return status;
 }
 
 
@@ -665,6 +692,26 @@ PRIVATE void get_host_details NOARGS
 #endif /* OLD_CODE */
 
 
+/*								HTGetDomainName
+**	Returns the current domain name without the local host name.
+**	The response is pointing to a static area that might be changed
+**	using HTSetHostName(). Returns NULL on error
+*/
+PUBLIC CONST char *HTGetDomainName NOARGS
+{
+    CONST char *host = HTGetHostName();
+    char *domain;
+    if (host && *host) {
+	if ((domain = strchr(host, '.')) != NULL)
+	    return ++domain;
+	else
+	    return host;
+    } else
+	return NULL;
+}
+
+
+
 /*								HTSetHostName
 **	Sets the current hostname inclusive domain name.
 **	If this is not set then the default approach is used using
@@ -672,9 +719,17 @@ PRIVATE void get_host_details NOARGS
 */
 PUBLIC void HTSetHostName ARGS1(char *, host)
 {
-    if (host && *host)
+    if (host && *host) {
+	char *strptr;
 	StrAllocCopy(hostname, host);
-    else {
+	strptr = hostname;
+	while (*strptr) {
+	    *strptr = TOLOWER(*strptr);
+	    strptr++;
+	}
+	if (*(hostname+strlen(hostname)-1) == '.')    /* Remove trailing dot */
+	    *(hostname+strlen(hostname)-1) = '\0';
+    } else {
 	if (TRACE) fprintf(stderr, "SetHostName. Bad argument ignored\n");
     }
 }
@@ -715,12 +770,17 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	return NULL;
     }
     if (TRACE)
-	fprintf(stderr, "HostName.... Local host name is %s\n", name);
+	fprintf(stderr, "HostName.... Local host name is  `%s\'\n", name);
     StrAllocCopy(hostname, name);
+    {
+	char *strptr = strchr(hostname, '.');
+	if (strptr != NULL)				   /* We have it all */
+	    got_it = YES;
+    }
 
 #ifndef VMS
     /* Now try the resolver config file */
-    if ((fp = fopen(RESOLV_CONF, "r")) != NULL) {
+    if (!got_it && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
 	char buffer[80];
 	*(buffer+79) = '\0';
 	while (fgets(buffer, 79, fp)) {
@@ -749,7 +809,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	if (getdomainname(name, MAXHOSTNAMELEN)) {
 	    if (TRACE)
 		fprintf(stderr, "HostName.... Can't get domain name\n");
-	    *hostname = '\0';
+	    StrAllocCopy(hostname, "");
 	    return NULL;
 	}
 
@@ -764,8 +824,17 @@ PUBLIC CONST char * HTGetHostName NOARGS
     }
 #endif /* not VMS */
 
+    {
+	char *strptr = hostname;
+	while (*strptr) {	    
+	    *strptr = TOLOWER(*strptr);
+	    strptr++;
+	}
+	if (*(hostname+strlen(hostname)-1) == '.')    /* Remove trailing dot */
+	    *(hostname+strlen(hostname)-1) = '\0';
+    }
     if (TRACE)
-	fprintf(stderr, "HostName.... Full local host name is %s\n", hostname);
+	fprintf(stderr, "HostName.... Full host name is `%s\'\n", hostname);
     return hostname;
 
 #ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
@@ -877,11 +946,12 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 **
 **	Returns 0 if OK, -1 on error
 */
-PUBLIC int HTDoConnect ARGS4(HTNetInfo *, net, char *, url,
-			     u_short, default_port, u_long *, addr)
+PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
+			     u_short, default_port, u_long *, addr,
+			     BOOL, use_cur)
 {
-    BOOL multihomed = NO;
     time_t deltatime;
+    int hosts;
     int status;
     SockA sock_addr;				/* SockA is defined in tcp.h */
     char *p1 = HTParse(url, "", PARSE_HOST);
@@ -893,7 +963,13 @@ PUBLIC int HTDoConnect ARGS4(HTNetInfo *, net, char *, url,
 	host = at_sign+1;
     else
 	host = p1;
-    if (TRACE) fprintf(stderr, "HTDoConnect. Looking up `%s\'\n", host);
+    if (!*host) {
+	HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_HOST,
+		   NULL, 0, "HTDoConnect");
+	free(p1);
+	return -1;
+    } else
+	if (TRACE) fprintf(stderr, "HTDoConnect. Looking up `%s\'\n", host);
 
    /* Set up defaults */
     memset((void *) &sock_addr, '\0', sizeof(sock_addr));
@@ -905,52 +981,77 @@ PUBLIC int HTDoConnect ARGS4(HTNetInfo *, net, char *, url,
     sock_addr.sin_port = htons(default_port);
 #endif
 
-    /* Get node name */
-    if (HTParseInet(&sock_addr, host, &multihomed)) {
-	if (TRACE) fprintf(stderr, "HTDoConnect. Can't locate remote host `%s\'\n", host);
-	HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
-		   (void *) host, strlen(host), "HTDoConnect");
-	free (p1);
-	net->sockfd = -1;
-	return -1;
-    }
+    /* If we are trying to connect to a multi-homed host then loop here until
+       success or we have tried all IP-addresses */
+    do {
+	if ((hosts = HTParseInet(&sock_addr, host, use_cur)) < 0) {
+	    if (TRACE) fprintf(stderr, "HTDoConnect. Can't locate remote host `%s\'\n", host);
+	    HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
+		       (void *) host, strlen(host), "HTDoConnect");
+	    goto errorend;
+	}
 
 #ifdef DECNET
-    if ((net->sockfd = socket(AF_DECnet, SOCK_STREAM, 0)) < 0) {
+	if ((net->sockfd = socket(AF_DECnet, SOCK_STREAM, 0)) < 0)
 #else
-    if ((net->sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+	if ((net->sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
 #endif
-	HTErrorSysAdd(net->request, ERR_FATAL, NO, "socket");
-	free (p1);
-	return -1;
-    }
-    if (addr)
-	*addr = ntohl(sock_addr.sin_addr.s_addr);
+	{
+	    HTErrorSysAdd(net->request, ERR_FATAL, NO, "socket");
+	    goto errorend;
+	}
+	if (addr)
+	    *addr = ntohl(sock_addr.sin_addr.s_addr);
+	if (PROT_TRACE)
+	    fprintf(stderr, "HTDoConnect. Created socket number %d\n",
+		    net->sockfd);
+	
+	/* If multi-homed host then start timer on connection */
+	if (hosts > 1)
+	    deltatime = time(NULL);
 
-    if (TRACE)
-	fprintf(stderr, "HTDoConnect. Created socket number %d\n",
-		net->sockfd);
+	status = connect(net->sockfd, (struct sockaddr *) &sock_addr,
+			 sizeof(sock_addr));
+	if (hosts > 1) {
+	    deltatime = time(NULL) - deltatime;
+	    if (status < 0) {
+		HTErrorSysAdd(net->request, ERR_NON_FATAL, NO, "connect");
+		if (errno==ECONNREFUSED || errno==ETIMEDOUT ||
+		    errno==ENETUNREACH || errno==EHOSTUNREACH ||
+		    errno==EHOSTDOWN)
+		    deltatime += TCP_DELAY;
+		else
+		    deltatime += TCP_PENALTY;
+		if (NETCLOSE(net->sockfd) < 0)
+		    HTErrorSysAdd(net->request, ERR_FATAL, NO, "close");
+		HTTCPAddrWeights(host, deltatime);
+	    } else {
+		HTTCPAddrWeights(host, deltatime);
+		break;
+	    }
+	} else if (status < 0) {
+	    HTErrorSysAdd(net->request, ERR_FATAL, NO, "connect");
+	    HTTCPCacheRemoveHost(host);
+	    if (NETCLOSE(net->sockfd) < 0)
+		HTErrorSysAdd(net->request, ERR_FATAL, NO, "close");
+	    goto errorend;
+	}
+    } while (net->addressCount++ < hosts-1);
 
-    if (multihomed)				/* Start timer on connection */
-	deltatime = time(NULL);
-    if ((status = connect(net->sockfd, (struct sockaddr *) &sock_addr,
-			  sizeof(sock_addr))) < 0) {
-	HTErrorSysAdd(net->request, ERR_FATAL, NO, "connect");
-	HTTCPCacheRemoveHost(host);		   /* Remove host from cache */
-	if (NETCLOSE(net->sockfd) < 0)
-	    HTErrorSysAdd(net->request, ERR_FATAL, NO, "close");
-	free(p1);
-	net->sockfd = -1;
-	return -1;
+    if (hosts > 1 && net->addressCount >= hosts) {
+	if (PROT_TRACE) fprintf(stderr, "HTDoConnect. None of the %d addresses on multi-homed host is accessible\n", hosts);
+	goto errorend;
     }
 
-    /* Measure time to make a connection and recalculate weights */
-    if (multihomed) {
-	deltatime = time(NULL) - deltatime;
-	HTTCPAddrWeights(host, deltatime);
-    }
     free(p1);
+    net->addressCount = 0;
     return status;
+
+  errorend:
+    free (p1);
+    net->addressCount = 0;
+    net->sockfd = -1;
+    return -1;
 }
 
 

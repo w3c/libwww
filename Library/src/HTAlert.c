@@ -9,11 +9,9 @@
 **	   Sep 93 Corrected 3 bugs in HTConfirm() :-( AL
 */
 
-
 #include "HTAlert.h"
 
-#include "tcp.h"		/* for TOUPPER */
-#include <ctype.h> 		/* for toupper - should be in tcp.h */
+PUBLIC BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
 PUBLIC void HTAlert ARGS1(CONST char *, Msg)
 {
@@ -36,10 +34,8 @@ PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
   char Reply[4];	/* One more for terminating NULL -- AL */
   char *URep;
   
-  fprintf(stderr, "WWW: %s (y/n) ", Msg);
-                       /* (y/n) came twice -- AL */
-
-  if (!fgets(Reply, 4, stdin))	 	      /* get reply, max 3 characters */
+  fprintf(stderr, "WWW: %s (y/n) ", Msg);	   /* (y/n) came twice -- AL */
+  if (!HTInteractive || !fgets(Reply, 4, stdin))   /* get reply, max 3 chars */
       return NO;
   URep=Reply;
   while (*URep) {
@@ -67,8 +63,7 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
     char * rep = 0;
     fprintf(stderr, "WWW: %s", Msg);
     if (deflt) fprintf(stderr, " (RETURN for [%s]) ", deflt);
-    
-    if (!fgets(Tmp, 200, stdin))
+    if (!HTInteractive || !fgets(Tmp, 200, stdin))
 	return NULL;		       	/* NULL string on error, Henrik */
     Tmp[strlen(Tmp)-1] = (char)0;	/* Overwrite newline */
    
@@ -82,8 +77,11 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
 PUBLIC char * HTPromptPassword ARGS1(CONST char *, Msg)
 {
     char *result = NULL;
-    char *pw = (char*)getpass(Msg ? Msg : "Password: ");
+    char *pw;
 
+    if (!HTInteractive)
+	return "";
+    pw = (char *) getpass(Msg ? Msg : "Password: ");
     StrAllocCopy(result, pw);
     return result;
 }
@@ -112,6 +110,11 @@ PUBLIC void HTPromptUsernameAndPassword ARGS3(CONST char *,	Msg,
 					      char **,		username,
 					      char **,		password)
 {
+    if (!HTInteractive) {
+	*username = "";
+	*password = "";
+	return;
+    }
     if (Msg)
 	fprintf(stderr, "WWW: %s\n", Msg);
     *username = HTPrompt("Username: ", *username);

@@ -8,8 +8,6 @@
 
 #include "HTUtils.h"
 #include "tcp.h"
-#include <stdio.h>
-
 
 /*		HTML Object
 **		-----------
@@ -37,7 +35,7 @@ PRIVATE void flush ARGS1(HTStream *, me)
     char *read_pointer 	= me->buffer;
     char *write_pointer = me->write_pointer;
 
-#ifdef NOT_ASCCII
+#ifdef NOT_ASCII
     if (me->make_ascii) {
     	char * p;
 	for(p = me->buffer; p < me->write_pointer; p++)
@@ -46,14 +44,17 @@ PRIVATE void flush ARGS1(HTStream *, me)
 #endif
     while (read_pointer < write_pointer) {
         int status;
+#ifdef OLD_CODE
 	status = NETWRITE(me->soc, me->buffer,  /* Put timeout? @@@ */
 			write_pointer - read_pointer);
+#endif /* OLD_CODE */
+	status = NETWRITE(me->soc, read_pointer, write_pointer - read_pointer);
 	if (status<0) {
 	    if(TRACE) fprintf(stderr,
 	    "HTWrite: Error: write() on socket returns %d !!!\n", status);
 	    return;
 	}
-	read_pointer = read_pointer + status;
+	read_pointer += status;
     }
     me->write_pointer = me->buffer;
 }
@@ -101,6 +102,13 @@ PRIVATE void HTWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 
     flush(me);		/* First get rid of our buffer */
 
+#ifdef NOT_ASCII
+    if (me->make_ascii) {
+    	char * p;
+	for(p = me->buffer; p < me->write_pointer; p++)
+	    *p = TOASCII(*p);
+    }
+#endif
     while (read_pointer < write_pointer) {
         int status = NETWRITE(me->soc, read_pointer,
 			write_pointer - read_pointer);

@@ -13,18 +13,13 @@
 **	(c) Copyright CERN 1991 - See Copyright.html
 */
 
-#define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
-
-#if 0
-#include <ctype.h>
-#endif
-#include "tcp.h"
 #include "HTFormat.h"
-#include "HTAnchor.h"
-
 #include "HTUtils.h"
 #include "HTParse.h"
-#include "HTFWriter.h"	/* for cache stuff */
+#include "HTFWriter.h"					  /* for cache stuff */
+#include "HTAnchor.h"					 /* Implemented here */
+
+#define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
 
 typedef struct _HyperDoc Hyperdoc;
 #ifdef VMS
@@ -97,7 +92,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
   HTList *kids;
 
   if (! parent) {
-    if (TRACE)
+    if (ANCH_TRACE)
 	fprintf(stderr, "HTAnchor_findChild called with NULL parent.\n");
     return NULL;
   }
@@ -105,8 +100,8 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
     if (tag && *tag) {		/* TBL */
 	while ((child = HTList_nextObject (kids))) {
 	    if (equivalent(child->tag, tag)) { /* Case sensitive 920226 */
-		if (TRACE) fprintf (stderr,
-	       "Child anchor %p of parent %p with name `%s' already exists.\n",
+		if (ANCH_TRACE) fprintf (stderr,
+	       "AnchorChild. %p of parent %p with name `%s' already exists.\n",
 		    (void*)child, (void*)parent, tag);
 		return child;
 	    }
@@ -116,7 +111,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
     parent->children = HTList_new ();
 
   child = HTChildAnchor_new ();
-  if (TRACE) fprintf(stderr, "new Anchor %p named `%s' is child of %p\n",
+  if (ANCH_TRACE) fprintf(stderr, "AnchorChild. New Anchor %p named `%s' is child of %p\n",
        (void*)child, (int)tag ? tag : (CONST char *)"" , (void*)parent); /* int for apollo */
   HTList_addObject (parent->children, child);
   child->parent = parent;
@@ -192,8 +187,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress
     
     /* Select list from hash table */
     for(p=address, hash=0; *p; p++)
-    	hash = (hash * 3 + (*(unsigned char*)p))
-    	 % HASH_SIZE;
+    	hash = (int) ((hash * 3 + (*(unsigned char*)p)) % HASH_SIZE);
     if (!adult_table)
         adult_table = (HTList**) calloc(HASH_SIZE, sizeof(HTList*));
     if (!adult_table[hash]) adult_table[hash] = HTList_new();
@@ -203,18 +197,24 @@ PUBLIC HTAnchor * HTAnchor_findAddress
     grownups = adults;
     while ((foundAnchor = HTList_nextObject (grownups))) {
        if (equivalent(foundAnchor->address, address)) {
-	if (TRACE)
-	    fprintf(stderr, "Anchor %p with address `%s' already exists.\n",
+	if (ANCH_TRACE)
+	    fprintf(stderr, "FindAnchor.. %p with address `%s' already exists.\n",
 		    (void*) foundAnchor, address);
 	return (HTAnchor *) foundAnchor;
       }
     }
     
-    /* Node not found : create new anchor */
+    /* Node not found : create new anchor. */
     foundAnchor = HTParentAnchor_new ();
-    if (TRACE) fprintf(stderr, "New anchor %p has hash %d and address `%s'\n",
-		       (void*)foundAnchor, hash, address);
-    StrAllocCopy(foundAnchor->address, address);
+    if (ANCH_TRACE) fprintf(stderr, "FindAnchor.. %p with hash %d and address `%s' created\n", (void*)foundAnchor, hash, address);
+
+    /* This is done earlier in the Proxy server */
+    if (HTImProxy) {
+	StrAllocCopy(foundAnchor->address, address);
+    } else {
+	StrAllocCopy(foundAnchor->address, address);
+	foundAnchor->address = HTSimplify(foundAnchor->address);
+    }
     HTList_addObject (adults, foundAnchor);
     return (HTAnchor *) foundAnchor;
   }
@@ -438,8 +438,8 @@ PUBLIC BOOL HTAnchor_link
 {
   if (! (source && destination))
     return NO;  /* Can't link to/from non-existing anchor */
-  if (TRACE)
-      fprintf(stderr, "Linking anchor %p to anchor %p\n",
+  if (ANCH_TRACE)
+      fprintf(stderr, "LinkAnchor.. Linking anchor %p to anchor %p\n",
 	      (void *) source, (void *) destination);
   if (! source->mainLink.dest) {
     source->mainLink.dest = destination;
@@ -549,7 +549,7 @@ PUBLIC void HTAnchor_setPhysical ARGS2(HTParentAnchor *, me,
 	char *,	physical)
 {
     if (!me || !physical) {
-	if (TRACE)
+	if (ANCH_TRACE)
 	    fprintf(stderr, "HTAnchor.... setPhysical, called with null argument\n");
 	return;
     }

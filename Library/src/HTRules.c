@@ -24,8 +24,6 @@
 /* (c) CERN WorldWideWeb project 1990,91. See Copyright.html for details */
 #include "HTRules.h"
 
-#include <stdio.h>
-#include "tcp.h"
 #include "HTFile.h"
 #include "HTParse.h"	/* HTParse() */
 #include "HTAAUtil.h"

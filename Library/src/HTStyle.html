@@ -2,43 +2,37 @@
 <HEAD>
 <TITLE>HTStyle: Style management for libwww</TITLE></HEAD>
 <BODY>
-<H1>Style Definition for Hypertext</H1>Styles allow the translation between
-a logical property of a piece of
-text and its physical representation.<P>
-A StyleSheet is a collection of styles,
-defining the translation necessary
-to represent a document. It is a
-linked list of styles.
-<H2>Overriding this module</H2>Why is the style structure declared
-in the HTStyle.h module, instead
-of having the user browser define
-the structure, and the HTStyle routines
-just use sizeof() for copying?<P>
-It's not obvious whether HTStyle.c
-should be common code.  It's useful
-to have common code for loading style
-sheets, especially if the movement
-toward standard style sheets gets
-going.<P>
-If it IS common code, then both the
-hypertext object and HTStyle.c must
-know the structure of a style, so
-HTStyle.h is a suitable place to
-put that.  HTStyle.c has to be compiled
-with a knowledge of the<P>
-It we take it out of the library,
-then of course HTStyle could be declared
-as an undefined structure. The only
-references to it are in the structure-flattening
-code HTML.c and HTPlain.c, which
-only use HTStypeNamed().<P>
-You can in any case override this
-function in your own code, which
-will prevent the HTStyle from being
-loaded.  You will be able to redefine
-your style structure in this case
-without problems, as no other moule
-needs to know it.
+
+<H1>Style Definition for Hypertext</H1>Styles allow the translation
+between a logical property of a piece of text and its physical
+representation.<P> A StyleSheet is a collection of styles, defining
+the translation necessary to represent a document. It is a linked list
+of styles.
+
+<H2>Overriding this module</H2>
+
+Why is the style structure declared in the HTStyle.h module, instead
+of having the user browser define the structure, and the HTStyle
+routines just use sizeof() for copying?<P>
+
+It's not obvious whether HTStyle.c should be common code.  It's useful
+to have common code for loading style sheets, especially if the
+movement toward standard style sheets gets going.<P>
+
+If it <B>is</B> common code, then both the hypertext object and
+HTStyle.c must know the structure of a style, so HTStyle.h is a
+suitable place to put that.<P>
+
+If we take it out of the library, then of course HTStyle could be
+declared as an undefined structure. The only references to it are in
+the structure-flattening code HTML.c and HTPlain.c, which only use
+HTStypeNamed().<P>
+
+You can in any case override this function in your own code, which
+will prevent the HTStyle from being loaded.  You will be able to
+redefine your style structure in this case without problems, as no
+other moule needs to know it.
+
 <PRE>
 #ifndef HTStyle_H
 #define HTStyle_H

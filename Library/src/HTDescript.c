@@ -12,7 +12,6 @@
  */
 
 #include "HTUtils.h"
-#include "tcp.h"
 #include "HTList.h"
 #include "HTAAUtil.h"
 #include "HTAccess.h"
@@ -47,6 +46,9 @@ PUBLIC HTList * HTReadDescriptions ARGS1(char *, dirname)
 	CTRACE(stderr, "DirBrowse... No description file %s\n", name);
 	FREE(name);
 	return NULL;
+    } else {
+	if (TRACE)
+	    fprintf(stderr, "DirBrowse... Description file found %s\n", name);
     }
 
     list = HTList_new();

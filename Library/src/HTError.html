@@ -6,24 +6,35 @@
 <BODY>
 <H1>Reporting Errors and Messages to the Client</H1>
 
-This module maintaines a list of error messages that might occur during load of a requested URL. The error list is put out to standard output by a simple function that easily can be overwritten by a smart server or client. The module is
-a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.<P>
+This module maintaines a list of error messages that might occur
+during load of a requested URL. The error list is put out to standard
+output by a simple function that easily can be overwritten by a smart
+server or client. The module is a part of the <A
+HREF="Overview.html">CERN Common WWW Library</A>.<P>
 
-<NOTE><B>Note: </B></NOTE>
-At the moment, <A HREF="HTErrorMsg.c">HTErrorMsg()</A> is called, if the flag HTRequest-&gt;error_block is set to YES, then a stream has been put up or taken down in the library and therefore it is <B>VERY</B> unsafe to put anything more to the stream.
+<NOTE><B>Note: </B></NOTE> At the moment, <A
+HREF="HTErrorMsg.c">HTErrorMsg()</A> is called, if the flag
+HTRequest-&gt;error_block is set to YES, then a stream has been put up
+or taken down in the library and therefore it is <B>VERY</B> unsafe to
+put anything more to the stream.
+
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
+#include "HTAccess.h"
 </PRE>
 
 <H2>Data Structures</H2>
 
-The basic data structure is HTErrorInfo, but in addition the following types are used:
+The basic data structure is HTErrorInfo, but in addition the following
+types are used:
 
 <H3>Error Numbers</H3>
 
-<NOTE><B>Note: </B></NOTE>
-All non-HTTP error codes have index numbers &gt; HTERR_HTTP_CODES, and they will not be shown in the error-message generated.
+<NOTE><B>Note: </B></NOTE> All non-HTTP error codes have index numbers
+&gt; HTERR_HTTP_CODES, and they will not be shown in the error-message
+generated.
+
 <PRE>
 typedef enum _HTErrorElement {
 	HTERR_OK = 0,						/* 200 */
@@ -83,15 +94,16 @@ typedef struct _HTErrorInfo {
 
 <H2>Controling Globals</H2>
 
-This variable dictates which errors should be put out when generating the
-message to the user. The first four
-enumerations make it possible to see `everything as bad or worse than' this
-level, e.g. HT_ERR_SHOW_NON_FATAL shows messages of type HT_ERR_SHOW_NON_FATAL
-and HT_ERR_SHOW_FATAL. <P>
+This variable dictates which errors should be put out when generating
+the message to the user. The first four enumerations make it possible
+to see `everything as bad or worse than' this level, e.g.
+HT_ERR_SHOW_NON_FATAL shows messages of type HT_ERR_SHOW_NON_FATAL and
+HT_ERR_SHOW_FATAL. <P>
 
-<B>Note:</B> The default value is made so that it only puts a message to
-<EM>stderr</EM> if a `real' error has occurred. If a separate widget is available for information and error messages then probably HT_ERR_SHOW_DETAILED would
-be more appropriate.
+<B>Note:</B> The default value is made so that it only puts a message
+to <EM>stderr</EM> if a `real' error has occurred. If a separate
+widget is available for information and error messages then probably
+HT_ERR_SHOW_DETAILED would be more appropriate.
 
 <PRE>
 typedef enum _HTErrorShow {
@@ -103,6 +115,7 @@ typedef enum _HTErrorShow {
     HT_ERR_SHOW_LOCATION  = 0x20,
     HT_ERR_SHOW_IGNORE    = 0x40,
     HT_ERR_SHOW_FIRST     = 0x80,
+    HT_ERR_SHOW_LINKS     = 0x100,
     HT_ERR_SHOW_DEFAULT	  = 0x13,
     HT_ERR_SHOW_DETAILED  = 0x1F,
     HT_ERR_SHOW_DEBUG	  = 0x7F
@@ -111,7 +124,8 @@ typedef enum _HTErrorShow {
 extern unsigned int HTErrorShowMask;
 </PRE>
 
-This is the table containing the actual error-messages and links for more information:
+This is the table containing the actual error-messages and links for
+more information:
 
 <PRE>
 typedef struct _HTErrorMsgInfo {
@@ -141,7 +155,10 @@ extern int HTErrorAdd PARAMS((	HTRequest * 	request,
 
 <H3>Add a System Error Message</H3>
 
-This function adds an error from a system call that initializes errno or equivalent and adds it to the error_stack list in the HTRequest structure. It always returns a negative value.
+This function adds an error from a system call that initializes errno
+or equivalent and adds it to the error_stack list in the HTRequest
+structure. It always returns a negative value.
+
 <PRE>
 extern int HTErrorSysAdd PARAMS(( HTRequest * 	request,
 				  HTErrSeverity	severity,
@@ -151,13 +168,24 @@ extern int HTErrorSysAdd PARAMS(( HTRequest * 	request,
 
 <H3>Ignoring an Error Message</H3>
 
-If an error message is not to be send to the user, e.g., output to the stream,
-then the ignore flag must be turn on. Theese functions turns it on for the
-latest error appended to the list or an arbitrary error refered to by its 
-handle.
+If an error message is not to be send to the user, e.g., output to the
+stream, then the ignore flag must be turn on. Theese functions turns
+it on for the latest error appended to the list or an arbitrary error
+refered to by its handle.
+
 <PRE>
 extern void HTErrorIgnore PARAMS((HTRequest * request, int handle));
 extern void HTErrorIgnoreLast PARAMS((HTRequest * request));
+</PRE>
+
+<H3>Handling Prefix for Links in Error Message</H3>
+
+Two functions handle the URL prefix of the links inside the error
+message. They are quite obvious:
+
+<PRE>
+PUBLIC void HTErrorSetPrefix PARAMS((char *path));
+PUBLIC CONST char *HTErrorGetPrefix NOPARAMS;
 </PRE>
 
 <H3>Generating an Error Message (default to standard error)</H3>
@@ -174,7 +202,7 @@ If a stream <EM>has</EM> been put up (and maybe taken down again) inside the
 Library, then request-&gt;error_block has been set to YES. This indicates that
 it is NOT possible any more to use the stream as output for the message.
 <PRE>
-extern void HTErrorMsg    PARAMS((HTRequest * request));
+PUBLIC void HTErrorMsg    PARAMS((HTRequest * request));
 </PRE>
 
 <H3>Freeing an Error List</H3>
@@ -182,7 +210,7 @@ extern void HTErrorMsg    PARAMS((HTRequest * request));
 This is normally done when the HTRequest structure is freed but it might be 
 done at any other time in order to ignore a whole series of errors.
 <PRE>
-extern void HTErrorFree   PARAMS((HTRequest * request));
+PUBLIC void HTErrorFree   PARAMS((HTRequest * request));
 </PRE>
 
 <PRE>

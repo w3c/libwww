@@ -37,7 +37,6 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 
 #include "HTML.h"
 #include "HTMLPDTD.h"
-#include "HText.h"
 #include "HTAlert.h"
 #include "HTList.h"
 #include "HTInit.h"
@@ -1074,6 +1073,31 @@ PUBLIC void HTCopyNoCR ARGS2(
 }
 
 
+/* To be replaced by a stream */
+PUBLIC void HTCopyDot ARGS2(int,	file_number,
+			    HTStream *,	sink)
+{
+    HTStreamClass targetClass;
+    HTInputSocket * isoc;   
+    int ch;
+    int state=3;
+    
+    /* Push the data, ignoring CRLF, down the stream */
+    targetClass = *(sink->isa);		      /* Copy pointers to procedures */
+    isoc = HTInputSocket_new(file_number);
+    while (state && (ch = HTInputSocket_getCharacter(isoc)) >= 0) {
+	if (ch == '\n')
+	    state--;
+	else if (state==2 && ch=='.')
+	    state--;
+	else
+	    state = 3;
+	(*targetClass.put_character)(sink, ch);
+    }
+    HTInputSocket_free(isoc);
+}
+
+
 
 /*	Parse a socket given format and file number
 **
@@ -1086,6 +1110,8 @@ PUBLIC void HTCopyNoCR ARGS2(
 **
 **	Returns <0 on error, HT_LOADED on success.
 */
+
+/* The parameter to this function and HTParsefile should be HTRequest */
 
 PUBLIC int HTParseSocket ARGS3(
 	HTFormat,		rep_in,
@@ -1112,16 +1138,19 @@ PUBLIC int HTParseSocket ARGS3(
 **   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
-    if (rep_in == WWW_BINARY || rep_in == WWW_UNKNOWN || HTOutputSource
+    if (request->output_format == WWW_SOURCE && request->net_info->CRLFdotCRLF)
+	HTCopyDot(file_number, stream);
+    else if (rep_in == WWW_BINARY || rep_in == WWW_UNKNOWN || HTOutputSource
 	|| (request->content_encoding &&
 	    request->content_encoding != HTAtom_for("8bit") &&
 	    request->content_encoding != HTAtom_for("7bit"))
         || strstr(HTAtom_name(rep_in), "image/")
 	|| strstr(HTAtom_name(rep_in), "video/")) { /* @@@@@@ */
 	HTCopy(file_number, stream);
-    } else {   /* ascii text with CRLFs :-( */
+    } else if (request->net_info->CRLFdotCRLF)
+        HTCopyDot(file_number, stream);
+    else
         HTCopyNoCR(file_number, stream);
-    }
     (*targetClass._free)(stream);
     
     return HT_LOADED;

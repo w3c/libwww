@@ -101,8 +101,9 @@ SPECIFIC =  \
 # Bug: This path, if relative, is taken relative to the directory
 # in which this makefile is, not the pwd.  This screws up the 
 # recursive invocation
-include $(ABS)$(LM)Version.make
 
+# This is now done by cat in WWW/All/Implementation/Makefile
+# include $(ABS)$(LM)Version.make
 
 .html.h:
 	www -w90 -na -to text/x-c $*.html > $*.h

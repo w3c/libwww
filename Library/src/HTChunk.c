@@ -12,7 +12,6 @@
 
 #include "HTUtils.h"
 #include "HTChunk.h"
-#include <stdio.h>
 
 /*	Create a chunk with a certain allocation unit
 **	--------------

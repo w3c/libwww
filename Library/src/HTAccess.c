@@ -23,7 +23,10 @@
 */
 
 #ifndef DEFAULT_WAIS_GATEWAY
+#define DEFAULT_WAIS_GATEWAY "http://ptsun00.cern.ch:7001/"
+#if 0
 #define DEFAULT_WAIS_GATEWAY "http://info.cern.ch:8001/"
+#endif
 #endif
 
 /* Implements:
@@ -41,8 +44,6 @@
 #include "HTRules.h"
 #endif
 
-#include <stdio.h>
-
 #include "HTList.h"
 #include "HText.h"	/* See bugs above */
 #include "HTAlert.h"
@@ -50,12 +51,11 @@
 #include "HTTee.h"
 #include "HTError.h"
 
-/*	These flags may be set to modify the operation of this module
-*/
-PUBLIC char * HTCacheDir = 0;	/* Root for cached files or 0 for no cache */
-PUBLIC char * HTSaveLocallyDir = SAVE_LOCALLY_HOME_DIR;	/* Save & exe files */
-PUBLIC char * HTClientHost = 0;	/* Name of remote login host if any */
-PUBLIC FILE * HTlogfile = 0;	/* File to which to output one-liners */
+/* These flags may be set to modify the operation of this module */
+PUBLIC char * HTCacheDir = NULL;  /* Root for cached files or 0 for no cache */
+PUBLIC char * HTSaveLocallyDir = SAVE_LOCALLY_HOME_DIR;	 /* Save & exe files */
+PUBLIC char * HTClientHost = 0;		 /* Name of remote login host if any */
+PUBLIC FILE * HTlogfile = 0;	       /* File to which to output one-liners */
 
 PUBLIC BOOL HTForceReload = NO;	/* Force reload from cache or net */
 PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
@@ -231,27 +231,26 @@ PRIVATE void HTAccessInit NOARGS			/* Call me once */
 {
 GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
 #ifndef DECNET
+#ifdef NEW_CODE
+GLOBALREF  HTProtocol HTFTP, HTNews, HTNNTP, HTGopher;
+#endif
 GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
-
-/* This is the replacement when HTWhoIs gets a complete protocol module */
-/* GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher, HTWhoIs;		*/
-/* -------------------------------------------------------------------- */
 
 #ifdef DIRECT_WAIS
 GLOBALREF  HTProtocol HTWAIS;
 #endif
     HTRegisterProtocol(&HTFTP);
     HTRegisterProtocol(&HTNews);
+#ifdef NEW_CODE
+    HTRegisterProtocol(&HTNNTP);
+#endif
     HTRegisterProtocol(&HTGopher);
 
-/* This should be added when HTWhoIs gets a complete protocol module */
-/*  HTRegisterProtocol(&HTWhoIs);				     */
-/* ----------------------------------------------------------------- */
 #ifdef DIRECT_WAIS
     HTRegisterProtocol(&HTWAIS);
 #endif
-#endif
 
+#endif /* DECNET */
     HTRegisterProtocol(&HTTP);
     HTRegisterProtocol(&HTFile);
     HTRegisterProtocol(&HTTelnet);
@@ -606,7 +605,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
     int	        status;
     HText *	text;
     char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
-    
+
     if (TRACE) fprintf (stderr, "HTAccess.... Loading document %s\n",
 			full_address);
 
@@ -627,10 +626,9 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
     }
     
     /* Check the Cache */
-    /* Caching is ONLY done if (char*) HTCacheDir is set. Henrik 09/03-94 */
     /* Bug: for each format, we only check whether it is ok, we
        don't check them all and chose the best */
-    if (/* HTCacheDir && */ request->anchor->cacheItems) {
+    if (request->anchor->cacheItems) {
         HTList * list = request->anchor->cacheItems;
 	HTList * cur = list;
 	HTCacheItem * item;
@@ -687,7 +685,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 
     if (status == HT_LOADED) {
 	if (TRACE) {
-	    fprintf(stderr, "HTAccess: `%s' has been accessed.\n",
+	    fprintf(stderr, "HTAccess.... `%s' has been accessed.\n",
 	    full_address);
 	}
 	free(full_address);
@@ -697,7 +695,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
     if (status == HT_NO_DATA) {
 	if (TRACE) {
 	    fprintf(stderr, 
-	    "HTAccess: `%s' has been accessed, No data left.\n",
+	    "HTAccess.... `%s' has been accessed, No data left.\n",
 	    full_address);
 	}
 	free(full_address);

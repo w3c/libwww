@@ -31,8 +31,6 @@ typedef unsigned long mode_t;
 #include <grp.h>
 #endif /* not VMS */
 
-#include "tcp.h"
-
 /* Library include files */
 #include "HTMLPDTD.h"
 #include "HTUtils.h"
@@ -43,7 +41,6 @@ typedef unsigned long mode_t;
 #include "HTInit.h"
 #include "HTBTree.h"
 #include "HTFormat.h"
-#include "HTML.h"
 #include "HTChunk.h"
 #include "HTIcons.h"
 #include "HTDescript.h"
@@ -522,10 +519,15 @@ PRIVATE void HTDirOutTop ARGS5(HTStructured *, target,
     }
 
     /* Output title */
+    START(HTML_HTML);
+    START(HTML_HEAD);
     START(HTML_TITLE);
     PUTS("Index of ");
     PUTS(title);
     END(HTML_TITLE);
+    END(HTML_HEAD);
+
+    START(HTML_BODY);
     START(HTML_H1);
     PUTS("Index of ");
     PUTS(title);
@@ -741,6 +743,8 @@ PRIVATE void HTDirOutBottom ARGS4(HTStructured *, target,
 	HTDirOutMessage(target, message);
     else if (HTDirReadme == HT_DIR_README_BOTTOM)
 	HTDirOutReadme(target, directory);
+    END(HTML_BODY);
+    END(HTML_HTML);
 }
 
 
@@ -780,8 +784,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
         
     if (HTDirAccess == HT_DIR_FORBID)
 	return HTErrorAdd(req, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			  (void *) directory, (int) strlen(directory),
-			  "HTBrowseDirectory");
+			  NULL, 0, "HTBrowseDirectory");
     
     /* Initialize path name for stat() */
     StrAllocCopy(pathname, directory);
@@ -819,9 +822,9 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	        "HTBrowse.... Can't stat() file: %s (errno: %d)\n",
 			       pathname, errno);
 	    free(pathname);
+	    FREE(tail);
 	    return HTErrorAdd(req, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			      (void *) directory, (int) strlen(directory),
-			      "HTBrowseDirectory");
+			      NULL, 0, "HTBrowseDirectory");
 	}
     }
 
@@ -1078,8 +1081,11 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	if (HTDirFileLength < HTDirMinFileLength)
 	    HTDirFileLength = HTDirMinFileLength;
 
+#if 0
 	/* Now, put up the stream if no error has occured */
-	if (!req->error_stack) {
+	if (!req->error_stack)
+#endif
+	{
 	    HTStructured *target = HTML_new(req, NULL, WWW_HTML,
 					    req->output_format,
 					    req->output_stream);
@@ -1328,8 +1334,11 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
         if (HTDirFileLength < HTDirMinFileLength)
             HTDirFileLength = HTDirMinFileLength;
 
+#if 0
 	/* Now, put up the stream if no error has occured */
-	if (!req->error_stack) {
+	if (!req->error_stack)
+#endif
+	{
 	    HTStructured *target = HTML_new(req, NULL, WWW_HTML,
 					    req->output_format,
 					    req->output_stream);

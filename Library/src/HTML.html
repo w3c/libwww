@@ -26,14 +26,13 @@ NAME="z3" HREF="HTML.c">HTML.c</A>
 #endif
 
 extern CONST HTStructuredClass HTMLPresentation;
-
 </PRE>
-<H2>HTML_new: A structured stream to
-parse HTML</H2>When this routine is called, the
-request structure may contain a <A
-NAME="z4" HREF="HTAccess.html#z6">childAnchor</A>
-value.  I that case it is the responsability
-of this module to select  the anchor.<P>
+
+<H2>HTML_new: A structured stream to parse HTML</H2>
+
+When this routine is called, the request structure may contain a <A
+NAME="z4" HREF="HTAccess.html#z6">childAnchor</A> value.  In that case
+it is the responsability of this module to select the anchor.<P>
  
 <PRE>extern HTStructured* HTML_new PARAMS((HTRequest * request,
 					void *   param,
@@ -42,21 +41,28 @@ of this module to select  the anchor.<P>
 				     	HTStream * output_stream));
 
 </PRE>
-<H3>Reopen</H3>Reopening an existing HTML object
-allows it to be retained (for example
-by the styled text object) after
-the structured stream has been closed.
-To be actually deleted, the HTML
-object must  be closed once more
-times than it has been reopened.
-<PRE>extern void HTML_reopen PARAMS((HTStructured * me));
 
+<H3>Reopen</H3>
+
+Reopening an existing HTML object allows it to be retained (for
+example by the styled text object) after the structured stream has
+been closed.  To be actually deleted, the HTML object must be closed
+once more times than it has been reopened.
+
+<PRE>
+extern void HTML_reopen PARAMS((HTStructured * me));
 </PRE>
+
 <H2>Converters</H2>
-<PRE>extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent, HTMLToTeX;
 
+These are the converters implemented in this module:
 
+<PRE>
+#ifndef pyramid
+extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent, HTMLToTeX;
+#endif
 </PRE>
+
 <H2>Selecting internal character set
 representations</H2>
 <PRE>typedef enum _HTMLCharacterSet {

@@ -9,9 +9,6 @@
 **  	05 May 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
 */
 
-/* Implemention dependent include files */
-#include "tcp.h"
-
 /* Library include files */
 #include "HTUtils.h"
 #include "HTAccess.h"

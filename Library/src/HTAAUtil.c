@@ -45,9 +45,7 @@
 **
 */
 
-#include <string.h>
 #include "HTUtils.h"
-#include "tcp.h"	/* NETREAD() etc.	*/
 #include "HTAAUtil.h"	/* Implemented here	*/
 #include "HTAssoc.h"	/* Assoc list		*/
 

@@ -23,9 +23,6 @@ HTAcces.c</A>
 <PRE>
 #ifndef HTACCESS_H
 #define HTACCESS_H
-
-/* Definition uses */
-#include "tcp.h"
 #include "HTList.h"
 </PRE>
 
@@ -37,6 +34,19 @@ HTAcces.c</A>
 #define HTOutputStream		HTOuStre
 #define HTOutputFormat		HTOuForm
 #endif
+</PRE>
+
+<H2>Flags which may be set to control this module</H2>
+
+<PRE>
+extern char * HTSaveLocallyDir;		/* Dir home for "save locally" files */
+extern char * HTCacheDir;		/* Cache dir, default NULL: no cache */
+extern char * HTClientHost;		/* Name or number of telnetting host */
+extern FILE * HTlogfile;		/* File to output one-liners to */
+extern BOOL HTSecure;			/* Disable security holes? */
+extern char * HTImServer;		/* If I'm cern_httpd */
+extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
+extern BOOL HTForceReload;		/* Force reload from cache or net */
 </PRE>
 
 <H2>Method Management</H2>
@@ -90,7 +100,7 @@ PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 <HR>
 <EM>This section might be move to the Access Authentication Module</EM>
 
-<H2>Match Template Against Filename</H2>
+<H4>Match Template Against Filename</H4>
 <PRE>
 /* PUBLIC						HTAA_templateMatch()
 **		STRING COMPARISON FUNCTION FOR FILE NAMES
@@ -195,11 +205,17 @@ into the library, see specifications on <A HREF="http://info.cern.ch/hypertext/W
 
 <PRE>
 typedef struct _HTNetInfo {
-    int			sockfd;
-    HTInputSocket *	isoc;
-    struct _HTRequest *	request;
+    int			sockfd;				/* Socket descriptor */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    int 		addressCount;	     /* Attempts if multi-homed host */
+    BOOL		CRLFdotCRLF;  /* Does the transmission end like this */
+    struct _HTRequest *	request;	   /* Link back to request structure */
 } HTNetInfo;
 </PRE>
+
+<EM><B>Note:</B> The AddressCount varaible is used to count the number
+of attempt to connect to a multi-homed host so we know when to stop
+trying new IP-addresses.</EM>
 
 <H2><A
 NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
@@ -309,6 +325,7 @@ hit
 <H3>Library Side</H3>
 <PRE>
 	HTNetInfo *	net_info;	/* Information about socket etc. */
+	int		redirections;	/* Number of redirections */
 </PRE>
 <H3>Server Side</H3>
 <PRE>
@@ -360,19 +377,6 @@ Clears a request structure so that it can be reused. The only thing that differs
 extern void HTRequest_clear PARAMS((HTRequest * req));
 </PRE>
 
-<H2>Flags which may be set to control
-this module</H2>
-<PRE>
-extern char * HTSaveLocallyDir;		/* Dir home for "save locally" files */
-extern char * HTCacheDir;		/* Cache dir, default NULL: no cache */
-extern char * HTClientHost;		/* Name or number of telnetting host */
-extern FILE * HTlogfile;		/* File to output one-liners to */
-extern BOOL HTSecure;			/* Disable security holes? */
-extern char * HTImServer;		/* If I'm cern_httpd */
-extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
-extern BOOL HTForceReload;		/* Force reload from cache or net */
-
-</PRE>
 <H2>Load a document from relative name</H2>
 <H3>On Entry,</H3>
 <DL>

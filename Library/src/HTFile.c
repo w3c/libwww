@@ -25,22 +25,15 @@
 #define GOT_READ_DIR
 #endif /* VMS */
 
-#include "HTFile.h"		/* Implemented here */
-
-#ifdef VMS
-#define NO_GROUPS		/* MOVE TO tcp.html */
-PRIVATE char * suffix_separators = "._";
-#else
-PRIVATE char * suffix_separators = ".,_";
-#endif /* VMS */
-
-#include "HTUtils.h"
-
 #ifdef VMS
 #include "HTVMSUtils.h"
 #endif /* VMS */
 
+/* System dependent stuff */
 #include "tcp.h"
+
+/* Library Includes */
+#include "HTUtils.h"
 #include "HTParse.h"
 #include "HTTCP.h"
 #ifndef DECNET			/* Temporary ? */
@@ -55,6 +48,13 @@ PRIVATE char * suffix_separators = ".,_";
 #include "HTFormat.h"
 #include "HTMulti.h"
 #include "HTError.h"
+#include "HTFile.h"		/* Implemented here */
+
+#ifdef VMS
+PRIVATE char * suffix_separators = "._";
+#else
+PRIVATE char * suffix_separators = ".,_";
+#endif /* VMS */
 
 #ifdef ISC3	/* Lauren */		
 #define _POSIX_SOURCE       
@@ -569,7 +569,7 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 	    "File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
     	    (unsigned int) fileStatus.st_mode, (int) fileStatus.st_uid,
 	    (int) fileStatus.st_gid, (int) myUid, ngroups);
-	for (i=0; i<ngroups; i++) fprintf(stderr, " %ld", groups[i]);
+	for (i=0; i<ngroups; i++) fprintf(stderr, " %d", groups[i]);
 	fprintf(stderr, ")\n");
     }
     
@@ -677,7 +677,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	return HT_INTERNAL;
     }
     url = HTAnchor_physical(request->anchor);
-    HTSimplify(url);
     if (TRACE) fprintf(stderr, "LoadFile.... Looking for `%s\'\n", url);
 
 
@@ -794,6 +793,7 @@ open_file:
 #endif
 
   cleanup:
+#if 0
     if (status < 0 && status != HT_INTERRUPTED) {
         char *unescaped = NULL;
         StrAllocCopy(unescaped, url);
@@ -802,6 +802,7 @@ open_file:
                    (int) strlen(unescaped), "HTLoadFile");
         free(unescaped);
     }
+#endif
     return status;
 }
 

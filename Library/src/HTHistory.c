@@ -1,13 +1,11 @@
-#include "HTHistory.h"
-
-#include "tcp.h"		/* for standard io */
-
-static HTList * history;	/* List of visited anchors */
-
-
 /*				Navigation
 **				==========
 */
+
+#include "HTHistory.h"
+
+static HTList * history;	/* List of visited anchors */
+
 
 /*		Record the jump to an anchor
 **		----------------------------

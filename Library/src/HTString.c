@@ -6,9 +6,10 @@
 **	23 Jan 92 (TBL) Changed strallocc* to 8 char HTSAC* for VM and suchlike
 **	 6 Oct 92 (TBL) Moved WWW_TraceFlag in here to be in library
 */
-#include <ctype.h>
-#include "HTUtils.h"
+
 #include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"					 /* Implemented here */
 
 PUBLIC int WWW_TraceFlag = 0;	/* Global trace flag for ALL W3 code */
 

@@ -10,17 +10,14 @@
 **  	05 May 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
 */
 
-/* Implemention dependent include files */
-#include "tcp.h"
-
 /* Library include files */
-#include "HTUtils.h"
-#include "HTAccess.h"
 #include "HTTCP.h"
+#include "HTUtils.h"
 #include "HTError.h"					 /* Implemented here */
 
 /* Globals */
 PUBLIC unsigned int HTErrorShowMask = HT_ERR_SHOW_DEFAULT;
+PRIVATE char *HTErrorPrefix = NULL;
 
 /* Type definitions and global variables etc. local to this module */
 
@@ -57,7 +54,7 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 0,   "Data transfer interrupted", 		"interrupt.multi" },
     { 0,   "Connection establishment interrupted", 	"interrupt.multi" },
     { 0,   "CSO-server replies", 			"cso.multi" },
-    { 0,   "Bad or Incomplete Response",		"bad_reply.multi" },
+    { 0,   "Bad, Incomplete, or Unknown  Response",	"bad_reply.multi" },
     { 0,   "News-server replies",			"news.multi" },
     { 0,   "Trying `ftp://' instead of `file://'. ANY OLD URL STILL USING WRONG ACCESS METHOD WILL BE OBSOLETE IN THE NEXT MAJOR RELEASE!",
 	                                                "ftpfile.multi" },
@@ -259,6 +256,27 @@ PUBLIC void HTErrorIgnoreLast ARGS1(HTRequest *, request)
 	pres->ignore = YES;
     }
     return;
+}
+
+
+/*							    HTErrorSetPrefix
+**
+**	Sets the prefix for error URLs in the error message
+*/
+PUBLIC void HTErrorSetPrefix ARGS1(char *, path)
+{
+    if (path && *path)
+	StrAllocCopy(HTErrorPrefix, path);
+}
+
+
+/*							    HTErrorGetPrefix
+**
+**	Gets the prefix for error URLs in the error message
+*/
+PUBLIC CONST char *HTErrorGetPrefix NOARGS
+{
+    return HTErrorPrefix;
 }
 
 
