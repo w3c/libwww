@@ -1106,8 +1106,7 @@ cleanup:
 **
 **	Returns < 0 on error, HT_LOADED on succes
 */
-PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
-				      ftp_data_info *, data,
+PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 				      HTDirLineInput, input)
 {
     int status;
@@ -1167,7 +1166,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 	HTDirFileLength = 0;
 
 	/* Build tree */
-	while ((status = input(data, &file_info)) > 0) {
+	while ((status = input(req->net_info, &file_info)) > 0) {
 	    HTDirKey *nodekey;
 	    HTAtom *encoding;
 	    HTAtom *language;
@@ -1245,7 +1244,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 		/* If we are using NLST, then don't show any size */
 		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
                     if ((file_info.f_mode & S_IFMT) != S_IFDIR &&
-			data->ctrl->use_list == YES)
+			HTFTUseList(req->net_info) == YES)
                         HTDirSize(file_info.f_size, bodyptr, HT_LENGTH_SIZE);
                     else
                         bodyptr[HT_LENGTH_SIZE-1] = '-';
@@ -1308,13 +1307,14 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 
 	    /* Put out the header for the HTML object */
 	    HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,
-			data->ctrl->welcome);
+			HTFTPWelcomeMsg(req->net_info));
 	    
 	    /* Run through tree printing out in order, hopefully :-) */
 	    if (filecnt) {
 		HTDirOutList(target, bt, tail, directory);
 	    }
-	    HTDirOutBottom(target, filecnt, directory, data->ctrl->welcome);
+	    HTDirOutBottom(target, filecnt, directory,
+			   HTFTPWelcomeMsg(req->net_info));
 	    FREE_TARGET;
 	}
 

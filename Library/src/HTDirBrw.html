@@ -131,14 +131,13 @@ This function fills out the EntryInfo fil structure and should return
 </UL>
 
 <PRE>
-typedef int (*HTDirLineInput) PARAMS((ftp_data_info *, dir_file_info *));
+typedef int (*HTDirLineInput) PARAMS((HTNetInfo *, dir_file_info *));
 </PRE>
 
 <PRE>
 extern int HTFTPBrowseDirectory PARAMS((
 		HTRequest * 	req,
 		char *		directory,
-		ftp_data_info *	data,
 		HTDirLineInput  input));
 </PRE>
 

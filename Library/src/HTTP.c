@@ -4,7 +4,7 @@
 **	This module implments the HTTP protocol
 **
 ** History:
-**    < May 24 94 ??	Unknown - but obviosly written
+**    < May 24 94 ??	Unknown - but obviously written
 **	May 24 94 HF	Made reentrent and cleaned up a bit. Implemented
 **			Forward, redirection, error handling and referer field
 **
@@ -42,8 +42,9 @@ struct _HTStream {
 };
 
 /* Globals */
-extern char * HTAppName;	/* Application name: please supply */
-extern char * HTAppVersion;	/* Application version: please supply */
+extern char * HTAppName;		  /* Application name: please supply */
+extern char * HTAppVersion;	       /* Application version: please supply */
+PUBLIC int HTMaxRedirection = 10;	       /* Max number of redirections */
 
 #ifdef OLD_CODE
 PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
@@ -52,12 +53,25 @@ PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
 extern BOOL using_proxy;	/* are we using a proxy gateway? */
 PUBLIC char * HTProxyHeaders = NULL;	/* Headers to pass as-is */
 
-/* ------------------------------------------------------------------------- */
-/* TEMPORARY STUFF  - MOVE TO HTML file */
+/* Type definitions and global variables etc. local to this module */
+/* This is the local definition of HTRequest->net_info */
+typedef enum _HTTPState {
+    HTTP_ERROR   = -2,
+    HTTP_FAILURE = -1,
+    HTTP_IDLE    = 0,
+    HTTP_BEGIN,
+    HTTP_INTERRUPTED,
+    HTTP_CONNECTED,
+    HTTP_SEND_REQUEST,
+    HTTP_GOT_RESPONSE,
+} HTTPState;
 
 typedef struct _http_info {
-    int                         socket;   /* Socket number for communication */
-    HTInputSocket *		isoc;
+    int                         sockfd;   /* Socket number for communication */
+    HTInputSocket *		isoc;			     /* Input buffer */
+    HTRequest *		   	request;		/* Request structure */
+    HTTPState			state;		  /* State of the connection */
+    int				redirections;	   /* Number of redirections */
 } http_info;
 
 /* ------------------------------------------------------------------------- */
@@ -136,19 +150,19 @@ PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 **
 **      Returns 0 on OK, else -1
 */
-PRIVATE int HTTPCleanup ARGS2(HTRequest *, request, http_info *, http)
+PRIVATE int HTTPCleanup ARGS1(http_info *, http)
 {
     int status = 0;
-    if (!request) {
+    if (!http) {
 	if (TRACE) fprintf(stderr, "HTTPCleanup. Bad argument!\n");
 	status = -1;
     } else {
-	if (http->socket >= 0) {
+	if (http->sockfd >= 0) {
 	    if (TRACE) fprintf(stderr, "HTTP........ Closing socket %d\n",
-			       http->socket);
-	    if ((status = NETCLOSE(http->socket)) < 0)
-		HTErrorSysAdd(request, ERR_FATAL, NO, "NETCLOSE");	    
-	}	
+			       http->sockfd);
+	    if ((status = NETCLOSE(http->sockfd)) < 0)
+		HTErrorSysAdd(http->request, ERR_FATAL, NO, "NETCLOSE");
+	}
     }	
     free(http);
     return status;
@@ -271,14 +285,14 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 #ifdef NOT_ASCII
     {
 	char * p;
-	for(p = command; *p; p++) {
+	for(p = command->data; *p; p++) {
 	    *p = TOASCII(*p);
 	}
     }
 #endif
     
     /* Now, we are ready for sending the request */
-    if ((status = NETWRITE(http->socket, command->data, command->size)) < 0) {
+    if ((status = NETWRITE(http->sockfd, command->data, command->size)) < 0) {
 	if (TRACE) fprintf(stderr, "HTTP Tx..... Error sending command\n");
 	HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
 	if (status != HT_INTERRUPTED) {
@@ -306,9 +320,8 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 **
 **	Returns < 0 on error, else HT_LOADED
 */
-PRIVATE int HTTPGetBody ARGS5(HTRequest *, request, http_info *, http,
-			      HTInputSocket *, isoc, HTFormat, format_in,
-			      BOOL, use_cache)
+PRIVATE int HTTPGetBody ARGS4(HTRequest *, request, http_info *, http,
+			      HTFormat, format_in, BOOL, use_cache)
 {
     int status = -1;
     HTStream  *target = NULL;				 /* Unconverted data */
@@ -335,9 +348,9 @@ PRIVATE int HTTPGetBody ARGS5(HTRequest *, request, http_info *, http,
 	if (format_in == WWW_HTML)
 	    target = HTNetToText(target);/* Pipe through CR stripper */
 	
-	PUTBLOCK(isoc->input_pointer,
-		 isoc->input_limit-isoc->input_pointer);
-	HTCopy(http->socket, target);		     /* USE RETURN AS STATUS */
+	PUTBLOCK(http->isoc->input_pointer,
+		 http->isoc->input_limit - http->isoc->input_pointer);
+	HTCopy(http->sockfd, target);		     /* USE RETURN AS STATUS */
 	FREE_TARGET;
 	status = HT_LOADED;
     }
@@ -359,14 +372,14 @@ PRIVATE int HTTPGetBody ARGS5(HTRequest *, request, http_info *, http,
 **	Returns new anchor on success else NULL
 */
 PRIVATE HTAnchor *HTTPRedirect ARGS3(HTRequest *, request,
-				     HTInputSocket *, isoc, int, code)
+				     http_info *, http, int, code)
 {
     BOOL found = NO;
     HTAnchor *anchor = NULL;				       /* New anchor */
     char *line;
     if (TRACE)
 	fprintf(stderr, "Redirection. Looking for URL's\n");
-    while ((line = HTInputSocket_getUnfoldedLine(isoc)) != NULL) {
+    while ((line = HTInputSocket_getUnfoldedLine(http->isoc)) != NULL) {
 	char *strptr = line;
 	if (*strptr) {
 	    while (*strptr && *strptr == ' ')	      /* Skip leading spaces */
@@ -426,7 +439,7 @@ PRIVATE HTAnchor *HTTPRedirect ARGS3(HTRequest *, request,
 PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 {
     char *url;
-    int status = -1;					       /* tcp return */
+    int	status = -1;				       /* The current status */
     http_info *http;			    /* Specific protocol information */
 
     if (!request || !request->anchor) {
@@ -434,20 +447,26 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
         return -1;
     }
     url = HTAnchor_physical(request->anchor);
-    HTSimplify(url);
+    HTSimplify(url);				  /* Working on the original */
     if (TRACE) fprintf(stderr, "HTTP........ Looking for `%s\'\n", url);
 
-    /* Initiate a new http structure */
+    /* Initiate a new http structure and bind to request structure */
+    /* this is actually state HTTP_BEGIN, but it can't be in the state  */
+    /* machine as we need the structure first. */
     if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
-        outofmem(__FILE__, "HTLoadHTTP");
-    http->socket = -1;
+	outofmem(__FILE__, "HTLoadHTTP");
+    http->sockfd = -1;			  	    /* Invalid socket number */
+    http->isoc = HTInputSocket_new(http->sockfd);
+    http->request = request;
+    http->state = HTTP_IDLE;
+    request->net_info = (HTNetInfo *) http;
     
-/*
-** Compose authorization information (this was moved here
-** from after the making of the connection so that the connection
-** wouldn't have to wait while prompting username and password
-** from the user).				-- AL 13.10.93
-*/
+    /*
+     ** Compose authorization information (this was moved here
+     ** from after the making of the connection so that the connection
+     ** wouldn't have to wait while prompting username and password
+     ** from the user).				-- AL 13.10.93
+     */
     HTAA_composeAuth(request);
     if (TRACE) {
 	if (request->authorization)
@@ -458,10 +477,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     }
 
     /* Now let's set up a connection */
-    if ((status = HTDoConnect(request, url, TCP_PORT,
-			      &http->socket, NULL)) < 0) {
-        if (TRACE)
-            fprintf(stderr, "HTTP........ Connection not established!\n");
+    if ((status = HTDoConnect((HTNetInfo *) http, url, TCP_PORT, NULL)) < 0) {
+	if (TRACE)
+	    fprintf(stderr, "HTTP........ Connection not established\n");
 	if (status != HT_INTERRUPTED) {
 	    char *unescaped = NULL;
 	    StrAllocCopy(unescaped, url);
@@ -471,15 +489,15 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		       "HTLoadHTTP");
 	    free(unescaped);
 	}
-	HTTPCleanup(request, http);
+	HTTPCleanup(http);
 	return status;
     }
     if (TRACE) fprintf(stderr, "HTTP........ Connected, socket %d\n",
-		       http->socket);
+		       http->sockfd);
 
-    /* Compose the request and send it over the net */
+    /* Compose the request and send it */
     if ((status = HTTPSendRequest(request, http, url)) < 0) {
-	HTTPCleanup(request, http);
+	HTTPCleanup(http);
 	return status;
     }    
 
@@ -514,11 +532,11 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
 	    while (remain > 0  &&
 		   (buf = HTInputSocket_getBlock(request->isoc, &i))) {
-		int status = NETWRITE(http->socket, buf, i);
+		int status = NETWRITE(http->sockfd, buf, i);
 		if (status < 0) {
 		    CTRACE(stderr, "HTTPAccess.. Unable to forward body\n");
 		    HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
-		    HTTPCleanup(request, http);
+		    HTTPCleanup(http);
 		    return status;
 		}
 		remain -= i;
@@ -529,15 +547,15 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	/*
 	** Load results directly to client
 	*/
-	HTCopy(http->socket, request->output_stream);
+	HTCopy(http->sockfd, request->output_stream);
 	(*request->output_stream->isa->free)(request->output_stream);
-	HTTPCleanup(request, http);
+	HTTPCleanup(http);
 	return HT_LOADED;
     } else {						    /* read response */
 
 	HTFormat format_in;		/* Format arriving in the message */
-	HTInputSocket *isoc = HTInputSocket_new(http->socket);
-	char *status_line = HTInputSocket_getStatusLine(isoc);
+	char *status_line = NULL;
+	status_line = HTInputSocket_getStatusLine(http->isoc);
 
 /* Kludge to trap binary responses from illegal HTTP0.9 servers.
 ** First time we have enough, look at the stub in ASCII
@@ -553,12 +571,12 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 */
 	/* If HTTP 0 response, then DO NOT CACHE (Henrik 14/02-94) */
 	if (!status_line) {	
-	    if (HTInputSocket_seemsBinary(isoc)) {
+	    if (HTInputSocket_seemsBinary(http->isoc)) {
 		format_in = HTAtom_for("www/unknown");
 	    } else {
 		format_in = WWW_HTML;
 	    }
-	    status = HTTPGetBody(request, http, isoc, format_in, NO);
+	    status = HTTPGetBody(request, http, format_in, NO);
 	} else {
 	    /*
 	    ** We now have a terminated server status line, and we have
@@ -578,7 +596,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 			       (void *) status_line, length < 50 ? length : 50,
 			       "HTLoadHTTP");
-		    HTInputSocket_free(isoc);	    
+		    HTInputSocket_free(http->isoc);
 		    free(http);
 		    free(status_line);
 		    return -1;				     /* Bad response */
@@ -602,7 +620,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			       NULL, 0, "HTLoadHTTP");
 		    /* Drop through to 200 as we still have to get the body */
 		  case 200:
-		    status = HTTPGetBody(request, http, isoc, format_in, YES);
+		    status = HTTPGetBody(request, http, format_in, YES);
 		    break;
 		  default:
 		    {
@@ -623,18 +641,28 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    {
 			HTParentAnchor *anchor;
 			if ((anchor = (HTParentAnchor *)
-			     HTTPRedirect(request, isoc,
+			     HTTPRedirect(request, http,
 					  server_status)) != NULL) {
 			    free(status_line);
-			    HTInputSocket_free(isoc);
-			    HTTPCleanup(request, http);
+			    HTInputSocket_free(http->isoc);
+			    HTTPCleanup(http);
 
-			    /* Now do a recursive call but keep error stack */
-			    if (HTLoadAnchorRecursive((HTAnchor *) anchor,
-						      request) == YES)
-				return HT_LOADED;
-			    else
+			    /* If we have not reached the roof for redirects
+			       then call HTLoadAnchor recursively but keep
+			       the error_stack so that the user knows what
+			       is going on */
+			    if (http->redirections < HTMaxRedirections) {
+				if (HTLoadAnchorRecursive((HTAnchor *) anchor,
+							  request) == YES)
+				    return HT_LOADED;
+				else
+				    return -1;
+			    } else {				
+				HTErrorAdd(request, ERR_FATAL, NO, 
+					   HTERR_MAX_REDIRECT, NULL, 0,
+					   "HTTLoadHTTP");
 				return -1;
+			    }
 			}
 		    }
 		    break;
@@ -670,10 +698,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	      case 4:		/* Access Authorization problem */
 		switch (server_status) {
 		  case 401:
-		    parse_401_headers(request, isoc);
+		    parse_401_headers(request, http->isoc);
 
 		    if (TRACE) fprintf(stderr, "%s %d %s\n",
-				       "HTTP: close socket", http->socket,
+				       "HTTP: close socket", http->sockfd,
 				       "to retry with Access Authorization");
 		    if (HTAA_retryWithAuth(request, HTLoadHTTP)) {
 			status = HT_LOADED;/* @@ THIS ONLY WORKS ON LINEMODE */
@@ -750,8 +778,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	}
 
 	/* Close the socket and free memory */
-	HTInputSocket_free(isoc);	    
-	HTTPCleanup(request, http);
+	HTInputSocket_free(http->isoc);
+	HTTPCleanup(http);
 	return status;			/* Good return  */    
     }
 }

@@ -37,6 +37,7 @@
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
+#include "HTError.h"
 
 #define BIG 1024 /* @@@ */
 
@@ -1057,29 +1058,52 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	    status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
 	    if (status<0){
-		char message[256];
 	        NETCLOSE(s);
 		s = -1;
+#ifdef OLD_CODE
+		char message[256];
 		if (TRACE) fprintf(stderr, "HTNews: Unable to connect to news host.\n");
 /*		if (retries<=1) continue;   WHY TRY AGAIN ? 	*/
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
 		    HTNewsHost);
 		return HTLoadError(request, 500, message);
+#endif /* OLD_CODE */
+		{
+		    char *unescaped = NULL;
+		    StrAllocCopy(unescaped, arg);
+		    HTUnEscape(unescaped);
+		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
+			       (void *) unescaped,
+			       (int) strlen(unescaped), "HTLoadNews");
+		    free(unescaped);
+		    return -1;
+		}
 	    } else {
 		if (TRACE) fprintf(stderr, "HTNews: Connected to news host %s.\n",
 				HTNewsHost);
 		isoc = HTInputSocket_new(s);	/* set up buffering */
 		if ((response(NULL) / 100) !=2) {
+		    int length = strlen(response_text);
+		    NETCLOSE(s);
+		    HTInputSocket_free(isoc);
+		    s = -1;
+		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_NEWS_SERVER,
+			       (void *) response_text, length < 50 ?
+			       length : 50, "HTLoadNews");
+		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
+			       (void *) HTNewsHost,
+			       (int) strlen(HTNewsHost), "HTLoadNews");
+		    return -1;
+		}
+#ifdef OLD_CODE
 			char message[BIG];
-			NETCLOSE(s);
-			HTInputSocket_free(isoc);
-			s = -1;
 			sprintf(message, 
 		  "Can't read news info. News host %.20s responded: %.200s",
 		  	    HTNewsHost, response_text);
 		        return HTLoadError(request, 500, message);
-		}
+	        }
+#endif /* OLD_CODE */
 	    }
 	} /* If needed opening */
 	

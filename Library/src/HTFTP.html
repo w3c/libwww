@@ -47,79 +47,15 @@ extern void HTFTP_enable_session NOPARAMS;
 extern BOOL HTFTP_disable_session NOPARAMS;
 </PRE>
 
-<H2>Data Structures</H2>
+<H3>Various Functions to parse information</H3>
 
-Both the data connection and the control connection has a separate data structure that contains all information so that the module is reentrant (for multi threading)
+Theese functions are necessary in order to keep the internal data structures
+hidden.
 
 <PRE>
-typedef enum _HTFTPServerType {
-    UNKNOWN = -1,
-    GENERIC_SERVER = 0,
-    MACHTEN_SERVER,
-    UNIX_SERVER,
-    VMS_SERVER,
-    CMS_SERVER,
-    DCTS_SERVER,
-    TCPC_SERVER,
-    PETER_LEWIS_SERVER,
-    NCSA_SERVER,
-    WINDOWS_NT
-} HTFTPServerType;
-
-typedef enum _HTFTPMainState {
-    FTP_ERROR = -2,
-    FTP_FAILURE = -1,
-    FTP_IDLE = 0,
-    FTP_BEGIN,
-    FTP_LOGGED_IN,
-    FTP_GOT_DATA_CON,
-    FTP_GOT_SERVER_INFO,
-    FTP_GOT_DATA
-} HTFTPState;
-
-typedef struct _user_info {
-    char *		     	domain;
-    char *			id;
-    char *			passwd;
-} user_info;
-
-typedef struct _ftp_ctrl_info {
-    u_long			serv_node;           /* IP address of server */
-    u_short			serv_port;	    /* Port number on server */
-    int				socket;	  /* Socket number for communication */
-    HTInputSocket *             isoc;			     /* Input buffer */
-    char *			location;        /* Current escaped position */
-    user_info *			user;           /* Userid, passwd and domain */
-    HTChunk *			welcome;	      /* The welcome message */
-    HTChunk *			reply;	           /* Last reply from server */
-    HTFTPServerType		server;		           /* Type of server */
-    BOOL			unsure_type;         /* Sure about the type? */
-    BOOL			use_list;	  	  /* Can we use LIST */
-    HTFTPState     		state;		  /* State of the connection */
-    HTList *			data_cons;           /* The data connections */
-} ftp_ctrl_info;
-
-/* We assume that the data connection is established between the same hosts
-   as the control connection */
-typedef struct _ftp_data_info {
-    int				socket;	  /* Socket number for communication */
-    HTFormat			fileformat;   /* File format of current file */
-    char			passive; 	 /* Have we opened passively */
-    BOOL 			directory;	         /* Yes if directory */
-    char *			datatype;  /* See rfc959 p.48, but NO SPACE! */
-    unsigned long		b_trans;      /* Number of bytes transferred */
-    ftp_ctrl_info *		ctrl;		   /* Controlling connection */
-} ftp_data_info;
+PUBLIC HTChunk *HTFTPWelcomeMsg PARAMS ((HTNetInfo *data));
+PUBLIC BOOL HTFTUseList PARAMS ((HTNetInfo *data));
 </PRE>
-
-<H3>Comments to the Data Structures</H3>
-<DL>
-
-<DT> location
-<DD> The current location on the FTP-site. This is kept up to date using CWD and CDUP, but as there is no garanty for a hierarchical file structure in FTP, it should be handled carefully.
-<DT> passive
-<DD> 0 means we are active, 1 means we are passive but haven't done any accept, 2 means we are passive AND have done the accept.
-</DL>
 
 <H2>Flags for FTP connections</H2>
 

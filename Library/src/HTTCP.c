@@ -216,15 +216,19 @@ PUBLIC unsigned int HTCardinal ARGS3
 
 PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 {
+#if 0
+    /* This dumps core on some Sun systems :-(. Yhe problem is now, that 
+       the current implememtation only works for IP-addresses and not in
+       other address spaces. */
     return inet_ntoa(sin->sin_addr);
-#ifdef OLD_CODE
+#endif
     static char string[16];
     sprintf(string, "%d.%d.%d.%d",
 	    (int)*((unsigned char *)(&sin->sin_addr)+0),
 	    (int)*((unsigned char *)(&sin->sin_addr)+1),
 	    (int)*((unsigned char *)(&sin->sin_addr)+2),
 	    (int)*((unsigned char *)(&sin->sin_addr)+3));
-#endif
+    return string;
 }
 #endif /* Decnet */
 
@@ -636,15 +640,13 @@ PUBLIC CONST char * HTHostName NOARGS
 
 /*								HTDoConnect()
 **
-**	TEMPORARY FUNCTION.
 **	Note: Any port indication in URL, e.g., as `host:port' overwrites
 **	the default_port value.
 **
 **	Returns 0 if OK, -1 on error
 */
-PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
-			     u_short, default_port, int *, sockfd,
-			     u_long *, addr)
+PUBLIC int HTDoConnect ARGS4(HTNetInfo *, net, char *, url,
+			     u_short, default_port, u_long *, addr)
 {
     BOOL multihomed = NO;
     time_t deltatime;
@@ -674,19 +676,19 @@ PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
     /* Get node name */
     if (HTParseInet(&sock_addr, host, &multihomed)) {
 	if (TRACE) fprintf(stderr, "HTDoConnect. Can't locate remote host `%s\'\n", host);
-	HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
+	HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
 		   (void *) host, strlen(host), "HTDoConnect");
 	free (p1);
-	*sockfd = -1;
+	net->sockfd = -1;
 	return -1;
     }
 
 #ifdef DECNET
-    if ((*sockfd = socket(AF_DECnet, SOCK_STREAM, 0)) < 0) {
+    if ((net->sockfd = socket(AF_DECnet, SOCK_STREAM, 0)) < 0) {
 #else
-    if ((*sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+    if ((net->sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
 #endif
-	HTErrorSysAdd(request, ERR_FATAL, NO, "socket");
+	HTErrorSysAdd(net->request, ERR_FATAL, NO, "socket");
 	free (p1);
 	return -1;
     }
@@ -694,18 +696,19 @@ PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
 	*addr = ntohl(sock_addr.sin_addr.s_addr);
 
     if (TRACE)
-	fprintf(stderr, "HTDoConnect. Created socket number %d\n", *sockfd);
+	fprintf(stderr, "HTDoConnect. Created socket number %d\n",
+		net->sockfd);
 
     if (multihomed)				/* Start timer on connection */
 	deltatime = time(NULL);
-    if ((status = connect(*sockfd, (struct sockaddr *) &sock_addr,
+    if ((status = connect(net->sockfd, (struct sockaddr *) &sock_addr,
 			  sizeof(sock_addr))) < 0) {
-	HTErrorSysAdd(request, ERR_FATAL, NO, "connect");
+	HTErrorSysAdd(net->request, ERR_FATAL, NO, "connect");
 	HTTCPCacheRemoveHost(host);		   /* Remove host from cache */
-	if (NETCLOSE(*sockfd) < 0)
-	    HTErrorSysAdd(request, ERR_FATAL, NO, "close");
+	if (NETCLOSE(net->sockfd) < 0)
+	    HTErrorSysAdd(net->request, ERR_FATAL, NO, "close");
 	free(p1);
-	*sockfd = -1;
+	net->sockfd = -1;
 	return -1;
     }
 
@@ -728,44 +731,45 @@ PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
 **
 **	Returns 0 if OK, -1 on error
 */
-PUBLIC int HTDoAccept ARGS2(HTRequest *, request, int, sockfd)
+PUBLIC int HTDoAccept ARGS1(HTNetInfo *, net)
 {
     SockA soc_address;				/* SockA is defined in tcp.h */
     int status;
     int cnt;
     int soc_addrlen = sizeof(soc_address);
-    if (sockfd < 0) {
+    if (net->sockfd < 0) {
 	if (TRACE) fprintf(stderr, "HTDoAccept.. Bad socket number\n");
 	return -1;
     }
 	
     /* First make the socket non-blocking */
-    if((status = FCNTL(sockfd, F_GETFL, 0)) != -1) {
+    if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
 	status |= FNDELAY;
-	status = FCNTL(sockfd, F_SETFL, status);
+	status = FCNTL(net->sockfd, F_SETFL, status);
     }
     if (status == -1) {
-	HTErrorSysAdd(request, ERR_FATAL, NO, "fcntl");
+	HTErrorSysAdd(net->request, ERR_FATAL, NO, "fcntl");
 	return -1;
     }
 
     /* Now poll every sekund */
     for(cnt=0; cnt<MAX_ACCEPT_POLL; cnt++) {
-	if ((status = accept(sockfd, (struct sockaddr*) &soc_address,
+	if ((status = accept(net->sockfd, (struct sockaddr*) &soc_address,
 			     &soc_addrlen)) >= 0) {
 	    if (TRACE) fprintf(stderr,
 			       "HTDoAccept.. Accepted new socket %d\n",	
 			       status);
 	    return status;
 	} else
-	    HTErrorSysAdd(request, ERR_WARNING, YES, "accept");
+	    HTErrorSysAdd(net->request, ERR_WARNING, YES, "accept");
 	sleep(1);
     }	
     
     /* If nothing has happened */    
     if (TRACE)
 	fprintf(stderr, "HTDoAccept.. Timed out, no connection!\n");
-    HTErrorAdd(request, ERR_FATAL, NO, HTERR_TIME_OUT, NULL, 0, "HTDoAccept");
+    HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_TIME_OUT, NULL, 0,
+	       "HTDoAccept");
     return -1;
 }
 

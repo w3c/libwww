@@ -58,6 +58,7 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 0,   "Bad or Incomplete Response","bad_reply.multi" },	     /* HTTP */
     { 0,   "News-server replies",	"news.multi" },
     { 0,   "Trying `ftp://' instead of `file://'. ANY OLD URL STILL USING WRONG ACCESS METHOD WILL BE OBSOLETE IN THE NEXT MAJOR RELEASE!","ftpfile.multi" },
+    { 0,   "Too many redirections",	"redirections.multi" },
     { 0,   "System call `%s' failed: ",	"system.multi" }
 };
 
@@ -260,7 +261,7 @@ PUBLIC void HTErrorIgnoreLast ARGS1(HTRequest *, request)
 **	error_stack messages.
 */
 
-/* *** LOOK IN HTML.C FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */
+/* *** LOOK IN HTErrorMsg.c FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */
 
 /* END OF MODULE */
 

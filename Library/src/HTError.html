@@ -52,6 +52,7 @@ typedef enum _HTErrorElement {
 	HTERR_BAD_REPLY,					/* HTTP */
 	HTERR_NEWS_SERVER,
 	HTERR_FILE_TO_FTP,
+	HTERR_MAX_REDIRECT,
 	HTERR_SYSTEM,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
@@ -155,18 +156,25 @@ extern void HTErrorIgnoreLast PARAMS((HTRequest * request));
 
 <H3>Generating an Error Message (default to standard error)</H3>
 
-This function outputs the content of the error_stack to standard output (used in Line Mode Browser), but smart clients and servers might overwrite this function so that the error messages can be handled to the user in a nice way. That is the reason for putting the actual implementation in HTML.c, that normally gets overwritten by clients and servers apart from Line Mode Browser. <P>
+This function outputs the content of the error_stack to standard output 
+(used in Line Mode Browser), but smart clients and servers might overwrite
+this function so that the error messages can be handled to the user in a nice 
+way. That is the reason for putting the actual implementation in HTErrorMsg.c,
+that can be overwritten by clients and servers apart from Line Mode Browser.<P>
 
 <NOTE><B>Note: </B></NOTE>
 
-If a stream <EM>has</EM> been put up (and maybe taken down again) inside the Library, then request-&gt;error_block has been set to YES. This indicates that it is NOT possible any more to use the stream as output for the message.
+If a stream <EM>has</EM> been put up (and maybe taken down again) inside the 
+Library, then request-&gt;error_block has been set to YES. This indicates that
+it is NOT possible any more to use the stream as output for the message.
 <PRE>
 extern void HTErrorMsg    PARAMS((HTRequest * request));
 </PRE>
 
 <H3>Freeing an Error List</H3>
 
-This is normally done when the HTRequest structure is freed but it might be done at any other time in order to ignore a whole series of errors.
+This is normally done when the HTRequest structure is freed but it might be 
+done at any other time in order to ignore a whole series of errors.
 <PRE>
 extern void HTErrorFree   PARAMS((HTRequest * request));
 </PRE>

@@ -178,6 +178,21 @@ is asking for user confusion.
 #endif
 </PRE>
 
+<H2><A NAME="HTNetInfo">Protocol Specific Information</A></H2>
+
+This structure contains information about socket number, input buffer for
+reading from the network etc. The structure is used through out the protocol
+modules and is the refenrence point for introducing multi threaded execution
+into the library. 
+
+<PRE>
+typedef struct _HTNetInfo {
+    int			sockfd;
+    HTInputSocket *	isoc;
+    struct _HTRequest *	request;
+} HTNetInfo;
+</PRE>
+
 <H2><A
 NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
 of things about it need to be passed
@@ -279,6 +294,10 @@ hit
 	BOOL		error_block;	/* YES if stream has been used	  */
 	HTList *	error_stack;	/* List of errors		  */
 
+</PRE>
+<H3>Library Side</H3>
+<PRE>
+	HTNetInfo *	net_info;	/* Information about socket etc. */
 </PRE>
 <H3>Server Side</H3>
 <PRE>

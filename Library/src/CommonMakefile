@@ -73,7 +73,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
 	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o \
 	$(LOB)/HTDirBrw.o $(LOB)/HTDescript.o $(LOB)/HTGuess.o \
-	$(LOB)/HTIcons.o $(LOB)/HTError.o
+	$(LOB)/HTIcons.o $(LOB)/HTError.o $(LOB)/HTErrorMsg.o
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
         $(CMN)HTBTree.c $(CMN)HTMulti.c \
@@ -89,7 +89,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTAAUtil.c $(CMN)HTAABrow.c $(CMN)HTAssoc.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTDescript.c $(CMN)HTGuess.c \
-	$(CMN)HTIcons.c $(CMN)HTError.c
+	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTErrorMsg.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
@@ -365,3 +365,6 @@ $(LOB)/HTParse.o : $(OE) $(CMN)HTParse.c $(CMN)HTUtils.h
 
 $(LOB)/HTError.o : $(OE) $(CMN)HTError.c $(CMN)HTError.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTError.c
+
+$(LOB)/HTErrorMsg.o : $(OE) $(CMN)HTErrorMsg.c
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTErrorMsg.c

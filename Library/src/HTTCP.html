@@ -32,10 +32,9 @@ a multihomed host then HTDoConnect measures the time to do the connection and
 updates the calculated weights in the cache of visited hosts. 
 
 <PRE>
-extern int HTDoConnect PARAMS((	HTRequest 	*request,
+extern int HTDoConnect PARAMS((	HTNetInfo  	*net,
 				char		*url,
 			     	u_short		default_port,
-				int		*sockfd,
 			    	u_long 		*addr));
 </PRE>
 
@@ -46,7 +45,7 @@ This function makes a non-blocking accept on a port and polls every second
 until MAX_ACCEPT_POLL or interrupted by user.
 
 <PRE>
-extern int HTDoAccept PARAMS((HTRequest *request, int sockfd));
+extern int HTDoAccept PARAMS((HTNetInfo *net));
 </PRE>
 
 <H2>Caching Hosts Names</H2>

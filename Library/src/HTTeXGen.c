@@ -269,7 +269,7 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 	    *me->write_pointer++ = c;	      	        /* Char seems normal */
     }
 
-    if (c==' ')						   /* Find deliniter */
+    if (c==' ')						   /* Find delimiter */
 	me->line_break = me->write_pointer;
     else if (strchr(WORD_DELIMITERS, c))
 	me->line_break = me->write_pointer-1;
@@ -336,12 +336,14 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 	CONST char **,		value)
 {
     me->startup = YES;			        /* Now, let's get down to it */
-    if (me->preformatted == YES)	       /* Don't start markup in here */
+    if (me->preformatted == YES) {	       /* Don't start markup in here */
+	if (TRACE)
+	    fprintf(stderr, "LaTeX....... No Markup in verbatim mode\n");
 	return;
+    }
     if (element_number == HTML_PRE)
 	me->preformatted = YES;
     if (element_number == HTML_CITE ||	              /* No \n here, please! */
-	element_number == HTML_COMMENT ||
 	element_number == HTML_DT ||
 	element_number == HTML_H1 ||
 	element_number == HTML_H2 ||
@@ -369,14 +371,16 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 PRIVATE void HTTeXGen_end_element ARGS2(HTStructured *, me,
 					int , element_number)
 {
-    if (me->preformatted && element_number != HTML_PRE)
-	return;			
+    if (me->preformatted && element_number != HTML_PRE) {
+	if (TRACE)
+	    fprintf(stderr, "LaTeX....... No markup in verbatim mode\n");
+	return;
+    }
     me->preformatted = NO;
     me->markup = YES;
     HTTeXGen_put_string(me, *(TeX_names[element_number]+1));
     me->markup = NO;
     if (element_number == HTML_CITE ||	
-	element_number == HTML_COMMENT ||
 	element_number == HTML_DL ||
 	element_number == HTML_H1 ||
 	element_number == HTML_H2 ||

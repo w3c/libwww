@@ -1,24 +1,52 @@
 <HTML>
 <HEAD>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTTP.html</TITLE></HEAD>
+<TITLE>HTTP module for libwww</TITLE></HEAD>
 <BODY>
-<H1>HyperText Tranfer Protocol</H1>
-<PRE>#ifndef HTTP_H
+<H1>HyperText Tranfer Protocol Module</H1>
+
+This is the module that handles all communication with HTTP servers.
+
+<PRE>
+#ifndef HTTP_H
 #define HTTP_H
-
 #include "HTAccess.h"
-
 </PRE>
-<H3>Cache control flag</H3>Turn this off if you don't want HTTP
-protocol fetches to leave cache files.
+
+<H2>Public Functions</H2>
+
+Theese are the public functions...
+
+<H3>Accessing HTTP-Server</H3>
+
+<PRE>
+extern int HTLoadHTTP PARAMS((HTRequest * request));
+</PRE>
+
+<H2>Controlling Flags</H2>
+
+The following variables can change the behaviour of the module.
+
+<H3>Cache control flag</H3>
+
+<EM>Note: This variable is now replaced by the (char *) HTCacheDir in 
+<A HREF="HTAccess.html">HTAccess Module</A>, Henrik 09/03-94</EM> <P>
+
+Turn this off if you don't want HTTP protocol fetches to leave cache files.
 	extern	BOOL  HTCacheHTTP;
-This variable is now replaced by the (char *) HTCacheDir in HTAccess.html
-Henrik 09/03-94
 
-<H3>Protocol</H3>
-<PRE>GLOBALREF HTProtocol HTTP;
+<H3>Redirections</H3>
 
+The maximum number of redirections is pr. default 10 and is set in the module.
+This prevents the library from going into an infinite loop.
+
+<PRE>
+extern int HTMaxRedirections;
+</PRE>
+
+<PRE>
 #endif /* HTTP_H */
+</PRE>
 
-</PRE>end of HTTP module definition</A></BODY>
+End of HTTP module definition.
+</BODY>
 </HTML>
