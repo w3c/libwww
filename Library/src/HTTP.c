@@ -1027,7 +1027,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
         */
         if (HTHost_numberOfOutstandingNetObjects(host) == 1 &&
 	    http->result != HT_CONTINUE && (doc_len<0 || doc_len==read_len)) {
-	    HTTPCleanup(request, HT_LOADED);
+	    HTTPCleanup(request, http->result);		/* Raffaele Sena: was HT_LOADED */
         } else {
             HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			       NULL, 0, "HTLoadHTTP");
