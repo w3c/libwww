@@ -254,7 +254,7 @@ PRIVATE FILE *	     output = stdout;
 /* ================================ */
 
 PRIVATE void History_List NOPARAMS; 
-PRIVATE void Selection_Prompt NOPARAMS;
+PRIVATE BOOL Selection_Prompt NOPARAMS;
 PRIVATE void Error_Selection NOPARAMS;
 PRIVATE void help_screen NOPARAMS;
 PRIVATE void Reference_List PARAMS((BOOL titles));
@@ -472,9 +472,10 @@ int main
 
 	    /* Telnet from */
 	    } else if (!strcmp(argv[arg], "-h")) {
-		if (arg+1 < argc && *argv[arg+1] != '-')
-		    HTClientHost = argv[++arg]; 	/* Use host name */
-	
+		if (arg+1 < argc && *argv[arg+1] != '-') {
+		    HTClientHost = argv[++arg]; 	    /* Use host name */
+		}
+
 	    /* Log file */
 	    } else if (!strcmp(argv[arg], "-l")) {
 		if (arg+1 < argc && *argv[arg+1] != '-')
@@ -729,7 +730,7 @@ int main
 */
 
     if (interactive) {
-	while (YES) Selection_Prompt();
+	while (Selection_Prompt());
 	
     } else if (!HTOutputSource) {	/* Non-interactive but formatted */
 #ifdef OLD_CODE
@@ -1011,9 +1012,9 @@ PRIVATE void History_List NOARGS {
 */
 
 #ifdef __STDC__
-PRIVATE void Selection_Prompt(void)
+PRIVATE BOOL Selection_Prompt(void)
 #else
-PRIVATE void Selection_Prompt()
+PRIVATE BOOL Selection_Prompt()
 #endif
 { 
     int length_of_prompt = 0;
@@ -1023,7 +1024,7 @@ PRIVATE void Selection_Prompt()
 	!HTAnchor_hasChildren(HTMainAnchor) && !is_index && 
 	(!HTHistory_canBacktrack())) {
 	ErrMsg("No way out of here, so I exit!", NULL);	    
-	exit(-5);                            /* Exit if no other options */
+	return NO;	                         /* Exit if no other options */
     }
     HText_setStale(HTMainText);                /* We corrupt the display */
 	
@@ -1119,8 +1120,8 @@ PRIVATE void Selection_Prompt()
 #ifdef NEWLINE_PROMPT
 	printf("\n");  	            /* For use on VM to flush out the prompt */
 #endif
-	if (!fgets(choice, RESPONSE_LENGTH, stdin))	/* Read User Input */
-	    exit(0);	/* Exit if EOF */
+	if (!fgets(choice, RESPONSE_LENGTH, stdin))	  /* Read User Input */
+	    return NO;					      /* Exit if EOF */
 
 	StrAllocCopy (the_choice, choice);             /* Remember it as is, */
 	if (the_choice[strlen(the_choice)-1] == '\n')        /* The final \n */
@@ -1194,7 +1195,7 @@ down:		if (HText_canScrollDown(HTMainText))
 
 	  case 'E': /* Quit program ? Alternative command */
 	    if (Check_User_Input("EXIT"))
-		exit(0);
+		goto stop;
 	    break;
 	  
 	  case 'F':                                      /* Keyword search ? */
@@ -1342,7 +1343,7 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 		printf("\f");  /* Form feed for new page */
 		printf ("%s",SLAVE_PRINTER_OFF);
 		HText_scrollTop(HTMainText);
-		return;
+		goto ret;
 	    }	
 #endif
 	    break;
@@ -1354,9 +1355,10 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 		    HTLoadAnchor(HTHistory_backtrack(), request);
 		    goto ret;
 		} else {
-		    exit(0);		              /* On last level, exit */
+		    goto stop;		              /* On last level, exit */
 		}
 #endif
+
 /* 	JFG 9/7/92, following a complaint of 'q' mis-typed for '1'.
 	JFG Then made optional because I hate it !!!
 	TBL made it only affect remote logged on users. 921122 */
@@ -1365,14 +1367,14 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 		    printf ("\n Please type \"quit\" in full to leave www.\n");
 		    goto ret;
 		}
-		exit(0);
+		goto stop;
 	    }
 	    break;
 
 	  case 'R':	
 #ifdef VM
 	    if (Check_User_Input("RETURN"))	       /* Means quit program */
-		exit(0);
+		goto stop;
 #endif	    
 	    if (Check_User_Input("RECALL")) {
 		int  recall_node_num;
@@ -1495,8 +1497,10 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	}
 
 ret:	free (the_choice);
-	return;
-	
+	return YES;
+
+stop:   free(the_choice);
+	return NO;
     }	/* Get user selection */
 }  /* Selection_Prompt */
 
@@ -1574,10 +1578,4 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 }
 
 /* End HTBrowse.c */
-
-
-
-
-
-
 

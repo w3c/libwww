@@ -37,7 +37,6 @@ SHELL = /bin/sh
 # WWW = ../..	For [cernlib] build in this directory
 
 LM =  $(WWW)/LineMode/Implementation/
-VMS = $(WWW)/LineMode/Implementation/vms/
 LMD = $(WWW)/LineMode/Defaults
 CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
@@ -218,13 +217,13 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 	    `sed -e 's/V. = /v/' Version.make | sed -e 's?\.?/?'` )
 	echo Distribution of Line Mode version $(VC) up to date.
 
+# THIS MUST BE BUILT FROM THE DIRECTORY ABOVE WWW ! USE distribute above!
 /pub/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES) $(LMD)/line-mode-guide.txt
 	tar cf /pub/www/src/WWWLineMode_$(VL).tar \
 	    $(SOURCES)  $(LMD)/line-mode-guide.txt \
 	    $(WWW)/LineMode/*/Makefile \
-	    $(VMS)descrip.mms $(VMS)setup.com \
-            $(VMS)build_multinet.com $(VMS)build_multinet.com_alpha \
-            $(VMS)build_ucx.com $(VMS)build_ucx.com_alpha
+	    $(WWW)/LineMode/vms/descrip.mms $(WWW)/LineMode/vms/build_multinet.com \
+            $(WWW)/LineMode/vms/setup.com 	    
 	compress /pub/www/src/WWWLineMode_$(VL).tar
 
 
