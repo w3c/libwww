@@ -1,45 +1,137 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 29-Apr-1996 -->
-  <TITLE>W3C Sample Code Library TODO List</TITLE>
+  <TITLE>Libwww ToDo List</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
 <A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A>
 <A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww" BORDER="0"></A>
 <H1>
-  TODO-List for W3C Sample Code Library
+  Libwww ToDo List
 </H1>
 <P>
-This is the current work plan for new features and changed interfaces for
-libwww. You can also have a look at <A HREF="ReleaseNotes.html">release
-notes</A> for the latest release and the <A HREF="History.html">change
-history</A> for older releases.
+This is the current work plan for new libwww features but remember, the sky's
+the limit! Before you start, make sure that you have an
+<A HREF="../cvs.html">up-to-date version of the code hot from CVS</A>.
 <P>
-We are moving to the Java platform pretty soon but some of the stuff that
-we have in mind are
-<DL>
-  <DT>
-    Enhanced PEP Implementation
-  <DD>
-    The current PEP Implementation does not contain all the features described
-    in the latest draft
-  <DT>
-    Byte range requests
-  <DD>
-    This is a "poor man's:" multiplexing but with better semantic understanding
-    of what is going on as it is handled in application space
-  <DT>
-    <A HREF="../../Protocols/MUX/">MUX</A> Implementation
-  <DD>
-    The MUX Implementation is being worked on. We need to get some performance
-    figures for how it performs.
-</DL>
+<CENTER>
+  <TABLE BORDER CELLSPACING="0" ALIGN="Center" WIDTH="90%">
+    <TR>
+      <TH>Project</TH>
+      <TH>Description</TH>
+      <TH>Started</TH>
+      <TH>Status</TH>
+      <TH>Owner</TH>
+    </TR>
+    <TR>
+      <TD><A HREF="../../Protocols/">HTTP Digest Authentication</A></TD>
+      <TD>Digest is becoming important is is beginning to see widespread deployment.
+	Libwww supports easy addition of <A HREF="../src/HTAAUtil.html">multiple
+	authentication schemes</A> so digest can be implemented as a plug-in module</TD>
+      <TD>Oct 1998</TD>
+      <TD><STRONG>Ongoing</STRONG></TD>
+      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">Jose
+	Kahan</A></STRONG></TD>
+    </TR>
+    <TR>
+      <TD><A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">Robot
+	txt file parser</A></TD>
+      <TD>The <A HREF="../../Robot/">Webbot</A> already knows about the
+	<A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
+	META tags</A> - help turning it into a well-behaving robot by understanding
+	<A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
+	files</A> as well.</TD>
+      <TD>Oct 1998</TD>
+      <TD><STRONG>Ongoing</STRONG></TD>
+      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">John
+	Punin</A></STRONG></TD>
+    </TR>
+    <TR>
+      <TD>Libwww
+	<A HREF="http://www.geocities.com/SiliconValley/Way/8818/p_gksetu.htm">Installshield
+	for Windows</A></TD>
+      <TD>Libwww and the sample apps like the Web Commander could really use an
+	in install shield to get Windows people up and going. Vladimir's version
+	installs all the <A HREF="Guide/">libwww DLLs</A> in a shared location so
+	that they are available to other apps as well</TD>
+      <TD>Oct 1998</TD>
+      <TD><STRONG>Done </STRONG>- <A HREF="http://194.226.9.94/libwww.htm">check
+	it out!</A></TD>
+      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">Vladimir
+	Kozlov</A></STRONG></TD>
+    </TR>
+    <TR>
+      <TD>Mirroring facility in <A HREF="../../Robot/">Webbot</A></TD>
+      <TD>Use the webbot to mirror a site using the very fast HTTP/1.1 engine with
+	pipeline and regular expressions!</TD>
+      <TD>Sep 1998</TD>
+      <TD><STRONG>Ongoing</STRONG></TD>
+      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">Bob
+	Racko</A></STRONG></TD>
+    </TR>
+    <TR>
+      <TD>Better Windows Makefiles</TD>
+      <TD>Pending on autoconf and automake to be released with support for Windows.
+	Any better ideas plan for improving Windows makefiles?</TD>
+      <TD>Sep 1998</TD>
+      <TD><STRONG>Open</STRONG></TD>
+      <TD>&nbsp;</TD>
+    </TR>
+    <TR>
+      <TD><A HREF="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A></TD>
+      <TD>We have many exiting HTTP extensions waiting for the
+	<A HREF="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A>.
+	The implementation can be based on the existing <A HREF="../src/HTPEP.html">PEP
+	implementation</A>.</TD>
+      <TD>Oct 1998</TD>
+      <TD><STRONG>Open</STRONG></TD>
+      <TD>&nbsp;</TD>
+    </TR>
+    <TR>
+      <TD>Regular expressions in URI mapping rules</TD>
+      <TD>Libwww already supports URI mappings in the
+	<A HREF="../src/HTRules.html">rules module</A> but support for <EM>sed</EM>
+	like regular expressions would be extremely useful, especially for mirroring
+	done by the <A HREF="../../Robot/">Webbot</A>. Libwww already uses
+	<A HREF="../src/HTProxy.html">regular expressions for handling proxies</A>
+	and other things.</TD>
+      <TD>Sep 1998</TD>
+      <TD><STRONG>Open</STRONG></TD>
+      <TD>&nbsp;</TD>
+    </TR>
+    <TR>
+      <TD>Drag-and-drop support in <A HREF="../../WinCom/">Web Commander</A></TD>
+      <TD>Would like&nbsp;to be able to drag and drop URIs to save, load, etc.
+	Would also&nbsp;be cool to have as well as integration with the Explorer
+	menu.</TD>
+      <TD>Sep 1998</TD>
+      <TD><STRONG>Open</STRONG></TD>
+      <TD>&nbsp;</TD>
+    </TR>
+    <TR>
+      <TD>GUI Interface for the <A HREF="../../Robot/">Webbot</A></TD>
+      <TD>We already have a <A HREF="../../Robot/tcl/">sketchy Tcl/Tk interface</A>
+	but it&nbsp;hasn't been maintained. We&nbsp;need a&nbsp;GUI expert
+	for&nbsp;this&nbsp;one!</TD>
+      <TD>Oct 1998</TD>
+      <TD><STRONG>Open</STRONG></TD>
+      <TD>&nbsp;</TD>
+    </TR>
+    <TR>
+      <TD>Libwww <A HREF="http://www.rpm.org">RPM</A> file</TD>
+      <TD>Can use a lot of the&nbsp;information already used by
+	<A HREF="http://www.gnu.org/software/automake/index.html">GNU automake</A>
+	- need a&nbsp;spec file expert!</TD>
+      <TD>Oct 1998</TD>
+      <TD><STRONG>Open</STRONG></TD>
+      <TD>&nbsp;</TD>
+    </TR>
+  </TABLE>
+</CENTER>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

@@ -13,15 +13,15 @@
 </H1>
 <P align="center">
 <A HREF="#How">Sign up</A> | <A HREF="#Help">How can I help?</A>
-|&nbsp;<A HREF="#Collaborators">Collaborators</A> |
+|&nbsp;<A HREF="#Collaborators">Hall of Fame</A> |
 <A HREF="#Alumni">Alumni</A>
 <P>
 <DIV class="intro">
   Writing directly to the <A HREF="cvs.html">CVS repository</A> is reserved
-  for <B>libwww collaborators</B> who have intimate knowledge of the code base
-  and have proven their ability to use this privilege to the benefit of the
-  libwww user community. You are of course more than welcome (read strongly
-  encouraged) to submit patches to the
+  for <A HREF="#Collaborators"><EM>libwww collaborators</EM></A> who have intimate
+  knowledge of the code base and have proven their ability to use this privilege
+  to the benefit of the libwww user community. You are of course more than
+  welcome (read strongly encouraged) to submit patches to the
   &lt;<A HREF="./#Forums">www-lib@w3.org</A>&gt; mailing list regardless of
   whether you have write access or not. If the patch is good, chances are good
   that it will be added to the CVS codebase by one of the collaborators.
@@ -42,81 +42,36 @@ start.
   <A NAME="Help">How can I help?</A>
 </H2>
 <P>
-We have a very interesting set of things to do - <STRONG>your help is required
-to make timely progress</STRONG>!
-<DL>
-  <DT>
-    <A HREF="../Protocols/">HTTP Digest Authentication</A> - <STRONG>in progress
-    by Jose Kahan</STRONG>
-  <DD>
-    Is becoming more and more important the and set of features is extremely
-    interesting. Libwww supports easy addition of
-    <A HREF="src/HTAAUtil.html">multiple authentication schemes</A> - there are
-    already some initial digest stuff.
-  <DT>
-    Regular expressions in URI mapping rules
-  <DD>
-    Libwww already supports URI mappings in the rules module but support for
-    sed like regular expressions would be extremely useful, especially for mirroring
-    done by the <A HREF="../Robot/">Webbot</A>. Libwww already uses
-    <A HREF="src/HTProxy.html">regular expressions for handling proxies</A> and
-    other things.
-  <DT>
-    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">Robot
-    txt file parser</A> - <STRONG>done by John Punin!</STRONG>
-  <DD>
-    The <A HREF="../Robot/">Webbot</A> already knows about the
-    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
-    META tags</A> - help turning it into a well-behaving robot by understanding
-    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
-    files</A> as well.
-  <DT>
-    Drag-and-drop &nbsp;support in <A HREF="../WinCom/">Web Commander</A>
-  <DD>
-    Would be cool to have as well as integration with the Explorer menu. It would
-    make it a lot easier to work with
-  <DT>
-    Provide an install shield for the <A HREF="../WinCom/">Web Commander</A>
-  <DD>
-    The Web Commander could really use an in install shield to get Windows people
-    up and going. It would be very nice if it could also support installing the
-    <A HREF="User/Guide/">libwww DLLs</A> in a suitable location.
-  <DT>
-    Provide better Windows Makefiles
-  <DD>
-    I&nbsp;am waiting (Setember 20, 1998) for autoconf and automake to be released
-    with support for Windows as I am happy about the way this works on Unix.
-    Any better ideas plan for improving Windows makefiles?
-  <DT>
-    Implementing the <A HREF="../Protocols/HTTP/ietf-http-ext/">HTTP Extension
-    Framework</A>
-  <DD>
-    We have many exiting HTTP extensions waiting for the
-    <A HREF="../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A>.
-    Your help is needed! The implementation can be based on the
-    <A HREF="src/HTPEP.html">PEP implementation</A>.
-</DL>
-<P>
-Don't forget to send mails to
-&lt;<A HREF="./#Forums">www-lib@w3.org</A>&gt; about what you are up to or
-to ask questions!
+We have a <A HREF="User/ToDo.html">very interesting set of things to do</A>
+- your help is required to make timely progress. Remember that only the sky
+is the limit - cool ideas are always welcome! Pick a project and don't forget
+to send mails to &lt;<A HREF="./#Forums">www-lib@w3.org</A>&gt; about what
+you are up to or to ask questions!
 <H2>
   <A NAME="Collaborators">Collaborator's Hall of Fame</A>
 </H2>
+<P>
+This is the list of very active libwww hackers who have come up with some
+<A HREF="User/ToDo.html">truly cool stuff</A>
 <DL>
   <DT>
-    Bob Racko
+    <STRONG>Bob Racko</STRONG>
   <DD>
     Added Frames support to HTML parser, fixed many bugs on NT, added support
     for mirroring and improved caching and much more
   <DT>
-    John Punin
+    <STRONG>John Punin</STRONG>
   <DD>
     Have been working a lot on the webbot, splitting up the code, introduced
     Breadth First Search instead of Depth First Search and other very useful
     things
   <DT>
-    <A HREF="../People/#Kahan">Jose Kahan</A>
+    <STRONG>Vladimir Kozlov</STRONG>
+  <DD>
+    Provides <A HREF="http://194.226.9.94/libwww.htm">fresh Wintel binaries</A>
+    directly from the CVS repository and have made a cool libwww install shield
+  <DT>
+    <A HREF="../People/#Kahan"><STRONG>Jose Kahan</STRONG></A>
   <DD>
     Integrated libwww with <A HREF="../Amaya/">Amaya</A> and provided feedback
     on client side API
@@ -126,17 +81,17 @@ to ask questions!
 </H2>
 <DL>
   <DT>
-    Eric Prud'hommeaux
+    <STRONG>Eric Prud'hommeaux</STRONG>
   <DD>
     Provided the Windows integration and asynchronous event management along
     with many other features.
   <DT>
-    <A HREF="../People/#Baird-Smith">Anselm Baird-Smith</A>
+    <A HREF="../People/#Baird-Smith"><STRONG>Anselm Baird-Smith</STRONG></A>
   <DD>
     Provided lots of help through many white-board discussions, especially on
     the HTTP/1.1 client side implementation.
   <DT>
-    <A HREF="../People/howcome/">H&aring;kon W. Lie</A>
+    <A HREF="../People/howcome/"><STRONG>H&aring;kon W. Lie</STRONG></A>
   <DD>
     Integrated libwww with <A HREF="../Arena/">Arena</A>
 </DL>

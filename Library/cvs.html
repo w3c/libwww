@@ -107,14 +107,13 @@ to the latest untagged version then you should use the following command:
   <A NAME="Write">CVS Write Access</A>
 </H2>
 <P>
-In order to change our code base you need <A HREF="BeforeCommitting.html">CVS
-write access</A>. This privilege is reserved for
-<A HREF="Collaborators.html">libwww collaborators</A> who have intimate knowledge
-of the code base and have proven their ability to use this privilege to the
-benefit of the libwww user community. If you are considering becoming a libwww
-contributor then make sure that you have read the <A HREF="User/Style/">libwww
-style guide</A> as well as <A HREF="BeforeCommitting.html">the list of things
-to do</A> before committing changes to libwww.
+Only <A HREF="Collaborators.html">libwww collaborators</A> who have intimate
+knowledge of the code base and have proven their ability to code libwww have
+CVS write access. If you are <A HREF="Collaborators.html#How">considering
+becoming a libwww contributor</A> then make sure that you have read the
+<A HREF="User/Style/">libwww style guide</A> as well as
+<A HREF="BeforeCommitting.html">the list of things to do</A> before committing
+changes to libwww.
 <H2>
   <A NAME="SSH">SSH Based CVS Checkout</A>
 </H2>
@@ -248,7 +247,7 @@ After having checked that you have the programs you need, you are now ready
 to use them. Don't worry about the
 <A HREF="http://subzero.campus.luth.se/FreeDocs/autoconf-2.12/autoconf_44.html#IDX36">warnings
 produced by autoconf</A>&nbsp;- that's OK. Run them like this:
-<PRE>% <B>aclocal</B>; <B>automake</B>; <B>autoconf</B>
+<PRE>% <B>aclocal</B>; <B>autoheader; automake</B>; <B>autoconf</B>
 </PRE>
 <H2>
   <A NAME="Compiling">Compiling libwww</A>
