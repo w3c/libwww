@@ -597,9 +597,7 @@ int main (int argc, char ** argv)
 	    status = post_result ? YES : NO;
 #endif
 	} else {
-
-	    /* MORE */
-
+	    if (SHOW_MSG) HTTrace("Nothing to post to this address\n");
 	    status = NO;	    
 	}
 	break;
@@ -625,7 +623,7 @@ int main (int argc, char ** argv)
     if (keywords) HTChunk_delete(keywords);
     if (formfields) HTAssocList_delete(formfields);
     if (status != YES) {
-	if (SHOW_MSG) HTTrace("Can't access resource\n");
+	if (SHOW_MSG) HTTrace("Sorry, can't access resource\n");
 	Cleanup(cl, -1);
     }
 
