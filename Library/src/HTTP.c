@@ -634,7 +634,11 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	me->http->next = HTTP_OK;
 	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
 	    me->transparent = YES;
-	HTHost_setVersion(host, HTTP_09);
+        /* JK: in 2000, we don't expect many HTTP/0.9 servers to remain.
+           I removed this line which made the backward change as most of
+           the time we fall here more due to a network or server problem,
+           rather than because we are accessing an old server. */
+	/* HTHost_setVersion(host, HTTP_09); */
 	if (length > 0) HTHost_setConsumed(host, length);
 	HTTRACE(PROT_TRACE, "HTTP Status. `%s\' is probably a broken 1.0 server that doesn't understand HEAD\n" _ 
 		    HTHost_name(host));
