@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTAccess:  Access manager  for libwww</TITLE>
-<NEXTID N="z8">
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 <H1>Access Manager</H1>This module keeps a list of valid
@@ -15,7 +15,9 @@ Note: HTRequest defined and request
 parametsr added to almost all calls
 18 Nov 1993.<P>
 Part of the <A
-NAME="z0" HREF="Overview.html">libwww library</A> .
+NAME="z0" HREF="Overview.html">libwww library</A> .  Implemented
+by <A
+NAME="z8" HREF="HTAccess.c">HTAcces.c</A>
 <PRE>#ifndef HTACCESS_H
 #define HTACCESS_H
 
@@ -50,7 +52,6 @@ typedef enum {
 
 
 </PRE>
-
 <H2>Methods</H2>
 <PRE>
 
@@ -107,9 +108,7 @@ PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * template,
 				       CONST char * filename));
 
 
-</PRE>
-
-The following have to be defined
+</PRE>The following have to be defined
 in advance of the other include files
 because of circular references.
 <PRE>typedef struct _HTRequest HTRequest;
@@ -183,37 +182,119 @@ is also a <A
 NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 .
 <PRE>struct _HTRequest {
-	HTList * 	<A NAME="z5">conversions</A> ;
-					/* conversions allowed in this case */
-	HTList *	encodings;	/* allowed content-encodings	  */
-	HTList *	languages;	/* accepted content-languages	  */
-	char *		from;		/* On behalf of whom? */
-	char *		user_agent;	/* Browser software		  */
-	HTStream*	output_stream;	/* For non-interactive, set this */ 
-	HTAtom * 	output_format;	/* To convert on load, set this */
-	BOOL		(*callback) PARAMS((
+
+
+</PRE>The elements of the request structure
+are as follows.
+<H3>Set by the caller of HTaccess:</H3>
+<H4>Conditions of the request itself:</H4>
+<PRE>	HTMethod	method;
+
+</PRE>An atom for the name of the operation
+using HTTP <A
+NAME="z7" HREF="../../Protocols/HTTP/Methods.html">method names</A> .
+<PRE>	HTList * 	conversions ;
+</PRE>
+<DL>
+<DT>
+</DL>
+NULL, or a list of conversions which
+the format manager can do in order
+to fulfill the request.  This is
+set by the caller of HTAccess. Typically
+points to a list set up an initialisation
+time for example by HTInit.
+<PRE>	HTList *	encodings;	/* allowed content-encodings	  */
+
+</PRE>The list of encodings acceptablein
+the output stream.
+<PRE>	HTList *	languages;	/* accepted content-languages	  */
+
+</PRE>The list of (human) language values
+acceptable in the response
+<PRE>	BOOL (*<A
+NAME="z9">callback</A>) PARAMS((
 				struct _HTRequest* request,
 				void *param));
-	void *		context;	/* caller data -- HTAccess unaware */
-	HTParentAnchor*	anchor;		/* Set by HTAccess */
-	void *		using_cache;	/* pointer to cache element if cache hit */
-	HTMethod	method;		/* HTTP method */
-	HTChildAnchor *	childAnchor;	/* For element within the object  */
-	int		status_code;	/* HTTP status code		  */
-	char *		reason_line;	/* Reason for failing		  */
 
-	/*
-	** Server side info about request
-	*/
-	int		soc;		/* Socket from which request came */
+</PRE>A function to be called back in the
+event that a file has been saved
+to disk by HTSaveAndCallBack for
+example.
+<PRE>	void *		context;	/* caller data -- HTAccess unaware */
+
+</PRE>An arbitrary pointer passed to HTAccess
+and passed back as a parameter to
+the <A
+NAME="z10" HREF="#z9">callback</A>.
+<PRE>	HTStream*	output_stream; 
+
+</PRE>NULL in the case of display to the
+user, or if a specific output stream
+is required, the stream.
+<PRE>	HTAtom * 	output_format;
+
+</PRE>The output format required, or a
+generic format such as www/present
+(present to user). 
+<H4>Information about the requester</H4>
+<PRE>	char *		from;
+
+</PRE>Email format address of person responible
+for request
+<PRE>	char *		user_agent;
+
+</PRE>The name of the client software package
+in use.
+<H3>Set by HTAccess</H3>None of the bits below may be looked
+at by a client application except
+in the callback routine, when the
+anchor may be picked out.
+<PRE>	HTParentAnchor*	anchor;
+
+</PRE>The anchor for the object in question.
+ Set immediately by HTAcesss.  Used
+by the protocol and parsing modules.
+Valid thoughout the access.
+<PRE>	HTChildAnchor *	childAnchor;	/* For element within the object  */
+
+</PRE><A
+NAME="z6">T</A>he anchor for the sub object if
+any.  The object builder should ensure
+that htis is selected, highlighted,
+etc when the object is loaded. NOTE:
+Set by HTAccess.
+<PRE>	void *		using_cache;
+
+</PRE>pointer to cache element if cache
+hit
+<PRE>	int		status_code;
+
+</PRE>HTTP-style status code in case of
+error.  Initialised by AA code to
+200, overwritten with something else
+if error.
+<PRE>	char *		reason_line;
+
+</PRE>Reason for failing if any. Human
+readable.
+<H3>Server side</H3>
+<PRE>	int		soc;		/* Socket from which request came */
 	HTInputSocket *	isoc;		/* InputSocket object for reading */
 	char *		request;	/* First request line as received */
 	char *		argument;	/* Arg to HTTP method as given	  */
 	char *		arg_path;	/* Pathinfo part of argument	  */
 	char *		arg_keywords;	/* Keyword part of URL		  */
-	char *		translated;	/* Translated pathname		  */
-	char *		script;		/* Executable server script path  */
-	char *		script_pathinfo;/* Path info after script name	  */
+	char *		translated;
+
+</PRE>Translated filename (set by function
+HTTranslateReq(). NULL, if this is
+a script execution request
+<PRE>	char *		script;
+
+</PRE>Executable script name (set by HTTranslateReq().
+NULL if not a script request.
+<PRE>	char *		script_pathinfo;/* Path info after script name	  */
 	char *		script_pathtrans;/* Path info translated	  */
 	HTAtom *	content_language;/* Language			  */
 	HTAtom *	content_encoding;/* Encoding			  */
@@ -234,9 +315,10 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 	                                /* a HTList *)			  */
 	HTAAFailReason	reason;		/* Reason for failing		  */
 
-	/*
-	** Client side AA
-	*/
+
+</PRE>
+<H3>Client side AA</H3>
+<PRE>
 	HTList *	valid_schemes;	/* Valid auth.schemes		  */
 	HTAssocList **	scheme_specifics;/* Scheme-specific parameters	  */
 	char *		prot_template;	/* WWW-Protection-Template: field */
@@ -247,59 +329,7 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 			retry_callback;	/* Called when password entered	  */
 };
 
-</PRE>The elements of the request structure
-are as follows.
-<DL>
-<DT><CODE>method</CODE>
-<DD>An atom for the name of the
-operation using HTTP <A
-NAME="z7" HREF="../../Protocols/HTTP/Methods.html">method names</A>.
-<DT><CODE>conversions</CODE>
-<DD> NULL, or a list of conversions
-which the format manager can do in
-order to fulfill the request.  This
-is set by the caller of HTAccess.
-Typically points to a list set up
-an initialisation time for example
-by HTInit.
-<DT><CODE>from</CODE>
-<DD>Email format adderss of person
-responible for request
-<DT><CODE>output_stream</CODE>
-<DD>NULL or if a specific
-output stream is required, te stream.
-<DT><CODE>output_format</CODE>
-<DD>The output format required,
-or a generic format such as www/present
-(present to user). 
-<DT><CODE>anchor</CODE>
-<DD>The anchor for teh object in
-question.  NOTE: Set by HTAcesss.
-<DT><A
-NAME="z6">childAnchor</A>
-<DD>the anchor for the subobject
-if any.  The object builder should
-ensure that htis is selected, highlighted,
-etc when the object is loaded. NOTE:
-Set by HTAccess.
-<DT><CODE>simplified</CODE>
-<DD>Simplified filename (after removing <CODE>..</CODE> etc).
-<DT><CODE>translated</CODE>
-<DD>Translated filename (set by function <CODE>HTTranslateReq().</CODE>
-<CODE>NULL,</CODE> if this is a script execution request.
-<DT><CODE>script</CODE>
-<DD>Executable script name (set by <CODE>HTTranslateReq().</CODE>
-<CODE>NULL</CODE> if not a script request.
-<DT><CODE>authorization</CODE>
-<DD><CODE>Authorization:</CODE> field contents.
-<DT><CODE>scheme</CODE>
-<DD>Authentication scheme used.
-<DT><CODE>scheme_specifics</CODE>
-<DD>Authentication scheme specific information.
-<DT><CODE>user</CODE>
-<DD>Authenticated user.
-</DL>
-Just to make things easier especially
+</PRE>Just to make things easier especially
 for clients, here is a function to
 return a new blank request:
 <H2>Create blank request</H2>This request has defaults in -- in
@@ -312,8 +342,8 @@ PUBLIC HTRequest * HTRequest_new NOPARAMS;
 
 
 </PRE>
-<H2>Delete request structure</H2>
-Frees also conversion list hanging from <CODE>req-&gt;conversions.</CODE>
+<H2>Delete request structure</H2>Frees also conversion list hanging
+from req->conversions.
 <PRE>
 PUBLIC void HTRequest_delete PARAMS((HTRequest * req));
 
@@ -554,5 +584,5 @@ use this.
 
 #endif /* HTACCESS_H */
 
-</PRE>end of HTAccess</BODY>
+</PRE>end of HTAccess</A></BODY>
 </HTML>
