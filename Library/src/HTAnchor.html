@@ -428,9 +428,9 @@ extern BOOL HTAnchor_removeEncoding     (HTParentAnchor * me, HTEncoding enc);
   Content Transfer Encoding
 </H3>
 <PRE>
-extern HTEncoding HTAnchor_transfer	(HTParentAnchor *me);
-extern void HTAnchor_setTransfer	(HTParentAnchor *me,
-					 HTEncoding		transfer);
+extern HTEncoding HTAnchor_contentTransferEncoding	(HTParentAnchor *me);
+extern void HTAnchor_setContentTransferEncoding	        (HTParentAnchor *me,
+				 	                 HTEncoding	cte);
 </PRE>
 <H3>
   Content Length

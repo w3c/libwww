@@ -163,7 +163,15 @@ it up.
 <P>
 The transfer encoding is likewise important when we set up the stream pipe.
 <PRE>
-    HTEncoding         transfer_encoding;
+    HTList *          transfer_encoding;
+</PRE>
+<H3>
+  Content Transfer Encoding
+</H3>
+<P>
+The content transfer encoding is likewise important when we set up the stream pipe.
+<PRE>
+    HTEncoding         cte;
 </PRE>
 <H3>
   Trailer

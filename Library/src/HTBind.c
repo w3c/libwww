@@ -72,9 +72,9 @@ PUBLIC BOOL HTBind_init (void)
     }
     StrAllocCopy(HTDelimiters, DEFAULT_SUFFIXES);
     no_suffix.type = WWW_UNKNOWN;
-    no_suffix.encoding = WWW_CTE_BINARY;
+    no_suffix.encoding = WWW_CODING_BINARY;
     unknown_suffix.type = WWW_UNKNOWN;
-    unknown_suffix.encoding = WWW_CTE_BINARY;
+    unknown_suffix.encoding = WWW_CODING_BINARY;
     return YES;
 }
 
@@ -341,7 +341,7 @@ PUBLIC BOOL HTBind_getAnchorBindings (HTParentAnchor * anchor)
 				      &language, &quality);
 	    if (status) {
 		HTAnchor_setFormat(anchor, format);
-		HTAnchor_setTransfer(anchor, transfer);
+		HTAnchor_setContentTransferEncoding(anchor, transfer);
 		HTAnchor_addEncoding(anchor, encoding);
 		HTAnchor_addLanguage(anchor, language);
 	    }
@@ -372,7 +372,7 @@ PUBLIC BOOL HTBind_getResponseBindings (HTResponse * response, const char * url)
 				      &language, &quality);
 	    if (status) {
 		HTResponse_setFormat(response, format);
-		HTResponse_setTransfer(response, transfer);
+		HTResponse_setContentTransferEncoding(response, transfer);
 		HTResponse_addEncoding(response, encoding);
 #if 0
 		HTResponse_addLanguage(response, language);

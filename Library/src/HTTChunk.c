@@ -203,7 +203,6 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
     
     /* Adjust information in anchor */
     HTAnchor_setLength(anchor, -1);
-    HTAnchor_setTransfer(anchor, NULL);
 
     if (STREAM_TRACE) HTTrace("Chunked..... Decoder stream created\n");
     return me;
@@ -299,7 +298,6 @@ PUBLIC HTStream * HTChunkedEncoder   (HTRequest *	request,
 				      HTStream *	target)
 {
     HTStream * me;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
         HT_OUTOFMEM("HTChunkEncoder");
     me->isa = &HTChunkEncoderClass;
@@ -314,9 +312,6 @@ PUBLIC HTStream * HTChunkedEncoder   (HTRequest *	request,
 	me->buf = HTChunk_new(length);
 	HTChunk_ensure(me->buf, length);
     }
-
-    /* Adjust information in anchor */
-    HTAnchor_setTransfer(anchor, NULL);
 
     if (STREAM_TRACE) HTTrace("Chunked..... Encoder stream created\n");
     return me;

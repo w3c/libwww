@@ -63,8 +63,11 @@ PRIVATE int pumpData (HTStream * me)
     HTRequest * request = me->request;
     HTResponse * response = me->response;
     HTFormat format = HTResponse_format(response);
-    HTEncoding transfer = HTResponse_transfer(response);
+    HTList * te = HTResponse_transfer(response);
+    HTList * ce = HTResponse_encoding(response);
     long length = HTResponse_length(response);
+    HTStream * BlackHole = HTBlackHole();
+    BOOL savestream = NO;
     me->transparent = YES;		  /* Pump rest of data right through */
 
     /*  If this request is a source in PostWeb then pause here */
@@ -103,7 +106,7 @@ PRIVATE int pumpData (HTStream * me)
     */
     {
 	HTHost * host = HTNet_host(me->net);
-	if (length<=0 && transfer==NULL &&
+	if (length<=0 && te==NULL &&
 	    HTHost_isPersistent(host) && !HTHost_closeNotification(host)) {
 	    if (format != WWW_UNKNOWN) {
 		if (STREAM_TRACE) HTTrace("MIME Parser. BAD - there seems to be a body but no length. This must be an HTTP/1.0 server pretending that it is HTTP/1.1\n");
@@ -124,12 +127,20 @@ PRIVATE int pumpData (HTStream * me)
     **  Handle any Content Type
     */
     if (!(me->mode & HT_MIME_PARTIAL) &&
-	(format != WWW_UNKNOWN || length > 0 || transfer)) {
+	(format != WWW_UNKNOWN || length > 0 || te)) {
+	HTStream * target;
 	if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
 				  HTAtom_name(format),
 				  HTAtom_name(me->target_format));
-	me->target = HTStreamStack(format, me->target_format,
-				   me->target, request, YES);
+	if ((target = HTStreamStack(format, me->target_format,
+				    me->target, request, YES))==BlackHole) {
+	    if (!savestream) {
+		if (me->target) (*me->target->isa->abort)(me->target, NULL);
+		me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
+		savestream = YES;
+	    }
+	} else
+	    me->target = target;
     }
 
     /*
@@ -139,7 +150,7 @@ PRIVATE int pumpData (HTStream * me)
     **  If we are appending to a cache entry then use a different stream than
     **  if creating a new entry.
     */
-    if (HTCacheMode_enabled()) {
+    if (!savestream && HTCacheMode_enabled()) {
 	if (me->mode & HT_MIME_PARTIAL) {
 	    HTStream * append = HTStreamStack(WWW_CACHE_APPEND,
 					      me->target_format,
@@ -158,25 +169,35 @@ PRIVATE int pumpData (HTStream * me)
     }
 
     /*
-    **  Handle any Content Encoding
+    **  Handle any Content Encodings
     */
-    {
-	HTList * cc = HTResponse_encoding(response);
-	if (cc) {
-	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
-	    me->target = HTContentDecodingStack(cc, me->target, request, NULL);
-	}
+    if (STREAM_TRACE) HTTrace("Building.... Content-Decoding stack\n");
+    if (ce) {
+	HTStream * target = HTContentDecodingStack(ce, me->target, request, NULL);
+	if (target == BlackHole) {
+	    if (!savestream) {
+		if (me->target) (*me->target->isa->abort)(me->target, NULL);
+		me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
+		savestream = YES;
+	    }
+	} else
+	    me->target = target;
     }
 
     /*
-    **  Handle any Transfer encoding
+    **  Handle any Transfer Encodings
     */
-    {
-	if (!HTFormat_isUnityTransfer(transfer)) {
-	    if (STREAM_TRACE) HTTrace("Building.... C-T-E stack\n");
-	    me->target = HTTransferCodingStack(transfer, me->target,
-					       request, NULL, NO);
-	}
+    if (STREAM_TRACE) HTTrace("Building.... Transfer-Decoding stack\n");
+    if (te) {
+	HTStream * target = HTTransferDecodingStack(te, me->target, request, NULL);
+	if (target == BlackHole) {
+	    if (!savestream) {
+		if (me->target) (*me->target->isa->abort)(me->target, NULL);
+		me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
+		savestream = YES;
+	    }
+	} else
+	    me->target = target;
     }
 
     return HT_OK;

@@ -32,10 +32,12 @@ inc: $(BUILT_SOURCES)
 PURIFY_CACHE = @PURIFY_CACHE@
 
 purify: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
+	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
 	$(LINK) $(w3c_OBJECTS) $(w3c_LDADD) $(LIBS)
 
 insure: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
+	-rm insure; \
 	insure -static \
 	$(LINK) $(w3c_OBJECTS) $(w3c_LDADD) $(LIBS)
 

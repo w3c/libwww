@@ -989,13 +989,7 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
             return YES;
         } else {
             if (CORE_TRACE) HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
-            
-            /* 
-            **  By lowering the semaphore we make sure that the channel
-            **  is gonna be deleted
-            */
-            HTChannel_setSemaphore(host->channel, 0);
-            HTHost_clearChannel(host, status);
+	    HTHost_clearChannel(host, status);
         }
     }
     return NO;

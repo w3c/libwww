@@ -175,7 +175,7 @@ PUBLIC int HTMIME_contentTransferEncoding (HTRequest * request, HTResponse * res
     if ((field = HTNextField(&value)) != NULL) {
         char *lc = field;
 	while ((*lc = TOLOWER(*lc))) lc++;
-	HTResponse_setTransfer(response, HTAtom_for(field));
+	HTResponse_setContentTransferEncoding(response, HTAtom_for(field));
     }
     return HT_OK;
 }
@@ -412,6 +412,19 @@ PUBLIC int HTMIME_server (HTRequest * request, HTResponse * response,
         HTHost_setServer(host, field);
     return HT_OK;
 }
+
+PUBLIC int HTMIME_transferEncoding (HTRequest * request, HTResponse * response,
+				    char * token, char * value)
+{
+    char * field;
+    while ((field = HTNextField(&value)) != NULL) {
+        char * lc = field;
+	while ((*lc = TOLOWER(*lc))) lc++;
+	HTResponse_addTransfer(response, HTAtom_for(field));
+    }
+    return HT_OK;
+}
+
 
 PUBLIC int HTMIME_trailer (HTRequest * request, HTResponse * response,
 			   char * token, char * value)

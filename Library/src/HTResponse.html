@@ -293,13 +293,23 @@ extern HTList * HTResponse_encoding (HTResponse * response);
 extern BOOL HTResponse_addEncoding  (HTResponse * response, HTEncoding enc);
 </PRE>
 <H3>
+  Transfer Encodings
+</H3>
+<P>
+The list of encodings that we have received in the response.
+<PRE>
+extern HTList * HTResponse_transfer (HTResponse * response);
+extern BOOL HTResponse_addTransfer  (HTResponse * response, HTEncoding te);
+</PRE>
+<H3>
   Content Transfer Encodings
 </H3>
 <P>
 Any transfer encoding that we have received in the response.
 <PRE>
-extern HTEncoding HTResponse_transfer (HTResponse * response);
-extern BOOL HTResponse_setTransfer (HTResponse * response, HTEncoding cte);
+extern HTEncoding HTResponse_contentTransferEncoding (HTResponse * response);
+extern BOOL HTResponse_setContentTransferEncoding (HTResponse * response,
+                                                   HTEncoding cte);
 </PRE>
 <H3>
   Vary Headers

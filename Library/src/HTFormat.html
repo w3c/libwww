@@ -276,8 +276,10 @@ extern void HTPresentation_deleteAll	(HTList * list);
 <P>
 We have a small set of basic converters that can be hooked in anywhere. They
 don't "convert" anything but are nice to have.
-<PRE>extern HTConverter HTThroughLine;
+<PRE>
+extern HTConverter HTThroughLine;
 extern HTConverter HTBlackHoleConverter;
+extern HTConverter HTSaveConverter;
 </PRE>
 <H2>
   <A NAME="encoding">Content and Transfer Encoders and Decoders</A>
@@ -341,16 +343,18 @@ make any difference as it is just a matter of how the words are chosen. The
 first three transfer encodings are actually not encodings - they are just
 left overs from brain dead mail systems.
 <PRE>
-#define WWW_CTE_7BIT		HTAtom_for("7bit")
-#define WWW_CTE_8BIT		HTAtom_for("8bit")
-#define WWW_CTE_BINARY		HTAtom_for("binary")
+#define WWW_CODING_7BIT		HTAtom_for("7bit")
+#define WWW_CODING_8BIT		HTAtom_for("8bit")
+#define WWW_CODING_BINARY	HTAtom_for("binary")
+#define WWW_CODING_IDENTITY     HTAtom_for("identity")
 
-#define WWW_CTE_BASE64		HTAtom_for("base64")
-#define WWW_CTE_MACBINHEX	HTAtom_for("macbinhex")
-#define WWW_CTE_CHUNKED		HTAtom_for("chunked")
+#define WWW_CODING_BASE64	HTAtom_for("base64")
+#define WWW_CODING_MACBINHEX	HTAtom_for("macbinhex")
+#define WWW_CODING_CHUNKED	HTAtom_for("chunked")
 
-#define WWW_CE_COMPRESS		HTAtom_for("compress")
-#define WWW_CE_GZIP		HTAtom_for("gzip")
+#define WWW_CODING_COMPRESS	HTAtom_for("compress")
+#define WWW_CODING_GZIP	        HTAtom_for("gzip")
+#define WWW_CODING_DEFLATE      HTAtom_for("deflate")
 </PRE>
 <H3>
   Register Content Coders
@@ -453,8 +457,9 @@ We also define a macro to find out whether a content encoding is really
 an encoding or whether it is a unity encoder.
 <PRE>
 #define HTFormat_isUnityContent(me) \
-	((me)==NULL \
-	|| (me)==WWW_CTE_BINARY || (me)==WWW_CTE_7BIT || (me)==WWW_CTE_8BIT)
+	((me)==NULL || \
+	(me)==WWW_CODING_BINARY || (me)==WWW_CODING_IDENTITY || \
+        (me)==WWW_CODING_7BIT || (me)==WWW_CODING_8BIT)
 </PRE>
 <H3>
   Global Transfer Codings
@@ -473,8 +478,9 @@ an encoding or whether it is just a "dummy" as for example 7bit, 8bit, and
 binary.
 <PRE>
 #define HTFormat_isUnityTransfer(me) \
-	((me)==NULL \
-	|| (me)==WWW_CTE_BINARY || (me)==WWW_CTE_7BIT || (me)==WWW_CTE_8BIT)
+	((me)==NULL || \
+	 (me)==WWW_CODING_BINARY || (me)==WWW_CODING_IDENTITY || \
+         (me)==WWW_CODING_7BIT || (me)==WWW_CODING_8BIT)
 </PRE>
 <H3>
   Global Content Languages
@@ -567,6 +573,47 @@ extern HTStream * HTContentDecodingStack (HTList *	encodings,
 					  void *	param);
 </PRE>
 <H2>
+  <A NAME="TEStack">Transfer Encoding Stream Stack</A>
+</H2>
+<P>
+When creating a coding stream stack, it is important that we keep the right
+order of encoders and decoders. As an example, the HTTP spec specifies that
+the list in the <EM>Transfer-Encoding</EM> header follows the order in which
+the encodings have been applied to the object. Internally, we represent the
+content encodings as <A HREF="HTAtom.html">atoms</A> in a linked
+<A HREF="HTList.html">list object</A>.
+<P>
+The creation of the content coding stack is not based on quality factors
+as we don't have the freedom as with content types. When using content codings
+we <EM>must</EM> apply the codings specified or fail.
+<PRE>
+extern HTStream * HTTransferCodingStack (HTEncoding	coding,
+					 HTStream *	target,
+					 HTRequest *	request,
+					 void *		param,
+					 BOOL		encoding);
+</PRE>
+<P>
+Here you can provide a complete list instead of a single token. The list
+has to be filled up in the order the _encodings_ are to be applied
+<PRE>
+extern HTStream * HTTransferEncodingStack (HTList *	encodings,
+					   HTStream *	target,
+					   HTRequest *	request,
+					   void *	param);
+</PRE>
+<P>
+Here you can provide a complete list instead of a single token. The list
+has to be in the order the _encodings_ were applied - that is, the same way
+that _encodings_ are to be applied. This is all consistent with the order
+of the Transfer-Encoding header.
+<PRE>
+extern HTStream * HTTransferDecodingStack (HTList *	encodings,
+					  HTStream *	target,
+					  HTRequest *	request,
+					  void *	param);
+</PRE>
+<H2>
   <A NAME="CTEStack">Transfer Encoding Stream Stack</A>
 </H2>
 <P>
@@ -574,11 +621,11 @@ Creating the transfer content encoding stream stack is not based on quality
 factors as we don't have the freedom as with content types. Specify whether
 you you want encoding or decoding using the BOOL "encode" flag.
 <PRE>
-extern HTStream * HTTransferCodingStack (HTEncoding	encoding,
-					 HTStream *	target,
-					 HTRequest *	request,
-					 void *		param,
-					 BOOL		encode);
+extern HTStream * HTContentTransferCodingStack (HTEncoding	encoding,
+					        HTStream *	target,
+					        HTRequest *	request,
+					        void *		param,
+					        BOOL		encode);
 </PRE>
 <H3>
   Presentation Object

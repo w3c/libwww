@@ -963,14 +963,14 @@ PUBLIC void HTAnchor_addLength (HTParentAnchor * me, long int deltalength)
 /*
 **	Content Transfer Encoding
 */
-PUBLIC HTEncoding HTAnchor_transfer (HTParentAnchor * me)
+PUBLIC HTEncoding HTAnchor_contentTransferEncoding (HTParentAnchor * me)
 {
-    return me ? me->transfer : NULL;
+    return me ? me->cte : NULL;
 }
 
-PUBLIC void HTAnchor_setTransfer (HTParentAnchor * me, HTEncoding transfer)
+PUBLIC void HTAnchor_setContentTransferEncoding (HTParentAnchor * me, HTEncoding cte)
 {
-    if (me) me->transfer = transfer;
+    if (me) me->cte = cte;
 }
 
 /*

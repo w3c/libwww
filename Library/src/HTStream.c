@@ -19,7 +19,8 @@ struct _HTStream {
     const HTStreamClass *	isa;
 };
 
-PRIVATE HTStream	HTBaseStreamInstance;		      /* Made static */
+PRIVATE HTStream HTBlackHoleStreamInstance;		      /* Made static */
+PRIVATE HTStream HTErrorStreamInstance;
 
 /* ------------------------------------------------------------------------- */
 
@@ -78,9 +79,8 @@ PRIVATE const HTStreamClass HTBlackHoleClass =
 
 PUBLIC HTStream * HTBlackHole (void)
 {
-    if (STREAM_TRACE) HTTrace("BlackHole... Created\n");
-    HTBaseStreamInstance.isa = &HTBlackHoleClass;      /* The rest is random */
-    return &HTBaseStreamInstance;
+    HTBlackHoleStreamInstance.isa = &HTBlackHoleClass;      /* The rest is random */
+    return &HTBlackHoleStreamInstance;
 }
 
 /*
@@ -132,7 +132,6 @@ PRIVATE const HTStreamClass HTErrorStreamClass =
 
 PUBLIC HTStream * HTErrorStream (void)
 {
-    if (STREAM_TRACE) HTTrace("ErrorStream. Created\n");
-    HTBaseStreamInstance.isa = &HTErrorStreamClass;    /* The rest is random */
-    return &HTBaseStreamInstance;
+    HTErrorStreamInstance.isa = &HTErrorStreamClass;    /* The rest is random */
+    return &HTErrorStreamInstance;
 }

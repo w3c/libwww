@@ -95,9 +95,9 @@ PRIVATE int HTGuess_flush (HTStream * me)
 	    *me->write_ptr = 0;	/* terminate buffer */
 	    
 	    if (me->high_cnt > 0)
-		HTResponse_setTransfer(response, WWW_CTE_8BIT);
+		HTResponse_setContentTransferEncoding(response, WWW_CODING_8BIT);
 	    else
-		HTResponse_setTransfer(response, WWW_CTE_7BIT);
+		HTResponse_setContentTransferEncoding(response, WWW_CODING_7BIT);
 	    
 	    if (is_html(me->buffer))
 		HTResponse_setFormat(response, HTAtom_for("text/html"));
@@ -111,10 +111,10 @@ PRIVATE int HTGuess_flush (HTStream * me)
 		HTResponse_setFormat(response, HTAtom_for("image/x-xbitmap"));
 	    
 	    else if ((ptr = strstr(me->buffer, "converted with BinHex"))!=NULL)
-		HTResponse_setTransfer(response, WWW_CTE_MACBINHEX);
+		HTResponse_setContentTransferEncoding(response, WWW_CODING_MACBINHEX);
 
 	    else if (!strncmp(me->buffer, "begin ", 6))
-		HTResponse_setTransfer(response, WWW_CTE_BASE64);
+		HTResponse_setContentTransferEncoding(response, WWW_CODING_BASE64);
 
 	    else
 		HTResponse_setFormat(response, WWW_PLAINTEXT);
@@ -136,10 +136,10 @@ PRIVATE int HTGuess_flush (HTStream * me)
 		HTResponse_setFormat(response, WWW_AUDIO);
 
 	    else if (!strncmp(me->buffer, "\037\235", 2))
-		HTResponse_addEncoding(response, WWW_CE_COMPRESS);
+		HTResponse_addEncoding(response, WWW_CODING_COMPRESS);
 
 	    else if (!strncmp(me->buffer, "\037\213", 2))
-		HTResponse_addEncoding(response, WWW_CE_GZIP);
+		HTResponse_addEncoding(response, WWW_CODING_GZIP);
 
 	    else
 		HTResponse_setFormat(response, WWW_BINARY);

@@ -45,9 +45,53 @@ struct _HTCoding {
     double		quality;
 };
 
+PRIVATE HTStream	HTBaseConverterStreamInstance;
+
 /* ------------------------------------------------------------------------- */
 /*				BASIC CONVERTERS			     */
 /* ------------------------------------------------------------------------- */
+
+PRIVATE int HTBlackHoleConverter_put_character (HTStream * me, char c)
+{
+    return HT_OK;
+}
+
+PRIVATE int HTBlackHoleConverter_put_string (HTStream * me, const char * s)
+{
+    return HT_OK;
+}
+
+PRIVATE int HTBlackHoleConverter_write (HTStream * me, const char * s, int l)
+{
+    return HT_OK;
+}
+
+PRIVATE int HTBlackHoleConverter_flush (HTStream * me)
+{
+    return HT_OK;
+}
+
+PRIVATE int HTBlackHoleConverter_free (HTStream * me)
+{
+    return HT_OK;
+}
+
+PRIVATE int HTBlackHoleConverter_abort (HTStream * me, HTList * e)
+{
+    return HT_ERROR;
+}
+
+
+PRIVATE const HTStreamClass HTBlackHoleConverterClass =
+{		
+    "BlackHoleConverter",
+    HTBlackHoleConverter_flush,
+    HTBlackHoleConverter_free,
+    HTBlackHoleConverter_abort,
+    HTBlackHoleConverter_put_character,
+    HTBlackHoleConverter_put_string,
+    HTBlackHoleConverter_write
+}; 
 
 PUBLIC HTStream * HTBlackHoleConverter (HTRequest *	request,
 					void *		param,
@@ -55,8 +99,11 @@ PUBLIC HTStream * HTBlackHoleConverter (HTRequest *	request,
 					HTFormat	output_format,
 					HTStream *	output_stream)
 {
-    return HTBlackHole();
+    if (STREAM_TRACE) HTTrace("BlackHole... Converter Created\n");
+    HTBaseConverterStreamInstance.isa = &HTBlackHoleConverterClass;
+    return &HTBaseConverterStreamInstance;
 }
+
 /*	HTThroughLine
 **	-------------
 **
@@ -70,6 +117,19 @@ PUBLIC HTStream* HTThroughLine (HTRequest *	request,
 				HTStream *	output_stream)
 {
     return output_stream;
+}
+
+/*	HTSaveConverter
+**
+** This function is a place holder for a save to local file converter
+*/
+PUBLIC HTStream * HTSaveConverter (HTRequest *	request,
+				   void *	param,
+				   HTFormat	input_format,
+				   HTFormat	output_format,
+				   HTStream *	output_stream)
+{
+    return HTBlackHole();
 }
 
 /*
@@ -516,9 +576,8 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 	return output_stream ? output_stream : HTErrorStream();
     }
 
-    if (CORE_TRACE)
-	HTTrace("StreamStack. No match found, dumping to local file\n");
-    return HTSaveLocally(request, NULL, rep_in, rep_out, output_stream);
+    if (CORE_TRACE) HTTrace("StreamStack. NOT FOUND - error!\n");
+    return HTBlackHole();
 }
 	
 
@@ -615,15 +674,11 @@ PUBLIC HTStream * HTContentCodingStack (HTEncoding	encoding,
     **  instead of the stream that we got.
     */
     if (!HTFormat_isUnityContent(encoding) && target==top) {
-	if (encode) {	    
-	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - removing encoding!\n");
-	    HTAnchor_removeEncoding(HTRequest_anchor(request), encoding);
+	if (encode) {
+	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - can't encode stream!\n");
 	} else {
-	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - inserting save stream!\n");
-	    (*top->isa->abort)(top, NULL);
-	    top = HTSaveLocally(request, NULL, NULL,
-				HTRequest_outputFormat(request),
-				HTRequest_outputStream(request));
+	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - error!\n");
+	    top = HTBlackHole();
 	}
     }
     return top;
@@ -642,8 +697,10 @@ PUBLIC HTStream * HTContentEncodingStack (HTList *	encodings,
 	HTList * cur = encodings;
 	HTEncoding pres;
 	HTStream * top = target;
-	while ((pres = (HTEncoding) HTList_nextObject(cur)))
+	while ((pres = (HTEncoding) HTList_nextObject(cur))) {
 	    top = HTContentCodingStack(pres, top, request, param, YES);
+	    if (top == HTBlackHole()) break;
+	}
 	return top;
     }
     return HTErrorStream();
@@ -667,15 +724,16 @@ PUBLIC HTStream * HTContentDecodingStack (HTList *	encodings,
 	while (cnt > 0) {
 	    pres = (HTEncoding) HTList_objectAt(encodings, --cnt);
 	    top = HTContentCodingStack(pres, top, request, param, NO);
+	    if (top == HTBlackHole()) break;
 	}
 	return top;
     }
     return HTErrorStream();
 }
 
-/*	Create a new transfer coder and insert it into stream chain
-**	-----------------------------------------------------------
-**	Creating the content decoding stack is not based on quality factors as
+/*	Create a new coder and insert it into stream chain
+**	--------------------------------------------------
+**	Creating the transfer decoding stack is not based on quality factors as
 **	we don't have the freedom as with content types. Specify whether you
 **	you want encoding or decoding using the BOOL "encode" flag.
 */
@@ -690,9 +748,117 @@ PUBLIC HTStream * HTTransferCodingStack (HTEncoding	encoding,
     HTCoding * pres = NULL;
     int cnt;
     if (!encoding || !request) {
+	if (CORE_TRACE) HTTrace("Codings... Nothing applied...\n");
+	return target ? target : HTErrorStream();
+    }
+    coders[0] = HTRequest_transfer(request);
+    coders[1] = HTTransferCoders;
+    if (CORE_TRACE)
+	HTTrace("C-E......... Looking for `%s\'\n", HTAtom_name(encoding));
+    for (cnt=0; cnt < 2; cnt++) {
+	HTList * cur = coders[cnt];
+	while ((pres = (HTCoding *) HTList_nextObject(cur))) {
+	    if (pres->encoding == encoding) {
+		if (CORE_TRACE) HTTrace("C-E......... Found...\n");
+		if (encode) {
+		    if (pres->encoder)
+			top = (*pres->encoder)(request, param, encoding, top);
+		    break;
+		} else if (pres->decoder) {
+		    top = (*pres->decoder)(request, param, encoding, top);
+		    break;
+		}
+	    }
+	}
+    }
+
+    /*
+    **  If this is not a unity coding and we didn't find any coders
+    **  that could handle it then put in a local file save stream
+    **  instead of the stream that we got.
+    */
+    if (!HTFormat_isUnityContent(encoding) && target==top) {
+	if (encode) {
+	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - can't encode stream!\n");
+	} else {
+	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - error!\n");
+	    top = HTBlackHole();
+	}
+    }
+    return top;
+}
+
+/*
+**  Here you can provide a complete list instead of a single token.
+**  The list has to filled up in the order the _encodings_ are to be applied
+*/
+PUBLIC HTStream * HTTransferEncodingStack (HTList *	encodings,
+					   HTStream *	target,
+					   HTRequest *	request,
+					   void *	param)
+{
+    if (encodings) {
+	HTList * cur = encodings;
+	HTEncoding pres;
+	HTStream * top = target;
+	while ((pres = (HTEncoding) HTList_nextObject(cur))) {
+	    top = HTTransferCodingStack(pres, top, request, param, YES);
+	    if (top == HTBlackHole()) break;
+	}
+	return top;
+    }
+    return HTErrorStream();
+}
+
+/*
+**  Here you can provide a complete list instead of a single token.
+**  The list has to be in the order the _encodings_ were applied - that
+**  is, the same way that _encodings_ are to be applied. This is all consistent
+**  with the order of the Content-Encoding header.
+*/
+PUBLIC HTStream * HTTransferDecodingStack (HTList *	encodings,
+					   HTStream *	target,
+					   HTRequest *	request,
+					   void *	param)
+{
+    if (encodings) {
+	HTEncoding pres;
+	int cnt = HTList_count(encodings);
+	HTStream * top = target;
+	while (cnt > 0) {
+	    pres = (HTEncoding) HTList_objectAt(encodings, --cnt);
+	    top = HTTransferCodingStack(pres, top, request, param, NO);
+	    if (top == HTBlackHole()) break;
+	}
+	return top;
+    }
+    return HTErrorStream();
+}
+
+/*	Create a new transfer coder and insert it into stream chain
+**	-----------------------------------------------------------
+**	Creating the content decoding stack is not based on quality factors as
+**	we don't have the freedom as with content types. Specify whether you
+**	you want encoding or decoding using the BOOL "encode" flag.
+*/
+PUBLIC HTStream * HTContentTransferCodingStack (HTEncoding	encoding,
+						HTStream *	target,
+						HTRequest *	request,
+						void *		param,
+						BOOL		encode)
+{
+    HTList * coders[2];
+    HTStream * top = target;
+    HTCoding * pres = NULL;
+    int cnt;
+    if (!encoding || !request) {
 	if (CORE_TRACE) HTTrace("C-T-E..... Nothing applied...\n");
 	return target ? target : HTErrorStream();
     }
+
+    /*
+    **  We use the same encoders/decoders as for Transfer-Encodings
+    */
     coders[0] = HTRequest_transfer(request);
     coders[1] = HTTransferCoders;
     if (CORE_TRACE)
@@ -722,13 +888,10 @@ PUBLIC HTStream * HTTransferCodingStack (HTEncoding	encoding,
     if (!HTFormat_isUnityTransfer(encoding) && target==top) {
 	if (encode) {	    
 	    if (CORE_TRACE) HTTrace("C-T-E....... NOT FOUND - removing encoding!\n");
-	    HTAnchor_setTransfer(HTRequest_anchor(request), NULL);
+	    HTAnchor_setContentTransferEncoding(HTRequest_anchor(request), NULL);
 	} else {
-	    if (CORE_TRACE) HTTrace("C-T-E....... NOT FOUND - inserting save stream!\n");
-	    (*top->isa->abort)(top, NULL);
-	    top = HTSaveLocally(request, NULL, NULL,
-				HTRequest_outputFormat(request),
-				HTRequest_outputStream(request));
+	    if (CORE_TRACE) HTTrace("C-T-E....... NOT FOUND - error!\n");
+	    top = HTBlackHole();
 	}
     }
     return top;

@@ -92,7 +92,7 @@ struct _HTParentAnchor {
   char *	content_location;
   char *	content_md5;
 
-  HTEncoding	transfer;	/* Content-Transfer-Encoding */
+  HTEncoding	cte;	        /* Content-Transfer-Encoding */
 
   time_t	date;		/* When was the request issued */  
   time_t	expires;	/* When does the copy expire */

@@ -354,8 +354,7 @@ or enabled using bit flags that are defined in the following.
 There are a few header fields which have general applicability for both request
 and response mesages, but which do not apply to the communication parties
 or theentity being transferred. This mask enables and disables these headers.
-If the bit is not turned on they are not sent. All headers are optional and
-the default value is <EM>NO GENERAL HEADERS</EM>
+If the bit is not turned on they are not sent.
 <PRE>
 typedef enum _HTGnHd {
     HT_G_CC             = 0x1,
@@ -365,10 +364,12 @@ typedef enum _HTGnHd {
     HT_G_FORWARDED	= 0x10,
     HT_G_MESSAGE_ID	= 0x20,
     HT_G_MIME		= 0x40,
-    HT_G_TRAILER        = 0x80
+    HT_G_TRAILER        = 0x80,
+    HT_G_TRANSFER       = 0x100
 } HTGnHd;
 
-#define DEFAULT_GENERAL_HEADERS		HT_G_CONNECTION + HT_G_CC
+#define DEFAULT_GENERAL_HEADERS	\
+        HT_G_CONNECTION + HT_G_CC + HT_G_TRANSFER + HT_G_TRAILER
 
 extern void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd);
 extern void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd);

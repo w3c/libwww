@@ -32,6 +32,7 @@ inc: $(BUILT_SOURCES)
 PURIFY_CACHE = @PURIFY_CACHE@
 
 purify: $(www_OBJECTS) $(www_DEPENDENCIES)
+	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
 	$(LINK) $(www_OBJECTS) $(www_LDADD) $(LIBS)
 

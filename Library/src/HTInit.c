@@ -89,7 +89,7 @@ PUBLIC void HTConverterInit (HTList * c)
     ** This dumps all other formats to local disk without any further
     ** action taken
     */
-    HTConversion_add(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+    HTConversion_add(c,"*/*",			"www/present",	HTSaveConverter, 0.3, 0.0, 0.0);
 }
 
 /*	BINDINGS BETWEEN MEDIA TYPES AND EXTERNAL VIEWERS/PRESENTERS
@@ -378,7 +378,7 @@ PUBLIC void HTMIMEInit (void)
 	{"retry-after", &HTMIME_retryAfter}, 
 	{"server", &HTMIME_server}, 
 	{"trailer", &HTMIME_trailer},
-	{"transfer-encoding", &HTMIME_contentTransferEncoding}, 
+	{"transfer-encoding", &HTMIME_transferEncoding}, 
 	{"upgrade", &HTMIME_upgrade},
 	{"user-agent", &HTMIME_userAgent},
 	{"vary", &HTMIME_vary},

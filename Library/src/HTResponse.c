@@ -64,8 +64,11 @@ PUBLIC BOOL HTResponse_delete (HTResponse * me)
 	/* Byte ranges */
 	if (me->byte_ranges) HTAssocList_delete(me->byte_ranges);
 
-	/* Content Encoding */
+	/* Content Encodings */
 	if (me->content_encoding) HTList_delete(me->content_encoding);
+
+	/* Transfer Encodings */
+	if (me->transfer_encoding) HTList_delete(me->transfer_encoding);
 
 	/* Trailers */
 	if (me->trailer) HTAssocList_delete(me->trailer);
@@ -519,17 +522,34 @@ PUBLIC HTList * HTResponse_encoding (HTResponse * me)
 }
 
 /*
-**	Content Transfer Encoding
+**	Transfer Encoding
 */
-PUBLIC HTEncoding HTResponse_transfer (HTResponse * me)
+PUBLIC BOOL HTResponse_addTransfer (HTResponse * me, HTEncoding transfer)
+{
+    if (me && transfer) {
+	if (!me->transfer_encoding) me->transfer_encoding = HTList_new();
+	return HTList_addObject(me->transfer_encoding, transfer);
+    }
+    return NO;
+}
+
+PUBLIC HTList * HTResponse_transfer (HTResponse * me)
 {
     return me ? me->transfer_encoding : NULL;
 }
 
-PUBLIC BOOL HTResponse_setTransfer (HTResponse * me, HTEncoding transfer)
+/*
+**	Content Transfer Encoding
+*/
+PUBLIC HTEncoding HTResponse_contentTransferEncoding (HTResponse * me)
+{
+    return me ? me->cte : NULL;
+}
+
+PUBLIC BOOL HTResponse_setContentTransferEncoding (HTResponse * me, HTEncoding transfer)
 {
     if (me) {
-	me->transfer_encoding = transfer;
+	me->cte = transfer;
 	return YES;
     }
     return NO;

@@ -53,10 +53,24 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     char linebuf[256];			/* @@@ */
     HTParentAnchor * entity = HTRequest_entityAnchor(request);
     HTEnHd EntityMask = HTRequest_enHd(request);
+    BOOL transfer_coding = NO;		/* We should get this from the Host object */
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
     if (EntityMask & HT_E_ALLOW) {
-	/* @@@@@@@@@@ */
+	BOOL first = YES;
+	int cnt;
+	HTMethod methodset = HTAnchor_allow(entity);
+	for (cnt=0; cnt<sizeof(HTMethod)<<3 ; cnt++) {
+	    if (methodset & (1<<cnt)) {
+		if (first) {
+		    PUTS("Allow: ");
+		    first = NO;
+		} else
+		    PUTC(',');
+		PUTS(HTMethod_name(1<<cnt));
+	    }
+	}
+	if (!first) PUTBLOCK(crlf, 2);
     }
     if (EntityMask & HT_E_CONTENT_ENCODING && entity->content_encoding){
 	BOOL first = YES;
@@ -72,7 +86,14 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    
+    if (EntityMask & HT_E_CTE && entity->cte) {
+	HTEncoding cte = HTAnchor_contentTransferEncoding(entity);
+	if (!HTFormat_isUnityTransfer(cte)) {
+	    sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
+		    HTAtom_name(cte), CR, LF);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
+	}
+    }
     if (EntityMask & HT_E_CONTENT_LANGUAGE && entity->content_language){
 	BOOL first = YES;
 	HTList * cur = entity->content_language;
@@ -87,22 +108,17 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (EntityMask & HT_E_CONTENT_LENGTH) {
- 	if (entity->content_length >= 0) {
-	    sprintf(linebuf, "Content-Length: %ld%c%c",
-		    entity->content_length, CR, LF);
-	    PUTBLOCK(linebuf, (int) strlen(linebuf));	
-	} else {
-	    HTEncoding chunked = HTAtom_for("chunked");
-	    HTAnchor_setTransfer(entity, chunked);
-	}
-    }
-    if (EntityMask & HT_E_CTE && entity->transfer) {
-	HTEncoding transfer = HTAnchor_transfer(entity);
-	if (!HTFormat_isUnityTransfer(transfer)) {
-	    sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
-		    HTAtom_name(transfer), CR, LF);
-	    PUTBLOCK(linebuf, (int) strlen(linebuf));
+
+    /* Only send out Content-Length if we don't have a transfer coding */
+    if (!HTRequest_transfer(request)) {
+	if (EntityMask & HT_E_CONTENT_LENGTH) {
+	    if (entity->content_length >= 0) {
+		sprintf(linebuf, "Content-Length: %ld%c%c",
+			entity->content_length, CR, LF);
+		PUTBLOCK(linebuf, (int) strlen(linebuf));	
+	    } else {
+		transfer_coding = YES;
+	    }
 	}
     }
     if (EntityMask & HT_E_CONTENT_TYPE && entity->content_type) {
@@ -164,20 +180,42 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     }
 
     /*
-    ** Now make sure that the body has the right format
+    **  Handle any Transfer encoding. This is really a transport issue but
+    **  as it often pops up when we are sending an entity then we put it
+    **  here for now. A better place whould be in the HTTPGen stream.
+    **  the real problem is that the server doesn't have any mechanism of
+    **  telling the client what transports it can handle. The best we can
+    **  hope for is that the server understands "chunked" although we are
+    **  certainly capable of handling nested encodings :(
+    */
+    if (transfer_coding) {
+	HTStream * target = HTTransferCodingStack(WWW_CODING_CHUNKED,
+						  me->target, request, NULL, NO);
+	if (STREAM_TRACE) HTTrace("Building.... Transfer-Encoding stack\n");
+	if (target == HTBlackHole()) {
+	    if (me->target) (*me->target->isa->abort)(me->target, NULL);
+	    me->target = HTErrorStream();
+	} else
+	    me->target = target;
+    }
+
+#if 0
+    /*
+    **  We expect the anchor object already to have the right encoding and
+    **  we therefore should not set up extra streams for doing this.
     */
 
-    /* Handle any Transfer encoding */
+    /* Handle any Content Transfer encoding */
     {
-	HTEncoding transfer = HTAnchor_transfer(entity);
-	if (!HTFormat_isUnityTransfer(transfer)) {
+	HTEncoding cte = HTAnchor_contentTransferEncoding(entity);
+	if (!HTFormat_isUnityTransfer(cte)) {
 	    if (STREAM_TRACE) HTTrace("Building.... C-T-E stack\n");
-	    me->target = HTTransferCodingStack(transfer, me->target,
-					       request, NULL, YES);
+	    me->target = HTContentTransferCodingStack(cte, me->target,
+						      request, NULL, YES);
 	}
     }
 
-    /* Handle any Content Encoding */
+    /* Handle any Content Encodings */
     {
 	HTList * cc = HTAnchor_encoding(entity);
 	if (cc) {
@@ -185,6 +223,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    me->target = HTContentEncodingStack(cc, me->target, request, NULL);
 	}
     }
+#endif
 
     if (PROT_TRACE) HTTrace("MIME........ Generating Entity Headers\n");
     return HT_OK;
