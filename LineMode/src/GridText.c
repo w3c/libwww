@@ -102,6 +102,14 @@ struct _HText {
 	LineMode *		pLm;
 };
 
+PRIVATE HTTabStop tabs_8[] = {
+      { 0, 8 }, {0, 16}, {0, 24}, {0, 32}, {0, 40},
+      { 0, 48 }, {0, 56}, {0, 64}, {0, 72}, {0, 80},
+      { 0, 88 }, {0, 96}, {0, 104}, {0, 112}, {0, 120},
+      { 0, 128 }, {0, 136}, {0, 144}, {0, 152}, {0, 160},
+      {0, 168}, {0, 176},
+      {0, 0 }         /* Terminate */
+};
 
 #define PUTC(c) (*text->targetClass.put_character)(text->target, c)
 #define PUTS(s) (*text->targetClass.put_string)(text->target, s)
@@ -116,7 +124,7 @@ PRIVATE char * space_string;
 PRIVATE HTStyle default_style =
 	{ 0,  "(Unstyled)", "",
 	(HTFont)0, 1.0, HT_BLACK,		0, 0,
-	0, 0, 0, HT_LEFT,		1, 0,	0, 
+	0, 0, 0, HT_LEFT,		1, 0,	tabs_8, 
 	NO, NO, 0, 0,			0 };	
 
 

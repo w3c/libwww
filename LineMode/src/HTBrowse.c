@@ -1918,9 +1918,18 @@ int main (int argc, char ** argv)
 #endif
 
     /* Set up HText interface callbacks */
-    if (!HText_registerCDCallback (LMHText_new, LMHText_delete)) {
-	HTPrint("HText new/delete callback registration failed.\n");
-	exit (1);
+    if (HTAlert_interactive () ) {
+	/* interactive mode */
+	if (!HText_registerCDCallback (LMHText_new, LMHText_delete)) {
+	    HTPrint("HText new/delete callback registration failed.\n");
+	    exit (1);
+	}
+    } else {
+	/* non-interactive mode */
+	if (!HText_registerCDCallback (LMHText_new2, LMHText_delete)) {
+	    HTPrint("HText new/delete callback registration failed.\n");
+	    exit (1);
+	}
     }
     if (!HText_registerTextCallback (LMHText_addText)) {
 	HTPrint("HText addText callback registration failed.\n");

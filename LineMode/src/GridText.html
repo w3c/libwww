@@ -67,6 +67,8 @@ These functions are invoked as callbacks from the HText interface.
 <PRE>
 extern HText* LMHText_new (HTRequest * req,
 		HTParentAnchor * anchor,HTStream * output_stream);
+extern HText* LMHText_new2 (HTRequest * req,
+              HTParentAnchor * anchor,HTStream * output_stream);
 extern BOOL LMHText_delete (HText * self);
 extern void LMHText_addText (HText * text, const char * str, int length);
 extern void LMHText_beginAnchor (HText *text,
