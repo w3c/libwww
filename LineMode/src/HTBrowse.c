@@ -1051,9 +1051,6 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    HText *curText = HTMainText;     /* Remember current main vindow */
 	    *actreq = Thread_new(NO);
 	    (*actreq)->ForceReload = YES;
-#if 0
-	    (*actreq)->BlockingIO = YES;     		 /* Use blocking I/O */
-#endif
 	    if (OutSource) (*actreq)->output_format = WWW_SOURCE;
 	    if (SaveOutputStream(*actreq, this_word, next_word))
 		loadstat = HT_WOULD_BLOCK;
@@ -1169,15 +1166,10 @@ int main ARGS2(int, argc, char **, argv)
     BOOL	first_keyword = YES;
     char *	default_default = HTFindRelatedName();
     HTFormat	input_format = WWW_HTML;	         /* Used with filter */
-#if 0
-    HTEventCallBack user;		/* To register STDIN for user events */
-#endif
     BOOL       	listrefs_option = NO;	  	  /* -listrefs option used?  */
 
     /* Start up Library of Common Code */
-    WWW_TraceFlag = -1;
     HTLibInit();
-    WWW_TraceFlag = 0;
     HTStdIconInit(NULL);
     HTProxy_getEnvVar();		   /* Read the environment variables */
 
@@ -1537,45 +1529,9 @@ int main ARGS2(int, argc, char **, argv)
 	    goto endproc;
     }
 
-#if 0
-    if (HTInteractive) {
-	reqlist = HTList_new();
-	user.sockfd = STDIN_FILENO;
-	user.callback = EventHandler;
-	HTList_addObject(reqlist, (void *) request);
-	HTEventRegister(&user);				   /* Register STDIN */
-	HTHistory_record((HTAnchor *) home_anchor);	    /* Setup history */
-	return_status = HTEventLoop(request, home_anchor,
-				    (keywords && *keywords) ? keywords : NULL);
-    } else {
-	request->BlockingIO = YES;		/* Turn off non-blocking I/O */
-	if (((keywords && *keywords) ?
-	     HTSearch(keywords, home_anchor, request) :
-	     HTLoadAnchor((HTAnchor*) home_anchor, request)) != HT_LOADED) {
-	    char *addr = HTAnchor_address((HTAnchor *) home_anchor);
-	    ErrMsg("Can't access document", addr);
-	    free(addr);
-	    return_status = -2;			     /* Can't get first page */
-	} else if (listrefs_option) {
-	    Reference_List(NO);		   	      /* List without titles */
-	}
-    }
-    if (!HTInteractive)
-	request->BlockingIO = YES;		/* Turn off non-blocking I/O */
-#else
-
     /* Test of putting non-interactive mode into the event loop as well */
     reqlist = HTList_new();
-#if 0
-    user.sockfd = STDIN_FILENO;
-    user.callback = EventHandler;
-#endif 
     HTList_addObject(reqlist, (void *) request);
-
-#if 0
-    HTEventRegister(&user);				   /* Register STDIN */
-#endif
-
     HTEvent_RegisterTTY( STDIN_FILENO, request, (SockOps)FD_READ,
 			NewEventHandler, 1) ;
     HTHistory_record((HTAnchor *) home_anchor);	    	    /* Setup history */
@@ -1584,7 +1540,6 @@ int main ARGS2(int, argc, char **, argv)
 
     if (!HTInteractive && listrefs_option)
 	Reference_List(NO);		   	      /* List without titles */
-#endif
 
 endproc:
     if (output)
