@@ -624,7 +624,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
                                 int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
-static int inside = 0;
+    static int inside = 0;
     char space[256];
     HTView * pView;
     pView = LineMode_getView(Context_getLineMode(request));
@@ -679,7 +679,7 @@ static int inside = 0;
 	sprintf(space, "Finished\n");
 	break;
 
-      case HT_PROG_WAIT:
+      case HT_PROG_OTHER:
 	sprintf(space, "Waiting for HT_FREE socket...\n");
 	break;
 
