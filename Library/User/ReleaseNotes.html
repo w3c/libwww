@@ -60,6 +60,130 @@ can give an idea of where we're headed using PEP.
 <IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> <B>Check out the latest
 &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
 <H2>
+  Release 5.0a October 10 1996
+</H2>
+<H3>
+  New Features and APIs
+</H3>
+<UL>
+  <LI>
+    Added support for byte range requests from the cache so that we can update
+    parts of documents in the cache.
+  <LI>
+    We now use <CODE>Content-Location</CODE> when gerenating the <I>Request URL
+    </I>for a request with other any other method than <CODE>GET</CODE> and
+    <CODE>HEAD</CODE>
+  <LI>
+    We have created a <A HREF="../src/HTResponse.html">HTResponse</A> to handle
+    metainformation before it goes into the HTAnchor object. This avoids the
+    problem of overwriting metainformation in the
+    <A HREF="../src/HTAnchor.html">HTAnchor</A> object
+  <LI>
+    Added <I>insertion sort </I>mechanism to the
+    <A HREF="../src/HTList.html">HTList Object</A>. The comparison function is
+    passed as a parameter to the sorting function
+  <LI>
+    Added support for <A HREF="../../LineMode/User/Commands.html#options">OPTIONS
+    in line mode browser</A>.
+  <LI>
+    Added <CODE>HTCache_flushAll()</CODE> to the
+    <A HREF="../src/HTCache.html">HTCache manager</A>.
+  <LI>
+    Added <B>flush</B> and a couple of other persisten cache command in the
+    <A HREF="../../LineMode/">Line mode browser</A>. <B>flush</B> deletes the
+    persistent cache on disk and in memory.
+</UL>
+<H3>
+  Changes and Updates
+</H3>
+<UL>
+  <LI>
+    We have updated the <A HREF="../src/HTGuess.html">HTGuess stream</A> to work
+    on the <A HREF="../src/HTResponse.html">Response object </A>instead of the
+    <A HREF="../src/HTAnchor.html">anchor object</A>
+  <LI>
+    We have changed the name of <CODE>HTBind_getBindings</CODE> to
+    <CODE>HTBind_getAnchorBindings</CODE> and added
+    <CODE>HTBind_getResponseBindings</CODE> in the
+    <A HREF="../src/HTBind.html">HTBind module</A>
+  <LI>
+    <A HREF="../src/HTNet.html">HTNetCall_delete</A> now deletes <I>ALL</I> instances
+    of a specific filter. That is, if a single filter is registered to handle
+    multiple status codes then it is now deleted completely using this function.
+  <LI>
+    We have changed the registration of <CODE>Cache-Control</CODE> directives
+    so that they now are treated as replacements instead of additions. This way,
+    we don't get duplicate entries
+  <LI>
+    Changed behavior of the <A HREF="../src/HTFilter.html">Cache Filter </A>so
+    that a cache load doesn't call the global ingoing filters.
+  <LI>
+    Updated <A HREF="../src/HTTee.html">Tee stream</A> to make it more robust
+  <LI>
+    Changed the definition of
+    &nbsp;<A HREF="../src/HTHeader.html">HTParserCallback</A> to contain a
+    <A HREF="../src/HTResponse.html">HTResponse</A> object in addition to the
+    <A HREF="../src/HTReq.html">HTRequest</A> object. This allows us to parse
+    the response into the response object instead of the request and the anchor
+    object. It also allows us to do lazy parsing of many of the headers belonging
+    to the <A HREF="../src/HTAnchor.html">Anchor</A> object.
+  <LI>
+    Changed the <A HREF="../src/HTNet.html">HTNet Filter API</A> so that the
+    filters now can be registered with a <I>URL template</I> for when they are
+    to be called and a filter ordering deciding the order of which the registered
+    filters are to be called. The ordering is simply an integer between
+    <CODE>HT_FILTER_FIRST</CODE> and <CODE>HT_FILTER_LAST</CODE> with
+    <CODE>HT_FILTER_MIDDLE</CODE> being the <I>normal</I> case. Also, there is
+    now a difference between <I>BEFORE</I> and <I>AFTER</I> filters in that the
+    after filters are registered with a status code for when they are to be called
+    whereas the before filters are not. The API is now so that you can register
+    filters locally in the <A HREF="../src/HTReq.html">HTRequest object</A> using
+    <CODE>HTRequest_addBefore</CODE> and <CODE>HTRequest_addAfter </CODE>and
+    globally in the <A HREF="../src/HTNet.html">HTNet object</A> using
+    <CODE>HTNet_addAfter</CODE> and <CODE>HTNet_addBefore</CODE>
+  <LI>
+    We have changed the <A HREF="../src/HTAnchor.html">HTAnchor</A> methods for
+    handling allowed methods on the object to be called
+    <CODE>HTAnchor_allow</CODE> instead of <CODE>HTAnchor_methods</CODE>. This
+    then follows the header name as all other
+    <A HREF="../src/HTAnchor.html">HTAnchor</A> methods.
+  <LI>
+    <CODE>HTCache_setSize</CODE> and <CODE>HTCache_size</CODE> are no longer
+    public functions as they only belong to the <A HREF="../src/HTCache.html">cache
+    manager</A>
+  <LI>
+    We have changed the <A HREF="../src/HTTP.html">HTTP state machine</A> so
+    that a <I>"204 No Content"</I> response never is expected to contain a body
+    part.
+</UL>
+<H3>
+  Bugfixes
+</H3>
+<UL>
+  <LI>
+    In <A HREF="../src/HTHost.html">HTHost.c</A>: HTHost_nextPendingNet() there
+    was a missing pair of brackets. As a consequence, <CODE>NULL</CODE> structures
+    were pushed into the <CODE>host-&gt;pipeline</CODE> stack.
+  <LI>
+    Now the memory cache filter only checks for cached documents on
+    <CODE>GET</CODE> requests.
+  <LI>
+    The HTTP State machine didn't catch an error code returned by a POST callback
+    function
+  <LI>
+    We don't flush any metainformation on a <CODE>TRACE</CODE> method or a
+    <CODE>OPTIONS</CODE> method request anymore
+  <LI>
+    Now we copy information from the cache index back to the anchor obejct when
+    we read the index while starting up.
+  <LI>
+    Automatic connection recovery had a problem when restarting a HTTP/1.1 persistent
+    connection after premature close (thanks to <I>Markku Savela</I>)
+  <LI>
+    We have fixed a problem in handling <CODE>OPTIONS</CODE> requests on URL
+    other than "/". The path didn't contain an initial "/"
+</UL>
+<H2>
   Release 5.0 September 10 1996
 </H2>
 <P>

@@ -1019,7 +1019,7 @@ PUBLIC HTStream *HTRequest_inputStream (HTRequest * me)
 */
 PUBLIC BOOL HTRequest_addBefore (HTRequest * me, HTNetBefore * filter,
 				 const char * tmplate, void * param,
-				 int order, BOOL override)
+				 HTFilterOrder order, BOOL override)
 {
     if (me) {
 	me->befores_local = override;
@@ -1062,7 +1062,8 @@ PUBLIC HTList * HTRequest_before (HTRequest * me, BOOL *override)
 
 PUBLIC BOOL HTRequest_addAfter (HTRequest * me, HTNetAfter * filter,
 				const char * tmplate, void * param,
-				int status, int order, BOOL override)
+				int status, HTFilterOrder order,
+				BOOL override)
 {
     if (me) {
 	me->afters_local = override;

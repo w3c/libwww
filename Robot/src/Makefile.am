@@ -26,6 +26,7 @@ BUILT_SOURCES = \
 	HTRobot.h
 
 EXTRA_DIST = \
+	 $(BUILT_SOURCES) \
 	Robot.tcl
 
 PURIFY_CACHE = /home2/frystyk/purify-cache

@@ -113,4 +113,5 @@ EXTRA_HEADERS = \
 DOCS :=	$(wildcard *.html)
 
 EXTRA_DIST = \
+	$(BUILT_SOURCES) \
 	$(DOCS)

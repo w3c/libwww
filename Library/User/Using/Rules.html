@@ -1,90 +1,42 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 21-Nov-1995 -->
-  <NEXTID N="z78">
-  <TITLE>User Guide - Rule Files</TITLE>
+  <TITLE>Rule File Filter</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
-  Rule Files
+  Rule File Filter
 </H1>
 <P>
-The W3C Library provides this module for handling configuration files (a.k.a.
+Libwww provides a <I>BEFORE</I> filter for handling configuration files (a.k.a.
 rule files). Rule files can be used to initialize as much as the application
 desires including setting up new protocol modules etc. Also the rules file
 do not have to be a file - it can be a database or any other way of storage
-information. This implementation is <I>not</I> used by the Library at all
-and is part of the <A HREF="../../src/WWWApp.html">Application interface</A>.
-The syntax of the rule files is described in the <A HREF="RuleSyntax.html">rule
-file syntax</A> section of this manual
+information. The syntax of the rule files is described in the
+<A HREF="RuleSyntax.html">rule file syntax</A> section of this manual.
 <P>
-Parsing a whole rule file is done using a converter stream. This means that
+Parsing a rule file is done using a <I>converter stream</I>. This means that
 a rule file can come from anywhere, even across the network. We have defined
 a special content type for rule files called <CODE>WWW_RULES</CODE> in
-<A HREF="../../src/HTFormat.html">HTFormat</A>.
+<A HREF="../../src/HTFormat.html">HTFormat</A>. In some situations, a set
+of rules comes from a subset of a file or some other origin, for example
+INI files for X resources. In that case, you can also parse a single line
+from a rules file.
 <P>
-In some situations, a set of rules comes from a subset of a file or some
-other origin, for example INI files for X resources. In that case, you can
-also parse a single line from a rules file using the following function:
-<PRE>
-extern BOOL HTRule_parseLine (HTList * list, const char * config);
-</PRE>
-<P>
-You can add a rule to a list of rules as any other preference. The
-<CODE>pattern</CODE> is a string containing a single "*".
-<CODE>replace</CODE> points to the equivalent string with * for the place
-where the text matched by * goes.
-<PRE>
-typedef enum _HTRuleOp {
-    HT_Invalid, 
-    HT_Map, 
-    HT_Pass, 
-    HT_Fail,
-    HT_DefProt,
-    HT_Protect,
-    HT_Exec,
-    HT_Redirect,
-    HT_UseProxy
-} HTRuleOp;
-
-extern BOOL HTRule_add (HTList * list, HTRuleOp op, const char * pattern, const char * replace);
-</PRE>
-<P>
-And as normal you can delete a set of rules by using this function:
-<PRE>
-extern BOOL HTRule_deleteAll (HTList *list);
-</PRE>
-<H2>
-  Global Rules
-</H2>
-<P>
-Rules are handled as list as everything else that has to do with preferences.
-We provide two functions for getting and setting the global rules:
-<PRE>
-extern HTList * HTRule_global	(void);
-extern BOOL HTRule_setGlobal	(HTList * list);
-</PRE>
-<H2>
-  Translate by rules
-</H2>
-<P>
-This function walks through the list of rules and translates the reference
-when matches are found. The list is traversed in order starting from the
-head of the list. It returns the address of the equivalent string allocated
-from the heap which the CALLER MUST FREE. If no translation occured, then
-it is a copy of the original.
-<PRE>
-extern char * HTRule_translate (HTList * list, const char * token, BOOL ignore_case);
-</PRE>
+<A HREF="../../src/HTAnchor.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors
+and Methods</A>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

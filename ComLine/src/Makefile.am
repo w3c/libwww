@@ -31,3 +31,6 @@ w3c_SOURCES = \
 
 BUILT_SOURCES = \
 	HTLine.h
+
+DIST_EXTRA = \
+	$(BUILT_SOURCES)

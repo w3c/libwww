@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-## bin_PROGRAMS = @W3CLIB@
+# bin_PROGRAMS = w3clib
 
 w3clib_LDADD = \
 	@LIBTCL@ \

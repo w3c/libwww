@@ -1654,7 +1654,7 @@ int main (int argc, char ** argv)
 			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
 			    HTScreenHeight = MAX_SCREEN_HEIGHT;
 		    }
-		} else if (arg+1 < argc && *argv[arg+1] != '-') {
+		} else if (arg+1 < argc && isdigit(*argv[arg+1]) && *argv[arg+1] != '-') {
 		    if (sscanf(argv[++arg], "%d", &HTScreenHeight) < 1)
 			HTScreenHeight = -1;
 		    else {
@@ -1670,7 +1670,7 @@ int main (int argc, char ** argv)
 		if (*(argv[arg]+2)) {
 		    if (sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1)
 			HTScreenWidth = SCREEN_WIDTH;
-		} else if (arg+1 < argc && *argv[arg+1] != '-') {
+		} else if (arg+1 < argc && isdigit(*argv[arg+1]) && *argv[arg+1] != '-') {
 		    if (sscanf(argv[++arg], "%d", &HTScreenWidth) < 1)
 			HTScreenWidth = SCREEN_WIDTH;
 		}

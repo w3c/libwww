@@ -1,296 +1,185 @@
 <HTML>
 <HEAD>
-<TITLE>Registering Protocol Headers</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
-</HEAD>  
-<BODY>
-
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-
-<H1>Registering Protocol Headers</H1>
-
-The Library provides a few powerful mechanisms to handle document metainformation and how to
-generate and parse additional header information coming across the network. This section describes
-how to handle metainformation and headers and how this can be used to experiment with existing
-protocols by means of additional headers.
-
-<H2>Header Generation</H2>
-
-Outgoing metainformation describing preferences in requests or entities to be sent to a remote
-server is handled in two ways: The Library supports a "native" set (called <EM>known</EM> headers of
-headers which can be manipulated directly, but it also provides support for header extensions
-defined by the application. This section describes how both the existing set of headers and the
-extensions can be handled.
-
-<H3>Generating Known Headers</H3>
-
-The Library manages a "native" set of protocol headers which we will introduce in this section. The
-default behavior for the Library is to use a representative set of headers on each request but all
-headers can be explicitly enabled or disabled on a per request basic by the application. Here we
-will mainly describe the set of native headers but leave the description of how to manipulate them
-for the section on managing <A HREF="Request.html">Request objects</A>. The native set of headers
-fall into the following three categories:
-
-<DL>
-
-<DT>General Headers
-
-<DD>There are a few header fields which have general applicability for both request and response
-messages, but which do not apply to the communication parties or the entity being transferred. This
-mask enables and disables these headers. If the bit is not turned on they are not sent. All headers
-are optional and the default value is not to use any of these headers at all.
-
-<DT>Request Headers
-
-<DD>The request header fields allow the client to pass additional information about the request (and
-about the client itself) to the server. All headers are optional but the default behavior is to use
-all request headers <EM>except</EM> <CODE>From</CODE> and <CODE>Pragma</CODE>. The reason is that
-the former in general requires permission by the user and the latter has special meanings for proxy
-servers.
-
-<DT>Entity Headers
-
-<DD>The entity headers contain information about the object sent in the HTTP transaction. See the <A
-HREF="../../src/HTAnchor.html">anchor module</A>, for the storage of entity headers. This
-flag defines which headers are to be sent in a request together with an entity body. All headers are
-optional but the default value is to use as many as possible.
-
-</DL>
-
-As mentioned, the set of native headers are equivalent to the set of header defined by the <A
-HREF="../../../Protocols/">HTTP/1.1 protocol</A> specification. The Library also provides
-functionality for registering additional headers which we will have a look at in the next section.
-
-<H3>Generating Additional Headers</H3>
-
-The API for handling extra headers is provided by the <A HREF="../../src/HTHeader.html">
-Header Manager</A>. The API is built in exactly the same way as we have seen in section <A
-HREF="Request Preferences">Prefs.html</A>, that is it uses lists of objects as the main
-component. This time the elements registered is callback functions which the application provides
-the definition of. Each time a request is to be generated, the Library looks to see if a list of
-callback functions has been registered to provide additional metainformation to send along with the
-request. If this is the case then each of these callback functions will be called in turn and the
-resulting request is then the sum of the original response and the information provided by the
-callback functions. <P>
-
-It should be mentioned, however, that this API is simple to use if you have a relative small amount
-of extra metainformation to provide and that it easily fits into an existing protocol. It is not
-suited for building entire new protocols, or to provide a massive amount of new information. In this
-case you need a more powerful model which the Library also provides: building your own
-stream. Actually this is exactly the way the the Library implements large parts of itself, but it
-requires normally a bit more work before you can get an application pout together. <P>
-
-Let us jump right in to it and have a closer look at the API. Exactly as for the request preferences
-you can <EM>add</EM> and <EM>delete</EM> an element, which in this case is a callback function. This
-function has a special definition which is given by
-
-<PRE>
-typedef int HTPostCallback (HTRequest *request, HTStream * target);
-</PRE>
-
-We have already seen the <EM>Request</EM> object before, but the <EM>Stream</EM> object is new. Or
-actually it isn't, it has just not been mentioned explicitly in the previous sections. We will hear
-a lot more about the stream object later in this guide. For now it is sufficient to know that a
-stream i an object that accepts streams of characters - much like an ANSI file stream object
-does. The return value of the callback function is currently not used but is reserved for future
-use. We can register a callback function of type <EM>HTPostCallback</EM> by using the following
-function:
-
-<PRE>
-extern BOOL HTGenerator_add (HTList * gens, HTPostCallback * callback);
-</PRE>
-
-The first argument is the well-known list object and the second is the address of the function that
-we want to be called each time a request is generated. When the callback function is called by the
-Library it must generate its metainformation and send it down the stream which eventually will end
-up on the network as part of the final request. In exactly the same way you can unregister a
-callback function at any time by calling the following function:
-
-<PRE>
-extern BOOL HTGenerator_delete (HTList * gens, HTPostCallback * callback);
-</PRE>
-
-<H2>Header Parsing</H2>
-
-The <A HREF="../../src/HTMIME.html">MIME parser stream</A> parses MIME metainformation,
-for example generated by MIME-like protocols, such as HTTP, NNTP, and soon SMTP as well. For <A
-HREF="../../../Protocols/">HTTP</A> it handles all headers as defined in HTTP/1.1 of the
-specification. When a MIME header is parsed, the obtained metainformation about the document is
-stored in the <A HREF="Anchors.html">anchor object</A> where it can be accessed by the application
-using the methods of the <A HREF="../../src/HTAnchor.html">Anchor module</A>. The
-metainformation in an anchor object can also be used to describe a data object that is to be
-<EM>sent</EM> to a remote location, for example using HTTP or NNTP, but we will describe this in
-more detail later in this guide. In this case the order is reversed as the application provides the
-metainformation and the appropriate headers are generated instead of generating the entries in the
-anchor object by parsing the headers. <P>
-
-<H3>Parsing Known Headers</H3>
-
-The set of headers directly handled by the <A HREF="../../src/HTMIME.html">internal MIME
-parser</A> is the reader is referred to the actual implementation in order to see the exact
-list. However, some of the more special headers are: </P>
-
-<DL>
-<DT><CODE>Allow</CODE>
-<DD>Builds a list of allowed methods for this entity
-<DT><CODE>ContentEncoding</CODE>
-<DD>
-<DT><CODE>ContentLanguage</CODE>
-<DD>Builds a list of natural languages
-<DT><CODE>ContentLength</CODE>
-<DD>This parameter is now passed
-<DT><CODE>ContentType</CODE>
-<DD>The <CODE>ContentType</CODE> header now support the <CODE>charset</CODE> parameter and the
-<CODE>level</CODE> parameter, however none of them are used by the <A HREF="#HTML">HTML parser</A>
-<DT><CODE>Date</CODE>, <CODE>Expires</CODE>, <CODE>RetryAfter</CODE>, and <CODE>LastModified</CODE>
-<DD>All date and time headers are parsed understanding the following formats: RFC 1123, RFC 850,
-ANSI C's asctime(), and delta time. The latter is a non-negative integer indicating seconds after
-the message was received.  Note, that it is <EM>always</EM> for the application to issue a new
-request as a function of any of the date and time headers..
-<DT><CODE>DerivedFrom, Version</CODE>
-<DD>For handling version control when managing collaborative works using HTTP.
-</DL>  
-
-<H3>Parsing Additional Headers</H3>
-
-In many cases, if you have registered an extra set of headers to be generated, you are also in a
-situation where you would like to handle the result that is returned by the remote server. As we will
-describe in this section, the Library provides a very similar interface to the one presented above
-for generating extra headers. <P>
-
-Again, the API for handling extra headers is provided by the <A
-HREF="../../src/HTHeader.html">Header Manager</A> and is based on managing list objects,
-just like we have seen many times before. Each time a request is received, and a unknown header is
-encountered by the internal <A HREF="../../src/HTMIME.html">MIME parser</A>, the Library
-looks to see if a list of callback functions has been registered to parse additional
-metainformation. In case a parser is found for this particular header, the call back is called with
-the header and all parameters that might follow it. As MIME headers can contain line wrappings, the
-<A HREF="../../src/HTMIME.html">MIME parser</A> canonicalizes the header line before the
-callback function is called which makes the job easier for the callback function.<P>
-
-Exactly as for the header generators you can <EM>add</EM> and <EM>delete</EM> an element, which also
-in this case is a callback function. This function has a special definition which is given by
-
-<PRE>
-typedef int HTParserCallback (HTRequest * request, const char * token);
-</PRE>
-
-The request object is the current request being handled and the token is the header that was
-encountered together with all parameters following it. The callback can return a value to the
-Library by using the return code of the callback function. Currently there are two return values
-recognized by the Library:
-
-<UL>
-<LI><CODE>HT_OK</CODE> if the token is received and understood
-<LI><CODE>HT_ERROR</CODE> if the callback encounters a fatal error and any further parsing should be stopped.
-</UL>
-
-While in the callback function, the application can start other requests or even kill the current
-request if required. We can register a callback function by using the following function:
-
-<PRE>
-extern BOOL HTParser_add (HTList *		parsers,
-			  const char *       	token,
-			  BOOL			case_sensitive,
-			  HTParserCallback *	callback);
-</PRE>
-
-Again, the first argument is a list as we have seen before. The token is a specific token by which
-the callback function should be called. This token can contain a wild card (*) which will match zero
-or more arbitrary characters. You can also specify whether the token should be matched using a case
-sensitive or case insensitive matching algorithm. Let's look at an example of how to register a
-parser callback function:
-
-<PRE>
-HTParser_add(mylist, "PICS-*", NO, myparser);
-</PRE>
-
-This registers the <CODE>myparser</CODE> function as being capable of handling all tokens starting
-with "PICS", "PiCs", "pics", for example:
-
-<PRE>
-	PICS-start
-	pics-Token
-	PICS
-</PRE>
-
-As for header generators, you can unregister a callback function by using the following function:
-
-<PRE>
-extern BOOL HTParser_delete (HTList * parsers, const char * token);
-</PRE>
-
-<H2>Enabling Preferences</H2>
-
-Exactly as for <A HREF="Prefs.html">Request Preferences</A>, all we have done until now is to show
-how we can register sets of preferences. However, we still need to define where and when to actually
-let the Library use the preferences. Again, this can be done in two ways: Globally or locally. When
-assigning a set of preferences, for example the set of natural languages, it can either be assigned
-to all future requests (globally) or to a specific request (locally). The preferences can also
-partly be assigned globally and partly locally so that the most common preferences are registered
-globally and only some preferences specific to a single request is then added by registering the
-sets locally. <P>
-
-Here we will only show how to handle the global registration as the local registration is part of
-the description of the request object.
-
-<H3>Additional Header Parsers</H3>
-
-<PRE>
-extern void HTHeader_setParser (HTList * list);
-extern HTList * HTHeader_parser (void);
-</PRE>
-
-<H3>Additional Header Generatores</H3>
-
-<PRE>
-extern void HTHeader_setGenerator (HTList * list);
-extern HTList * HTHeader_generator (void);
-</PRE>
-
-<H2>Cleaning up Preferences</H2>
-
-As for request preferences, the application is responsible for setting up the sets of additional
-header generation and parsing, and it is also responsible for deleting them once they are not needed
-anymore, for example when the application i s closing down, or the user has changed them. The
-Library provides two mechanisms for cleaning up old lists: It can either be done by invoking
-separate methods on each set of preferences, or it can be done in a batch of all globally registered
-preferences or all locally registered preferences relative to a single request. In this context, a
-batch is the total set of registered converters, encoder, character sets, and languages. Here we
-will only show how to cleanup preferences set-wise and as a globally batch of preferences. We leave
-the local cleanup until we have described the request object later in this guide. <P>
-
-As for the other deletion methods, when they have been called you can nor more use the lists as they
-are not pointing to valid places in the memory. The first mechanism for cleaning up lists is by
-calling the cleanup method of each preference as indicated below:
-
-<H3>Header Parsers</H3>
-
-<PRE>
-extern BOOL HTParser_delete (HTList * parsers, const char * token);
-extern BOOL HTParser_deleteAll (HTList * parsers);
-</PRE>
-
-<H3>Header Generators</H3>
-
-<PRE>
-extern BOOL HTGenerator_delete (HTList * gens, HTPostCallback * callback);
-extern BOOL HTGenerator_deleteAll (HTList * gens);
-</PRE>
-
-The easy way of cleaning up all global lists at once is calling the following function
-
-<PRE>
-extern void HTHeader_deleteAll (void);
-</PRE>
-
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+  <TITLE>Registering Protocol Headers</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  Protocol Headers and Extensions
+</H1>
+<P>
+The Library provides a few powerful mechanisms to handle document metainformation
+and how to generate and parse additional header information coming across
+the network. This section describes how to handle metainformation and headers
+and how this can be used to experiment with existing protocols by means of
+additional headers. Headers are registered in a
+<A HREF="Response.html">Response Object</A> but are not parsed until they
+are needed. If we want to cache the object then the headers are moved to
+an <A HREF="../../src/HTAnchor.html">HTAnchor Object</A> but the headers
+are still not parsed before we need to.
+<H2>
+  Generating Headers
+</H2>
+<P>
+Outgoing metainformation describing preferences in requests or entities to
+be sent to a remote server is handled in two ways: The Library supports a
+"native" set (called <EM>known</EM> headers of headers which can be manipulated
+directly, but it also provides support for header extensions defined by the
+application. This section describes how both the existing set of headers
+and the extensions can be handled.
+<H3>
+  Generating Known Headers
+</H3>
+<P>
+The Library manages a "native" set of protocol headers which we will introduce
+in this section. The default behavior for the Library is to use a representative
+set of headers on each request but all headers can be explicitly enabled
+or disabled on a per request basic by the application. Here we will mainly
+describe the set of native headers but leave the description of how to manipulate
+them for the section on managing <A HREF="Request.html">Request objects</A>.
+The native set of headers fall into the following three categories:
+<DL>
+  <DT>
+    <I>General Headers</I>
+  <DD>
+    There are a few header fields which have general applicability for both request
+    and response messages, but which do not apply to the communication parties
+    or the entity being transferred. This mask enables and disables these headers.
+    If the bit is not turned on they are not sent. All headers are optional and
+    the default value is not to use any of these headers at all.
+  <DT>
+    <I>Request Headers</I>
+  <DD>
+    The request header fields allow the client to pass additional information
+    about the request (and about the client itself) to the server. All headers
+    are optional but the default behavior is to use all request headers
+    <EM>except</EM> <CODE>From</CODE> and <CODE>Pragma</CODE>. The reason is
+    that the former in general requires permission by the user and the latter
+    has special meanings for proxy servers.
+  <DT>
+    <I>Entity Headers</I>
+  <DD>
+    The entity headers contain information about the object sent in the HTTP
+    transaction. This flag defines which headers are to be sent in a request
+    together with an entity body. All headers are optional but the default value
+    is to use as many as possible.
+</DL>
+<P>
+As mentioned, the set of native headers are equivalent to the set of header
+defined by the <A HREF="../../../Protocols/">HTTP/1.1 protocol</A> specification.
+Libwww also provides functionality for registering additional headers which
+we will have a look at in the next section.
+<H3>
+  Generating Extension Headers
+</H3>
+<P>
+Each time a request is to be generated, the Library looks to see if a list
+of callback functions has been registered to provide additional metainformation
+to send along with the request. If this is the case then each of these callback
+functions will be called in turn and the resulting request is then the sum
+of the original response and the information provided by the callback functions.
+<P>
+<A HREF="../../src/HTHeader.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering Header
+Generators</A>
+<H2>
+  Parsing Headers
+</H2>
+<P>
+The <A HREF="../../src/HTMIME.html">MIME parser stream</A> parses MIME
+metainformation, for example generated by MIME-like protocols, such as HTTP,
+and NNTP. For <A HREF="../../../Protocols/">HTTP</A> it handles all headers
+as defined in HTTP/1.1 of the specification. When a header is parsed, the
+information is first stored in an <A HREF="Response.html">HTResponse
+object.</A> 
+<H3>
+  Parsing Known Headers
+</H3>
+<P>
+The set of headers directly handled by the
+<A HREF="../../src/HTMIME.html">internal MIME parser</A> is the reader is
+referred to the actual implementation in order to see the exact list. However,
+some of the more special headers are:
+<DL>
+  <DT>
+    <CODE>Allow</CODE>
+  <DD>
+    Builds a list of allowed methods for this entity
+  <DT>
+    <CODE>Content-Language</CODE>
+  <DD>
+    Builds a list of natural languages
+  <DT>
+    <CODE>Content-Length</CODE>
+  <DD>
+    This parameter is now passed
+  <DT>
+    <CODE>Content-Type</CODE>
+  <DD>
+    The <CODE>Content-Type</CODE> header now support the <CODE>charset</CODE>
+    parameter and the <CODE>level</CODE> parameter, however none of them are
+    used by the <A HREF="#HTML">HTML parser</A>
+  <DT>
+    <CODE>Date</CODE>, <CODE>Expires</CODE>, <CODE>Retry-After</CODE>, and
+    <CODE>LastModified</CODE>
+  <DD>
+    All date and time headers are parsed understanding the following formats:
+    RFC 1123, RFC 850, ANSI C's asctime(), and delta time. The latter is a
+    non-negative integer indicating seconds after the message was received. Note,
+    that it is <EM>always</EM> for the application to issue a new request as
+    a function of any of the date and time headers..
+  <DT>
+    <CODE>DerivedFrom, Version</CODE>
+  <DD>
+    For handling version control when managing collaborative works using HTTP.
+</DL>
+<H3>
+  Parsing Extension Headers
+</H3>
+<P>
+In many cases, if you have registered an extra set of headers to be generated,
+you are also in a situation where you would like to handle the result that
+is returned by the remote server. As we will describe in this section, the
+Library provides a very similar interface to the one presented above for
+generating extra headers.
+<P>
+Each time a request is received, and a unknown header is encountered by the
+internal <A HREF="../../src/HTMIME.html">MIME parser</A>, libwww looks to
+see if a list of callback functions has been registered to parse additional
+metainformation. In case a parser is found for this particular header, the
+call back is called with the header and all parameters that might follow
+it. As MIME headers can contain line wrappings, the
+<A HREF="../../src/HTMIME.html">MIME parser</A> canonicalizes the header
+line before the callback function is called which makes the job easier for
+the callback function.
+<P>
+<A HREF="../../src/HTHeader.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering Header
+Parsers</A>
+<H2>
+  PEP Extensions
+</H2>
+<P>
+The <I>PEP Manager</I> is a registry for <I>PEP Protocols</I> that follow
+the generic syntax defined by the <A HREF="../../Protocols/">HTTP</A> <I>PEP
+protocol</I> headers. All <I>PEP Protocols</I> are registered at run-time
+in form of a <I>PEP Module</I>.
+<P>
+<A HREF="../../src/HTPEP.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering PEP
+Extensions</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML> 
-
+</BODY></HTML>

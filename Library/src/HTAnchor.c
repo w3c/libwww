@@ -330,14 +330,14 @@ PRIVATE void * delete_parent (HTParentAnchor * me)
 */
 PRIVATE void * delete_family (HTAnchor * me)
 {
-    HTParentAnchor *parent = me->parent;
-    if (ANCH_TRACE)
-	HTTrace("AnchorDelete Remove parent %p and children\n", parent);
+    HTParentAnchor * parent = NULL;
     if (!me) {
-	if (ANCH_TRACE)
-	    HTTrace("AnchorDelete No anchor found\n");
+	if (ANCH_TRACE) HTTrace("AnchorDelete No anchor found\n");
 	return NULL;
     }
+    parent = me->parent;
+    if (ANCH_TRACE)
+	HTTrace("AnchorDelete Remove parent %p and children\n", parent);
 
     /* Delete children */
     if (parent->children) {

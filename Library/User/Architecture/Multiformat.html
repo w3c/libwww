@@ -1,19 +1,22 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-  <TITLE>Architecture - Stream Pipe Manager</TITLE>
+  <TITLE>The Stream Builder</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
-  The Stream Pipe Manager
+  The Stream Builder
 </H1>
 <P>
-The Stream Pipe Manager is responsible for setting up the stream pipe from
-the <A HREF="../../src/HTChannl.html">Channel Object</A> to the
+The Stream Builder is responsible for setting up the stream pipe from the
+<A HREF="../../src/HTChannl.html">Channel Object</A> to the
 <A HREF="../../src/HTReq.html">Request Object</A> when data is arriving,
 for example as a response to s <A HREF="../../src/HTTP.html">HTTP</A>
 <B>Get</B> request. As data arrives, we start to parse it and the more we
@@ -31,10 +34,7 @@ of the Web and HTTP, that the client application can express its preferences
 as a set of "accept" headers in a HTTP request. This task is highly related
 to the task mentioned above as we there use the modules that are registered
 and here tell the remote server what we are capable of doing and what we
-would prefer.
-<P>
-Currently there are four dimensions for handling "accept" headers:
-<P>
+would prefer. Currently there are four dimensions for handling "accept" headers:
 <UL>
   <LI>
     <A HREF="#type">Content Type Converters and Presenters</A>
@@ -55,8 +55,8 @@ is handled by the Format Manager
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

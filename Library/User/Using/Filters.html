@@ -1,13 +1,16 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-  <TITLE>Architecture - Before and After Filters</TITLE>
+  <TITLE>Before and After Filters</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
   Before and After Filters
 </H1>
@@ -19,7 +22,7 @@ registered by the application - in other words - the application programmer
 builds a <A HREF="../../src/HTProfil.html">libwww profile</A> for an application
 by registering a specific set of protocol modules, callbacks and filters.
 Filters are called <I>before</I> a request is to be issued to the Network,
-and <I>after</I> when the request has terminated. 
+and <I>after</I> when the request has terminated.
 <P>
 All filters are registered at run-time, and filters can be cascaded so that
 one filter can call other filters and so on. Filters can also start new requests
@@ -36,14 +39,14 @@ with a single request and global filters are associated with all requests.
 That is, if you can decorate a request with a specialized filter or you can
 use a generalized filter for handling all requests. A global filter is useful
 if the filter is to be performed very often and local filters can either
-add to or override the global set of filters. 
+add to or override the global set of filters.
 <P>
 Often, a before and an after filter needs to share a context which is unique
 to this set of filters. There are various ways this can be handled by the
 Library. Either a context can associated at registration time or it can be
 built while the filters are run. The <A HREF="../../src/HTUTree.html">URL
 tree</A> is a useful data object for keeping information associated with
-realms or sets of URLs. 
+realms or sets of URLs.
 <H2>
   Use the Standard Filters
 </H2>
@@ -70,7 +73,7 @@ functions
     Authentication
 </UL>
 <H2>
-  Where the Standard Filters Aren't Enough
+  When the Standard Filters Aren't Enough
 </H2>
 <P>
 In some situations, you can not use the standard filters, for example if
@@ -89,10 +92,18 @@ contain a mechanism for registering specific authentication filters like
 basic and digest, and it will look at the information in the URL tree to
 see what authentication scheme to call for a particular request.
 <P>
+<A HREF="../../src/HTReq.html#before"><IMG SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Adding
+and Deleting Local Filters</A>
+<P>
+<A HREF="../../src/HTNet.html#Global"><IMG SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Adding
+and Deleting Global Filters</A>
+<P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

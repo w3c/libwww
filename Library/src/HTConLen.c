@@ -48,7 +48,7 @@ struct _HTStream {
     int			conlen;
 
     BOOL		count;     /* Count the length or just do buffering? */
-    BOOL		pause;	      /* Pause or flush when buffer is full? */
+    BOOL		pipe;	      		    /* Are we a pipe buffer? */
     BufferState		state;			   /* State of the buffering */
 };
 
@@ -197,7 +197,7 @@ PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
 		/* Buffer could accept the new data */
 		memcpy(me->tmp_buf, b, l);
 		me->tmp_ind = l;
-	    } else if (me->pause) {
+	    } else if (me->pipe) {
 		/* Buffer ran full and we pause */
 		me->state = HT_BUFFER_PAUSE;
 		if (STREAM_TRACE) HTTrace("StreamBuffer. Paused\n");
@@ -234,6 +234,15 @@ PRIVATE int buf_free (HTStream * me)
     int status = HT_OK;
 
     /*
+    **  If the buffer has not been flushed explicit and we are a pipe buffer
+    **  then we don't free it.
+    */ 
+    if (me->pipe && me->state != HT_BUFFER_TRANSPARENT) {
+	if (STREAM_TRACE) HTTrace("PipeBuffer Waiting to be flushed\n");
+	return HT_OK;
+    }
+
+    /*
     **  Should we count the content length and assign it to the
     **  anchor?
     */
@@ -247,6 +256,9 @@ PRIVATE int buf_free (HTStream * me)
     /*
     **  Flush the buffered data - even if we are paused. That is, we always
     **  flush - except if we have already flushed the buffer, of course.
+    **  Also, we don't flush if we are a PIPE buffer. Then the flush MUST be
+    **  called explicitly and the buffer can not be freed before this 
+    **  happens.
     */
     if ((status = buf_flush(me)) != HT_OK)
 	return status;
@@ -310,7 +322,7 @@ PUBLIC HTStream * HTPipeBuffer_new (HTStream *	target,
     HTStream * me = HTContentCounter(target, request, max_size);
     if (me) {
 	me->count = NO;
-	me->pause = YES;
+	me->pipe = YES;
 	return me;
     }
     return HTErrorStream();

@@ -1,15 +1,18 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
-  <TITLE>User's Guide - Proxies and Gateways</TITLE>
+  <TITLE>Proxies and Gateways</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
-  Registering Proxy Servers and Gateways
+  Proxy Servers and Gateways
 </H1>
 <P>
 Applications do not have to provide native support for all protocols, they
@@ -40,115 +43,15 @@ functions as we have seen it so often through out this guide. Regardless
 of the registration mechanism used, proxy servers are always rated higher
 than gateways so if both a proxy server and a gateway is registered for the
 same access method, the proxy server will be used.
-<H2>
-  Registration of Proxies
-</H2>
 <P>
-A proxy server is registered with a corresponding access method, for example
-<EM>http</EM>, <EM>ftp</EM> etc. The `proxy' parameter should be a fully
-valid name, like <CODE>http://proxy.w3.org:8001</CODE> but domain name is
-not required. If an entry exists for this access then delete it and use the
-new one.
-<PRE>
-extern BOOL HTProxy_add		(const char * access, const char * proxy);
-</PRE>
-<P>
-In addition to the proxy list, the Library supports a list of servers for
-which a proxy should <EM>not</EM> be consulted. This can be useful in order
-to avoid going via a proxy server for servers inside a firewall, if the server
-is known to be either as well connected as the proxy or the remote server
-is in fact itself a proxy server.
-<PRE>
-extern BOOL HTNoProxy_add	(const char * host, const char * access, unsigned port);
-</PRE>
-<P>
-The set of server registered using this function are host names and domain
-names where we don't contact a proxy even though a proxy is in fact registered
-for this particular access method. When registering a server as a
-<EM>noproxy</EM> element, you can specify a specific port for this access
-method in which case it is valid only for requests to this port. If `port'
-is '0' then it applies to all ports and if `access' is NULL then it applies
-to to all access methods. Examples of host names are:
-<PRE>
-	w3.org
-	www.fastlink.com
-</PRE>
-<H2>
-  Registration of Gateways
-</H2>
-<P>
-Gateways are registered exactly like proxy servers: it is registered with
-a corresponding access method, for example <EM>http</EM>, <EM>ftp</EM> etc.
-The `gate' parameter should be a fully valid name, like
-<CODE>http://gateway.w3.org:8001</CODE> but domain name is not required.
-If an entry exists for this access then delete it and use the new one.
-<PRE>
-extern BOOL HTGateway_add	(const char * access, const char * gate);
-</PRE>
-<H2>
-  Backwards Compatibility with Environment Variables
-</H2>
-<P>
-Proxy servers and gateways have historically been registered environment
-variables which is a Unix'ism and not especially portable. However, in order
-to support this way of registration, the Library provides the following function
-to read the environment variables that defines proxy severs and gateways.
-<PRE>
-extern void HTProxy_getEnvVar	(void);
-</PRE>
-<P>
-There is no standard for the format of the environment variables, but the
-most accepted convention is the format described here:
-<DL>
-  <DT>
-    <CODE>WWW_&lt;access&gt;_GATEWAY</CODE>
-  <DD>
-    Definition of a gateway. Note that a WAIS gateway can be defined this way
-    to change the default gateway at
-    <A HREF="wais://www.w3.org:8001/">wais://www.w3.org:8001/</A>.
-  <DT>
-    <CODE>&lt;access&gt;_proxy</CODE>
-  <DD>
-    Definition of a proxy server
-  <DT>
-    <CODE>no_proxy</CODE>
-  <DD>
-    This is a comma separated list of remote servers where a proxy server should
-    <EM>not</EM> be consulted for handling the request. An example is
-    <PRE>
-	no_proxy="cern.ch,ncsa.uiuc.edu,some.host:8080"
-	export no_proxy
-</PRE>
-</DL>
-<P>
-<CODE>&lt;access&gt;</CODE> is the specific access scheme and it is case
-sensitive as access schemes in URIs are case sensitive. Proxy servers have
-precedence over gateways, so if both a proxy server and a gateway has been
-defined for a specific access scheme, the proxy server is selected to handle
-the request.
-<P>
-It is important to note that the usage of proxy servers or gateways is an
-extension to the binding between an access scheme and a protocol module.
-An application can be set up to redirect all URLs with a specific access
-scheme without knowing about the semantics of this access scheme or how to
-access the information directly. That way, powerful client applications can
-be built having direct support for, for example, HTTP only.
-<H2>
-  Finding Proxies and Gateways
-</H2>
-<P>
-Registering a proxy server or a gateway does not mean that the request
-automatically is redirected to the new location instead of the origin server.
-In order to actually redirect a request, you can register a
-<A HREF="Net.html#pre">Pre-Request Callback function</A> which will bet called
-before a request is actually sent over the wire. You can find more information
-on how to actually redirect a request to for example a proxy server in the
-section <A HREF="Net.html#proxying">Proxies and Gateways</A>
+<A HREF="../../src/HTProxy.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors
+and Methods</A>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

@@ -14,25 +14,17 @@ The W3C Reference Library (libwww) is a general-purpose Web API written in
 C. It is a highly modular extensible API which can be used as the code base
 for writing Web clients, servers, proxies etc. The purpose of Libwww is to
 provide a reference code for HTTP and other Internet protocols and also to
-serve as a generic Web API. It has a rudementary HTML parser which can only
+serve as a generic Web API. It has a rudimentary HTML parser which can only
 do the very basics. Please have a look at the <A HREF="../Amaya/">Amaya Web
 client</A> for a HTML browser/editor application and
 <A HREF="../Jigsaw/">Jigsaw server</A> for a full-blown server application.
 <H2>
-  <A HREF="../Member/"><IMG SRC="../Icons/WWW/w3cm_48x48" ALT="W3C Member"
-      BORDER="0"></A> Member Access
-</H2>
-<P>
-W3C members have exclusive access to new versions of libwww <I>one month</I>
-before the reference code becomes publicly available. If you are a W3C member
-then please <A HREF="/member/WWW/Library/">jump to the our member area</A>
-for the latest version.
-<H2>
-  <IMG SRC="../Icons/WWW/relnotes48x" ALT="NEWS"> News and Updates
+  <A HREF="../News/"><IMG SRC="../Icons/WWW/relnotes48x" ALT="News" WIDTH="48"
+      HEIGHT="48" BORDER="0"></A> News and Updates
 </H2>
 <H3>
-  <B><A HREF="Distribution.html">Libwww Version 5.0</A> has been released September
-  10</B>
+  <B><A HREF="Distribution.html">Libwww Version 5.0a</A> has been released
+  October 10</B>
 </H3>
 <P>
 This release is a major upgrade of libwww from previous versions. It contains
@@ -45,8 +37,7 @@ by John Mallory.
   <LI>
     Check out the <A HREF="User/ReleaseNotes.html">long list of new features</A>.
   <LI>
-    <A HREF="src/HTCache.html">Complete HTTP/1.1 compliant persistent cache
-    manager</A>
+    Complete HTTP/1.1 compliant persistent cache manager
   <LI>
     Libwww includes a <A HREF="Test/src/Tcl_Interface.h">simple Tcl Interface</A>
     for all the HTTP/1.1 methods
@@ -54,17 +45,8 @@ by John Mallory.
     The libwww <A HREF="../Robot/">robot test application</A> has a
     <A HREF="../Robot/src/Robot.tcl">Tcl-Tk-based user interface</A>
   <LI>
-    A <A HREF="Test/User/">Deja GNU based test suite</A> for checking core parts
-    of the Library
-  <LI>
     Check out the new <A HREF="User/Extrnals.html">complete index of public
     function</A>
-  <LI>
-    Read why the libwww is coded as it is in the <A HREF="User/Style/">libwww
-    C style guide</A>
-  <LI>
-    Check out the <A HREF="User/Applications.html">list of libwww applications</A>
-    ready to go as "<I>proof of concept</I>" apps
 </UL>
 <H2>
   <A HREF="../Consortium/Prospectus/ActivityList.html"><IMG SRC="../Icons/WWW/activity_48x48"
@@ -141,18 +123,18 @@ in the latest release. Find out by starting here!
     Patches and Bug fixes - When you have modifications and want them to go into
     our code base then please fill out the form for
     <A HREF="../PATCHES.html">Corrections, Modifications, and Patches</A> and
-    send it to us. Otherwise we can not use the patch!
+    -send it to us. Otherwise we can not use the patch!
 </UL>
 <H2>
   <A HREF="User/"><IMG SRC="../Icons/WWW/doc48x" ALT="Documentation" BORDER="0"></A>
-  User Documentation and Design Description
+  User Documentation and Design Overview
 </H2>
 <P>
 We have a huge amount of documentation about the design &nbsp;of libwww and
 how to use it for building applications. Often, however, the easiest is to
 study the example applications which show in practice how to do tricks with
 libwww. We try to keep the documentation up to date but it may not always
-be the case. The best thing is to havea look the list of exported functions.
+be the case. The best thing is to have a look the list of exported functions.
 This list is generated automatically and is always up to date.
 <UL>
   <LI>
@@ -162,8 +144,6 @@ This list is generated automatically and is always up to date.
   <LI>
     <A HREF="User/Start.html">Quick Overview</A> and <A HREF="Examples/">Easy
     Startup Examples</A>
-  <LI>
-    <A HREF="User/Using.html">How to get Started writing an Application</A>
   <LI>
     <A HREF="User/Extrnals.html">Complete list of public functions in libwww</A>
   <LI>
@@ -211,31 +191,50 @@ one of the following mailing lists.
     member mailing lists </A>for details on how to subscribe
 </DL>
 <H2>
-  Meet the Authors
+  Authors and Contributors
 </H2>
 <P>
 These people and many more have been involved in turning libwww into the
 shape it has today.
-<UL>
-  <LI>
-    <A HREF="../People.html#Frystyk">Henrik Frystyk Nielsen</A>,
-  <LI>
-    <A HREF="../People.html#BernersLee">Tim Berners-Lee</A>,
-  <LI>
-    Eric Prud'hommeaux,
-  <LI>
-    <A HREF="../People/howcome/">H&aring;kon W. Lie</A>,
-  <LI>
-    <A HREF="../People.html#Groff">Jean-Francois Groff</A>,
-  <LI>
+<DL>
+  <DT>
+    <A HREF="../People/#Frystyk Nielsen">Henrik Frystyk Nielsen</A>
+  <DD>
+    Designed and Implemented libwww up until version 5.0a
+  <DT>
+    <A HREF="../People/#BernersLee">Tim Berners-Lee</A> and
+    <A HREF="../People.html#Groff">Jean-Francois Groff</A>
+  <DD>
+    Came up with the initial design and implementation of libwww
+  <DT>
+    Eric Prud'hommeaux
+  <DD>
+    Provided the Windows integration and asynchronous event management along
+    with many other features.
+  <DT>
+    <A HREF="../People/#Baird-Smith">Anselm Baird-Smith</A>
+  <DD>
+    Provided lots of help through many white-board discussions, especially on
+    the HTTP/1.1 client side implementation.
+  <DT>
+    <A HREF="../People/#Kahan">Jose Kahan</A>
+  <DD>
+    Integrated libwww with <A HREF="../Amaya/">Amaya</A> and provided feedback
+    on client side API
+  <DT>
+    <A HREF="../People/howcome/">H&aring;kon W. Lie</A>
+  <DD>
+    Integrated libwww with <A HREF="../Arena/">Arena</A>
+  <DT>
     and many others for contributions and bug fixes
-</UL>
+</DL>
 <P>
   <HR>
-<A href="../"><IMG SRC="../Icons/WWW/w3c_48x48" ALT="W3C" BORDER="0"></A>
 <ADDRESS>
-  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  <A href="../"><IMG SRC="../Icons/WWW/w3c_48x48" ALT="W3C" BORDER="0"></A>
+  <BR>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

@@ -41,6 +41,7 @@ purify: $(www_OBJECTS) $(www_DEPENDENCIES)
 # need the WAIS library and the cyrrilic support!
 
 EXTRA_DIST = \
+	$(BUILT_SOURCES) \
 	DefaultStyles.c.classic \
 	DefaultStyles.c.modern \
  	a_stdio.g \

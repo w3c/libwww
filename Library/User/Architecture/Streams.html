@@ -1,15 +1,18 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
-  <TITLE>Architecture - Streams</TITLE>
+  <TITLE>Data Flow Using Streams</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
-  Data Transportation using Streams
+  Data Flow using Streams
 </H1>
 <P>
 A <A HREF="../../src/HTStream.html">stream</A> is an object which accepts
@@ -24,15 +27,15 @@ directing the output of a stream which often is called the sink or target
 into another stream. This means that the processing of data can be done as
 the total effect of several cascaded streams.
 <P>
-From version 3.1 of the Library, streams are both used to transport data
-from the application to the network and vice verse which enables applications
-to send data objects to the remote server which is a requirement for doing
-collaborative work using HTTP as the transport carrier. The stream-based
-architecture allows the Library to be event driven in the sense that data
-is put down a stream as it gets ready, for example from the network, and
-any necessary actions then cascade off this event. An event can also be data
-arriving from the application which would be the case when an application
-is posting a data object to a remote server.
+Streams are both used to transport data from the application to the network
+and vice verse which enables applications to send data objects to the remote
+server which is a requirement for doing collaborative work using HTTP as
+the transport carrier. The stream-based architecture allows the Library to
+be event driven in the sense that data is put down a stream as it gets ready,
+for example from the network, and any necessary actions then cascade off
+this event. An event can also be data arriving from the application which
+would be the case when an application is posting a data object to a remote
+server.
 <P>
 Many stream modules have their own subclass definitions of either the generic
 stream class or the structured class which we will describe below. These
@@ -46,8 +49,8 @@ a uniform interface to all stream objects regardless of what stream sub-class
 they originate from. The generic stream class is defined with the following
 set of methods.
 <P>
-<A NAME="Stream"><IMG SRC="../Paper/Stream.gif" ALT="Stream" WIDTH="393"
-    HEIGHT="102"></A>
+<A NAME="Stream"><IMG SRC="Stream.gif" ALT="Stream" WIDTH="393" HEIGHT="102"
+    BORDER="0"></A>
 <P>
 <H2>
   The Structured Stream Class
@@ -59,8 +62,8 @@ The conversion from a generic stream to a structured stream is done by the
 SGML tokenizer which recognizes basic SGML mark up like "&lt;", "&gt;", entities
 etc.
 <P>
-<A NAME="StrucStream"><IMG SRC="../Paper/StrucStream.gif" ALT="Structured Stream"
-    WIDTH="379" HEIGHT="130"></A>
+<A NAME="StrucStream"><IMG SRC="StrucStream.gif" ALT="Structured Stream"
+    WIDTH="379" HEIGHT="130" BORDER="0"></A>
 <P>
 A structured stream therefore represents a structured document. The elements
 and entities in the stream are referred to by numbers, rather than strings.
@@ -138,8 +141,8 @@ affecting the current document view.
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 <P>

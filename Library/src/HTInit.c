@@ -144,12 +144,12 @@ PUBLIC void HTEncoderInit (HTList * c)
 */
 PUBLIC void HTBeforeInit (void)
 {
-    HTNet_addBefore(HTMemoryCacheFilter,	NULL, 		NULL, 5);
-    HTNet_addBefore(HTCacheFilter,		"http://*",	NULL, 5);
-    HTNet_addBefore(HTCredentialsFilter,	"http://*",	NULL, 6);
-    HTNet_addBefore(HTPEP_beforeFilter, 	"http://*",	NULL, 6);
-    HTNet_addBefore(HTRuleFilter,		NULL,		NULL, 10);
-    HTNet_addBefore(HTProxyFilter,		NULL,		NULL, 10);
+    HTNet_addBefore(HTMemoryCacheFilter,	NULL, 		NULL, HT_FILTER_MIDDLE);
+    HTNet_addBefore(HTCacheFilter,		"http://*",	NULL, HT_FILTER_MIDDLE);
+    HTNet_addBefore(HTCredentialsFilter,	"http://*",	NULL, HT_FILTER_LATE);
+    HTNet_addBefore(HTPEP_beforeFilter, 	"http://*",	NULL, HT_FILTER_LATE);
+    HTNet_addBefore(HTRuleFilter,		NULL,		NULL, HT_FILTER_LATE);
+    HTNet_addBefore(HTProxyFilter,		NULL,		NULL, HT_FILTER_LATE);
 }
 
 /*	REGISTER AFTER FILTERS
@@ -161,14 +161,14 @@ PUBLIC void HTBeforeInit (void)
 */
 PUBLIC void HTAfterInit (void)
 {
-    HTNet_addAfter(HTAuthFilter, 	"http://*",	NULL, HT_NO_ACCESS, 	5);
-    HTNet_addAfter(HTPEP_afterFilter, 	"http://*",	NULL, HT_ALL, 		5);
-    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, 5);
-    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_PERM_REDIRECT, 5);
-    HTNet_addAfter(HTUseProxyFilter, 	"http://*",	NULL, HT_USE_PROXY, 	5);
-    HTNet_addAfter(HTCacheUpdateFilter, "http://*",	NULL, HT_NOT_MODIFIED, 	5);
-    HTNet_addAfter(HTLogFilter, 	NULL,		NULL, HT_ALL, 		HT_FILTER_LAST);
-    HTNet_addAfter(HTInfoFilter, 	NULL,		NULL, HT_ALL,		HT_FILTER_LAST);
+    HTNet_addAfter(HTAuthFilter, 	"http://*",	NULL, HT_NO_ACCESS, 	HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTPEP_afterFilter, 	"http://*",	NULL, HT_ALL, 		HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_PERM_REDIRECT, HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTUseProxyFilter, 	"http://*",	NULL, HT_USE_PROXY, 	HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTCacheUpdateFilter, "http://*",	NULL, HT_NOT_MODIFIED, 	HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTLogFilter, 	NULL,		NULL, HT_ALL, 		HT_FILTER_LATE);
+    HTNet_addAfter(HTInfoFilter, 	NULL,		NULL, HT_ALL,		HT_FILTER_LATE);
 }
 
 /*	REGISTER DEFAULT AUTHENTICATION SCHEMES

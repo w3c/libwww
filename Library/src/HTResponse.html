@@ -14,14 +14,12 @@
 */
 </PRE>
 <P>
-Libwww is based on a request/response paradigm and the Request class defines
-"<I>an operation to be performed on a URL</I>". The request object is the
-main entry point for an application to issue a request to the Library - all
-operations on a URL <I>must</I> use a Request object. The response object
-is created as a placeholder for the response received by the remote server.
-All filters can then use the information passed in the response and act
-appropriately. The response objetc is deleted automatically when the
-corresponding request object is deleted.
+The response object is created as a placeholder for the response received
+by the remote server. All filters can then use the information passed in
+the response and act appropriately. The response objetc is deleted automatically
+when the corresponding request object is deleted. We try and do some fancy
+tricks in order to do lazy parsing and reusing parsed values so that we can
+optimize the code.
 <P>
 This module is implemented by <A HREF="HTResponse.c">HTResponse.c</A>, and
 it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference

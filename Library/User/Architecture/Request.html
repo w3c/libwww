@@ -1,16 +1,19 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-  <TITLE>Architecture - Request Class</TITLE>
+  <TITLE>Request / Response</TITLE>
   <LINK REL=ToC HREF="Overview.html">
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
-  The Request Class
+  Request / Response
 </H1>
 <P>
 Libwww is based on a request/response paradigm and the Request class defines
@@ -46,8 +49,8 @@ when any of the <A HREF="../../src/HTNet.html#callout">termination callback
 functions</A> are called but the application may keep request objects around
 longer than that.
 <P>
-The Library can accept an unlimited number of simultaneous requests passed
-by the application. One of the main functions of the Library core is to handle
+Libwww can accept an unlimited number of simultaneous requests passed by
+the application. One of the main functions of the Library core is to handle
 any number of ongoing requests in an intelligent manner by limiting the number
 of active request to the fit the available resources as defined by the
 application. This is described in more detail by the
@@ -55,8 +58,8 @@ application. This is described in more detail by the
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

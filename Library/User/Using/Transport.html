@@ -1,13 +1,16 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-  <TITLE>Architecture - The Transport Class</TITLE>
+  <TITLE>The Transport Class</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
   The Transport Class
 </H1>
@@ -22,19 +25,23 @@ get an input stream and an output stream for reading and writing to the transpor
 respectively.
 <P>
 Libwww does not define any default transport objects - they are all considered
-part of the application. The library comes with a default set of transports
-which can be initiated using the function <CODE>HTTransportInit()</CODE>
-in <A HREF="../../src/HTInit.html">HTInit module</A>
+part of the application. Libwww comes with a default set of transports which
+can be initiated using the function <CODE>HTTransportInit()</CODE> in
+<A HREF="../../src/HTInit.html">HTInit module</A>
 <P>
 All transport interfaces are registered dynamically in libwww. This means
 that libwww is independent of the transport being used (for example TCP)
 and you can therefore use libwww in any context you like. You have to specify
-a set of parameters in order for libwww to be able to use it. 
+a set of parameters in order for libwww to be able to use it.
+<P>
+<A HREF="../../src/HTTrans.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors
+and Methods</A>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

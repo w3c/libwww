@@ -1,13 +1,13 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 28-May-1996 -->
+  <!-- Changed by: Eric Prud'hommeaux, 28-May-1996 -->
   <NEXTID N="z11">
-  <TITLE>W3C Reference Library libwww EXTRA HEADERS</TITLE>
+  <TITLE>W3C Reference Library libwww MIME Headers</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Extra Header Manager
+  MIME Headers
 </H1>
 <PRE>
 /*
@@ -20,10 +20,9 @@ This module handles lists of callback functions for generating and parsing
 protocol headers. This works exactly like the lists in
 <A HREF="HTFormat.html">HTFormat</A>.
 <P>
-This module is implemented by <A HREF="HTHeader.c">HTheader.c</A>, and it
+This module is implemented by <A HREF="HTHeader.c">HTHeader.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
 Library</A>.
-<P>
 <PRE>
 #ifndef HTHEADER_H
 #define HTHEADER_H
@@ -44,36 +43,23 @@ typedef int HTParserCallback (HTRequest * request, HTResponse * response,
   Header Parser Management
 </H2>
 <P>
-Header Parsers can be registered to handle any header. The standard set of 
-HTTP/1.1 MIME parsers is registered by HTMIMEInit in the 
-<A HREF="HTInit.html">HTInit</A> module. The HTParserCallbacks are called by 
-the <A HREF="HTMIME.html">HTMIME</A> module.
+Header Parsers can be registered to handle any header. The standard set of
+HTTP/1.1 MIME parsers is registered by HTMIMEInit in the
+<A HREF="HTInit.html">HTInit</A> module. The HTParserCallbacks are called
+by the <A HREF="HTMIME.html">HTMIME</A> module.
 <P>
-HTParserCallbacks may be registered for known MIME headers (HTParser_*), or for
-regular expressions (HTRegexParser_*). To data the regex support is limited to
-the use of '*' for a wild card.
+HTParserCallbacks may be registered for known MIME headers (HTParser_*),
+or for regular expressions (HTRegexParser_*). To data the regex support is
+limited to the use of '*' for a wild card.
 <H2>
   Header Generator Management
 </H2>
 <P>
 Header Generators can be use to add additional information to aprotocol request.
 They will all be called.
-<H3>
-  Add a Header Generator
-</H3>
 <PRE>
 extern BOOL HTGenerator_add (HTList * gens, HTPostCallback * callback);
-</PRE>
-<H3>
-  Unregister a Header generator
-</H3>
-<PRE>
 extern BOOL HTGenerator_delete (HTList * gens, HTPostCallback * callback);
-</PRE>
-<H3>
-  Delete the list of registered header generators.
-</H3>
-<PRE>
 extern BOOL HTGenerator_deleteAll (HTList * gens);
 </PRE>
 <H2>

@@ -473,7 +473,7 @@ extern HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest *request,
 					      BOOL * pLocal);
 </PRE>
 <H2>
-  Accept Headers
+  <A NAME="Accept">Accept Headers</A>
 </H2>
 <P>
 The Accept family of headers is an important part of HTTP handling the format
@@ -731,7 +731,7 @@ unregistering the global ones.
 <PRE>
 extern BOOL HTRequest_addBefore (HTRequest * request, HTNetBefore * filter,
 				 const char * tmplate, void * param,
-                                 int order, BOOL override);
+                                 HTFilterOrder order, BOOL override);
 extern HTList * HTRequest_before (HTRequest * request, BOOL * override);
 </PRE>
 <H4>
@@ -762,7 +762,8 @@ description.
 <PRE>
 extern BOOL HTRequest_addAfter (HTRequest * request, HTNetAfter * filter,
 				const char * tmplate, void * param,
-                                int status, int order, BOOL override);
+                                int status, HTFilterOrder order,
+                                BOOL override);
 extern HTList * HTRequest_after (HTRequest * request, BOOL * override);
 </PRE>
 <H4>

@@ -42,8 +42,6 @@ can be initiated using the functions in <A HREF="HTInit.html">HTInit
 module</A>. There are different initialization functions for content type
 parsers and content encodings respectively.
 <P>
-Currently there are four dimensions for handling "accept" headers:
-<P>
 <UL>
   <LI>
     <A HREF="#type">Content Type Converters and Presenters</A>
@@ -60,29 +58,7 @@ to a single request or <I>globally</I> to all requests. The local assignment
 can either <I>add to </I>or <I>override</I> the global settings depending
 on how they are registered. All local registration is handled by the
 <A HREF="HTReq.html">Request Object</A> and the global registration is handled
-by the Format Manager
-<P>
-<UL>
-  <LI>
-    <A HREF="#global">Global Preferences</A>
-</UL>
-<P>
-When data is arriving and the Format Manager is to build a stream pipe from
-the <A HREF="HTChannl.html">HTChannel Object</A> to the
-<A HREF="HTReq.html">Request Object</A>, it uses a special set of <I>stream
-stack algorithms</I>. These algorithms take the complete set of content type
-converters, for example, and finds the one best suited for the task. We currently
-have three stream stack algorithms: one for content types, one for content
-encodings, and one for content transfer encodings:
-<P>
-<UL>
-  <LI>
-    <A HREF="#CTStack">The Content Type Stream Stack</A>
-  <LI>
-    <A HREF="#CEStack">The Content Encoding Stream Stack</A>
-  <LI>
-    <A HREF="#CTEStack">The Content Transfer Encoding Stream Stack</A>
-</UL>
+by the Format Manager.
 <P>
 This module is implemented by <A HREF="HTFormat.c">HTFormat.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
@@ -99,7 +75,7 @@ Library</A>.
 #include "<A HREF="HTReq.html">HTReq.h</A>"
 </PRE>
 <H2>
-  <A NAME="type">Content Type Converters and Presenters</A>
+  <A NAME="type">Converters and Presenters</A>
 </H2>
 <P>
 All content type converters are subclassed from the Generic stream objetc.
@@ -108,55 +84,6 @@ incoming data. In other words, the stream model of the Library provides data
 as soon as it arrives from the network, the application does not have to
 wait until the whole document has been down loaded before it starts parsing
 it.
-<H3>
-  Content Type Converters
-</H3>
-<P>
-A <CODE>converter</CODE> is a stream with a special set of parameters and
-which is registered as capable of converting from a MIME type to something
-else (maybe another MIME-type). A converter is defined to be a function returning
-a stream and accepting the following parameters. The content type elements
-are atoms for which we have defined a prototype.
-<PRE>
-typedef HTStream * HTConverter	(HTRequest *	request,
-				 void *		param,
-				 HTFormat	input_format,
-				 HTFormat	output_format,
-				 HTStream *	output_stream);
-</PRE>
-<H3>
-  The HTPresentation Object
-</H3>
-<P>
-A <CODE>presenter</CODE> is a module (possibly an external program) which
-can present a graphic object of a certain MIME type to the user. That is,
-<CODE>presenters</CODE> are normally used to present objects that the
-<CODE>converters</CODE> are not able to handle. Data is transferred to the
-external program using for example the
-<A HREF="HTFWrite.html">HTSaveAndExecute</A> stream which writes to a local
-file. Both presenters and converters are of the type
-<A HREF="#converter">HTConverter</A>.
-<PRE>
-typedef struct _HTPresentation {
-    HTFormat	rep;			     /* representation name atomized */
-    HTFormat	rep_out;			 /* resulting representation */
-    HTConverter *converter;	      /* The routine to gen the stream stack */
-    char *	command;			       /* MIME-format string */
-    char *	test_command;			       /* MIME-format string */
-    double	quality;		     /* Between 0 (bad) and 1 (good) */
-    double	secs;
-    double	secs_per_byte;
-} HTPresentation;
-</PRE>
-<H3>
-  Basic Content type Converters
-</H3>
-<P>
-We have a small set of basic converters that can be hooked in anywhere. They
-don't "convert" anything but are nice to have.
-<PRE>extern HTConverter HTThroughLine;
-extern HTConverter HTBlackHoleConverter;
-</PRE>
 <H3>
   Predefined Content Types
 </H3>
@@ -259,92 +186,55 @@ convert from ASCII to HTML.
 <P>
 Finally we have defined a special format for our RULE files as they can be
 handled by a special converter.
-<PRE>
-#define WWW_RULES	HTAtom_for("application/x-www-rules")
+<PRE>#define WWW_RULES	HTAtom_for("application/x-www-rules")
 </PRE>
 <H3>
-  Register Presenters
+  The Quality Factor
 </H3>
 <P>
-This function creates a presenter object and adds to the list of conversions.
-These are the parameters :
-<DL>
-  <DT>
-    conversions
-  <DD>
-    The list of <CODE>conveters</CODE> and <CODE>presenters</CODE>
-  <DT>
-    rep_in
-  <DD>
-    the MIME-style format name
-  <DT>
-    rep_out
-  <DD>
-    is the resulting content-type after the conversion
-  <DT>
-    converter
-  <DD>
-    is the routine to call which actually does the conversion
-  <DT>
-    quality
-  <DD>
-    A degradation faction [0..1]
-  <DT>
-    maxbytes
-  <DD>
-    A limit on the length acceptable as input (0 infinite)
-  <DT>
-    maxsecs
-  <DD>
-    A limit on the time user will wait (0 for infinity)
-</DL>
+Characteristic for all preferences is that there is a quality factor associated
+with each member. The quality factor is a real number between 0 and 1 with
+0 meaning "very bad" and 1 means "perfect". By registering a natural language
+or any or other preference in this group together with a quality factor you
+can specify "how well the preference is handled" either by the application
+or by the user. In the case of the user the quality factor of a natural language
+is how well the user understands the language. In my case, the quality factors
+for, for example Greek would be close to zero and 1 for Danish (nothing bad
+said about Greek!).
+<P>
+It is a bit different for converters where it is often the application's
+ability of handling the data format rather than the user's perception. As
+an example it is often faster to use a converter than a presenter as it takes
+time to launch the external application and libwww can not use progressive
+display mechanisms which is often the case for converters. Therefore, as
+an example, if we capable of handling an image in <EM>png</EM> format inline
+but rely on an external viewer for presenting postscript, we might set up
+the following list:
+<P>
+<SAMP>HTConversion_add (converters, "image", "www/present", GifPresenter,
+<B>1.0</B>, 0.0, 0.0);<BR>
+HTPresentation_add (presenters, "application/postscript", "ghostview %s",
+NULL, <B>0.5</B>, 0.0, 0.0);&gt;</SAMP>
+<P>
+where the gif converter is registered with a quality factor of <B>1.0</B>
+and the postscript presenter with a quality factor of <B>0.5</B>.Register
+Presenters
+<H3>
+  The Converter Class
+</H3>
+<P>
+A <CODE>converter</CODE> is a stream with a special set of parameters and
+which is registered as capable of converting from a MIME type to something
+else (maybe another MIME-type). A converter is defined to be a function returning
+a stream and accepting the following parameters. The content type elements
+are atoms for which we have defined a prototype.
 <PRE>
-extern void HTPresentation_add (HTList *	conversions,
-				const char * 	representation,
-				const char * 	command,
-				const char * 	test_command,
-				double		quality,
-				double		secs, 
-				double		secs_per_byte);
+typedef HTStream * HTConverter	(HTRequest *	request,
+				 void *		param,
+				 HTFormat	input_format,
+				 HTFormat	output_format,
+				 HTStream *	output_stream);
 
-extern void HTPresentation_deleteAll	(HTList * list);
-</PRE>
-<H3>
-  Register Converters
-</H3>
-<P>
-This function creates a presenter object and adds to the list of conversions.
-<DL>
-  <DT>
-    conversions
-  <DD>
-    The list of <CODE>conveters</CODE> and <CODE>presenters</CODE>
-  <DT>
-    rep_in
-  <DD>
-    the MIME-style format name
-  <DT>
-    rep_out
-  <DD>
-    is the resulting content-type after the conversion
-  <DT>
-    converter
-  <DD>
-    is the routine to call which actually does the conversion
-  <DT>
-    quality
-  <DD>
-    A degradation faction [0..1]
-  <DT>
-    maxbytes
-  <DD>
-    A limit on the length acceptable as input (0 infinite)
-  <DT>
-    maxsecs
-  <DD>
-    A limit on the time user will wait (0 for infinity)
-</DL>
-<PRE>
 extern void HTConversion_add   (HTList *	conversions,
 				const char * 	rep_in,
 				const char * 	rep_out,
@@ -354,6 +244,39 @@ extern void HTConversion_add   (HTList *	conversions,
 				double		secs_per_byte);
 
 extern void HTConversion_deleteAll	(HTList * list);
+</PRE>
+<H3>
+  The Presenter Class
+</H3>
+<P>
+A <CODE>presenter</CODE> is a module (possibly an external program) which
+can present a graphic object of a certain MIME type to the user. That is,
+<CODE>presenters</CODE> are normally used to present objects that the
+<CODE>converters</CODE> are not able to handle. Data is transferred to the
+external program using for example the
+<A HREF="HTFWrite.html">HTSaveAndExecute</A> stream which writes to a local
+file. Both presenters and converters are of the type
+<A HREF="#converter">HTConverter</A>.
+<PRE>
+extern void HTPresentation_add (HTList *	conversions,
+</PRE>
+<PRE>				const char * 	representation,
+				const char * 	command,
+				const char * 	test_command,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
+
+extern void HTPresentation_deleteAll	(HTList * list);
+</PRE>
+<H3>
+  Basic Converters
+</H3>
+<P>
+We have a small set of basic converters that can be hooked in anywhere. They
+don't "convert" anything but are nice to have.
+<PRE>extern HTConverter HTThroughLine;
+extern HTConverter HTBlackHoleConverter;
 </PRE>
 <H2>
   <A NAME="encoding">Content and Transfer Encoders and Decoders</A>
@@ -432,8 +355,12 @@ left overs from brain dead mail systems.
   Register Content Coders
 </H3>
 <P>
-There is no difference in registrering a content encoder or a content decoder,
-it all depends on how you use the list of encoders/decoders.
+Some documents are not send in their original data obejct but is encoded
+in some way. On the Web this is mostly some kind of compression but other
+encodings for example base 64 can be encountered when talking to NNTP servers
+etc. Just as for the other preferences, an application can register a supported
+encoders or decodes as a list. Encoders and decoders are registered in the
+same way with no differentiation whether it is a encoder or a decoder:
 <PRE>
 extern BOOL HTCoding_add (HTList * 	list,
 			 const char *	encoding,
@@ -448,19 +375,17 @@ extern const char * HTCoding_name (HTCoding * me);
 <H2>
   <A NAME="charset">Content Charsets</A>
 </H2>
-<H3>
-  Register a Charset
-</H3>
-<PRE>
-extern void HTCharset_add (HTList *		list,
-			   const char *		charset,
-			   double		quality);
+<P>
+As the Web reaches all parts of the Internet there are more and more documents
+written in languages which contains characters not included in the ISO-8859-1
+character set. A consequence of this the set of characters sets is often
+tightly connected with the natural language. libwww does not directly support
+other character sets but in case an application is capable of handling
+alternative sets it can register these as preferred character sets along
+with a quality factor just as all the other preferences in this section.
+<PRE>extern void HTCharset_add (HTList * list, const char * charset, double quality);
 </PRE>
-<H3>
-  Delete a list of Charsets
-</H3>
-<PRE>
-typedef struct _HTAcceptNode {
+<PRE>typedef struct _HTAcceptNode {
     HTAtom *	atom;
     double	quality;
 } HTAcceptNode;
@@ -471,21 +396,18 @@ extern void HTCharset_deleteAll	(HTList * list);
 <H2>
   <A NAME="language">Content Languages</A>
 </H2>
-<H3>
-  Register a Language
-</H3>
-<PRE>
-extern void HTLanguage_add (HTList *		list,
-			    const char *	lang,
-			    double		quality);
-</PRE>
-<H3>
-  Delete a list of Languages
-</H3>
-<PRE>
+<P>
+The preferred natural language or languages is in almost all situations dependent
+on the individual user and an application should therefore give the user
+the opportunity to change the setup. When specifying a natural language
+preference, libwww will send this preference along with all HTTP requests.
+The remote server will then (it if supports this feature) look for a version
+in the language or languages mentioned. If it finds a matching document then
+it returns this one, otherwise it uses the best alternative. If no language
+is specified the remote server may whatever version it finds.
+<PRE>extern void HTLanguage_add (HTList * list, const char * lang, double quality);
 extern void HTLanguage_deleteAll (HTList * list);
 </PRE>
-<P>
 <H2>
   <A NAME="global">Global Preferences</A>
 </H2>
@@ -495,15 +417,14 @@ There are two places where these preferences can be registered: in a
 valid for a particular request only. These are valid for <EM>all</EM> requests.
 See the <A HREF="HTReq.html">Request Manager</A> fro local sets.
 <H3>
-  Converters and Presenters
+  Global Converters and Presenters
 </H3>
 <P>
 The <EM>global</EM> list of specific conversions which the format manager
 can do in order to fulfill the request. There is also a
 <A HREF="HTReq.html"><EM>local</EM></A> list of conversions which contains
 a generic set of possible conversions.
-<PRE>
-extern void HTFormat_setConversion	(HTList * list);
+<PRE>extern void HTFormat_setConversion	(HTList * list);
 extern HTList * HTFormat_conversion	(void);
 
 extern void HTFormat_addConversion (const char *	input_format,
@@ -514,10 +435,9 @@ extern void HTFormat_addConversion (const char *	input_format,
 				    double		secs_per_byte);
 </PRE>
 <H3>
-  Content Codings
+  Global Content Codings
 </H3>
-<PRE>
-extern void HTFormat_setContentCoding	(HTList * list);
+<PRE>extern void HTFormat_setContentCoding	(HTList * list);
 extern HTList * HTFormat_contentCoding	(void);
 
 extern BOOL HTFormat_addCoding ( char *		encoding,
@@ -526,10 +446,9 @@ extern BOOL HTFormat_addCoding ( char *		encoding,
 				 double		quality);
 </PRE>
 <H3>
-  Content Transfer Codings
+  Global Content Transfer Codings
 </H3>
-<PRE>
-extern void HTFormat_setTransferCoding	(HTList * list);
+<PRE>extern void HTFormat_setTransferCoding	(HTList * list);
 extern HTList * HTFormat_transferCoding	(void);
 
 extern BOOL HTFormat_addTransferCoding ( char *		encoding,
@@ -547,17 +466,15 @@ binary.
 	|| (me)==WWW_CTE_BINARY ||  (me)==WWW_CTE_7BIT || (me)==WWW_CTE_8BIT)
 </PRE>
 <H3>
-  Content Languages
+  Global Content Languages
 </H3>
-<PRE>
-extern void HTFormat_setLanguage	(HTList * list);
+<PRE>extern void HTFormat_setLanguage	(HTList * list);
 extern HTList * HTFormat_language	(void);
 </PRE>
 <H3>
-  Content Charsets
+  Global Content Charsets
 </H3>
-<PRE>
-extern void HTFormat_setCharset		(HTList * list);
+<PRE>extern void HTFormat_setCharset		(HTList * list);
 extern HTList * HTFormat_charset	(void);
 </PRE>
 <H3>
@@ -565,8 +482,7 @@ extern HTList * HTFormat_charset	(void);
 </H3>
 <P>
 This is a convenience function that might make life easier.
-<PRE>
-extern void HTFormat_deleteAll (void);
+<PRE>extern void HTFormat_deleteAll (void);
 </PRE>
 <H2>
   <A NAME="CTStack">The Content Type Stream Stack</A>
@@ -579,7 +495,6 @@ final format, builds the conversion stack, and returns a stream into which
 the data in the input format should be fed. If <CODE>guess</CODE> is true
 and input format is <CODE>www/unknown</CODE>, try to guess the format by
 looking at the first few bytes of the stream.
-<P>
 <PRE>
 extern HTStream * HTStreamStack (HTFormat	rep_in,
 				 HTFormat	rep_out,
@@ -640,7 +555,6 @@ extern HTStream * HTContentDecodingStack (HTList *	encodings,
 					  HTRequest *	request,
 					  void *	param);
 </PRE>
-<P>
 <H2>
   <A NAME="CTEStack">Content Transfer Encoding Stream Stack</A>
 </H2>
@@ -654,6 +568,22 @@ extern HTStream * HTTransferCodingStack (HTEncoding	encoding,
 					 HTRequest *	request,
 					 void *		param,
 					 BOOL		encode);
+</PRE>
+<H3>
+  Presentation Object
+</H3>
+<P>
+This object is not to be used - it should have been hidden&nbsp;
+<PRE>typedef struct _HTPresentation {
+    HTFormat	rep;			     /* representation name atomized */
+    HTFormat	rep_out;			 /* resulting representation */
+    HTConverter *converter;	      /* The routine to gen the stream stack */
+    char *	command;			       /* MIME-format string */
+    char *	test_command;			       /* MIME-format string */
+    double	quality;		     /* Between 0 (bad) and 1 (good) */
+    double	secs;
+    double	secs_per_byte;
+} HTPresentation;
 </PRE>
 <PRE>
 #endif /* HTFORMAT */

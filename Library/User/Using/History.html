@@ -1,47 +1,56 @@
 <HTML>
 <HEAD>
-<TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-</HEAD>  
-<BODY>
-
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-
-<H1>Keeping Track of History</H1>
-
-The Library supports client applications in keeping track of which
-locations the user has visited while browsing the Web. The internal
-history list is implemented in the <A
-HREF="../../src/HTHist.html">HTHist module</A>. This module
-is completely autonomous as it is not used by any other modules in the
-Library so if it is not referred to in the application code then it
-will not be linked into the linked application. This means that if the
-application does not need recording of history then no action is
-required at all.<P>
-
-The purpose of the history module is to try not to impose any
-particular history mechanism policy but instead to allow various
-different history mechanisms. The basic features of the history module
-are:
-
-<UL>
-<LI>The module can handle multiple history lists
-<LI>The underlying data model is linear lists
-<LI>The module keeps a position pointer into this list
-<LI>The application can refer to an element in the list by an index
-</UL>
-
-Some of the navigation steps supported by the module are "back",
-"forward", and jump to a position in the list. The details of the
-module is listed in the declaration part of the <A
-HREF="../../src/HTHist.html">HTHist module</A>.
-
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <TITLE>History List Manager</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  Keeping Track of History
+</H1>
+<P>
+Libwww supports client applications in keeping track of which locations the
+user has visited while browsing the Web. The history manager is implemented
+in the <A HREF="../../src/HTHist.html">HTHist module</A>. This module is
+completely autonomous as it is not used by any other modules in libwww so
+if it is not referred to in the application code then it will not be linked
+into the linked application. This means that if the application does not
+need recording of history then no action is required at all.
+<P>
+The purpose of the history manager is to try not to impose any particular
+history mechanism policy but instead to allow various different history
+mechanisms. The basic features of the history module are:
+<UL>
+  <LI>
+    The module can handle multiple history lists
+  <LI>
+    The underlying data model is linear lists
+  <LI>
+    The module keeps a position pointer into this list
+  <LI>
+    The application can refer to an element in the list by an index
+</UL>
+<P>
+Some of the navigation steps supported by the module are "back", "forward",
+and jump to a position in the list. 
+<P>
+The details of the module is listed in the declaration part of the
+<A HREF="../../src/HTHist.html">HTHist module</A>.
+<P>
+<A HREF="../../src/HTHist.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors,
+and Methods</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML> 
+</BODY></HTML>

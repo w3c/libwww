@@ -2,11 +2,14 @@
 <HEAD>
   <TITLE>C++ in C</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/progstyle48x" ALT="C Style"></A>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/progstyle48x" ALT="C Style" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
 <H1>
   C++ in C
 </H1>
@@ -19,9 +22,9 @@ in efficiency or readability. This subset includes
   <LI>
     <A NAME=2 HREF="#construction">construction/destruction</A>
   <LI>
-    <A NAME=3 HREF="#dataHiding">data hiding</A>
+    <A NAME="3" HREF="#Hiding">data hiding</A>
   <LI>
-    <A NAME=4 HREF="#nameSpaces">name spaces</A>
+    <A NAME="4" HREF="#Name">name spaces</A>
   <LI>
     <A NAME=5 HREF="#thisPointer">this pointer</A>
   <LI>
@@ -29,9 +32,9 @@ in efficiency or readability. This subset includes
 </UL>
 <P>
 While the C++ in C approach is not perfect, it does allow much greater
-portability. <A NAME="construction"></A>
+portability.
 <H2>
-  Construction / Destruction
+  <A NAME="construction">Construction / Destruction</A>
 </H2>
 <P>
 C++ provides language primitives for memory allocation (<CODE>new</CODE>)
@@ -39,29 +42,27 @@ and freeing (<CODE>free</CODE>). These functions call the
 <CODE>constructor</CODE> and <CODE>destructor</CODE> for an object. The libwww
 implements this in C with <I>object</I>_<CODE>new</CODE> and
 <I>object</I>_<CODE>delete</CODE>. For example:
-<PRE>
-PUBLIC HTRequest * HTRequest_new (void)
-{
-    HTRequest * me;
-    if ((me = (HTRequest *) HT_CALLOC(1, sizeof(HTRequest))) == NULL)
-        HT_OUTOFMEM("HTRequest_new()");
+<PRE>	PUBLIC HTRequest * HTRequest_new (void)
+	{
+	    HTRequest * me;
+	    if ((me = (HTRequest *) HT_CALLOC(1, sizeof(HTRequest))) == NULL)
+	        HT_OUTOFMEM("HTRequest_new()");
     
-   /* Force Reload */
-    me-&gt;reload = HT_ANY_VERSION;
-.
-.
-.
-    me-&gt;ContentNegotiation = NO;		       /* Do this by default */
+	   /* Force Reload */
+	    me-&gt;reload = HT_ANY_VERSION;
+	.
+	.
+	.
+	    me-&gt;ContentNegotiation = NO;		       /* Do this by default */
 
-#ifdef WWW_WIN_ASYNC
-    HTEvent_winHandle(me);
-#endif
-    return me;
-}
-
+	#ifdef WWW_WIN_ASYNC
+	    HTEvent_winHandle(me);
+	#endif
+	    return me;
+	}
 </PRE>
 <H2>
-  Data Hiding
+  <A NAME="Hiding">Data Hiding</A>
 </H2>
 <P>
 Many classes are defined in C++ to be private, meaning that all manipulation
@@ -80,33 +81,31 @@ The method (<CODE>saveTheWorld</CODE>) is accessible to everyone including
 the header, but the contents of a <CODE>MyObject</CODE> are not. Only the
 module containing <CODE>MyObject</CODE>'s methods has a definition of the
 object,
-<PRE>
-struct _MyObject {
-    int someInt;
-};
+<PRE>	struct _MyObject {
+	    int someInt;
+	};
 </PRE>
 <P>
 and therefore, access to the contents (<CODE>someInt</CODE>);
 <H2>
-  Name spaces
+  <A NAME="Name">Name spaces</A>
 </H2>
 <P>
 Most C++ objects come with a set of methods (member functions) which are
 <A NAME=5 HREF="#dataHiding">permitted</A> to affect the object. Any operation
 performed on an object (<CODE>myObject-&gt;saveTheWorld</CODE>) will be performed
 by an method in that object's class.
-<PRE>
-class MyObject {
-private:         // data
-    int someInt;
-public:          // methods
-    int saveTheWorld(void);
-}
-main ()
-{
-  MyObject * myObject = new MyObject;
-  myObject-&gt;saveTheWorld();
-}
+<PRE>	class MyObject {
+	private:         // data
+	    int someInt;
+	public:          // methods
+	    int saveTheWorld(void);
+	}
+	main ()
+	{
+	  MyObject * myObject = new MyObject;
+	  myObject-&gt;saveTheWorld();
+	}
 </PRE>
 <P>
 What is actually happening is that the compiler is generating a name from
@@ -132,21 +131,19 @@ is equivalent to
 </H2>
 <P>
 In C++, classes may be derived from other classes.
-<PRE>
-class MyOtherObject: public MyObject {
-private:         // data
-    int anotherInt;
-public:          // methods
-    int saveTheWales(void);
-};
+<PRE>	class MyOtherObject: public MyObject {
+	private:         // data
+	    int anotherInt;
+	public:          // methods
+	    int saveTheWales(void);
+	};
 </PRE>
 <P>
 As far as memory is concerned, this is identical to
-<PRE>
-struct _MyOtherObject {
-    MyObject base;
-    int anotherInt;
-};
+<PRE>	struct _MyOtherObject {
+	    MyObject base;
+	    int anotherInt;
+	};
 </PRE>
 <P>
 but one problem remains. In C++, all the instances of
@@ -170,10 +167,8 @@ data.
     <HR>
 </H1>
 <ADDRESS>
-  Eric Prud'hommeaux, Henrik Frystyk,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>
-</ADDRESS>
-<ADDRESS>
+  Eric Prud'hommeaux, Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A><BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

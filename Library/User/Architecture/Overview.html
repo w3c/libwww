@@ -3,91 +3,86 @@
   <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
   <TITLE>Libwww Architecture</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<IMG ALT="Architecture" SRC="../../../Icons/WWW/design48x">
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<IMG ALT="Architecture" SRC="../../../Icons/WWW/design48x" BORDER="0">
 <H1>
   Libwww Architecture
 </H1>
 <P>
-Libwww is a general code base written in portable C that can be used as a
-basis for building clients, servers and many other Web applications. It contains
-reference code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers,
-and the local file system. Furthermore it provides modules for parsing, managing
-and presenting hypertext objects to the user and a wide spectra of generic
-programming utilities. The Library is the basis for many
-<A HREF="../">World-Wide Web</A> applications and many W3C reference applications
-are built on top of it.
+Libwww is a general code base that can be used as a basis for building a
+large variety of World Wide Web applications. Its main purpose is to provide
+services to transmit data objects rendered in many different media types
+either to or from a remote server using the most common Internet access methods
+or the local file system. It provides plain C reference implementations of
+those specifications and is especially designed to be used on a large set
+of different platforms. Version 3.1 supports more than 20 Unix flavors, VMS,
+Windows NT, and ongoing work is being done to extend the set of platforms.
 <P>
-This document describes the architecture of the Library in generic terms
-without referring too much directly to the code itself. It is meant to give
-an overview of the design which is required if you intend to enhance the
-Library. If you are looking for a specific description of the API then please
-read the <A HREF="../Using/">User's Guide</A>.
+Even though plain C does not support an object oriented model but merely
+enables the concept, many of the data structures in the Library are derived
+from the class notation. This leads to situations where forced type casting
+is required in order to use a reference to a subclass where a superclass
+is expected. The forced type casting problem and inheritance in general would
+be solved if an object oriented programming language was to be used instead
+of C, but the current standardization and deployment level of object oriented
+languages in general would imply that a part of the portability would get
+lost in the transition. There are several intermediate solutions under
+consideration where one or more object oriented APIs built on top of the
+Library provides the application programmer with a cleaner interface.
+<P>
+Many of the features of libwww are demonstrated in the
+<A HREF="../../../LineMode/">Line Mode Browser</A> which is a text terminal
+client built right on top of the Library. Even though this application is
+usable as an independent Web application, its main purpose is to show a working
+example of how libwww can be used. However, it is important to note that
+the Line Mode Browser is only <EM>one</EM> way of using libwww and many other
+applications may want to use it in other ways.
+<P>
+The development of libwww was started by
+<A HREF="../../../People.html#BernersLee">Tim Berners-Lee</A> in 1990, and
+today the Library is a multi functional code base with a large amount of
+knowledge about network programming and portability built into it with help
+from <A HREF="../../../People.html#Luotonen">Ari Luotonen</A>,
+<A HREF="../../../People.html#Groff">Jean-Francois Groff</A>,
+<A HREF="../../../People/howcome/">H&aring;kon W. Lie</A> and a large number
+of people on the Internet.
 <H2>
-  Table of Contents
+  Design of Libwww Core
 </H2>
-<DL>
-  <DT>
-    <A HREF="Introduction.html">Introduction</A>
-  <DT>
+<P>
+This section describes some of the design points behind the libwww core.
+The core is basically a registry where the application can register the set
+of features that the application needs.
+<UL>
+  <LI>
     <A HREF="DesignModel.html">Basic Design Model</A>
-  <DT>
-    <A HREF="ControlFlow.html">The Core</A>
-    <UL>
-      <LI>
-	<A HREF="Request.html">The Request Class</A>
-      <LI>
-	<A HREF="PostWeb.html">Post Web - a Generic Model for Posting on the Web</A>
-      <LI>
-	<A HREF="Anchors.html">The Anchor Class</A>
-      <LI>
-	<A HREF="Link.html">The Link Class</A>
-      <LI>
-	<A HREF="UserProfile.html">The User Profile Class</A>
-      <LI>
-	<A HREF="Events.html">Threads and Event Loops</A>
-      <LI>
-	<A HREF="Errors.html">The Error Class</A>
-      <LI>
-	<A HREF="Alert.html">The Alert Class</A>
-      <LI>
-	<A HREF="Bind.html">File Suffix Binding</A>
-      <LI>
-	<A HREF="Streams.html">The Stream Class</A>
-      <LI>
-	<A HREF="IOStreams.html">Input and Output Streams</A>
-      <LI>
-	<A HREF="Multiformat.html">The Stream Pipe Manager</A>
-      <LI>
-	<A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>
-      <LI>
-	<A HREF="Host.html">The Host Information Class</A>
-      <LI>
-	<A HREF="Threads.html">The Net Class</A>
-      <LI>
-	<A HREF="Filters.html">Before and After Filters</A>
-      <LI>
-	<A HREF="Transport.html">The Transport Class</A>
-      <LI>
-	<A HREF="Protocol.html">The Protocol Class</A>
-    </UL>
-  <DT>
-    <A HREF="App.html">Application Modules</A>
-    <UL>
-      <LI>
-	<A HREF="Cache.html">The Cache Manager</A>
-      <LI>
-	<A HREF="HTTPFeatures.html">Protocol Modules as State machines</A>
-    </UL>
-</DL>
+  <LI>
+    <A HREF="ControlFlow.html">Simplified Control Flow</A>
+  <LI>
+    <A HREF="Streams.html">Data Flow Using Streams</A>
+  <LI>
+    <A HREF="IOStreams.html">Input and Output Streams</A>
+  <LI>
+    <A HREF="Multiformat.html">The Stream Builder</A>
+  <LI>
+    <A HREF="Request.html">The Request/Response Paradigm</A>
+  <LI>
+    <A HREF="Filters.html">Before and After Filters</A>
+  <LI>
+    <A HREF="Events.html">Threads and Event Loops</A>
+  <LI>
+    <A HREF="HTTPFeatures.html">Protocol Modules as State machines</A>
+</UL>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

@@ -1,104 +1,56 @@
 <HTML>
 <HEAD>
-<TITLE>Bindings to the local File system</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
-</HEAD>  
-<BODY>
-
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-
-<H1>Bindings to the local File system</H1>
-
-The preferences that we described in section <A HREF="Prefs.html">Request Preferences</A> did not
-mention what the Library should do if it doesn't know the data format of a document. In many
-protocols this information is provided by the remote server. Typical examples are MIME like
-protocols where the metainformation such as the <EM>Content-Type</EM> and the
-<EM>Content-Language</EM> is provided together with the document. However, applications often have
-access to the local file system using <B>file</B> URLs which in general do not keep any or at least
-very little information of the file type. It is therefore required to have some kind of binding
-between the file system and the preferences registered in the Library which provides this
-mateinformation about the object. <P>
-
-Often files in a file system is classified by some sort of a suffix, for example GIF files are often
-ending in <EM>.gif</EM>, text files in <EM>.txt</EM> etc. This binding is not static and it is
-therefore required to have a dynamic binding just like the preferences themselves. An example of the
-latter is HTML files which on most Unix systems end in <EM>.html</EM> whereas they on many MS-DOS
-based systems end in <EM>.htm</EM>. <P>
-
-The <A HREF="../../src/HTBind.html">HTBind module</A> provides a generic binding
-mechanism between a file and its representation internally in the Library. It is not limited to
-simple file suffix classification but can also be used in more advanced environments using data
-bases etc. However, at this point we are interested in how we can register bindings between file
-suffixes and for example content types, content languages etc. <P>
-
-Before starting a more detailed description of how to register file suffixes, it might be required
-to define what actually is a file suffix and what is the set of delimiters separating them on a
-particular platform. The Bind manager is born with a certain knowledge about the set of delimiters
-but more can be added to provide the functionality desired. This can be done using the following
-function:
-
-<PRE>
-extern void HTBind_caseSensitive	(BOOL sensitive);
-</PRE>
-
-where <EM>sensitive</EM> can either be <EM>YES</EM> or <EM>NO</EM>. Also the set of delimiters can
-be defined using the following function:
-
-<PRE>
-extern const char *HTBind_delimiters	(void);
-extern void HTBind_setDelimiters	(const char * new_suffixes);
-</PRE>
-
-Examples of a list of suffixes are
-
-<PRE>
-	"._"
-	"."
-	"._-"
-</PRE>
-
-Note that the suffixes chosen do not have to be connected with what is available on a particular
-platform. However, a certain coupling will probably make maintenance of the file system easier for
-all parties. In the following we will show the API for adding bindings between the preferences and
-the file system. You can add a binding between a Content type and a suffix by using the following
-function:
-
-<PRE>
-extern BOOL HTBind_addType	(const char *	suffix,
-				 const char *	format,
-				 double		value);
-</PRE>
-
-Calling this with <EM>suffix</EM> set to "*" will set the default representation which is used in
-case no other suffix fits the actual file. Using a suffix set to "*.*" will set the default
-representation for unknown suffix files which contain a "."  The <EM>format</EM> argument is exactly
-like described in the section <A HREF="Prefs.html">Request Preferences</A>. In exactly the same way
-you can add a binding between an encoding anda file suffix using the following function:
-
-<PRE>
-extern BOOL HTBind_addEncoding	(const char *	suffix,
-				 const char *	encoding,
-				 double		value);
-</PRE>
-
-Bindings can also be made between a file suffix and a specific natural language:
-
-<PRE>
-extern BOOL HTBind_addLanguage	(const char *	suffix,
-				 const char *	language,
-				 double		value);
-</PRE>
-
-In all cases, it should be mentioned, that any of the suffixes <EM>can</EM> contain characters that
-normally must be escaped in a URL, for example space &lt; &gt;. However, they should <EM>not</EM> be
-encoded when parsed as the <CODE>suffix</CODE> parameter but left as is.
-
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+  <TITLE>Bindings to the local File system</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  Bindings to the local File system
+</H1>
+<P>
+The preferences that we described in section <A HREF="Prefs.html">Request
+Preferences</A> did not mention what libwww should do if it doesn't know
+the data format of a document. In many protocols this information is provided
+by the remote server. Typical examples are MIME like protocols where the
+metainformation such as the <EM>Content-Type</EM> and the
+<EM>Content-Language</EM> is provided together with the document. However,
+applications often have access to the local file system using <B>file</B>
+URLs which in general do not keep any or at least very little information
+of the file type. It is therefore required to have some kind of binding between
+the file system and the preferences registered in the Library which provides
+this mateinformation about the object.
+<P>
+Often files in a file system is classified by some sort of a suffix, for
+example GIF files are often ending in <EM>.gif</EM>, text files in
+<EM>.txt</EM> etc. This binding is not static and it is therefore required
+to have a dynamic binding just like the preferences themselves. An example
+of the latter is HTML files which on most Unix systems end in <EM>.html</EM>
+whereas they on many MS-DOS based systems end in <EM>.htm</EM>.
+<P>
+The <A HREF="../../src/HTBind.html">HTBind module</A> provides a generic
+binding mechanism between a file and its representation internally in libwww.
+It is not limited to simple file suffix classification but can also be used
+in more advanced environments using data bases etc. However, at this point
+we are interested in how we can register bindings between file suffixes and
+for example content types, content languages etc. The Bind manager is born
+with a certain knowledge about the set of delimiters but more can be added
+to provide the functionality desired. 
+<P>
+<A HREF="../../src/HTResponse.html"><IMG SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Adding
+and Deleting Bindings</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML> 
+</BODY></HTML>

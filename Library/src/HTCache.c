@@ -67,8 +67,8 @@ struct _HTCache {
     time_t		expires;
 
     /* GC parameters */
-    long		size;			/* Total size of entity body */
-    long		range;				  /* For byte ranges */
+    long		size;		       /* Size of cached entity body */
+    BOOL		range;	      /* Is this the full part or a subpart? */
     int			hits;				       /* Hit counts */
     time_t		freshness_lifetime;
     time_t		response_time;
@@ -86,6 +86,7 @@ struct _HTStream {
     HTResponse *		response;
     HTChunk *			buffer;			/* For index reading */
     HTEOLState			EOLstate;
+    BOOL			append;		   /* Creating or appending? */
 };
 
 struct _HTInputStream {
@@ -266,12 +267,12 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 		if ((cur = CacheTable[cnt])) { 
 		    HTCache * pres;
 		    while ((pres = (HTCache *) HTList_nextObject(cur))) {
-			if (fprintf(fp, "%s %s %ld %ld %ld %d %d %ld %ld %ld %c\r\n",
+			if (fprintf(fp, "%s %s %ld %ld %c %d %d %ld %ld %ld %c\r\n",
 				    pres->url,
 				    pres->cachename,
 				    pres->expires,
 				    pres->size,
-				    pres->range,
+				    pres->range+0x30,
 				    pres->hash,
 				    pres->hits,
 				    pres->freshness_lifetime,
@@ -303,6 +304,7 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
     HTCache * cache = NULL;
     if (line) {
 	char validate;
+	char range;
 	if ((cache = (HTCache *) HT_CALLOC(1, sizeof(HTCache))) == NULL)
 	    HT_OUTOFMEM("HTCacheIndex_parseLine");
 
@@ -315,7 +317,7 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	    StrAllocCopy(cache->url, url);
 	    StrAllocCopy(cache->cachename, cachename);
 	}
-	if (sscanf(line, "%ld %ld %ld %d %d %ld %ld %ld %c",
+	if (sscanf(line, "%ld %ld %c %d %d %ld %ld %ld %c",
 		   &cache->expires,
 		   &cache->size,
 		   &cache->range,
@@ -328,6 +330,7 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	    if (CACHE_TRACE) HTTrace("Cache Index. Error reading cache index\n");
 	    return NO;
 	}
+	cache->range = range-0x30;
 	cache->must_revalidate = validate-0x30;
 
 	/*
@@ -861,7 +864,7 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
 	    HT_OUTOFMEM("HTCache_new");
 	pres->hash = hash;
 	pres->url = url;
-	pres->range = -1;			       /* Invalid byte range */
+	pres->range = NO;
 	HTCache_findName(pres);
 	HTList_addObject(list, (void *) pres);
 	new_entries++;
@@ -887,7 +890,7 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
 **  not be less than 5M. When we set the cache size we also check whether we 
 **  should run the gc or not.
 */
-PRIVATE BOOL HTCache_setSize (HTCache * cache, long size, long range)
+PRIVATE BOOL HTCache_setSize (HTCache * cache, long written, BOOL append)
 {
     if (cache) {
 	/*
@@ -895,18 +898,14 @@ PRIVATE BOOL HTCache_setSize (HTCache * cache, long size, long range)
 	**  with a certain size. This size may be a subpart of the total entity
 	**  (in case the download was interrupted)
 	*/
-	if (cache->range >= 0)
-	    HTTotalSize -= cache->range;
-	else if (cache->size > 0)
-	    HTTotalSize -= cache->size;
-	cache->size = size;
-	cache->range = range;
+	if (cache->size > 0 && !append) HTTotalSize -= cache->size;
+	cache->size = written;
+	HTTotalSize += written;
 
 	/*
 	**  Now add the new size to the total cache size. If the new size is
 	**  bigger than the legal cache size then start the gc.
 	*/
-	HTTotalSize += size;
 	if (CACHE_TRACE) HTTrace("Cache....... Total size %ld\n", HTTotalSize);
 	if (HTTotalSize > HTCacheSize) HTCacheGarbage();
 	return YES;
@@ -1094,9 +1093,9 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 	**  If we only have a part of this request then make a range request
 	**  using the If-Range condition GET request
 	*/
-	if (cache->range > 0) {
+	if (cache->range) {
 	    char buf[20];
-	    sprintf(buf, "%ld-", cache->range);
+	    sprintf(buf, "%ld-", cache->size);
 	    if (CACHE_TRACE) HTTrace("Cache....... Asking for range `%s\'\n", buf);
 	    HTRequest_addRange(request, "bytes", buf);
 	    HTRequest_addRqHd(request, HT_C_RANGE);	    
@@ -1391,9 +1390,14 @@ PRIVATE BOOL free_stream (HTStream * me, BOOL abort)
 	**  are done we don't need the lock anymore.
 	*/
 	if (cache) {
-	    HTParentAnchor * anchor = HTRequest_anchor(me->request);
 	    HTCache_writeMeta(cache, me->request, me->response);
 	    HTCache_releaseLock(cache);
+
+	    /*
+	    **  Remember if this is the full entity body or only a subpart
+	    **  We assume that an abort will only give a part of the object.
+	    */
+	    cache->range = abort;
 
 	    /*
 	    **  Set the size and maybe do gc. If it is an abort then set the
@@ -1401,8 +1405,7 @@ PRIVATE BOOL free_stream (HTStream * me, BOOL abort)
 	    **  take the byte range as the number of bytes that we have already
 	    **  written to the cache entry.
 	    */
-	    HTCache_setSize(cache, HTAnchor_length(anchor),
-			    abort ? me->bytes_written : -1);
+	    HTCache_setSize(cache, me->bytes_written, me->append);
 	}
 
 	/*
@@ -1428,17 +1431,7 @@ PRIVATE int HTCache_free (HTStream * me)
 PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 {
     if (CACHE_TRACE) HTTrace("Cache....... ABORTING\n");
-#if 0
-    if (me->fp) fclose(me->fp);    
-    if (me->cache) {
-	HTCache_breakLock(me->cache, me->request);
-	HTCache_remove(me->cache);
-    }
-    HT_FREE(me);
-    return HT_ERROR;
-#else
     return free_stream(me, YES);
-#endif
 }
 
 PRIVATE const HTStreamClass HTCacheClass =
@@ -1508,6 +1501,7 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
 	me->response = response;
 	me->cache = cache;
 	me->fp = fp;
+	me->append = append;
 	return me;
     }
     return NULL;

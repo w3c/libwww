@@ -1,0 +1,44 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+  <TITLE>The Response Class</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<P>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  The Response Class
+</H1>
+<P>
+The response object is created as a placeholder for the response received
+by the remote server. All filters can use the information stored in the response
+and act appropriately. This is often used by the AFTER filters which can
+handle authentication, redirection, etc. See the filter section for more
+information on this.
+<P>
+The Response object is created automatically when we start to receive
+metainformation (for example MIME headers) and bound to the
+<A HREF="Request.html">Request</A> object. The Response object is deleted
+automatically when the corresponding request object is deleted but it can
+of course be deleted before if this is desired.
+<P>
+Note that is using non-blocking sockets then libwww essentially behaves
+asynchronously as you may issue multiple requests and get back the responses
+out of order as they appear on the net interface.
+<P>
+<A HREF="../../src/HTResponse.html"><IMG SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors,
+Destructors and Methods</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

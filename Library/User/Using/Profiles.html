@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+  <TITLE>Application Profiles</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<P>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  Application Profiles
+</H1>
+<P>
+Libwww consists of a small core and a large set of hooks for adding
+functionality. By itself, the core it not capable of performing any Web related
+tasks like accessing a HTTP server or parsing a HTML document. All this
+functionality must be registered by the application. This way, the core of
+libwww is kept application independent and can be used as the basic building
+block for any kind of Web application.
+<P>
+The Library comes with a large set of default functions, for example for
+accessing HTTP and FTP servers, parsing
+<A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc822.txt">RFC
+822</A> headers etc. but it must all be registered by the application before
+the core knows about it. You can either register the parts directly through
+the many initialization functions in the Initialization Interface or you
+can use these "precompiled" profiles which are set up to contain the featuers
+often used by the a specific type of application, for example a client, a
+server, a robot etc.
+<P>
+This module helps the application programmer setting up all this functionality,
+but it is important to note that none of it is <I>required</I> in order to
+use the Library. All the profiles declared below superseed the Library core
+initialization function <CODE>HTLibInit()</CODE> which is defined in the
+<A HREF="../../src/HTLib.html">HTLib module</A>.
+<P>
+<A HREF="../../src/HTProfil.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Using Profiles</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

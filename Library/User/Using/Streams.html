@@ -1,31 +1,49 @@
 <HTML>
 <HEAD>
-<TITLE>User Guide - Using Streams</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
-<NEXTID N="z78">
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+  <NEXTID N="z78">
+  <TITLE>The Stream Class</TITLE>
 </HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-
-<H1>The Format Manager</H1>
-
-<B>MORE</B>
-
-<UL>
-<LI>setting up request streams
-<LI>memory management
-<LI>examples
-<LI>explain why converters have an input and an output format: chains
-</UL>
-
-
+<BODY BGCOLOR="#ffffff">
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  The Stream Class
+</H1>
+<P>
+The Stream class defines objects which accepts a sequence of characters.
+Streams may also have an output in which case multiple stream objects can
+be cascaded to build a stream pipe where the output of a stream is directed
+into the input of the next stream object "down the line". Of course, one
+of the main features of streams is that they can perform a <I>data conversion
+</I>on the data before piping it to the output. As multiple streams may be
+cascaded, the complete data conversion is then the sum of each individual
+data conversion performed by the stream objects being part of the stream
+pipe.
+<P>
+It is not <I>required</I> that a stream has a target, it might as well be
+a black hole that just accepts data without ever giving it out again. The
+generic stream class is subclassed multiple places in the Library and a good
+example is the <A HREF="HTStruct.html">structured stream definition</A> which
+creates a SGML object.
+<P>
+All stream class methods return an integer status code telling whether the
+operation succeeded or not.. This is the way for a stream to pass control
+information upstream to the caller which may also be a stream.
+<P>
+<A HREF="../../src/HTStream.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Adding and Deleting Format
+Converters</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

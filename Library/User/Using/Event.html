@@ -1,122 +1,61 @@
 <HTML>
 <HEAD>
-<TITLE>User Guide - Event Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
-<NEXTID N="z78">
+  <!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
+  <NEXTID N="z78">
+  <TITLE>The Event Class</TITLE>
 </HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-
-<H1>The Event Manager</H1>
-
-The W3C Reference Library can be used in either a single-threaded or the multi-threaded programming
-style. In this section we will havea look at how to enable this functionality and what the API is
-for applications to use it. We will not describe the underlying design model as thsi is described in
-detail in the <A HREF="../Architecture/Events.html">Library Architecture</A> documentation.<P>
-
-If you are working on a MSWindows platform then you have the possibility of using asynchronous
-socket management (<EM>proactive mode</EM>) instead of typical Unix select based I/O (<EM>reactive
-mode</EM>). Please read the <A HREF="../Platform/WinDLL.html">Windows documentation</A> for more
-details.
-
-<H2>Event Handlers</H2>
-
-The appplication registers a set of event handlers to be used on a specified set of sockets. An
-event handler is a function of type
-
-<PRE>
-typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
-</PRE>
-
-<H3>Register a TTY Event Handler</H3>
-
-Register the tty (console) as having events. If the TTY is select()-able (as is true under Unix),
-then we treat it as just another socket. Otherwise, take steps depending on the platform. This is
-the function to use to register user events!
-
-<PRE>
-extern int HTEvent_RegisterTTY	(SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
-</PRE>
-
-<H3>Unregister a TTY Event Handler</H3>
-
-Unregisters TTY I/O channel. If the TTY is select()-able (as is true under Unix), then we treat it
-as just another socket.
-
-<PRE>
-extern int HTEvent_UnRegisterTTY (SOCKET, SockOps);
-</PRE>
-
-<H3>Register an Event Handler</H3>
-
-For a given socket, reqister a request structure, a set of operations, a HTEventCallback function,
-and a priority. For this implementation, we allow only a single HTEventCallback function for all
-operations.  and the priority field is ignored.
-
-<PRE>
-extern int HTEvent_Register	(SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
-</PRE>
-
-<H3>Unregister an Event Handler</H3>
-
-Remove the registered information for the specified socket for the actions specified in ops. if no
-actions remain after the unregister, the registered info is deleted, and, if the socket has been
-registered for notification, the HTEventCallback will be invoked.
-
-<PRE>
-extern int HTEvent_UnRegister	(SOCKET, SockOps);
-</PRE>
-
-<H3>Unregister ALL Event Handlers</H3>
-
-Unregister all sockets. N.B. we just remove them for our internal data structures: it is up to the
-application to actually close the socket.
-
-<PRE>
-extern int HTEvent_UnregisterAll (void);
-</PRE>
-
-<H2>Handler for Timeout on Sockets</H2>
-
-This function sets the timeout for sockets in the <CODE>select()</CODE> call and registers a timeout
-function that is called if select times out. This does only works on NON windows platforms as we
-need to poll for the console on windows If <CODE>tv = NULL</CODE> then timeout is disabled. Default
-is no timeout. If <EM>always=YES</EM> then the callback is called at all times, if NO then only when
-Library sockets are active. Returns YES if OK else NO.
-
-<PRE>
-typedef int HTEventTimeout (HTRequest *);
-
-extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
-				     HTEventTimeout *tcbf, BOOL always);
-</PRE>
-
-<H2>Start the Event Loop</H2>
-
-That is, we wait for activity from one of our registered channels, and dispatch on that. Under
-Windows/NT, we must treat the console and sockets as distinct.  That means we can't avoid a busy
-wait, but we do our best.
-
-<PRE>
-extern int HTEvent_Loop (HTRequest * request);
-</PRE>
-
-<H2>Stop the Event Loop</H2>
-
-Stops the (select based) event loop. The function does not guarantee that all requests have
-terminated. This is for the app to do
-
-<PRE>
-extern void HTEvent_stopLoop (void);
-</PRE>
-
+<BODY BGCOLOR="#ffffff">
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  The Event Manager
+</H1>
+<P>
+The Event Manager defines any event manager to be used by libwww for handling
+events. An <I>event</I> is not strictly defined as it is highly platform
+dependent and hence out of scope for the Library. If you are using the libwww
+pseudo threads on Unix then an event is when the&nbsp;<I>select()</I> system
+call returns a notification on&nbsp;a socket descriptor, but it may as well
+be an asynchronous event from the windows manager etc. If your application
+is not using anything but traditional blocking sockets then you do not need
+an event manager at all. In that case, libwww will block on any socket or
+system call until the process can proceed.
+<P>
+The libwww interface to an event manager is very simple as it consists of
+<B>registering</B> a <I>socket descriptor</I>, the <I>location</I> in the
+program, and the <I>current state</I> when an operation (for example
+<CODE>read</CODE>) would block. When the event manager at a later point in
+time gets a notification that the socket has become ready, it can then call
+libwww with the state saved from the registration and libwww can continue.
+Second, libwww must be able to <B>unregister</B> a socket when it is not
+anymore in a state where it can block. <I>Only</I> in case the application
+wishes to use <I>non-blocking</I> sockets it should register methods for
+handling the <B>registration</B> process as described below.
+<P>
+<B>Note</B>: The library <B>core</B> does <I>not</I> define any event manager
+- it is considered part of the application. The library comes with a
+<A HREF="../../src/HTEvntrg.html">default event manager</A> which can be
+initiated using the function <CODE>HTEventInit()</CODE> in
+<A HREF="../../src/HTInit.html">HTInit module</A>
+<P>
+If you are working on a MSWindows platform then you have the possibility
+of using asynchronous socket management (<EM>proactive mode</EM>) instead
+of typical Unix select based I/O (<EM>reactive mode</EM>). Please read the
+<A HREF="../Platform/WinDLL.html">Windows documentation</A> for more details.
+<P>
+<A HREF="../../src/HTEvent.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering an Event
+Manager</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

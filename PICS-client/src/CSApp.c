@@ -516,8 +516,10 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int mode)
     if (PICS_TRACE) HTTrace("PICS: label request:\n%s\n", ptr);
     /* get label and set disposition */
 
-    HTRequest_addAfter(pReq, CSApp_bureauAfter, NULL, (void *) pReqParms, HT_LOADED, 5, YES);
-    HTRequest_addAfter(pReq, CSApp_bureauError, NULL, (void *) pReqParms, HT_ERROR, 5, YES);
+    HTRequest_addAfter(pReq, CSApp_bureauAfter, NULL, (void *) pReqParms, HT_LOADED,
+		       HT_FILTER_MIDDLE, YES);
+    HTRequest_addAfter(pReq, CSApp_bureauError, NULL, (void *) pReqParms, HT_ERROR,
+		       HT_FILTER_MIDDLE, YES);
 
     pParentAnchor = (HTParentAnchor *) HTAnchor_findAddress(ptr);
     if ((ret = HTLoadAnchor((HTAnchor *) pParentAnchor, pReq)) != YES)

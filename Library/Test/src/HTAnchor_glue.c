@@ -1393,7 +1393,7 @@ int HTAnchor_setMd5_tcl(ClientData clientData, Tcl_Interp *interp,
 
 /* METHOD */
 
-int HTAnchor_methods_tcl(ClientData clientData, Tcl_Interp *interp, 
+int HTAnchor_allow_tcl(ClientData clientData, Tcl_Interp *interp, 
 			 int argc, char **argv) {
   if (argc == 2) {
     char *anchor_name             = argv[1];
@@ -1401,7 +1401,7 @@ int HTAnchor_methods_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *anchor_entry = Tcl_FindHashEntry(&HTableAnchor, anchor_name);
       if (anchor_entry) {
 	HTParentAnchor *p_anchor  = Tcl_GetHashValue(anchor_entry);
-	int methods 	          = HTAnchor_methods(p_anchor);
+	int methods 	          = HTAnchor_allow(p_anchor);
 	char *result = malloc(sizeof(methods));
 	sprintf(result, "%d", methods);
 	Tcl_AppendResult(interp, result, NULL);
@@ -1417,7 +1417,7 @@ int HTAnchor_methods_tcl(ClientData clientData, Tcl_Interp *interp,
   }
 }
 
-int HTAnchor_setMethods_tcl(ClientData clientData, Tcl_Interp *interp, 
+int HTAnchor_setAllow_tcl(ClientData clientData, Tcl_Interp *interp, 
 			    int argc, char **argv) {
   if (argc == 3) {
     int methods;
@@ -1426,7 +1426,7 @@ int HTAnchor_setMethods_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *anchor_entry = Tcl_FindHashEntry(&HTableAnchor, anchor_name);
       if (anchor_entry) {
 	HTParentAnchor *p_anchor  = Tcl_GetHashValue(anchor_entry);
-	HTAnchor_setMethods(p_anchor, methods);
+	HTAnchor_setAllow(p_anchor, methods);
        		
 	Tcl_AppendResult(interp, NULL);
 	return TCL_OK;

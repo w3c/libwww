@@ -226,6 +226,35 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int mode)
 }
 
 /*
+**	A small BEFORE filter that just finds a cache entry unconditionally
+**	and loads the entry. All freshness and any other constraints are 
+**	ignored.
+*/
+PUBLIC int HTCacheLoadFilter (HTRequest * request, void * param, int mode)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache * cache = HTCache_find(anchor);
+    if (cache) {
+	char * name = HTCache_name(cache);
+	HTAnchor_setPhysical(anchor, name);
+	HTCache_addHit(cache);
+	HT_FREE(name);
+
+	/*
+	**  Start request directly from the cache. As with the redirection
+	**  filter we reuse the same request object which means that we must
+	**  keep this around until the cache load request has terminated
+	**  In the case of a 
+	*/
+	{
+	    HTLoad(request, NO);
+	    return HT_ERROR;
+	}
+    }
+    return HT_OK;
+}
+
+/*
 **	Check the Memory Cache (History list) BEFORE filter
 **	---------------------------------------------------
 **	Check if document is already loaded. The user can define whether
@@ -367,21 +396,6 @@ PUBLIC int HTInfoFilter (HTRequest * request, HTResponse * response,
 		    HTResponse_retryTime(response));
 	break;
 
-    case HT_ERROR:
-    {
-	/*
-	** See if we have a function registered for outputting errors.
-	** If so then call it and present the message to the user
-	*/
-	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
-	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
-			HTRequest_error(request), NULL);
-	if (PROT_TRACE)
-	    HTTrace("Load End.... ERROR: Can't access `%s\'\n",
-		    uri ? uri : "<UNKNOWN>");
-	break;
-    }    
-
     case HT_NO_DATA:
     {
 	/*
@@ -397,25 +411,23 @@ PUBLIC int HTInfoFilter (HTRequest * request, HTResponse * response,
     }    
 
     case HT_LOADED:
+	if (PROT_TRACE) HTTrace("Load End.... OK: `%s\'\n", uri);
+	break;
+
+    default:
     {
 	/*
-	** Even though we have received a loaded status the thing we have
-	** loaded successfully may in fact be an error message. We therefore
-	** look at the error stack to see what to do.
+	** See if we have a function registered for outputting errors.
+	** If so then call it and present the message to the user
 	*/
 	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
 	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
 			HTRequest_error(request), NULL);
-	if (PROT_TRACE) HTTrace("Load End.... OK: `%s\'\n", uri);
-	break;
-    }
-
-    default:
 	if (PROT_TRACE)
 	    HTTrace("Load End.... Request ended with code %d\n", status);
 	break;
     }
-
+    }
     HT_FREE(uri);
     return HT_OK;
 }

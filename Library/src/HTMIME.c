@@ -475,6 +475,47 @@ PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
     return me;
 }
 
+/*
+**	A small BEFORE filter that just finds a cache entry unconditionally
+**	and loads the entry. All freshness and any other constraints are 
+**	ignored.
+*/
+PRIVATE int HTCacheLoadFilter (HTRequest * request, void * param, int mode)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache * cache = HTCache_find(anchor);
+    if (STREAM_TRACE) HTTrace("Cache Load.. loading partial cache entry\n");
+    if (cache) {
+	char * name = HTCache_name(cache);
+	HTAnchor_setPhysical(anchor, name);
+	HTCache_addHit(cache);
+	HT_FREE(name);
+    }
+    return HT_OK;
+}
+
+/*
+**	A small AFTER filter that flushes the PIPE buffer so that we can
+**	get the rest of the data
+*/
+PRIVATE int HTCacheFlushFilter (HTRequest * request, HTResponse * response,
+				void * param, int mode)
+{
+    HTStream * pipe = (HTStream *) param;    
+    if (pipe) {
+	if (STREAM_TRACE) HTTrace("Cache Flush. Flushing and freeing PIPE buffer\n");
+	(*pipe->isa->flush)(pipe);
+	(*pipe->isa->_free)(pipe);
+    }
+
+    /*
+    **  We also delete the request obejct and stop more filters from being called.
+    **  As this is our own request, it's OK to do that
+    */
+    HTRequest_delete(request);
+    return HT_ERROR;
+}
+
 /*	Partial Response MIME parser stream
 **	-----------------------------------
 **	In case we sent a Range conditional GET we may get back a partial
@@ -491,10 +532,10 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
 				 HTFormat	output_format,
 				 HTStream *	output_stream)
 {
-#if 0
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTStream * me = NULL;
-    HTStream * merge = NULL;
+    HTFormat format = HTAnchor_format(anchor);
+    HTStream * pipe = NULL;
+
     /*
     **  The merge stream is a place holder for where we can put data when it
     **  arrives. We have two feeds: one from the cache and one from the net.
@@ -502,51 +543,62 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
     **  We can do this as we already know the content type from when we got the
     **  first part of the object.
     */
-    {
-	HTFormat format = HTAnchor_format(anchor);
-	if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
-				  HTAtom_name(format),
-				  HTAtom_name(output_format));
-	merge = HTMerge(HTStreamStack(format, output_format, output_stream,
-				      request, YES), 2);
-    }
+    HTStream * merge = HTMerge(HTStreamStack(format,
+					     output_format, output_stream,
+					     request, YES), 2);
 
-#else
     /*
-    **  Set up the MIME parser as the one feed to the merge stream. The MIME
-    **  parser then calls the PIPE buffer. We use source output as the stream
-    **  stack has already been called.
+    **  Now we create the MIME parser stream in partial data mode. We also
+    **  set the target to our merge stream.
     */
     HTStream * me = HTMIMEConvert(request, param, input_format,
 				  output_format, output_stream);
     me->mode |= HT_MIME_PARTIAL;
-#endif
+    me->target = merge;
+
+    /*
+    **  Create the cache append stream, and a Tee stream
+    */
+    {
+	HTStream * append = HTStreamStack(WWW_CACHE_APPEND, output_format,
+					  output_stream, request, NO);
+	if (append) me->target = HTTee(me->target, append, NULL);
+    }
+
+    /*
+    **  Create the pipe buffer stream to buffer the data that we read
+    **  from the network
+    */
+    if ((pipe = HTPipeBuffer_new(me->target, request, 0))) me->target = pipe;
 
     /*
     **  Now start the second load from the cache. First we read this data from
     **  the cache and then we flush the data that we have read from the net.
-    **  We use the same anchor as before but with another physical address.
     */
     {
-	HTParentAnchor * anchor = HTRequest_anchor(request);
-	HTRequest * creq = HTRequest_new();
-	HTCache * cache = NULL;
+	HTRequest * cache_request = HTRequest_new();
 
-	/* Set up the request */
-#if 0
-	HTRequest_setOutputFormat(creq, WWW_SOURCE);
-	HTRequest_setOutputStream(creq, me);
-#endif
-	HTRequest_setAnchor(creq, (HTAnchor *) anchor);
+	/*
+	**  Set the output format to source and the output stream to the
+	**  merge stream. As we have already set up the stream pipe, we just 
+	**  load it as source.
+	*/
+	HTRequest_setOutputFormat(cache_request, WWW_SOURCE);
+	HTRequest_setOutputStream(cache_request, merge);
 
-	/* Set up the anchor */
-	if ((cache = HTCache_find(anchor))) {
-	    char * name = HTCache_name(cache);
-	    HTAnchor_setPhysical(anchor, name);
-	    HT_FREE(name);
-	    if (STREAM_TRACE) HTTrace("Partial..... Starting cache load\n");
-	    HTLoad(creq, NO);
-	}
+	/*
+	**  Bind the anchor to the new request and also register a local
+	**  AFTER filter to flush the pipe buffer so that we can get
+	**  rest of the data through. 
+	*/
+	HTRequest_setAnchor(cache_request, (HTAnchor *) anchor);
+	HTRequest_addBefore(cache_request, HTCacheLoadFilter, NULL, NULL,
+			    HT_FILTER_FIRST, YES);
+	HTRequest_addAfter(cache_request, HTCacheFlushFilter, NULL, pipe,
+			   HT_ALL, HT_FILTER_FIRST, YES);
+
+	if (STREAM_TRACE) HTTrace("Partial..... Starting cache load\n");
+	HTLoad(cache_request, NO);
     }
     return me;
 }

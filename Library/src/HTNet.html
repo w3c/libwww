@@ -81,9 +81,13 @@ be called. The order works pretty much like the Unix priority mechanism running
 from <CODE>HT_FILTER_FIRST</CODE> to <CODE>HT_FILTER_LAST</CODE> having
 <CODE>HT_FILTER_MIDDLE</CODE> being the "normal" case.
 <PRE>
-#define HT_FILTER_FIRST		0
-#define HT_FILTER_MIDDLE	5
-#define HT_FILTER_LAST		10
+typedef enum _HTFilterOrder {
+    HT_FILTER_FIRST	= 0x0,		/*     0 */
+    HT_FILTER_EARLY	= 0x3FFF,	/* 16383 */
+    HT_FILTER_MIDDLE	= 0x7FFF,	/* 32767 */
+    HT_FILTER_LATE	= 0xBFFE,	/* 49150 */
+    HT_FILTER_LAST	= 0xFFFF	/* 65535 */
+} HTFilterOrder;
 </PRE>
 <P>
 In case multiple filters are registered with the same order then they are
@@ -109,7 +113,8 @@ been selected by the execution procedure. <I>BEFORE</I> filters are registered
 with a <I>context</I> and a <I>filter order</I> by which they are to be called
 and a <I>URL template</I> which may be NULL. In this case, the filter is
 called on every request. The mode can be used by anybody to pass an extra
-parameter to a filter. This is not really OO thinking - but hey - this is C ;-)
+parameter to a filter. This is not really OO thinking - but hey - this is
+C ;-)
 <PRE>typedef int HTNetBefore (HTRequest * request, void * param, int mode);
 </PRE>
 <P>
@@ -119,7 +124,7 @@ in mind.
 <PRE>
 extern BOOL HTNetCall_addBefore (HTList * list, HTNetBefore * before,
 				 const char * tmplate, void * param,
-                                 int order);
+                                 HTFilterOrder order);
 </PRE>
 <P>
 You can also unregister all instances of a BEFORE filter from a list using
@@ -205,10 +210,11 @@ in mind.
 <PRE>
 extern BOOL HTNetCall_addAfter (HTList * list, HTNetAfter * after,
 				const char * tmplate, void * param,
-				int status, int order);
+				int status, HTFilterOrder order);
 </PRE>
 <P>
-You can either unregister all filters registered for a given status using this function or the filter for all status codes.
+You can either unregister all filters registered for a given status using
+this function or the filter for all status codes.
 <PRE>
 extern BOOL HTNetCall_deleteAfter (HTList * list, HTNetAfter * after);
 extern BOOL HTNetCall_deleteAfterStatus (HTList * list, int status);
@@ -229,7 +235,7 @@ extern int HTNetCall_executeAfter (HTList * list, HTRequest * request,
 				   int status);
 </PRE>
 <H2>
-  Global BEFORE and AFTER Filter Management
+  <A NAME="Global">Global BEFORE and AFTER Filter Management</A>
 </H2>
 <P>
 Global filters are inspected on every request (they do not have to be called
@@ -246,7 +252,7 @@ extern BOOL HTNet_setBefore (HTList * list);
 extern HTList * HTNet_before (void);
 
 extern BOOL HTNet_addBefore (HTNetBefore * before, const char * tmplate,
-			     void * param, int order);
+			     void * param, HTFilterOrder order);
 
 extern BOOL HTNet_deleteBefore (HTNetBefore * before);
 </PRE>
@@ -266,7 +272,8 @@ extern BOOL HTNet_setAfter (HTList * list);
 extern HTList * HTNet_after (void);
 
 extern BOOL HTNet_addAfter (HTNetAfter * after, const char * tmplate,
-			    void * param, int status, int order);
+			    void * param, int status,
+                            HTFilterOrder order);
 
 extern BOOL HTNet_deleteAfter (HTNetAfter * after);
 

@@ -1,91 +1,99 @@
 <HTML>
 <HEAD>
-<TITLE>Using - Global Flags</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
-</HEAD>  
-<BODY>
-
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-
-<H1>Trace Messages and Preprocessor Defines</H1>
-
-The Library has a huge amount of trace messages that are very useful when debugging an application.
-In this section we will have a look at how to use the trace messages and also what preprocessor
-defines that can be used to modify the behavior of the Library.
-
-<H2>Trace Messages</H3>
-
-The Library has a huge set of trace messages that can be enabled in various ways. They are often an
-important help to the application programmer in order to debug an application and this is the reason
-why they are trated in this User's Guide. <P>
-
-<B>MORE</B>
-
-<H2>Preprocessor Defines</H2>
-
-Most of the preprocessor defines in the Library are platform dependent that are determined as a
-result of the <EM>BUILD script</EM>. However, there are some few defines that on a platform
-independent basis can change the default behavior of the Library.</P>
-
-<DL>
-<DT><CODE>HT_REENTRANT</CODE>
-<DD>This boolean define should be enabled if the reentrant versions ("*_r") of the system calls
-should be used. The name of these system calls are currently "*_r", for example
-<CODE>strtok_r</CODE>. The default value is <EM>OFF</EM>.
-
-<DT><CODE>HT_SHARED_DISK_CACHE</CODE>
-<DD>If the cache can be shared between several clients this will have an effect on the way, update
-of a document will be done. The default cache implementation of the cache manager does not support
-this so the default value is NOT defined.
-
-<DT><CODE>HT_DIRECT_WAIS</CODE>
-<DD>This boolean define is enabled by the <EM>Makefile.include</EM> file as described in section <A
-HREF="Methods.html">Access Methods</A>. The default value is <EM>OFF</EM>.
-
-<DT><CODE>HT_DEFAULT_WAIS_GATEWAY</CODE>
-<DD>A constant string value which WAIS gateway to contact if
-<CODE>HT_DIRECT_WAIS</CODE> is not defined and no gateway has been
-defined using environment variables
-
-<DT><CODE>HT_FTP_NO_PORT</CODE>
-<DD>The FTP module can handle both <CODE>PASV</CODE> and <CODE>PORT</CODE> when requesting a
-document from a FTP server. If the application is a proxy server running on top of a firewall
-machine then <CODE>PORT</CODE> is normally not allowed as a firewall does not accept incoming
-connections on arbitrary ports. This define will disable the use of <CODE>PORT</CODE>. The default
-value is to <EM>use</EM> <CODE>PORT</CODE> if <CODE>PASV</CODE> fails.
-
-<DT><CODE>WWWLIB_SIG</CODE>
-<DD>The Library has a very small set of signal handlers whose action most often are simply to ignore
-the signals. However, due to a bug in the TCP kernel on Solaris and other SVR4 platforms returning a
-SIG_PIPE signal, some kind of handling is required on these platforms, and the signal handling is
-enabled by default on these platforms.
-
-<DT><CODE>HT_TMP_ROOT</CODE>
-<DD>The default destination for temporary files if no other destination has been given by the
-application. Temporary files include files created for external presenters etc. The default value is
-<CODE>/tmp</CODE> which obviously is not suited for large amount of data.
-
-<DT><CODE>HT_CACHE_ROOT</CODE>
-<DD>If the cache is enabled and no cache root directory has been specified then use this as the
-location. The default value is again <CODE>/tmp</CODE>.
-
-<DT><CODE>HT_NO_RULES</CODE>
-<DD>If this flag is enabled then no configuration or rule file is searched for map rules when
-handling a request even if a rule file has been specified by the application. The default value is
-<EM>OFF</EM>
-
-<DT><CODE>HT_NO_PROXY</CODE>
-<DD>If no environment variables are to be searched for gateways or proxies for a request. The
-default value is <EM>OFF</EM>
-
-</DL>
-
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
+  <TITLE>Using - Global Flags</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  Trace Messages and Preprocessor Defines
+</H1>
+<P>
+The Library has a huge amount of trace messages that are very useful when
+debugging an application. In this section we will have a look at how to use
+the trace messages and also what preprocessor defines that can be used to
+modify the behavior of the Library.
+<H2>
+  Trace Messages
+</H2>
+<P>
+The Library has a large set of trace messages that can be enabled in various
+ways. They are often an important help to the application programmer in order
+to debug an application and this is the reason why they are trated in this
+User's Guide.
+<P>
+<A HREF="../../src/HTHome.html#Trace"><IMG SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Adding
+and Deleting Trace Messages</A>
+<H2>
+  Preprocessor Defines
+</H2>
+<P>
+Most of the preprocessor defines in the Library are platform dependent that
+are determined as a result of the <A HREF="../../../INSTALL.html">configure
+script</A>. However, there are some few defines that on a platform independent
+basis can change the default behavior of the Library.
+<DL>
+  <DT>
+    <CODE>HT_REENTRANT</CODE> - defined using the
+    <A HREF="../../../INSTALL.html">configure script</A>
+  <DD>
+    This boolean define should be enabled if the reentrant versions ("*_r") of
+    the system calls should be used. The name of these system calls are currently
+    "*_r", for example <CODE>strtok_r</CODE>. The default value is <EM>OFF</EM>.
+  <DT>
+    <CODE>HT_DIRECT_WAIS</CODE> - defined using the
+    <A HREF="../../../INSTALL.html">configure script</A>
+  <DD>
+    LInking to the <A HREF="../WAIS.html">freeWAIS library</A>. The default value
+    is <EM>OFF</EM>.
+  <DT>
+    <CODE>HT_DEFAULT_WAIS_GATEWAY</CODE>
+  <DD>
+    A constant string value which WAIS gateway to contact if
+    <CODE>HT_DIRECT_WAIS</CODE> is not defined and no gateway has been defined
+    using environment variables
+  <DT>
+    <CODE>HT_FTP_NO_PORT</CODE>
+  <DD>
+    The FTP module can handle both <CODE>PASV</CODE> and <CODE>PORT</CODE> when
+    requesting a document from a FTP server. If the application is a proxy server
+    running on top of a firewall machine then <CODE>PORT</CODE> is normally not
+    allowed as a firewall does not accept incoming connections on arbitrary ports.
+    This define will disable the use of <CODE>PORT</CODE>. The default value
+    is to <EM>use</EM> <CODE>PORT</CODE> if <CODE>PASV</CODE> fails.
+  <DT>
+    <CODE>WWWLIB_SIG</CODE>
+  <DD>
+    The Library has a very small set of signal handlers whose action most often
+    are simply to ignore the signals. However, due to a bug in the TCP kernel
+    on Solaris and other SVR4 platforms returning a SIG_PIPE signal, some kind
+    of handling is required on these platforms, and the signal handling is enabled
+    by default on these platforms.
+  <DT>
+    <CODE>HT_TMP_ROOT</CODE>
+  <DD>
+    The default destination for temporary files if no other destination has been
+    given by the application. Temporary files include files created for external
+    presenters etc. The default value is <CODE>/tmp</CODE> which obviously is
+    not suited for large amount of data.
+  <DT>
+    <CODE>HT_CACHE_ROOT</CODE>
+  <DD>
+    If the cache is enabled and no cache root directory has been specified then
+    use this as the location. The default value is again <CODE>/tmp</CODE>.
+</DL>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML> 
+</BODY></HTML>

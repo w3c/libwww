@@ -31,3 +31,6 @@ BUILT_SOURCES = \
 	CSMR.h		CSMRSt.h \
 	CSUser.h	CSUserSt.h \
 	CSParse.h	CSUsrLst.h
+
+DIST_EXTRA = \
+	$(BUILT_SOURCES)

@@ -80,7 +80,7 @@ PRIVATE int HTAfterOrder (const void * a, const void * b)
     return ((AfterFilter *) b)->order - ((AfterFilter *) a)->order;
 }
 
-PRIVATE int check_order (int order)
+PRIVATE int check_order (HTFilterOrder order)
 {
     return (order<HT_FILTER_FIRST) ? HT_FILTER_FIRST :
 	(order>HT_FILTER_LAST) ? HT_FILTER_LAST : order;
@@ -93,7 +93,7 @@ PRIVATE int check_order (int order)
 */
 PUBLIC BOOL HTNetCall_addBefore (HTList * list, HTNetBefore * before,
 				 const char * tmplate, void * param, 
-				 int order)
+				 HTFilterOrder order)
 {
     if (list && before) {
 	BeforeFilter * me;
@@ -189,7 +189,7 @@ PUBLIC int HTNetCall_executeBefore (HTList * list, HTRequest * request)
 */
 PUBLIC BOOL HTNetCall_addAfter (HTList * list, HTNetAfter * after,
 				const char * tmplate, void * param,
-				int status, int order)
+				int status, HTFilterOrder order)
 {
     if (list && after) {
 	AfterFilter * me;
@@ -327,7 +327,7 @@ PUBLIC HTList * HTNet_before (void)
 }
 
 PUBLIC BOOL HTNet_addBefore (HTNetBefore * before, const char * tmplate,
-			     void * param, int order)
+			     void * param, HTFilterOrder order)
 {
     if (!HTBefore) HTBefore = HTList_new();
     return HTNetCall_addBefore(HTBefore, before, tmplate, param, order);
@@ -369,7 +369,7 @@ PUBLIC HTList * HTNet_after (void)
 }
 
 PUBLIC BOOL HTNet_addAfter (HTNetAfter * after, const char * tmplate,
-			    void * param, int status, int order)
+			    void * param, int status, HTFilterOrder order)
 {
     if (!HTAfter) HTAfter = HTList_new();
     return HTNetCall_addAfter(HTAfter, after, tmplate, param, status, order);

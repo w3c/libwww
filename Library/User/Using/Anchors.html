@@ -1,30 +1,37 @@
 <HTML>
 <HEAD>
-<TITLE>Using - Anchors</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
-</HEAD>  
-<BODY>
-
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-
-<H1>Using Anchors</H1>
-
-<B>MORE</B>
-
-<UL>
-<LI>what do they represent
-<LI>where and when to use
-<LI>How to create and handle
-<LI>relations between links
-<LI>memory management
-</UL>
-
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+  <TITLE>The Anchor Class</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<H1>
+  The Anchor Class
+</H1>
+<P>
+An anchor represents a region of a hypertext document which is linked to
+another anchor in the same or a different document. Another name for anchors
+would be URLs as an anchor represents all we know about a URL - including
+where it points to and who points to it.&nbsp;Because the anchor objects
+represent the part of the Web, the application has been in touch, it is often
+useful to maintain the anchors throughout the lifetime of the application.
+It would actually be most useful if we had persistent anchors so that an
+application could build up a higher knowledge about the Web topology.
+<P>
+<A HREF="../../src/HTAnchor.html"><IMG SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
+    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors
+and Methods</A>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML> 
+</BODY></HTML>

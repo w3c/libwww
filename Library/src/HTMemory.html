@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Dynamic Memory Handlers</TITLE>
 </HEAD>
 <BODY>
@@ -139,7 +139,7 @@ extern HTMemory_exitCallback * HTMemory_exit(void);
 If an allocation fails then this function is called. If the application has
 registered its own panic handler then this is called directly from this function.
 Otherwise, the default behavior is to write a small message to stderr and
-then exit. 
+then exit.
 <PRE>
 #define outofmem(file, name)	HT_OUTOFMEM(name)
 #define HT_OUTOFMEM(name)	HTMemory_outofmem((name), __FILE__, __LINE__)
