@@ -117,7 +117,7 @@ PUBLIC int HTFileClose (HTNet * net)
 	FILE * fp = HTChannel_file(ch);
 	if (fp) {
 	    if (PROT_TRACE) HTTrace("Closing..... ANSI file %p\n", fp);
-	    status = fclose(net->host->fp);
+	    status = fclose(fp);
 	    HTChannel_setFile(ch, NULL);
 	}
 #else

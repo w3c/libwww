@@ -24,14 +24,13 @@ in real applications.
 <P>
 The purpose of libwww is to provide an environment for experimenting with
 extensions and new features - most notably for HTTP but also for many other
-parts of the Web. The focus of libwww is mostly client side applications
-like robots and browsers but it can also be used as a basis for server and
-proxy applications. Libwww is part of the <A HREF="../Areas.html">W3C
-Architecture area</A> and contains reference code for HTTP clients and for
-other Internet protocols such as FTP, Gopher, News, WAIS, Telnet servers.
-It has a rudimentary HTML parser which can only do the very basics but please
-have a look at the <A HREF="../Amaya/">Amaya Web client</A> for a full-blown
-HTML browser/editor application.
+parts of the Web. The focus of libwww is client side applications like robots
+and browsers. Libwww is part of the <A HREF="../Areas.html">W3C Architecture
+area</A> and contains sample code for HTTP clients and for other Internet
+protocols such as FTP, Gopher, News, WAIS, Telnet servers. It has a rudimentary
+HTML parser which can only do the very basics but please have a look at the
+<A HREF="../Amaya/">Amaya Web client</A> for a full-blown HTML browser/editor
+application.
 <H2>
   History
 </H2>
@@ -51,8 +50,7 @@ and H&aring;kon W. have been added to the list.
 Libwww is freely available under W3C copyright for use by anyone. The
 distribution package contains a set of example applications spanning from
 very simple ones to more advanced ones like a robot, and a text based Web
-client. It also has a DejaGNU test kit for testing libwww internals and a
-high-level interface to Tcl.
+client.
 <P>
 With <I>version 5.0</I> of libwww which was released September 10 1996, the
 status of libwww has changed from generic Web toolkit for writing applications
@@ -64,32 +62,12 @@ more focused on how to improve HTTP than to provide a generic Web API.
 </H2>
 <DL>
   <DT>
-    <A HREF="User/ReleaseNotes.html">Version 5.0</A> released September 10
+    <A HREF="User/ReleaseNotes.html">Version 5.1</A> released February 18 1997
   <DD>
-    The focus for version 5.0 was to provide a set of higher level, application
-    specific APIs for accessing the Web. The Library contains a significantly
-    improved interface for easy access to the Web through a large set of functions
-    specialized to perform certain Web operations like <CODE>PUT</CODE>,
-    <CODE>POST</CODE>, <CODE>DELETE</CODE>, GET and <CODE>HEAD</CODE>. Libwww
-    contains a full HTTP/1.1 compliant client implementation including persistent
-    connections, two-way PUT, the host header and many other features.
-  <DT>
-    Web API Presentation at WWW5
-  <DD>
-    The libwww API was presented at the
-    "<A HREF="http://www.cs.vu.nl/~eliens/WWW5/program.html">Programming the
-    Web - a search for APIs</A>" workshop in connection with the
-    <A HREF="http://www.w3.org/pub/Conferences/WWW5/">5th World Wide Web
-    conference</A> in Paris. The
-    <A HREF="http://www.w3.org/pub/Conferences/WWW5/">libwww position paper</A>
-    presented at the workshop discusses &nbsp;the basic requirements of a generic
-    Web API and the lessons learned from the development of the libwww API. The
-    most important requirement that we see today is that the Web must move towards
-    <I>language independent, formalized APIs.</I> Only by doing this can we ensure
-    that the APIs can keep up with the Web explosion which does not show signs
-    of slowing down. W3C sees the development of generic and open Web APIs as
-    an essential part of building new generations of Web applications and takes
-    an active role in focusing efforts towards this goal.
+    The focus for version 5.1 was to implement a high-performance HTTP/1.1 client
+    used as a testbed for the
+    "<A HREF="../Protocols/HTTP/Performance/Pipeline.html">Network Performance
+    Effects of HTTP/1.1, CSS1, and PNG</A>" paper.
 </DL>
 <H2>
   What is the Next Step?
@@ -106,8 +84,6 @@ model. Especially, we are looking to integration between libwww and
 how we can integrate libwww with other languages such as Tcl and Java. For
 a specific list of new features, please look at the
 <A HREF="User/ToDo.html">Library work list</A> for libwww.
-<P>
-  <HR>
 <FORM action="http://www.netmind.com/cgi-bin/uncgi/url-mind/URL-minder/URL-minder.txt">
   Enter your e-mail address to receive e-mail (courtesy of
   <A href="http://www.netmind.com/">NetMind</A>) when this page is updated:
@@ -117,10 +93,11 @@ a specific list of new features, please look at the
   <INPUT type=submit value="Register">
 </FORM>
 <P>
-<A href="../"><IMG SRC="../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A>
+  <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  <A href="../"><IMG SRC="../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A><BR>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

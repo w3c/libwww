@@ -9,7 +9,7 @@
 <A HREF="../"><IMG ALT="libwww" SRC="../../Icons/WWW/Lib48x" BORDER="0"></A>
 <IMG BORDER="0" SRC="../../Icons/WWW/relnotes48x" ALT="RELEASE">
 <H1>
-  Library 5.0 Release Notes
+  Library 5.1 Release Notes
 </H1>
 <P>
 If you are reading the text version of this document then you can find a
@@ -17,508 +17,48 @@ HTML version in
 <PRE>	Library/User/ReleaseNotes.html
 </PRE>
 <P>
-This release was originally called 4.1 but because we now have a complete
-<A HREF="../../Protocols/">HTTP/1.1</A> client side implemenation including
-a <A HREF="../src/WWWCache.html">persistent cache manager</A> and full support
-for uploading documents, we decided to call it <B>version 5.0</B> instead.
-The main new features are:
-<P>
+The main features in this release are:
 <UL>
   <LI>
-    Full HTTP/1.1 reference implementation
+    Full HTTP/1.1 sample implementation
+  <LI>
+    Advanced use of HTTP/1.1 Pipelining and persistent connections
   <LI>
     Persistent cache manager
-  <LI>
-    Full support for PUT and POST
-  <LI>
-    Application profiles for easier setup
-  <LI>
-    Many new access methods for using libwww
-  <LI>
-    Simple Tcl interface
-  <LI>
-    Configuration based on autoconf
 </UL>
 <P>
-The focus for version 5.0 of the <A HREF="../">W3C Sample Code Library</A>
-is to provide a set of higher level, application specific APIs for accessing
-the Web. The Library contains a significantly improved interface for easy
-access to the Web through a large set of functions specialized to perform
-certain Web operations like <TT>PUT</TT>, <TT>POST</TT>, <TT>DELETE</TT>,
-<TT>GET</TT> and <TT>HEAD</TT>. The Library now includes a set of
-<A HREF="../src/HTProfil.html">profiles</A> that helps the application, a
-Web client for example, to more easily use the full potential of the application
-independent <A HREF="../src/WWWCore.html">Library core</A>.
+The focus for version 5.1 was to implement a high-performance HTTP/1.1 client
+used as a testbed for the
+"<A HREF="../../Protocols/HTTP/Performance/Pipeline.html">Network Performance
+Effects of HTTP/1.1, CSS1, and PNG</A>" paper. Note that this code is sample
+code so please take it as that and nothing more!
 <P>
-It supports HTTP/1.1 including persistent connections, two-way <TT>PUT</TT>,
-the host header and many other features. This release contains a
-<A HREF="../../Robot">TCL add-on to the Robot</A> example application and
-a beta version of a <A HREF="../Test/User/">Deja GNU Test suite</A> for the
-Library. There is also a sample PEP implementation, that although incomplete
-can give an idea of where we're headed using PEP.
-<P>
-<IMG BORDER="0" SRC="../../Icons/32x32/caution" ALT="NOTE"> <B>Check out the latest
-&nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
+<IMG BORDER="0" SRC="../../Icons/32x32/caution" ALT="NOTE"> <B>Check out
+the latest &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
 <H2>
-  Release 5.0a October 10 1996
+  Release 5.1 February 18 1997
 </H2>
 <H3>
   New Features and APIs
 </H3>
 <UL>
   <LI>
-    Added support for byte range requests from the cache so that we can update
-    parts of documents in the cache.
+    Added support &nbsp;pipelining
   <LI>
-    We now use <CODE>Content-Location</CODE> when gerenating the <I>Request URL
-    </I>for a request with other any other method than <CODE>GET</CODE> and
-    <CODE>HEAD</CODE>
-  <LI>
-    We have created a <A HREF="../src/HTResponse.html">HTResponse</A> to handle
-    metainformation before it goes into the HTAnchor object. This avoids the
-    problem of overwriting metainformation in the
-    <A HREF="../src/HTAnchor.html">HTAnchor</A> object
-  <LI>
-    Added <I>insertion sort </I>mechanism to the
-    <A HREF="../src/HTList.html">HTList Object</A>. The comparison function is
-    passed as a parameter to the sorting function
-  <LI>
-    Added support for <A HREF="../../LineMode/User/Commands.html#options">OPTIONS
-    in line mode browser</A>.
-  <LI>
-    Added <CODE>HTCache_flushAll()</CODE> to the
-    <A HREF="../src/HTCache.html">HTCache manager</A>.
-  <LI>
-    Added <B>flush</B> and a couple of other persisten cache command in the
-    <A HREF="../../LineMode/">Line mode browser</A>. <B>flush</B> deletes the
-    persistent cache on disk and in memory.
-</UL>
-<H3>
-  Changes and Updates
-</H3>
-<UL>
-  <LI>
-    We have updated the <A HREF="../src/HTGuess.html">HTGuess stream</A> to work
-    on the <A HREF="../src/HTResponse.html">Response object </A>instead of the
-    <A HREF="../src/HTAnchor.html">anchor object</A>
-  <LI>
-    We have changed the name of <CODE>HTBind_getBindings</CODE> to
-    <CODE>HTBind_getAnchorBindings</CODE> and added
-    <CODE>HTBind_getResponseBindings</CODE> in the
-    <A HREF="../src/HTBind.html">HTBind module</A>
-  <LI>
-    <A HREF="../src/HTNet.html">HTNetCall_delete</A> now deletes <I>ALL</I> instances
-    of a specific filter. That is, if a single filter is registered to handle
-    multiple status codes then it is now deleted completely using this function.
-  <LI>
-    We have changed the registration of <CODE>Cache-Control</CODE> directives
-    so that they now are treated as replacements instead of additions. This way,
-    we don't get duplicate entries
-  <LI>
-    Changed behavior of the <A HREF="../src/HTFilter.html">Cache Filter </A>so
-    that a cache load doesn't call the global ingoing filters.
-  <LI>
-    Updated <A HREF="../src/HTTee.html">Tee stream</A> to make it more robust
-  <LI>
-    Changed the definition of
-    &nbsp;<A HREF="../src/HTHeader.html">HTParserCallback</A> to contain a
-    <A HREF="../src/HTResponse.html">HTResponse</A> object in addition to the
-    <A HREF="../src/HTReq.html">HTRequest</A> object. This allows us to parse
-    the response into the response object instead of the request and the anchor
-    object. It also allows us to do lazy parsing of many of the headers belonging
-    to the <A HREF="../src/HTAnchor.html">Anchor</A> object.
-  <LI>
-    Changed the <A HREF="../src/HTNet.html">HTNet Filter API</A> so that the
-    filters now can be registered with a <I>URL template</I> for when they are
-    to be called and a filter ordering deciding the order of which the registered
-    filters are to be called. The ordering is simply an integer between
-    <CODE>HT_FILTER_FIRST</CODE> and <CODE>HT_FILTER_LAST</CODE> with
-    <CODE>HT_FILTER_MIDDLE</CODE> being the <I>normal</I> case. Also, there is
-    now a difference between <I>BEFORE</I> and <I>AFTER</I> filters in that the
-    after filters are registered with a status code for when they are to be called
-    whereas the before filters are not. The API is now so that you can register
-    filters locally in the <A HREF="../src/HTReq.html">HTRequest object</A> using
-    <CODE>HTRequest_addBefore</CODE> and <CODE>HTRequest_addAfter </CODE>and
-    globally in the <A HREF="../src/HTNet.html">HTNet object</A> using
-    <CODE>HTNet_addAfter</CODE> and <CODE>HTNet_addBefore</CODE>
-  <LI>
-    We have changed the <A HREF="../src/HTAnchor.html">HTAnchor</A> methods for
-    handling allowed methods on the object to be called
-    <CODE>HTAnchor_allow</CODE> instead of <CODE>HTAnchor_methods</CODE>. This
-    then follows the header name as all other
-    <A HREF="../src/HTAnchor.html">HTAnchor</A> methods.
-  <LI>
-    <CODE>HTCache_setSize</CODE> and <CODE>HTCache_size</CODE> are no longer
-    public functions as they only belong to the <A HREF="../src/HTCache.html">cache
-    manager</A>
-  <LI>
-    We have changed the <A HREF="../src/HTTP.html">HTTP state machine</A> so
-    that a <I>"204 No Content"</I> response never is expected to contain a body
-    part.
+    Support for zlib based decompression in content encoding
 </UL>
 <H3>
   Bugfixes
 </H3>
 <UL>
   <LI>
-    In <A HREF="../src/HTHost.html">HTHost.c</A>: HTHost_nextPendingNet() there
-    was a missing pair of brackets. As a consequence, <CODE>NULL</CODE> structures
-    were pushed into the <CODE>host-&gt;pipeline</CODE> stack.
-  <LI>
-    Now the memory cache filter only checks for cached documents on
-    <CODE>GET</CODE> requests.
-  <LI>
-    The HTTP State machine didn't catch an error code returned by a POST callback
-    function
-  <LI>
-    We don't flush any metainformation on a <CODE>TRACE</CODE> method or a
-    <CODE>OPTIONS</CODE> method request anymore
-  <LI>
-    Now we copy information from the cache index back to the anchor obejct when
-    we read the index while starting up.
-  <LI>
-    Automatic connection recovery had a problem when restarting a HTTP/1.1 persistent
-    connection after premature close (thanks to <I>Markku Savela</I>)
-  <LI>
-    We have fixed a problem in handling <CODE>OPTIONS</CODE> requests on URL
-    other than "/". The path didn't contain an initial "/"
-</UL>
-<H2>
-  Release 5.0 September 10 1996
-</H2>
-<P>
-The 5.0 release has now a full persistent cache manager which works on Unix,
-and Windows NT. It has not been tested on other platforms, but it is based
-on strict ANSI C and has been designed to be portable.
-<H3>
-  Bug Fixes
-</H3>
-<UL>
-  <LI>
-    Changed <CODE><A HREF="../src/HTInet.html">HTGetTmpName</A></CODE> not to
-    use tempnam() anymore as it caused problems.
-  <LI>
-    Added argument to
-    <CODE><A HREF="../src/HTWWWStr.html">HTParseTime</A></CODE> so that we can
-    decide whether we want to expand relative times or not.
-  <LI>
-    The request pointer passed to a <A HREF="../src/HTAlert.html">progress
-    notification</A> may be <CODE>NULL</CODE> -be aware!
-</UL>
-<H2>
-  Release 4.1b5 August 24 1996
-</H2>
-<P>
-Release 4.1b5 is mainly a bug fix release after intensive testing against
-the <A HREF="http://wilson.ai.mit.edu">Common Lisp Server </A>which also
-is a HTTP/1.1 application. However, it also has a few new features worth
-noting.
-<H3>
-  New Features
-</H3>
-<UL>
-  <LI>
-    Added support for the <I>entity-tag </I>validator headers:
-    <CODE>If-Match</CODE> and <CODE>If-None-Match</CODE> and also for the
-    <I>date</I> validators <CODE>If-Modified-Since</CODE> and
-    <CODE>If-Unmodified-Since</CODE>. We only use either etags or date stamps
-    and the <I>entity-tag</I> validators have precedence over the <I>date</I>
-    validators.
-  <LI>
-    Added <A HREF="../../acinclude.m4">acinclude.m4</A> in the WWW directory.
-    The file is used by automake
-  <LI>
-    Changed the <A HREF="../../INSTALL.html">configure script</A> to handle the
-    location of the icons distributed as part of the libwww distribution package.
-  <LI>
-    Added full support for <CODE>Cache-Control</CODE> header and
-    <CODE>Connection</CODE> header. Both headers can have an association list
-    of name value pairs as directives.
-  <LI>
-    Moved the memory cache handler (history handler) from the
-    <A HREF="../../LineMode/">line mode browser</A> to be a <I>BEFORE</I>
-    <A HREF="../src/HTFilter.html">filter</A> which can be used by other applications
-    as well. It is now included as part of the
-    <A HREF="../src/HTProfil.html">client profile</A>.
-  <LI>
-    Changed the <A HREF="../src/HTReq.html">expiration handling API</A> to not
-    include any notification messages. Any messages to be transmitted to the
-    user is now handled by the <A HREF="../src/HTAlert.html">Alert manager</A>.
-  <LI>
-    Added <A HREF="../src/WWWCache.html">persistent cache manager</A> to the
-    <A HREF="../src/HTProfil.html">client profile</A>.
-  <LI>
-    Added <I>validation</I> command to the line mode browser
-  <LI>
-    Changed the cache validation management in the
-    <A HREF="../src/HTReq.html">Request object</A>. The validation scheme is
-    now compatible with HTTP/1.1 caching including handling of the history list.
-    We have changed the validation enumerations from
-    <UL>
-      <LI>
-	<CODE>HT_ANY_VERSION</CODE>, <CODE>HT_MEM_REFRESH</CODE>,
-	<CODE>HT_CACHE_REFRESH</CODE>, <CODE>HT_FORCE_RELOAD</CODE>
-      <LI>
-	<CODE>HT_CACHE_OK</CODE>, <CODE>HT_CACHE_FLUSH_MEM</CODE>,
-	<CODE>HT_CACHE_VALIDATE</CODE>, <CODE>HT_CACHE_FLUSH</CODE>.
-    </UL>
-</UL>
-<H3>
-  Bug Fixes
-</H3>
-<UL>
-  <LI>
-    Fixed problem when getting a <CODE>connection</CODE> header with the
-    <CODE>close</CODE> directive. The problem caused libwww to loop as it recursively
-    tried to free the input stream pipe
-  <LI>
-    Fixed bug in access authentication which could cause libwww to loop if the
-    top level of the site was protected.
-  <LI>
-    Fixed bug that caused a core dump if receiving a message body without any
-    <CODE>content-type</CODE>. Now the data is passed to the
-    <A HREF="../src/HTGuess.html">guessing stream</A> which hopefully can handle
-    it.
-</UL>
-<H2>
-  Release 4.1b4 August 20 1996
-</H2>
-<P>
-HTTP version 1.1 allows for effective use of persistent connections. However,
-in orderto make this work, a client application must be capable of recovering
-from a closed connection between sent requests. The beta 4 version of libwww
-supports automatic connection recovery and provides the functionality for
-performing pipelining of requests. That is, there can be multiple outstanding
-requests on the same connection In order to do this, the release contains
-&nbsp;modifications to the <A HREF="../src/HTChannl.html">Channel Object</A>,
-the <A HREF="../src/HTHost.html">Host object</A> and the
-<A HREF="../src/HTNet.html">Net object</A>.
-<H3>
-  New Features
-</H3>
-<UL>
-  <LI>
-    Added support for case-insensitive searching for proxies via environment
-    variables
-  <LI>
-    Added support for proxy authentication
-  <LI>
-    Changed handling of proxies so that they are not included in the URL but
-    is now instead part of the request object. This allows for better handling
-    of proxies and also for more freely use of the proxy filter as it doesn't
-    affect the other filters anymore.
-  <LI>
-    Added support for TRACE HTTP method in the
-    <A HREF="../src/HTAccess.html">HTAccess module</A>.
-  <LI>
-    Updated News DLL and incorporated News patches from <I>Maciej Puzio</I>
-  <LI>
-    <CODE>HT_PERSISTENT</CODE> is now obsolete and should be replaced by
-    <CODE>HT_PENDING</CODE>
-  <LI>
-    The <CODE>HTChannelMode</CODE> enumeration describing the flow of a channel
-    has been replaced by <CODE>HTTransportMode</CODE> as it is now a part of
-    the transport object and not the channel object
-  <LI>
-    <CODE>HTNet_idle()</CODE> has been removed and replaced by
-    <CODE>HTNet_isIdle()</CODE>. The function returns YES if there are no pending
-    requests in libwww at all.
-  <LI>
-    Add support for checking public information about a host and use this information
-    when issuing a PUT, for example. Also add check for host element in
-    <A HREF="../src/HTAccess.html">HTAccess</A> when doing PUT. We may have public
-    information available
-  <LI>
-    Changed the return codes defined in <A HREF="../src/HTUtils.html">HTUtils
-    </A>to reflect the values of the HTTP spec.
-  <LI>
-    Added support for <CODE>305 Use Proxy</CODE> redirections
-  <LI>
-    Updated <A HREF="../src/HTDir.html">HTDir module</A> to better use the fact
-    that we know that an entry is a directory or not. Now it appends a '/' to
-    the URL if it is a directory. That way we often avoid a redirection.
-  <LI>
-    Removed WWWRules as interface and merged it with the
-    <A HREF="../src/WWWApp.html">WWWApp interface</A>. The reason was that the
-    two were highly alike and depended on each other
-</UL>
-<H3>
-  Bug Fixes
-</H3>
-<UL>
-  <LI>
-    Fixed problem with uploading directory listing using chunked encoding
-  <LI>
-    Fixed autoconf to handle WAIS and updated the HTWAIS.c module
-  <LI>
-    Fixed race problem in PUT on alphas
-  <LI>
-    Tested reentrant version of libwww (uses <CODE>_REENTRANT</CODE> define)
-  <LI>
-    Fixed problem in file name conversion from URL to local format on Windows
-</UL>
-<H2>
-  Release 4.1b3 July 20 1996
-</H2>
-<P>
-The <A HREF="../src/HTFile.html">file access module</A> now does content
-negotiation by default. This means that all local file access (including
-from client applications) <B>do</B> content negotiation when accessing local
-files. Content negotiation can be turned off by setting a flag in the
-<A HREF="../src/HTReq.html">request object</A>.
-<P>
-A main difference in beta 3 is that we now have a set of
-"<A HREF="../src/HTProfil.html">application profiles</A>" that helps the
-application to initialize <A HREF="../src/WWWCore.html">libwww core</A> to
-work as a typical client, robot or other type of application. This should
-replace the huge initialization procedure seen in previous versions. This
-is in fact a result of the core being so flexible - it is inly a framework
-for accessing the Web. The application must initialize all the functionality
-at run-time. You can see the various profile functions in the
-<A HREF="../src/WWWInit.html">WWWInit interface</A>.
-<P>
-The second main difference is that the <I>BEFORE</I> and <I>AFTER</I> filters
-have been more explicit than before. The <CODE>HTLoadStart</CODE> and
-<CODE>HTLoadTerminate</CODE> functions actually covered many typical
-<I>BEFORE</I> and <I>AFTER</I> filter functions like looking for proxies,
-searching the cache, looking for rule file matching, and logging etc.
-<P>
-However, two functions were not covered by this: <I>redirection</I> and
-<I>authentication</I>. That is why the application in previous version had
-to supply this functionality. However, in beta 3 we have split up the
-<CODE>HTLoadStart</CODE> and <CODE>HTLoadTerminte</CODE> functions into a
-<A HREF="../src/HTFilter.html">set of filters</A> which each perform only
-a single function, for example looking for proxies. The split has two functions:
-first it shows how you can use filtes to add new functionality to the Library
-and second it can be used by more types of applications. A result of the
-new filters is that we also have default redirection and authentication filters
-so you don't have to provide this anymore.
-<P>
-The <A HREF="../src/HTFilter.html">filters</A> are set up as part of the
-<A HREF="../src/HTProfil.html">profiles</A> so you will normally not have
-to register them individually.
-<H3>
-  New features and Changes
-</H3>
-<UL>
-  <LI>
-    Introduced <A HREF="../src/HTUser.html">HTUserprofile</A> class to handle
-    host and user specific information
-  <LI>
-    Added <A HREF="../src/HTTChunk.html">Chunked decoding and encoding module</A>
-  <LI>
-    A host name is not expanded to a <B>fqdn</B> name as it is not reliable enough.
-    Now we just keep it as is, that is we don't expand <I>www</I> to
-    <I>www.w3.org</I>, for example.
-  <LI>
-    Updated <A HREF="../src/HTML.html">HTML parser</A> to support
-    <CODE>BASE</CODE> tag and <CODE>LINK</CODE> tag
-  <LI>
-    Added new access methods to the <A HREF="../src/HTAccess.html">HTAccess
-    module</A>. It is now part of the <A HREF="../src/WWWApp.html">WWWApp
-    interface</A>
-  <LI>
-    Updated the <A HREF="../src/HTIcons.html">Icon module</A> and added icons
-    to the distribution file
-  <LI>
-    Added a <A HREF="../src/HTSChunk.html">Stream to Chunk converter </A>for
-    easier conversion of streams into dynamic memory buffers
-  <LI>
-    Introduced <A HREF="../src/HTLib.html">HTLib</A> as a new core module. It
-    contains generic information about the core which used to be in the HTAccess
-    module.
-  <LI>
-    Added support for <A HREF="../../Protocols/">HTTP/1.1</A>. Most of the HTTP/1.1
-    specification is now in place, we still need some headers and some features
-    but this version can be considered to be compliant.
-  <LI>
-    Added suport for proxy authentication as specified by HTTP/1.1
-  <LI>
-    Added support for case-insensitive searching for proxies via environment
-    variables
-  <LI>
-    Changed handling of proxies so that they are not included in the URL but
-    is now instead part of the request object. This allows for better handling
-    of proxies and also for more freely use of the proxy filter as it doesn't
-    affect the other filters anymore.
-</UL>
-<H3>
-  Bug Fixes
-</H3>
-<UL>
-  <LI>
-    Fixed problem with uploading directory listing using chunked encoding
-  <LI>
-    Fixed problem in the rule file parser. It didn't parse the last line of the
-    config file
-  <LI>
-    Fixed autoconf to handle WAIS and updated the
-    <A HREF="../src/HTWAIS.html">HTWAIS.c </A>module
-  <LI>
-    Fixed race problem in PUT on alphas which caused the PUT operation to hang
-    under certain circumstances
-</UL>
-<H2>
-  Release 4.1b1 May 20 1996
-</H2>
-<H3>
-  New Features
-</H3>
-<UL>
-  <LI>
-    Introduced GNU autoconf configure script for compiling on Unix platforms
-    instead of the old BUILD script. This should make it a lot easier to compile
-    on Unix as we get all the advantages of GNU autoconf.
-  <LI>
-    Introduction of the <A HREF="../src/HTUser.html">HTUserprofile Class </A>which
-    keeps track of a "user" known to the Library
-  <LI>
-    New access authentication interface allowing for dynamic registration of
-    new access authentication mechanisms. It provides an easy API for hooking
-    in new schemes.
-  <LI>
-    Improved handling of trace messages which allows for easy redirection of
-    trace messages
-  <LI>
-    Support for registration of content coders/decoders and content transfer
-    encoders/decoders. This is done the same way as for media types by registering
-    a set of streams that can handle the various encodings.
-  <LI>
-    Support for <I>chunked</I> decoding
-  <LI>
-    Introduction of the <A HREF="../src/HTHost.html">HTHost Class</A> which keeps
-    track of information about remote hosts
-  <LI>
-    The <A HREF="../src/HTDNS.html">DNS Class</A> has been simplified to handle
-    DNS queries only. All additional information about the remote host is defined
-    by the HThost Class.
-  <LI>
-    We have a new <A HREF="../src/HTEvent.html">HTEvent module</A> which allows
-    for dynamic registration of an event manager. This will make it much easier
-    to use external event managers together with libwww. If you wish to continue
-    to use the event loop from HTEvntrg, you must register it explicitly with
-    <A HREF="../src/HTEvntrg.html">HTEventrgInit</A>. This call is demonstrated
-    in <A HREF="../../LineMode/src/HTBrowse.c">HTBrowse</A>.
-  <LI>
-    The <A HREF="../src/HTStream.html">HTStream module</A> has been created
-    containing a set of basiv streams such as an error stream etc.
-  <LI>
-    Introduction of the <A HREF="../src/HTTrans.html">HTTransport Class</A>.
-    This allows for dynamic registration of transport protocols such as for example
-    the W3Mux protocol, TCP access, local file access etc.
-  <LI>
-    All MIME parsing is now done with registered parsers. The
-    <A HREF="../src/HTMIME.html">HTMIME</A> module only unwraps the &nbsp;MIME
-    header fields and calls the best parser. The header parsing origonally done
-    in HTMIME can be found in <A HREF="../src/HTInit.c">HTInit.c</A> and is
-    registered with <A HREF="../src/HTInit.html">HTMIMEInit</A>. This call is
-    demonstrated in <A HREF="../../LineMode/src/HTBrowse.c">HTBrowse</A>.
+    A whole bunch of them...
 </UL>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

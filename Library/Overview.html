@@ -23,27 +23,24 @@ and <A HREF="../Jigsaw/">Jigsaw server</A> for a full-blown server application.
       WIDTH="48" HEIGHT="48" BORDER="0"></A> News and Updates
 </H2>
 <H3>
-  <B><A HREF="Distribution.html">Libwww Version 5.0a</A> has been released
-  October 10</B>
+  <B><A HREF="Distribution.html">Libwww Version 5.1</A> has been released to
+  W3C members February 18</B>
 </H3>
 <P>
-This release is a major upgrade of libwww from previous versions. It contains
-a full <A HREF="../Protocols/">HTTP/1.1</A> client side sample implementation
-including a persistent cache which optimizes access to the Net. It has been
-tested against <A HREF="../Jigsaw/">Jigsaw</A> written by Anselm Baird-Smith
-and <A HREF="http://wilson.ai.mit.edu/cl-http/cl-http.html">CL-HTTP - the
-Common Lisp Hypermedia Server</A> written by John Mallery.
+This release is a "second generation" HTTP/1.1 implementation using persistent
+connections, pipelining, smart output buffering, and persistent caching.
+It is the code base that was used in the
+"<A HREF="../Protocols/HTTP/Performance/Pipeline.html">Network Performance
+Effects of HTTP/1.1, CSS1, and PNG</A>" paper. It has been tested against
+<A HREF="../Jigsaw/">Jigsaw</A> writte and
+<A HREF="http://www.apache.org">Apache</A>.
 <UL>
   <LI>
-    Check out the <A HREF="User/ReleaseNotes.html">long list of new features</A>.
+    Check out the <A HREF="User/ReleaseNotes.html">list of new features</A>
   <LI>
     Complete HTTP/1.1 compliant persistent cache manager
   <LI>
-    Libwww includes a <A HREF="Test/src/Tcl_Interface.h">simple Tcl Interface</A>
-    for all the HTTP/1.1 methods
-  <LI>
-    The libwww <A HREF="../Robot/">robot test application</A> has a
-    <A HREF="../Robot/src/Robot.tcl">Tcl-Tk-based user interface</A>
+    Support for zlib based decompression
   <LI>
     Check out the new <A HREF="User/Extrnals.html">complete index of public
     function</A>

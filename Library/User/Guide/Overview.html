@@ -6,10 +6,10 @@
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home" WIDTH="72"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"
+    WIDTH="72" HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x"
+    WIDTH="48" HEIGHT="48" BORDER="0"></A>
 <IMG BORDER="0" ALT="LibGuide" SRC="../../../Icons/WWW/internals48x">
 <H1>
   W3C Library Interfaces
@@ -54,7 +54,6 @@ The core interfaces must be included in all applications. <A NAME="dll"></A>
 </H3>
 <P>
 This is a small interface that handles trace messages on Windows
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwdll.dll</B>
@@ -67,12 +66,11 @@ This is a small interface that handles trace messages on Windows
 <P>
 The Utility modules are mostly container modules, dynamic strings and other
 stuff that you can't live without when building applications. The modules
-are used by the core part of the W3C Sample Code Library but can also be used
-by the application. See also the main Library include file called
+are used by the core part of the W3C Sample Code Library but can also be
+used by the application. See also the main Library include file called
 <A HREF="../../src/WWWLib.html">WWWLib.h</A> which contains all converters
 and protocol modules known to the Library. You can include this one if the
 application is to use all the functionality of the Library.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwutil.dll</B>
@@ -97,7 +95,6 @@ functionality, for example accessing HTTP servers or the local file system.
 The Library has a special include file called
 <A HREF="../../src/WWWApp.html">WWWApp.h</A> which a lot of application helper
 modules that makes it easier to use the core.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwcore.dll</B>
@@ -116,7 +113,6 @@ All transport interfaces are registered dynamically in libwww. This means
 that libwww is independent of the transport being used (for example TCP)
 and you can therefore use libwww in any context you like. You have to specify
 a set of parameters in order for libwww to be able to use it.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwtrans.dll</B>
@@ -136,7 +132,6 @@ a set of parameters in order for libwww to be able to use it.
 <P>
 The cache contains details of temporary disk files which contain the contents
 of remote documents.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwcache.dll</B>
@@ -158,7 +153,6 @@ that as the <A HREF="../../src/HText.html">HText</A> is <B>not</B> included
 in this interface. The reason is that the HText interface only is declared
 by the Library but must be defined by the application. Therefore it can not
 be part of a DLL but must be included directly in the application.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwhtml.dll</B>
@@ -176,7 +170,6 @@ be part of a DLL but must be included directly in the application.
 This is the include file for the directory handling modules that can be used
 together with the core of the W3C Sample Code Library. It contains all Directory
 specific modules which are required to compile and build the DIRECTORY DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwdir.dll</B>
@@ -188,14 +181,13 @@ specific modules which are required to compile and build the DIRECTORY DLL.
     <A HREF="../../src/WWWDir.html">Interface include file</A>
 </UL>
 <H3>
-  <A HREF="../../src/WWWStream.html">Stream Interface</A>
+  <A HREF="../../src/WWWStream.html">Special Streams</A>
 </H3>
 <P>
 This interface provides a set of specialized stream. For example a stream
 for guessing unknown media types from magic words. It also contains streams
 for downloading a document into a memory buffer, counting content length
 and much more.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwstream.dll</B>
@@ -213,7 +205,6 @@ and much more.
 This is the module for basic RFC822/MIME parsing that can be used together
 with the core of the W3C Sample Code Library. It contains all MIME specific
 modules which are required to compile and build the MIME DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwmime.dll</B>
@@ -223,6 +214,25 @@ modules which are required to compile and build the MIME DLL.
     <A HREF="../../src/windows/wwwmime.def">Definition list of exported API</A>
   <LI>
     <A HREF="../../src/WWWMIME.html">Interface include file</A>
+</UL>
+<H3>
+  <A HREF="../../src/WWWZip.html">Content Encoding Compression and Decompression
+  Streams</A>
+</H3>
+<P>
+The stream part of the Library is a set of streams that can be used to
+encode/decode, or compress/decompress content. Many of the streams are based
+on <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib</A> which is a freely
+available compression library.
+<UL>
+  <LI>
+    Name of DLL: <B>wwwzip.dll</B>
+  <LI>
+    <A HREF="../Extrnals.html#wwwZip">Hypertext List of Exported Functions</A>
+  <LI>
+    <A HREF="../../src/windows/wwwzip.def">Definition list of exported API</A>
+  <LI>
+    <A HREF="../../src/WWWZip.html">Interface include file</A>
 </UL>
 <H2>
   Protocol Interfaces
@@ -234,7 +244,6 @@ modules which are required to compile and build the MIME DLL.
 This is the include file for local file handling modules that can be used
 together with the core of the W3C Sample Code Library. It contains modules
 which are required to compile and build the FILE DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwfile.dll</B>
@@ -252,7 +261,6 @@ which are required to compile and build the FILE DLL.
 This is the include file for the basic FTP module that can be used together
 with the core of the W3C Sample Code Library. It contains all FTP specific
 modules which are required to compile and build the FTP DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwftp.dll</B>
@@ -270,7 +278,6 @@ modules which are required to compile and build the FTP DLL.
 This is the include file for the basic GOPHER module that can be used together
 with the core of the W3C Sample Code Library. It contains all GOPHER specific
 modules which are required to compile and build the GOPHER DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwgophe.dll</B>
@@ -286,10 +293,9 @@ modules which are required to compile and build the GOPHER DLL.
 </H3>
 <P>
 This is the include file for all HTTP access including the server side and
-the client side. It can be used together with the core of the W3C Sample Code
-Library. It contains all HTTP specific modules which are required to compile
-and build the HTTP DLL.
-<P>
+the client side. It can be used together with the core of the W3C Sample
+Code Library. It contains all HTTP specific modules which are required to
+compile and build the HTTP DLL.
 <UL>
   <LI>
     Name of DLL: <B>wwwhttp.dll</B>
@@ -307,7 +313,6 @@ and build the HTTP DLL.
 This is the include file for the basic NNTP module that can be used together
 with the core of the W3C Sample Code Library. It contains all News specific
 modules which are required to compile and build the News DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwnews.dll</B>
@@ -326,7 +331,6 @@ This is the include file for the basic Telnet, rlogin, and TN3270 module
 that can be used together with the core of the W3C Sample Code Library. It
 contains all Telnet, rlogin, and TN3270 specific modules which are required
 to compile and build the Telnet, rlogin, and TN3270 DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwtelnt.dll</B>
@@ -344,7 +348,6 @@ to compile and build the Telnet, rlogin, and TN3270 DLL.
 This is the include file for the basic WAIS module that can be used together
 with the core of the W3C Sample Code Library. It contains all WAIS specific
 modules which are required to compile and build the WAIS DLL.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwwais.dll</B>
@@ -359,7 +362,7 @@ modules which are required to compile and build the WAIS DLL.
   Application Interfaces
 </H2>
 <H3>
-  <A HREF="../src/WWWApp.html">Application Utilities</A>
+  <A HREF="../../src/WWWApp.html">Application Utilities</A>
 </H3>
 <P>
 A way to initialize applications is to use a rule file, also known as a
@@ -385,7 +388,6 @@ using HTTP.
 This module provides provides functionality for handling proxies, rule files,
 and a large set of other application utilities that make it easier to build
 an application using libwww.
-<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwapp.dll</B>
@@ -397,7 +399,8 @@ an application using libwww.
     <A HREF="../../src/WWWApp.html">Interface include file</A>
 </UL>
 <H3>
-  <A HREF="../src/WWWInit.html" NAME="Initialization">Initialization Modules</A>
+  <A HREF="../../src/WWWInit.html" NAME="Initialization">Initialization
+  Modules</A>
 </H3>
 <P>
 The core parts of the Library is a framework for adding functionality. It
@@ -406,11 +409,10 @@ for adding streams that can convert from one media type to some other type,
 or presenting the result to the user. In the distribution file of the Library
 you will find a large set of protocol modules and streams already implemented.
 However, in order to use these you need to initialize them. This can be done
-by using the methods in the <A HREF="WWWInit.html">WWWInit</A> module. You
-can modify these modules as you like to fit your particular needs. The modules
-in this interface are <B>not</B> part of any DLL and so must be included
-directly if desired.
-<P>
+by using the methods in the <A HREF="../../src/WWWInit.html">WWWInit</A>
+module. You can modify these modules as you like to fit your particular needs.
+The modules in this interface are <B>not</B> part of any DLL and so must
+be included directly if desired.
 <UL>
   <LI>
     <A HREF="../../src/WWWInit.html">WWWInit Interface include file</A>
