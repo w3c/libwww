@@ -49,14 +49,4 @@ DELETE ALL DOCUMENTS IN MEMORY
 extern BOOL HText_freeAll (void);
 /*
 
-MEMORY CACHE HANDLER
-
-   Check if document is already loaded. As the application handles the memory cache, we
-   call the application to ask. Also check if it has expired in which case we reload it
-   (either from disk cache or remotely)
-   
- */
-extern HTMemoryCacheHandler HTMemoryCache;
-/*
-
-   End of declaration  */
+   End of declaration */

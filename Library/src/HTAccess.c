@@ -796,6 +796,7 @@ PUBLIC BOOL HTPutAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
+	    HTRequest_addRqHd(request, HT_C_IF_MATCH);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
@@ -949,6 +950,7 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
+	    HTRequest_addRqHd(request, HT_C_IF_MATCH);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
@@ -1028,6 +1030,7 @@ PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
 
 	/* Set up the request object */
 	HTRequest_addGnHd(request, HT_G_DATE);
+	HTRequest_addRqHd(request, HT_C_IF_MATCH);
 	HTRequest_setEntityAnchor(request, me->source);
 	HTRequest_setMethod(request, METHOD_PUT);
 	HTRequest_setAnchor(request, me->destination);
@@ -1139,7 +1142,7 @@ PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 	    **  We make sure that we are not using a memory cached element.
 	    **  It's OK to use a file cached element!
 	    */
-	    HTRequest_setReloadMode(request, HT_MEM_REFRESH);
+	    HTRequest_setReloadMode(request, HT_CACHE_FLUSH_MEM);
 
 	    /*
 	    ** Now we load the source document into a chunk. We specify that
@@ -1189,7 +1192,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 	src_req = HTRequest_dupInternal(main_dest);	  /* Get a duplicate */
 	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
 	src_req->method = METHOD_GET;
-	src_req->reload = HT_MEM_REFRESH;
+	src_req->reload = HT_CACHE_FLUSH_MEM;
 	src_req->output_stream = NULL;
 	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
 
@@ -1205,7 +1208,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 		return NO;
 	    }
 	    main_dest->GenMask |= HT_G_DATE;		 /* Send date header */
-	    main_dest->reload = HT_CACHE_REFRESH;
+	    main_dest->reload = HT_CACHE_VALIDATE;
 	    main_dest->method = method;
 	    main_dest->input_format = WWW_SOURCE;
 	    HTRequest_addDestination(src_req, main_dest);
@@ -1228,7 +1231,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 		}
 		dest_req = HTRequest_dupInternal(main_dest);
 		dest_req->GenMask |= HT_G_DATE;		 /* Send date header */
-		dest_req->reload = HT_CACHE_REFRESH;
+		dest_req->reload = HT_CACHE_VALIDATE;
 		dest_req->method = method;
 		dest_req->output_stream = NULL;
 		dest_req->output_format = WWW_SOURCE;
@@ -1288,7 +1291,7 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
 	return NO;
     }
     request->GenMask |= HT_G_DATE;			 /* Send date header */
-    request->reload = HT_CACHE_REFRESH;
+    request->reload = HT_CACHE_VALIDATE;
     request->method = method;
     request->source_anchor = HTAnchor_parent(source_anchor);
     request->PostCallback = callback;

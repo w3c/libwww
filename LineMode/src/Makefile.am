@@ -13,7 +13,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = windows vms
 
-INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS-client/src @WAISINCLUDE@
+INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS-client/src -I$(srcdir)/@WAISINCLUDE@
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.

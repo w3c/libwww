@@ -388,6 +388,12 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 {
     if (host && host->channel) {
 	HTChannel_setHost(host->channel, NULL);
+	
+	/*
+	**  We don't want to recursively delete ourselves so if we are
+	**  called from within the stream pipe then don't delete the channel
+	**  at this point
+	*/
 	HTChannel_delete(host->channel, status);
 	host->expires = 0;
 	host->channel = NULL;

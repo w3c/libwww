@@ -26,7 +26,7 @@
 ** Currently it is preset to 100 but may be changed by the application by
 ** writing into this variable.
 */
-#define CACHE_LIMIT	5				  /* Number of files */
+#define CACHE_LIMIT	100				  /* Number of files */
 
 #define CACHE_INFO	".cache_info"
 #define INDEX_FILE	".cache_dirindex"
@@ -60,9 +60,6 @@ PRIVATE HTList *	HTCacheList = NULL;	  /* List of cached elements */
 PRIVATE int		HTCacheLimit = CACHE_LIMIT;
 
 PRIVATE HTExpiresMode HTExpMode = HT_EXPIRES_IGNORE;
-PRIVATE char *HTExpNotify = NULL;
-
-PRIVATE HTMemoryCacheHandler *HTMemoryCache = NULL;  /* Memory cache handler */
 
 /* ------------------------------------------------------------------------- */
 /*  			      GARBAGE COLLECTOR				     */
@@ -468,30 +465,6 @@ PUBLIC void HTCache_freeRoot (void)
     HT_FREE(HTCacheRoot);
 }
 
-/* ------------------------------------------------------------------------- */
-/*  				 MEMORY CACHE				     */
-/* ------------------------------------------------------------------------- */
-
-/*
-**  Register a Memory Cache Handler. This function is introduced in order to
-**  avoid having references to HText module outside HTML.
-*/
-PUBLIC BOOL HTMemoryCache_register (HTMemoryCacheHandler * cbf)
-{
-    return (HTMemoryCache = cbf) ? YES : NO;
-}
-
-PUBLIC BOOL HTMemoryCache_unRegister (void)
-{
-    HTMemoryCache = NULL;
-    return YES;
-}
-
-PUBLIC int HTMemoryCache_check (HTRequest * request)
-{
-    return HTMemoryCache ? HTMemoryCache(request,HTExpMode,HTExpNotify) : 0;
-}
-
 /*
 **  Set the mode for how we handle Expires header from the local history
 **  list. The following modes are available:
@@ -499,18 +472,14 @@ PUBLIC int HTMemoryCache_check (HTRequest * request)
 **	HT_EXPIRES_IGNORE : No update in the history list
 **	HT_EXPIRES_NOTIFY : The user is notified but no reload
 **	HT_EXPIRES_AUTO   : Automatic reload
-**
-**  The notify only makes sense when HT_EXPIRES_NOTIFY. NULL is valid.
 */
-PUBLIC void HTCache_setExpiresMode (HTExpiresMode mode, char * notify)
+PUBLIC void HTCache_setExpiresMode (HTExpiresMode mode)
 {
     HTExpMode = mode;
-    HTExpNotify = notify;
 }
 
-PUBLIC HTExpiresMode HTCache_expiresMode (char ** notify)
+PUBLIC HTExpiresMode HTCache_expiresMode (void)
 {
-    *notify = HTExpNotify ? HTExpNotify : "This version has expired!";
     return HTExpMode;
 }
 

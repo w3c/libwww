@@ -779,8 +779,17 @@ PUBLIC BOOL HTNet_setPersistent (HTNet *		net,
 	BOOL result;			/* Bill Rizzi */
 	if (persistent)
 	    result = HTHost_setChannel(net->host, net->channel, mode);
-	else
-	    result = HTHost_clearChannel(net->host, HT_OK);
+	else {
+
+	    /*
+	    **  We use the HT_IGNORE status code as we don't want to free
+	    **  the stream at this point in time. The situation we want to
+	    **  avoid is that we free the channel from within the stream pipe.
+	    **  This will lead to an infinite look having the stream freing
+	    **  itself.
+	    */
+	    result = HTHost_clearChannel(net->host, HT_IGNORE);
+	}
 	if (CORE_TRACE)
 	    HTTrace("Net Object.. Persistent connection set %s %s\n",
 		    persistent ? "ON" : "OFF",

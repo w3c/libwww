@@ -58,17 +58,6 @@ This is typically called at clean up time just before exiting the application.
 extern BOOL HText_freeAll (void);
 </PRE>
 
-<H2>Memory Cache Handler</H2>
-
-Check if document is already loaded. As the application handles the
-memory cache, we call the application to ask. Also check if it has
-expired in which case we reload it (either from disk cache or
-remotely)
-
-<PRE>
-extern HTMemoryCacheHandler HTMemoryCache;
-</PRE>
-
 End of declaration
 
 </BODY>

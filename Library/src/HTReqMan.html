@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Private Request Definition</TITLE>
 </HEAD>
 <BODY>
@@ -182,6 +182,22 @@ request to the application using this anchor.
     HTList *		destinations;		 /* List of related requests */
     int			destRequests;	   /* Number of destination requests */
     int			destStreams;	    /* Number of destination streams */
+</PRE>
+<H3>
+  Cache Control Directives
+</H3>
+<P>
+This association list is a list of the cache control directives that are
+to be sent as part of the <CODE>Cache-Control</CODE> header.
+<PRE>    HTAssocList *       cache_control;
+</PRE>
+<H3>
+  Connection Control Directives
+</H3>
+<P>
+This association list is a list of the connection control directives that are
+to be sent as part of the <CODE>Connection</CODE> header.
+<PRE>    HTAssocList *       connection;
 </PRE>
 <H3>
   Access Authentication Information

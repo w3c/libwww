@@ -243,7 +243,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NOT_MODIFIED,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPNextState");
-	http->next = HTTP_ERROR;
+	http->next = HTTP_OK;
 	http->result = HT_NOT_MODIFIED;
 	break;
 	
@@ -542,7 +542,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	**  one. This is particularly important for the content-length and the
 	**  like.
 	*/
-	{
+	if (me->status != 304) {
 	    HTParentAnchor * anchor = HTRequest_anchor(me->request);
 	    HTAnchor_clearHeader(anchor);
 	}
@@ -832,7 +832,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    ** restarting the pipe line of requests if any
 		    */
 		    if (HTHost_isPersistent(host)) {
-			status = HT_RECOVER_PIPE;
+			http->result = HT_RECOVER_PIPE;
 			http->state = HTTP_ERROR;
 			break;
 		    } else

@@ -21,20 +21,11 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTMLPDTD.h"
-#include "HTMLGen.h"
-#include "HTBind.h"
-#include "HTEscape.h"
-#include "HTParse.h"
-#include "HTFormat.h"
-#include "HTReq.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWHTML.h"
 #include "HTIcons.h"
-#include "HTStruct.h"
 #include "HTDescpt.h"
-#include "HTArray.h"
-#include "HTError.h"
 #include "HTDir.h"					 /* Implemented here */
 
 /* Macros and other defines */

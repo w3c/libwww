@@ -19,8 +19,6 @@
 #include "GridStyle.h"
 #include "GridText.h"
 
-#include "HTReqMan.h"
-
 /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
 #ifdef CYRILLIC
 #include "a_stdio.h"
@@ -1065,65 +1063,3 @@ PUBLIC HTAnchor *	HText_linkSelTo (HText * me, HTAnchor * anchor)
 {
     return 0;
 }
-
-/*
-**	Returns YES: keep header, NO: discard
-*/
-PUBLIC BOOL HTHeaderParser (HTRequest *request, char *header)
-{
-    if (STREAM_TRACE)
-	HTTrace("MIMEExtra... we are now in callback\n");
-    return YES;
-}
-
-/*
-** Check if document is already loaded. As the application handles the
-** memory cache, we call the application to ask. Also check if it has
-** expired in which case we reload it (either from disk cache or remotely)
-*/
-PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
-			  char * notification)
-{
-    HTParentAnchor *anchor = HTRequest_anchor(request);
-    HText *text;
-    if (!request)
-	return HT_ERROR;
-    if ((text = (HText *) HTAnchor_document(anchor))) {
-	if (HTRequest_reloadMode(request) != HT_MEM_REFRESH) {
-	    if (CACHE_TRACE)
-		HTTrace("HTMemCache.. Document already in memory\n");
-	    if (mode != HT_EXPIRES_IGNORE) {
-		if (!HTCache_isValid(anchor)) {
-		    if (mode == HT_EXPIRES_NOTIFY) {
-			if (WWWTRACE) HTTrace("%s\n", notification);
-		    } else {
-			if (CACHE_TRACE)
-			    HTTrace(
-				    "HTMemCache.. Expired - autoreload\n");
-			HTRequest_addRqHd(request, HT_C_IMS);
-#ifndef HT_SHARED_DISK_CACHE
-			HTRequest_setReloadMode(request, HT_CACHE_REFRESH);
-#endif
-			return HT_ERROR; /* Must go get it */
-		    }
-		}
-	    }
-
-	    /*
-	     ** If we can use object then select it and return
-	     ** This should be a callback to the app mem cache handler
-	     */
-	    if (request->childAnchor)
-		HText_selectAnchor(text, request->childAnchor);
-	    else
-		HText_select(text);
-	    return HT_LOADED;
-	} else {		/* If refresh version in memory */
-	    HTRequest_addRqHd(request, HT_C_IMS);
-	}
-    } else {			      /* Don't reuse any old metainformation */
-	HTAnchor_clearHeader(anchor);
-    }
-    return HT_ERROR;
-}
-

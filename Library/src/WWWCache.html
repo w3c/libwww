@@ -1,82 +1,67 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww PERSISTENT CACHE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Persistent Cache Manager</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference PERSISTENT CACHE MODULE</H1>
-
+<H1>
+  Declaration of W3C Reference Persistent Cache Manager
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-<H3>Cache Manager</H3>
-
-Caching is a required part of any efficient Internet access
-applications as it saves bandwidth and improves access performance
-significantly in almost all types of accesses.  The Library supports
-two different types of cache: The memory cache and the file cache. The
-two types differ in several ways which reflects their two main
-purposes: The memory cache is for short term storage of graphic
-objects whereas the file cache is for intermediate term storage of
-data objects. Often it is desirable to have both a memory and a file
-version of a cached document, so the two types do not exclude each
-other. <P>
-
-The cache contains details of temporary disk files which contain the
-contents of remote documents.  There is also a <A
-HREF="HTAnchor.html#z1">list of cache items for each URL</A> in its
-anchor object. <P>
-
-There are various ways of handling Expires header when met in a
-history list. Either it can be ignored all together, the user can be
-notified with a warning, or the document can be reloaded
-automatically. This flag decides what action to be taken. The default
-action is HT_EXPIRES_IGNORE. In HT_EXPIRES_NOTIFY mode you can specify
-a message to tell the user (NULL is valid in which case my own message
-pops up - watch out it might be in Danish ;-)) <P>
-
-The Library has two notions of a local cache: a file cache and a
-memory cache. The memory cache is handled by the client and the file
-cache is handled by the Library. Often the format of a object cached
-in memory is in the form of a hypertext object ready to be displayed
-(that is, it's already parsed).
-
+<P>
+Caching is a required part of any efficient Internet access applications
+as it saves bandwidth and improves access performance significantly in almost
+all types of accesses. The Library supports two different types of cache:
+The memory cache and the file cache. The two types differ in several ways
+which reflects their two main purposes: The memory cache is for short term
+storage of graphic objects whereas the file cache is for intermediate term
+storage of data objects. Often it is desirable to have both a memory and
+a file version of a cached document, so the two types do not exclude each
+other.
+<P>
+The cache contains details of persietent files which contain the contents
+of remote documents. The existing cache manager is somewhat naive - especially
+in its garbage collection but it is just an example of how it can be done.
+More advanced implementations are welcome!
+<P>
+There are various ways of handling the <CODE>Expires</CODE> header when met
+in a history list. Either it can be ignored all together, the user can be
+notified with a warning, or the document can be reloaded automatically. This
+flag decides what action to be taken. The default action is
+<CODE>HT_EXPIRES_IGNORE</CODE>. In <CODE>HT_EXPIRES_NOTIFY</CODE> mode we
+push a message on to the <A HREF="HTError.html">Error stack</A> which is
+presented to the user.
 <PRE>
 #ifndef WWWCACHE_H
 #define WWWCACHE_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H3>
+  System dependencies
+</H3>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
-#include "sysdep.h"
+#include "<A HREF="sysdep.html">sysdep.h</A>"
 </PRE>
-
-<H2>Library Includes</H2>
-
-<PRE>
-#include "HTCache.h"
+<H3>
+  Caching Manager
+</H3>
+<P>
+The cache interface is currently quite simple but at least it shows that
+it can be done!
+<PRE>#include "<A HREF="HTCache.html">HTCache.h</A>"
 </PRE>
-
-End of CACHE module
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -84,10 +69,9 @@ End of CACHE module
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

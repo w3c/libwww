@@ -261,7 +261,7 @@ PRIVATE HTAAElement * HTAA_findElement (BOOL proxy_access,
 
     /* Find a matching AA element (if any) */
     {
-	char * path = HTParse(url, "", PARSE_PATH);
+	char * path = HTParse(url, "", PARSE_PATH | PARSE_PUNCTUATION);
 	HTAAElement *element = (HTAAElement*)HTUTree_findNode(tree,realm,path);
 	HT_FREE(path);
 	return element;
@@ -313,7 +313,7 @@ PUBLIC void * HTAA_updateNode (BOOL proxy_access, char const * scheme,
 
     /* Find a matching AA element or create a new one */
     {
-	char * path = HTParse(url, "", PARSE_PATH);
+	char * path = HTParse(url, "", PARSE_PATH | PARSE_PUNCTUATION);
 	HTAAElement * element = NULL;
 	BOOL status;
 	if ((element = (HTAAElement *) HTUTree_findNode(tree, realm, path)))

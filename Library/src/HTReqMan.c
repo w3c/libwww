@@ -66,7 +66,7 @@ PUBLIC HTRequest * HTRequest_new (void)
         HT_OUTOFMEM("HTRequest_new()");
     
    /* Force Reload */
-    me->reload = HT_ANY_VERSION;
+    me->reload = HT_CACHE_OK;
 
     /* Set the default user profile */
     me->userprofile = HTLib_userProfile();
@@ -185,6 +185,12 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	HT_FREE(request->realm);
 	HT_FREE(request->scheme);
 
+	/* Cache control headers */
+	if (request->cache_control) HTAssocList_delete(request->cache_control);
+
+	/* Connection headers */
+	if (request->connection) HTAssocList_delete(request->connection);
+
 	/* Proxy information */
 	HT_FREE(request->proxy);
 
@@ -222,7 +228,7 @@ PUBLIC void HTRequest_setReloadMode (HTRequest *request, HTReload mode)
 
 PUBLIC HTReload HTRequest_reloadMode (HTRequest *request)
 {
-    return request ? request->reload : HT_ANY_VERSION;
+    return request ? request->reload : HT_CACHE_OK;
 }
 
 /*
@@ -444,6 +450,11 @@ PUBLIC void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor)
 PUBLIC HTParentAnchor * HTRequest_anchor (HTRequest *request)
 {
     return request ? request->anchor : NULL;
+}
+
+PUBLIC HTChildAnchor * HTRequest_childAnchor (HTRequest * request)
+{
+    return request ? request->childAnchor : NULL;
 }
 
 /*
@@ -1099,6 +1110,62 @@ PUBLIC BOOL HTRequest_deleteExtension (HTRequest * request)
 PUBLIC HTAssocList * HTRequest_extension (HTRequest * request)
 {
     return (request ? request->extension : NULL);
+}
+
+/*
+**	Cache control directives
+*/
+PUBLIC BOOL HTRequest_addCacheControl (HTRequest * request,
+				    char * token, char * value)
+{
+    if (request) {
+	if (!request->cache_control) request->cache_control=HTAssocList_new();
+	return HTAssocList_addObject(request->cache_control, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteCacheControl (HTRequest * request)
+{
+    if (request && request->cache_control) {
+	HTAssocList_delete(request->cache_control);
+	request->cache_control = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_cacheControl (HTRequest * request)
+{
+    return (request ? request->cache_control : NULL);
+}
+
+/*
+**	Connection directives
+*/
+PUBLIC BOOL HTRequest_addConnection (HTRequest * request,
+				    char * token, char * value)
+{
+    if (request) {
+	if (!request->connection) request->connection=HTAssocList_new();
+	return HTAssocList_addObject(request->connection, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteConnection (HTRequest * request)
+{
+    if (request && request->connection) {
+	HTAssocList_delete(request->connection);
+	request->connection = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_connection (HTRequest * request)
+{
+    return (request ? request->connection : NULL);
 }
 
 /* ------------------------------------------------------------------------- */

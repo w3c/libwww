@@ -145,16 +145,18 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 	**  this doesn't mean that we close the input stream and output stream
 	**  them selves - only the generic streams
 	*/
-	if (channel->input) 
-	    if (status == HT_INTERRUPTED)
-	        (*channel->input->isa->abort)(channel->input, NULL);
-	    else
-	        (*channel->input->isa->_free)(channel->input);
-	if (channel->output)
-	    if (status == HT_INTERRUPTED)
-	        (*channel->output->isa->abort)(channel->output, NULL);
-	    else
-	        (*channel->output->isa->_free)(channel->output);
+	if (status != HT_IGNORE) {
+	    if (channel->input) 
+		if (status == HT_INTERRUPTED)
+		    (*channel->input->isa->abort)(channel->input, NULL);
+		else
+		    (*channel->input->isa->_free)(channel->input);
+	    if (channel->output)
+		if (status == HT_INTERRUPTED)
+		    (*channel->output->isa->abort)(channel->output, NULL);
+		else
+		    (*channel->output->isa->_free)(channel->output);
+	}
 
 	/*
 	**  Check whether this channel is used by other objects or we can

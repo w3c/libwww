@@ -175,13 +175,13 @@ char *HTLinkResult_name(HTLinkResult result) {
 HTReload HTReload_enum(char *name) {
   if (name) {
     if (!strcasecomp(name, *(reload_names+1)))
-      return HT_MEM_REFRESH;
+      return HT_CACHE_FLUSH_MEM;
     else if (!strcasecomp(name, *(reload_names+2)))
-      return HT_CACHE_REFRESH;
+      return HT_CACHE_VALIDATE;
     else if (!strcasecomp(name, *(reload_names+3)))
-      return HT_FORCE_RELOAD;
+      return HT_CACHE_FLUSH;
   }
-  return HT_ANY_VERSION;
+  return HT_CACHE_OK;
 }
 
 /* GNHD */

@@ -12,6 +12,7 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "WWWCache.h"
 #include "HTProfil.h"				         /* Implemented here */
 
 PRIVATE HTList * converters = NULL;
@@ -24,7 +25,14 @@ PUBLIC void HTProfile_delete (void)
 {
     if (!preemptive) HTEventTerminate();
     if (HTLib_isInitialized()) {
+
+	/* Clean up the persistent cache (if any) */
+	HTCache_deleteAll();
+
+	/* Clean up all the global preferences */
 	HTFormat_deleteAll();
+
+	/* Terminate libwww */
 	HTLibTerminate();
     }
 }
@@ -45,6 +53,9 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion)
 
     /* Register the default set of BEFORE and AFTER filters */
     HTNetInit();
+
+    /* Enable the persistent cache */
+    HTCache_enable(NULL);
 
     /* Set up the default set of Authentication schemes */
     HTAAInit();

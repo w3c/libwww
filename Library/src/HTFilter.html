@@ -62,7 +62,18 @@ from the address to the physical address (if any translations are found)
 extern HTNetCallback HTRuleFilter;
 </PRE>
 <H3>
-  Cache Validation BEFORE Filter
+  Memory Cache (History List) Validation BEFORE Filter
+</H3>
+<P>
+Check if document is already loaded. The user can define whether the history
+list should follow normal expiration or work as a traditional history list
+where expired documents are not updated. We don't check for anything but
+existence proof of a document associated with the anchor as the definition
+is left to the application.
+<PRE>extern HTNetCallback HTMemoryCacheFilter;
+</PRE>
+<H3>
+  Persistent Cache Validation BEFORE Filter
 </H3>
 <P>
 Check the cache mode to see if we can use an already loaded version of this

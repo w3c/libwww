@@ -12,12 +12,12 @@ dnl Cheks for platform information
 AC_CANONICAL_SYSTEM
 
 dnl Initializing Automake
-AC_PROG_MAKE_SET
-AC_ARG_PROGRAM
-fp_PROG_INSTALL
-dnl AM_INIT_AUTOMAKE
 dnl AC_PROG_MAKE_SET
 dnl AC_ARG_PROGRAM
+dnl fp_PROG_INSTALL
+AM_INIT_AUTOMAKE
+AC_PROG_MAKE_SET
+AC_ARG_PROGRAM
 
 dnl Variables for Automake.
 PACKAGE=w3c-libwww
@@ -55,7 +55,7 @@ dnl Checks for configuration arguments
 AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
   AC_PATH_WAIS(
 	[AC_DEFINE(HT_DIRECT_WAIS)
-	 HTWAIS="HTWAIS.c"
+	 HTWAIS="HTWAIS.o"
 	 WAISINCLUDE="${srcdir}/$ac_path_wais/include"] ,
 	[AC_MSG_WARN(Cannot find WAIS; code will be built without it)
 	 HTWAIS=""
@@ -127,6 +127,10 @@ AC_PATH_PROG(have_resolv_conf, resolv.conf, , /etc, /usr/etc)
 if test -n "$have_resolv_conf" ; then
   AC_DEFINE_UNQUOTED(RESOLV_CONF, "$have_resolv_conf")
 fi
+
+dnl Name the default location of icons
+icondir=wwwicons
+AC_SUBST(icondir)
 
 dnl Checks for libraries:
 AC_CHECK_LIB(ICE, IceConnectionNumber)

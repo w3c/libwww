@@ -13,19 +13,16 @@
 
 /* Library Includes */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTWWWStr.h"
-#include "HTParse.h"
-#include "HTFormat.h"
-#include "HTAncMan.h"
-#include "HTNetMan.h"
-#include "HTTCP.h"
-#include "HTHeader.h"
-#include "HTReqMan.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWMIME.h"
+#include "WWWTrans.h"
 #include "HTTPReq.h"					       /* Implements */
 
 #define MIME_VERSION	"MIME/1.0"
+
+#define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
+#define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
@@ -46,32 +43,81 @@ struct _HTStream {
 */
 PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 {
-    char linebuf[256];
-    if (request->GenMask & HT_G_DATE) {
+    char linebuf[256];				/* @@@ */
+    char crlf[3];
+    HTGnHd gen_mask = HTRequest_gnHd(request);
+    *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
+    if (gen_mask & HT_G_CC) {			    /* Cache control */
+	HTAssocList * cur = HTRequest_cacheControl(request);
+	if (cur) {
+	    BOOL first=YES;
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+		char * value = HTAssoc_value(pres);
+		if (first) {
+		    PUTS("Cache-Control: ");
+		    first = NO;
+		} else
+		    PUTC(',');
+
+		/* Output the name */
+		PUTS(HTAssoc_name(pres));
+
+		/* Only output the value if not empty string */
+		if (*value) {
+		    PUTS("=");
+		    PUTS(value);
+		}
+	    }
+	    PUTBLOCK(crlf, 2);
+	}
+    }
+    if (gen_mask & HT_G_CONNECTION) {
+	HTAssocList * cur = HTRequest_cacheControl(request);
+	if (cur) {
+	    BOOL first=YES;
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+		char * value = HTAssoc_value(pres);
+		if (first) {
+		    PUTS("Connection: ");
+		    first = NO;
+		} else
+		    PUTC(',');
+
+		/* Output the name */
+		PUTS(HTAssoc_name(pres));
+
+		/* Only output the value if not empty string */
+		if (*value) {
+		    PUTS("=");
+		    PUTS(value);
+		}
+	    }
+	    PUTBLOCK(crlf, 2);
+	}
+    }
+    if (gen_mask & HT_G_DATE) {
 	time_t local = time(NULL);
 	sprintf(linebuf, "Date: %s%c%c", HTDateTimeStr(&local, NO), CR,LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (request->GenMask & HT_G_FORWARDED) {
+    if (gen_mask & HT_G_FORWARDED) {
 	/* @@@@@@ */
     }
-    if (request->GenMask & HT_G_MESSAGE_ID) {
+    if (gen_mask & HT_G_PRAGMA_NO_CACHE) {
+	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
+	PUTBLOCK(linebuf, (int) strlen(linebuf));
+    }
+    if (gen_mask & HT_G_MESSAGE_ID) {
 	const char *msgid = HTMessageIdStr(HTRequest_userProfile(request));
 	if (msgid) {
 	    sprintf(linebuf, "Message-ID: %s%c%c", msgid, CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
-    if (request->GenMask & HT_G_MIME) {
+    if (gen_mask & HT_G_MIME) {
 	sprintf(linebuf, "MIME-Version: %s%c%c", MIME_VERSION, CR, LF);
-	PUTBLOCK(linebuf, (int) strlen(linebuf));
-    }
-    if (request->GenMask & HT_G_CONNECTION) {
-	sprintf(linebuf, "Connection: Keep-Alive%c%c", CR, LF);
-	PUTBLOCK(linebuf, (int) strlen(linebuf));
-    }
-    if (request->RequestMask & HT_G_PRAGMA_NO_CACHE) {
-	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
 

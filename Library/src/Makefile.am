@@ -15,8 +15,6 @@ inc: $(BUILT_SOURCES)
 
 AUTOMAKE_OPTIONS = foreign
 
-CFLAGS = @CFLAGS@ -I$(srcdir)/@WAISINCLUDE@
-
 www_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \
 	HTMethod.c 	HTProt.c 	HTCache.c \
@@ -50,11 +48,18 @@ www_SOURCES = \
 	HTBufWrt.c	HTTChunk.c	HTHInit.c \
 	HTMIMImp.c	HTSChunk.c	HTLib.c \
 	HTLink.c 	HTFilter.c	HTUTree.c \
-	HTPEP.c		HTProfil.c \
-	@HTWAIS@
+	HTPEP.c		HTProfil.c
+
+www_LIBADD = @HTWAIS@
 
 EXTRA_www_SOURCES = \
 	HTWAIS.c
+
+#
+#	Kludge for finding icons
+#
+icondir = $(datadir)/@icondir@
+INCLUDES = -DW3C_ICONS=\"$(icondir)\"
 
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \

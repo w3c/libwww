@@ -319,12 +319,15 @@ PRIVATE void * delete_parent (HTParentAnchor * me)
     HT_FREE(me->title);
     if (me->content_encoding) HTList_delete(me->content_encoding);
     if (me->content_language) HTList_delete(me->content_language);
+    HT_FREE(me->content_location);
 
     /* Type parameter information */
     if (me->type_parameters) HTAssocList_delete(me->type_parameters);
 
     HT_FREE(me->derived_from);
     HT_FREE(me->version);
+    HT_FREE(me->etag);
+
     if (me->extra_headers) {
 	HTList *cur = me->extra_headers;
 	char *pres;
@@ -1022,6 +1025,7 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     
     HT_FREE(me->derived_from);
     HT_FREE(me->version);
+    HT_FREE(me->etag);
 
     if (me->extra_headers) {
 	HTList *cur = me->extra_headers;

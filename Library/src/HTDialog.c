@@ -129,7 +129,8 @@ PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {
     { 0,   "System replies",				"internal" },
     { 0,   "Wrong or unknown access scheme",		"internal" },
     { 0,   "Access scheme not allowed in this context",	"internal" },
-    { 0,   "When you are connected, you can log in",	"internal" }
+    { 0,   "When you are connected, you can log in",	"internal" },
+    { 0,   "This version has expired and will be automatically reloaded", "internal" }
 };
 
 /* ------------------------------------------------------------------------- */

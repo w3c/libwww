@@ -123,15 +123,14 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
     ** If the mode if "Force Reload" then don't even bother to check the
     ** cache - we flush everything we know about this document
     */
-    if (mode == HT_FORCE_RELOAD) {
+    if (mode == HT_CACHE_FLUSH) {
  	/*
 	** Add the appropriate request headers. We use both the "pragma"
 	** and the "cache-control" headers in order to be
 	** backwards compatible with HTP/1.0
 	*/
 	HTRequest_addGnHd(request, HT_G_PRAGMA_NO_CACHE);
-
-	/* @@@ CACHE CONTROL @@@ */
+	HTRequest_addCacheControl(request, "no-cache", "");
 
 	/*
 	** We also flush the information in the anchor
@@ -140,14 +139,6 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 	return HT_OK;
     }
 
-    /*
-    ** Check the application provided memory cache. This is equivalent to a
-    ** history list and does not follow the same cache mechanisms as the 
-    ** persistent cache
-    */
-    if (HTMemoryCache_check(request) == HT_LOADED)
-	return HT_LOADED;
-    
     /*
     ** Check the persistent cache manager. If we have a cache hit then
     ** continue to see if the reload mode requires us to do a validation check.
@@ -158,16 +149,91 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 	char * addr = HTAnchor_address((HTAnchor *) anchor);
 	char * cache = HTCache_getReference(addr);
 	if (cache) {
-	    if (mode != HT_CACHE_REFRESH) {
+	    if (mode != HT_CACHE_VALIDATE) {
 		HTAnchor_setPhysical(anchor, cache);
 		HTAnchor_setCacheHit(anchor, YES);
 	    } else {
-
-		/* @@@ Do cache validation @@@ */
-
+		/*
+		**  If we were asked to validate the memory version then
+		**  use the etag or the last modified for cache validation
+		*/
+		HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
 	    }
+	    HT_FREE(cache);
 	}
 	HT_FREE(addr);
+    }
+    return HT_OK;
+}
+
+/*
+**	Check the Memory Cache (History list) 
+**	-------------------------------------
+**	Check if document is already loaded. The user can define whether
+**	the history list should follow normal expiration or work as a
+**	traditional history list where expired documents are not updated.
+**	We don't check for anything but existence proof of a document
+**	associated with the anchor as the definition is left to the application
+*/
+PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
+{
+    HTReload validation = HTRequest_reloadMode(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    void * document = HTAnchor_document(anchor);
+
+    /*
+    **  If we are asked to flush the persistent cache then there is no reason
+    **  to do anything here - we're flushing it anyway. Also if no document
+    **  then just exit from this filter.
+    */
+    if (!document || validation > HT_CACHE_FLUSH_MEM) {
+	if (CACHE_TRACE) HTTrace("Mem Cache... No fresh document...\n");
+	return HT_OK;
+    }
+
+    /*
+    **  If we have a document object associated with this anchor then we also
+    **  have the object in the history list. Depending on what the user asked,
+    **  we can add a cache validator
+    */
+    if (document) {
+	HTExpiresMode expires = HTCache_expiresMode();
+	if (validation != HT_CACHE_FLUSH_MEM) {
+	    if (CACHE_TRACE)
+		HTTrace("Mem Cache... Document already in memory\n");
+	    if (expires != HT_EXPIRES_IGNORE) {
+
+		/*
+		**  Ask the cache manager if this object has expired. Also
+		**  check if we should care about expiration or not.
+		*/
+		if (!HTCache_isValid(anchor)) {
+		    if (expires == HT_EXPIRES_NOTIFY) {
+
+			/*
+			** See if we have a function registered for outputting errors.
+			** If so then call it and present the message to the user
+			*/
+			HTAlertCallback * cbf = HTAlert_find(HT_A_MESSAGE);
+			if (cbf)
+			    (*cbf)(request, HT_A_MESSAGE, HTERR_CACHE_EXPIRED,
+				   NULL, HTRequest_error(request), NULL);
+		    } else {
+			if (CACHE_TRACE) HTTrace("Mem Cache... Expired - autoreload\n");
+			HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
+			return HT_OK; 		/* Must go get it */
+		    }
+		}
+	    }
+	    return HT_LOADED;			/* Got it! */
+	} else {
+
+	    /*
+	    **  If we were asked to validate the memory version then
+	    **  use either the etag or the last modified for cache validation
+	    */
+	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
+	}
     }
     return HT_OK;
 }

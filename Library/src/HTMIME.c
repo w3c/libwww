@@ -82,7 +82,7 @@ PRIVATE int pumpData (HTStream * me)
     ** Handle any Content Type
     */
     {
-	if (format != WWW_UNKNOWN) {
+	if (format != WWW_UNKNOWN || length>0 || transfer) {
 	    if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
 				      HTAtom_name(format),
 				      HTAtom_name(me->target_format));

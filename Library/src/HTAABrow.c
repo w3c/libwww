@@ -90,7 +90,7 @@ PRIVATE char * make_template (const char * docname)
 		strcpy(slash, "*");
 		StrAllocCat(host, path);
 	    } else
-		StrAllocCat(host, "*");
+		StrAllocCat(host, "/*");
 	}
 	HT_FREE(path);
 	tmplate = host;

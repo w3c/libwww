@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-bin_PROGRAMS = libapp_1 libapp_2 libapp_3 libapp_4 init chunk chunkbody
+noinst_PROGRAMS = libapp_1 libapp_2 libapp_3 libapp_4 init chunk chunkbody
 
 LDADD = ../../Library/src/libwww.a -lm
 

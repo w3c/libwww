@@ -135,6 +135,7 @@ PUBLIC void HTEncoderInit (HTList * c)
 */
 PUBLIC void HTBeforeInit (void)
 {
+    HTNetCall_addBefore(HTMemoryCacheFilter, NULL, 0);
     HTNetCall_addBefore(HTCacheFilter, NULL, 0);
     HTNetCall_addBefore(HTPEP_beforeFilter, NULL, 0);
     HTNetCall_addBefore(HTCredentialsFilter, NULL, 0);

@@ -149,12 +149,13 @@ PRIVATE BOOL HTUTree_deleteTemplate (HTUTree * tree, HTUTemplate * me)
 PRIVATE HTUTemplate * HTUTree_findTemplate (HTUTree * tree, const char * path)
 {
     if (tree && tree->templates && path) {
-	HTList * cur = tree->templates;
 	HTUTemplate * pres;
+	HTList * cur = tree->templates;
 	while ((pres = (HTUTemplate *) HTList_nextObject(cur))) {
-	    if (!HTStrMatch(pres->tmplate, path)) {
+	    if (HTStrMatch(pres->tmplate, path)) {
 		if (CORE_TRACE)
-		    HTTrace("URL Node.... Did find template for for `%s\'\n", path);
+		    HTTrace("URL Node.... Found template `%s\' for for `%s\'\n",
+			    pres->tmplate, path);
 		return pres;
 	    }
 	}

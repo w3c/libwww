@@ -1112,7 +1112,11 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    HText_refresh(HTMainText);			   /* Refresh screen */
 	} else if (CHECK_INPUT("RELOAD", token)) {
 	    req = Thread_new(lm, YES, LM_NO_UPDATE);
-	    HTRequest_setReloadMode(req, HT_FORCE_RELOAD);
+
+	    /*
+	    **  Make sure that we do a complete flush of the cache
+	    */
+	    HTRequest_setReloadMode(req, HT_CACHE_FLUSH);
 	    status = HTLoadAnchor((HTAnchor*) (HTMainAnchor ? HTMainAnchor : 
 				  lm->anchor), req);
 	} else
@@ -1162,7 +1166,16 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	break;
 	
       case 'V':
-	if (CHECK_INPUT("VERBOSE", token)) {	     /* Switch verbose mode  */
+	if (CHECK_INPUT("VALIDATE", token)) {    	   /* Cache validate */
+	    req = Thread_new(lm, YES, LM_NO_UPDATE);
+
+	    /*
+	    **  Add a validator to the request
+	    */
+	    HTRequest_setReloadMode(req, HT_CACHE_VALIDATE);
+	    status = HTLoadAnchor((HTAnchor*) (HTMainAnchor ? HTMainAnchor : 
+					       lm->anchor), req);
+	} else if (CHECK_INPUT("VERBOSE", token)) {  /* Switch verbose mode  */
 	    WWWTRACE = WWWTRACE ? 0 : lm->trace;
 	    OutputData(lm->pView, "\n  Verbose mode %s.\n", WWWTRACE ? "ON":"OFF");
 	} else if (CHECK_INPUT("VERSION", token)) {	 	  /* Version */
@@ -1181,7 +1194,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	if (!lm->host) {
 	    HText *curText = HTMainText;     /* Remember current main vindow */
 	    req = Thread_new(lm, NO, LM_NO_UPDATE);
-	    HTRequest_setReloadMode(req, HT_MEM_REFRESH);
+	    HTRequest_setReloadMode(req, HT_CACHE_FLUSH_MEM);
 	    if (OutSource) HTRequest_setOutputFormat(req, WWW_SOURCE);
 	    SaveOutputStream(req, token, next_word);
 	    HText_select(curText);
@@ -1408,6 +1421,22 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
     is_index = HTAnchor_isIndex(HTMainAnchor);
     if (status == HT_LOADED) {
 
+	/*
+	**  Make sure that we have selected the HText object. This is normally
+	**  done by the HText interface but may have been avoided by the mem
+	**  cache filter
+	*/
+	{
+	    HTParentAnchor * parent = HTRequest_anchor(request);
+	    HTChildAnchor * child = HTRequest_childAnchor(request);
+	    HText * document =  HTAnchor_document(parent);
+	    if (child && (HTAnchor *) child != (HTAnchor *) parent)
+		HText_selectAnchor(document, child);
+	    else
+		HText_select(document);
+	}
+
+	/* Should we output a command line? */
 	if (HTAlert_interactive()) {
 	    HText_setStale(HTMainText);
 	    MakeCommandLine(lm, is_index);
@@ -1675,24 +1704,24 @@ int main (int argc, char ** argv)
 
 	    /* Handling of Expire (cache) */
 	    } else if (!strncmp(argv[arg], "-x", 2)) { 
-	    	char *p = argv[arg]+2;
-		for(;*p;p++) {
-		    switch (argv[arg][2]) {
+	    	  char *p = argv[arg]+2;
+		  for(;*p;p++) {
+		      switch (argv[arg][2]) {
 		      case 'i':
-			HTCache_setExpiresMode(HT_EXPIRES_IGNORE, NULL);
-			break;
+			  HTCache_setExpiresMode(HT_EXPIRES_IGNORE);
+			  break;
 		      case 'n':
-			HTCache_setExpiresMode(HT_EXPIRES_NOTIFY, "Document has expired, but I show it anyway");
-			break;
+			  HTCache_setExpiresMode(HT_EXPIRES_NOTIFY);
+			  break;
 		      case 'a':
-			HTCache_setExpiresMode(HT_EXPIRES_AUTO, NULL);
-			break;
+			  HTCache_setExpiresMode(HT_EXPIRES_AUTO);
+			  break;
 		      default:
-			if (SHOW_MSG)
-			    HTTrace("Bad parameter (%s) for option -x\n", argv[arg]);
-			break;
-		    }
-		}
+			  if (SHOW_MSG)
+			      HTTrace("Bad parameter (%s) for option -x\n", argv[arg]);
+			  break;
+		      }
+		  }
 
 	    /* Anchor format */
 	    } else if (!strcmp(argv[arg], "-a")) { 
@@ -1880,9 +1909,6 @@ int main (int argc, char ** argv)
 
 	/* Start History manager */
 	lm->history = HTHistory_new();
-
-	/* Register our own memory cache handler (implemented in GridText.c) */
-	HTMemoryCache_register(HTMemoryCache);
 
 	/*
 	** Register STDIN as the user socket IF not STDIN is connected to

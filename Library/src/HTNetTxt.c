@@ -133,8 +133,9 @@ PUBLIC HTStream * HTNetToText (HTStream * target)
 PRIVATE int TextToNet_put_block (HTStream * me, const char* b, int len)
 {
     int status;
+#if 0
     const char *limit = b+len;
-    
+#endif    
     if (!me->start)
 	me->start = b;
     else {

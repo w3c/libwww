@@ -182,23 +182,47 @@ extern void HTRequest_setMethod (HTRequest *request, HTMethod method);
 extern HTMethod HTRequest_method (HTRequest *request);
 </PRE>
 <H2>
-  Update, Reload, or Refresh a Document
+  HTTP Connection Control Directives
+</H2>
+<P>
+The connection control directives are all part of the connection header and
+control the behavior of this connection.
+<PRE>extern BOOL HTRequest_addConnection (HTRequest * request,
+                                           char * token, char * value);
+extern BOOL HTRequest_deleteConnection    (HTRequest * request);
+extern HTAssocList * HTRequest_connection (HTRequest * request);
+</PRE>
+<H2>
+  Cache Validation and Cache Control
 </H2>
 <P>
 The Library has two concepts of caching: in memory and on file. When loading
 a document, this flag can be set in order to define who can give a response
-to the request. <EM>IMS</EM> means that a "If-Modified-Since" Header is used
-in a HTTP request.
+to the request. The mempory buffer is considered to be equivalent to a history
+buffer. That is, it doesn't not follow the same expiration mechanism that
+is characteristic for a persistent file cache.
 <PRE>
 typedef enum _HTReload {
-    HT_ANY_VERSION	= 0x0,		/* Use any version available */
-    HT_MEM_REFRESH	= 0x1,		/* Reload from file cache or network */
-    HT_CACHE_REFRESH	= 0x2,		/* Update from network with IMS */
-    HT_FORCE_RELOAD	= 0x4		/* Update from network with no-cache */
+    HT_CACHE_OK	        = 0x0,		/* Use any version available */
+    HT_CACHE_FLUSH_MEM	= 0x1,		/* Reload from file cache or network */
+    HT_CACHE_VALIDATE	= 0x2,		/* Validate cache entry */
+    HT_CACHE_FLUSH	= 0x4		/* Force full reload */
 } HTReload;
 
 extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);
 extern HTReload HTRequest_reloadMode (HTRequest *request);
+</PRE>
+<H3>
+  HTTP Cache Control Directives
+</H3>
+<P>
+The cache control directives are all part of the cache control header and
+control the behavior of any intermediate cache between the user agent and
+the origin server.
+<PRE>extern BOOL HTRequest_addCacheControl       (HTRequest * request,
+                                             char * token, char * value);
+extern BOOL HTRequest_deleteCacheControl    (HTRequest * request);
+extern HTAssocList * HTRequest_cacheControl (HTRequest * request);
 </PRE>
 <H2>
   Redirections
@@ -272,10 +296,9 @@ extern BOOL HTRequest_addExtension (HTRequest * request, char * token, char
 * value);
 extern BOOL HTRequest_deleteExtension (HTRequest * request);
 extern HTAssocList * HTRequest_extension (HTRequest * request);
-</PRE
-<H2>
-  Max number of Retrys for a Down Load
-</H2>
+</PRE>
+<P>
+Max number of Retrys for a Down Load
 <P>
 Automatic reload can happen in two situations:
 <UL>
@@ -409,15 +432,16 @@ If the bit is not turned on they are not sent. All headers are optional and
 the default value is <EM>NO GENERAL HEADERS</EM>
 <PRE>
 typedef enum _HTGnHd {
-    HT_G_DATE		= 0x1,
-    HT_G_FORWARDED	= 0x2,
-    HT_G_MESSAGE_ID	= 0x4,
-    HT_G_MIME		= 0x8,
-    HT_G_CONNECTION	= 0x10,
-    HT_G_PRAGMA_NO_CACHE= 0x20
+    HT_G_CC             = 0x1,
+    HT_G_CONNECTION	= 0x2,
+    HT_G_DATE		= 0x4,
+    HT_G_PRAGMA_NO_CACHE= 0x8,
+    HT_G_FORWARDED	= 0x10,
+    HT_G_MESSAGE_ID	= 0x20,
+    HT_G_MIME		= 0x40
 } HTGnHd;
 
-#define DEFAULT_GENERAL_HEADERS		HT_G_CONNECTION
+#define DEFAULT_GENERAL_HEADERS		HT_G_CONNECTION + HT_G_CC
 
 extern void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd);
 extern void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd);
@@ -777,9 +801,15 @@ extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
 Every request object has an <A HREF="HTAnchor.html">anchor</A> associated
 with it. The anchor normally lives until the application terminates but a
 request object only lives as long as the request is being serviced.
-<PRE>
-extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
+<P>
+If the anchor that we have requested is infact a child anchor then we always
+load the parent anchor and then after the load jump to the location. A child
+anchor is a an anchor which points to a subpart of the document (has a "#"
+in the URL).
+<PRE>extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
 extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
+
+extern HTChildAnchor * HTRequest_childAnchor (HTRequest * request);
 </PRE>
 <H2>
   Binding to a Net Object

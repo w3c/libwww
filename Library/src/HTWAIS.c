@@ -60,8 +60,9 @@
 **			---------
 */
 
-#include "ui.h"
-#include "sockets.h"
+#ifdef WAIS_INCLUDE
+#include WAIS_INCLUDE
+#endif
 
 #define MAX_MESSAGE_LEN 100000
 #define CHARS_PER_PAGE 10000 /* number of chars retrieved in each request */

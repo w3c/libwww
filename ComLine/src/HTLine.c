@@ -453,6 +453,7 @@ int main (int argc, char ** argv)
     /* Start the request */
     switch (method) {
     case METHOD_GET:
+
 	if (formdata)
 	    status = HTGetFormAnchor(formfields, (HTAnchor *) cl->anchor,
 				     cl->request);

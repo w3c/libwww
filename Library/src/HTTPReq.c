@@ -252,14 +252,6 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTBLOCK(crlf, 2);
 	}
     }
-    if (request_mask & HT_C_IMS) {
-	time_t lm = HTAnchor_lastModified(anchor);
-	if (lm > 0) {
-	    PUTS("If-Modified-Since: ");
-	    PUTS(HTDateTimeStr(&lm, NO));
-	    PUTBLOCK(crlf, 2);
-	}
-    }
     if (request_mask & HT_C_HOST) {
 	char *orig = HTAnchor_address((HTAnchor *) anchor);
 	char *host = HTParse(orig, "", PARSE_HOST);
@@ -274,6 +266,54 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	HT_FREE(orig);
 	HT_FREE(host);
     }
+
+    /*
+    **  In the "If-*" series of headers, the ones related to etags have higher
+    **  priority than the date relates ones. That is, if we have a etag then
+    **  use that, otherwise use the date
+    */
+    if (request_mask & HT_C_IF_MATCH) {
+	char * etag = HTAnchor_etag(anchor);
+	if (etag) {
+	    PUTS("If-Match: \"");
+	    PUTS(etag);
+	    PUTC('"');
+	    PUTBLOCK(crlf, 2);
+	    if (PROT_TRACE) HTTrace("HTTP........ Using etag `%s\'\n", etag);
+	}
+    } else if (request_mask & HT_C_IMS) {
+	time_t lm = HTAnchor_lastModified(anchor);
+	if (lm > 0) {
+	    PUTS("If-Modified-Since: ");
+	    PUTS(HTDateTimeStr(&lm, NO));
+	    PUTBLOCK(crlf, 2);
+	    if (PROT_TRACE) HTTrace("HTTP........ Using date validator\n");
+	}
+    }
+    if (request_mask & HT_C_IF_NONE_MATCH) {
+	char * etag = HTAnchor_etag(anchor);
+	if (etag) {
+	    PUTS("If-None-Match: \"");
+	    PUTS(etag);
+	    PUTC('"');
+	    PUTBLOCK(crlf, 2);
+	    if (PROT_TRACE) HTTrace("HTTP........ Using etag `%s\'\n", etag);
+	}
+    } else if (request_mask & HT_C_IF_UNMOD_SINCE) {
+	time_t lm = HTAnchor_lastModified(anchor);
+	if (lm > 0) {
+	    PUTS("If-Unmodified-Since: ");
+	    PUTS(HTDateTimeStr(&lm, NO));
+	    PUTBLOCK(crlf, 2);
+	    if (PROT_TRACE) HTTrace("HTTP........ Using date validator\n");
+	}
+    }
+
+    if (request_mask & HT_C_IF_RANGE) {
+
+	/* Not supported */
+
+    }
     if (request_mask & HT_C_MAX_FORWARDS) {
 	int hops = HTRequest_maxForwards(request);
 	if (hops >= 0) {
@@ -282,6 +322,11 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTS(qstr);
 	    PUTBLOCK(crlf, 2);
 	}
+    }
+    if (request_mask & HT_C_RANGE) {
+
+	/* Not supported */
+
     }
     if (request_mask & HT_C_REFERER) {
 	HTParentAnchor * parent_anchor = HTRequest_parent(request);
