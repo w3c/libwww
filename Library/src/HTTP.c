@@ -451,8 +451,6 @@ fprintf(stderr, " ** DEBUG: arg=\"%s\" p1=\"%s\" command=\"%s\"\n",
 		    if (TRACE) fprintf(stderr, "%s %d %s\n",
 				       "HTTP: close socket", s,
 				       "to retry with Access Authorization");
-		    HTInputSocket_free(isoc);
-		    (void)NETCLOSE(s);
 		    if (HTAA_retryWithAuth(request, HTLoadHTTP)) {
 			status = HT_LOADED;/* @@ THIS ONLY WORKS ON LINEMODE */
 			goto clean_up;
@@ -555,7 +553,7 @@ copy:
 	(*target->isa->put_block)(target,
 				  isoc->input_pointer,
 				  isoc->input_limit - isoc->input_pointer);
-	HTInputSocket_free(isoc);
+
 	HTCopy(s, target);
 	    
 	(*target->isa->free)(target);
@@ -567,7 +565,9 @@ copy:
 clean_up: 
 	if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
 	(void) NETCLOSE(s);
-	if(status_line)
+	if (isoc)
+	    HTInputSocket_free(isoc);	    
+	if (status_line)
 	    free(status_line);		/* Leak fix Henrik 18/02-94 */
 	HTCacheHTTP = HTCache_old;	/* Reestablish cache conditions */
 	return status;			/* Good return  */

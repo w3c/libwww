@@ -700,9 +700,10 @@ PRIVATE void read_group ARGS3(
 					/* count is only an upper limit */
 
     sscanf(response_text, " %d %d %d %d", &status, &count, &first, &last);
-    if(TRACE) fprintf(fprintf,
-		 "Newsgroup status=%d, count=%d, (%d-%d) required:(%d-%d)\n",
-		 status, count, first, last, first_required, last_required);
+    if(TRACE)
+	fprintf(stderr, 
+		"Newsgroup status=%d, count=%d, (%d-%d) required:(%d-%d)\n",
+		status, count, first, last, first_required, last_required);
     if (last==0) {
         PUTS( "\nNo articles in this group.\n");
 #ifdef POSTING
@@ -841,7 +842,7 @@ PRIVATE void read_group ARGS3(
 #endif	/* NOT OVERLAP */
 
 	    if (status == 221) {	/* Head follows - parse it:*/
-    
+
 		p = line;				/* Write pointer */
 		done = NO;
 		while(!done){
@@ -883,8 +884,10 @@ PRIVATE void read_group ARGS3(
 				char * p;
 				strcpy(author,
 					author_name(strchr(line,':')+1));
-				p = author + strlen(author) - 1;
-				if (*p==LF) *p = 0;	/* Chop off newline */
+				if (*author) {		/* Not always there! */
+				    p = author + strlen(author) - 1;
+				    if (*p==LF) *p = 0;	/* Chop off newline */
+				}
 			    }
 			    break;
 				    
