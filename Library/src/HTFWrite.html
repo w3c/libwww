@@ -5,7 +5,7 @@
 </HEAD>
 <BODY>
 <H1>
-  ANSI C File Streams
+  Basic ANSI C File Writer Stream
 </H1>
 <PRE>
 /*
@@ -14,18 +14,10 @@
 */
 </PRE>
 <P>
-This module contains a set of basic file writer streams that are used to
-dump data objects to disk at various places within the Library core. Most
-notably, we use these streams in the <A HREF="HTFWrite.html">Format Manager</A>
-in order to handle external presenters, for example post script viewers etc.
-These streams can of course also be used in other contexts by the application.
-<P>
-<UL>
-  <LI>
-    <A HREF="#write">An ANSI C File Writer Stream</A>
-  <LI>
-    <A HREF="#converters">Various Converters using the File Writer Stream</A>
-</UL>
+This module contains a basic file writer stream that can be used to
+dump data objects to local disk. See also the various subclasses of
+this basic stream which can be used to do save-as, save-and-callback etc. 
+in the <A HREF="HTFSave.html">HTFSave module</A>
 <P>
 This module is implemented by <A HREF="HTFWrite.c">HTFWrite.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
@@ -35,56 +27,22 @@ Library</A>.
 #define HTFWRITE_H
 
 #include "HTStream.h"
-#include "HTFormat.h"
+#include "HTReq.h"
 </PRE>
 <H2>
-  <A NAME="write">ANSI C File Writer Stream</A>
+  <A NAME="write">Basic ANSI C File Writer Stream</A>
 </H2>
 <P>
 This function puts up a new stream given an <I>open</I> file descripter.
 If the file is <I>not</I> to be closed afterwards, then set
 <CODE>leave_open=NO</CODE>.
 <PRE>
-extern HTStream * HTFWriter_new	(HTRequest * request,
-				 FILE * fp,
-				 BOOL leave_open);
+extern HTStream * HTFWriter_new	(
+        HTRequest * request,
+	FILE * fp,
+	BOOL leave_open);
 </PRE>
-<H2>
-  <A NAME="converters">Various Converters using the File Writer Stream</A>
-</H2>
-<P>
-This is a set of functions that can be registered as converters. They all
-use the basic ANSI C file writer stream for writing out to the local file
-system.
-<PRE>
-extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallback;
-</PRE>
-<P>
-<DL>
-  <DT>
-    <CODE>HTSaveLocally</CODE>
-  <DD>
-    Saves a file to local disk. This can for example be used to dump date objects
-    of unknown media types to local disk. The stream prompts for a file name
-    for the temporary file.
-  <DT>
-    <CODE>HTSaveAndExecute</CODE>
-  <DD>
-    Creates temporary file, writes to it and then executes system command (maybe
-    an external viewer) when <CODE>EOF</CODE> has been reached. The stream finds
-    a suitable name of the temporary file which preserves the suffix. This way,
-    the system command can find out the file type from the name of the temporary
-    file name.
-  <DT>
-    <CODE>HTSaveAndCallback</CODE>
-  <DD>
-    This stream works exactly like the <CODE>HTSaveAndExecute</CODE> stream but
-    in addition when <CODE>EOF</CODE> has been reached, it checks whether a callback
-    function has been associated with the request object in which case, this
-    callback is being called. This can be use by the application to do some
-    processing <EM>after</EM> the system command has terminated. The callback
-    function is called with the file name of the temporary file as parameter.
-</DL>
+
 <PRE>
 #endif
 </PRE>

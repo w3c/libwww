@@ -1,0 +1,74 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+  <TITLE>W3C Sample Code Library libwww ANSI C File Streams</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Basic ANSI C File Writer Stream
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module contains some local file writer streams based on the basic file
+writer stream defined in the <A HREF="HTFWrite.html">HTFWrite module</a>.
+They can be used to do save-as, save-and-callback etc.
+<P>
+This module is implemented by <A HREF="HTFSave.c">HTFSave.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
+Library</A>.
+<PRE>
+#ifndef HTFSAVE_H
+#define HTFSAVE_H
+
+#include "HTFWrite.h"
+</PRE>
+<H2>
+  <A NAME="converters">Various Converters using the File Writer Stream</A>
+</H2>
+<P>
+This is a set of functions that can be registered as converters. They all
+use the basic ANSI C file writer stream for writing out to the local file
+system.
+<PRE>
+extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallback;
+</PRE>
+<P>
+<DL>
+  <DT>
+    <CODE>HTSaveLocally</CODE>
+  <DD>
+    Saves a file to local disk. This can for example be used to dump date objects
+    of unknown media types to local disk. The stream prompts for a file name
+    for the temporary file.
+  <DT>
+    <CODE>HTSaveAndExecute</CODE>
+  <DD>
+    Creates temporary file, writes to it and then executes system command (maybe
+    an external viewer) when <CODE>EOF</CODE> has been reached. The stream finds
+    a suitable name of the temporary file which preserves the suffix. This way,
+    the system command can find out the file type from the name of the temporary
+    file name.
+  <DT>
+    <CODE>HTSaveAndCallback</CODE>
+  <DD>
+    This stream works exactly like the <CODE>HTSaveAndExecute</CODE> stream but
+    in addition when <CODE>EOF</CODE> has been reached, it checks whether a callback
+    function has been associated with the request object in which case, this
+    callback is being called. This can be use by the application to do some
+    processing <EM>after</EM> the system command has terminated. The callback
+    function is called with the file name of the temporary file as parameter.
+</DL>
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
