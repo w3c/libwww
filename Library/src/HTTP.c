@@ -726,6 +726,12 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 				       HTRequest_outputFormat(request),
 				       HTRequest_outputStream(request),
 				       request, NO);
+	} else if (me->status==204) {
+	    HTResponse_setCachable(response, HT_CACHE_ALL);
+	    me->target = HTStreamStack(WWW_MIME_HEAD,
+				       HTRequest_debugFormat(request),
+				       HTRequest_debugStream(request),
+				       request, NO);
 	} else if (me->status==206) {
 	    /*
 	    **  We got a partial response and now we must check whether
@@ -748,8 +754,8 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 					   HTRequest_outputStream(request),
 					   request, NO);
 	    }
-	} else if (me->status==204 || me->status==304) {
-	    HTResponse_setCachable(response, HT_CACHE_ALL);
+	} else if (me->status==304) {
+	    HTResponse_setCachable(response, HT_CACHE_NOT_MODIFIED);
 	    me->target = HTStreamStack(WWW_MIME_HEAD,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
@@ -1071,7 +1077,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
             **  during a recovery, we might keep the same HTNet object.
             **  if so, reuse it's read stream 
             */
-            HTStream * me = HTNet_readStream( net );
+	    HTStream * me = HTNet_readStream( net );
             if ( me == NULL ) {
                 me = HTStreamStack(WWW_HTTP,
 				   HTRequest_outputFormat(request),

@@ -196,9 +196,10 @@ The various <CODE>cache-control</CODE> headers and directives decides whether
 an object is cachable or not. Check these methods before starting caching!
 <PRE>
 typedef enum _HTCachable {
-    HT_NO_CACHE  = 0,
-    HT_CACHE_ALL = 1,
-    HT_CACHE_ETAG= 2
+    HT_NO_CACHE            = 0,
+    HT_CACHE_ALL           = 1,
+    HT_CACHE_ETAG          = 2,
+    HT_CACHE_NOT_MODIFIED  = 3
 } HTCachable; 
 
 extern HTCachable HTResponse_isCachable  (HTResponse * me);

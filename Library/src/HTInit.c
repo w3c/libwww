@@ -176,7 +176,12 @@ PUBLIC void HTBeforeInit (void)
     /* Often handled better by the application */
     HTNet_addBefore(HTMemoryCacheFilter,	NULL, 		NULL, HT_FILTER_MIDDLE);
 #endif
+
+#if 0
+    /* This is now done by HTCacheInit */
     HTNet_addBefore(HTCacheFilter,		"http://*",	NULL, HT_FILTER_MIDDLE);
+#endif
+
     HTNet_addBefore(HTCredentialsFilter,	"http://*",	NULL, HT_FILTER_LATE);
     HTNet_addBefore(HTPEP_beforeFilter, 	"http://*",	NULL, HT_FILTER_LATE);
     HTNet_addBefore(HTRuleFilter,		NULL,		NULL, HT_FILTER_LATE);
@@ -201,7 +206,12 @@ PUBLIC void HTAfterInit (void)
     HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);
     HTNet_addAfter(HTAuthInfoFilter, 	"http://*",	NULL, HT_ALL, 		HT_FILTER_MIDDLE);
     HTNet_addAfter(HTUseProxyFilter, 	"http://*",	NULL, HT_USE_PROXY, 	HT_FILTER_MIDDLE);
+
+#if 0
+    /* This is now done by HTCacheInit */
     HTNet_addAfter(HTCacheUpdateFilter, "http://*",	NULL, HT_NOT_MODIFIED, 	HT_FILTER_MIDDLE);
+#endif
+
     HTNet_addAfter(HTInfoFilter, 	NULL,		NULL, HT_ALL,		HT_FILTER_LATE);
 }
 

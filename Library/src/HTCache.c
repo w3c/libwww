@@ -752,6 +752,13 @@ PUBLIC BOOL HTCacheInit (const char * cache_root, int size)
 	HTCacheIndex_read(HTCacheRoot);
 
 	/*
+	**  Register the cache before and after filters
+	*/
+	HTNet_addBefore(HTCacheFilter, "http://*", NULL, HT_FILTER_MIDDLE);
+	HTNet_addAfter(HTCacheUpdateFilter, "http://*", NULL,
+		       HT_NOT_MODIFIED, HT_FILTER_MIDDLE);
+	
+	/*
 	**  Register the cache AFTER filter for checking whether
         **  we should invalidate the cached entry
 	*/
@@ -779,6 +786,13 @@ PUBLIC BOOL HTCacheTerminate (void)
 	**  Write the index to file
 	*/
 	HTCacheIndex_write(HTCacheRoot);
+
+	/*
+	**  Unregister the cache before and after filters
+	*/
+	HTNet_deleteBefore(HTCacheFilter);
+	HTNet_deleteAfter(HTCacheUpdateFilter);
+	HTNet_deleteAfter(HTCacheCheckFilter);
 
 	/*
 	**  Set a lock on the cache so that multiple users
@@ -1594,7 +1608,9 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 	*/
 	HTParentAnchor * anchor = HTRequest_anchor(request);
 	if (!HTAnchor_headerParsed(anchor)) {
-	    if (HTCache_readMeta(cache, request) != YES) return HT_CACHE_ERROR;
+	    if (HTCache_readMeta(cache, request) != YES)
+		return HT_CACHE_ERROR;
+	    HTAnchor_setHeaderParsed(anchor);
 	}
 
 	/*
@@ -2068,7 +2084,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    */
 	    {
 		HTHost * host = NULL;
-		if ((host = HTHost_new(cache->local, 0)) == NULL) return HT_ERROR;
+		if ((host = HTHost_new("cache", 0)) == NULL) return HT_ERROR;
 		HTNet_setHost(net, host);
 		if (HTHost_addNet(host, net) == HT_PENDING)
 		    if (PROT_TRACE) HTTrace("HTLoadCache. Pending...\n");

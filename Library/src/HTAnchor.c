@@ -695,15 +695,22 @@ PUBLIC char * HTAnchor_view (HTAnchor * me)
 PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 {
     if (me && response) {
+	HTCachable cachable = HTResponse_isCachable(response);
 
-	if (HTResponse_isCachable(response) == HT_CACHE_ETAG) {
+	if (cachable == HT_CACHE_ETAG) {
 	    char * etag = HTResponse_etag(response);
 	    if (ANCH_TRACE) HTTrace("HTAnchor.... Updating etag for %p\n", me);
 	    if (etag) {
 		HTAnchor_setEtag(me, etag);
 		return YES;
 	    }
-	} else if (HTResponse_isCachable(response) == HT_CACHE_ALL) {
+
+	} else if (cachable == HT_CACHE_NOT_MODIFIED) {
+	    if (ANCH_TRACE)
+		HTTrace("HTAnchor.... Information is up to date for %p\n", me);
+	    return YES;
+
+	} else if (cachable == HT_CACHE_ALL) {
 	    char * etag = HTResponse_etag(response);
 	    if (ANCH_TRACE)
 		HTTrace("HTAnchor.... Updating metainformation for %p\n", me);
@@ -732,6 +739,13 @@ PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 	    **  have inherited in the anchor object
 	    */
 	    HTResponse_isCached(response, YES);
+
+	    /*
+	    **  Set the datestamp of when the anchor was updated if we didn't
+	    **  get any in the response
+	    */
+	    if (!HTAssocList_findObject(me->headers, "date"))
+		HTAnchor_setDate(me, time(NULL));
 
 	    return YES;
 	}
@@ -1334,15 +1348,6 @@ PUBLIC BOOL HTAnchor_setHeader (HTParentAnchor * me, HTAssocList * headers)
 PUBLIC void HTAnchor_setHeaderParsed (HTParentAnchor * me)
 {
     if (me) {
-
-	/*
-	**  If the server did not send a date then use the current time
-	*/
-	if (me->date < 0) me->date = time(NULL);
-
-	/*
-	**  If we don't get a Last-Modified header then set it to date
-	*/
 	if (ANCH_TRACE) HTTrace("HTAnchor.... Anchor is parsed\n");
 	me->header_parsed = YES;
     }
@@ -1401,7 +1406,4 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     /* Delete any original headers */
     if (me->headers) HTAssocList_delete(me->headers);
     me->headers = NULL;
-
-    /* Anchor is cleared */
-    me->header_parsed = NO;
 }
