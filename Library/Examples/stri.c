@@ -65,7 +65,7 @@ int main (int argc, char ** argv)
     HTTrace_setCallback(tracer);
 
     /* Set trace messages */
-#if 1
+#if 0
     HTSetTraceMessageMask("sopx");
 #endif
 
