@@ -425,6 +425,16 @@ extern BOOL HTHost_setMaxPipelinedRequests (int max);
 extern int HTHost_maxPipelinedRequests (void);
 </PRE>
 <H3>
+  How many Pending and Outstanding Net objects are there on a Host?
+</H3>
+<P>
+You can query how many Het objects (essentially requests) are outstanding
+or pending on a host object using these methods:
+<PRE>
+extern int HTHost_numberOfOutstandingNetObjects (HTHost * host);
+extern int HTHost_numberOfPendingNetObjects (HTHost * host);
+</PRE>
+<H3>
   Pipeline Recovery
 </H3>
 <P>

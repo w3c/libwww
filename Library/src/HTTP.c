@@ -23,6 +23,7 @@
 #include "HTHeader.h"
 #include "HTMIMERq.h"
 #include "HTReqMan.h"
+#include "HTNetMan.h"
 #include "HTTPUtil.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
@@ -987,9 +988,22 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	http->next = HTTP_OK;
 	http->result = HT_ERROR;
     } else if (type == HTEvent_CLOSE) {
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
-			   NULL, 0, "HTLoadHTTP");
-	HTTPCleanup(request, HT_INTERRUPTED);
+        long read_len = HTNet_bytesRead(net);
+        long doc_len = HTAnchor_length(anchor);
+
+        /*
+        ** It is OK to get a close if a) we don't pipeline and b)
+        ** we have the expected amount of data. In case we don't
+        ** know how much data to expect, we must accept it asis.
+        */
+        if (HTHost_numberOfOutstandingNetObjects(host) == 1 &&
+            (doc_len<0 || doc_len==read_len)) {
+	    HTTPCleanup(request, HT_LOADED);
+        } else {
+            HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
+			       NULL, 0, "HTLoadHTTP");
+	    HTTPCleanup(request, HT_INTERRUPTED);
+        }
 	return HT_OK;
     } else if (type == HTEvent_TIMEOUT) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_TIME_OUT,

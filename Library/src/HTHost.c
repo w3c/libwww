@@ -1221,6 +1221,16 @@ PUBLIC HTNet * HTHost_firstNet (HTHost * host)
     return (HTNet *) HTList_firstObject(host->pipeline);
 }
 
+PUBLIC int HTHost_numberOfOutstandingNetObjects (HTHost * host)
+{
+    return host ? HTList_count(host->pipeline) : -1;
+}
+
+PUBLIC int HTHost_numberOfPendingNetObjects (HTHost * host)
+{
+    return host ? HTList_count(host->pending) : -1;
+}
+
 /*
 **	The host event manager keeps track of the state of it's client engines
 **	(typically HTTPEvent), accepting multiple blocks on read or write from
