@@ -164,6 +164,7 @@ it makes reference.
 <H2>The HTEncoding type</H2>
 
 <PRE>
+typedef HTAtom * HTLanguage;
 typedef HTAtom * HTEncoding;
 typedef HTAtom * HTCte;				/* Content transfer encoding */
 </PRE>
@@ -184,9 +185,6 @@ We also add
 </PRE>
 
 <A NAME="Encoding"><H2>Registration of Accepted Content Encodings</H2></A>
-
-This function is not currently used, as no encoding/decoding streams
-have been made :-(
 
 <PRE>
 typedef struct _HTContentDescription {

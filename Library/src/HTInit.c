@@ -10,16 +10,30 @@
 /* Library include files */
 #include "tcp.h"
 #include "HTUtils.h"
-#include "HTML.h"
+#include "HTFormat.h"
 #include "HTList.h"
+#include "HTBind.h"
+
+/* Converters and Presenters */
+#include "HTML.h"
 #include "HTPlain.h"
 #include "HTMLGen.h"
-#include "HTFile.h"
-#include "HTFormat.h"
 #include "HTMIME.h"
 #include "HTWSRC.h"
 #include "HTFWrite.h"
+
+/* Protocol Modules */
+#include "HTTP.h"
+#include "HTFile.h"
+#include "HTFTP.h"
+#include "HTGopher.h"
+#include "HTTelnet.h"
 #include "HTNews.h"
+
+#ifdef HT_DIRECT_WAIS
+#include HTWAIS.h
+#endif
+
 #include "HTInit.h"				         /* Implemented here */
 
 /*	BINDINGS BETWEEN A SOURCE MEDIA TYPE AND A DEST MEDIA TYPE (CONVERSION)
@@ -87,6 +101,34 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 
 }
 
+/*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY
+**	-------------------------------------------
+**
+**	Add to or subtract from this list if you add or remove protocol
+**	modules. This function is called from HTLibInit()
+**	Compiling with HT_NO_INIT prevents all known protocols from being
+**	force in at link time.
+*/
+#ifndef HT_NO_INIT
+PUBLIC void HTAccessInit NOARGS
+{
+#ifndef DECNET
+    HTRegisterProtocol(&HTFTP);
+    HTRegisterProtocol(&HTNews);
+    HTRegisterProtocol(&HTGopher);
+#ifdef HT_DIRECT_WAIS
+    HTRegisterProtocol(&HTWAIS);
+#endif
+#endif /* DECNET */
+
+    HTRegisterProtocol(&HTTP);
+    HTRegisterProtocol(&HTFile);
+    HTRegisterProtocol(&HTTelnet);
+    HTRegisterProtocol(&HTTn3270);
+    HTRegisterProtocol(&HTRlogin);
+}
+#endif /* !HT_NO_INIT */
+
 
 /*	BINDINGS BETWEEN FILE EXTENSIONS AND MEDIA TYPES
 **	------------------------------------------------
@@ -95,103 +137,104 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 **	type. The quality is an apriori bias as to whether the file should be
 **	used.  Not that different suffixes can be used to represent files
 **	which are of the same format but are originals or regenerated,
-**	with different values.
+**	with different values. Called from HTLibraryInit().
 */
 
 #ifndef HT_NO_INIT
 PUBLIC void HTFileInit NOARGS
 {
-    /*		Suffix     Contenet-Type	Content-Encoding  Quality			*/
+    /*		       Suffix	 Content-Type		        Encoding  Lang	Quality	*/
 
-    HTAddType(".mime",   "www/mime",			"8bit",   1.0);	/* Internal -- MIME is	*/
-                                                                        /* not recursive	*/
-    HTAddType(".bin",    "application/octet-stream",	"binary", 1.0); /* Uninterpreted binary	*/
-    HTAddType(".oda",    "application/oda",		"binary", 1.0);
-    HTAddType(".pdf",    "application/pdf",		"binary", 1.0);
-    HTAddType(".ai",     "application/postscript",	"8bit",   0.5);	/* Adobe Illustrator	*/
-    HTAddType(".PS",     "application/postscript",	"8bit",	  0.8);	/* PostScript		*/
-    HTAddType(".eps",    "application/postscript",	"8bit",   0.8);
-    HTAddType(".ps",     "application/postscript",	"8bit",   0.8);
-    HTAddType(".rtf",    "application/x-rtf",		"7bit",   1.0);	/* RTF			*/
-    HTAddType(".Z",      "application/x-compressed",	"binary", 1.0);	/* Compressed data	*/
-    HTAddType(".csh",    "application/x-csh",		"7bit",   0.5);	/* C-shell script	*/
-    HTAddType(".dvi",    "application/x-dvi",		"binary", 1.0);	/* TeX DVI		*/
-    HTAddType(".hdf",    "application/x-hdf",		"binary", 1.0);	/* NCSA HDF data file	*/
-    HTAddType(".latex",  "application/x-latex",		"8bit",   1.0);	/* LaTeX source		*/
-    HTAddType(".nc",     "application/x-netcdf",	"binary", 1.0);	/* Unidata netCDF data	*/
-    HTAddType(".cdf",    "application/x-netcdf",	"binary", 1.0);
-    HTAddType(".sh",     "application/x-sh",		"7bit",   0.5);	/* Shell-script		*/
-    HTAddType(".tcl",    "application/x-tcl",		"7bit",   0.5);	/* TCL-script		*/
-    HTAddType(".tex",    "application/x-tex",		"8bit",   1.0);	/* TeX source		*/
-    HTAddType(".texi",   "application/x-texinfo",	"7bit",   1.0);	/* Texinfo		*/
-    HTAddType(".texinfo","application/x-texinfo",	"7bit",   1.0);
-    HTAddType(".t",      "application/x-troff",		"7bit",   0.5);	/* Troff		*/
-    HTAddType(".roff",   "application/x-troff",		"7bit",   0.5);
-    HTAddType(".tr",     "application/x-troff",		"7bit",   0.5);
-    HTAddType(".man",    "application/x-troff-man",	"7bit",   0.5);	/* Troff with man macros*/
-    HTAddType(".me",     "application/x-troff-me",	"7bit",   0.5);	/* Troff with me macros	*/
-    HTAddType(".ms",     "application/x-troff-ms",	"7bit",   0.5);	/* Troff with ms macros	*/
-    HTAddType(".src",    "application/x-wais-source",	"7bit",   1.0);	/* WAIS source		*/
-    HTAddType(".zip",    "application/zip",		"binary", 1.0);	/* PKZIP		*/
-    HTAddType(".bcpio",  "application/x-bcpio",		"binary", 1.0);	/* Old binary CPIO	*/
-    HTAddType(".cpio",   "application/x-cpio",		"binary", 1.0);	/* POSIX CPIO		*/
-    HTAddType(".gtar",   "application/x-gtar",		"binary", 1.0);	/* Gnu tar		*/
-    HTAddType(".shar",   "application/x-shar",		"8bit",   1.0);	/* Shell archive	*/
-    HTAddType(".sv4cpio","application/x-sv4cpio",	"binary", 1.0);	/* SVR4 CPIO		*/
-    HTAddType(".sv4crc", "application/x-sv4crc",	"binary", 1.0);	/* SVR4 CPIO with CRC	*/
-    HTAddType(".tar",    "application/x-tar",		"binary", 1.0);	/* 4.3BSD tar		*/
-    HTAddType(".ustar",  "application/x-ustar",		"binary", 1.0);	/* POSIX tar		*/
-    HTAddType(".snd",    "audio/basic",			"binary", 1.0);	/* Audio		*/
-    HTAddType(".au",     "audio/basic",			"binary", 1.0);
-    HTAddType(".aiff",   "audio/x-aiff",		"binary", 1.0);
-    HTAddType(".aifc",   "audio/x-aiff",		"binary", 1.0);
-    HTAddType(".aif",    "audio/x-aiff",		"binary", 1.0);
-    HTAddType(".wav",    "audio/x-wav",			"binary", 1.0);	/* Windows+ WAVE format	*/
-    HTAddType(".gif",    "image/gif",			"binary", 1.0);	/* GIF			*/
-    HTAddType(".ief",    "image/ief",			"binary", 1.0);	/* Image Exchange fmt	*/
-    HTAddType(".jpg",    "image/jpeg",			"binary", 1.0);	/* JPEG			*/
-    HTAddType(".JPG",    "image/jpeg",			"binary", 1.0);
-    HTAddType(".JPE",    "image/jpeg",			"binary", 1.0);
-    HTAddType(".jpe",    "image/jpeg",			"binary", 1.0);
-    HTAddType(".JPEG",   "image/jpeg",			"binary", 1.0);
-    HTAddType(".jpeg",   "image/jpeg",			"binary", 1.0);
-    HTAddType(".tif",    "image/tiff",			"binary", 1.0);	/* TIFF			*/
-    HTAddType(".tiff",   "image/tiff",			"binary", 1.0);
-    HTAddType(".ras",    "image/cmu-raster",		"binary", 1.0);
-    HTAddType(".pnm",    "image/x-portable-anymap",	"binary", 1.0);	/* PBM Anymap format	*/
-    HTAddType(".pbm",    "image/x-portable-bitmap",	"binary", 1.0);	/* PBM Bitmap format	*/
-    HTAddType(".pgm",    "image/x-portable-graymap",	"binary", 1.0);	/* PBM Graymap format	*/
-    HTAddType(".ppm",    "image/x-portable-pixmap",	"binary", 1.0);	/* PBM Pixmap format	*/
-    HTAddType(".rgb",    "image/x-rgb",			"binary", 1.0);
-    HTAddType(".xbm",    "image/x-xbitmap",		"binary", 1.0);	/* X bitmap		*/
-    HTAddType(".xpm",    "image/x-xpixmap",		"binary", 1.0);	/* X pixmap format	*/
-    HTAddType(".xwd",    "image/x-xwindowdump",		"binary", 1.0);	/* X window dump (xwd)	*/
-    HTAddType(".html",   "text/html",			"8bit",   1.0);	/* HTML			*/
-    HTAddType(".c",      "text/plain",			"7bit",   0.5);	/* C source		*/
-    HTAddType(".h",      "text/plain",			"7bit",   0.5);	/* C headers		*/
-    HTAddType(".C",      "text/plain",			"7bit",   0.5);	/* C++ source		*/
-    HTAddType(".cc",     "text/plain",			"7bit",   0.5);	/* C++ source		*/
-    HTAddType(".hh",     "text/plain",			"7bit",   0.5);	/* C++ headers		*/
-    HTAddType(".m",      "text/plain",			"7bit",   0.5);	/* Objective-C source	*/
-    HTAddType(".f90",    "text/plain",			"7bit",   0.5);	/* Fortran 90 source	*/
-    HTAddType(".txt",    "text/plain",			"7bit",   0.5);	/* Plain text		*/
-    HTAddType(".rtx",    "text/richtext",		"7bit",   1.0);	/* MIME Richtext format	*/
-    HTAddType(".tsv",    "text/tab-separated-values",	"7bit",   1.0);	/* Tab-separated values	*/
-    HTAddType(".etx",    "text/x-setext",		"7bit",   0.9);	/* Struct Enchanced Txt	*/
-    HTAddType(".MPG",    "video/mpeg",			"binary", 1.0);	/* MPEG			*/
-    HTAddType(".mpg",    "video/mpeg",			"binary", 1.0);
-    HTAddType(".MPE",    "video/mpeg",			"binary", 1.0);
-    HTAddType(".mpe",    "video/mpeg",			"binary", 1.0);
-    HTAddType(".MPEG",   "video/mpeg",			"binary", 1.0);
-    HTAddType(".mpeg",   "video/mpeg",			"binary", 1.0);
-    HTAddType(".qt",     "video/quicktime",		"binary", 1.0);	/* QuickTime		*/
-    HTAddType(".mov",    "video/quicktime",		"binary", 1.0);
-    HTAddType(".avi",    "video/x-msvideo",		"binary", 1.0);	/* MS Video for Windows	*/
-    HTAddType(".movie",  "video/x-sgi-movie",		"binary", 1.0);	/* SGI "moviepalyer"	*/
+    HTBind_setBinding("mime",   "www/mime",			"8bit",   NULL, 1.0);	/* Internal -- MIME is	*/
+                                                                       /* not recursive	*/
+    HTBind_setBinding("bin",    "application/octet-stream",	"binary", NULL, 1.0); /* Uninterpreted binary	*/
+    HTBind_setBinding("oda",    "application/oda",		"binary", NULL, 1.0);
+    HTBind_setBinding("pdf",    "application/pdf",		"binary", NULL, 1.0);
+    HTBind_setBinding("ai",     "application/postscript",	"8bit",   NULL, 0.5);	/* Adobe Illustrator	*/
+    HTBind_setBinding("PS",     "application/postscript",	"8bit",	  NULL, 0.8);	/* PostScript		*/
+    HTBind_setBinding("eps",    "application/postscript",	"8bit",   NULL, 0.8);
+    HTBind_setBinding("ps",     "application/postscript",	"8bit",   NULL, 0.8);
+    HTBind_setBinding("gtar",   "application/x-gtar",		"binary", NULL, 1.0);	/* Gnu tar		*/
+    HTBind_setBinding("rtf",    "application/x-rtf",		"7bit",	  NULL, 1.0);	/* RTF			*/
+    HTBind_setBinding("csh",    "application/x-csh",		"7bit",   NULL, 0.5);	/* C-shell script	*/
+    HTBind_setBinding("dvi",    "application/x-dvi",		"binary", NULL, 1.0);	/* TeX DVI		*/
+    HTBind_setBinding("hdf",    "application/x-hdf",		"binary", NULL, 1.0);	/* NCSA HDF data file	*/
+    HTBind_setBinding("latex",  "application/x-latex",		"8bit",   NULL, 1.0);	/* LaTeX source		*/
+    HTBind_setBinding("nc",     "application/x-netcdf",	"binary", NULL, 1.0);	/* Unidata netCDF data	*/
+    HTBind_setBinding("cdf",    "application/x-netcdf",	"binary", NULL, 1.0);
+    HTBind_setBinding("sh",     "application/x-sh",		"7bit",   NULL, 0.5);	/* Shell-script		*/
+    HTBind_setBinding("tar",    "application/x-tar",		"binary", NULL, 1.0);	/* 4.3BSD tar		*/
+    HTBind_setBinding("tcl",    "application/x-tcl",		"7bit",   NULL, 0.5);	/* TCL-script		*/
+    HTBind_setBinding("tex",    "application/x-tex",		"8bit",   NULL, 1.0);	/* TeX source		*/
+    HTBind_setBinding("texi",   "application/x-texinfo",	"7bit",   NULL, 1.0);	/* Texinfo		*/
+    HTBind_setBinding("texinfo","application/x-texinfo",	"7bit",   NULL, 1.0);
+    HTBind_setBinding("t",      "application/x-troff",		"7bit",   NULL, 0.5);	/* Troff		*/
+    HTBind_setBinding("roff",   "application/x-troff",		"7bit",   NULL, 0.5);
+    HTBind_setBinding("tr",     "application/x-troff",		"7bit",   NULL, 0.5);
+    HTBind_setBinding("man",    "application/x-troff-man",	"7bit",   NULL, 0.5);	/* Troff with man macros*/
+    HTBind_setBinding("me",     "application/x-troff-me",	"7bit",   NULL, 0.5);	/* Troff with me macros	*/
+    HTBind_setBinding("ms",     "application/x-troff-ms",	"7bit",   NULL, 0.5);	/* Troff with ms macros	*/
+    HTBind_setBinding("src",    "application/x-wais-source",	"7bit",   NULL, 1.0);	/* WAIS source		*/
+    HTBind_setBinding("bcpio",  "application/x-bcpio",		"binary", NULL, 1.0);	/* Old binary CPIO	*/
+    HTBind_setBinding("cpio",   "application/x-cpio",		"binary", NULL, 1.0);	/* POSIX CPIO		*/
+    HTBind_setBinding("shar",   "application/x-shar",		"8bit",   NULL, 1.0);	/* Shell archive	*/
+    HTBind_setBinding("sv4cpio","application/x-sv4cpio",	"binary", NULL, 1.0);	/* SVR4 CPIO		*/
+    HTBind_setBinding("sv4crc", "application/x-sv4crc",	"binary", NULL, 1.0);	/* SVR4 CPIO with CRC	*/
+    HTBind_setBinding("ustar",  "application/x-ustar",		"binary", NULL, 1.0);	/* POSIX tar		*/
+    HTBind_setBinding("snd",    "audio/basic",			"binary", NULL, 1.0);	/* Audio		*/
+    HTBind_setBinding("au",     "audio/basic",			"binary", NULL, 1.0);
+    HTBind_setBinding("aiff",   "audio/x-aiff",		"binary", NULL, 1.0);
+    HTBind_setBinding("aifc",   "audio/x-aiff",		"binary", NULL, 1.0);
+    HTBind_setBinding("aif",    "audio/x-aiff",		"binary", NULL, 1.0);
+    HTBind_setBinding("wav",    "audio/x-wav",			"binary", NULL, 1.0);	/* Windows+ WAVE format	*/
+    HTBind_setBinding("gif",    "image/gif",			"binary", NULL, 1.0);	/* GIF			*/
+    HTBind_setBinding("ief",    "image/ief",			"binary", NULL, 1.0);	/* Image Exchange fmt	*/
+    HTBind_setBinding("jpg",    "image/jpeg",			"binary", NULL, 1.0);	/* JPEG			*/
+    HTBind_setBinding("JPG",    "image/jpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("JPE",    "image/jpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("jpe",    "image/jpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("JPEG",   "image/jpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("jpeg",   "image/jpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("tif",    "image/tiff",			"binary", NULL, 1.0);	/* TIFF			*/
+    HTBind_setBinding("tiff",   "image/tiff",			"binary", NULL, 1.0);
+    HTBind_setBinding("ras",    "image/cmu-raster",		"binary", NULL, 1.0);
+    HTBind_setBinding("pnm",    "image/x-portable-anymap",	"binary", NULL, 1.0);	/* PBM Anymap format	*/
+    HTBind_setBinding("pbm",    "image/x-portable-bitmap",	"binary", NULL, 1.0);	/* PBM Bitmap format	*/
+    HTBind_setBinding("pgm",    "image/x-portable-graymap",	"binary", NULL, 1.0);	/* PBM Graymap format	*/
+    HTBind_setBinding("ppm",    "image/x-portable-pixmap",	"binary", NULL, 1.0);	/* PBM Pixmap format	*/
+    HTBind_setBinding("rgb",    "image/x-rgb",			"binary", NULL, 1.0);
+    HTBind_setBinding("xbm",    "image/x-xbitmap",		"binary", NULL, 1.0);	/* X bitmap		*/
+    HTBind_setBinding("xpm",    "image/x-xpixmap",		"binary", NULL, 1.0);	/* X pixmap format	*/
+    HTBind_setBinding("xwd",    "image/x-xwindowdump",		"binary", NULL, 1.0);	/* X window dump (xwd)	*/
+    HTBind_setBinding("html",   "text/html",			"8bit",   NULL, 1.0);	/* HTML			*/
+    HTBind_setBinding("c",      "text/plain",			"7bit",   NULL, 0.5);	/* C source		*/
+    HTBind_setBinding("h",      "text/plain",			"7bit",   NULL, 0.5);	/* C headers		*/
+    HTBind_setBinding("C",      "text/plain",			"7bit",   NULL, 0.5);	/* C++ source		*/
+    HTBind_setBinding("cc",     "text/plain",			"7bit",   NULL, 0.5);	/* C++ source		*/
+    HTBind_setBinding("hh",     "text/plain",			"7bit",   NULL, 0.5);	/* C++ headers		*/
+    HTBind_setBinding("m",      "text/plain",			"7bit",   NULL, 0.5);	/* Objective-C source	*/
+    HTBind_setBinding("f90",    "text/plain",			"7bit",   NULL, 0.5);	/* Fortran 90 source	*/
+    HTBind_setBinding("txt",    "text/plain",			"7bit",   NULL, 0.5);	/* Plain text		*/
+    HTBind_setBinding("rtx",    "text/richtext",		"7bit",   NULL, 1.0);	/* MIME Richtext format	*/
+    HTBind_setBinding("tsv",    "text/tab-separated-values",	"7bit",   NULL, 1.0);	/* Tab-separated values	*/
+    HTBind_setBinding("etx",    "text/x-setext",		"7bit",   NULL, 0.9);	/* Struct Enchanced Txt	*/
+    HTBind_setBinding("MPG",    "video/mpeg",			"binary", NULL, 1.0);	/* MPEG			*/
+    HTBind_setBinding("mpg",    "video/mpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("MPE",    "video/mpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("mpe",    "video/mpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("MPEG",   "video/mpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("mpeg",   "video/mpeg",			"binary", NULL, 1.0);
+    HTBind_setBinding("qt",     "video/quicktime",		"binary", NULL, 1.0);	/* QuickTime		*/
+    HTBind_setBinding("mov",    "video/quicktime",		"binary", NULL, 1.0);
+    HTBind_setBinding("avi",    "video/x-msvideo",		"binary", NULL, 1.0);	/* MS Video for Windows	*/
+    HTBind_setBinding("movie",  "video/x-sgi-movie",		"binary", NULL, 1.0);	/* SGI "moviepalyer"	*/
 
-    HTAddType("*.*",     "www/unknown",			"binary", 0.1);
-    HTAddType("*",       "text/plain",			"7bit",   0.5);
+    HTBind_setBinding("zip",    NULL,				"zip",      NULL, 1.0);	/* PKZIP		*/
+    HTBind_setBinding("Z",	NULL,				"compress", NULL, 1.0);	/* Compressed data	*/
+    HTBind_setBinding("gz",	NULL,				"gzip",	    NULL, 1.0);	/* Gnu Compressed data	*/
 
+    HTBind_setBinding("*.*",     "www/unknown",			"binary", NULL, 0.1);	/* Unknown suffix */
+    HTBind_setBinding("*",       "text/plain",			"7bit",   NULL, 0.5);	/* No suffix */
 }
 #endif /* !HT_NO_INIT */
 

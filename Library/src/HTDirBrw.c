@@ -30,7 +30,8 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTMLPDTD.h"
-#include "HTFile.h"
+#include "HTML.h"		/* Temporary */
+#include "HTBind.h"
 #include "HTAnchor.h"
 #include "HTParse.h"
 #include "HTFWrite.h"
@@ -619,7 +620,6 @@ PRIVATE void HTDirOutList ARGS4(HTStructured *, target, HTBTree *, bt,
 	*(tail+tailend) = '\0';
 	StrAllocCat(tail, escaped);
 
-	if (TRACE) fprintf(TDEST, "OutList: %s\n", tail);
 	if (HTDirShowMask & HT_DIR_ICON_ANCHOR  &&
 	    nkey->icon && nkey->icon->icon_url) {	/* Icon as anchor */
 	    HTStartAnchor(target, NULL, tail);
@@ -863,9 +863,10 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	/* Build tree */
 	while ((dirbuf = readdir(dp))) {
 	    HTDirKey *nodekey;
-	    HTAtom *encoding = NULL;
-	    HTAtom *language = NULL;
-	    HTFormat format;
+	    HTFormat format=NULL;
+	    HTEncoding encoding=NULL;
+	    HTLanguage language=NULL;
+	    double q=1.0;
 
 	    if (!dirbuf->d_ino)		 		 /* Skip if not used */
 		continue;
@@ -879,7 +880,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    if (!(HTDirShowMask & HT_DIR_SHOW_HID) && *dirbuf->d_name == '.')
 		continue;
 
-	    format = HTFileFormat(dirbuf->d_name, &encoding, &language);
+	    HTBind_getFormat(dirbuf->d_name, &format, &encoding, &language,&q);
 
 	    /* First make a lstat() and get a key ready. */
 	    *(pathname+pathend) = '\0';
@@ -1198,9 +1199,10 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	/* Build tree */
 	while ((status = input(req->net_info, &file_info)) > 0) {
 	    HTDirKey *nodekey;
-	    HTAtom *encoding;
-	    HTAtom *language;
-	    HTFormat format;
+	    HTFormat format=NULL;
+	    HTEncoding encoding=NULL;
+	    HTLanguage language=NULL;
+	    double q=1.0;
 	    
 	    /* Current and parent directories are never shown in list */
 	    if (dottest && (!strcmp(file_info.f_name, ".") ||
@@ -1210,7 +1212,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 		continue;
 	    }
 
-	    format = HTFileFormat(file_info.f_name, &encoding, &language);
+	    HTBind_getFormat(file_info.f_name,&format,&encoding,&language,&q);
 
 	    /* Get a key ready. */
 	    if ((nodekey = (HTDirKey *) calloc(1, sizeof(HTDirKey))) == NULL)
@@ -1335,7 +1337,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 #endif
 	{
 	    HTStructured *target = HTML_new(req, NULL, WWW_HTML,
-					    req->output_format,
+				    req->output_format,
 					    req->output_stream);
 
 	    /* Put out the header for the HTML object */

@@ -74,6 +74,17 @@ compatibility.
 extern void HTFormatInit PARAMS((HTList * conversions));
 </PRE>
 
+<H2>Protocol Modules</H2>
+
+Set up default bindings between access schemes and the set of protocol
+modules in the Library.
+
+<PRE>
+#ifndef HT_NO_INIT
+extern void HTAccessInit NOPARAMS;
+#endif
+</PRE>
+
 <H2>File Suffix Setup</H2>
 
 This functions defines a basic set of file suffixes and the

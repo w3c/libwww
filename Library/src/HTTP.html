@@ -26,28 +26,8 @@ of Common Code</A>. <P>
 #define HTTP_H
 
 #include "HTAccess.h"
-</PRE>
 
-<H2>Controlling Flags</H2>
-
-The following variables can change the behaviour of the module.
-
-<H3>Cache control flag</H3>
-
-<EM>Note: This variable is now replaced by the (char *) HTCacheDir in
-<A HREF="HTAccess.html">HTAccess Module</A></EM> <P>
-
-Turn this off if you don't want HTTP protocol fetches to leave cache files.
-	extern	BOOL  HTCacheHTTP;
-
-<H3>Redirections</H3>
-
-The maximum number of redirections is pr. default 10 and is set in the
-module. This prevents the library from going into an infinite loop
-which is kind of nice :-)
-
-<PRE>
-extern int HTMaxRedirections;
+GLOBALREF HTProtocol HTTP;
 
 #endif /* HTTP_H */
 </PRE>
@@ -55,3 +35,4 @@ extern int HTMaxRedirections;
 End of HTTP module declaration
 </BODY>
 </HTML>
+

@@ -43,9 +43,9 @@
 #include "HTError.h"
 #include "HTString.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
-#include "HTFile.h"
 #include "HTThread.h"
 #include "HTEvent.h"
+#include "HTBind.h"
 #include "HTInit.h"
 #ifndef NO_RULES
 #include "HTRules.h"
@@ -53,6 +53,8 @@
 #include "HTAccess.h"					 /* Implemented here */
 
 /* These flags may be set to modify the operation of this module */
+PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
+
 PUBLIC char * HTClientHost = 0;		 /* Name of remote login host if any */
 PUBLIC BOOL HTSecure = NO;		 /* Disable access for telnet users? */
 
@@ -276,48 +278,6 @@ PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
 /*	           Initialization and Termination of the Library	     */
 /* --------------------------------------------------------------------------*/
 
-/*	Register all known protocols
-**	----------------------------
-**
-**	Add to or subtract from this list if you add or remove protocol
-**	modules. This function is called from HTLibInit()
-**
-**	Compiling with HT_NO_INIT prevents all known protocols from being
-**	force in at link time.
-*/
-#ifndef HT_NO_INIT
-PRIVATE void HTAccessInit NOARGS
-{
-    GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
-#ifndef DECNET
-#ifdef NEW_CODE
-    GLOBALREF  HTProtocol HTFTP, HTNews, HTNNTP, HTGopher;
-#endif
-    GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
-#ifdef HT_DIRECT_WAIS
-    GLOBALREF  HTProtocol HTWAIS;
-#endif
-
-    HTRegisterProtocol(&HTFTP);
-    HTRegisterProtocol(&HTNews);
-#ifdef NEW_CODE
-    HTRegisterProtocol(&HTNNTP);
-#endif
-    HTRegisterProtocol(&HTGopher);
-
-#ifdef HT_DIRECT_WAIS
-    HTRegisterProtocol(&HTWAIS);
-#endif
-
-#endif /* DECNET */
-    HTRegisterProtocol(&HTTP);
-    HTRegisterProtocol(&HTFile);
-    HTRegisterProtocol(&HTTelnet);
-    HTRegisterProtocol(&HTTn3270);
-    HTRegisterProtocol(&HTRlogin);
-}
-#endif /* !HT_NO_INIT */
-
 /*								     HTLibInit
 **
 **	This function initiates the Library and it MUST be called when
@@ -340,17 +300,18 @@ PUBLIC BOOL HTLibInit NOARGS
     if (TRACE)
 	fprintf(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
-/* Shall we initialize the bindings between (access method, protocol module),
-   (file extension, media type)? */
+    /* Put up a global conversion list, but leave initialization
+       to the application */
+    HTBind_init();
+    if (!HTConversions)
+	HTConversions = HTList_new();
+
+    /* Initialize the bindings between (access method, protocol module),
+       (file extension, media type)? */
 #ifndef HT_NO_INIT
     HTAccessInit();		 /* Bind access schemes and protocol modules */
     HTFileInit();		     /* Bind file extensions and media types */
 #endif
-
-    /* Put up a global conversion list, but leave initialization
-       to the application */
-    if (!HTConversions)
-	HTConversions = HTList_new();
 
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
@@ -400,10 +361,14 @@ PUBLIC BOOL HTLibTerminate NOARGS
     if (TRACE)
 	fprintf(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
     HTAtom_deleteAll();
-    HTDisposeProtocols();
     HTDisposeConversions();
-    HTFile_deleteSuffixes();
     HTTCPCacheRemoveAll();
+
+#ifndef HT_NO_INIT
+    HTDisposeProtocols();    /* Remove bindings between access and protocols */
+    HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
+#endif
+
     HTFreeHostName();
     HTFreeMailAddress();
     HTCache_freeRoot();

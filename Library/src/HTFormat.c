@@ -41,11 +41,12 @@ struct _HTStream {
 };
 
 /* ------------------------------------------------------------------------- */
+/* 				FORMAT NEGOTIATION			     */
+/* ------------------------------------------------------------------------- */
 
 /*
-**   This function replaces the code in HTRequest_delete() in order to keep
-**   the data structure hidden (it is NOT a joke!)
-**   Henrik 14/03-94
+**	Cleanup memory after the LOCAL list of converters. Note that there
+**	is also a GLOBAL conversion list
 */
 PUBLIC void HTFormatDelete ARGS1(HTRequest *, request)
 {
@@ -58,6 +59,26 @@ PUBLIC void HTFormatDelete ARGS1(HTRequest *, request)
 	}
 	HTList_delete(request->conversions);
 	request->conversions = NULL;
+    }
+}
+
+
+/*
+**	Cleanup memory after the GLOBAL list of converters. Note that there
+**	is also a LOCAL conversion list associated with each HTRequest
+**	structure. Written by Eric Sink, eric@spyglass.com
+*/
+PUBLIC void HTDisposeConversions NOARGS
+{
+    if (HTConversions) {
+	HTList *cur = HTConversions;
+	HTPresentation *pres;
+	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
+	    FREE(pres->command);
+	    free(pres);
+	}
+	HTList_delete(HTConversions);
+	HTConversions = NULL;
     }
 }
 
@@ -123,26 +144,6 @@ PUBLIC void HTSetConversion ARGS7(
     pres->secs = secs;
     pres->secs_per_byte = secs_per_byte;
     HTList_addObject(conversions, pres);
-}
-
-
-/*
-**	Cleanup memory after the GLOBAL list of converters. Note that there
-**	is also a LOCAL conversion list associated with each HTRequest
-**	structure. Written by Eric Sink, eric@spyglass.com
-*/
-PUBLIC void HTDisposeConversions NOARGS
-{
-    if (HTConversions) {
-	HTList *cur = HTConversions;
-	HTPresentation *pres;
-	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
-	    FREE(pres->command);
-	    free(pres);
-	}
-	HTList_delete(HTConversions);
-	HTConversions = NULL;
-    }
 }
 
 
@@ -401,12 +402,10 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 }
 
 
-
-
-
-/*			Socket Input Buffering
-**			----------------------
-**
+/* ------------------------------------------------------------------------- */
+/* 				SOCKET INPUT BUFFERING			     */
+/* ------------------------------------------------------------------------- */
+/*			
 **	This code is used because one cannot in general open a
 **	file descriptor for a socket.
 **
@@ -963,9 +962,8 @@ PUBLIC int HTParseSocket ARGS3(
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
     if (rep_in == WWW_BINARY || rep_in == WWW_UNKNOWN
-	|| (request->content_encoding &&
-	    request->content_encoding != HTAtom_for("8bit") &&
-	    request->content_encoding != HTAtom_for("7bit"))
+	|| (HTAnchor_encoding(request->anchor) != HTAtom_for("8bit") &&
+	    HTAnchor_encoding(request->anchor) != HTAtom_for("7bit"))
         || strstr(HTAtom_name(rep_in), "image/")
 	|| strstr(HTAtom_name(rep_in), "video/")) { /* @@@@@@ */
 	HTCopy(file_number, stream);
@@ -1022,7 +1020,7 @@ PUBLIC int HTParseFile ARGS3(
 
 
 /* ------------------------------------------------------------------------- */
-/* MULTI THREADED IMPLEMENTATIONS					     */
+/*			MULTI THREADED IMPLEMENTATIONS			     */
 /* ------------------------------------------------------------------------- */
 
 /*	Push data from a socket down a stream

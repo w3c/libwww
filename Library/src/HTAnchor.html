@@ -111,15 +111,14 @@ struct _HTParentAnchor {
   char * 	address;	/* Absolute address of this node */
   BOOL		isIndex;	/* Acceptance of a keyword search */
 
-  /* Entity header fields. When reading a stream, we keep the whole
-     header information in this field so that we can use it for debug etc.  */
+  /* Entity header fields */
   BOOL		header_parsed;	/* Are we done parsing? */
 
   char *	title;
   int		methods;	/* Allowed methods (bit-flag) */
 
   HTEncoding	content_encoding;
-  HTList *	content_language;
+  HTLanguage	content_language;	/* @@@ SHOULD BE LIST @@@ */
   long int	content_length;
   HTCte		cte;		/* Content-Transfer-Encoding */
   HTFormat	content_type;
@@ -400,6 +399,14 @@ extern void HTAnchor_setCharset		PARAMS((HTParentAnchor *me,
 extern HTLevel HTAnchor_level		PARAMS((HTParentAnchor * me));
 extern void HTAnchor_setLevel		PARAMS((HTParentAnchor * me,
 						HTLevel		level));
+</PRE>
+
+<H3>Content Language</H3>
+
+<PRE>
+extern HTLanguage HTAnchor_language	PARAMS((HTParentAnchor *me));
+extern void HTAnchor_setLanguage	PARAMS((HTParentAnchor *me,
+						HTLanguage	language));
 </PRE>
 
 <H3>Content Encoding</H3>

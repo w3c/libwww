@@ -330,8 +330,13 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    state = JUNK_LINE;
 	    break;
 
-	  case CONTENT_LANGUAGE:
-	    state = UNKNOWN;				/* @@@@@@@@@@@ */
+	  case CONTENT_LANGUAGE:		 /* @@@ SHOULD BE A LIST @@@ */
+	    if ((value = HTNextField(&ptr)) != NULL) {
+		char *lc = value;
+		while ((*lc = TOLOWER(*lc))) lc++;
+		anchor->content_language = HTAtom_for(value);
+	    }
+	    state = JUNK_LINE;
 	    break;
 
 	  case CONTENT_LENGTH:
@@ -519,7 +524,7 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 /*	Character handling
 **	------------------
 */
-PRIVATE int HTMIME_put_character ARGS2(HTStream *, me, CONST char, c)
+PRIVATE int HTMIME_put_character ARGS2(HTStream *, me, char, c)
 {
     return HTMIME_put_block(me, &c, 1);
 }

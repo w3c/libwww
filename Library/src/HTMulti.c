@@ -14,11 +14,42 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTMulti.h"
-#include "HTFile.h"
+#include "HTDirBrw.h"
+#include "HTBind.h"
 #include "HTList.h"
 
 
 PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
+
+
+/* PUBLIC						HTSplitFilename()
+**
+**	Split the filename to an array of suffixes.
+**	Return the number of parts placed to the array.
+**	Array should have MAX_SUFF+1 items.
+*/
+PRIVATE int HTSplitFilename ARGS2(char *,	s_str,
+				  char **,	s_arr)
+{
+    CONST char *delimiters = HTBind_getDelimiters();
+    char * start = s_str;
+    char * end;
+    char save;
+    int i;
+
+    if (!s_str || !s_arr) return 0;
+
+    for (i=0; i < MAX_SUFF && *start; i++) {
+	for(end=start+1; *end && !strchr(delimiters, *end); end++);
+	save = *end;
+	*end = 0;
+	StrAllocCopy(s_arr[i], start);	/* Frees the previous value */
+	*end = save;
+	start = end;
+    }
+    FREE(s_arr[i]);	/* Terminating NULL */
+    return i;
+}
 
 
 /*
@@ -139,7 +170,7 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
 	    n = HTSplitFilename(dirbuf->d_name, actual);
 	    if (multi_match(required, m, actual, n)) {
 		HTContentDescription * cd;
-		cd = HTGetContentDescription(actual, n);
+		cd = HTBind_getDescription(dirbuf->d_name);
 		if (cd) {
 		    if (cd->content_type) {
 			cd->filename = (char*)malloc(strlen(dirname) + 2 +

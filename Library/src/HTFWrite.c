@@ -23,10 +23,12 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
-#include "HTFile.h"
+#include "HTBind.h"
 #include "HTList.h"
 #include "HTParse.h"
 #include "HTFWrite.h"					 /* Implemented here */
+
+#define HASH_SIZE 1001		/* Tunable */
 
 #define CACHE_LIMIT 100		/* files */
 
@@ -283,7 +285,7 @@ PRIVATE BOOL reserved_name ARGS1(char *, url)
 /*
 **	Map url to cache file name.
 */
-PRIVATE char * cache_file_name ARGS2(char *, base, char *, url)
+PRIVATE char * cache_file_name ARGS1(char *, url)
 {
     char * access = NULL;
     char * host = NULL;
@@ -312,7 +314,7 @@ PRIVATE char * cache_file_name ARGS2(char *, base, char *, url)
     if (path && path[strlen(path)-1] == '/')
 	welcome = YES;
 
-    cfn = (char*)malloc(strlen(base) +
+    cfn = (char*)malloc(strlen(HTCacheRoot) +
 			strlen(access) +
 			(host ? strlen(host) : 0) +
 			(path ? strlen(path) : 0) +
@@ -320,7 +322,7 @@ PRIVATE char * cache_file_name ARGS2(char *, base, char *, url)
     if (!cfn) outofmem(__FILE__, "cache_file_name");
 
     /* Removed extra slash - HF May2,95 */
-    sprintf(cfn, "%s%s/%s%s%s", base, access, host, path,
+    sprintf(cfn, "%s%s/%s%s%s", HTCacheRoot, access, host, path,
 	    (welcome ? WELCOME_FILE : ""));
 
     FREE(access); FREE(host); FREE(path);
@@ -358,16 +360,16 @@ PRIVATE char * cache_file_name ARGS2(char *, base, char *, url)
 **		can rely on fopen(cfn,"w") succeeding.
 **
 */
-PRIVATE BOOL create_cache_place ARGS2(char *, base, char *, cfn)
+PRIVATE BOOL create_cache_place ARGS1(char *, cfn)
 {
     struct stat stat_info;
     char * cur = NULL;
     BOOL create = NO;
 
-    if (!cfn  ||  (int)strlen(cfn) <= (int)strlen(base) + 1)
+    if (!cfn  ||  (int)strlen(cfn) <= (int)strlen(HTCacheRoot) + 1)
 	return NO;
 
-    cur = cfn + strlen(base) + 1;
+    cur = cfn + strlen(HTCacheRoot) + 1;
 
     while ((cur = strchr(cur, '/'))) {
 	*cur = 0;
@@ -426,121 +428,21 @@ PRIVATE BOOL create_cache_place ARGS2(char *, base, char *, cfn)
 }
 
 
-/*
-**   This function tries really hard to find a non-existent filename relative
-**   to the path given.
-**       path:	path of directory in which to put temp file
-**       url:	used for a similar name or generating a hash within 'limit'
-**       suffix:	if != 0, this suffix is used, else no suffix
-**       limit:	if 0 => use last part of url
-**       		if >0 generate hash. Max value
-**                      of limit is max(unsigned int).
-**   Returns NULL if no filename could be found.
+/*	Create a cache path
+**	-------------------
+**	Find a full path name for the cache file and create the path if it
+**	does not already exist. Returns name or NULL
+**	HWL 22/9/94
+**	HWL added support for hierachical structure
 */
-PRIVATE char *HTFWriter_filename ARGS5(char *, path, char *, url,
-				       CONST char *, suffix,
-				       unsigned int, limit,
-				       BOOL, flat)
+PRIVATE char *HTCache_getName ARGS1(char *, url)
 {
-#define HASHTRY 5			   /* Keep this less than 10, please */
-    static int primes[HASHTRY] = {31, 37, 41, 43, 47};	      /* Some primes */
-    char *urlfile = strrchr(url, '/');
-    char *filename = NULL;
-
-    /* HWL 22/9/94 */
-    /* HWL added support for hierachical structure */
-    if (!flat) {
-	filename = cache_file_name(path, url);
-	if (!filename)
-            return NULL;
-	if (create_cache_place(path, filename))
-            return(filename);
-	else
-            return NULL;
-    }
-
-    StrAllocCopy(filename, path);
-    if (filename && urlfile++) {		   /* We don't want two '/'s */
-	int digits = 1;
-	unsigned hash;
-	char *hashstr = NULL;
-	char *replace = 0;
-	char *ptr;				/* Dummy used several places */
-	char format[10];
-	if (*(filename+strlen(filename)-1) != '/')  /* But one is OK, though */
-	    StrAllocCat(filename, "/");
-	if (limit) {					  /* Use hash method */
-	    unsigned int residue = limit;
-	    while ((residue /= 10))		    /* Find number of digits */
-		digits++;
-	    if ((hashstr = (char *) malloc(digits+1)) == NULL)
-		outofmem(__FILE__, "HTFWriter_filename");
-	    for(ptr=urlfile, hash=0; *ptr; ptr++)          /* Calculate hash */
-		hash = *ptr + *primes * hash;
-	    hash %= limit;
-	    sprintf(format, "%%0%du", digits);     /* Convert hash to string */
-	    sprintf(hashstr, format, hash);
-	    *(hashstr+digits) = '\0';
-	    StrAllocCat(filename, hashstr);
-#ifndef NO_GETPID
-/* RISK: Race conditions may occur if this is not added to the filename */
-	    {
-		char pidstr[10];
-		sprintf(pidstr, "-%d", getpid());
-		StrAllocCat(filename, pidstr);
-	    }
-#endif
-	    if (suffix) {				       /* Add suffix */
-		if (*suffix != '.')
-		    StrAllocCat(filename, ".");
-		StrAllocCat(filename, suffix);
-	    }
-	    replace = strrchr(filename, '/')+1;	   /* Remember place */
-	} else {      					     /* Use url name */
-	    char *urlptr = 0;			     /* Strip off any suffix */
-	    StrAllocCopy(urlptr, urlfile);
-	    ptr = strrchr(urlptr, '.');
-	    if (ptr)
-		*ptr = '\0';
-	    StrAllocCat(filename, urlptr);
-	    free(urlptr);
-	    if (suffix) {			    /* Add new suffix if any */
-		if (*suffix != '.')
-		    StrAllocCat(filename, ".");
-		StrAllocCat(filename, suffix);
-	    }
-	}
-	{				   	       /* Try if file exists */
-	    int cnt;
-	    FILE *fp;
-	    for (cnt=1; cnt<HASHTRY; cnt++) {
-		if ((fp = fopen(filename, "r")) != NULL) {
-		    fclose(fp);
-		    if (limit) {          /* recalculate hash with new prime */
-			for(ptr=urlfile, hash=0; *ptr; ptr++)
-			    hash = *ptr + *(primes+cnt) * hash;
-			hash %= limit;
-			sprintf(hashstr, format, hash);
-			*(hashstr+digits) = '\0';
-			memcpy(replace, hashstr, digits);
-		    } else { 		/* Add .n to the urlfile. n is a int */
-			if (cnt == 1) {
-			    StrAllocCat(filename, ".1");
-			    replace = filename+strlen(filename)-1;
-			} else
-			    *replace = (char) cnt+0x30;   /* Works if cnt<10 */
-		    }
-		} else
-		    break;		       /* File does not exist, so OK */
-	    }
-	    if (cnt >= HASHTRY) {      	   /* If no file name could be found */
-		free(filename);
-		filename = NULL;
-	    }
-	}
-	FREE(hashstr);
-    }
-    return filename;
+     char *filename = cache_file_name(url);
+     if (!filename)
+	 return NULL;
+     if (create_cache_place(filename))
+	 return(filename);
+     return NULL;
 }
 
 
@@ -712,27 +614,19 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 	    fprintf(TDEST, "Only caching if WWW is run locally.\n");
 	return HTBlackHole();
     }
+
+    /* Get a file name */
+    if ((fnam = HTCache_getName(HTAnchor_physical(request->anchor))) == NULL)
+	return HTBlackHole();
+
     me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "CacheWriter");
     me->isa = &HTFWriter;  
     me->end_command = NULL;
     me->remove_on_close = NO;	/* If needed, put into end_command */
     me->announce = NO;
-    
-    /* Save the file under a suitably suffixed name */
-    fnam = HTFWriter_filename(HTCacheRoot,
-			      HTAnchor_physical(request->anchor),
-			      HTFileSuffix(input_format),
-			      0, NO);
-    if (!fnam) {                         /* HWL 22/9/94 */
-	free(me);
-	return HTBlackHole();
-    }
-
     me->filename = NULL;
-    limit_cache(HTCache);		 /* Limit number (not size) of files */
-    me->fp = fopen (fnam, "w");
-    if (!me->fp) {
+    if ((me->fp = fopen (fnam, "w")) == NULL) {
 	HTAlert("Can't open local file for writing.");
 	if (CACHE_TRACE)
 	    fprintf(TDEST, "HTStream: can't open %s for writing\n",fnam);
@@ -742,25 +636,28 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     }
     
     /* Set up a cache record */
-    
     if (CACHE_TRACE)
 	fprintf(TDEST, "Cache....... Creating file %s\n", fnam);
-    me->cache = (HTCacheItem*)calloc(sizeof(*me->cache),1);
-    if (!me->cache)outofmem(__FILE__, "cache");
+    if ((me->cache = (HTCacheItem*)calloc(sizeof(*me->cache),1)) == NULL)
+	outofmem(__FILE__, "cache");
     time(&me->cache->load_time);
     StrAllocCopy(me->cache->filename, fnam);
+    me->cache->format = input_format;
+    me->callback = request->callback;
+    me->request = request;	/* won't be freed */
+    me->filename = fnam;   /* will be freed */
+
+    /* Make binding to he anchor structure */
     me->cache->anchor = request->anchor;
     if (!request->anchor->cacheItems)
     	request->anchor->cacheItems = HTList_new();
     HTList_addObject(request->anchor->cacheItems, me->cache);
-    me->cache->format = input_format;
-    
+
+    /* Keep a global list of all cache items */
     if (!HTCache) HTCache = HTList_new();
     HTList_addObject(HTCache, me->cache);
+    limit_cache(HTCache);		 /* Limit number (not size) of files */
     
-    me->callback = request->callback;
-    me->request = request;	/* won't be freed */
-    me->filename = fnam;   /* will be freed */
     return me;
 }
 
@@ -801,6 +698,46 @@ PUBLIC void HTTmp_freeRoot NOARGS
     FREE(HTTmpRoot);
 }
 
+/*
+**   This function tries really hard to find a non-existent filename relative
+**   to the path given. Returns a string that must be freed by the caller or
+**   NULL on error. The base must be '/' terminated which!
+*/
+PRIVATE char *get_filename ARGS3(char *, base, CONST char *, url,
+				 CONST char *, suffix)
+{
+    char *path=NULL;
+    char filename[40];
+    int hash=0;
+
+    /* Do this until we find a name that doesn't exist */
+    while (1)
+    {
+	CONST char *ptr=url;
+	for( ; *ptr; ptr++)
+	    hash = (int) ((hash * 31 + (* (unsigned char *) ptr)) % HASH_SIZE);
+
+#ifndef NO_GETPID
+	sprintf(filename, "%d-%d", hash, (int) getpid());
+#else
+	sprintf(filename, "%d-%d", hash, time(NULL));
+#endif
+	StrAllocCopy(path, base);
+	StrAllocCat(path, filename);
+	if (suffix) StrAllocCat(path, suffix);
+
+	{
+	    FILE *fp = fopen(path, "r");
+	    if (fp)			     /* This file does already exist */
+		fclose(fp);
+	    else
+		break;					/* Got the file name */
+	}
+    }
+    return path;
+}
+
+
 /*	Take action using a system command
 **	----------------------------------
 **
@@ -819,7 +756,6 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 #ifdef REMOVE_FILE
 {
     char *fnam;
-    
     HTStream* me;
     
     if (HTSecure) {
@@ -832,47 +768,47 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 	return HTBlackHole();
     }
 	
-    me = (HTStream*)calloc(sizeof(*me),1);
+    /* Let's find a hash name for this file */
+    {
+	CONST char *suffix = HTBind_getSuffix(request->anchor);
+	fnam = get_filename(HTTmpRoot, HTAnchor_physical(request->anchor),
+			    suffix);
+	FREE((char *) suffix);
+	if (!fnam) {
+	    HTAlert("Can't find a suitable file name");
+	    return HTBlackHole();
+	}
+    }
+
     me = (HTStream*)calloc(sizeof(*me), 1);
     if (me == NULL) outofmem(__FILE__, "Save and execute");
     me->isa = &HTFWriter;  
-    
-    /* Let's find a hash name for this file */
-    if ((fnam = HTFWriter_filename(HTTmpRoot,
-				   HTAnchor_physical(request->anchor),
-				   HTFileSuffix(input_format),
-				   1000, YES)) == NULL) {
-	HTAlert("Can't find a suitable file name");
-	return NULL;
-    }
-
     me->request = request;	/* won't be freed */    
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
 	HTAlert("Can't open temporary file!");
         free(fnam);
 	free(me);
-	return NULL;
+	return HTBlackHole();
     }
     StrAllocCopy(me->filename, fnam);
 
-/*	Make command to process file
-*/
+    /* Make command to process file */
     me->end_command = (char *) malloc ((strlen((char *) param) + 10 +
 					3*strlen(fnam)) * sizeof (char));
     if (me == NULL) outofmem(__FILE__, "SaveAndExecute");
     
     sprintf (me->end_command, (char *) param, fnam, fnam, fnam);
-
     me->remove_on_close = NO;
-
     me->announce = NO;
     free (fnam);
     return me;
 }
 
 #else	/* can't do remove */
-{ return NULL; }
+{
+    return HTBlackHole();
+}
 #endif
 
 
@@ -905,27 +841,31 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 	return HTBlackHole();
     }
 	
+    /* Let's find a file name for this file */
+    {
+	CONST char *suffix = HTBind_getSuffix(request->anchor);
+	fnam = get_filename(HTTmpRoot, HTAnchor_physical(request->anchor),
+			    suffix);
+	answer = HTPrompt("Give name of file to save in", fnam ? fnam : "");
+	if (!answer) {
+	    FREE(fnam);
+	    return HTBlackHole();
+	}
+	FREE((char *) suffix);
+	FREE(fnam);
+    }
+    
     me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "SaveLocally");
     me->isa = &HTFWriter;  
     me->announce = YES;
-    
-    /* Let's find a 'human' file name for this file */
-    fnam = HTFWriter_filename(HTTmpRoot,
-			      HTAnchor_physical(request->anchor),
-			      HTFileSuffix(input_format),
-			      0, YES);
-    
-    /*	Save Panel */
-    answer = HTPrompt("Give name of file to save in", fnam ? fnam : "");
-    FREE(fnam);
     
     me->fp = fopen (answer, "w");
     if (!me->fp) {
 	HTAlert("Can't open local file to write into.");
         FREE(answer);
 	free(me);
-	return NULL;
+	return HTBlackHole();
     }
     me->callback = NULL;
     me->request = request;	/* won't be freed */

@@ -31,7 +31,7 @@
 #include "HTAccess.h"
 #include "HTFormat.h"
 #include "HTError.h"
-#include "HTFile.h"
+#include "HTBind.h"
 #include "HTML.h"
 #include "HTMLPDTD.h"
 #include "HTDirBrw.h"
@@ -102,11 +102,10 @@ typedef struct _gopher_info {
 **	list. Actually it is only a shell build upon HTGetIcon().
 **
 */
-PRIVATE HTIconNode *get_gopher_icon ARGS2(CONST char *, filename,
-					  int, gopher_type)
+PRIVATE HTIconNode *get_gopher_icon ARGS1(int, gopher_type)
 {
-    HTFormat content_type = NULL;
-    HTAtom *content_encoding = NULL;
+    HTFormat   content_type = NULL;
+    HTEncoding content_encoding = NULL;
 
     if (gopher_type == GOPHER_MENU)
 	return icon_dir ? icon_dir : icon_unknown;
@@ -152,12 +151,12 @@ PRIVATE HTIconNode *get_gopher_icon ARGS2(CONST char *, filename,
       case GOPHER_MACBINHEX:
       case GOPHER_PCBINHEX:
       case GOPHER_UUENCODED:
+	content_type = WWW_BINARY;
+	content_encoding = WWW_ENC_BASE64;
+	break;
       case GOPHER_BINARY:
-	{       /* Do our own filetyping -- maybe we get lucky */
-            HTAtom *language;
-            content_type = HTFileFormat(filename, &content_encoding,
-					&language);
-	}
+	content_type = WWW_BINARY;
+	break;
       default:
 	content_type = HTAtom_for("www/unknown");
 	break;
@@ -259,6 +258,7 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		    target = HTML_new(request, NULL, WWW_HTML,
 				      request->output_format,
 				      request->output_stream);
+		    HTAnchor_setFormat(request->anchor, WWW_HTML);
 		    if (title) {
 			StrAllocCopy(outstr, title);
 			HTUnEscape(outstr);
@@ -335,7 +335,7 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		if (HTDirShowMask & HT_DIR_SHOW_ICON) {
 		    char *filename = HTParse(url, "",
 					     PARSE_PATH+PARSE_PUNCTUATION);
-		    HTIconNode *icon = get_gopher_icon(filename, gtype);
+		    HTIconNode *icon = get_gopher_icon(gtype);
 		    if (icon && icon->icon_url) {
 			HTMLPutImg(target, icon->icon_url,
 				   HTIcon_alt_string(icon->icon_alt, YES),
@@ -520,6 +520,7 @@ PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
 		    target = HTML_new(request, NULL, WWW_HTML,
 				      request->output_format,
 				      request->output_stream);
+		    HTAnchor_setFormat(request->anchor, WWW_HTML);
 		    START(HTML_HTML);
 		    START(HTML_HEAD);
 		    START(HTML_TITLE);
@@ -704,7 +705,7 @@ PRIVATE void display_index ARGS2(HTRequest *, 		request,
     HTStructured *target = HTML_new(request, NULL, WWW_HTML,
 				    request->output_format,
 				    request->output_stream);
-
+    HTAnchor_setFormat(request->anchor, WWW_HTML);
     START(HTML_HTML);
     START(HTML_HEAD);
     START(HTML_TITLE);
@@ -735,6 +736,7 @@ PRIVATE void display_cso ARGS2(HTRequest *,		request,
     HTStructured *target = HTML_new(request, NULL, WWW_HTML,
 				    request->output_format,
 				    request->output_stream);
+    HTAnchor_setFormat(request->anchor, WWW_HTML);
     START(HTML_HTML);
     START(HTML_HEAD);
     START(HTML_TITLE);
@@ -904,15 +906,10 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	    /* Now read the data from the socket: */    
 	    switch (gopher->type) {
 	      case GOPHER_HTML:
+		HTAnchor_setFormat(request->anchor, WWW_HTML);
 		status = HTParseSocket(WWW_HTML,  gopher->sockfd, request);
 		break;
 		
-	      case GOPHER_GIF:
-	      case GOPHER_IMAGE:
-	      case GOPHER_PLUS_IMAGE:
-		status = HTParseSocket(HTAtom_for("image/gif"), gopher->sockfd,
-				       request);
-		break;
 	      case GOPHER_MENU:
 	      case GOPHER_INDEX:
 		status = parse_menu(request, gopher, url);
@@ -922,38 +919,26 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 		status = parse_cso(request, gopher, url);
 		break;
 		
+	      case GOPHER_GIF:
+	      case GOPHER_IMAGE:
+	      case GOPHER_PLUS_IMAGE:
 	      case GOPHER_MACBINHEX:
 	      case GOPHER_PCBINHEX:
 	      case GOPHER_UUENCODED:
-	      case GOPHER_BINARY:
- 		{       /* Do our own filetyping -- maybe we get lucky */
-		    char *filename = HTParse(url, "",
-					     PARSE_PATH+PARSE_PUNCTUATION);
-		    request->content_type = HTFileFormat(filename,
-						   &request->content_encoding,
-						   &request->content_language);
-		    if (request->content_type) {
-			if (PROT_TRACE)
-			    fprintf(TDEST, "Gopher...... Figured out content-type myself: %s\n", HTAtom_name(request->content_type));
-			status = HTParseSocket(request->content_type,
-					       gopher->sockfd, request);
-		    }
-		    else {
-			if (PROT_TRACE)
-			    fprintf(TDEST,"Gopher...... using www/unknown\n");
-			/* Specifying WWW_UNKNOWN forces dump to local disk */
-			HTParseSocket(WWW_UNKNOWN, gopher->sockfd, request);
-		    }
-		    free(filename);
-		}
+	      case GOPHER_BINARY:		    /* Do our own filetyping */
+		HTBind_getBindings(request->anchor);
+		status = HTParseSocket(HTAnchor_format(request->anchor),
+				       gopher->sockfd, request);
 		break;
 		
 	      case GOPHER_SOUND:
 	      case GOPHER_PLUS_SOUND:
+		HTAnchor_setFormat(request->anchor, WWW_AUDIO);
 		status = HTParseSocket(WWW_AUDIO,  gopher->sockfd, request);
 		break;
 		
 	      case GOPHER_PLUS_MOVIE:
+		HTAnchor_setFormat(request->anchor, WWW_VIDEO);
 		status = HTParseSocket(WWW_VIDEO,  gopher->sockfd, request);
 		break;
 
@@ -961,24 +946,9 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 		   so that we should start an external viewer. */
 	      case GOPHER_TEXT:
 	      default:
- 		{       /* Do our own filetyping -- maybe we get lucky */
-		    char *filename = HTParse(url, "",
-					     PARSE_PATH+PARSE_PUNCTUATION);
-		    request->content_type = HTFileFormat(filename,
-						   &request->content_encoding,
-						   &request->content_language);
-		    if (request->content_type) {
-			if (PROT_TRACE)
-			    fprintf(TDEST, "Gopher...... Figured out content-type myself: %s\n", HTAtom_name(request->content_type));
-			status = HTParseSocket(request->content_type,
-					       gopher->sockfd, request);
-		    }
-		    else {
-			status = HTParseSocket(WWW_PLAINTEXT, gopher->sockfd,
-					       request);
-		    }
-		    free(filename);
-		}
+		HTBind_getBindings(request->anchor);
+		status = HTParseSocket(HTAnchor_format(request->anchor),
+				       gopher->sockfd, request);
 		break;
 	    }
 	}

@@ -29,7 +29,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTFile.h"
+#include "HTBind.h"
 #include "HTParse.h"
 #include "HTAAUtil.h"
 #include "HTRules.h"					 /* Implemented here */
@@ -282,23 +282,31 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
         char * encoding = HTNextField(&pointer);
 	if (pointer) status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
-	HTAddType(word2,	word3,
-				encoding ? encoding : "binary",
-				status >= 1? quality : 1.0);
+	HTBind_setBinding(word2,				/* suffix */
+			  word3,				/* type */
+			  encoding ? encoding : "binary",	/* encoding */
+			  NULL,					/* language */
+			  status >= 1? quality : 1.0);		/* quality */
 
     } else if (0==strcasecomp(word1, "addencoding")) {
 	if (pointer)
 	    status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
-	HTAddEncoding(word2, word3,
-		      status >= 1 ? quality : 1.0);
+	HTBind_setBinding(word2,				/* suffix */
+			  NULL,					/* type */
+			  word3,				/* encoding */
+			  NULL,					/* language */
+			  status >= 1 ? quality : 1.0);		/* quality */
 
     } else if (0==strcasecomp(word1, "addlanguage")) {
 	if (pointer)
 	    status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
-	HTAddLanguage(word2, word3,
-		      status >= 1 ? quality : 1.0);
+	HTBind_setBinding(word2,				/* suffix */
+			  NULL,					/* type */
+			  NULL,					/* encoding */
+			  word3,	       			/* language */
+			  status >= 1 ? quality : 1.0);		/* quality */
 
     } else if (0==strcasecomp(word1, "presentation")) {
         if (pointer) status = sscanf(pointer, "%lf%lf%lf",

@@ -43,9 +43,6 @@
 #define FREE_TARGET	(*me->target->isa->_free)(me->target)
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
-/* Globals */
-PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
-
 /* Type definitions and global variables etc. local to this module */
 /* This is the local definition of HTRequest->net_info */
 typedef enum _HTTPState {

@@ -38,23 +38,10 @@
 #include "HTBTree.h"
 #include "HTFormat.h"
 #include "HTMulti.h"
+#include "HTDirBrw.h"
+#include "HTBind.h"
 #include "HTError.h"
 #include "HTFile.h"		/* Implemented here */
-
-#ifdef VMS
-#include "HTVMSUtils.h"
-PRIVATE char * suffix_separators = "._";
-#else
-PRIVATE char * suffix_separators = ".,_";
-#endif /* VMS */
-
-typedef struct _HTSuffix {
-	char *		suffix;
-	HTAtom *	rep;		/* Content-Type */
-	HTAtom *	encoding;	/* Content-Encoding */
-	HTAtom *	language;	/* Content-Language */
-	double		quality;
-} HTSuffix;
 
 typedef struct _file_info {
     SOCKFD		sockfd;				/* Socket descripter */
@@ -69,247 +56,10 @@ typedef struct _file_info {
 
 /* Controlling globals */
 PUBLIC BOOL HTTakeBackup = YES;
-PUBLIC BOOL HTSuffixCaseSense = NO;	/* Are suffixes case sensitive */
 
 PRIVATE char *HTMountRoot = "/Net/";		/* Where to find mounts */
-#ifdef VMS
-PRIVATE char *HTCacheRoot = "/WWW$SCRATCH";   /* Where to cache things */
-#else
-PRIVATE char *HTCacheRoot = "/tmp/W3_Cache_";   /* Where to cache things */
-#endif
-
-/* Suffix registration */
-PRIVATE HTList * HTSuffixes = 0;
-PRIVATE HTSuffix no_suffix = { "*", NULL, NULL, NULL, 1.0 };
-PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, NULL, 1.0};
 
 /* ------------------------------------------------------------------------- */
-
-/*	Define the representation associated with a file suffix
-**	-------------------------------------------------------
-**
-**	Calling this with suffix set to "*" will set the default
-**	representation.
-**	Calling this with suffix set to "*.*" will set the default
-**	representation for unknown suffix files which contain a ".".
-**
-**	If filename suffix is already defined its previous
-**	definition is overridden.
-*/
-PUBLIC void HTAddType ARGS4(CONST char *,	suffix,
-			    CONST char *,	representation,
-			    CONST char *,	encoding,
-			    double,		value)
-{
-    HTSetSuffix(suffix, representation, encoding, NULL, value);
-}
-
-
-PUBLIC void HTAddEncoding ARGS3(CONST char *,	suffix,
-				CONST char *,	encoding,
-				double,		value)
-{
-    HTSetSuffix(suffix, NULL, encoding, NULL, value);
-}
-
-
-PUBLIC void HTAddLanguage ARGS3(CONST char *,	suffix,
-				CONST char *,	language,
-				double,		value)
-{
-    HTSetSuffix(suffix, NULL, NULL, language, value);
-}
-
-
-PUBLIC void HTSetSuffix ARGS5(CONST char *,	suffix,
-			      CONST char *,	representation,
-			      CONST char *,	encoding,
-			      CONST char *,	language,
-			      double,		value)
-{
-    HTSuffix * suff;
-
-    if (strcmp(suffix, "*")==0) suff = &no_suffix;
-    else if (strcmp(suffix, "*.*")==0) suff = &unknown_suffix;
-    else {
-	HTList *cur = HTSuffixes;
-
-	while (NULL != (suff = (HTSuffix*)HTList_nextObject(cur))) {
-	    if (suff->suffix && 0==strcmp(suff->suffix, suffix))
-		break;
-	}
-	if (!suff) { /* Not found -- create a new node */
-	    suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
-	    if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
-
-	    if (!HTSuffixes) HTSuffixes = HTList_new();
-	    HTList_addObject(HTSuffixes, suff);
-
-	    StrAllocCopy(suff->suffix, suffix);
-	}
-    }
-
-    if (representation)
-	suff->rep = HTAtom_for(representation);
-    if (language)
-	suff->language = HTAtom_for(language);
-    if (encoding) {
-	char * enc = NULL;
-	char * p;
-	StrAllocCopy(enc, encoding);
-	for (p=enc; *p; p++) *p = TOLOWER(*p);
-	suff->encoding = HTAtom_for(enc);
-	free(enc);	/* Leak fixed AL 6 Feb 1994 */
-    }
-
-    suff->quality = value;
-}
-
-/*
-**	Cleans up the memory allocated by file suffixes
-**	Written by Eric Sink, eric@spyglass.com, and Henrik
-*/
-PUBLIC void HTFile_deleteSuffixes NOARGS
-{
-    HTList *cur = HTSuffixes;
-    HTSuffix *pres;
-    if (cur) {
-	while ((pres = (HTSuffix *) HTList_nextObject(cur))) {
-	    FREE(pres->suffix);
-	    free(pres);
-	}
-	HTList_delete(HTSuffixes);
-	HTSuffixes = NULL;
-    }
-}
-
-
-PRIVATE BOOL is_separator ARGS1(char, ch)
-{
-    if (strchr(suffix_separators, ch)) return YES;
-    else return NO;
-}
-
-
-/* PUBLIC						HTSplitFilename()
-**
-**	Split the filename to an array of suffixes.
-**	Return the number of parts placed to the array.
-**	Array should have MAX_SUFF+1 items.
-*/
-PUBLIC int HTSplitFilename ARGS2(char *,	s_str,
-				 char **,	s_arr)
-{
-    char * start = s_str;
-    char * end;
-    char save;
-    int i;
-
-    if (!s_str || !s_arr) return 0;
-
-    for (i=0; i < MAX_SUFF && *start; i++) {
-	for(end=start+1; *end && !is_separator(*end); end++);
-	save = *end;
-	*end = 0;
-	StrAllocCopy(s_arr[i], start);	/* Frees the previous value */
-	*end = save;
-	start = end;
-    }
-    FREE(s_arr[i]);	/* Terminating NULL */
-    return i;
-}
-
-
-
-PUBLIC HTContentDescription * HTGetContentDescription ARGS2(char **,	actual,
-							    int,	n)
-{
-    HTContentDescription * cd;
-    int i;
-
-    if (n < 2) return NULL;	/* No suffix */
-
-    cd = (HTContentDescription*)calloc(1, sizeof(HTContentDescription));
-    if (!cd) outofmem(__FILE__, "HTContentDescription");
-
-    cd->quality = 1.0;
-
-    for (i=n-1; i>0; i--) {
-	HTList * cur = HTSuffixes;
-	HTSuffix * suff;
-	BOOL found = NO;
-
-	if (PROT_TRACE)
-	    fprintf(TDEST, "Searching... for suffix %d: \"%s\"\n",i,actual[i]);
-
-	while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
-	    if ((HTSuffixCaseSense && !strcmp(suff->suffix, actual[i])) ||
-		(!HTSuffixCaseSense && !strcasecomp(suff->suffix, actual[i]))){
-
-		if (!cd->content_type)
-		    cd->content_type = suff->rep;
-		if (!cd->content_encoding)
-		    cd->content_encoding = suff->encoding;
-		if (!cd->content_language)
-		    cd->content_language = suff->language;
-		if (suff->quality > 0.0000001)
-		    cd->quality *= suff->quality;
-
-		found = YES;
-		break;
-	    }
-	}
-	if (!found) {
-	    if (i < n-1)
-		break;
-	    else {
-		free(cd);
-		return NULL;
-	    }
-	}
-    }
-    return cd;
-}
-
-
-/*	Make the cache file name for a W3 document
-**	------------------------------------------
-**	Make up a suitable name for saving the node in
-**
-**	E.g.	/tmp/WWW_Cache_news/1234@cernvax.cern.ch
-**		/tmp/WWW_Cache_http/crnvmc/FIND/xx.xxx.xx
-**
-** On exit,
-**	returns	a malloc'ed string which must be freed by the caller.
-*/
-PUBLIC char * HTCacheFileName ARGS1(CONST char *,name)
-{
-    char * access = HTParse(name, "", PARSE_ACCESS);
-    char * host = HTParse(name, "", PARSE_HOST);
-    char * path = HTParse(name, "", PARSE_PATH+PARSE_PUNCTUATION);
-    
-    char * result;
-    result = (char *)malloc(
-	    strlen(HTCacheRoot)+strlen(access)
-	    +strlen(host)+strlen(path)+6+1);
-    if (result == NULL) outofmem(__FILE__, "HTCacheFileName");
-    sprintf(result, "%s/WWW/%s/%s%s", HTCacheRoot, access, host, path);
-    free(path);
-    free(access);
-    free(host);
-    return result;
-}
-
-
-/*	Open a file for write, creating the path
-**	----------------------------------------
-*/
-#ifdef NOT_IMPLEMENTED
-PRIVATE int HTCreatePath ARGS1(CONST char *,path)
-{
-    return -1;
-}
-#endif
 
 /*	Convert filenames between local and WWW formats
 **	-----------------------------------------------
@@ -324,7 +74,7 @@ PRIVATE int HTCreatePath ARGS1(CONST char *,path)
 **	BUG: FILENAME IS NOT UNESCAPED!!!!!!
 **
 */
-PUBLIC char * HTLocalName ARGS1(CONST char *,name)
+PRIVATE char * HTLocalName ARGS1(CONST char *,name)
 {
     char * access = HTParse(name, "", PARSE_ACCESS);
     char * host = HTParse(name, "", PARSE_HOST);
@@ -388,14 +138,7 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     } else {  /* other access */
 	char * result;
         CONST char * home =  (CONST char*)getenv("HOME");
-#ifdef VMS
-	if (!home) 
-	    home = HTCacheRoot; 
-	else
-   	    home = HTVMS_wwwName(home);
-#else /* not VMS */
-	if (!home) home = "/tmp"; 
-#endif /* not VMS */
+	if (!home) home = "/tmp";
 	result = (char *)malloc(
 		strlen(home)+strlen(access)+strlen(host)+strlen(path)+6+1);
 	if (result == NULL) outofmem(__FILE__, "HTLocalName");
@@ -437,103 +180,6 @@ PUBLIC char * WWW_nameOfFile ARGS1 (CONST char *,name)
     }
     if (TRACE) fprintf(TDEST, "File `%s'\n\tmeans node `%s'\n", name, result);
     return result;
-}
-
-
-/*	Determine a suitable suffix, given the representation
-**	-----------------------------------------------------
-**
-** On entry,
-**	rep	is the atomized MIME style representation
-**
-** On exit,
-**	returns	a pointer to a suitable suffix string if one has been
-**		found, else "".
-*/
-PUBLIC CONST char * HTFileSuffix ARGS1(HTAtom*, rep)
-{
-    HTSuffix * suff;
-    HTList * cur;
-
-    cur = HTSuffixes;
-    while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
-	if (suff->rep == rep) {
-	    return suff->suffix;		/* OK -- found */
-	}
-    }
-    return "";		/* Dunno */
-}
-
-
-/*	Determine file format from file name
-**	------------------------------------
-**
-**	This version will return the representation and also set
-**	a variable for the encoding.
-**
-**	It will handle for example  x.txt, x.txt,Z, x.Z
-*/
-
-PUBLIC HTFormat HTFileFormat ARGS3(CONST char *,	filename,
-				   HTAtom **,		pencoding,
-				   HTAtom **,		planguage)
-{
-    char * actual[MAX_SUFF+1];
-    int n;
-    HTContentDescription * cd;
-    HTFormat content_type = NULL;
-
-    if (!filename) return WWW_BINARY;
-
-    for (n=0; n<MAX_SUFF+1; n++)  actual[n] = NULL;
-    n = HTSplitFilename((char*)filename, actual);
-    cd = HTGetContentDescription(actual, n);
-    while(n-- > 0) if (actual[n]) free(actual[n]);
-
-    if (cd) {
-	if (pencoding) *pencoding = cd->content_encoding;
-	if (planguage) *planguage = cd->content_language;
-	content_type = cd->content_type;
-	free(cd);
-    }
-    else {
-	HTSuffix * suff = strchr(filename,'.') ?
-	    (unknown_suffix.rep ? &unknown_suffix : &no_suffix) :
-		&no_suffix;
-
-	if (pencoding) *pencoding = suff->encoding;
-	if (planguage) *planguage = suff->language;
-	content_type = suff->rep;
-    }
-
-    if (pencoding && !*pencoding)
-	*pencoding = HTAtom_for("binary");
-    return content_type ? content_type : WWW_BINARY;
-}
-
-
-/*	Determine value from file name
-**	------------------------------
-**
-*/
-
-PUBLIC double HTFileValue ARGS1 (CONST char *,filename)
-
-{
-    HTSuffix * suff;
-    HTList * cur;
-    int lf = strlen(filename);
-
-    cur = HTSuffixes;
-    while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
-        int ls = strlen(suff->suffix);
-	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
-	    if (TRACE) fprintf(TDEST, "File Value.. Value of %s is %.3f\n",
-			       filename, suff->quality);
-	    return suff->quality;		/* OK -- found */
-	}
-    }
-    return 0.3;		/* Dunno! */
 }
 
 
@@ -685,8 +331,9 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	return HT_ERROR;
     }
     url = HTAnchor_physical(request->anchor);
-    if (PROT_TRACE) fprintf(TDEST, "LoadFile.... Looking for `%s\'\n", url);
-
+    if (PROT_TRACE)
+	fprintf(TDEST, "LoadFile.... Looking for `%s\'\n", url);
+    HTBind_getBindings(request->anchor);     /* Get type, encoding, language */
 
 /*	For unix, we try to translate the name into the name of a transparently
 **	mounted file.
@@ -700,10 +347,9 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	char * localname = HTLocalName(url);		   /* Does unescape! */
 	struct stat stat_info;
 	char * multi;
-	request->content_type = HTFileFormat(localname,
-					     &request->content_encoding,
-					     &request->content_language);
-	if (TRACE) fprintf(TDEST, "HTLoadFile.. Accessing local file system.\n");
+
+	if (TRACE)
+	    fprintf(TDEST, "HTLoadFile.. Accessing local file system.\n");
 
 
 /*	Multiformat handling. If suffix matches MULTI_SUFFIX then scan
@@ -757,7 +403,7 @@ open_file:
 		if(TRACE) fprintf(TDEST, "HTLoadFile.. Opened `%s' on local file system\n", localname);
 		if (HTEditable(localname))
 		    request->anchor->methods += METHOD_PUT;
-		status = HTParseFile(request->content_type, fp, request);
+		status = HTParseFile(request->anchor->content_type, fp, request);
 		fclose(fp);
 
 		FREE(localname);
@@ -803,7 +449,7 @@ open_file:
     return status;
 }
 
-/* Protocol descriptors */
+/* Protocol descriptor */
 GLOBALDEF PUBLIC HTProtocol HTFile = {
     "file", SOC_BLOCK, HTLoadFile, HTFileSaveStream, NULL
 };

@@ -553,10 +553,12 @@ the request (not the object itself)
     char *	authorization;		/* Authorization: field		  */
     HTAAScheme	scheme;			/* Authentication scheme used	  */
     HTInputSocket *	isoc;		/* InputSocket object for reading */
+#if 0
     HTAtom *	content_type;		/* Content-Type:		  */
     HTAtom *	content_language;	/* Language			  */
     HTAtom *	content_encoding;	/* Encoding			  */
     int		content_length;		/* Content-Length:		  */
+#endif
 </PRE>
 
 These header fields are only used by the server and will be removed at some

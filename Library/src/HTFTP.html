@@ -37,6 +37,7 @@ Library of Common Code</A>.
 #define HTFTP_H
 
 #include "HTChunk.h"
+#include "HTAccess.h"
 </PRE>
 
 <H2>Public Functions</H2>
@@ -46,7 +47,7 @@ Theese are the public functions...
 <H3>Accessing FTP-Server</H3>
 
 <PRE>
-extern int  HTLoadFTP PARAMS((HTRequest * request));
+GLOBALREF HTProtocol HTFTP;
 </PRE>
 
 <H3>Enable/Disable Reuse of Control Connections on Client Side</H3>

@@ -397,8 +397,8 @@ PUBLIC BOOL HTAnchor_deleteAll ARGS1(HTList *, documents)
 	    }
 	}
 	HTList_delete(adult_table[cnt]);
-	adult_table[cnt] = NULL;
     }
+    FREE(adult_table);
     return YES;
 }
 
@@ -625,6 +625,21 @@ PUBLIC void HTAnchor_setEncoding ARGS2(HTParentAnchor *,me,
 }
 
 /*
+**	Content Language
+**	@@@ SHOULD BE A LIST @@@
+*/
+PUBLIC HTLanguage HTAnchor_language ARGS1(HTParentAnchor *,me)
+{
+    return me ? me->content_language : NULL;
+}
+
+PUBLIC void HTAnchor_setLanguage ARGS2(HTParentAnchor *,me,	
+				       HTLanguage, language)
+{
+    if (me) me->content_language = language;
+}
+
+/*
 **	Content Transfer Encoding
 */
 PUBLIC HTCte HTAnchor_cte ARGS1(HTParentAnchor *,me)
@@ -749,10 +764,15 @@ PUBLIC void HTAnchor_clearHeader ARGS1(HTParentAnchor *, me)
 {
     me->methods = METHOD_INVALID;
     me->content_encoding = NULL;
+#ifdef NEW_CODE
+    /* WAIT UNTIL WE HANDLE LANGUAGE AS A LIST */
     if (me->content_language) {
 	HTList_delete(me->content_language);
 	me->content_language = HTList_new();
     }
+#else
+    me->content_language = NULL;
+#endif
     me->content_length = -1;					  /* Invalid */
     me->cte = NULL;
     me->content_type = WWW_UNKNOWN;

@@ -181,8 +181,10 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 		    HTAtom_name(entity->content_encoding), CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
-	if (request->EntityMask & HT_CONTENT_LANGUAGE) {/* @@@@@@@@@@ */
-
+	if (request->EntityMask & HT_CONTENT_LANGUAGE) {     /* @@@ LIST @@@ */
+	    sprintf(linebuf, "Content-Language: %s%c%c",
+		    HTAtom_name(entity->content_language), CR, LF);
+	    HTChunkPuts(header, linebuf);
 	}
 	if (request->EntityMask & HT_CONTENT_LENGTH) {   /* Must be there!!! */
 	    sprintf(linebuf, "Content-Length: %ld%c%c",

@@ -72,6 +72,7 @@
 #include "HTParse.h"
 #include "HTTCP.h"
 #include "HTAnchor.h"
+#include "HTBind.h"
 #include "HTFile.h"
 #include "HTBTree.h"
 #include "HTChunk.h"
@@ -1264,13 +1265,10 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 	    data->directory = YES;
 	} else {
 	    /* If data type is not specified in URL let's find it ourselves. */
-	    HTUnEscape(filename);
-	    req->content_type = HTFileFormat(filename,
-					     &req->content_encoding,
-					     &req->content_language);
+	    HTBind_getBindings(req->anchor);
 	    if (HTFTP_parse_datatype(filename, &data->datatype) != YES) {
-		if ((req->content_encoding != HTAtom_for("8bit") &&
-		     req->content_encoding != HTAtom_for("7bit"))) {
+		if ((HTAnchor_encoding(req->anchor) != HTAtom_for("8bit") &&
+		     HTAnchor_encoding(req->anchor) != HTAtom_for("7bit"))) {
 		    if (PROT_TRACE)
 			fprintf(TDEST, "FTP......... Binary data mode\n");
 		    StrAllocCopy(data->datatype, "I");
@@ -2798,9 +2796,10 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    }
 
 	    /* Now, the net parse module can be called */
-	    if (PROT_TRACE) fprintf(TDEST, "FTP......... Receiving file `%s\'\n",
-			       unescaped);
-	    status = HTParseSocket(req->content_type, data->sockfd, req);
+	    if (PROT_TRACE)
+		fprintf(TDEST,"FTP......... Receiving file `%s\'\n",unescaped);
+	    status = HTParseSocket(HTAnchor_format(req->anchor),
+				   data->sockfd, req);
 	    if (status != HT_LOADED) {
 		if (status == HT_INTERRUPTED) {
 		    if (!HTFTP_send_cmd(ctrl, "ABOR", NULL))

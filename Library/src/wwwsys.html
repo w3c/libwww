@@ -290,6 +290,7 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 
 #define MKDIR(a,b)	mkdir((a))
 #define REMOVE_FILE	remove
+#define DEFAULT_SUFFIXES	"."
 
 #include &lt;io.h&gt;
 #include &lt;string.h&gt;
@@ -483,7 +484,8 @@ unix file descriptor less than 10.  It works.
 
 <PRE>
 #ifdef VMS 
-#define CACHE_FILE_PREFIX  "SYS$LOGIN:Z_"
+#define CACHE_FILE_PREFIX	"SYS$LOGIN:Z_"
+#define DEFAULT_SUFFIXES	"._"
 
 #ifdef WIN_TCP
 #define NETREAD(s,b,l)	((s)&gt;10 ? netread((s),(b),(l)) : read((s),(b),(l)))
@@ -1134,6 +1136,10 @@ value. However, the value <B>IS</B> used!
 
 #ifndef REMOVE_FILE
 #define REMOVE_FILE	unlink
+#endif
+
+#ifndef DEFAULT_SUFFIXES
+#define DEFAULT_SUFFIXES	".,_"
 #endif
 </PRE>
 

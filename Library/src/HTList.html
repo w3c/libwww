@@ -39,13 +39,12 @@ struct _HTList {
 
 extern HTList *	HTList_new NOPARAMS;
 extern void	HTList_delete PARAMS((HTList *me));
-
 </PRE>
+
 <H3>Add object to START of list</H3>
+
 <PRE>
 extern BOOL	HTList_addObject PARAMS((HTList *me, void *newObject));
-
-
 extern BOOL	HTList_removeObject PARAMS((HTList *me, void *oldObject));
 extern void *	HTList_removeLastObject PARAMS((HTList *me));
 extern void *	HTList_removeFirstObject PARAMS((HTList *me));
@@ -55,21 +54,22 @@ extern int	HTList_indexOf PARAMS((HTList *me, void *object));
 #define 	HTList_lastObject(me) \
   (me &amp;&amp; me->next ? me->next->object : NULL)
 extern void *	HTList_objectAt PARAMS((HTList *me, int position));
-
 </PRE>
-<H3><A
-NAME="z1">Traverse list</A></H3>Fast macro to traverse the list.
-Call it first with copy of list header
-:  it returns the first object and
-increments the passed list pointer.
-Call it with the same variable until
-it returns NULL.
+
+<H3><A NAME="z1">Traverse list</A></H3>
+
+Fast macro to traverse the list.  Call it first with copy of list
+header: it returns the first object and increments the passed list
+pointer.  Call it with the same variable until it returns NULL.
+
 <PRE>#define HTList_nextObject(me) \
   (me &amp;&amp; (me = me->next) ? me->object : NULL)
-
 </PRE>
+
 <H3>Free list</H3>
-<PRE>#define HTList_free(x)  free(x)
+
+<PRE>
+#define HTList_free(x)  FREE(x)
 
 #endif /* HTLIST_H */
 
