@@ -288,8 +288,9 @@ zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 $(FTP)/www/src/WWWLineMode_$(VL).zip : $(SOURCES)
 	zip -v $(FTP)/www/src/WWWLineMode_$(VL).zip \
 	    $(SOURCES) \
+	    $(DISTRIBUTION) \
 	    $(SPECIFIC) \
-	    $(CMN)*.html
+	    $(LM)*.html
 
 #		Hypertext supplied in text format
 #		---------------------------------
