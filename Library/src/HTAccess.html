@@ -618,14 +618,14 @@ use this.
 <PRE>
 
 PUBLIC void HTAddError PARAMS((HTRequest *	req,
-			       char *		msg));
+			       CONST char *	msg));
 
 PUBLIC void HTAddError2 PARAMS((HTRequest *	req,
-				char *		msg,
-				char *		param));
+				CONST char *	msg,
+				CONST char *	param));
 
 PUBLIC void HTAddErrorN PARAMS((HTRequest *	req,
-				char *		msg,
+				CONST char *	msg,
 				int		param));
 
 PUBLIC void HTClearErrors PARAMS((HTRequest *	req));

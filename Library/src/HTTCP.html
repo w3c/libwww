@@ -24,11 +24,13 @@ handling TCP/IP connections etc.
 **	     returns a pointer to a static string which must be copied if
 **		  it is to be kept.
 */
-#ifdef __STDC__
-	extern const char * HTInetString(struct sockaddr_in* sin);
-#else
-	extern char * HTInetString();
-#endif
+PUBLIC CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
+
+
+/*
+** Return error message corresponding to current errno
+*/
+PUBLIC CONST char * HTErrnoString NOPARAMS;
 
 
 /*	Encode INET status (as in sys/errno.h)			  inet_status()
@@ -41,17 +43,8 @@ handling TCP/IP connections etc.
 ** On return:
 ** 	returns a negative status in the unix way.
 */
-#ifdef __STDC__
-	extern int HTInetStatus(char *where);
-#else
-	extern int HTInetStatus();
-#endif
+PUBLIC int HTInetStatus PARAMS((char * where));
 
-/*	Publicly accessible variables
-*/
-/* extern struct sockaddr_in HTHostAddress; */
-			/* The internet address of the host */
-			/* Valid after call to HTHostName() */
 
 
 /*	Parse a cardinal value				       parse_cardinal()
@@ -68,9 +61,9 @@ handling TCP/IP connections etc.
 ** 	*pstatus points to status updated iff bad
 */
 
-extern unsigned int HTCardinal PARAMS((int *pstatus,
-		char		**pp,
-		unsigned int	max_value));
+PUBLIC unsigned int HTCardinal PARAMS((int *		pstatus,
+				       char **		pp,
+				       unsigned int	max_value));
 
 
 /*	Parse an internet node address and port
@@ -85,12 +78,9 @@ extern unsigned int HTCardinal PARAMS((int *pstatus,
 **		 *sin is filled in. If no port is specified in str, that
 **		 field is left unchanged in *sin.
 */
-#ifdef __STDC__
-	extern int HTParseInet(struct sockaddr_in * sin, CONST char * str);
-	/*!! had to change this to get it to compile. CTB */
-#else
-	extern int HTParseInet();
-#endif
+PUBLIC int HTParseInet PARAMS((struct sockaddr_in *	sin,
+			       CONST char *		str));
+
 
 /*
 **	Get Name of a Machine on the Other Side of a Socket
@@ -98,12 +88,12 @@ extern unsigned int HTCardinal PARAMS((int *pstatus,
 */
 PUBLIC char * HTGetHostName PARAMS((int soc));
 
+
 /*	Get Name of This Machine
 **	------------------------
 **
 */
-
-extern CONST char * HTHostName NOPARAMS;
+PUBLIC CONST char * HTHostName NOPARAMS;
 
 #endif   /* HTTCP_H */
 </PRE>End.</BODY>

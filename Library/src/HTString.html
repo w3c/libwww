@@ -19,6 +19,16 @@ of cmp) had some problem.
 extern int strncasecomp PARAMS((CONST char *a, CONST char *b, int n));
 
 </PRE>
+
+<H2>Case-insensitive string inside another string</H2>
+This works like <CODE>strstr()</CODE> but is not case-sensitive.
+<PRE>
+PUBLIC char * strcasestr PARAMS((char *	s1,
+				 char *	s2));
+
+</PRE>
+
+
 <H2>Malloced string manipulation</H2>
 <PRE>#define StrAllocCopy(dest, src) HTSACopy (&amp;(dest), src)
 #define StrAllocCat(dest, src)  HTSACat  (&amp;(dest), src)

@@ -14,6 +14,7 @@
 #include "tcp.h"		/* Defines SHORT_NAMES if necessary */
 #ifdef SHORT_NAMES
 #define HTInetStatus		HTInStat
+#define HTErrnoString		HTErrnoS
 #define HTInetString 		HTInStri
 #define HTParseInet		HTPaInet
 #endif
@@ -35,11 +36,6 @@
 PRIVATE char *hostname=0;		/* The name of this host */
 
 
-/*	PUBLIC VARIABLES
-*/
-
-/* PUBLIC SockA HTHostAddress; */	/* The internet address of the host */
-					/* Valid after call to HTHostName() */
 
 /*	Encode INET status (as in sys/errno.h)			  inet_status()
 **	------------------
@@ -79,43 +75,58 @@ extern int sys_nerr;
 
 #endif	/* PCNFS */
 
-/*	Report Internet Error
-**	---------------------
-*/
-#ifdef __STDC__
-PUBLIC int HTInetStatus(char *where)
-#else
-PUBLIC int HTInetStatus(where)
-    char    *where;
-#endif
+
+/*
+ *	Returns the string equivalent of the current errno.
+ */
+PUBLIC CONST char * HTErrnoString NOARGS
 {
 #ifndef VMS
-    CTRACE(tfp, "TCP......... Error %d in `errno' after call to %s() failed.\n\t%s\n",
-	    errno,  where,
 
 #ifdef VM
-	    "(Error number not translated)");	/* What Is the VM equiv? */
+    return "(Error number not translated)";	/* What Is the VM equiv? */
 #define ER_NO_TRANS_DONE
 #endif
-#ifdef NeXT
-	    strerror(errno));
-#define ER_NO_TRANS_DONE
-#endif
-#ifdef THINK_C
-	    strerror(errno));
+
+#if defined(NeXT) || defined(THINK_C)
+    return strerror(errno);
 #define ER_NO_TRANS_DONE
 #endif
 
 #ifndef ER_NO_TRANS_DONE
-	    errno < sys_nerr ? sys_errlist[errno] : "Unknown error" );
+    return (errno < sys_nerr ? sys_errlist[errno] : "Unknown error");
 #endif
 
 #else /* VMS */
+
+    static char buf[60];
+    sprintf(buf,"Unix errno = %ld dec, VMS error = %lx hex",errno,vaxc$errno);
+    return buf;
+
+#endif
+}
+
+
+/*	Report Internet Error
+**	---------------------
+*/
+PUBLIC int HTInetStatus ARGS1(char *, where)
+{
+#ifndef VMS
+
+    CTRACE(tfp,
+	   "TCP errno... %d after call to %s() failed.\n............ %s\n",
+	   errno, where, HTErrnoString());
+
+#else /* VMS */
+
     CTRACE(tfp, "         Unix error number          = %ld dec\n", errno);
     CTRACE(tfp, "         VMS error                  = %lx hex\n", vaxc$errno);
+
 #ifdef MULTINET
     CTRACE(tfp, "         Multinet error             = %lx hex\n", socket_errno); 
 #endif /* MULTINET */
+
 #endif /* VMS */
 
 #ifdef VMS
@@ -357,11 +368,8 @@ PRIVATE void get_host_details NOARGS
 #endif /* not Decnet */
 }
 
-#ifdef __STDC__
-PUBLIC const char * HTHostName(void)
-#else
-PUBLIC char * HTHostName()
-#endif
+
+PUBLIC CONST char * HTHostName NOARGS
 {
     get_host_details();
     return hostname;

@@ -56,6 +56,42 @@ PUBLIC int strncasecomp ARGS3(CONST char*,a, CONST char *,b, int,n)
 }
 #endif
 
+
+/*
+ * strcasestr(s1,s2) -- like strstr(s1,s2) but case-insensitive.
+ */
+PUBLIC char * strcasestr ARGS2(char *,	s1,
+			       char *,	s2)
+{
+    char * try = s1;
+
+    if (!s1 || !s2 || !*s2) return s1;
+
+    while (*try) {
+	if (TOUPPER(*try) == TOUPPER(*s2)) {
+	    char * cur1 = try + 1;
+	    char * cur2 = s2 + 1;
+	    while (*cur1 && *cur2 && TOUPPER(*cur1) == TOUPPER(*cur2)) {
+		cur1++;
+		cur2++;
+	    }
+	    if (!*cur2) {
+		CTRACE(stderr,
+	      "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => \"%s\"\n",
+		       s1,s2,try);
+		return try;
+	    }
+	}
+	try++;
+    }
+    CTRACE(stderr,
+	   "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => No match\n",
+	   s1,s2);
+    return NULL;
+}
+
+
+
 /*	Allocate a new copy of a string, and returns it
 */
 PUBLIC char * HTSACopy

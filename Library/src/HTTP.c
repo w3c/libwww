@@ -225,8 +225,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    if (TRACE) fprintf(stderr, 
 	      "HTTP: Unable to connect to remote host for `%s' (errno = %d).\n",
 	      arg, errno);
-	    HTAddErrorN(request,"Unable to connect to remote host, errno:",
-			errno);
+	    HTAddError2(request,"Unable to connect to remote host:",
+			HTErrnoString());
 	    return HTInetStatus("connect");
       }
     
@@ -351,7 +351,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	if (status<0) {
 	    if (TRACE) fprintf(stderr,
 	    	"HTTPAccess: Unable to send command.\n");
-	    HTAddErrorN(request,"Couldn't send request, errno:",errno);
+	    HTAddError2(request,"Couldn't send request:",HTErrnoString());
 	    return HTInetStatus("send");
 	}
     } /* compose and send command */
@@ -388,8 +388,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		int status = NETWRITE(s, buf, i);
 		if (status < 0) {
 		    CTRACE(stderr, "HTTPAccess.. Unable to forward body\n");
-		    HTAddErrorN(request,
-				"Couldn't forward message body, errno:",errno);
+		    HTAddError2(request,"Couldn't forward message body:",
+				HTErrnoString());
 		    return HTInetStatus("send");
 		}
 		remain -= i;

@@ -1004,14 +1004,14 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
  *	Error diagnostics
  */
 PUBLIC void HTAddError ARGS2(HTRequest *,	req,
-			     char *,		msg)
+			     CONST char *,	msg)
 {
     HTAddError2(req,msg,NULL);
 }
 
 PUBLIC void HTAddError2 ARGS3(HTRequest *,	req,
-			      char *,		msg,
-			      char *,		param)
+			      CONST char *,	msg,
+			      CONST char *,	param)
 {
     int mlen = msg ? strlen(msg) : 0;
     int plen = param ? strlen(param) : 0;
@@ -1032,7 +1032,7 @@ PUBLIC void HTAddError2 ARGS3(HTRequest *,	req,
 }
 
 PUBLIC void HTAddErrorN ARGS3(HTRequest *,	req,
-			      char *,		msg,
+			      CONST char *,	msg,
 			      int,		num)
 {
     char buf[20];
