@@ -540,11 +540,15 @@ PUBLIC HTNet * HTHost_nextPendingNet (HTHost * host)
 {
     HTNet * net = NULL;
     if (host && host->pending && host->pipeline) {
-	if ((net = (HTNet *) HTList_removeFirstObject(host->pending)) != NULL)
-	    if (PROT_TRACE)
-		HTTrace("Host info... Popping %p from pending net queue\n",
-			net);
+      /*JK 23/Sep/96 Bug correction. Associated the following lines to the
+      **above if. There was a missing pair of brackets. 
+      */
+      if ((net = (HTNet *) HTList_removeFirstObject(host->pending)) != NULL) {
+	if (PROT_TRACE)
+	  HTTrace("Host info... Popping %p from pending net queue\n",
+		  net);
 	HTList_addObject(host->pipeline, net);
+      }
     }
     return net;
 }
@@ -618,4 +622,8 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
 	if (PROT_TRACE) HTTrace("Host info... No available sockets\n");
     return NO;
 }
+
+
+
+
 
