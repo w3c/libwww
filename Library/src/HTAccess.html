@@ -215,8 +215,6 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 	char *		script;		/* Executable server script path  */
 	char *		script_pathinfo;/* Path info after script name	  */
 	char *		script_pathtrans;/* Path info translated	  */
-	BOOL		cgi_script;	/* If a CGI/1.0 script		  */
-	BOOL		nph_script;	/* If an nph- script		  */
 	char *		location;	/* Location for redirection	  */
 	HTAtom *	content_type;	/* Content-Type:		  */
 	int		content_length;	/* Content-Length:		  */
@@ -226,10 +224,7 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 	char *		message_id;	/* Message-Id:			  */
 	HTList *	allowed;	/* Allowed: (list of HTAtoms)	  */
 	HTList *	public;		/* Public: (list of HTAtoms)	  */
-
-	/*
-	** Access Authorization
-	*/
+	char *		meta_file;	/* File for meta information	  */
 	char *		authorization;	/* Authorization: field		  */
 	HTAAScheme	scheme;		/* Authentication scheme used	  */
 	char *		auth_string;	/* Authentication string	  */

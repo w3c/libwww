@@ -14,10 +14,6 @@
 **  These may be undefined and redefined by syspec.h
 */
 
-/*	MOSAIC_HACK2 is a kludge to guess the file type of trabsferred
-**	file from the URL.  It is STRICTLY illegal to do this!
-*/
-
 /* Implements:
 */
 #include "HTTP.h"
@@ -55,9 +51,9 @@ extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
 PUBLIC BOOL HTCacheHTTP = YES;	/* Enable caching of HTTP-retrieved files */
+PUBLIC char * HTGatewayCacheRoot = NULL;
+PUBLIC unsigned long HTBytesCached = 0;
 
-
-PRIVATE char * HTCacheRoot = NULL;
 PRIVATE char * gateway_cache_filename ARGS1(CONST char *, name)
 {
     char * access;
@@ -65,7 +61,7 @@ PRIVATE char * gateway_cache_filename ARGS1(CONST char *, name)
     char * path;
     char * cache_filename;
 
-    if (HTCacheRoot && name && !strchr(name, '?') &&
+    if (HTGatewayCacheRoot && name && !strchr(name, '?') &&
 	(access = HTParse(name, "", PARSE_ACCESS))) {
 
 	if (!strcmp(access, "file")) {
@@ -75,11 +71,16 @@ PRIVATE char * gateway_cache_filename ARGS1(CONST char *, name)
 
 	host   = HTParse(name, "", PARSE_HOST);
 	path   = HTParse(name, "", PARSE_PATH | PARSE_PUNCTUATION);
-	cache_filename = (char*)malloc(strlen(HTCacheRoot) + strlen(access) +
+	cache_filename = (char*)malloc(strlen(HTGatewayCacheRoot) +
+				       strlen(access) +
 				       (host ? strlen(host) : 0) +
-				       (path ? strlen(path) : 0) + 3);
+				       (path ? strlen(path) : 0) + 20);
 	if (!cache_filename) outofmem(__FILE__, "cache_filename");
-	sprintf(cache_filename, "%s/%s/%s%s", HTCacheRoot, access, host, path);
+	sprintf(cache_filename, "%s/%s/%s%s", 
+		HTGatewayCacheRoot, access, host, path);
+
+	if (path[ strlen(path)-1 ] == '/')
+	    strcat(cache_filename, "CERNhttpdINDEX");
 
 	FREE(access); FREE(host); FREE(path);
 	return cache_filename;
@@ -93,41 +94,79 @@ PRIVATE FILE * gateway_cache_lookup ARGS1(CONST char *, name)
     char * cache_filename = gateway_cache_filename(name);
 
     if (cache_filename) {
-	FILE * cache_file = fopen(cache_filename, "r");
-	if (cache_file && TRACE)
-	    fprintf(stderr, "Gateway cache: HIT \"%s\"\n", cache_filename);
+	struct stat stat_info;
+
+	if (stat(cache_filename, &stat_info) != -1) {
+	    if (S_ISDIR(stat_info.st_mode)) {
+		StrAllocCat(cache_filename, "/CERNhttpdINDEX");
+		if (stat(cache_filename, &stat_info) == -1) {
+		    free(cache_filename);
+		    return NULL;
+		}
+	    }
+	    if (S_ISREG(stat_info.st_mode)) {
+		FILE * cache_file = fopen(cache_filename, "r");
+		if (cache_file && TRACE)
+		    fprintf(stderr, "Cache: HIT \"%s\"\n", cache_filename);
+		free(cache_filename);
+		return cache_file;
+	    }
+	}
 	free(cache_filename);
-	return cache_file;
     }
     return NULL;
 }
 
 
-PRIVATE FILE * gateway_cache_open ARGS1(CONST char *, name)
+PRIVATE FILE * gateway_cache_create ARGS1(char *, cache_filename)
 {
-    char * cache_filename = gateway_cache_filename(name);
-
-    if (HTCacheRoot  &&  cache_filename) {
-	char * cur = cache_filename + strlen(HTCacheRoot) + 1;
+    if (HTGatewayCacheRoot  &&  cache_filename) {
+	char * cur = cache_filename + strlen(HTGatewayCacheRoot) + 1;
 	FILE * cache_file;
 	struct stat stat_info;
+	BOOL create = NO;
 
 	while ((cur = strchr(cur, '/'))) {
 	    *cur = 0;
-	    if (-1 == stat(cache_filename, &stat_info)) {
+	    if (create || -1 == stat(cache_filename, &stat_info)) {
+		create = YES;	/* To avoid doing stat()s in vain */
 		CTRACE(stderr, "Gateway cache: creating cache dir \"%s\"\n",
 		       cache_filename);
 		if (-1 == mkdir(cache_filename, 0775)) {
 		    CTRACE(stderr, "Gateway cache: can't create dir \"%s\"\n",
 			   cache_filename);
-		    free(cache_filename);
 		    return NULL;
 		}
 		CTRACE(stderr, "Gateway cache: created directory \"%s\"\n",
 		       cache_filename);
 	    }
-	    else CTRACE(stderr, "Gateway cache: dir \"%s\" already exists\n",
-			cache_filename);
+	    else {
+		if (S_ISREG(stat_info.st_mode)) {
+		    char * tmp1 = (char*)malloc(strlen(cache_filename)+25);
+		    char * tmp2 = (char*)malloc(strlen(cache_filename)+25);
+
+		    sprintf(tmp1, "%s.CERNhttpdINTERNAL", cache_filename);
+		    sprintf(tmp2, "%s/CERNhttpdINDEX", cache_filename);
+
+		    CTRACE(stderr, "Moving \"%s\" to \"%s\"\n",
+			   cache_filename, tmp1);
+		    rename(cache_filename, tmp1);
+
+		    CTRACE(stderr, "Creating dir \"%s\"\n", cache_filename);
+		    mkdir(cache_filename, 0775);
+
+		    CTRACE(stderr, "Moving \"%s\" to \"%s\"\n", tmp1, tmp2);
+		    rename(tmp1, tmp2);
+
+		    free(tmp1);
+		    free(tmp2);
+		}
+		else {
+		    CTRACE(stderr,
+			   "Gateway cache: dir \"%s\" already exists\n",
+			   cache_filename);
+		}
+	    }
 	    *cur = '/';
 	    cur++;
 	}
@@ -136,7 +175,6 @@ PRIVATE FILE * gateway_cache_open ARGS1(CONST char *, name)
 	    CTRACE(stderr, "Gateway cache: can't create cache file \"%s\"\n",
 		   cache_filename);
 	}
-	free(cache_filename);
 	return cache_file;
     }
     return NULL;
@@ -245,11 +283,12 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
     if (request->reason == HTAA_OK_GATEWAY) {
 	arg = request->translated;
+	HTBytesCached = 0;
 
 	/*
 	** Cache lookup
 	*/
-	if (HTCacheRoot  &&  request->method == METHOD_GET &&
+	if (HTGatewayCacheRoot  &&  request->method == METHOD_GET &&
 	    !request->authorization && !request->arg_keywords) {
 
 	    FILE * cache_file = gateway_cache_lookup(arg);
@@ -480,6 +519,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 */
 
     if (request->reason == HTAA_OK_GATEWAY) {
+
+	char * cache_filename = NULL;
+
 	/*
 	** Server as a gateway -- send body of the message
 	** received from client (if any).
@@ -505,18 +547,23 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	** Cache the document if it a GET request,
 	** not protected and not a search request.
 	*/
-	if (HTCacheRoot  &&  request->method == METHOD_GET &&
+	if (HTGatewayCacheRoot  &&  request->method == METHOD_GET &&
 	    !request->authorization && !request->arg_keywords) {
 
-	    FILE * cache_file = gateway_cache_open(request->translated);
+	    cache_filename = gateway_cache_filename(request->translated);
+	    if (cache_filename) {
+		FILE * cache_file = gateway_cache_create(cache_filename);
 
-	    if (cache_file) {
-		request->output_stream = HTTee(request->output_stream,
-					       HTFWriter_new(cache_file));
-		CTRACE(stderr, "Gateway cache: writing to cache file\n");
-	    }
-	    else {
-		CTRACE(stderr, "Gateway cache: couldn't create cache file\n");
+		if (cache_file) {
+		    request->output_stream = HTTee(request->output_stream,
+						   HTFWriter_new(cache_file));
+		    CTRACE(stderr, "Gateway cache: writing to cache file\n");
+		}
+		else {
+		    FREE(cache_filename);
+		    CTRACE(stderr,
+			   "Gateway cache: couldn't create cache file\n");
+		}
 	    }
 	}
 	else CTRACE(stderr, "Gateway cache: not caching\n");
@@ -525,6 +572,16 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	** Load results directly to client
 	*/
 	HTCopy(s, request->output_stream);
+	if (cache_filename) {
+	    struct stat stat_info;
+	    if (stat(cache_filename, &stat_info) != -1) {
+		HTBytesCached = stat_info.st_size;
+		CTRACE(stderr, "Cached %lu bytes to \"%s\"\n",
+		       HTBytesCached, cache_filename);
+	    }
+	    else CTRACE(stderr, "Couldn't stat cache file \"%s\"\n",
+			cache_filename);
+	}
 	return HT_LOADED;
     }
     else {	/* read response */
@@ -592,7 +649,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 				       "to retry with Access Authorization");
 		    HTInputSocket_free(isoc);
 		    (void)NETCLOSE(s);
-		    if (HTAA_retryWithAuth(request, &HTLoadHTTP)) {
+		    if (HTAA_retryWithAuth(request, HTLoadHTTP)) {
 			status = HT_LOADED;/* @@ THIS ONLY WORKS ON LINEMODE */
 			goto clean_up;
 		    }
