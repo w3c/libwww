@@ -42,7 +42,7 @@
 /* Globals */
 extern char * HTAppName;		  /* Application name: please supply */
 extern char * HTAppVersion;	       /* Application version: please supply */
-extern BOOL using_proxy;	/	     * are we using a proxy gateway? */
+extern BOOL using_proxy;		    /* are we using a proxy gateway? */
 
 PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
 PUBLIC BOOL HTEnableFrom = NO;			      /* Enable From header? */

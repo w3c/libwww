@@ -1,22 +1,28 @@
-<PRE>
-/*			Atoms: Names to numbers			HTAtom.h
-**			=======================
-**
-**	Atoms are names which are given representative pointer values
-**	so that they can be stored more efficiently, and compaisons
-**	for equality done more efficiently.
-**
-**	HTAtom_for(string) returns a representative value such that it
-**	will always (within one run of the program) return the same
-**	value for the same given string.
-**
-** Authors:
-**	TBL	Tim Berners-Lee, WorldWideWeb project, CERN
-**
-**	(c) Copyright CERN 1991 - See Copyright.html
-**
-*/
+<HTML>
+<HEAD>
+<TITLE>Atoms - an easy way of organizing strings</TITLE>
+</HEAD>
 
+<BODY>
+
+<H1>Atoms</H1>
+
+<CODE>Atoms</CODE> are strings which are given representative pointer
+values so that they can be stored more efficiently, and compaisons for
+equality done more efficiently. The list of <CODE>atoms</CODE> are
+stored in a has table, so when asking for a new atom you might infact
+get back an existing one.<P>
+
+There are a whole bunch of <A
+HREF="HTFormat.html#FormatTypes">MIME-types</A> defined as
+<CODE>atoms</CODE>, so please use them! <P>
+
+This module is implemented by <A HREF="HTAtom.c">HTAtom.c</A>, and it
+is a part of the <A NAME="z10"
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+of Common Code</A>. <P>
+
+<PRE>
 #ifndef HTATOM_H
 #define HTATOM_H
 
@@ -26,19 +32,52 @@
 #ifdef SHORT_NAMES
 #define HTAt_for	HTAtom_for
 #define HTAt_tMa	HTAtom_templateMatches
-#endif /*SHORT_NAMES*/
+#endif
 
 typedef struct _HTAtom HTAtom;
 struct _HTAtom {
 	HTAtom *	next;
 	char *		name;
 }; /* struct _HTAtom */
+</PRE>
 
+<H2>Public Functions</H2>
 
+The following methods are available for this class:
+
+<H3>Get an Atom</H3>
+
+This function returns a representative value (an <CODE>atom</CODE>)
+such that it will always (within one run of the program) return the
+same value for the same given string.
+
+<PRE>
 PUBLIC HTAtom * HTAtom_for PARAMS((CONST char * string));
+</PRE>
+
+<H3>Get Content of an Atom</H3>
+
+<PRE>
+#define HTAtom_name(a) ((a)->name)
+</PRE>
+
+This macro returns the string pointed to by the <CODE>atom</CODE>.
+
+<H3>Search For Atoms</H3>
+
+Returns a list of <CODE>atoms</CODE> which matches the template
+given. It is especially made for MIME-types so that for example a
+template like <CODE>text&lt;slash&gt;&lt;star&gt;</CODE> returns a
+list of all MIME-types of type <CODE>text</CODE>.
+
+<PRE>
 PUBLIC HTList * HTAtom_templateMatches PARAMS((CONST char * templ));
 
-#define HTAtom_name(a) ((a)->name)
-
-#endif	/* HTATOM_H */
+#endif
 </PRE>
+
+End of HTAtom definition.
+
+</BODY>
+</HTML>
+
