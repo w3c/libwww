@@ -122,11 +122,14 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    } else if (!b_read) {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
 		if (PROT_TRACE)
-		    HTTrace("Read Socket. Finished loading socket %d\n",
-			     soc);
+		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
 		if (cbf) (*cbf)(net->request, HT_PROG_DONE,
 				HT_MSG_NULL, NULL, NULL, NULL);
-	        HTEvent_unregister(soc, FD_READ);
+	        HTEvent_unRegister(soc, FD_READ);
+
+		/* Update host information if persistent connection */
+		if (HTNet_persistent(net))
+		    HTHost_catchClose(soc, net->request, FD_CLOSE);
 		return HT_CLOSED;
 	    }
 

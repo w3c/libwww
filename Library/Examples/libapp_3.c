@@ -1,4 +1,5 @@
 #include "WWWLib.h"
+#include "WWWTrans.h"
 #include "WWWHTTP.h"
 #include "WWWMIME.h"
 #include "WWWApp.h"
@@ -8,8 +9,8 @@ int main (int argc, char ** argv)
     HTList * converters = HTList_new();
     HTRequest * request = HTRequest_new();	  /* Create a request object */
     HTLibInit("TestApp", "1.0");
-    HTProtocol_add("http", YES, HTLoadHTTP, NULL);
-
+    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
+    HTProtocol_add("http", "tcp", YES, HTLoadHTTP, NULL);
     HTConversion_add(converters, "text/x-http","*/*", HTTPStatus_new,
 		     1.0, 0.0, 0.0);
     HTConversion_add(converters, "message/rfc822", "*/*", HTMIMEConvert,

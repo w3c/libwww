@@ -1,6 +1,7 @@
 HTANSI.c
 HTBufWrt.c
 HTLocal.c
+HTMux.c
 HTReader.c
 HTSocket.c
 HTTCP.c
