@@ -215,9 +215,8 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
     const char * start = b;
     const char * end = start;
     const char * value = me->value->size ? b : NULL;
-    long cl;
+    int length = l;
     int status;
-    /*    enum {Line_CHAR, Line_END, Line_FOLD, Line_LINE} line = Line_CHAR; */
 
     while (!me->transparent) {
 	if (me->EOLstate == EOL_FCR) {
@@ -257,9 +256,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		    me->haveToken = YES;
 		} else {
 		    unsigned char ch = *(unsigned char *) b;
-		    tolower(ch);
-/*		    if (ch >= 'A' && ch <= 'Z')
-		        ch += ('a' - 'A'); */
+		    ch = tolower(ch);
 		    me->hash = (me->hash * 3 + ch) % MIME_HASH_SIZE;
 		}
 	    } else if (value == NULL && *b != ':' && !isspace(*b))
@@ -268,18 +265,29 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	}
 	switch (me->EOLstate) {
 	    case EOL_LINE:
-	    case EOL_END: {
+	    case EOL_END:
+	    {
 	        int status;
 		HTChunk_putb(me->value, value, end-value);
 		HTChunk_putc(me->value, '\0');
-		start=b, end=b;
 		status = _dispatchParsers(me);
+		HTNet_addBytesRead(me->net, b-start);
+		start=b, end=b;
 		if (me->EOLstate == EOL_END) {		/* EOL_END */
 		    if (status == HT_OK) {
 			b++, l--;
 		        status = pumpData(me);
+			HTNet_addBytesRead(me->net, 1);
+			if (me->mode & HT_MIME_FOOTER) {
+			    HTHost_setConsumed(HTNet_host(me->net), length - l);
+			    return status;
+			}
+			else {
+			    HTNet_setHeaderLength(me->net, HTNet_bytesRead(me->net));
+			    if (status == HT_LOADED)
+				HTHost_setConsumed(HTNet_host(me->net), length - l);
+			}
 		    }
-		    HTNet_setBytesRead(me->net, l);
 	        } else {				/* EOL_LINE */
 		    HTChunk_clear(me->token);
 		    HTChunk_clear(me->value);
@@ -288,10 +296,9 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		    value = NULL;
 		}
 		me->EOLstate = EOL_BEGIN;
-		if (status != HT_OK)
-		    return status;
+		if (status != HT_OK) return status;
 		break;
-	        }
+	    }
 	    case EOL_FOLD:
 		me->EOLstate = EOL_BEGIN;
 	        if (!me->haveToken) {
@@ -305,8 +312,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		start=b, end=b;
 		break;
 	    default: 
-	        b++;
-	        l--;
+	        b++, l--;
 	        if (!l) {
 		    if (!me->haveToken)
 		        HTChunk_putb(me->token, start, end-start);
@@ -319,15 +325,45 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 
     /* 
     ** Put the rest down the stream without touching the data but make sure
-    ** that we get the correct content length of data
+    ** that we get the correct content length of data. If we have a CL in
+    ** the headers then this stream is responsible for the accountance.
     */
     if (me->target) {
-	if ((status = (*me->target->isa->put_block)(me->target, b, l)) != HT_OK)
-	    return status;
+	HTNet * net = me->net;
 	/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
-	cl = HTResponse_length(me->response);
-	return (cl>=0 && HTNet_bytesRead(me->net)>=cl) ? HT_LOADED : HT_OK;
+	long cl = HTResponse_length(me->response);
+	if (cl >= 0) {
+	    long bodyRead = HTNet_bytesRead(net) - HTNet_headerLength(net);
+
+	    /*
+	    **  If we have more than we need then just take what belongs to us.
+	    */
+	    if (bodyRead + l >= cl) {
+		int consume = cl - bodyRead;
+		if ((status = (*me->target->isa->put_block)(me->target, b, consume)) < 0)
+		    return status;	    
+		HTNet_addBytesRead(net, consume);
+		/*
+		** Tell the host that we are only using the amount still needed for 
+		** the body + the amount just used in the header
+		*/
+		HTHost_setConsumed(HTNet_host(net), consume + length - l);
+		return HT_LOADED;
+	    } else {
+		if ((status = (*me->target->isa->put_block)(me->target, b, l)) < 0)
+		    return status;	    
+		HTNet_addBytesRead(net, l);
+		return status;
+	    }
+	} else
+	    /* 
+	    **	account for the bytes in the header and leave the
+	    **	rest to the down stream decoders (Chunk or Mux)
+	    */
+	    HTHost_setConsumed(HTNet_host(net), length - l);
+	return (*me->target->isa->put_block)(me->target, b, l);
     }
+    HTHost_setConsumed(HTNet_host(me->net), HTNet_bytesRead(me->net));
     return HT_LOADED;
 }
 
@@ -471,7 +507,6 @@ PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
     HTStream * me = HTMIMEConvert(request, param, input_format,
 				  output_format, output_stream);
     me->mode |= HT_MIME_FOOTER;
-    me->EOLstate = EOL_FLF;
     return me;
 }
 

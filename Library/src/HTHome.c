@@ -236,6 +236,7 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	    case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; 	break;
 	    case 'i': WWWTRACE |= SHOW_PICS_TRACE; 	break;
 	    case 'o': WWWTRACE |= SHOW_CORE_TRACE; 	break;
+	    case 'x': WWWTRACE |= SHOW_MUX_TRACE; 	break;
 	    default:
 		if (WWWTRACE) HTTrace("Trace....... Bad argument\n");
 	    }

@@ -23,7 +23,7 @@ Library</A>.
 <PRE>
 #ifndef HTNEWS_H
 #define HTNEWS_H
-#include "HTEvent.h"
+#include "HTProt.h"
 </PRE>
 <P>
 We define the max NNTP line as rather long as the result coming from a
@@ -36,7 +36,7 @@ but we will almost have received the information we're looking for.
 
 #define MAX_NEWS_LINE		4096
 
-extern HTEventCallback HTLoadNews;
+extern HTProtCallback HTLoadNews;
 </PRE>
 <H3>
   Setting Number of Articles to Show

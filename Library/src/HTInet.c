@@ -194,24 +194,24 @@ PUBLIC const char * HTInetString (SockA * sin)
 **		 0	Wait for persistent socket
 **		-1	Error
 */
-PUBLIC int HTParseInet (HTNet * net, char * host)
+PUBLIC int HTParseInet (HTHost * host, char * hostname, HTRequest * request)
 {
     int status = 1;
-    SockA *sin = &net->sock_addr;
+    SockA *sin = &host->sock_addr;
 
 #ifdef DECNET
     /* read Decnet node name. @@ Should know about DECnet addresses, but it's
        probably worth waiting until the Phase transition from IV to V. */
 
-    sin->sdn_nam.n_len = min(DN_MAXNAML, strlen(host));  /* <=6 in phase 4 */
-    strncpy (sin->sdn_nam.n_name, host, sin->sdn_nam.n_len + 1);
+    sin->sdn_nam.n_len = min(DN_MAXNAML, strlen(hostname));  /* <=6 in phase 4 */
+    strncpy (sin->sdn_nam.n_name, hostname, sin->sdn_nam.n_len + 1);
 
     if (PROT_TRACE)
 	HTTrace("DECnet: Parsed address as object number %d on host %.6s...\n",
-		sin->sdn_objnum, host);
+		sin->sdn_objnum, hostname);
 #else /* Internet */
     {
-	char *strptr = host;
+	char *strptr = hostname;
 	while (*strptr) {
 	    if (*strptr == ':') {
 		*strptr = '\0';	   /* Don't want port number in numeric host */
@@ -223,14 +223,14 @@ PUBLIC int HTParseInet (HTNet * net, char * host)
 	}
 	if (!*strptr) {
 #ifdef GUSI
-	    sin->sin_addr = inet_addr(host); 		 /* See netinet/in.h */
+	    sin->sin_addr = inet_addr(hostname); 		 /* See netinet/in.h */
 #else
-	    sin->sin_addr.s_addr = inet_addr(host);	  /* See arpa/inet.h */
+	    sin->sin_addr.s_addr = inet_addr(hostname);	  /* See arpa/inet.h */
 #endif
 	} else {
-	    char * port = strchr(host, ':');			/* Chop port */
+	    char * port = strchr(hostname, ':');			/* Chop port */
 	    if (port) *port = '\0';
-	    status = HTGetHostByName(net, host);
+	    status = HTGetHostByName(host, hostname, request);
 	}
 	if (PROT_TRACE) {
 	    if (status > 0)
@@ -604,4 +604,14 @@ PUBLIC char * HTGetTmpFileName (const char * dir)
 	if (orig++) while ((*dest++ = *orig++));
     }
     return result;
+}
+
+/*
+**  Copied from X utilities
+*/
+PUBLIC int HTGetTimeInMillis (void)
+{
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }

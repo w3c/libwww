@@ -15,6 +15,7 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "HTNet.h"
 #include "HTNetMan.h"
 #include "HTWriter.h"					 /* Implemented here */
 
@@ -26,7 +27,7 @@ struct _HTStream {
 struct _HTOutputStream {
     const HTOutputStreamClass *	isa;
     HTChannel *			ch;
-    HTNet *			net;
+    HTHost *			host;
     char *			write;
 #ifdef NOT_ASCII
     char *			ascbuf;	    /* Buffer for TOASCII conversion */
@@ -82,8 +83,9 @@ PRIVATE int HTWriter_abort (HTOutputStream * me, HTList * e)
 */
 PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 {
-    HTNet * net = me->net;
-    SOCKET soc = net->sockfd;
+    HTHost * host = me->host;
+    SOCKET soc = HTChannel_socket(HTHost_channel(host));
+    HTNet * net = HTHost_getWriteNet(host);
     int b_write;
     const char *limit = buf+len;
 
@@ -120,8 +122,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	    {
 		if (PROT_TRACE)
 		    HTTrace("Write Socket WOULD BLOCK %d\n",soc);
-		HTEvent_register(soc, net->request, (SockOps) FD_WRITE,
-				 net->cbf, net->priority);
+		HTHost_register(host, net, HTEvent_WRITE);
 		return HT_WOULD_BLOCK;
 #ifdef EINTR
 	    } else if (socerrno == EINTR) {
@@ -139,7 +140,9 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		return HT_ERROR;
 	    }
 	}
-	HTEvent_unregister(soc, (SockOps) FD_WRITE);
+	/* We do this unconditionally, should we check to see if we ever blocked? */
+	HTHost_unregister(host, net, HTEvent_WRITE);
+	HTTraceData(me->write, b_write, "HTWriter_write %d bytes:", b_write);
 	me->write += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
@@ -204,31 +207,19 @@ PRIVATE const HTOutputStreamClass HTWriter =
     HTWriter_close
 }; 
 
-PUBLIC HTOutputStream * HTWriter_new (HTNet * net, HTChannel * ch,
+PUBLIC HTOutputStream * HTWriter_new (HTHost * host, HTChannel * ch,
 				      void * param, int mode)
 {
-    if (net && ch) {
+    if (host && ch) {
 	HTOutputStream * me = HTChannel_output(ch);
-	if (me == NULL) {
+	if (!me) {
 	    if ((me=(HTOutputStream *) HT_CALLOC(1, sizeof(HTOutputStream)))==NULL)
 		HT_OUTOFMEM("HTWriter_new");
 	    me->isa = &HTWriter;
 	    me->ch = ch;
+	    me->host = host;
 	}
-	me->net = net;
 	return me;
     }
     return NULL;
 }
-
-PUBLIC BOOL HTWriter_set (HTOutputStream * me, HTNet * net, 
-			  HTChannel * ch, void * param, int mode)
-{
-    if (me) {
-	me->net = net;
-	me->ch = ch;
-	return YES;
-    }
-    return NO;
-}
-

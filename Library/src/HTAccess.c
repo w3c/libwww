@@ -1,4 +1,4 @@
-/*								     htaccess.c
+/*
 **	ACCESS MANAGER
 **
 **	(c) COPYRIGHT MIT 1995.

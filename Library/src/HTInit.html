@@ -65,6 +65,22 @@ in the Library. The preemptive version registers all protocol modules to use blo
 #include "WWWWAIS.h"
 #endif
 
+#ifndef FTP_PORT
+#define FTP_PORT	21
+#endif
+#ifndef NEWS_PORT
+#define NEWS_PORT	119
+#endif
+#ifndef GOPHER_PORT
+#define GOPHER_PORT	70
+#endif
+#ifndef WAIS_PORT
+#define WAIS_PORT	666
+#endif
+#ifndef HTTP_PORT
+#define HTTP_PORT	80
+#endif
+
 #define HTAccessInit	HTProtocolInit
 
 extern void HTProtocolInit (void);

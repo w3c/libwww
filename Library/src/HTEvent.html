@@ -48,9 +48,11 @@ Library</A>.
 #define HTEVENT_H
 #include "sysdep.h"
 
+#if 0
 #define FD_NONE	0
 #define FD_ALL (FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT |FD_CLOSE)
 #define FD_UNREGISTER (((FD_ALL) &lt;&lt; 1) &amp; (~(FD_ALL)))
+#endif
 
 typedef enum _HTPriority {
     HT_PRIORITY_INV = -1,
@@ -59,8 +61,27 @@ typedef enum _HTPriority {
     HT_PRIORITY_MAX = 20
 } HTPriority; 
 
-typedef u_long SockOps; 
+typedef enum {
+    HTEvent_READ    = (0x001 | 0 &lt;&lt; 16),
+    HTEvent_ACCEPT  = (0x002 | 0 &lt;&lt; 16),
+    HTEvent_CLOSE   = (0x004 | 0 &lt;&lt; 16),
+    HTEvent_WRITE   = (0x008 | 1 &lt;&lt; 16),
+    HTEvent_CONNECT = (0x010 | 1 &lt;&lt; 16),
+    HTEvent_OOB     = (0x020 | 2 &lt;&lt; 16),
+    HTEvent_TIMEOUT = (0x040 | 3 &lt;&lt; 16),
+    HTEvent_BEGIN   = (0x000 | 3 &lt;&lt; 16),
+    HTEvent_END     = (0x080 | 3 &lt;&lt; 16),
+    HTEvent_FLUSH   = (0x100 | 3 &lt;&lt; 16),
+    HTEvent_RESET   = (0x200 | 3 &lt;&lt; 16),
+    HTEvent_ALL     = 0xFFFF,
+    HTEvent_TYPES   = 3		/* only READ, WRITE, and OOB are real types */
+} HTEventType;
 
+#define HTEvent_BITS(type) (type & 0xFFFF)
+#define HTEvent_INDEX(type) (type >> 16)
+
+/* Avoid circular include for HTReq->HTNet->HTHost: HTEvent blah */
+typedef struct _HTEvent HTEvent;
 #include "HTReq.h"
 </PRE>
 <H2>
@@ -71,7 +92,7 @@ A <I>location</I> is a function that can be registered by the event manager
 and called at a later point in time in order to continue an operation. All
 locations must be of type &nbsp;<CODE>HTEventCallback</CODE> as defined here:
 <PRE>
-typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
+typedef int HTEventCallback (SOCKET, void *, HTEventType);
 </PRE>
 <P>
 There are many default event handlers provided with the Library. For example,
@@ -88,10 +109,9 @@ As mentioned above, the only interface libwww requires from an event manager
 is a method to <I>register</I> an event handler when an operation would block
 and <I>unregister</I> it when the operation has completed The library registers
 and unregisters event handlers by calling the following two functions:
-<PRE>extern int HTEvent_register	(SOCKET, HTRequest *,
-				 SockOps, HTEventCallback *,
-				 HTPriority);
-extern int HTEvent_unregister	(SOCKET, SockOps);
+<PRE>
+extern int HTEvent_register	(SOCKET, HTEventType, HTEvent *);
+extern int HTEvent_unregister	(SOCKET, HTEventType);
 </PRE>
 <P>
 The register function contains information about which socket we are waiting
@@ -113,13 +133,28 @@ and unregister functions above actually does nothing than looking for a
 registered event manager and then passes the call on to that. You register
 your own event manager by using the methods below:
 <PRE>
-typedef int HTEvent_registerCallback(SOCKET, HTRequest *,
-				     SockOps, HTEventCallback *,
-				     HTPriority);
-typedef int HTEvent_unregisterCallback(SOCKET, SockOps);
+struct _HTEvent {
+    HTPriority		priority;	 /* Priority of this request (event) */
+    int                 millis;              /* Timeout in ms for this event */
+    HTEventCallback *	cbf;			   /* Protocol state machine */
+    void *		param;		       /* HTEvent_register parameter */
+    HTRequest *		request;
+};
+
+typedef int HTEvent_registerCallback(SOCKET, HTEventType, HTEvent *);
+typedef int HTEvent_unregisterCallback(SOCKET, HTEventType);
 
 extern void HTEvent_setRegisterCallback(HTEvent_registerCallback *);
 extern void HTEvent_setUnregisterCallback(HTEvent_unregisterCallback *);
+extern BOOL HTEvent_setCallback(HTEvent * event, HTEventCallback * cbf);
+
+extern HTEvent * HTEvent_new (HTEventCallback * cbf, void * context,
+			      HTPriority pritority, int timeoutInMillis);
+extern BOOL HTEvent_delete (HTEvent * event);
+
+extern BOOL HTEvent_setParam(HTEvent * event, void * param);
+extern BOOL HTEvent_setPriority(HTEvent * event, HTPriority priority);
+extern BOOL HTEvent_setTimeout(HTEvent * event, int timeoutInMillis);
 </PRE>
 <P>
 You can register the event manager provided together with libwww by using

@@ -21,25 +21,91 @@
 #define HASH_SIZE	67
 #define HASH(s)		((s) % HASH_SIZE)
 
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
+    HTChannel *			channel;
+};
+
+struct _HTOutputStream {
+    const HTOutputStreamClass *	isa;
+    HTChannel *			channel;
+};
+
 struct _HTChannel {
+    /* what media do we talk to? */
     SOCKET		sockfd;					   /* Socket */
     FILE *		fp;
+
+    /* what streams handle the IO */
     HTInputStream *	input;				     /* Input stream */
     HTOutputStream *	output;				    /* Output stream */
+    /* proxy streams to dereference the above streams */
+    HTInputStream	channelIStream;
+    HTOutputStream	channelOStream;
+
     BOOL		active;			/* Active or passive channel */
     int			semaphore;			   /* On channel use */
     HTHost *		host;			       /* Zombie connections */
 };
 
-struct _HTInputStream {
-    const HTInputStreamClass *	isa;    
-};
-
-struct _HTOutputStream {
-    const HTOutputStreamClass *	isa;    
-};
-
 PRIVATE HTList	** channels = NULL;			 /* List of channels */
+
+/* ------------------------------------------------------------------------- */
+
+/*
+**	Skinny stream objects to pass the IO requests to the channels current IO streams.
+**	This was needed because the channel's IO streams could go away after the IO streams
+**	were set up for multiple requests.
+*/
+
+PRIVATE int ChannelIStream_flush (HTInputStream * me)
+{return me->channel->input ? (*me->channel->input->isa->flush)(me->channel->input) : HT_ERROR;}
+PRIVATE int ChannelIStream_free (HTInputStream * me)
+{return me->channel->input ? (*me->channel->input->isa->_free)(me->channel->input) : HT_ERROR;}
+PRIVATE int ChannelIStream_abort (HTInputStream * me, HTList * e)
+{return me->channel->input ? (*me->channel->input->isa->abort)(me->channel->input, e) : HT_ERROR;}
+PRIVATE int ChannelIStream_read (HTInputStream * me)
+{return me->channel->input ? (*me->channel->input->isa->read)(me->channel->input) : HT_ERROR;}
+PRIVATE int ChannelIStream_close (HTInputStream * me)
+{return me->channel->input ? (*me->channel->input->isa->close)(me->channel->input) : HT_ERROR;}
+PUBLIC int ChannelIStream_consumed (HTInputStream * me, size_t bytes)
+{return me->channel->input ? (*me->channel->input->isa->consumed)(me->channel->input, bytes) : HT_ERROR;}
+PRIVATE const HTInputStreamClass ChannelIStreamIsa =
+{
+    "ChannelInput",
+    ChannelIStream_flush,
+    ChannelIStream_free,
+    ChannelIStream_abort,
+    ChannelIStream_read,
+    ChannelIStream_close,
+    ChannelIStream_consumed
+}; 
+
+PRIVATE int ChannelOStream_flush (HTOutputStream * me)
+{return me->channel->output ? (*me->channel->output->isa->flush)(me->channel->output) : HT_ERROR;}
+PRIVATE int ChannelOStream_free (HTOutputStream * me)
+{return me->channel->output ? (*me->channel->output->isa->_free)(me->channel->output) : HT_ERROR;}
+PRIVATE int ChannelOStream_abort (HTOutputStream * me, HTList * e)
+{return me->channel->output ? (*me->channel->output->isa->abort)(me->channel->output, e) : HT_ERROR;}
+PRIVATE int ChannelOStream_put_character (HTOutputStream * me, char c)
+{return me->channel->output ? (*me->channel->output->isa->put_character)(me->channel->output, c) : HT_ERROR;}
+PRIVATE int ChannelOStream_put_string (HTOutputStream * me, const char * s)
+{return me->channel->output ? (*me->channel->output->isa->put_string)(me->channel->output, s) : HT_ERROR;}
+PRIVATE int ChannelOStream_put_block (HTOutputStream * me, const char * buf, int len)
+{return me->channel->output ? (*me->channel->output->isa->put_block)(me->channel->output, buf, len) : HT_ERROR;}
+PRIVATE int ChannelOStream_close (HTOutputStream * me)
+{return me->channel->output ? (*me->channel->output->isa->close)(me->channel->output) : HT_ERROR;}
+PRIVATE const HTOutputStreamClass ChannelOStreamIsa =
+{
+    "ChannelOutput",
+    ChannelOStream_flush,
+    ChannelOStream_free,
+    ChannelOStream_abort,
+    ChannelOStream_put_character,
+    ChannelOStream_put_string,
+    ChannelOStream_put_block,
+    ChannelOStream_close,
+}; 
 
 /* ------------------------------------------------------------------------- */
 
@@ -60,11 +126,12 @@ PRIVATE void free_channel (HTChannel * ch)
 	/* Close the socket */
 	if (ch->sockfd != INVSOC) {
 	    NETCLOSE(ch->sockfd);
-	    HTEvent_unregister(ch->sockfd, (SockOps) FD_ALL);
+	    /*	    HTEvent_unregister(ch->sockfd, all options); */
    	    HTNet_decreaseSocket();
 	    if (PROT_TRACE)
 		HTTrace("Channel..... Deleted %p, socket %d\n", ch,ch->sockfd);
 	}
+	ch->sockfd = INVSOC;
 
 	/* Close the file */
 	if (ch->fp) {
@@ -84,30 +151,31 @@ PRIVATE void free_channel (HTChannel * ch)
 **	We only keep a hash on sockfd's as we don't have to look for channels
 **	for ANSI file descriptors.
 */
-PUBLIC HTChannel * HTChannel_new (HTNet * net, BOOL active)
+PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, BOOL active)
 {
-    if (net) {
-	HTList * list = NULL;
-	HTChannel * ch = NULL;
-	SOCKET sockfd = HTNet_socket(net);
-	int hash = sockfd < 0 ? 0 : HASH(sockfd);
-	if (PROT_TRACE) HTTrace("Channel..... Hash value is %d\n", hash);
-	if (!channels) {
-	    if (!(channels = (HTList **) HT_CALLOC(HASH_SIZE,sizeof(HTList*))))
-		HT_OUTOFMEM("HTChannel_new");
-	}
-	if (!channels[hash]) channels[hash] = HTList_new();
-	list = channels[hash];
-	if ((ch = (HTChannel *) HT_CALLOC(1, sizeof(HTChannel))) == NULL)
-	    HT_OUTOFMEM("HTChannel_new");	    
-	ch->sockfd = sockfd;
-	ch->active = active;
-	ch->semaphore = 1;
-	HTList_addObject(list, (void *) ch);
-	if (PROT_TRACE) HTTrace("Channel..... Added %p to list %p\n", ch,list);
-	return ch;
+    HTList * list = NULL;
+    HTChannel * ch = NULL;
+    int hash = sockfd < 0 ? 0 : HASH(sockfd);
+    if (PROT_TRACE) HTTrace("Channel..... Hash value is %d\n", hash);
+    if (!channels) {
+	if (!(channels = (HTList **) HT_CALLOC(HASH_SIZE,sizeof(HTList*))))
+	    HT_OUTOFMEM("HTChannel_new");
     }
-    return NULL;
+    if (!channels[hash]) channels[hash] = HTList_new();
+    list = channels[hash];
+    if ((ch = (HTChannel *) HT_CALLOC(1, sizeof(HTChannel))) == NULL)
+	HT_OUTOFMEM("HTChannel_new");	    
+    ch->sockfd = sockfd;
+    ch->active = active;
+    ch->semaphore = 1;
+    ch->channelIStream.isa = &ChannelIStreamIsa;
+    ch->channelOStream.isa = &ChannelOStreamIsa;
+    ch->channelIStream.channel = ch;
+    ch->channelOStream.channel = ch;
+    HTList_addObject(list, (void *) ch);
+
+    if (PROT_TRACE) HTTrace("Channel..... Added %p to list %p\n", ch,list);
+    return ch;
 }
 
 /*
@@ -146,23 +214,25 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 	**  them selves - only the generic streams
 	*/
 	if (status != HT_IGNORE) {
-	    if (channel->input) 
+	    if (channel->input) {
 		if (status == HT_INTERRUPTED)
 		    (*channel->input->isa->abort)(channel->input, NULL);
 		else
 		    (*channel->input->isa->_free)(channel->input);
-	    if (channel->output)
+	    }
+	    if (channel->output) {
 		if (status == HT_INTERRUPTED)
 		    (*channel->output->isa->abort)(channel->output, NULL);
 		else
 		    (*channel->output->isa->_free)(channel->output);
+	    }
 	}
 
 	/*
 	**  Check whether this channel is used by other objects or we can
 	**  delete it and free memory.
 	*/
-	if (channel->semaphore <= 0 && channels) {
+	if (channel->semaphore <= 0 && channels && channel->sockfd != INVSOC) {
 	    int hash = HASH(channel->sockfd);
 	    HTList * list = channels[hash];
 	    if (list) {
@@ -206,6 +276,12 @@ PUBLIC SOCKET HTChannel_socket (HTChannel * channel)
     return channel ? channel->sockfd : INVSOC;
 }
 
+PUBLIC void HTChannel_setSocket (HTChannel * channel, SOCKET socket)
+{
+    if (channel)
+      channel->sockfd = socket;
+}
+
 /*
 **	Return the file descriptor associated with this channel
 */
@@ -220,7 +296,7 @@ PUBLIC FILE * HTChannel_file (HTChannel * channel)
 */
 PUBLIC BOOL HTChannel_setHost (HTChannel * ch, HTHost * host)
 {
-    if (ch && host) {
+    if (ch) {
 	ch->host = host;
 	return YES;
     }
@@ -307,5 +383,19 @@ PUBLIC BOOL HTChannel_setOutput (HTChannel * ch, HTOutputStream * output)
 PUBLIC HTOutputStream * HTChannel_output (HTChannel * ch)
 {
     return ch ? ch->output : NULL;
+}
+
+PUBLIC HTInputStream * HTChannel_getChannelIStream (HTChannel * ch)
+{
+    if (ch)
+	return &ch->channelIStream;
+    return NULL;
+}
+
+PUBLIC HTOutputStream * HTChannel_getChannelOStream (HTChannel * ch)
+{
+    if (ch)
+	return &ch->channelOStream;
+    return NULL;
 }
 

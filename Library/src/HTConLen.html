@@ -32,19 +32,6 @@ Library</A>.
 #define HTCONLEN_H
 </PRE>
 <H2>
-  Content Length Counter Stream
-</H2>
-<P>
-This stream can be inserted anywhere to count the content length of the body.
-The result is passed to the <A HREF="HTAnchor.html">Anchor object</A> of
-this request so that future requests for the content length will get the
-right size.
-<PRE>
-extern HTStream * HTContentCounter	(HTStream *	target,
-					 HTRequest *	request,
-					 int		max_size);
-</PRE>
-<H2>
   Buffer Stream
 </H2>
 <P>
@@ -59,7 +46,20 @@ extern HTStream * HTBuffer_new		(HTStream *	target,
 					int		max_size);
 </PRE>
 <H2>
-  Pipe Buffer Stream
+  Content Length Counter Stream
+</H2>
+<P>
+This stream can be inserted anywhere to count the content length of the body.
+The result is passed to the <A HREF="HTAnchor.html">Anchor object</A> of
+this request so that future requests for the content length will get the
+right size.
+<PRE>
+extern HTStream * HTContentCounter	(HTStream *	target,
+					 HTRequest *	request,
+					 int		max_size);
+</PRE>
+<H2>
+  Delay Buffer Stream
 </H2>
 <P>
 This stream is much like the buffer stream above but instead of goin transparent
@@ -68,8 +68,19 @@ that the stream doesn't accept more data and so the caller should not put
 any more data into it. When the buffer is flushed (the flush method invoked)
 then the stream goes into transparent mode, just like the buffer stream.
 <PRE>
-extern HTStream * HTPipeBuffer_new	(HTStream *	target,
-					 HTRequest *	request,
+extern HTStream * HTDelayBuffer    	(HTStream *	target,
+					 int		max_size);
+</PRE>
+<H2>
+  Pipe Buffer Stream
+</H2>
+<P>
+This stream is much like the buffer stream above but instead of goin transparent
+when the buffer fills up, it returns <CODE>HT_PAUSE</CODE> which indicates
+that the stream doesn't accept more data and so the caller should not put
+any more data into it.
+<PRE>
+extern HTStream * HTPipeBuffer    	(HTStream *	target,
 					 int		max_size);
 </PRE>
 <P>

@@ -26,10 +26,17 @@ typedef struct _HTBufItem {
     struct _HTBufItem *	next;
 } HTBufItem;
 
+typedef enum _BufferMode {
+    HT_BM_PLAIN		= 0x0,
+    HT_BM_DELAY		= 0x1,		/* Buffer full and we pause */
+    HT_BM_COUNT		= 0x2,		/* Content length counter */
+    HT_BM_PIPE		= 0x4		/* Pipe buffer */
+} BufferMode;
+
 typedef enum _BufferState {
-    HT_BUFFER_OK	= 0,		/* Buffering is OK */
-    HT_BUFFER_PAUSE,			/* Buffer full and we pause */
-    HT_BUFFER_TRANSPARENT		/* Don't buffer anymore data */
+    HT_BS_OK		= 0,
+    HT_BS_PAUSE		= 1,
+    HT_BS_TRANSPARENT	= 2
 } BufferState;
 
 struct _HTStream {
@@ -46,10 +53,8 @@ struct _HTStream {
     int			max_size;
     int			cur_size;
     int			conlen;
-
-    BOOL		count;     /* Count the length or just do buffering? */
-    BOOL		pipe;	      		    /* Are we a pipe buffer? */
-    BufferState		state;			   /* State of the buffering */
+    BufferMode		mode;			   /* State of the buffering */
+    BufferState		state;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -111,7 +116,7 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
 {
     if (me->conlen >= me->max_size) {
 	if (STREAM_TRACE)
-	    HTTrace("StreamBuffer size %d reached, going transparent\n",
+	    HTTrace("Buffer...... size %d reached, going transparent\n",
 		    me->max_size);
 	return NO;
     } else if (size) {
@@ -120,7 +125,7 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
 	if ((me->tmp_buf = (char  *) HT_MALLOC(size)) == NULL)
 	    HT_OUTOFMEM("buf_put_char");
 	if (STREAM_TRACE)
-	    HTTrace("StreamBuffer created with len %d\n", size);
+	    HTTrace("Buffer...... created with len %d\n", size);
 	return YES;
     }
     return NO;
@@ -133,7 +138,7 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
 */
 PRIVATE int buf_flush (HTStream * me)
 {
-    if (me->state != HT_BUFFER_TRANSPARENT) {
+    if (me->state != HT_BS_TRANSPARENT) {
 	HTBufItem * cur;
 	if (me->tmp_buf) append_buf(me);
 	while ((cur = me->head)) {
@@ -144,9 +149,11 @@ PRIVATE int buf_flush (HTStream * me)
 	    me->head = cur->next;
 	    free_buf(cur);
 	}
-	me->state = HT_BUFFER_TRANSPARENT;		/* No more buffering */
+
+	/* If we are not a pipe then do no more buffering */
+	if (!(me->mode & HT_BM_PIPE)) me->state = HT_BS_TRANSPARENT;
     }
-    return HT_OK;
+    return (*me->target->isa->flush)(me->target);
 }
 
 PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
@@ -155,7 +162,7 @@ PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
     **  If we are in pause mode then don't write anything but return PAUSE.
     **  The upper stream should then respect it and don't write any more data.
     */
-    if (me->state == HT_BUFFER_PAUSE) return HT_PAUSE;
+    if (me->state == HT_BS_PAUSE) return HT_PAUSE;
 
     /*
     **  Start handling the incoming data. If we are still buffering then add
@@ -163,7 +170,7 @@ PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
     **  count the length - even if we have given up buffering!
     */
     me->conlen += l;
-    if (me->state == HT_BUFFER_OK) {
+    if (me->state != HT_BS_TRANSPARENT) {
 
 	/*
 	**  If there is still room in the existing chunk then fill it up.
@@ -197,10 +204,10 @@ PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
 		/* Buffer could accept the new data */
 		memcpy(me->tmp_buf, b, l);
 		me->tmp_ind = l;
-	    } else if (me->pipe) {
+	    } else if (me->mode & HT_BM_DELAY) {
 		/* Buffer ran full and we pause */
-		me->state = HT_BUFFER_PAUSE;
-		if (STREAM_TRACE) HTTrace("StreamBuffer. Paused\n");
+		me->state = HT_BS_PAUSE;
+		if (STREAM_TRACE) HTTrace("Buffer....... Paused\n");
 		return HT_PAUSE;
 	    } else {
 		/* Buffer ran full and we flush and go transparent */
@@ -215,7 +222,7 @@ PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
     **  or pause the stream. If we are in transparent mode then put the rest
     **  of the data down the pipe.
     */
-    if (me->state == HT_BUFFER_TRANSPARENT) return PUTBLOCK(b, l);
+    if (me->state == HT_BS_TRANSPARENT) return PUTBLOCK(b, l);
     return HT_OK;
 }
 
@@ -246,10 +253,10 @@ PRIVATE int buf_free (HTStream * me)
     **  Should we count the content length and assign it to the
     **  anchor?
     */
-    if (me->count) {
+    if (me->mode & HT_BM_COUNT && me->request) {
 	HTParentAnchor * anchor = HTRequest_anchor(me->request);
 	if (STREAM_TRACE)
-	    HTTrace("\nCalculated.. content-length: %d\n", me->conlen);
+	    HTTrace("Buffer........ Calculated content-length: %d\n", me->conlen);
 	HTAnchor_setLength(anchor, me->conlen);
     }
 
@@ -273,12 +280,12 @@ PRIVATE int buf_abort (HTStream * me, HTList * e)
     if (me->target) (*me->target->isa->abort)(me->target,e);
     free_buf_all(me);
     HT_FREE(me);
-    if (PROT_TRACE) HTTrace("Length...... ABORTING...\n");
+    if (PROT_TRACE) HTTrace("Buffer...... ABORTING...\n");
     return HT_ERROR;
 }
 
-HTStreamClass HTContentCounterClass = {
-    "ContentCounter",
+HTStreamClass HTBufferClass = {
+    "Buffer",
     buf_flush,
     buf_free,
     buf_abort,
@@ -287,42 +294,49 @@ HTStreamClass HTContentCounterClass = {
     buf_put_block
 };
 
-PUBLIC HTStream * HTContentCounter (HTStream *	target,
-				    HTRequest *	request,
-				    int		max_size)
-{
-    HTStream * me;
-    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-        HT_OUTOFMEM("HTContentCounter");
-    me->isa = &HTContentCounterClass;
-    me->target = target;
-    me->request = request;
-    me->max_size = (max_size > 0) ? max_size : HT_MAX_SIZE;
-    if (STREAM_TRACE)
-	HTTrace("Buffer...... Created with size %d\n", me->max_size);
-    return me;
-}
-
 PUBLIC HTStream * HTBuffer_new (HTStream *	target,
 				HTRequest *	request,
 				int		max_size)
 {
-    HTStream * me = HTContentCounter(target, request, max_size);
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTBufferStream");
+    me->isa = &HTBufferClass;
+    me->target = target;
+    me->request = request;
+    me->max_size = (max_size > 0) ? max_size : HT_MAX_SIZE;
+    me->mode = HT_BM_PLAIN;
+    if (STREAM_TRACE) HTTrace("Buffer...... Created with size %d\n", me->max_size);
+    return me;
+}
+
+PUBLIC HTStream * HTDelayBuffer (HTStream * target, int max_size)
+{
+    HTStream * me = HTBuffer_new(target, NULL, max_size);
     if (me) {
-	me->count = NO;
+	me->mode = HT_BM_DELAY;
 	return me;
     }
     return HTErrorStream();
 }
 
-PUBLIC HTStream * HTPipeBuffer_new (HTStream *	target,
+PUBLIC HTStream * HTContentCounter (HTStream *	target,
 				    HTRequest *	request,
 				    int		max_size)
 {
-    HTStream * me = HTContentCounter(target, request, max_size);
+    HTStream * me = HTBuffer_new(target, NULL, max_size);
     if (me) {
-	me->count = NO;
-	me->pipe = YES;
+	me->mode = HT_BM_COUNT;
+	return me;
+    }
+    return HTErrorStream();
+}
+
+PUBLIC HTStream * HTPipeBuffer (HTStream * target, int max_size)
+{
+    HTStream * me = HTBuffer_new(target, NULL, max_size);
+    if (me) {
+	me->mode = HT_BM_PIPE;
 	return me;
     }
     return HTErrorStream();

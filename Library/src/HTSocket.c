@@ -38,39 +38,44 @@ struct _HTInputStream {
 **	returns		HT_ERROR	Error has occured in call back
 **			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int SocketEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request)
 {
     HTNet * net = HTRequest_net(request);
-    if (!net || !request) {
-	if (PROT_TRACE) HTTrace("Load Socket. invalid argument\n");
+    if (soc==INVSOC) {
+	if (PROT_TRACE) HTTrace("Load Socket. invalid socket\n");
 	return HT_ERROR;
     }
-    if (ops == FD_NONE) {
-	if (soc==INVSOC) {
-	    if (PROT_TRACE) HTTrace("Load Socket. invalid socket\n");
-	    return HT_ERROR;
-	}
-	if (PROT_TRACE) HTTrace("Load Socket. Loading socket %d\n",soc);
+    if (PROT_TRACE) HTTrace("Load Socket. Loading socket %d\n",soc);
 
-	/* 
-	** Create the stream pipe FROM the channel to the application.
-	** The target for the input stream pipe is set up using the
-	** stream stack.
-	*/
-	{
-	    HTStream * target = HTRequest_outputStream(request);
-	    if (!target) target = HTErrorStream();
-	    HTNet_getInput(net, target, NULL, 0);
-	    HTRequest_setOutputConnected(request, YES);
-	}
-    } else if (ops == FD_CLOSE) {			      /* Interrupted */
+    /* 
+    ** Create the stream pipe FROM the channel to the application.
+    ** The target for the input stream pipe is set up using the
+    ** stream stack.
+    */
+    {
+	net->readStream = HTRequest_outputStream(request);
+	if (!net->readStream) net->readStream = HTErrorStream();
+	HTRequest_setOutputConnected(request, YES);
+    }
+    HTNet_setEventCallback(net, SocketEvent);
+    HTNet_setEventParam(net, net);  /* callbacks get http* */
+
+    return SocketEvent(soc, net, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int SocketEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    HTNet * net = (HTNet *)pVoid;
+    if (type == HTEvent_CLOSE) {			      /* Interrupted */
 	HTNet_delete(net, HT_INTERRUPTED);
 	return HT_OK;
     }
 
     /* In this load function we only have one state: READ */
     {
-	int status = (*net->input->isa->read)(net->input);
+	int status = HTHost_read(net->host, net);
 	if (PROT_TRACE) HTTrace("Load Socket. Read returns %d\n", status);
     }
     return HT_OK;

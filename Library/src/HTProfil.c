@@ -56,7 +56,7 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 	HTProtocolInit();
 
     /* Enable the persistent cache */
-    HTCacheInit(NULL, 20);
+    /*    HTCacheInit(NULL, 20); disabled for testing */
 
     /* Register the default set of BEFORE and AFTER filters */
     HTNetInit();

@@ -23,9 +23,10 @@
 struct _HTProtocol {
     char *		name;	      /* Name of this protocol access scheme */
     char *		transport;		    /* Name of the transport */
+    HTProtocolId	id;		   /* Default port for this protocol */
     BOOL		preemptive;
-    HTEventCallback *	client;
-    HTEventCallback *	server;
+    HTProtCallback *	client;
+    HTProtCallback *	server;
 };
 
 PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
@@ -39,9 +40,10 @@ PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 */
 PUBLIC BOOL HTProtocol_add (const char *       	name,
 			    const char *	transport,
+			    HTProtocolId	protocolId,
 			    BOOL		preemptive,
-			    HTEventCallback *	client,
-			    HTEventCallback *	server)
+			    HTProtCallback *	client,
+			    HTProtCallback *	server)
 {
     if (name && (client || server)) {
 	HTProtocol *newProt;
@@ -57,6 +59,7 @@ PUBLIC BOOL HTProtocol_add (const char *       	name,
 	    char *ptr = newProt->transport;
 	    while ((*ptr = TOLOWER(*ptr))) ptr++;
 	}
+	newProt->id = protocolId;
 	newProt->preemptive = preemptive;
 	newProt->client = client;
 	newProt->server = server;
@@ -89,7 +92,7 @@ PUBLIC BOOL HTProtocol_delete (const char * name)
 /*
 **	Returns the client callback function
 */
-PUBLIC HTEventCallback * HTProtocol_client (HTProtocol * protocol)
+PUBLIC HTProtCallback * HTProtocol_client (HTProtocol * protocol)
 {
     return protocol ? protocol->client : NULL;
 }
@@ -97,9 +100,17 @@ PUBLIC HTEventCallback * HTProtocol_client (HTProtocol * protocol)
 /*
 **	Returns the server callback function
 */
-PUBLIC HTEventCallback * HTProtocol_server (HTProtocol * protocol)
+PUBLIC HTProtCallback * HTProtocol_server (HTProtocol * protocol)
 {
     return protocol ? protocol->server : NULL;
+}
+
+/*
+**	Returns the default port
+*/
+PUBLIC HTProtocolId HTProtocol_id (HTProtocol * protocol)
+{
+    return protocol ? protocol->id : 0;
 }
 
 /*

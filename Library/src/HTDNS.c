@@ -19,8 +19,8 @@
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
-#include "HTNetMan.h"
 #include "HTTrans.h"
+#include "HTHstMan.h"
 #include "HTDNS.h"					 /* Implemented here */
 
 #define DNS_TIMEOUT		43200L	      /* Default DNS timeout is 12 h */
@@ -220,24 +220,24 @@ PUBLIC BOOL HTDNS_deleteAll (void)
 **	       	>0	Number of homes
 **		-1	Error
 */
-PUBLIC int HTGetHostByName (HTNet *net, char *host)
+PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
 {
-    SockA *sin = &net->sock_addr;
+    SockA *sin = HTHost_getSockAddr(host);
     int homes = -1;
     HTList *list;				    /* Current list in cache */
     HTdns *pres = NULL;
-    if (!net || !host) {
+    if (!host || !hostname) {
 	if (PROT_TRACE)
 	    HTTrace("HostByName.. Bad argument\n");
 	return -1;
     }
-    net->home = 0;
+    HTHost_setHome(host, 0);
     
     /* Find a hash for this host */
     {
 	int hash = 0;
 	char *ptr;
-	for(ptr=host; *ptr; ptr++)
+	for(ptr=hostname; *ptr; ptr++)
 	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
 	if (!CacheTable) {
 	    if ((CacheTable = (HTList* *) HT_CALLOC(HASH_SIZE, sizeof(HTList *))) == NULL)
@@ -251,7 +251,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
     {
 	HTList *cur = list;
 	while ((pres = (HTdns *) HTList_nextObject(cur))) {
-	    if (!strcmp(pres->hostname, host)) {
+	    if (!strcmp(pres->hostname, hostname)) {
 		if (time(NULL) > pres->ntime + DNSTimeout) {
 		    if (PROT_TRACE)
 			HTTrace("HostByName.. Refreshing cache\n");
@@ -274,13 +274,13 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	    while (cnt < pres->homes) {
 		if (*(pres->weight+cnt) < best_weight) {
 		    best_weight = *(pres->weight+cnt);
-		    net->home = cnt;
+		    HTHost_setHome(host, cnt);
 		}
 		cnt++;
 	    }
 	}
-	net->dns = pres;
-	memcpy((void *) &sin->sin_addr, *(pres->addrlist+net->home),
+	host->dns = pres;
+	memcpy((void *) &sin->sin_addr, *(pres->addrlist+HTHost_home(host)),
 	       pres->addrlength);
     } else {
 	struct hostent *hostelement;			      /* see netdb.h */
@@ -289,19 +289,19 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	int thd_errno;
 	char buffer[HOSTENT_MAX];
 	struct hostent result;			      /* For gethostbyname_r */
-	if (cbf) (*cbf)(net->request, HT_PROG_DNS, HT_MSG_NULL,NULL,host,NULL);
-	hostelement = gethostbyname_r(host, &result, buffer,
+	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostname,NULL);
+	hostelement = gethostbyname_r(hostname, &result, buffer,
 				      HOSTENT_MAX, &thd_errno);
 #else
-	if (cbf) (*cbf)(net->request, HT_PROG_DNS, HT_MSG_NULL,NULL,host,NULL);
-	hostelement = gethostbyname(host);
+	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostname,NULL);
+	hostelement = gethostbyname(hostname);
 #endif
 	if (!hostelement) {
 	    if (PROT_TRACE)
-		HTTrace("HostByName.. Can't find node `%s'.\n", host);
+		HTTrace("HostByName.. Can't find node `%s'.\n", hostname);
 	    return -1;
 	}	
-	net->dns = HTDNS_add(list, hostelement, host, &homes);
+	host->dns = HTDNS_add(list, hostelement, hostname, &homes);
 	memcpy((void *) &sin->sin_addr, *hostelement->h_addr_list,
 	       hostelement->h_length);
     }

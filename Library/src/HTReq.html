@@ -972,7 +972,7 @@ description of what the current request is, please read the user's guide.
 This function can be used in for example the <A HREF="HTAlert.html">HTAlert
 module</A> to give the number of bytes read or written in a progress message.
 <PRE>
-extern long HTRequest_bytesRead (HTRequest * request);
+extern long HTRequest_bodyRead (HTRequest * request);
 extern long HTRequest_bytesWritten (HTRequest * request);
 </PRE>
 <H2>
@@ -985,6 +985,7 @@ at all.
 <PRE>
 extern BOOL HTRequest_setInternal (HTRequest * request, BOOL mode);
 extern BOOL HTRequest_internal (HTRequest * request);
+extern int HTRequest_forceFlush (HTRequest * request);
 </PRE>
 <PRE>
 #endif /* HTREQ_H */

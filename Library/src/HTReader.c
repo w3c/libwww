@@ -13,6 +13,7 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "HTHost.h"
 #include "HTNetMan.h"
 #include "HTReader.h"					 /* Implemented here */
 
@@ -24,25 +25,27 @@ struct _HTStream {
 struct _HTInputStream {
     const HTInputStreamClass *	isa;
     HTChannel *			ch;
-    HTNet *			net;
-    HTStream *			target;		 /* Target for incoming data */
+    HTHost *			host;
     char *			write;			/* Last byte written */
     char *			read;			   /* Last byte read */
     char			data [INPUT_BUFFER_SIZE];	   /* buffer */
+    int				b_read;
 };
 
 /* ------------------------------------------------------------------------- */
 
 PRIVATE int HTReader_flush (HTInputStream * me)
 {
-    return me->target ? (*me->target->isa->flush)(me->target) : HT_OK;
+    HTNet * net = HTHost_getReadNet(me->host);
+    return net && net->readStream ? (*net->readStream->isa->flush)(net->readStream) : HT_OK;
 }
 
 PRIVATE int HTReader_free (HTInputStream * me)
 {
-    if (me->target) {
-	int status = (*me->target->isa->_free)(me->target);
-	if (status != HT_WOULD_BLOCK) me->target = NULL;
+    HTNet * net = HTHost_getReadNet(me->host);
+    if (net && net->readStream) {
+	int status = (*net->readStream->isa->_free)(net->readStream);
+	if (status == HT_OK) net->readStream = NULL;
 	return status;
     }
     return HT_OK;
@@ -50,9 +53,10 @@ PRIVATE int HTReader_free (HTInputStream * me)
 
 PRIVATE int HTReader_abort (HTInputStream * me, HTList * e)
 {
-    if (me->target) {
-	(*me->target->isa->abort)(me->target, NULL);
-	me->target = NULL;
+    HTNet * net = HTHost_getReadNet(me->host);
+    if (net && net->readStream) {
+	int status = (*net->readStream->isa->abort)(net->readStream, NULL);
+	if (status != HT_IGNORE) net->readStream = NULL;
     }
     return HT_ERROR;
 }
@@ -73,17 +77,23 @@ PRIVATE int HTReader_abort (HTInputStream * me, HTList * e)
 **     		HT_WOULD_BLOCK	if read or write would block
 **		HT_PAUSE	if stream is paused
 */
+int DebugBufferSize = INPUT_BUFFER_SIZE;
+
+/* #include fakeReader.c */
 PRIVATE int HTReader_read (HTInputStream * me)
 {
-    HTNet * net = me->net;
-    SOCKET soc = net->sockfd;
-    int b_read = me->read - me->data;
+    HTHost * host = me->host;
+    SOCKET soc = HTChannel_socket(me->ch);
+    HTNet * net = HTHost_getReadNet(host);
+    HTRequest * request = HTNet_request(net);
     int status;
 
+    /*    me->b_read = me->read - me->data; */
     /* Read from socket if we got rid of all the data previously read */
     do {
+	/* don't read if we have to push unwritten data from last call */
 	if (me->write >= me->read) {
-	    if ((b_read = NETREAD(soc, me->data, INPUT_BUFFER_SIZE)) < 0) {
+	    if ((me->b_read = NETREAD(soc, me->data, DebugBufferSize)) < 0) {
 #ifdef EAGAIN
 		if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)      /* POSIX */
 #else
@@ -92,8 +102,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		{
 		    if (PROT_TRACE)
 			HTTrace("Read Socket. WOULD BLOCK fd %d\n",soc);
-		    HTEvent_register(soc, net->request, (SockOps) FD_READ,
-				     net->cbf, net->priority);
+		    HTHost_register(host, net, HTEvent_READ);
 		    return HT_WOULD_BLOCK;
 #ifdef __svr4__
     /* 
@@ -105,31 +114,39 @@ PRIVATE int HTReader_read (HTInputStream * me)
                 } else if (socerrno == EINTR) {
                     continue;
 #endif /* __svr4__ */
+#ifdef EPIPE
+		} else if (socerrno == EPIPE) {
+		    goto socketClosed;
+#endif /* EPIPE */
 		} else { 			     /* We have a real error */
 
 		    /* HERE WE SHOULD RETURN target abort */
-
-		    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno,
-					     NO, "NETREAD");
+		    if (request)
+			HTRequest_addSystemError(request, ERR_FATAL, socerrno,
+						 NO, "NETREAD");
 		    return HT_ERROR;
 		}
 #ifdef ECONNRESET
-	    } else if (!b_read || socerrno==ECONNRESET) {
+	    } else if (!me->b_read || socerrno==ECONNRESET) {
 #else
-	    } else if (!b_read) {
+	    } else if (!me->b_read) {
 #endif
-		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
-		if (PROT_TRACE)
-		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
-		if (cbf) (*cbf)(net->request, HT_PROG_DONE,
-				HT_MSG_NULL, NULL, NULL, NULL);
-	        HTEvent_unregister(soc, FD_ALL);
+	    socketClosed:
+		HTTrace("Read Socket. FIN received on socket %d\n", soc);
+		if (request) {
+		    HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
+		    if (PROT_TRACE)
+			if (cbf) (*cbf)(request, HT_PROG_DONE,
+					HT_MSG_NULL, NULL, NULL, NULL);
+		}
+		HTHost_unregister(host, net, HTEvent_READ);
 		return HT_CLOSED;
 	    }
 
 	    /* Remember how much we have read from the input socket */
+	    HTTraceData(me->data, me->b_read, "HTReader_read %d bytes:", me->b_read);
 	    me->write = me->data;
-	    me->read = me->data + b_read;
+	    me->read = me->data + me->b_read;
 
 #ifdef NOT_ASCII
 	    {
@@ -143,44 +160,47 @@ PRIVATE int HTReader_read (HTInputStream * me)
 
 	    if (PROT_TRACE) 
 		HTTrace("Read Socket. %d bytes read from socket %d\n",
-			b_read, soc);
-	    {
+			me->b_read, soc);
+	    if (request) {
 		HTAlertCallback * cbf = HTAlert_find(HT_PROG_READ);
-		net->bytes_read += b_read;
-		if (cbf) (*cbf)(net->request, HT_PROG_READ,
+#if 0
+		/* byte account is done later */
+		net->bytesRead += me->b_read;
+#endif
+		if (cbf) (*cbf)(request, HT_PROG_READ,
 				HT_MSG_NULL, NULL, NULL, NULL);
 	    }
 	}
 
 	/* Now push the data down the stream */
-	if ((status = (*me->target->isa->put_block)
-	     (me->target, me->data, b_read)) != HT_OK) {
+	if ((status = (*net->readStream->isa->put_block)
+	     (net->readStream, me->write, me->b_read)) != HT_OK) {
 	    if (status == HT_WOULD_BLOCK) {
 		if (PROT_TRACE) HTTrace("Read Socket. Target WOULD BLOCK\n");
-		HTEvent_unregister(soc, FD_READ);
+		HTHost_unregister(host, net, HTEvent_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
 		if (PROT_TRACE) HTTrace("Read Socket. Target PAUSED\n");
-		HTEvent_unregister(soc, FD_READ);
+		HTHost_unregister(host, net, HTEvent_READ);
 		return HT_PAUSE;
-	    } else if (status == HT_CONTINUE) {
-		if (PROT_TRACE) HTTrace("Read Socket. CONTINUE\n");
-		me->write = me->data + b_read;
-		return HT_CONTINUE;
-	    } else if (status>0) {	      /* Stream specific return code */
-		if (PROT_TRACE)
-		    HTTrace("Read Socket. Target returns %d\n", status);
-		me->write = me->data + b_read;
+	    /* CONTINUE code or stream code means data was consumed */
+	    } else if (status == HT_CONTINUE || status > 0) {
+		if (status == HT_CONTINUE) {
+		    if (PROT_TRACE) HTTrace("Read Socket. CONTINUE\n");
+		} else
+		    if (PROT_TRACE)
+			HTTrace("Read Socket. Target returns %d\n", status);
+/*		me->write = me->read; */
 		return status;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE) HTTrace("Read Socket. Target ERROR\n");
 		return status;
 	    }
 	}
-	me->write = me->data + b_read;
+	me->write = me->read;
+	HTHost_setRemainingRead(host, 0);
     } while (net->preemptive);
-    HTEvent_register(soc, net->request, (SockOps) FD_READ,
-		     net->cbf, net->priority);
+    HTHost_register(host, net, HTEvent_READ);
     return HT_WOULD_BLOCK;
 }
 
@@ -193,13 +213,24 @@ PRIVATE int HTReader_read (HTInputStream * me)
 PRIVATE int HTReader_close (HTInputStream * me)
 {
     int status = HT_OK;
-    if (me->target) {
-	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
+    HTNet * net = HTHost_getReadNet(me->host);
+    if (net && net->readStream) {
+	if ((status = (*net->readStream->isa->_free)(net->readStream))==HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
+	net->readStream = NULL;
     }
     if (PROT_TRACE) HTTrace("Socket read. FREEING....\n");
     HT_FREE(me);
     return status;
+}
+
+PUBLIC int HTReader_consumed (HTInputStream * me, size_t bytes)
+{
+    if (PROT_TRACE) HTTrace("Socket read. consumed %d bytes\n", bytes);
+    me->write += bytes;
+    me->b_read -= bytes;
+    HTHost_setRemainingRead(me->host, me->b_read);
+    return HT_OK;
 }
 
 PRIVATE const HTInputStreamClass HTReader =
@@ -209,7 +240,8 @@ PRIVATE const HTInputStreamClass HTReader =
     HTReader_free,
     HTReader_abort,
     HTReader_read,
-    HTReader_close
+    HTReader_close,
+    HTReader_consumed
 }; 
 
 /*
@@ -218,20 +250,20 @@ PRIVATE const HTInputStreamClass HTReader =
 **	so we just return that. This means that we can reuse input streams 
 **	in persistent connections, for example.
 */
-PUBLIC HTInputStream * HTReader_new (HTNet * net, HTChannel * ch,
-				     HTStream * target, void * param, int mode)
+PUBLIC HTInputStream * HTReader_new (HTHost * host, HTChannel * ch,
+				     void * param, int mode)
 {
-    if (net && ch) {
+    if (host && ch) {
 	HTInputStream * me = HTChannel_input(ch);
 	if (me == NULL) {
 	    if ((me=(HTInputStream *) HT_CALLOC(1, sizeof(HTInputStream))) == NULL)
 	    HT_OUTOFMEM("HTReader_new");
 	    me->isa = &HTReader;
 	    me->ch = ch;
+	    me->host = host;
 	}
-	me->target = target;
-	me->net = net;
 	return me;
     }
     return NULL;
 }
+

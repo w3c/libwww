@@ -13,7 +13,6 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTString.h"
 #include "HTParse.h"					 /* Implemented here */
 
 typedef struct _HTURI {

@@ -50,7 +50,7 @@ Library</A>.
 </H3>
 <PRE>
 #if defined(WWW_WIN_ASYNC) || defined(WWW_WIN_DLL)
-extern BOOL HTEventrg_winHandle (HTRequest * request);
+extern BOOL HTEventrg_winHandle (unsigned long * message);
 extern BOOL HTEventrg_setWinHandle (HWND window, unsigned long message);
 extern HWND HTEventrg_getWinHandle (unsigned long * pMessage);
 extern LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -71,7 +71,7 @@ HTEventCallback function, and a priority. For this implementation, we allow
 only a single HTEventCallback function for all operations. and the priority
 field is ignored.
 <PRE>
-extern int HTEventrg_register	(SOCKET, HTRequest *,
+extern int HTEventrg_register	(SOCKET, void *,
 				 SockOps, HTEventCallback *,
 				 HTPriority);
 </PRE>
@@ -104,7 +104,7 @@ Register the tty (console) as having events. If the TTY is select()-able
 take steps depending on the platform. This is the function to use to register
 user events!
 <PRE>
-extern int HTEventrg_registerTTY	(SOCKET, HTRequest *, SockOps,
+extern int HTEventrg_registerTTY(SOCKET, void *, SockOps,
 				 HTEventCallback *, HTPriority);
 </PRE>
 <H3>
@@ -135,9 +135,9 @@ on windows If <CODE>tv = NULL</CODE> then timeout is disabled. Default is
 no timeout. If <EM>always=YES</EM> then the callback is called at all times,
 if NO then only when Library sockets are active. Returns YES if OK else NO.
 <PRE>
-typedef int HTEventTimeout (HTRequest *);
+typedef int HTEventTimeout (void * param);
 
-extern BOOL HTEventrg_registerTimeout (struct timeval *tp, HTRequest * request,
+extern BOOL HTEventrg_registerTimeout (struct timeval *tp, void * param,
 				     HTEventTimeout *tcbf, BOOL always);
 </PRE>
 <H2>

@@ -80,6 +80,7 @@ typedef struct _gopher_info {
     HTGopherType	type; 		                 /* Gopher item type */
     GopherState		state;
     char *		cmd;
+    HTNet *		net;
 } gopher_info;
 
 #define MAX_GOPHER_LINE		256
@@ -631,27 +632,43 @@ PRIVATE void display_cso (HTRequest * request)
 **	returns		HT_ERROR	Error has occured in call back
 **			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int GopherEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request)
 {
-    int status = HT_ERROR;
+    gopher_info * gopher;
     HTNet * net = HTRequest_net(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * url = HTAnchor_physical(anchor);
-    gopher_info * gopher;
     
     /*
     ** Initiate a new gopher structure and bind to request structure
     ** This is actually state GOPHER_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (ops == FD_NONE) {
-	if (PROT_TRACE) HTTrace("Gopher...... Looking for `%s\'\n",url);
-	if ((gopher = (gopher_info *) HT_CALLOC(1, sizeof(gopher_info))) == NULL)
-	    HT_OUTOFMEM("HTLoadGopher");
-	gopher->type = GT_MENU;
-	gopher->state = GOPHER_BEGIN;
-	HTNet_setContext(net, gopher);
-    } else if (ops == FD_CLOSE) {			      /* Interrupted */
+    if (PROT_TRACE) HTTrace("Gopher...... Looking for `%s\'\n",url);
+    if ((gopher = (gopher_info *) HT_CALLOC(1, sizeof(gopher_info))) == NULL)
+	HT_OUTOFMEM("HTLoadGopher");
+    gopher->type = GT_MENU;
+    gopher->state = GOPHER_BEGIN;
+    gopher->net = net;
+    HTNet_setContext(net, gopher);
+    HTNet_setEventCallback(net, GopherEvent);
+    HTNet_setEventParam(net, gopher);  /* callbacks get http* */
+
+    return GopherEvent(soc, gopher, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int GopherEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    gopher_info * gopher = (gopher_info *)pVoid;
+    int status = HT_ERROR;
+    HTNet * net = gopher->net;
+    HTRequest * request = HTNet_request(net);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * url = HTAnchor_physical(anchor);
+    
+    if (type == HTEvent_CLOSE) {			      /* Interrupted */
 	GopherCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
@@ -747,17 +764,15 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		** stream stack.
 		*/
 		{
-		    HTStream * target;
 		    if (gopher->type == GT_MENU || gopher->type == GT_INDEX)
-			target = GopherMenu_new(request, url, NO);
+			net->readStream = GopherMenu_new(request, url, NO);
 		    else if (gopher->type == GT_CSO)
-			target = GopherMenu_new(request, url, YES);
+			net->readStream = GopherMenu_new(request, url, YES);
 		    else
-			target = HTStreamStack(WWW_UNKNOWN,
+			net->readStream = HTStreamStack(WWW_UNKNOWN,
 					       HTRequest_outputFormat(request),
 					       HTRequest_outputStream(request),
 					       request, NO);
-		    HTNet_getInput(net, target, NULL, 0);
 		    HTRequest_setOutputConnected(request, YES);
 		}
 
@@ -793,7 +808,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case GOPHER_NEED_RESPONSE:
-	    status = (*net->input->isa->read)(net->input);
+	    status = HTHost_read(net->host, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED)

@@ -116,7 +116,11 @@ PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
 	if (name) {
 	    if (!strcasecomp(name, "close")) {			 /* HTTP/1.1 */
 		HTNet * net = HTRequest_net(request);
+#ifndef HT_MUX
 		HTNet_setPersistent(net, NO, HT_TP_INTERLEAVE);
+#else
+		HTNet_setPersistent(net, NO, HT_TP_PIPELINE);
+#endif
 		if (STREAM_TRACE) HTTrace("MIMEParser.. Close negotiated\n");
 	    } else if (!strcasecomp(name, "keep-alive")) {       /* HTTP/1.0 */
 		HTNet * net = HTRequest_net(request);

@@ -25,6 +25,7 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "HTTelnet.h"					 /* Implemented here */
+#include "HTNetMan.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -250,21 +251,32 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 **	returns		HT_ERROR	Error has occured or interrupted
 **			HT_NO_DATA	if return status 204 No Response
 */
-PUBLIC int HTLoadTelnet (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int TelnetEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTLoadTelnet (SOCKET soc, HTRequest * request)
 {
     HTNet * net = HTRequest_net(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * url = HTAnchor_physical(anchor);
 
+    if (PROT_TRACE) HTTrace("Telnet...... Looking for `%s\'\n",url);
+    HTNet_setEventCallback(net, TelnetEvent);
+    HTNet_setEventParam(net, net);  /* callbacks get http* */
+
+    HTCleanTelnetString(url);
+    {
+	int status = remote_session(request, url);
+	HTNet_delete(net, status);
+    }
+    return HT_OK;
+}
+
+PRIVATE int TelnetEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    HTNet * net = (HTNet *)pVoid;
+
     /* This is a trick as we don't have any socket! */
-    if (ops == FD_NONE) {
-	if (PROT_TRACE) HTTrace("Telnet...... Looking for `%s\'\n",url);
-	HTCleanTelnetString(url);
-	{
-	    int status = remote_session(request, url);
-	    HTNet_delete(net, status);
-	}
-    } else if (ops == FD_CLOSE)				      /* Interrupted */
+    if (type == HTEvent_CLOSE)				      /* Interrupted */
 	HTNet_delete(net, HT_INTERRUPTED);
     else
 	HTNet_delete(net, HT_ERROR);

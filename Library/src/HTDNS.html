@@ -114,7 +114,7 @@ structure. It maintains its own cache of connections so that the communication
 to the Domain Name Server is minimized. Returns the number of homes or -1
 if error.
 <PRE>
-extern int HTGetHostByName (struct _HTNet *net, char *host);
+extern int HTGetHostByName (HTHost * host, char *hostname, HTRequest * request);
 </PRE>
 <PRE>
 #endif

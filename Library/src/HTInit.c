@@ -12,10 +12,12 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "WWWMux.h"
+
 #include "HTInit.h"				         /* Implemented here */
 
 #ifndef W3C_ICONS
-#define W3C_ICONS	"/tmp"
+#define W3C_ICONS	"/usr/local/share/w3c-icons"
 #endif
 
 #define ICON_LOCATION	"/internal-icon/"
@@ -215,6 +217,9 @@ PUBLIC void HTTransportInit (void)
 {
     HTTransport_add("tcp", HT_TP_SINGLE, HTReader_new, HTWriter_new);
     HTTransport_add("buffered_tcp", HT_TP_SINGLE, HTReader_new, HTBufferWriter_new);
+#ifdef HT_MUX
+    HTTransport_add("mux", HT_TP_INTERLEAVE, HTReader_new, HTMuxBuffer_new);
+#endif /* HT_MUX */
 #ifndef NO_UNIX_IO
     HTTransport_add("local", HT_TP_SINGLE, HTReader_new, HTWriter_new);
 #else
@@ -229,21 +234,24 @@ PUBLIC void HTTransportInit (void)
 PUBLIC void HTProtocolInit (void)
 {
 #ifndef DECNET
-    HTProtocol_add("ftp", 	"tcp", 		NO, 	HTLoadFTP,	NULL);
-    HTProtocol_add("nntp",	"tcp", 		NO, 	HTLoadNews,	NULL);
-    HTProtocol_add("news",	"tcp", 		NO, 	HTLoadNews,	NULL);
-    HTProtocol_add("gopher",	"tcp", 		NO, 	HTLoadGopher,	NULL);
+    HTProtocol_add("ftp", 	"tcp",	FTP_PORT,	NO, 	HTLoadFTP,	NULL);
+    HTProtocol_add("nntp",	"tcp",	NEWS_PORT,	NO, 	HTLoadNews,	NULL);
+    HTProtocol_add("news",	"tcp",	NEWS_PORT,	NO, 	HTLoadNews,	NULL);
+    HTProtocol_add("gopher",	"tcp",	GOPHER_PORT,	NO, 	HTLoadGopher,	NULL);
 #ifdef HT_DIRECT_WAIS
-    HTProtocol_add("wais",	"",		YES, 	HTLoadWAIS,	NULL);
+    HTProtocol_add("wais",	"",	WAIS_PORT,	YES, 	HTLoadWAIS,	NULL);
 #endif
 #endif /* DECNET */
-
-    HTProtocol_add("http", 	"buffered_tcp", NO,	HTLoadHTTP,	NULL);
-    HTProtocol_add("file", 	"local", 	NO, 	HTLoadFile, 	NULL);
-    HTProtocol_add("cache", 	"local", 	NO, 	HTLoadCache, 	NULL);
-    HTProtocol_add("telnet", 	"", 		YES, 	HTLoadTelnet, 	NULL);
-    HTProtocol_add("tn3270", 	"", 		YES, 	HTLoadTelnet, 	NULL);
-    HTProtocol_add("rlogin", 	"", 		YES, 	HTLoadTelnet, 	NULL);
+#ifdef HT_MUX
+    HTProtocol_add("http", 	"mux",	HTTP_PORT,	NO,	HTLoadHTTP,	NULL);
+#else
+    HTProtocol_add("http", 	"buffered_tcp", HTTP_PORT,	NO,	HTLoadHTTP,	NULL);
+#endif /* !HT_MUX */
+    HTProtocol_add("file", 	"local", 	0, 		NO, 	HTLoadFile, 	NULL);
+    HTProtocol_add("cache", 	"local", 	0, 		NO, 	HTLoadCache, 	NULL);
+    HTProtocol_add("telnet", 	"", 		0,	YES, 	HTLoadTelnet, 	NULL);
+    HTProtocol_add("tn3270", 	"", 		0,	YES, 	HTLoadTelnet, 	NULL);
+    HTProtocol_add("rlogin", 	"", 		0,	YES, 	HTLoadTelnet, 	NULL);
 }
 
 /*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY PREEMPTIVELY
@@ -253,20 +261,21 @@ PUBLIC void HTProtocolInit (void)
 PUBLIC void HTProtocolPreemptiveInit (void)
 {
 #ifndef DECNET
-    HTProtocol_add("ftp", "tcp", YES, HTLoadFTP, NULL);
-    HTProtocol_add("nntp", "tcp", YES, HTLoadNews, NULL);
-    HTProtocol_add("news", "tcp", YES, HTLoadNews, NULL);
-    HTProtocol_add("gopher", "tcp", YES, HTLoadGopher, NULL);
+    HTProtocol_add("ftp", "tcp", FTP_PORT, YES, HTLoadFTP, NULL);
+    HTProtocol_add("nntp", "tcp", NEWS_PORT, YES, HTLoadNews, NULL);
+    HTProtocol_add("news", "tcp", NEWS_PORT, YES, HTLoadNews, NULL);
+    HTProtocol_add("gopher", "tcp", GOPHER_PORT, YES, HTLoadGopher, NULL);
 #ifdef HT_DIRECT_WAIS
-    HTProtocol_add("wais", "", YES, HTLoadWAIS, NULL);
+    HTProtocol_add("wais", "", WAIS_PORT, YES, HTLoadWAIS, NULL);
 #endif
 #endif /* DECNET */
 
-    HTProtocol_add("http", "buffered_tcp", YES, HTLoadHTTP, NULL);
-    HTProtocol_add("file", "local", YES, HTLoadFile, NULL);
-    HTProtocol_add("telnet", "", YES, HTLoadTelnet, NULL);
-    HTProtocol_add("tn3270", "", YES, HTLoadTelnet, NULL);
-    HTProtocol_add("rlogin", "", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("http", "buffered_tcp", HTTP_PORT, YES, HTLoadHTTP, NULL);
+    HTProtocol_add("file", "local", 0, YES, HTLoadFile, NULL);
+    HTProtocol_add("telnet", "", 0, YES, HTLoadTelnet, NULL);
+    HTProtocol_add("tn3270", "", 0, YES, HTLoadTelnet, NULL);
+    HTProtocol_add("rlogin", "", 0, YES, HTLoadTelnet, NULL);
+    HTProtocol_add("cache","local",0,YES,HTLoadCache,  NULL);
 }
 
 /*	BINDINGS BETWEEN ICONS AND MEDIA TYPES

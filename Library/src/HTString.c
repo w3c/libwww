@@ -11,20 +11,13 @@
 **	23 Jan 92 (TBL) Changed strallocc* to 8 char HTSAC* for VM and suchlike
 **	 6 Oct 92 (TBL) Moved WWW_TraceFlag in here to be in library
 **       9 Oct 95 (KR)  fixed problem with double quotes in HTNextField
+**	26 Nov 96 (EGP) moved HTTrace stuff to HTTrace.c
 */
 
 /* Library include files */
 #include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"					 /* Implemented here */
-
-#if WWWTRACE_MODE == WWWTRACE_FILE
-PUBLIC FILE *WWWTrace = NULL;
-#endif
-
-#ifndef WWW_WIN_DLL
-PUBLIC int WWW_TraceFlag = 0;		/* Global trace flag for ALL W3 code */
-#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -168,30 +161,5 @@ PUBLIC char * HTStrip (char * s)
 	while (WHITE(*s)) s++;		/* Strip leading blanks */
     }
     return s;
-}
-
-PRIVATE HTTraceCallback * PHTTraceCallback;
-
-PUBLIC void HTTrace_setCallback(HTTraceCallback * pCall)
-{
-    PHTTraceCallback = pCall;
-}
-
-PUBLIC HTTraceCallback * HTTrace_getCallback(void)
-{
-    return PHTTraceCallback;
-}
-
-PUBLIC int HTTrace(const char * fmt, ...)
-{
-    va_list pArgs;
-    va_start(pArgs, fmt);
-    if (PHTTraceCallback)
-	return (*PHTTraceCallback)(fmt, pArgs);
-#ifdef WWW_WIN_WINDOWS
-    return (0);
-#else
-    return (vfprintf(stderr, fmt, pArgs));
-#endif
 }
 

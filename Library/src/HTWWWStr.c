@@ -197,7 +197,7 @@ PUBLIC const char * HTMessageIdStr (HTUserProfile * up)
 	return "";
     }
 #ifdef HAVE_GETPID
-    sprintf(buf, "<%ldZ%ld@%s>", sectime, getpid(), address ? address : "@@@");
+    sprintf(buf, "<%ldZ%ld@%s>", sectime, (long)getpid(), address ? address : "@@@");
 #else
     sprintf(buf, "<%ldZ%s>", sectime, address ? address : "@@@");
 #endif /* HAVE_GETPID */

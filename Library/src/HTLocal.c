@@ -16,6 +16,7 @@
 #include "HTParse.h"
 #include "HTReq.h"
 #include "HTNetMan.h"
+#include "HTHstMan.h"
 #include "HTError.h"
 #include "HTLocal.h"					 /* Implemented here */
 
@@ -33,9 +34,10 @@
 PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 {
     HTRequest * request = net->request;
+    SOCKET sockfd = INVSOC;
 #ifndef NO_UNIX_IO
     int status = -1;    /* JTD:5/30/96 - must init status to -1 */
-    if ((net->sockfd = open(local, mode)) == -1) {
+    if ((sockfd = open(local, mode)) == -1) {
 	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "open");
 	return HT_ERROR;
     }
@@ -49,7 +51,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
     */
     if (!net->preemptive) {
 #ifdef HAVE_FCNTL
-	if ((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
+	if ((status = fcntl(HTNet_socket(net), F_GETFL, 0)) != -1) {
 #ifdef O_NONBLOCK
 	    status |= O_NONBLOCK;/* POSIX */
 #else
@@ -57,7 +59,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 	    status |= F_NDELAY; /* BSD */
 #endif /* F_NDELAY */
 #endif /* O_NONBLOCK */
-	    status = fcntl(net->sockfd, F_SETFL, status);
+	    status = fcntl(HTNet_socket(net), F_SETFL, status);
 	}
 #endif /* HAVE_FCNTL */
 	if (PROT_TRACE)
@@ -80,8 +82,15 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
     if (PROT_TRACE)
         HTTrace("HTDoOpen.... `%s\' opened using FILE %p\n",local, net->fp);
 #endif /* !NO_UNIX_IO */
-    /* Create a channel for this socket or file descriptor */
-    net->channel = HTChannel_new(net, YES);
+
+    /*
+    **  Associate the channel with the host and create an input and and output stream
+    **  for this host/channel
+    */
+    HTHost_setChannel(net->host, HTChannel_new(sockfd, YES));
+    HTHost_getInput(net->host, net->transport, NULL, 0);
+    HTHost_getOutput(net->host, net->transport, NULL, 0);
+
     return HT_OK;
 }
 
@@ -99,16 +108,16 @@ PUBLIC int HTFileClose (HTNet * net)
     int status = -1;
     if (net) {
 #ifndef NO_UNIX_IO
-	if (net->fp) {
-	    if (PROT_TRACE) HTTrace("Closing..... ANSI file %p\n", net->fp);
-	    status = fclose(net->fp);
-	    net->fp = NULL;
+	if (net->host->fp) {
+	    if (PROT_TRACE) HTTrace("Closing..... ANSI file %p\n", net->host->fp);
+	    status = fclose(net->host->fp);
+	    net->host->fp = NULL;
 	}
 #else
-	if (net->sockfd != INVSOC) {
-	    if (PROT_TRACE) HTTrace("Closing..... fd %d\n", net->sockfd);
-	    status = NETCLOSE(net->sockfd);
-	    net->sockfd = INVSOC;
+	if (HTNet_socket(net) != INVSOC) {
+	    if (PROT_TRACE) HTTrace("Closing..... fd %d\n", HTNet_socket(net));
+	    status = NETCLOSE(HTNet_socket(net));
+	    HTNet_socket(net) = INVSOC;
 	}
 #endif /* NO_UNIX_IO */
     }

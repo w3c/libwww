@@ -56,6 +56,7 @@ typedef struct _file_info {
     FileState		state;		  /* Current state of the connection */
     char *		local;		/* Local representation of file name */
     struct stat		stat_info;	      /* Contains actual file chosen */
+    HTNet *		net;
 } file_info;
 
 struct _HTStream {
@@ -318,32 +319,47 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 **	returns		HT_ERROR	Error has occured in call back
 **			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request)
 {
-    int status = HT_ERROR;
+    file_info *file;			      /* Specific access information */
     HTNet * net = HTRequest_net(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    file_info *file;			      /* Specific access information */
+
+    if (PROT_TRACE) HTTrace("HTLoadFile.. Looking for `%s\'\n",
+			    HTAnchor_physical(anchor));
+    if ((file = (file_info *) HT_CALLOC(1, sizeof(file_info))) == NULL)
+	HT_OUTOFMEM("HTLoadFILE");
+    file->state = FS_BEGIN;
+    file->net = net;
+    HTNet_setContext(net, file);
+    HTNet_setEventCallback(net, FileEvent);
+    HTNet_setEventParam(net, file);  /* callbacks get http* */
+
+    return FileEvent(soc, file, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    file_info *file = pVoid;			      /* Specific access information */
+    int status = HT_ERROR;
+    HTNet * net = file->net;
+    HTRequest * request = HTNet_request(net);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
 
     /*
     ** Initiate a new file structure and bind to request structure
     ** This is actually state FILE_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (ops == FD_NONE) {
-	if (PROT_TRACE) HTTrace("HTLoadFile.. Looking for `%s\'\n",
-				HTAnchor_physical(anchor));
-	if ((file = (file_info *) HT_CALLOC(1, sizeof(file_info))) == NULL)
-	    HT_OUTOFMEM("HTLoadFILE");
-	file->state = FS_BEGIN;
-	net->context = file;
-    } if (ops == FD_CLOSE) {				      /* Interrupted */
+    if (type == HTEvent_CLOSE) {				      /* Interrupted */
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadFile");
 	FileCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
-    } else
-	file = (file_info *) net->context;		/* Get existing copy */
+    }
+
 
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
@@ -370,7 +386,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** fits best into either what the client has indicated in the
 	    ** accept headers or what the client has registered on its own.
 	    ** The object chosen can in fact be a directory! However, content
-	    ** negotiation only makes sense it we can read the directory!
+	    ** negotiation only makes sense if we can read the directory!
 	    ** We stat the file in order to find the size and to see it if
 	    ** exists.
 	    */
@@ -437,11 +453,10 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		HTNet_getInput(net,
-			       HTStreamStack(HTAnchor_format(anchor),
-					     HTRequest_outputFormat(request),
-					     HTRequest_outputStream(request),
-					     request, YES), NULL, 0);
+		net->readStream = HTStreamStack(HTAnchor_format(anchor),
+						HTRequest_outputFormat(request),
+						HTRequest_outputStream(request),
+						request, YES);
 		HTRequest_setOutputConnected(request, YES);
 
 		/*
@@ -460,8 +475,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isDestination(request)) {
-		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
-				     HTLoadFile, net->priority);
+		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 		    HTRequest_linkDestination(request);
 		}
 		if (HTRequest_isSource(request) &&
@@ -480,8 +494,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		*/
 		if (!net->preemptive) {
 		    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
-		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
-				     net->cbf, net->priority);
+		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 		    return HT_OK;
 		}
 #endif
@@ -495,7 +508,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case FS_NEED_BODY:
-	    status = (*net->input->isa->read)(net->input);
+	    status = HTHost_read(net->host, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED) {

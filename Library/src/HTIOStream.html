@@ -33,7 +33,6 @@ typedef struct _HTOutputStream HTOutputStream;
 #include "HTList.h"
 #include "HTStream.h"
 #include "HTChannl.h"
-#include "HTNet.h"
 </PRE>
 <H2>
   Input Stream
@@ -80,6 +79,12 @@ The <B>read</B> method is the method by which we can read data from the
 <A HREF="HTTrans.html">transport layer</A>.
 <PRE>
     int (*close)	(HTInputStream * me);
+</PRE>
+<P>
+Pipelined transports need to know how many bytes were <B>consumed</B> by 
+the net object.
+<PRE>
+    int (*consumed)	(HTInputStream * me, size_t bytes);
 </PRE>
 <P>
 The <CODE>close</CODE> method closes the transport and deletes the input
@@ -147,9 +152,8 @@ pseudo threads based on a <CODE>select()</CODE> call or equivalent and the
 it doesn't matter if a read procedure blocks as this only concerns a single
 thread.
 <PRE>
-typedef HTInputStream * HTInput_new	(HTNet *	net,
+typedef HTInputStream * HTInput_new	(HTHost *	host,
 					 HTChannel *	ch,
-					 HTStream *	target,
 					 void *		param,
 					 int		mode);
 </PRE>
@@ -157,7 +161,7 @@ typedef HTInputStream * HTInput_new	(HTNet *	net,
   Transport Output Stream
 </H3>
 <PRE>
-typedef HTOutputStream * HTOutput_new	(HTNet *	net,
+typedef HTOutputStream * HTOutput_new	(HTHost *	host,
 					 HTChannel *	ch,
 					 void *		param,
 					 int		mode);

@@ -55,6 +55,7 @@ typedef struct _cache_info {
     char *		local;		/* Local representation of file name */
     BOOL		meta;		  /* Are we reading metainformation? */
     struct stat		stat_info;	      /* Contains actual file chosen */
+    HTNet *		net;
 } cache_info;
 
 struct _HTCache {
@@ -1560,26 +1561,41 @@ PRIVATE int CacheCleanup (HTRequest * request, int status)
 **  Returns		HT_ERROR	Error has occured in call back
 **			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request)
 {
-    int status = HT_ERROR;
-    HTNet * net = HTRequest_net(request);
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     cache_info * cache;			      /* Specific access information */
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTNet * net = HTRequest_net(request);
 
     /*
     ** Initiate a new cache structure and bind to request structure
     ** This is actually state CACHE_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (ops == FD_NONE) {
-	if (PROT_TRACE) HTTrace("Load Cache.. Looking for `%s\'\n",
-				HTAnchor_physical(anchor));
-	if ((cache = (cache_info *) HT_CALLOC(1, sizeof(cache_info))) == NULL)
-	    HT_OUTOFMEM("HTLoadCACHE");
-	cache->state = CL_BEGIN;
-	HTNet_setContext(net, cache);
-    } if (ops == FD_CLOSE) {				      /* Interrupted */
+    if (PROT_TRACE) HTTrace("Load Cache.. Looking for `%s\'\n",
+			    HTAnchor_physical(anchor));
+    if ((cache = (cache_info *) HT_CALLOC(1, sizeof(cache_info))) == NULL)
+	HT_OUTOFMEM("HTLoadCACHE");
+    cache->state = CL_BEGIN;
+    cache->net = net;
+    HTNet_setContext(net, cache);
+    HTNet_setEventCallback(net, CacheEvent);
+    HTNet_setEventParam(net, cache);  /* callbacks get http* */
+
+    return CacheEvent(soc, cache, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    cache_info * cache = (cache_info *)pVoid;
+    int status = HT_ERROR;
+    HTNet * net = cache->net;
+    HTRequest * request = HTNet_request(net);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+
+    if (type == HTEvent_CLOSE) {				      /* Interrupted */
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadCache");
 	CacheCleanup(request, HT_INTERRUPTED);
@@ -1673,18 +1689,16 @@ PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request, SockOps ops)
 		** stream stack.
 		*/
 		if (cache->meta) {
-		    HTNet_getInput(net,
-				   HTStreamStack(WWW_MIME_HEAD,
-						 HTRequest_debugFormat(request),
-						 HTRequest_debugStream(request),
-						 request, NO), NULL, 0);
+		    net->readStream = HTStreamStack(WWW_MIME_HEAD,
+						    HTRequest_debugFormat(request),
+						    HTRequest_debugStream(request),
+						    request, NO), 
 		    cache->state = CL_NEED_CONTENT;
 		} else {
-		    HTNet_getInput(net,
-				   HTStreamStack(HTAnchor_format(anchor),
-						 HTRequest_outputFormat(request),
-						 HTRequest_outputStream(request),
-						 request, YES), NULL, 0);
+		    net->readStream = HTStreamStack(HTAnchor_format(anchor),
+						    HTRequest_outputFormat(request),
+						    HTRequest_outputStream(request),
+						    request, YES);
 		    HTRequest_setOutputConnected(request, YES);
 		    HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
 				       NULL, 0, "HTLoadCache");
@@ -1699,8 +1713,7 @@ PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request, SockOps ops)
 		    */
 		    if (!net->preemptive) {
 			if (PROT_TRACE) HTTrace("Load Cache.. returning\n");
-			HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
-					 net->cbf, net->priority);
+			HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 			return HT_OK;
 		    }
 #endif
@@ -1715,7 +1728,7 @@ PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	case CL_NEED_CONTENT:
-	    status = (*net->input->isa->read)(net->input);
+	    status = HTHost_read(net->host, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED) {

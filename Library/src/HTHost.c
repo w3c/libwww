@@ -15,39 +15,36 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
+#include "WWWMux.h"
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
 #include "HTNetMan.h"
 #include "HTTrans.h"
+#include "HTDNS.h"
+#include "HTTPUtil.h"
+#include "HTTCP.h"
 #include "HTHost.h"					 /* Implemented here */
+#include "HTHstMan.h"
 
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
 #define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
-#define HASH_SIZE		67
+#define MAX_PIPES		5    /* maximum number of pipelined requests */
 
-/* Type definitions and global variables etc. local to this module */
-struct _HTHost {
-    char *  		hostname;	     /* name of host + optional port */
-    time_t		ntime;				    /* Creation time */
-    char *		type;				        /* Peer type */
-    int 		version;			     /* Peer version */
-    HTMethod		methods;	       	/* Public methods (bit-flag) */
-    char *		server;				      /* Server name */
-    char *		user_agent;			       /* User Agent */
-    char *		range_units;		   /* Acceptable range units */
-    HTTransportMode	mode;	      			   /* Supported mode */
-    HTChannel *		channel;		       /* Persistent channel */
-    HTList *		pipeline;		 /* Pipe line of net objects */
-    HTList *		pending;	      /* List of pending Net objects */
-    time_t		expires;	  /* Persistent channel expires time */
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
 };
 
+PRIVATE int HostEvent(SOCKET soc, void * pVoid, HTEventType type);
+
+/* Type definitions and global variables etc. local to this module */
 PRIVATE time_t	HostTimeout = HOST_TIMEOUT;	  /* Timeout on host entries */
 PRIVATE time_t	TCPTimeout = TCP_TIMEOUT;  /* Timeout on persistent channels */
 
 PRIVATE HTList	** HostTable = NULL;
 PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
+
+PRIVATE int EventTimeout = -1;		        /* Global Host event timeout */
 
 /* ------------------------------------------------------------------------- */
 
@@ -63,6 +60,8 @@ PRIVATE void free_object (HTHost * me)
 	    HTChannel_delete(me->channel, HT_OK);
 	    me->channel = NULL;
 	}
+	HTEvent_delete(me->events[0]);
+	HTEvent_delete(me->events[1]);
 	HTList_delete(me->pipeline);
 	HTList_delete(me->pending);
 	HT_FREE(me);
@@ -77,6 +76,82 @@ PRIVATE BOOL delete_object (HTList * list, HTHost * me)
     return YES;
 }
 
+PRIVATE BOOL isLastInPipe (HTHost * host, HTNet * net)
+{
+    return HTList_lastObject(host->pipeline) == net;
+}
+
+/*
+**	HostEvent - host event manager - recieves events from the event 
+**	manager and dispatches them to the client net objects by calling the 
+**	net object's cbf.
+**
+*/
+PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    HTHost * host = (HTHost *)pVoid;
+
+    if (type == HTEvent_READ) {
+	HTNet * targetNet;
+
+	/* call the first net object */
+	do {
+	    int ret;
+	    targetNet = (HTNet *)HTList_firstObject(host->pipeline);
+	    if (targetNet) {
+		if (CORE_TRACE)
+		    HTTrace(HTHIDE("HostEvent: READ passed to %s.\n"), 
+			    HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
+		if ((ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), 
+						  targetNet->event.param, type)) != HT_OK)
+		    return ret;
+	    }
+	    if (targetNet == NULL && host->remainingRead > 0) {
+		HTTrace("HostEvent... Error: %d bytes left to read and nowhere to put them\n", host->remainingRead);
+		host->remainingRead = 0;
+		/*
+		**	Fall through to close the channel
+		*/
+	    }
+	/* call pipelined net object to eat all the data in the channel */
+	} while (host->remainingRead > 0);
+
+	/* last target net should have set remainingRead to 0 */
+	if (targetNet)
+	    return HT_OK;
+
+	/* If there was notargetNet, it should be a close */
+	HTTrace(HTHIDE("HostEvent: host %s closed connection.\n"), 
+		host->hostname);
+
+	/* Is there garbage in the channel? Let's check: */
+	{
+	    char buf[256];
+	    int ret;
+	    while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf))) > 0)
+		HTTrace(HTHIDE("Host %s had %d extraneous bytes.\n"));
+	}
+	HTHost_clearChannel(host, HT_OK);
+	return HT_OK; /* extra garbage does not constitute an application error */
+	
+    } else if (type == HTEvent_WRITE) {
+	HTNet * targetNet = (HTNet *)HTList_lastObject(host->pipeline);
+	if (targetNet) {
+	    if (CORE_TRACE)
+		HTTrace(HTHIDE("HostEvent: WRITE passed to %s.\n"), 
+			HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
+	    return (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, type);
+	}
+	HTTrace(HTHIDE("HostEvent: Who wants to write to %s?\n"), 
+		host->hostname);
+	return HT_ERROR;
+	}
+
+    HTTrace(HTHIDE("Don't know how to handle OOB data from %s?\n"), 
+	    host->hostname);
+    return HT_OK;
+}
+
 /*
 **	Search the host info cache for a host object or create a new one
 **	and add it. Examples of host names are
@@ -88,10 +163,12 @@ PRIVATE BOOL delete_object (HTList * list, HTHost * me)
 **	Returns Host object or NULL if error. You may get back an already
 **	existing host object - you're not guaranteed a new one each time.
 */
+
 PUBLIC HTHost * HTHost_new (char * host)
 {
     HTList * list = NULL;			    /* Current list in cache */
     HTHost * pres = NULL;
+    int hash = 0;
     if (!host) {
 	if (CORE_TRACE) HTTrace("Host info... Bad argument\n");
 	return NULL;
@@ -99,12 +176,11 @@ PUBLIC HTHost * HTHost_new (char * host)
     
     /* Find a hash for this host */
     {
-	int hash = 0;
 	char *ptr;
 	for (ptr=host; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HOST_HASH_SIZE);
 	if (!HostTable) {
-	    if ((HostTable = (HTList **) HT_CALLOC(HASH_SIZE,
+	    if ((HostTable = (HTList **) HT_CALLOC(HOST_HASH_SIZE,
 						   sizeof(HTList *))) == NULL)
 	        HT_OUTOFMEM("HTHost_find");
 	}
@@ -131,7 +207,7 @@ PUBLIC HTHost * HTHost_new (char * host)
     /* If not found then create new Host object, else use existing one */
     if (pres) {
 	if (pres->channel) {
-	    if (pres->expires < time(NULL)) {	   /* Cached channel is cold */
+	    if (pres->expires && pres->expires < time(NULL)) {	   /* Cached channel is cold */
 		if (CORE_TRACE)
 		    HTTrace("Host info... Persistent channel %p gotten cold\n",
 			    pres->channel);
@@ -145,14 +221,70 @@ PUBLIC HTHost * HTHost_new (char * host)
     } else {
 	if ((pres = (HTHost *) HT_CALLOC(1, sizeof(HTHost))) == NULL)
 	    HT_OUTOFMEM("HTHost_add");
+	pres->hash = hash;
 	StrAllocCopy(pres->hostname, host);
 	pres->ntime = time(NULL);
 	pres->mode = HT_TP_SINGLE;
+	pres->events[HTEvent_INDEX(HTEvent_READ)] = HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, -1);
+	pres->events[HTEvent_INDEX(HTEvent_WRITE)]= HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, -1);
 	if (CORE_TRACE) 
 	    HTTrace("Host info... added `%s\' to list %p\n", host, list);
 	HTList_addObject(list, (void *) pres);
     }
     return pres;
+}
+
+PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short default_port)
+{
+	      char * port;
+	      char * fullhost = NULL;
+	      char * parsedHost = NULL;
+	      SockA * sin;
+	      HTHost * me;
+	      char * proxy = HTRequest_proxy(request);
+
+	      fullhost = HTParse(proxy ? proxy : url, "", PARSE_HOST);
+
+	      /* If there's an @ then use the stuff after it as a hostname */
+	      if (fullhost) {
+		  char * at_sign;
+		  if ((at_sign = strchr(fullhost, '@')) != NULL)
+		      parsedHost = at_sign+1;
+		  else
+		      parsedHost = fullhost;
+	      }
+	      if (!parsedHost || !*parsedHost) {
+		  HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
+				     NULL, 0, "HTDoConnect");
+		  HT_FREE(fullhost);
+		  return NULL;
+	      }
+	      port = strchr(parsedHost, ':');
+	      if (PROT_TRACE)
+		  HTTrace("HTDoConnect. Looking up `%s\'\n", parsedHost);
+	      if (port) {
+		  *port++ = '\0';
+		  if (!*port || !isdigit(*port))
+		      port = 0;
+	      }
+	      /* Find information about this host */
+	      if ((me = HTHost_new(parsedHost)) == NULL) {
+		  if (PROT_TRACE)HTTrace("HTDoConnect. Can't get host info\n");
+		  me->tcpstate = TCP_ERROR;
+		  return NULL;
+	      }
+	      sin = &me->sock_addr;
+	      memset((void *) sin, '\0', sizeof(SockA));
+
+#ifdef DECNET
+	      sin->sdn_family = AF_DECnet;
+	      net->sock_addr.sdn_objnum = port ? (unsigned char)(strtol(port, (char **) 0, 10)) : DNP_OBJ;
+#else  /* Internet */
+	      sin->sin_family = AF_INET;
+	      sin->sin_port = htons(port ? atol(port) : default_port);
+#endif
+	      HT_FREE(fullhost);	/* parsedHost points into fullhost */
+	      return me;
 }
 
 /*
@@ -176,7 +308,7 @@ PUBLIC HTHost * HTHost_find (char * host)
 	int hash = 0;
 	char *ptr;
 	for (ptr=host; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HOST_HASH_SIZE);
 	if (!HostTable[hash]) return NULL;
 	list = HostTable[hash];
 
@@ -369,12 +501,14 @@ PUBLIC BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit)
 **	we can't use the request object as it might have been freed a long
 **	time ago.
 */
-PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
+PUBLIC int HTHost_catchClose (SOCKET soc, void * context, HTEventType type)
 {
+    HTNet * net = (HTNet *)context;
+    HTHost * host = net->host;
     if (CORE_TRACE)
-	HTTrace("Catch Close. called with socket %d with ops %x\n",
-		soc, (unsigned) ops);
-    if (ops == FD_READ) {
+	HTTrace("Catch Close. called with socket %d with type %x\n",
+		soc, type);
+    if (type == HTEvent_READ) {
 	HTChannel * ch = HTChannel_find(soc);	  /* Find associated channel */
 	HTHost * host = HTChannel_host(ch);	      /* and associated host */
 	if (ch && host) {	    
@@ -384,7 +518,7 @@ PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (CORE_TRACE) HTTrace("Catch Close. socket %d NOT FOUND!\n",soc);
 	}
     }
-    HTEvent_unregister(soc, (SockOps) FD_ALL);
+    HTHost_unregister(host, net, HTEvent_CLOSE);
     return HT_OK;
 }
 
@@ -394,21 +528,35 @@ PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 **	We don't want more than MaxSockets-2 connections to be persistent in
 **	order to avoid deadlock.
 */
-PUBLIC BOOL HTHost_setChannel (HTHost *		host,
-			       HTChannel *	channel,
-			       HTTransportMode	mode)
+PUBLIC BOOL HTHost_setPersistent (HTHost *		host,
+				  BOOL			persistent,
+				  HTTransportMode	mode)
 {
-    if (!host || !channel) return NO;
-    if (host->channel) {
+    if (!host) return NO;
+
+    if (!persistent) {
+	/*
+	**  We use the HT_IGNORE status code as we don't want to free
+	**  the stream at this point in time. The situation we want to
+	**  avoid is that we free the channel from within the stream pipe.
+	**  This will lead to an infinite look having the stream freing
+	**  itself.
+	*/
+	return HTHost_clearChannel(host, HT_IGNORE);
+    }
+
+    if (host->persistent) {
 	if (CORE_TRACE) HTTrace("Host info... %p already persistent\n", host);
 	return YES;
-    } else {
-	SOCKET sockfd = HTChannel_socket(channel);
+    }
+
+    {
+	SOCKET sockfd = HTChannel_socket(host->channel);
 	if (sockfd != INVSOC && HTNet_availablePersistentSockets() > 0) {
-	    host->channel = channel;
-	    host->mode = mode;
+	    host->persistent = YES;
+	    HTHost_setMode(host, mode);
 	    host->expires = time(NULL) + TCPTimeout;	  /* Default timeout */
-	    HTChannel_setHost(channel, host); 
+	    HTChannel_setHost(host->channel, host);
 	    HTNet_increasePersistentSocket();
 	    if (CORE_TRACE)
 		HTTrace("Host info... added host %p as persistent\n", host);
@@ -420,6 +568,14 @@ PUBLIC BOOL HTHost_setChannel (HTHost *		host,
 	}
     }
     return NO;
+}
+
+/*
+**	Check whether we have a persistent channel or not
+*/
+PUBLIC BOOL HTHost_isPersistent (HTHost * host)
+{
+    return host && host->persistent;
 }
 
 /*
@@ -439,6 +595,9 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
     if (host && host->channel) {
 	HTChannel_setHost(host->channel, NULL);
 	
+	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
+	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
+
 	/*
 	**  We don't want to recursively delete ourselves so if we are
 	**  called from within the stream pipe then don't delete the channel
@@ -453,14 +612,6 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 	return YES;
     }
     return NO;
-}
-
-/*
-**	Check whether we have a persistent channel or not
-*/
-PUBLIC BOOL HTHost_isPersistent (HTHost * host)
-{
-    return host && host->channel;
 }
 
 /*
@@ -493,12 +644,24 @@ PUBLIC BOOL HTHost_setMode (HTHost * host, HTTransportMode mode)
 		if (!host->pending) host->pending = HTList_new();
 		for (cnt=0; cnt<piped; cnt++) {
 		    HTNet * net = HTList_removeFirstObject(host->pipeline);
+		    if (CORE_TRACE) HTTrace("Net Object.. Resetting %p\n", net);
+		    (*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, HTEvent_RESET);
 		    HTList_appendObject(host->pending, net);
 		}
 	    }
 	}
+	if (PROT_TRACE)
+	    HTTrace("Host info... New mode is %d for host %p\n", host->mode, host);
 	host->mode = mode;
-	return YES;
+	return HTHost_launchPending(host);
+#if 0
+	{
+	    HTNet * net = (HTNet *)HTList_firstObject(host->pipeline);
+	    if (net)
+		return HTNet_start(net);
+	    return YES;
+	}
+#endif
     }
     return NO;
 }
@@ -513,6 +676,22 @@ PUBLIC BOOL HTHost_setMode (HTHost * host, HTTransportMode mode)
 PUBLIC BOOL HTHost_isIdle (HTHost * host)
 {
     return (host && HTList_count(host->pipeline) <= 0);
+}
+
+PRIVATE BOOL _roomInPipe (HTHost * host)
+{
+    int count;
+    if (!host) return NO;
+    count = HTList_count(host->pipeline);
+    switch (host->mode) {
+    case HT_TP_SINGLE:
+	return count <= 0;
+    case HT_TP_PIPELINE:
+	return count < MAX_PIPES;
+    case HT_TP_INTERLEAVE:
+	return YES;
+    }
+    return NO;
 }
 
 /*
@@ -536,19 +715,24 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	}
 
 	/* Add to either active or pending queue */
-	if (HTHost_isIdle(host)) {
+	if (_roomInPipe(host)) {
 	    if (CORE_TRACE) HTTrace("Host info... Add Net %p to pipeline of host %p\n", net, host);
 	    if (!host->pipeline) host->pipeline = HTList_new();
 	    HTList_addObject(host->pipeline, net);
-	    
+#if 0
 	    /*
 	    **  We have been idle and must hence unregister our catch close
 	    **  event handler
 	    */
 	    if (host->channel) {
-		SOCKET sockfd = HTChannel_socket(host->channel);
-		HTEvent_unregister(sockfd, (SockOps) FD_CLOSE);
+		HTHost_unregister(host, net, HTEvent_CLOSE);
 	    }
+#endif
+	    /*
+	    ** Send out the request if we're not blocked on write
+	    */
+	    if (!(host->registeredFor & HTEvent_BITS(HTEvent_WRITE)))
+		status = HTHost_launchPending(host) == YES ? HT_OK : HT_ERROR;
 	} else {
 	    if (CORE_TRACE) HTTrace("Host info... Add Net %p as pending\n", net);
 	    if (!host->pending) host->pending = HTList_new();
@@ -558,6 +742,31 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	return status;
     }
     return HT_ERROR;
+}
+
+PUBLIC BOOL HTHost_free (HTHost * host, int status)
+{
+    if (host->channel == NULL) return NO;
+    if (host->persistent) {
+	if (CORE_TRACE)
+	    HTTrace("Host Object. keeping socket %d\n", HTChannel_socket(host->channel));
+	HTChannel_delete(host->channel, status);
+    } else {
+	if (CORE_TRACE)
+	    HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
+
+	/* 
+	**  By lowering the semaphore we make sure that the channel
+	**  is gonna be deleted
+	*/
+	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
+	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
+	host->registeredFor = 0;
+	HTChannel_downSemaphore(host->channel);
+	HTChannel_delete(host->channel, status);
+	host->channel = NULL;
+    }
+    return YES;
 }
 
 PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
@@ -604,7 +813,7 @@ PUBLIC HTNet * HTHost_nextPendingNet (HTHost * host)
 }
 
 /*
-**	Return the current list of pending host obejcts waiting for a socket
+**	Return the current list of pending host objects waiting for a socket
 */
 PUBLIC HTHost * HTHost_nextPendingHost (void)
 {
@@ -639,11 +848,22 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
     if (available > 0 || host->mode >= HT_TP_PIPELINE) {
 
 	/*
-	**  Check the current Host obejct for pending Net objects
+	**  In pipeline we can only have one doing writing at a time.
+	**  We therefore check that there are no other Net object
+	**  registered for write
 	*/
-	if (host) {
+	if (host->mode == HT_TP_PIPELINE) {
+	    HTNet * last = (HTNet *) HTList_lastObject(host->pipeline);
+	    if (last && last->registeredFor == HTEvent_WRITE)
+		return NO;
+	}
+
+	/*
+	**  Check the current Host object for pending Net objects
+	*/
+	if (host && _roomInPipe(host)) {
 	    HTNet * net = HTHost_nextPendingNet(host);
-	    if (net) return HTNet_start(net);
+	    if (net) return HTNet_execute(net, HTEvent_WRITE);
 	}
 
 	/*
@@ -653,27 +873,291 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
 	    HTHost * pending = HTHost_nextPendingHost();
 	    if (pending) {
 		HTNet * net = HTHost_nextPendingNet(pending);
-		if (net) return HTNet_start(net);
+		if (net) return HTNet_execute(net, HTEvent_WRITE);
 	    }
 	}
-
-	/*
-	**  If nothing pending then register our catch close event handler to
-	**  have something catching the socket if the remote server closes the
-	**  connection, for example due to timeout.
-	*/
-	if (PROT_TRACE) HTTrace("Host info... Nothing pending\n");
-	if (host->channel) {
-	    SOCKET sockfd = HTChannel_socket(host->channel);
-	    HTEvent_register(sockfd, 0, (SockOps) FD_CLOSE,
-			     HTHost_catchClose,  HT_PRIORITY_MAX);
-	}
     } else
-	if (PROT_TRACE) HTTrace("Host info... No available sockets\n");
+	if (PROT_TRACE) HTTrace("Host info... No more requests.\n");
     return NO;
 }
 
+PUBLIC HTNet * HTHost_firstNet (HTHost * host)
+{
+    return (HTNet *) HTList_firstObject(host->pipeline);
+}
 
+/*
+**	The host event manager keeps track of the state of it's client engines
+**	(typically HTTPEvent), accepting multiple blocks on read or write from
+**	multiple pipelined engines. It then registers its own engine 
+**	(HostEvent) with the event manager.
+*/
+PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId port)
+{
+    int status;
+    if (host && host->connecttime)
+	return HT_OK;
+    status = HTDoConnect(net, url, port);
+    if (status == HT_OK)
+	return HT_OK;
+    if (status == HT_WOULD_BLOCK || status == HT_PENDING)
+	return HT_WOULD_BLOCK;
+    return HT_ERROR; /* @@@ - some more deletion and stuff here? */
+}
 
+/*
+**	Rules: SINGLE: one element in pipe, either reading or writing
+**		 PIPE: n element in pipe, n-1 reading, 1 writing
+*/
+PUBLIC int HTHost_register (HTHost * host, HTNet * net, HTEventType type)
+{
+    if (host && net) {
 
+	/* net object may already be registered */
+	if (HTEvent_BITS(type) & net->registeredFor)
+	    return NO;
+	net->registeredFor ^= HTEvent_BITS(type);
+
+	/* host object may already be registered */
+	if (host->registeredFor & HTEvent_BITS(type))
+	    return YES;
+	host->registeredFor ^= HTEvent_BITS(type);
+	return HTEvent_register(HTChannel_socket(host->channel), type, *(host->events+HTEvent_INDEX(type)));
+    }
+    return NO;
+}
+
+PUBLIC int HTHost_unregister (HTHost * host, HTNet * net, HTEventType type)
+{
+    if (host && net) {
+
+	/* net object may no be registered */
+	if (!(HTEvent_BITS(type) & net->registeredFor))
+	    return NO;
+	net->registeredFor ^= HTEvent_BITS(type);
+
+	/* host object may no be registered */
+	if (!(host->registeredFor & HTEvent_BITS(type)))
+	    return YES;
+	host->registeredFor ^= HTEvent_BITS(type);
+
+	/* stay registered for READ to catch a socket close */
+	/* WRITE and CONNECT can be unregistered, though */
+	if ((type == HTEvent_WRITE && isLastInPipe(host, net)) || 
+	    type == HTEvent_CONNECT)
+	    /* if we are blocked downstream, shut down the whole pipe */
+	    HTEvent_unregister(HTChannel_socket(host->channel), type);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	The reader tells HostEvent that it's stream did not finish the data
+*/
+PUBLIC BOOL HTHost_setRemainingRead (HTHost * host, size_t remaining)
+{
+    if (host == NULL) return NO;
+    host->remainingRead = remaining;
+    return YES;
+}
+
+PUBLIC SockA * HTHost_getSockAddr (HTHost * host)
+{
+    if (!host) return NULL;
+    return &host->sock_addr;
+}
+
+PUBLIC BOOL HTHost_setHome (HTHost * host, int home)
+{
+    if (!host) return NO;
+    host->home = home;
+    return YES;
+}
+
+PUBLIC int HTHost_home (HTHost * host)
+{
+    if (!host) return 0;
+    return host->home;
+}
+
+#if 0	/* Is a macro right now */
+PUBLIC BOOL HTHost_setDNS5 (HTHost * host, HTdns * dns)
+{
+    if (!host) return NO;
+    host->dns = dns;
+    return YES;
+}
+#endif
+
+PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
+{
+    if (!host) return NO;
+    host->channel = channel;
+    return YES;
+}
+
+PUBLIC HTNet * HTHost_getReadNet(HTHost * host)
+{
+    if (host) {
+	if (host->mode == HT_TP_INTERLEAVE) {
+	    HTMuxChannel * muxch = HTMuxChannel_find(host);
+	    return HTMuxChannel_net(muxch);
+	}
+	return (HTNet *) HTList_firstObject(host->pipeline);
+    }
+    return NULL;
+}
+
+PUBLIC HTNet * HTHost_getWriteNet(HTHost * host)
+{
+    return host ? (HTNet *) HTList_lastObject(host->pipeline) : NULL;
+}
+
+/*
+**	Create the input stream and bind it to the channel
+**	Please read the description in the HTIOStream module for the parameters
+*/
+PUBLIC HTInputStream * HTHost_getInput (HTHost * host, HTTransport * tp,
+					void * param, int mode)
+{
+    if (host && host->channel && tp) {
+	HTChannel * ch = host->channel;
+	HTInputStream * input = (*tp->input_new)(host, ch, param, mode);
+	HTChannel_setInput(ch, input);
+	return HTChannel_getChannelIStream(ch);
+    }
+    if (CORE_TRACE) HTTrace("Host Object.. Can't create input stream\n");
+    return NULL;
+}
+
+PUBLIC HTOutputStream * HTHost_getOutput (HTHost * host, HTTransport * tp,
+					  void * param, int mode)
+{
+    if (host && host->channel && tp) {
+	HTChannel * ch = host->channel;
+	HTOutputStream * output = (*tp->output_new)(host, ch, param, mode);
+	HTChannel_setOutput(ch, output);
+	return output;
+    }
+    if (CORE_TRACE) HTTrace("Host Object.. Can't create output stream\n");
+    return NULL;
+}
+
+PUBLIC HTOutputStream * HTHost_output (HTHost * host, HTNet * net)
+{
+    if (host && host->channel && net) {
+	HTOutputStream * output = HTChannel_output(host->channel);
+
+	/*
+	**  If we are in MUX mode then create new output stream on top
+	**  of the already existing one. Otherwise just return what we
+	**  have.
+	*/
+	if (host->mode == HT_TP_INTERLEAVE) {
+	    HTStream * target = (HTStream *) HTChannel_output(host->channel);
+	    output = HTMuxWriter_new(host, net, target);
+	}
+	return output;
+    }
+    return NULL;
+}
+
+PUBLIC int HTHost_read(HTHost * host, HTNet * net)
+{
+    HTInputStream * input = HTChannel_input(host->channel);
+    if (net != HTHost_getReadNet(host)) {
+	HTHost_register(host, net, HTEvent_READ);
+	return HT_WOULD_BLOCK;
+    }
+    if (input == NULL) return HT_ERROR;
+    return (*input->isa->read)(input);
+}
+
+PUBLIC BOOL HTHost_setConsumed(HTHost * host, size_t bytes)
+{
+    HTInputStream * input;
+    if (!host || !host->channel) return NO;
+    if ((input = HTChannel_input(host->channel)) == NULL)
+	return NO;
+    return (*input->isa->consumed)(input, bytes);
+}
+
+PUBLIC int HTHost_hash (HTHost * host)
+{
+    return host ? host->hash : -1;
+}
+
+PUBLIC int HTHost_writeDelay(HTHost * host, int lastFlushTime, int buffSize)
+{
+    if (host->forceWriteFlush)
+	return 0;
+    return 1000;
+}
+
+PUBLIC int HTHost_forceFlush(HTHost * host)
+{
+    HTNet * targetNet = (HTNet *)HTList_lastObject(host->pipeline);
+    int wasForced = host->forceWriteFlush;
+    int ret;
+    if (targetNet == NULL)
+	return HT_ERROR;
+    if (CORE_TRACE)
+	HTTrace(HTHIDE("HostEvent: FLUSH passed to %s.\n"), 
+		HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
+    host->forceWriteFlush = YES;
+    ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, HTEvent_FLUSH);
+    host->forceWriteFlush = wasForced;
+    return ret;
+}
+
+PUBLIC int HTHost_eventTimeout (void)
+{
+    return EventTimeout;
+}
+
+PUBLIC void HTHost_setEventTimeout (int millis)
+{
+    EventTimeout = millis;
+    if (CORE_TRACE) HTTrace("Host........ Setting event timeout to %d ms\n", millis);
+}
+
+#if 0
+PRIVATE int lazyWriteFlushEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    HTOutputStream * stream = (HTOutputStream *) pVoid;
+    HTBufferWriter_reallyFlush(me);
+    return HT_OK;
+}
+
+/*
+**	HTHost_lazyFlush(host, cbf) - call cbf with an HTEvent_TIMEOUT 
+**	when the host's write interval has expired.
+*/
+PUBLIC int HTHost_lazyFlush (HTHost * host, int (*lazyFlush)(HTOutputStream *))
+{
+    /*
+    **  If we are allowed to delay the flush then register an event with the
+    **  delay descibed by our delay variable. If we can't delay then flush 
+    **  right away.
+    */
+    if (host->delay_output) {
+	HTChannel * ch = HTHost_channel(host);
+	me->delay_event = HTEvent_new(FlushEvent, host, HT_PRIORITY_MAX, me->delay_ms);
+	HTEvent_register(HTChannel_socket(ch), HTEvent_TIMEOUT, me->delay_event);
+	me->delaying = YES;
+	if (PROT_TRACE) HTTrace("Buffer...... Waiting...\n");
+
+    int				delay_ms;		      /* Delay in ms */
+    BOOL			delaying;
+    HTEvent *			delay_event;
+	    me->delay_ms = 10000;
+
+PUBLIC int HTHost_cancelLazyFlush(me->host)
+	    if (me->delay_event && me->delaying) {
+		HTChannel * ch = HTHost_channel(me->host);
+		HTEvent_unregister(HTChannel_socket(ch), HTEvent_TIMEOUT);
+		me->delaying = NO;
+	    }
+#endif /* 0 */
 

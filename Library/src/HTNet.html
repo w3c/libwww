@@ -52,6 +52,7 @@ typedef struct _HTNet HTNet;
 #include "HTResponse.h"
 #include "HTTrans.h"
 #include "HTHost.h"
+#include "HTProt.h"
 #include "HTChannl.h"
 #include "HTDNS.h"
 </PRE>
@@ -356,7 +357,7 @@ for a free socket. The <EM>Persistent</EM> queue are requets that are waiting
 to use the same socket in order to save network resoures (if the server
 understands persistent connections).
 <H4>
-  Active Reqeusts?
+  Active Requests?
 </H4>
 <P>
 Returns whether there are requests in the <EM>active</EM> queue or not
@@ -370,6 +371,7 @@ extern BOOL HTNet_idle (void);
 Returns whether there are requests registered in any of the lists or not
 <PRE>
 extern BOOL HTNet_isEmpty (void);
+extern int HTNet_count (void);
 </PRE>
 <H3>
   List Pending Queue
@@ -410,7 +412,7 @@ extern BOOL HTNet_newServer (HTRequest * request, HTNet * net, char *access);
 <P>
 And you can create a plain new HTNet object using the following method:
 <PRE>
-extern HTNet * HTNet_new (SOCKET sockfd, HTRequest * request);
+extern HTNet * HTNet_new (HTRequest * request);
 </PRE>
 <H3>
   Duplicate an existing Object
@@ -428,6 +430,18 @@ extern HTNet * HTNet_dup (HTNet * src);
 Start a Net obejct by calling the protocol module.
 <PRE>extern BOOL HTNet_start (HTNet * net);
 </PRE>
+
+<H3>
+Call a Net Event Handler 
+</H3>
+
+This functions lets the caller play event manager as it can calls any
+event handler with the event type and context passed to the function
+
+<PRE>
+extern BOOL HTNet_execute (HTNet * net, HTEventType type);
+</PRE>
+
 <H3>
   Delete an Object
 </H3>
@@ -526,10 +540,11 @@ methods. Please read the description in the
 <EM>target</EM>, <EM>param</EM>, and <EM>mode</EM>. Both methods return YES
 if OK, else NO.
 <PRE>
+#if 0
 extern HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
 				       void * param, int mode);
-
-extern HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode);
+#endif
+extern HTOutputStream * HTNet_getOutput (HTNet * me, void * param, int mode);
 </PRE>
 <H3>
   Net Context Descriptor
@@ -560,6 +575,16 @@ but can be changed at a later time.
 extern BOOL HTNet_setRequest (HTNet * net, HTRequest * request);
 extern HTRequest * HTNet_request (HTNet * net);
 </PRE>
+
+<H3>
+The Protocol Object
+</H3>
+
+<PRE>
+extern BOOL HTNet_setProtocol (HTNet * net, HTProtocol * protocol);
+extern HTProtocol * HTNet_protocol (HTNet * net);
+</PRE>
+
 <H3>
   The Transport Object
 </H3>
@@ -601,6 +626,16 @@ can query about it later.
 <PRE>
 extern int HTNet_home (HTNet * net);
 </PRE>
+
+<H3>
+Target for Input Read Stream
+</H3>
+
+<PRE>
+extern HTStream * HTNet_readStream(HTNet * net);
+extern BOOL HTNet_setReadStream (HTNet * net, HTStream * stream);
+</PRE>
+
 <PRE>
 #endif /* HTNET_H */
 </PRE>

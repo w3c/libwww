@@ -40,6 +40,9 @@ Library</A>.
 #ifndef HTPROT_H
 #define HTPROT_H
 
+typedef struct _HTProtocol HTProtocol;
+typedef u_short HTProtocolId;
+
 #include "HTReq.h"
 #include "HTAnchor.h"
 #include "HTEvent.h"
@@ -52,9 +55,6 @@ socket the first time the function is called), a
 and the action by which the (valid) socket was selected in the event loop.
 When the protocol class routine is called, the anchor element in the request
 is already valid (made valid by HTAccess).
-<PRE>
-typedef struct _HTProtocol HTProtocol;
-</PRE>
 <H2>
   Creation and Deletion Methods
 </H2>
@@ -67,11 +67,14 @@ acheme (the part before the first colon in a URL). For example, the HTTP
 &nbsp;client module is bound to http URLs. The callback function is the function
 to be called for loading. 
 <PRE>
+typedef int HTProtCallback (SOCKET, HTRequest *);
+
 extern BOOL HTProtocol_add (const char *       	name,
 			    const char *	transport,
+			    HTProtocolId	port,
 			    BOOL		preemptive,
-			    HTEventCallback *	client,
-			    HTEventCallback *	server);
+			    HTProtCallback *	client,
+			    HTProtCallback *	server);
 </PRE>
 <H3>
   Delete a Protocol
@@ -110,8 +113,16 @@ extern HTProtocol * HTProtocol_find (HTRequest * request, const char * access);
 You can get the callback functions registered together with a protocol object
 using the following methods.
 <PRE>
-extern HTEventCallback * HTProtocol_client (HTProtocol * protocol);
-extern HTEventCallback * HTProtocol_server (HTProtocol * protocol);
+extern HTProtCallback * HTProtocol_client (HTProtocol * protocol);
+extern HTProtCallback * HTProtocol_server (HTProtocol * protocol);
+</PRE>
+<H3>
+  Get the default Protocol ID
+</H3>
+<P>
+Each protocol is registered with a default protocol ID which is the default port number that this protocol is using. In the case of FTP it is 21, for HTTP, it is 80 and for NNTP it is 119.
+<PRE>
+extern HTProtocolId HTProtocol_id (HTProtocol * protocol);
 </PRE>
 <H3>
   Is Access Scheme Preemptive

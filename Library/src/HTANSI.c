@@ -20,6 +20,7 @@
 #include "HTChannl.h"
 #include "HTIOStream.h"
 #include "HTNetMan.h"
+#include "HTHstMan.h"
 #include "HTANSI.h"					 /* Implemented here */
 
 struct _HTStream {
@@ -30,7 +31,7 @@ struct _HTStream {
 struct _HTInputStream {
     const HTInputStreamClass *	isa;    
     HTChannel *			ch;
-    HTNet *			net;
+    HTHost *			host;
     FILE *			fp;
     HTStream *			target;
     char *			write;			/* Last byte written */
@@ -41,7 +42,7 @@ struct _HTInputStream {
 struct _HTOutputStream {
     const HTOutputStreamClass *	isa;
     HTChannel *			ch;
-    HTNet *			net;
+    HTHost *			host;
     FILE *			fp;
 };
 
@@ -75,10 +76,10 @@ PRIVATE int HTANSIReader_abort (HTInputStream * me, HTList * e)
 
 PRIVATE int HTANSIReader_read (HTInputStream * me)
 {
-    HTNet * net = me->net;
-    FILE * fp = net->fp;
     int b_read;
     int status;
+    HTNet * net = HTHost_getReadNet(me->host);
+    FILE * fp = me->host->fp;
 
     /* Read the file desriptor */
     while (fp) {
@@ -103,7 +104,7 @@ PRIVATE int HTANSIReader_read (HTInputStream * me)
 	    HTTrace("ANSI read... %d bytes read from file %p\n", b_read, fp);
 	{
 	    HTAlertCallback * cbf = HTAlert_find(HT_PROG_READ);
-	    net->bytes_read += b_read;
+	    net->bytesRead += b_read;
 	    if (cbf) (*cbf)(net->request, HT_PROG_READ,
 			    HT_MSG_NULL, NULL, NULL, NULL);
 	}
@@ -114,13 +115,13 @@ PRIVATE int HTANSIReader_read (HTInputStream * me)
 	    if (status == HT_WOULD_BLOCK) {
 		if (PROT_TRACE) HTTrace("ANSI read... Target WOULD BLOCK\n");
 #if 0
-		HTEvent_unregister(soc, FD_READ);
+		HTEvent_unregister(soc, HTEvent_READ);
 #endif
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
 		if (PROT_TRACE) HTTrace("ANSI read... Target PAUSED\n");
 #if 0
-		HTEvent_unregister(soc, FD_READ);
+		HTEvent_unregister(soc, HTEvent_READ);
 #endif
 		return HT_PAUSE;
 	    } else if (status > 0) {	      /* Stream specific return code */
@@ -152,6 +153,12 @@ PRIVATE int HTANSIReader_close (HTInputStream * me)
     return HT_OK;
 }
 
+PRIVATE int HTANSIReader_consumed (HTInputStream * me, size_t bytes)
+{
+    if (PROT_TRACE) HTTrace("ANSI read... consumed %d bytes\n", bytes);
+    return HT_OK;
+}
+
 PRIVATE const HTInputStreamClass HTANSIReader =
 {		
     "ANSIReader",
@@ -159,14 +166,15 @@ PRIVATE const HTInputStreamClass HTANSIReader =
     HTANSIReader_free,
     HTANSIReader_abort,
     HTANSIReader_read,
-    HTANSIReader_close
+    HTANSIReader_close,
+    HTANSIReader_consumed
 };
 
-PUBLIC HTInputStream * HTANSIReader_new (HTNet * net, HTChannel * ch,
-					 HTStream * target, void * param,
+PUBLIC HTInputStream * HTANSIReader_new (HTHost * host, HTChannel * ch,
+					 void * param,
 					 int mode)
 {
-    if (net && ch) {
+    if (host && ch) {
 	HTInputStream * me = HTChannel_input(ch);
 	if (me == NULL) {
 	    if ((me=(HTInputStream *) HT_CALLOC(1, sizeof(HTInputStream))) == NULL)
@@ -174,9 +182,8 @@ PUBLIC HTInputStream * HTANSIReader_new (HTNet * net, HTChannel * ch,
 	    me->isa = &HTANSIReader;
 	    me->ch = ch;
 	}
-	me->target = target;
-	me->net = net;
-	me->fp = net->fp;
+	me->host = host;
+	me->fp = host->fp;
 	return me;
     }
     return NULL;
@@ -244,22 +251,22 @@ PRIVATE const HTOutputStreamClass HTANSIWriter =
     HTANSIWriter_character,
     HTANSIWriter_string,
     HTANSIWriter_block,
-    HTANSIWriter_close
+    HTANSIWriter_close,
 };
 
-PUBLIC HTOutputStream * HTANSIWriter_new (HTNet * net, HTChannel * ch,
+PUBLIC HTOutputStream * HTANSIWriter_new (HTHost * host, HTChannel * ch,
 					  void * param, int mode)
 {
-    if (net && ch) {
+    if (host && ch) {
 	HTOutputStream * me = HTChannel_output(ch);
 	if (me == NULL) {
 	    if ((me=(HTOutputStream *) HT_CALLOC(1, sizeof(HTOutputStream)))==NULL)
 		HT_OUTOFMEM("HTANSIWriter_new");
 	    me->isa = &HTANSIWriter;
 	    me->ch = ch;
+	    me->host = host;
+	    me->fp = HTChannel_file(HTHost_channel(host));
 	}
-	me->net = net;
-	me->fp = net->fp;
 	return me;
     }
     return NULL;

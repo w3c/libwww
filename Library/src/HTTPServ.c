@@ -43,6 +43,7 @@ typedef struct _https_info {
     HTRequest *	server;				       /* The server request */
     HTList *	clients;		          /* List of client requests */
     HTTPState	state;			  /* Current State of the connection */
+    HTNet *	net;
 } https_info;
 
 /* The HTTP Receive Stream */
@@ -372,38 +373,52 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
 **	Serv Document using HTTP.
 **	returns	HT_ERROR or HT_OK
 */
-PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int ServEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request)
 {
     HTNet * net = HTRequest_net(request);
-    int status = HT_ERROR;
     https_info * http;			    /* Specific protocol information */
-    if (!net || !request) {
-	if (PROT_TRACE) HTTrace("Serv HTTP... Invalid argument\n");
-	return HT_ERROR;
-    }
 
     /*
     ** Initiate a new https object and bind to request object
     ** This is actually state HTTPS_BEGIN, but it can't be in the state
     ** machine as we need the object first (chicken and egg problem).
     */
-    if (ops == FD_NONE) {
-	if (PROT_TRACE) HTTrace("Serv HTTP... on socket %d\n", soc);
-	if ((http = (https_info *) HT_CALLOC(1, sizeof(https_info))) == NULL)
-	    HT_OUTOFMEM("HTServHTTP");
-	http->server = request;
-	http->state = HTTPS_BEGIN;
-	http->clients = HTList_new();
-	HTNet_setContext(net, http);
+    if (PROT_TRACE) HTTrace("Serv HTTP... on socket %d\n", soc);
+    if ((http = (https_info *) HT_CALLOC(1, sizeof(https_info))) == NULL)
+	HT_OUTOFMEM("HTServHTTP");
+    http->server = request;
+    http->state = HTTPS_BEGIN;
+    http->clients = HTList_new();
+    HTNet_setContext(net, http);
 
-	/* 
-	** Create the stream pipe FROM the channel to the server request.
-	*/
-	HTNet_getInput(net, HTTPReceive_new(request, http), NULL, 0);
-	HTRequest_setOutputConnected(request, YES);
-	http->state = HTTPS_BEGIN;
+    /* 
+    ** Create the stream pipe FROM the channel to the server request.
+    */
+    net->readStream = HTTPReceive_new(request, http);
+    HTRequest_setOutputConnected(request, YES);
+    http->state = HTTPS_BEGIN;
 
-    } else if (ops == FD_CLOSE) {			      /* Interrupted */
+    HTNet_setEventCallback(net, ServEvent);
+    HTNet_setEventParam(net, http);  /* callbacks get http* */
+
+    return ServEvent(soc, http, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int ServEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    https_info * http = (https_info *)pVoid;
+    int status = HT_ERROR;
+    HTNet * net = http->net;
+    HTRequest * request = HTNet_request(net);
+
+    if (!net || !request) {
+	if (PROT_TRACE) HTTrace("Serv HTTP... Invalid argument\n");
+	return HT_ERROR;
+    }
+
+    if (type == HTEvent_CLOSE) {			      /* Interrupted */
 	ServerCleanup(request, net, HT_INTERRUPTED);
 	return HT_OK;
     } else
@@ -442,8 +457,8 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	break;
 
 	case HTTPS_NEED_REQUEST:
-	    if (ops == FD_READ || ops == FD_NONE) {
-		status = (*net->input->isa->read)(net->input);
+	    if (type == HTEvent_READ || type == HTEvent_BEGIN) {
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_CLOSED)

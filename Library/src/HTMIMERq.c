@@ -209,7 +209,8 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
     if (me->transparent) {
 	if (me->put_fix) {
 	    HTNet * net = HTRequest_net(me->request);
-	    HTEvent_unregister(net->sockfd, FD_READ | FD_WRITE);
+	    HTEvent_unregister(HTNet_socket(net), HTEvent_READ);
+	    HTEvent_unregister(HTNet_socket(net), HTEvent_WRITE);
 	    me->put_fix = NO;
 	}
     } else {
@@ -246,9 +247,8 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 		    if (zzzz > HT_MAX_WAIT) zzzz = HT_MAX_WAIT;
 		    (*me->target->isa->flush)(me->target);
 		    if (STREAM_TRACE) HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
-		    HTEvent_register(net->sockfd, me->request,
-				     (SockOps) FD_READ | FD_WRITE,
-				     net->cbf, net->priority);
+		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
+		    HTEvent_register(HTNet_socket(net), HTEvent_WRITE, &net->event);
 		    SLEEP(zzzz);
 		    me->put_fix = YES;
 		    return HT_WOULD_BLOCK;

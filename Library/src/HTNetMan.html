@@ -33,59 +33,56 @@ The <CODE>HTNet</CODE> object is the core of the request queue management.
 This object contains information about the socket descriptor, the input read
 buffer etc. required to identify and service a request.
 <PRE>
-typedef enum _TCPState {
-    TCP_ERROR		= -2,
-    TCP_CONNECTED	= -1,
-    TCP_BEGIN		= 0,
-    TCP_CHANNEL,
-    TCP_DNS,
-    TCP_NEED_SOCKET,
-    TCP_NEED_BIND,
-    TCP_NEED_LISTEN,
-    TCP_NEED_CONNECT
-} TCPState;
-
 struct _HTNet {
     int                 hash;                                  /* Hash value */
 
-    SOCKET		sockfd;				/* Socket descripter */
-    FILE *		fp;			 /* If we can't use a socket */
-
-    HTPriority		priority;	 /* Priority of this request (event) */
-    BOOL		preemptive;  /* Eff result from Request and Protocol */
-
     /* Link to other objects */
     HTRequest *		request;		   /* Link to request object */
+    HTHost *		host;	       /* What we know about the remote host */
     HTProtocol *	protocol;		 /* Protocol to this request */
     HTTransport *	transport;	       /* Transport for this request */
-    HTChannel *		channel;		 /* Channel for this request */
-    HTHost *		host;	       /* What we know about the remote host */
-    HTdns *		dns;			       /* Link to DNS object */
-
-    /* For speed */
-    HTEventCallback *	cbf;			   /* Protocol state machine */
-    HTInputStream *	input;
+    int                 session;
 
     /* For progress notifications */
-    long		bytes_read;		  /* Bytes read from network */
-    long		bytes_written;		 /* Bytes written to network */
+    long		bytesRead;			    /* Bytes in body */
+    long		headerLength;		     /* Bytes read in header */
+    long		bytesWritten;		 /* Bytes written to network */
 
-    /* Connection dependent stuff */
-    TCPState		tcpstate;		      /* State in connection */
-    SockA 		sock_addr;	     /* SockA is defined in sysdep.h */
     int			retry;		     /* Counting attempts to connect */
     int 		home;			 /* Current home if multiple */
     time_t		connecttime;		 /* Used on multihomed hosts */
+    BOOL		preemptive;  /* Eff result from Request and Protocol */
+
+    HTEvent		event;
+    HTStream *		readStream;    /* host's input stream puts data here */
 
     /* User specific stuff */
     void *		context;		/* Protocol Specific context */
+
+    /* Eric's sleezoid cheat - should go to extra pipeline object */
+    int			registeredFor;
 };
 
-#define HTNet_bytesRead(me)		((me) ? (me)-&gt;bytes_read : -1)
-#define HTNet_bytesWritten(me)		((me) ? (me)-&gt;bytes_written : -1)
+extern SOCKET HTNet_socket(HTNet * me);
 
-#define HTNet_setBytesRead(me,l)	((me) ? (me-&gt;bytes_read=(l)) : -1)
-#define HTNet_setBytesWritten(me,l)	((me) ? (me-&gt;bytes_written=(l)) :-1)
+#define HTNet_setBytesRead(me,l)	((me) ? (me-&gt;bytesRead=(l)) : -1)
+#define HTNet_setBytesWritten(me,l)	((me) ? (me-&gt;bytesWritten=(l)) :-1)
+#define HTNet_setHeaderLength(me,l)	((me) ? (me-&gt;headerLength=(l)) :-1)
+
+#define HTNet_bytesRead(me)		((me) ? (me)-&gt;bytesRead : -1)
+#define HTNet_bytesWritten(me)		((me) ? (me)-&gt;bytesWritten : -1)
+#define HTNet_headerLength(me)		((me) ? (me)-&gt;headerLength : -1)
+
+#define HTNet_addBytesRead(me,l)        ((me) ? (me-&gt;bytesRead+=(l)) : -1)
+#define HTNet_addBytesWritten(me,l)     ((me) ? (me-&gt;bytesWritten+=(l)) : -1)
+#define HTNet_addHeaderLength(me,l)     ((me) ? (me-&gt;headerLength+=(l)) : -1)
+
+extern BOOL HTNet_setEventParam(HTNet * net, void * eventParam);
+extern void* HTNet_eventParam(HTNet * net);
+extern BOOL HTNet_setEventCallback(HTNet * net, HTEventCallback * cbf);
+extern HTEventCallback * HTNet_eventCallback(HTNet * net);
+extern BOOL HTNet_setEventPriority(HTNet * net, HTPriority priority);
+extern HTPriority HTNet_eventPriority(HTNet * net);
 </PRE>
 <PRE>
 #endif /* HTNETMAN_H */

@@ -70,6 +70,7 @@ typedef struct _news_info {
     int                 last;              /* Last article in the group list */
     int			total;		     /* Estimated number of articles */
     int                 current;                 /* To count # of HEADS sent */
+    HTNet *		net;
 } news_info;
 
 /* This version of a stream is used for NEWS LIST conversion to HTML */
@@ -326,28 +327,44 @@ PRIVATE int SendCommand (HTRequest *request, news_info *news,
 **			HT_NO_DATA	if No Response
 **			HT_RETRY	if Service Unavail.
 */
-PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request)
 {
-    int status = HT_ERROR;
+    news_info *news;
+    HTParentAnchor *anchor = HTRequest_anchor(request);
     HTNet * net = HTRequest_net(request);
+    char * url = HTAnchor_physical(anchor);
+
+    if (PROT_TRACE) 
+	HTTrace("NNTP........ Looking for `%s\'\n", url);
+    if ((news = (news_info *) HT_CALLOC(1, sizeof(news_info))) == NULL)
+	HT_OUTOFMEM("HTLoadNews");
+    news->cmd = HTChunk_new(128);
+    news->state = NEWS_BEGIN;
+    news->net = net;
+    HTNet_setContext(net, news);
+    HTNet_setEventCallback(net, NewsEvent);
+    HTNet_setEventParam(net, news);  /* callbacks get http* */
+
+    return NewsEvent(soc, news, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    news_info *news = (news_info *)pVoid;
+    int status = HT_ERROR;
+    HTNet * net = news->net;
+    HTRequest * request = HTNet_request(net);
     HTParentAnchor *anchor = HTRequest_anchor(request);
     char * url = HTAnchor_physical(anchor);
-    news_info *news;
     
     /*
     ** Initiate a new nntp structure and bind to request structure
     ** This is actually state NNTP_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (ops == FD_NONE) {
-	if (PROT_TRACE) 
-	    HTTrace("NNTP........ Looking for `%s\'\n", url);
-	if ((news = (news_info *) HT_CALLOC(1, sizeof(news_info))) == NULL)
-	    HT_OUTOFMEM("HTLoadNews");
-	news->cmd = HTChunk_new(128);
-	news->state = NEWS_BEGIN;
-	net->context = news;
-    } else if (ops == FD_CLOSE) {			      /* Interrupted */
+    if (type == HTEvent_CLOSE) {			      /* Interrupted */
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadHTTP");
 	HTNewsCleanup(request, HT_INTERRUPTED);
@@ -420,7 +437,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		HTNet_getInput(net, HTNewsStatus_new(request, news), NULL, 0);
+		net->readStream = HTNewsStatus_new(request, news);
 		HTRequest_setOutputConnected(request, YES);
 
 		/*
@@ -439,8 +456,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isPostWeb(request)) {
-		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
-				     HTLoadNews, net->priority);
+		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 		    HTRequest_linkDestination(request);
 		}
 		news->state = greeting ? NEWS_NEED_GREETING : NEWS_NEED_SWITCH;
@@ -452,7 +468,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case NEWS_NEED_GREETING:
-	    status = (*net->input->isa->read)(net->input);
+	    status = HTHost_read(net->host, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED) {
@@ -517,7 +533,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		HTAnchor_setFormat(anchor, WWW_PLAINTEXT);
 		news->sent = YES;
 	    } else {
-		status = (*net->input->isa->read)(net->input);
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -542,7 +558,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
  		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = (*net->input->isa->read)(net->input);
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -567,7 +583,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = (*net->input->isa->read)(net->input);
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -590,7 +606,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = (*net->input->isa->read)(net->input);
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -632,7 +648,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_NNTP_OVER;
 		news->sent = YES;
 	    } else {
-		status = (*net->input->isa->read)(net->input);
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -661,7 +677,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = (*net->input->isa->read)(net->input);
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -690,16 +706,13 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	  break;
 
           case NEWS_NEED_BODY:
-            if (ops == FD_WRITE || ops == FD_NONE) {
+            if (type == HTEvent_WRITE || type == HTEvent_BEGIN) {
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTNet * srcnet = HTRequest_net(source);
 		    if (srcnet) {
-			SOCKET sockfd = HTNet_socket(srcnet);
-			HTEvent_register(sockfd, source,
-					 (SockOps) FD_READ,
-					 srcnet->cbf, srcnet->priority);
-			HTEvent_unregister(sockfd, FD_WRITE);
+			HTHost_register(srcnet->host, srcnet, HTEvent_READ);
+			HTHost_unregister(srcnet->host, srcnet, HTEvent_WRITE);
 		    }
 		    return HT_OK;
 		}
@@ -714,10 +727,10 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (pcbf) {
 			status = pcbf(request, input);
 			if (status == HT_PAUSE || status == HT_LOADED)
-			    ops = FD_READ;
+			    type = HTEvent_READ;
 		    } else {
 			status = (*input->isa->flush)(input);
-			ops = FD_READ;	  /* Trick to ensure that we do READ */
+			type = HTEvent_READ;
 		    }
 		    if (status == HT_WOULD_BLOCK) return HT_OK;
 		}
@@ -727,9 +740,9 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
  		if (status == HT_WOULD_BLOCK)
                     return HT_OK;
                 else 	
-                    ops = FD_READ;	  /* Trick to ensure that we do READ */
-	    } else if (ops == FD_READ) {
-                status = (*net->input->isa->read)(net->input);
+                    type = HTEvent_READ;	  /* Trick to ensure that we do READ */
+	    } else if (type == HTEvent_READ) {
+                status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
                 else if (status == HT_LOADED)

@@ -640,7 +640,7 @@ void display_search_response (HTStructured *		target,
 **	returns		<0		Error has occured
 **			HT_LOADED	OK
 */
-PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
+PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, HTEventType type)
 
 #define MAX_KEYWORDS_LENGTH 4000
 #define MAX_SERVER_LENGTH 1000

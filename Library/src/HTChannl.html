@@ -37,9 +37,6 @@ Library</A>.
 
 typedef struct _HTChannel HTChannel;
 
-#include <A HREF="HTTrans.html">"HTTrans.h"</A>
-#include <A HREF="HTReq.html">"HTReq.h"</A>
-#include <A HREF="HTNet.html">"HTNet.h"</A>
 #include <A HREF="HTHost.html">"HTHost.h"</A>
 #include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
 </PRE>
@@ -53,7 +50,7 @@ connection.
   Creation and Deletion of Channel Objects
 </H3>
 <PRE>
-extern HTChannel * HTChannel_new (HTNet * net, BOOL active);
+extern HTChannel * HTChannel_new (SOCKET sockfd, BOOL active);
 </PRE>
 <H3>
   Deleting a Channel Object
@@ -78,7 +75,9 @@ A transport descriptor can be either a ANSI C file descriptor or a BSD socket.
 As it is difficult for the channel to know which one is used by a specific
 transport, we leave this to the caller to figure out. This is probably not
 the best way of doing it.
-<PRE>extern SOCKET HTChannel_socket	(HTChannel * channel);
+<PRE>
+extern SOCKET HTChannel_socket	(HTChannel * channel);
+extern void HTChannel_setSocket	(HTChannel * channel, SOCKET socket);
 extern FILE * HTChannel_file	(HTChannel * channel);
 </PRE>
 <H3>
@@ -120,6 +119,9 @@ extern HTInputStream * HTChannel_input (HTChannel * ch);
 
 extern BOOL HTChannel_setOutput (HTChannel * ch, HTOutputStream * output);
 extern HTOutputStream * HTChannel_output (HTChannel * ch);
+
+extern HTInputStream * HTChannel_getChannelIStream (HTChannel * ch);
+extern HTOutputStream * HTChannel_getChannelOStream (HTChannel * ch);
 </PRE>
 <PRE>
 #endif /* HTCHANNL */

@@ -28,6 +28,8 @@
 #include "HTReq.h"
 #include "HTEvent.h"
 #include "HTStream.h"
+#include "HTHstMan.h"
+#include "HTIOStream.h"
 #include "HTNetMan.h"					 /* Implemented here */
 
 #ifndef HT_MAX_SOCKETS
@@ -53,6 +55,11 @@ typedef struct _AfterFilter {
 
 struct _HTStream {
     const HTStreamClass *	isa;
+    /* ... */
+};
+
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
     /* ... */
 };
 
@@ -467,6 +474,11 @@ PUBLIC BOOL HTNet_isEmpty (void)
     return (HTNetCount <= 0);
 }
 
+PUBLIC int HTNet_count (void)
+{
+    return HTNetCount;
+}
+
 /* ------------------------------------------------------------------------- */
 /*			  Creation and deletion methods  		     */
 /* ------------------------------------------------------------------------- */
@@ -480,7 +492,6 @@ PRIVATE HTNet * create_object (void)
     if ((me = (HTNet *) HT_CALLOC(1, sizeof(HTNet))) == NULL)
         HT_OUTOFMEM("HTNet_new");
     me->hash = net_hash++ % HASH_SIZE;
-    me->tcpstate = TCP_BEGIN;
 
     /* Insert into hash table */
     if (!NetTable) {
@@ -516,15 +527,26 @@ PUBLIC HTNet * HTNet_dup (HTNet * src)
     return NULL;
 }
 
+PUBLIC BOOL HTNet_execute (HTNet * net, HTEventType type)
+{
+    if (net && net->event.cbf && net->request) {
+	if (CORE_TRACE)
+	    HTTrace("Net Object.. Call %p with event type %d and context %p\n",
+		    net->event.cbf, type, net->context);
+	(*(net->event.cbf))(HTNet_socket(net), net->context, type);
+	return YES;
+    }
+    return NO;
+}
+
 /*
 **	Start a Net obejct by calling the protocol module.
 */
 PUBLIC BOOL HTNet_start (HTNet * net)
 {
-    if (net && net->cbf && net->request) {
+    if (net && net->event.cbf && net->request) {
 	if (CORE_TRACE) HTTrace("Net Object.. Launching %p\n", net);
-	HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
-	(*(net->cbf))(net->sockfd, net->request, FD_NONE);
+	(*(net->event.cbf))(HTNet_socket(net), net->event.param, HTEvent_BEGIN);
 	return YES;
     }
     return NO;
@@ -538,20 +560,15 @@ PUBLIC BOOL HTNet_start (HTNet * net)
 **	call any of the callback functions.
 **	Returns new object or NULL on error
 */
-PUBLIC HTNet * HTNet_new (SOCKET sockfd, HTRequest * request)
+PUBLIC HTNet * HTNet_new (HTRequest * request)
 {
-    if (sockfd != INVSOC) {
-	HTNet * me;
-	if ((me = create_object()) == NULL) return NULL;
-	me->preemptive = HTRequest_preemptive(request);
-	me->priority = HTRequest_priority(request);
-	me->sockfd = sockfd;
-	me->request = request;
-	HTRequest_setNet(request, me);
-	return me;
-    }
-    if (CORE_TRACE) HTTrace("Net Object.. Can't create empty Net object!\n");
-    return NULL;
+    HTNet * me;
+    if ((me = create_object()) == NULL) return NULL;
+    me->preemptive = HTRequest_preemptive(request);
+    HTNet_setEventPriority(me, HTRequest_priority(request));
+    me->request = request;
+    HTRequest_setNet(request, me);
+    return me;
 }
 
 /*      HTNet_newServer
@@ -560,10 +577,12 @@ PUBLIC HTNet * HTNet_new (SOCKET sockfd, HTRequest * request)
 **      more than MaxActive connections already then return NO.
 **      Returns YES if OK, else NO
 */
+
 PUBLIC BOOL HTNet_newServer (HTRequest * request, HTNet * net, char * access)
 {
     HTProtocol * protocol;
     HTTransport * tp = NULL;    	/* added JTD:5/28/96 */
+    HTProtCallback * cbf;
     if (!request) return NO;
 
     /* Find a protocol object for this access scheme */
@@ -580,12 +599,14 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, HTNet * net, char * access)
 
     /* Fill out the net object and bind it to the request object */
     net->preemptive = (HTProtocol_preemptive(protocol) || HTRequest_preemptive(request));
+#if 0
     net->protocol = protocol;
     net->transport = tp; 		/* added - JTD:5/28/96 */
-    net->priority = HTRequest_priority(request);
+#endif
+    net->event.priority = HTRequest_priority(request);
     net->request = request;
     HTRequest_setNet(request, net);
-    if (!(net->cbf = HTProtocol_server(protocol))) {
+    if (!(cbf = HTProtocol_server(protocol))) {
         if (CORE_TRACE) HTTrace("Net Object.. NO CALL BACK FUNCTION!\n");
         return NO;
     }
@@ -596,7 +617,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, HTNet * net, char * access)
     /* Start the server request */
     if (CORE_TRACE)
         HTTrace("Net Object.. starting SERVER request %p with net object %p\n", request, net);
-    (*(net->cbf))(net->sockfd, request, FD_NONE);
+    (*(cbf))(HTNet_socket(net), request);
     return YES;
 }
 
@@ -616,6 +637,8 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     HTTransport * tp = NULL;
     char * physical = NULL;
     int status;
+    HTProtCallback * cbf;
+
     if (!request) return NO;
     /*
     ** First we do all the "BEFORE" callbacks in order to see if we are to
@@ -641,7 +664,8 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 
     /* Find a protocol object for this access scheme */
     {
-	char * access = HTParse(physical, "", PARSE_ACCESS);
+	char * proxy = HTRequest_proxy(request);
+	char * access = HTParse(proxy ? proxy : physical, "", PARSE_ACCESS);      
 	if ((protocol = HTProtocol_find(request, access)) == NULL) {
 	    if (CORE_TRACE) HTTrace("Net Object.. NO PROTOCOL OBJECT\n");
 	    HT_FREE(access);
@@ -660,13 +684,15 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     /* Create new net object and bind it to the request object */
     if ((me = create_object()) == NULL) return NO;
     me->preemptive = (HTProtocol_preemptive(protocol) || HTRequest_preemptive(request));
+#if 0
     me->priority = HTRequest_priority(request);
-    me->sockfd = INVSOC;
+#endif
+    HTNet_setEventPriority(me, HTRequest_priority(request));
     me->protocol = protocol;
     me->transport = tp;
     me->request = request;
     HTRequest_setNet(request, me);
-    if (!(me->cbf = HTProtocol_client(protocol))) {
+    if (!(cbf = HTProtocol_client(protocol))) {
 	if (CORE_TRACE) HTTrace("Net Object.. NO CALL BACK FUNCTION!\n");
 	HT_FREE(me);
 	return NO;
@@ -683,7 +709,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     if (CORE_TRACE)
         HTTrace("Net Object.. starting request %p (retry=%d) with net object %p\n",
 	        request, HTRequest_retrys(request), me);
-    (*(me->cbf))(me->sockfd, request, FD_NONE);
+    (*(cbf))(INVSOC, request);
     return YES;
 }
 
@@ -692,37 +718,19 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 **	Deletes an HTNet object
 **	Return YES if OK, else NO
 */
-PRIVATE BOOL delete_object (HTNet *net, int status)
+PRIVATE BOOL delete_object (HTNet * net)
 {
     if (CORE_TRACE) HTTrace("Net Object.. Remove object %p\n", net);
     if (net) {
 
 	/* Close socket */
-	if (net->channel) {
-	    HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
-	    if (HTHost_isPersistent(net->host)) {
-		if (CORE_TRACE)
-		    HTTrace("Net Object.. keeping socket %d\n", net->sockfd);
-		HTChannel_delete(net->channel, status);
-	    } else {
-		if (CORE_TRACE)
-		    HTTrace("Net Object.. closing socket %d\n", net->sockfd);
-
-		/* 
-		**  By lowering the semaphore we make sure that the channel
-		**  is gonna be deleted
-		*/
-		HTChannel_downSemaphore(net->channel);
-		HTChannel_delete(net->channel, status);
-	    }
-	    net->channel = NULL;
-	}
-
 	/*
 	**  As we may have a socket available we check for whether
 	**  we can start any pending requests. We do this by asking for
 	**  pending Host objects. If none then use the current object
 	*/
+/*	(*net->input->isa->consumed)(net->input, net->header_length + net->bytes_read);
+ */
 	HTHost_launchPending(net->host);
 
 	/*
@@ -730,7 +738,21 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 	*/
 	HTRequest_setNet(net->request, NULL);
 	HT_FREE(net);
-	return status ? NO : YES;
+	return YES;
+    }
+    return NO;
+}
+
+PRIVATE BOOL remove_net (HTNet * net)
+{
+    if (net && NetTable) {
+	HTList * list = NetTable[net->hash];
+	if (list) {
+	    HTList_removeObject(list, (void *) net);
+	    delete_object(net);
+	    HTNetCount--;
+	    return YES;
+	}
     }
     return NO;
 }
@@ -741,12 +763,11 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 PUBLIC BOOL HTNet_clear (HTNet * net)
 {
     if (net) {
-	net->sockfd = INVSOC;
-	net->channel = NULL;
-	net->input = NULL;
-	net->bytes_read = 0;
-	net->bytes_written = 0;
-	net->tcpstate = TCP_CHANNEL;
+	net->host->channel = NULL;
+	net->readStream = NULL;
+	net->bytesRead = 0;
+	net->bytesWritten = 0;
+	net->headerLength = 0;
 	return YES;
     }
     return NO;
@@ -776,34 +797,31 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	** object
 	*/
 	if (net->host) {
+	    HTHost_unregister (net->host, net, HTEvent_READ);
+	    HTHost_unregister (net->host, net, HTEvent_WRITE);
 	    if (status == HT_RECOVER_PIPE) {
-		if (CORE_TRACE) HTTrace("Net Object.. Recovering %p\n", net);
-		HTChannel_setSemaphore(net->channel, 0);
-		HTHost_clearChannel(net->host, HT_INTERRUPTED);
-		HTHost_setMode(net->host, HT_TP_SINGLE);
 		HTNet_clear(net);
 		if (CORE_TRACE)
 		    HTTrace("Net Object.. Restarting request %p (retry=%d) with net object %p\n",
 			    request, HTRequest_retrys(request), net);
-#if 0
-		HTHost_launchPending(net->host);
 		return YES;
-#else
-		return HTNet_start(net);
-#endif
-	    } else
-		HTHost_deleteNet(net->host, net);
+	    }
+	    HTHost_free(net->host, status);
+	    HTHost_deleteNet(net->host, net);
 	}
 
         /* Remove object from the table of Net Objects */
+	remove_net(net);
+#if 0
 	if (NetTable) {
 	    HTList * list = NetTable[net->hash];
 	    if (list) {
 		HTList_removeObject(list, (void *) net);
-		delete_object(net, status);
+		delete_object(net);
 		HTNetCount--;
 	    }
 	}
+#endif
 
     	/* Call AFTER filters */
 	HTNet_executeAfterAll(request, status);
@@ -828,7 +846,7 @@ PUBLIC BOOL HTNet_deleteAll (void)
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = NetTable[cnt])) { 
 		while ((pres = (HTNet *) HTList_nextObject(cur)) != NULL)
-		    delete_object(pres, HT_INTERRUPTED);
+		    delete_object(pres);
 	    }
 	    HTList_delete(NetTable[cnt]);
 	}
@@ -848,12 +866,15 @@ PUBLIC BOOL HTNet_deleteAll (void)
 */
 PUBLIC BOOL HTNet_kill (HTNet * net)
 {
-    if (net && net->cbf) {
-        if (CORE_TRACE) HTTrace("Net Object.. Killing %p\n", net);
-        (*(net->cbf))(net->sockfd, net->request, FD_CLOSE);
-	return YES;
+    if (net) {
+	if (CORE_TRACE) HTTrace("Net Object.. Killing %p\n", net);
+	if (net->event.cbf) {
+	    (*(net->event.cbf))(HTNet_socket(net), net->event.param, HTEvent_CLOSE);
+	    return YES;
+	}
+	return remove_net(net);
     }
-    if (CORE_TRACE) HTTrace("Net Object.. No object to kill\n", net);
+    if (CORE_TRACE) HTTrace("Net Object.. No object to kill\n");
     return NO;
 }
 
@@ -893,7 +914,7 @@ PUBLIC BOOL HTNet_killAll (void)
 */
 PUBLIC HTPriority HTNet_priority (HTNet * net)
 {
-    return (net ? net->priority : HT_PRIORITY_INV);
+    return (net ? net->event.priority : HT_PRIORITY_INV);
 }
 
 /*	HTNet_setPriority
@@ -904,7 +925,7 @@ PUBLIC HTPriority HTNet_priority (HTNet * net)
 PUBLIC BOOL HTNet_setPriority (HTNet * net, HTPriority priority)
 {
     if (net) {
-	net->priority = priority;
+	net->event.priority = priority;
 	return YES;
     }
     return NO;
@@ -930,24 +951,12 @@ PUBLIC BOOL HTNet_setPersistent (HTNet *		net,
 				 HTTransportMode	mode)
 {
     if (net) {
-	BOOL result;			/* Bill Rizzi */
-	if (persistent)
-	    result = HTHost_setChannel(net->host, net->channel, mode);
-	else {
-
-	    /*
-	    **  We use the HT_IGNORE status code as we don't want to free
-	    **  the stream at this point in time. The situation we want to
-	    **  avoid is that we free the channel from within the stream pipe.
-	    **  This will lead to an infinite look having the stream freing
-	    **  itself.
-	    */
-	    result = HTHost_clearChannel(net->host, HT_IGNORE);
-	}
+	BOOL result = HTHost_setPersistent(net->host, persistent, mode);
 	if (CORE_TRACE)
 	    HTTrace("Net Object.. Persistent connection set %s %s\n",
 		    persistent ? "ON" : "OFF",
 		    result ? "succeeded" : "failed");
+	return result;
     }
     return NO;
 }
@@ -974,8 +983,8 @@ PUBLIC void * HTNet_context (HTNet * net)
 */
 PUBLIC BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd)
 {
-    if (net) {
-	net->sockfd = sockfd;
+    if (net && net->host && net->host->channel) {
+	HTChannel_setSocket(net->host->channel, sockfd);
 	return YES;
     }
     return NO;
@@ -983,7 +992,7 @@ PUBLIC BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd)
 
 PUBLIC SOCKET HTNet_socket (HTNet * net)
 {
-    return (net ? net->sockfd : INVSOC);
+    return (net && net->host && net->host->channel ? HTChannel_socket(net->host->channel) : INVSOC);
 }
 
 /*
@@ -1003,38 +1012,36 @@ PUBLIC HTRequest * HTNet_request (HTNet * net)
     return (net ? net->request : NULL);
 }
 
+#if 0
 /*
 **  Get and set the HTTransport object
 */
-PUBLIC BOOL HTNet_setTransport (HTNet * net, HTTransport * tp)
+PUBLIC BOOL HTHost_setTransport (HTHost * me, HTTransport * tp)
 {
-    if (net && tp) {
-	net->transport = tp;
+    if (me && tp) {
+	me->transport = tp;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTTransport * HTNet_transport (HTNet * net)
+PUBLIC HTTransport * HTHost_transport (HTHost * me)
 {
-    return (net ? net->transport : NULL);
+    return (me ? me->transport : NULL);
 }
+#endif
 
 /*
 **  Get and set the HTChannel object
 */
 PUBLIC BOOL HTNet_setChannel (HTNet * net, HTChannel * channel)
 {
-    if (net && channel) {
-	net->channel = channel;
-	return YES;
-    }
-    return NO;
+    return (net && channel) ? HTHost_setChannel(net->host, channel) : NO;
 }
 
 PUBLIC HTChannel * HTNet_channel (HTNet * net)
 {
-    return (net ? net->channel : NULL);
+    return net ? HTHost_channel(net->host) : NULL;
 }
 
 /*
@@ -1060,7 +1067,7 @@ PUBLIC HTHost * HTNet_host (HTNet * net)
 PUBLIC BOOL HTNet_setDns (HTNet * net, HTdns * dns)
 {
     if (net && dns) {
-	net->dns = dns;
+	net->host->dns = dns;
 	return YES;
     }
     return NO;
@@ -1068,7 +1075,21 @@ PUBLIC BOOL HTNet_setDns (HTNet * net, HTdns * dns)
 
 PUBLIC HTdns * HTNet_dns (HTNet * net)
 {
-    return (net ? net->dns : NULL);
+    return (net ? net->host->dns : NULL);
+}
+
+PUBLIC BOOL HTNet_setProtocol (HTNet * net, HTProtocol * protocol)
+{
+    if (net && protocol) {
+	net->protocol = protocol;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTProtocol * HTNet_protocol (HTNet * net)
+{
+    return (net ? net->protocol : NULL);
 }
 
 PUBLIC int HTNet_home (HTNet * net)
@@ -1077,36 +1098,66 @@ PUBLIC int HTNet_home (HTNet * net)
 }
 
 /*
-**	Create the input stream and bind it to the channel
-**	Please read the description in the HTIOStream module for the parameters
-*/
-PUBLIC HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
-				       void * param, int mode)
-{
-    if (net && net->channel && net->transport) {
-	HTTransport * tp = net->transport;
-	HTChannel * ch = net->channel;
-	net->input = (*tp->input_new)(net, ch, target, param, mode);
-	HTChannel_setInput(ch, net->input);
-	return net->input;
-    }
-    if (CORE_TRACE) HTTrace("Net Object.. Can't create input stream\n");
-    return NULL;
-}
-
-/*
 **	Create the output stream and bind it to the channel
 **	Please read the description in the HTIOStream module on the parameters
 */
-PUBLIC HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode)
+PUBLIC HTOutputStream * HTNet_getOutput (HTNet * me, void * param, int mode)
 {
-    if (net && net->request && net->channel && net->transport) {
-	HTTransport * tp = net->transport;
-	HTChannel * ch = net->channel;
-	HTOutputStream * output = (*tp->output_new)(net, ch, param, mode);
+    if (me && me->host && me->host->channel && me->transport) {
+	HTTransport * tp = me->transport;
+	HTChannel * ch = me->host->channel;
+	HTOutputStream * output = (*tp->output_new)(me->host, ch, param, mode);
 	HTChannel_setOutput(ch, output);
 	return output;
     }
-    if (CORE_TRACE) HTTrace("Net Object.. Can't create output stream\n");
+    if (CORE_TRACE) HTTrace("Host Object.. Can't create output stream\n");
     return NULL;
+}
+
+PUBLIC BOOL HTNet_setEventParam(HTNet * net, void * eventParam)
+{
+    if (net) return HTEvent_setParam(&net->event, eventParam);
+    return NO;
+}
+
+PUBLIC void* HTNet_eventParam(HTNet * net)
+{
+    return net->event.param;
+}
+
+PUBLIC BOOL HTNet_setEventCallback(HTNet * net, HTEventCallback * cbf)
+{
+    if (net) return HTEvent_setCallback(&net->event, cbf);
+    return NO;
+}
+
+PUBLIC HTEventCallback * HTNet_eventCallback(HTNet * net)
+{
+    return net->event.cbf;
+}
+
+PUBLIC BOOL HTNet_setEventPriority(HTNet * net, HTPriority priority)
+{
+    if (net) return HTEvent_setPriority(&net->event, priority);
+    return NO;
+}
+
+PUBLIC HTPriority HTNet_eventPriority(HTNet * net)
+{
+    return net->event.priority;
+}
+
+PUBLIC HTStream * HTNet_readStream(HTNet * net)
+{
+    if (!net) return NULL;
+    return net->readStream;
+}
+
+PUBLIC BOOL HTNet_setReadStream (HTNet * net, HTStream * stream)
+{
+    if (net) {
+	net->readStream = stream;
+	return YES;
+    }
+    return NO;
 }

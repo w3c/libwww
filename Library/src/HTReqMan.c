@@ -1152,9 +1152,9 @@ PUBLIC BOOL HTRequest_outputConnected (HTRequest * me)
 /*
 **	Bytes read in this request
 */
-PUBLIC long HTRequest_bytesRead(HTRequest * me)
+PUBLIC long HTRequest_bodyRead(HTRequest * me)
 {
-    return me ? HTNet_bytesRead(me->net) : -1;
+    return me ? HTNet_bytesRead(me->net) - HTNet_headerLength(me->net) : -1;
 }
 
 /*
@@ -1322,8 +1322,7 @@ PUBLIC BOOL HTRequest_destinationsReady (HTRequest * me)
 	    if (CORE_TRACE)
 		HTTrace("POSTWeb..... All destinations are ready!\n");
 	    if (net)			      /* Might already have finished */
-		HTEvent_register(net->sockfd, source, (SockOps) FD_READ,
-				 net->cbf, net->priority);
+		HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 	    return YES;
 	}
     }
@@ -1361,8 +1360,7 @@ PUBLIC BOOL HTRequest_linkDestination (HTRequest *dest)
 	    if (CORE_TRACE)
 		HTTrace("POSTWeb..... All destinations ready!\n");
 	    if (net)			      /* Might already have finished */
-		HTEvent_register(net->sockfd, source, (SockOps) FD_READ,
-				 net->cbf, net->priority);
+		HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 	    return YES;
 	}
     }
@@ -1464,6 +1462,13 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 	return YES;
     }
     return NO;
+}
+
+PUBLIC int HTRequest_forceFlush (HTRequest * request)
+{
+    HTHost * host = HTNet_host(request->net);
+    if (host == NULL) return HT_ERROR;
+    return HTHost_forceFlush(host);
 }
 
 /* --------------------------------------------------------------------------*/

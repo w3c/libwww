@@ -51,11 +51,12 @@ PRIVATE FILE * htfp = NULL;
 
 /* Final states have negative value */
 typedef enum _HTTPState {
+    HTTP_RECOVER_PIPE	= -3,
     HTTP_ERROR		= -2,
     HTTP_OK		= -1,
     HTTP_BEGIN		= 0,
     HTTP_NEED_CONNECTION,
-    HTTP_NEED_REQUEST
+    HTTP_CONNECTED
 } HTTPState;
 
 /* This is the context structure for the this module */
@@ -64,6 +65,7 @@ typedef struct _http_info {
     HTTPState		next;				       /* Next state */
     int			result;	     /* Result to report to the after filter */
     BOOL		lock;				/* Block for writing */
+    HTNet *		net;
 } http_info;
 
 #define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
@@ -120,9 +122,10 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 #endif
 
     /* Remove the request object and our own context structure for http */
-    HT_FREE(http);
-    HTNet_setContext(net, NULL);
-    HTNet_delete(net, status);
+    if (HTNet_delete(net, status) == YES && status != HT_RECOVER_PIPE) {
+	HT_FREE(http);
+	HTNet_setContext(net, NULL);
+    }
     return YES;
 }
 
@@ -457,7 +460,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 /* ------------------------------------------------------------------------- */
 
 /*
-**	Analyse the stream we have read. If it is a HTTP 1.0 or higher
+**	Analyze the stream we have read. If it is a HTTP 1.0 or higher
 **	then create a MIME-stream, else create a Guess stream to find out
 **	what the 0.9 server is sending. We need to copy the buffer as we don't
 **	know if we can modify the contents or not.
@@ -474,6 +477,7 @@ PRIVATE int stream_pipe (HTStream * me)
     HTRequest * request = me->request;
     HTNet * net = HTRequest_net(request);
     HTHost * host = HTNet_host(net);
+
     if (me->target) {
 	int status = PUTBLOCK(me->buffer, me->buflen);
 	if (status == HT_OK)
@@ -489,6 +493,7 @@ PRIVATE int stream_pipe (HTStream * me)
     /*
     ** Just check for HTTP and not HTTP/ as NCSA server chokes on 1.1 replies
     ** Thanks to Markku Savela <msa@msa.tte.vtt.fi>
+
     */
 #if 0
     if (strncasecomp(me->buffer, "http/", 5)) {
@@ -511,6 +516,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	HTResponse * response = HTRequest_response(request);
 	char *ptr = me->buffer+4;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
+	HTHost_setConsumed(net->host, me->buflen);
 
 	/* Here we want to find out when to use persistent connection */
 	if (!strncasecomp(me->version, "/1.0", 4)) {
@@ -518,7 +524,11 @@ PRIVATE int stream_pipe (HTStream * me)
 	    HTHost_setVersion(host, HTTP_10);
 	} else if (!strncasecomp(me->version, "/1.", 3)) {     /* 1.x family */
 	    HTHost_setVersion(host, HTTP_11);
-	    HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);   /* By default */
+#ifdef HT_MUX
+	    HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);
+#else
+	    HTNet_setPersistent(net, YES, HT_TP_PIPELINE);
+#endif
 	} else { 
 	    if (PROT_TRACE)HTTrace("HTTP Status. No 1.x version number - treat it as a HTTP/1.0 server\n");
 	    HTHost_setVersion(host, HTTP_10);
@@ -737,39 +747,69 @@ PUBLIC HTStream * HTTPStatus_new (HTRequest *	request,
 **	returns		HT_ERROR	Error has occured in call back
 **			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
+PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type);
+
+PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request)
 {
-    int status = HT_ERROR;
-    HTNet * net = HTRequest_net(request);    /* Generic protocol information */
     http_info *http;			    /* Specific protocol information */
     HTParentAnchor *anchor = HTRequest_anchor(request);
+    HTNet * net = HTRequest_net(request);
 
     /*
     ** Initiate a new http structure and bind to request structure
     ** This is actually state HTTP_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (ops == FD_NONE) {
-	if (PROT_TRACE) HTTrace("HTTP........ Looking for `%s\'\n",
-				HTAnchor_physical(anchor));
-	if (!net->context) {
-	    if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
-		HT_OUTOFMEM("HTLoadHTTP");
-	    HTNet_setContext(net, http);
-	} else {
-	    http = (http_info *) HTNet_context(net);	/* Get existing copy */
-	}
-	http->state = HTTP_BEGIN;
+    if (PROT_TRACE) HTTrace("HTTP........ Looking for `%s\'\n",
+			    HTAnchor_physical(anchor));
+    if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
+      HT_OUTOFMEM("HTLoadHTTP");
+    http->net = net;
+    HTNet_setContext(net, http);
+    HTNet_setEventCallback(net, HTTPEvent);
+    HTNet_setEventParam(net, http);  /* callbacks get http* */
+
+    return HTTPEvent(soc, http, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
+{
+    http_info * http = (http_info *)pVoid;
+    int status = HT_ERROR;
+    HTNet * net = http->net;
+    HTRequest * request = HTNet_request(net);
+    HTParentAnchor *anchor = HTRequest_anchor(request);
+
+    /*
+    **  Check whether we have been interrupted
+    */
+    if (type == HTEvent_BEGIN) {
 	http->next = HTTP_OK;
 	http->result = HT_ERROR;
-    } else if (ops == FD_CLOSE) {			      /* Interrupted */
+    } else if (type == HTEvent_CLOSE) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadHTTP");
 	HTTPCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
-    } else
-	http = (http_info *) HTNet_context(net);	/* Get existing copy */
- 
+    } else if (type == HTEvent_END) {
+	HTTPCleanup(request, http->result);
+	return HT_OK;
+    } else if (type == HTEvent_RESET) {
+	if (HTRequest_isPostWeb(request)) {
+	    if (HTRequest_isDestination(request)) {
+		HTRequest * source = HTRequest_source(request);
+		HTLink *link =
+		    HTLink_find((HTAnchor *)HTRequest_anchor(source),
+				(HTAnchor *) anchor);
+		HTLink_setResult(link, HT_LINK_ERROR);
+	    }
+	    HTRequest_killPostWeb(request);
+	}
+	HTTPCleanup(request, HT_RECOVER_PIPE);
+	http->state = HTTP_BEGIN;
+	return HT_OK;
+    }
+
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
 	switch (http->state) {
@@ -778,7 +818,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 	    
 	case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
-	    status = HTDoConnect(net, HTAnchor_physical(anchor), HTTP_PORT);
+	    status = HTHost_connect(net->host, net, HTAnchor_physical(anchor), HTTP_PORT);
 	    if (status == HT_OK) {
 		HTHost * host = HTNet_host(net);
 
@@ -806,24 +846,38 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		HTNet_getInput(net,
-			       HTStreamStack(WWW_HTTP,
-					     HTRequest_outputFormat(request),
-					     HTRequest_outputStream(request),
-					     request, YES), NULL, 0);
-		HTRequest_setOutputConnected(request, YES);
+		{
+		    HTStream *me=HTStreamStack(WWW_HTTP,
+					       HTRequest_outputFormat(request),
+					       HTRequest_outputStream(request),
+					       request, YES);
+		    HTNet_setReadStream(net, me);
+		    HTRequest_setOutputConnected(request, YES);
+		}
 
 		/*
 		** Create the stream pipe TO the channel from the application
 		** and hook it up to the request object
 		*/
 		{
-		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+		    HTChannel * channel = HTHost_channel(net->host);
+		    HTOutputStream * output = HTChannel_getChannelOStream(channel);
 		    int version = HTHost_version(host);
 		    HTStream * app = NULL;
+
+		    /*
+		    **  Instead of calling this directly we could have a 
+		    **  stream stack builder on the output stream as well
+		    */
+#ifdef HT_MUX
+		    output = (HTOutputStream *)
+			HTBuffer_new(HTMuxWriter_new(host, net, output),
+				     request, 512);
+#endif
+		    
 #ifdef HTTP_DUMP
 		    if (PROT_TRACE) {
-			if ((htfp = fopen(HTTP_OUTPUT, "wb"))) {
+			if ((htfp = fopen(HTTP_OUTPUT, "ab"))) {
 			    output = (HTOutputStream *)
 				HTTee((HTStream *) output,
 				      HTFWriter_new(request, htfp, YES), NULL);
@@ -849,11 +903,11 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isDestination(request)) {
-		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
-				     HTLoadHTTP, net->priority);
+		    HTHost_register(net->host, net, HTEvent_READ);
 		    HTRequest_linkDestination(request);
 		}
-		http->state = HTTP_NEED_REQUEST;
+		http->state = HTTP_CONNECTED;
+		type = HTEvent_WRITE;			    /* fresh, so try a write */
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else
@@ -861,20 +915,17 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	    /* As we can do simultanous read and write this is now one state */
-	  case HTTP_NEED_REQUEST:
-	    if (ops == FD_WRITE || ops == FD_NONE) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTNet * srcnet = HTRequest_net(source);
-		    if (srcnet) {
-			SOCKET sockfd = HTNet_socket(srcnet);
-			HTEvent_register(sockfd, source,
-					 (SockOps) FD_READ,
-					 srcnet->cbf, srcnet->priority);
-			HTEvent_unregister(sockfd, FD_WRITE);
-		    }
-		    return HT_OK;
-		}
+	  case HTTP_CONNECTED:
+	      if (type == HTEvent_WRITE) {
+		 if (HTRequest_isDestination(request)) {
+		     HTRequest * source = HTRequest_source(request);
+		     HTNet * srcnet = HTRequest_net(source);
+		     if (srcnet) {
+			 HTHost_register(srcnet->host, srcnet, HTEvent_READ);
+			 HTHost_unregister(srcnet->host, srcnet, HTEvent_WRITE);
+		     }
+		     return HT_OK;
+		 }
 
 		/*
 		**  Should we use the input stream directly or call the post
@@ -887,54 +938,52 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			if (http->lock)
 			    return HT_OK;
 			else {
-			    status = pcbf(request, input);
+			    status = (*pcbf)(request, input);
 			    if (status == HT_PAUSE || status == HT_LOADED) {
-				ops = FD_READ;
+				type = HTEvent_READ;
 				http->lock = YES;
-			    } else if (status == HT_ERROR) {
+			    } else if (status==HT_CLOSED)
+				http->state = HTTP_RECOVER_PIPE;
+			    else if (status == HT_ERROR) {
 				http->result = HT_INTERRUPTED;
 				http->state = HTTP_ERROR;
 				break;
 			    }
 			}
 		    } else {
-			status = (*input->isa->flush)(input);
-			ops = FD_READ;	  /* Trick to ensure that we do READ */
+			HTTransportMode mode = HTHost_mode(net->host, NO);
+			if (mode == HT_TP_SINGLE ||
+			    (mode == HT_TP_PIPELINE && !HTHost_launchPending(net->host)))
+			    status = (*input->isa->flush)(input);
+			type = HTEvent_READ;
 		    }
 		    if (status == HT_WOULD_BLOCK) return HT_OK;
 		}
-	    } else if (ops == FD_READ) {
-		status = (*net->input->isa->read)(net->input);
+	    } else if (type == HTEvent_FLUSH) {
+		HTStream * input = HTRequest_inputStream(request);
+		if (input == NULL)
+		    return HT_ERROR;
+		return (*input->isa->flush)(input);
+	    } else if (type == HTEvent_READ) {
+		status = HTHost_read(net->host, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_CONTINUE) {
 		    if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
 		    http->lock = NO;
-		    ops = FD_WRITE;
+		    type = HTEvent_WRITE;
 		    continue;
 		} else if (status==HT_LOADED)
-		    http->state = http->next;	       /* Jump to next state */
-		else if (status==HT_CLOSED) {
-		    HTHost * host = HTNet_host(net);
-
-		    /*
-		    ** If this is a persistent connection and we get a close
-		    ** then it is an error and we should recover from it by
-		    ** restarting the pipe line of requests if any
-		    */
-		    if (HTHost_isPersistent(host)) {
-			http->result = HT_RECOVER_PIPE;
-			http->state = HTTP_ERROR;
-			break;
-		    } else
-			http->state = HTTP_OK;
-		} else
+		    http->state = http->next;	/* Jump to next state (OK or ERROR) */
+		else if (status==HT_CLOSED)
+		    http->state = HTTP_RECOVER_PIPE;
+		else
 		    http->state = HTTP_ERROR;
 	    } else {
-		http->state = HTTP_ERROR;
+		http->state = HTTP_ERROR;	/* don't know how to handle OOB */
 	    }
 	    break;
-	    
+
 	  case HTTP_OK:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
@@ -948,21 +997,50 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    HTTPCleanup(request, http->result);
 	    return HT_OK;
 	    break;
-	    
+
+          case HTTP_RECOVER_PIPE:
+	  {
+	      HTHost * host = HTNet_host(net);
+
+	      /*
+	      ** If this is a persistent connection and we get a close
+	      ** then it is an error and we should recover from it by
+	      ** restarting the pipe line of requests if any
+	      */
+	      if (HTHost_isPersistent(host)) {
+		  http->result = HT_RECOVER_PIPE;
+		  http->state = HTTP_ERROR;
+		  break;
+	      } else
+		  http->state = HTTP_OK;
+	  }
+
 	  case HTTP_ERROR:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_ERROR);
+	    if (http->result == HT_RECOVER_PIPE) {
+		HTHost * host = HTNet_host(net);
+		if (host == NULL) return HT_ERROR;
+		HTChannel_setSemaphore(host->channel, 0);
+		HTHost_clearChannel(host, HT_INTERRUPTED);
+		HTHost_setMode(host, HT_TP_SINGLE);
+	    } else {
+/*		HTTPEvent(soc, pVoid, HTEvent_RESET); */
+		if (HTRequest_isPostWeb(request)) {
+		    if (HTRequest_isDestination(request)) {
+			HTRequest * source = HTRequest_source(request);
+			HTLink *link =
+			    HTLink_find((HTAnchor *)HTRequest_anchor(source),
+					(HTAnchor *) anchor);
+			HTLink_setResult(link, HT_LINK_ERROR);
+		    }
+		    HTRequest_killPostWeb(request);
 		}
-		HTRequest_killPostWeb(request);
+		HTTPCleanup(request, http->result);
 	    }
-	    HTTPCleanup(request, http->result);
 	    return HT_OK;
 	    break;
+	default:
+	    HTTrace("bad http state %d.\n", http->state);
+	    HTDebugBreak();
 	}
     } /* End of while(1) */
 }    

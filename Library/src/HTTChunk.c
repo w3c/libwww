@@ -35,6 +35,7 @@ struct _HTStream {
     BOOL			done;
     HTEOLState			state;    
     HTChunk *			buf;
+    int				status;	     /* return code from down stream */
 };
 
 /* ------------------------------------------------------------------------- */
@@ -54,11 +55,8 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
 	    /* Look for arguments */
 	
 	    HTChunk_clear(me->buf);
-	} else {					       /* Last chunk */
-	    HTRequest * request = me->request;
-	    me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
-				       me->target, request, NO);
-	}
+	} else						/* Last chunk */
+	    me->done = YES;
 	return YES;
     }
     return NO;
@@ -66,33 +64,54 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
 
 PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 {
+    int length = l;
     while (l > 0) {
-	if (me->left <= 0) {
+	if (me->left <= 0 && !me->done) {
 	    while (l > 0) {
 		if (me->state == EOL_FLF) {
 		    HTChunkDecode_header(me);
 		    me->state = EOL_DOT;
+		    if (me->done)	/* look for new line or MIME header */
+			continue;
 		    break;
 		} else if (*b == CR) {
 		    me->state = me->state == EOL_DOT ? EOL_SCR : EOL_FCR;
 		} else if (*b == LF) {
 		    me->state = me->state == EOL_SCR ? EOL_BEGIN : EOL_FLF;
-		} else
-		    HTChunk_putc(me->buf, *b);
+		} else {
+		    if (me->done) {
+			HTRequest * request = me->request;
+			me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
+						   me->target, request, NO);
+			break;
+		    }
+		    HTChunk_putc(me->buf, *b); }
 		b++, l--;
 	    }
 	}
 	if (l > 0) {
 	    int bytes = me->left ? HTMIN(l, me->left) : l;
-	    int status = (*me->target->isa->put_block)(me->target, b, bytes);
-	    if (status == HT_OK) {
-		me->left -= bytes;
-		l -= bytes, b+= bytes;
-	    } else
+	    int status;
+	    HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
+	    length = l;
+	    if ((status = (*me->target->isa->put_block)(me->target, b, bytes)) < 0)
 		return status;
+	    me->status = HT_LOADED;
+	    me->left -= bytes;
+	    l -= bytes, b+= bytes;
+	    /*
+	    **	If we are processing footers, the consumed is taken care of downstream
+	    */
+	    if (me->done)
+		length = l;
 	}
+	/*
+	**	account for the bytes used
+	*/
+	HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
+	length = l;
     }
-    return HT_OK;
+    return me->done ? me->status : HT_OK;
 }
 
 PRIVATE int HTChunkDecode_string (HTStream * me, const char * s)
@@ -161,6 +180,7 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
     me->request = request;
     me->state = EOL_BEGIN;
     me->buf = HTChunk_new(64);
+    me->status = HT_OK;
     
     /* Adjust information in anchor */
     HTAnchor_setLength(anchor, -1);

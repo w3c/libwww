@@ -70,8 +70,8 @@ typedef struct rq_t RQ;
 */
 
 typedef struct action_t  { 
-    HTRequest * rq ;    				/* request structure */
-    SockOps ops ;         			     /* requested operations */
+    void * param ;    				/* request structure */
+    HTEventType type ;         			     /* requested operations */
     HTEventCallback *cbf;      		     /* callback function to execute */
     HTPriority p;         	     /* priority associated with this socket */
 } ACTION ;
@@ -107,7 +107,7 @@ PRIVATE HANDLE console_handle = 0 ;
 /* Select Timeout handling */
 typedef struct _HTTimeout {
     HTEventTimeout *	tcbf;
-    HTRequest *		request;
+    void *		param;
     struct timeval	tv;
     BOOL		always;
 } HTTimeout;
@@ -132,10 +132,10 @@ PRIVATE const SockOps ExceptBits = FD_OOB ;
 /*
 ** Local functions 
 */
-PRIVATE int __AddRequest( SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority); 
-PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
+PRIVATE int __AddRequest( SOCKET, void *, SockOps, HTEventCallback *, HTPriority); 
+PRIVATE void __RequestInit( RQ *, SOCKET, void *, SockOps, HTEventCallback *, HTPriority);
 PRIVATE int __ProcessFds( fd_set *, SockOps, const char *);
-PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
+PRIVATE void __RequestUpdate( RQ *, SOCKET, void *, SockOps, HTEventCallback *, HTPriority);
 PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 
 /* ------------------------------------------------------------------------- */
@@ -185,7 +185,7 @@ PUBLIC HWND HTEventrg_getWinHandle (unsigned long * pMessage)
 **	sockets are active.
 **	Returns YES if OK else NO
 */
-PUBLIC BOOL HTEventrg_registerTimeout (struct timeval *tp, HTRequest * request,
+PUBLIC BOOL HTEventrg_registerTimeout (struct timeval *tp, void * param,
 				     HTEventTimeout *tcbf, BOOL always)
 {
     if (tp) {
@@ -198,12 +198,12 @@ PUBLIC BOOL HTEventrg_registerTimeout (struct timeval *tp, HTRequest * request,
 	tvptr->tv_usec = tp->tv_usec;
 #endif
 	seltime.tcbf = tcbf;
-	seltime.request = request;
+	seltime.param = param;
 	seltime.always = always;
 	if (THD_TRACE)
 	    HTTrace("Timeout cbf. %p %s (req=%p, sec=%d, usec=%d)\n",
 		     tcbf, always ? "always" : "active",
-		     request, (int) tp->tv_sec, (int) tp->tv_usec);
+		     param, (int) tp->tv_sec, (int) tp->tv_usec);
     }
     return YES;
 }
@@ -231,23 +231,22 @@ PUBLIC BOOL HTEventrg_unregisterTimeout(void)
 ** if the TTY is select()-able (as is true under Unix), then we treat
 ** it as just another socket. Otherwise, take steps depending on the platform
 */
-PUBLIC int HTEventrg_registerTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
-			       HTEventCallback *cbf, HTPriority p) 
+PUBLIC int HTEventrg_registerTTY (SOCKET fd, void * param, HTEventType type, 
+				  HTEventCallback *cbf, HTPriority p) 
 {
-    assert(rq != 0);
     console_in_use = YES;
     console_handle = (HANDLE) fd;
 
     if (THD_TRACE) 
 	HTTrace(
 		"RegisterTTY. socket %d, request %p HTEventCallback %p SockOps %x at priority %d\n",
-		fd, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p);
+		fd, param,  (void *)cbf, (unsigned) ops, (unsigned) p);
 	
 #ifdef TTY_IS_SELECTABLE 
 
     /* HTEventrg_register adds the request _and_ inserts in fd table */
     userSockets++;
-    return HTEventrg_register( fd, rq, ops, cbf, p) ;
+    return HTEventrg_register( fd, param, ops, cbf, p) ;
 
 #else 
 
@@ -262,7 +261,7 @@ PUBLIC int HTEventrg_registerTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 
     console_handle = GetStdHandle( STD_INPUT_HANDLE) ;
  
-    return __AddRequest((SOCKET)console_handle, rq, ops, cbf, p);
+    return __AddRequest((SOCKET)console_handle, param, ops, cbf, p);
 #else 
 #ifdef WWW_MSWINDOWS /* EGP - added stub */
     return (0);
@@ -276,7 +275,7 @@ PUBLIC int HTEventrg_registerTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 /*
 ** HTEventrg_unregisterTTY - unregisters TTY i/o channel
 */
-PUBLIC int HTEventrg_unregisterTTY(SOCKET s, SockOps ops) 
+PUBLIC int HTEventrg_unregisterTTY(SOCKET s, HTEventType type) 
 {
     if (THD_TRACE)
 	HTTrace("UnregisterTTY on channel %d\n", s) ;
@@ -301,24 +300,24 @@ PUBLIC int HTEventrg_unregisterTTY(SOCKET s, SockOps ops)
 **  we allow only a single HTEventCallback function for all operations.
 **  and the priority field is ignored.
 */
-PUBLIC int HTEventrg_register (SOCKET s, HTRequest * rq, SockOps ops,
+PUBLIC int HTEventrg_register (SOCKET s, void * param, HTEventType type,
 			     HTEventCallback *cbf, HTPriority p) 
 {
     if (THD_TRACE) 
 	HTTrace("Register.... socket %d, request %p HTEventCallback %p SockOps %x at priority %d\n",
-		s, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p) ;
+		s, param,  (void *)cbf, (unsigned) ops, (unsigned) p) ;
 
 
     if (s==INVSOC) return 0;
-    (void)__AddRequest( s, rq, ops, cbf, p);
+    (void)__AddRequest( s, param, ops, cbf, p);
  
 #ifdef WWW_WIN_ASYNC
 #ifndef WIN32	/* EGP */
 #define GetLastError WSAGetLastError
 #endif
         if (WSAAsyncSelect( s, HTSocketWin, HTwinMsg, ops) < 0) {
-	    HTRequest_addSystemError(rq, ERR_FATAL, GetLastError(), NO,
-				     "WSAAsyncSelect");
+	  /*	    HTRequest_addSystemError(rq, ERR_FATAL, GetLastError(), NO,
+				     "WSAAsyncSelect"); */
 	    return HTERROR;
 	}
 #endif
@@ -360,7 +359,7 @@ PUBLIC int HTEventrg_register (SOCKET s, HTRequest * rq, SockOps ops,
 **  when socket has activity, the registered HTEventCallback function will
 **  invoked  
 */
-PRIVATE int __AddRequest(SOCKET s, HTRequest * rq, SockOps ops,
+PRIVATE int __AddRequest(SOCKET s, void * param, HTEventType type,
 				 HTEventCallback *cbf, HTPriority p)
 {
     RQ * rqp = 0 , **rqpp = 0 ;
@@ -368,7 +367,7 @@ PRIVATE int __AddRequest(SOCKET s, HTRequest * rq, SockOps ops,
     BOOL found = NO;
     for (rqpp = &table[v]; (rqp = *rqpp) != 0 ; rqpp = &rqp->next) {
         if (rqp->s == s) {
-            __RequestUpdate( rqp, s, rq, ops, cbf, p) ;
+            __RequestUpdate( rqp, s, param, ops, cbf, p) ;
             found = YES;
             break;
         }
@@ -381,7 +380,7 @@ PRIVATE int __AddRequest(SOCKET s, HTRequest * rq, SockOps ops,
         /* error if memory not allocated */
         if ((*rqpp = rqp = (RQ *) HT_CALLOC(1, sizeof(RQ))) == NULL)
 	    HT_OUTOFMEM("__AddRequest");
-        __RequestInit( rqp, s, rq, ops, cbf, p) ;
+        __RequestInit( rqp, s, param, ops, cbf, p) ;
     }
     return 0;
 }
@@ -392,13 +391,13 @@ PRIVATE int __AddRequest(SOCKET s, HTRequest * rq, SockOps ops,
 ** initialize the request structure given 
 ** a set of inputs. N.B. This initializes the entire registration structure 
 */
-PRIVATE void __RequestInit(RQ * rqp, SOCKET s, HTRequest * rq, 
-			   SockOps ops, HTEventCallback *cbf, HTPriority p) 
+PRIVATE void __RequestInit(RQ * rqp, SOCKET s, void * param, 
+			   HTEventType type, HTEventCallback *cbf, HTPriority p) 
 {
     if( THD_TRACE)
     	HTTrace("RequestInit. initializing RQ entry for socket %d\n", s);
     rqp->s = s; 
-    __RequestUpdate( rqp, s, rq, ops, cbf, p) ;
+    __RequestUpdate( rqp, s, param, ops, cbf, p) ;
     rqp->next = 0 ;
     return ;
 }  
@@ -409,13 +408,13 @@ PRIVATE void __RequestInit(RQ * rqp, SOCKET s, HTRequest * rq,
 ** updates the actions fields and the unregister value, but doesn't modify 
 ** the socket _or_ the next pointer
 */
-PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
-			     SockOps ops, HTEventCallback * cbf, HTPriority p)
+PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, void * param,
+			     HTEventType type, HTEventCallback * cbf, HTPriority p)
 {
     if (THD_TRACE) 
     	HTTrace("Req Update.. updating for socket %u\n", s) ;
     rqp->unregister = (ops & FD_UNREGISTER) ? YES : NO;
-    rqp->actions[0].rq = rq ;
+    rqp->actions[0].param = param ;
     rqp->actions[0].ops |= ops ;
     rqp->actions[0].cbf = cbf ;
     rqp->actions[0].p = p ;
@@ -429,7 +428,7 @@ PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
 ** info is deleted, and, if the socket has been registered for notification, 
 ** the HTEventCallback will be invoked.
 */
-PUBLIC int HTEventrg_unregister( SOCKET s, SockOps ops) 
+PUBLIC int HTEventrg_unregister( SOCKET s, HTEventType type) 
 {
     long v = HASH(s) ;
     int rv = 0 ;
@@ -459,13 +458,13 @@ PUBLIC int HTEventrg_unregister( SOCKET s, SockOps ops)
 ** and return the HTRequest pointer associated with it.
 ** If the socket isn't found, the function returns NULL
 */
-PRIVATE HTEventCallback *__RetrieveCBF(SOCKET s, SockOps ops,HTRequest **arp)
+PRIVATE HTEventCallback *__RetrieveCBF(SOCKET s, HTEventType type, void ** pParam)
 {
     long value = HASH(s);
     register RQ * rqp = 0, **rqpp = 0 ;
     BOOL found = NO;
 
-    *arp = 0 ;	  /* just too be sure */
+    *pParam = 0 ;	  /* just too be sure */
 
     for (rqpp = &table[value]; (rqp = *rqpp) != 0 ; rqpp = &rqp->next) {
         if (rqp -> s == s ) { 
@@ -480,7 +479,7 @@ PRIVATE HTEventCallback *__RetrieveCBF(SOCKET s, SockOps ops,HTRequest **arp)
     if (!found) 
         return (HTEventCallback *) NULL;
     else {
-    	*arp = rqp->actions[0].rq;
+    	*pParam = rqp->actions[0].param;
         return rqp->actions[0].cbf;
     }      
 }
@@ -579,7 +578,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     return (0);
 }
 
-PUBLIC int HTEventrg_loop( HTRequest * theRequest )
+PUBLIC int HTEventrg_loop (HTRequest * theRequest )
 {
     MSG msg;
 #ifdef WWW_WIN_CONSOLE
@@ -627,7 +626,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-PUBLIC int HTEventrg_loop( HTRequest * theRequest ) 
+PUBLIC int HTEventrg_loop (HTRequest * theRequest ) 
 {
     fd_set treadset, twriteset, texceptset ;    
     int active_sockets;
@@ -721,7 +720,7 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 		break;
             
             case -1:        /* error has occurred */
-	    	HTRequest_addSystemError( theRequest, ERR_FATAL, socerrno, NO, "select");
+	    	HTRequest_addSystemError(theRequest, ERR_FATAL, socerrno, NO, "select");
 		__DumpFDSet( &treadset, "Read");
 		__DumpFDSet( &twriteset, "Write") ;
 		__DumpFDSet( &texceptset, "Exceptions");
@@ -760,7 +759,7 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 		/* This drives you crazy! */
 		if (THD_TRACE) HTTrace("Event Loop.. select timeout\n");
 #endif
-		if ((status = (*(seltime.tcbf))(seltime.request)) != HT_OK)
+		if ((status = (*(seltime.tcbf))(seltime.param)) != HT_OK)
 		    return status;
 	    } else
 		continue;
@@ -809,7 +808,7 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 ** ProcessFds 
 ** preform the associated HTEventCallback function for each FD in a given set  
 */
-PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str) 
+PRIVATE int __ProcessFds( fd_set * fdsp, HTEventType type, const char * str) 
 {
     SOCKET s ;
 #ifdef _WINSOCKAPI_
@@ -839,17 +838,17 @@ PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str)
 ** with the given socket. 
 **
 */
-PUBLIC int HTEventrg_dispatch( SOCKET s, SockOps ops)
+PUBLIC int HTEventrg_dispatch (SOCKET s, HTEventType type)
 {
-    HTRequest * rqp = NULL;
-    HTEventCallback *cbf = __RetrieveCBF( s, ops, &rqp);
+    void * param = NULL;
+    HTEventCallback *cbf = __RetrieveCBF(s, ops, &param);
     /* although it makes no sense, callbacks can be null */
-    /* was if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) - EGP */
-    if (!cbf || (rqp && rqp->priority == HT_PRIORITY_OFF)) {
+    /* was if (!cbf || (rqp && rqp->priority == HT_PRIORITY_OFF)) - EGP */
+    if (!cbf) {
 	if (THD_TRACE) HTTrace("Callback.... No callback found\n");
         return (0);
     }
-    return (*cbf)(s, rqp, ops);
+    return (*cbf)(s, param, ops);
 }
 
 /*
@@ -887,7 +886,7 @@ PRIVATE void __ResetMaxSock( void )
 }  
 
 PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
-			      SockOps ops) 
+			      HTEventType type) 
 {
     register struct action_t * ap = &rqp->actions[0];
     SOCKET s = rqp->s ;
@@ -912,7 +911,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
     /* if all actions are clear we are free to delete our request structure */
     if (ap->ops == 0)  {
         if (rqp->unregister) /* requested HTEventCallback */
-            rv = ap->cbf( s, ap->rq, FD_UNREGISTER); 
+            rv = ap->cbf( s, ap->param, FD_UNREGISTER); 
 	FD_CLR(rqp->s, &all_fds) ;
 	if (rqp->s == max_sock) 
 	    	__ResetMaxSock();

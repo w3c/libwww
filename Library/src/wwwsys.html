@@ -971,8 +971,8 @@ Their existance is discovered by <CODE>configure</CODE>.
 #define memmove(d, s, n) bcopy((s), (d), (n))
 #endif
 
-/* Standard headers */
-#ifdef STDC_HEADERS
+/* Definition of var args */
+#if defined(STDC_HEADERS) || defined(__STDC__)
 #include &lt;stdarg.h&gt;
 #else
 #ifndef WWW_MSWINDOWS
@@ -1044,12 +1044,54 @@ the SOCKS ones. Initial modification of the library is credited to Ian Dunkin
 &lt;imd1707@ggr.co.uk&gt;.
 <PRE>
 #ifdef SOCKS
-#define connect Rconnect
-#define accept  Raccept
-#define getsockname Rgetsockname
-#define bind Rbind 
-#define listen Rlisten  
-#endif
+#ifdef SOCKS4
+#define connect	        Rconnect
+#define getsockname	Rgetsockname
+#define getpeername	Rgetpeername
+#define bind		Rbind
+#define accept		Raccept
+#define listen		Rlisten
+#define select		Rselect
+#define recvfrom	Rrecvfrom
+#define sendto		Rsendto
+#define recv		Rrecv
+#define send		Rsend
+#define read		Rread
+#define write		Rwrite
+#define rresvport	Rrresvport
+#define shutdown	Rshutdown
+#define listen		Rlisten
+#define close		Rclose
+#define dup		Rdup
+#define dup2		Rdup2
+#define fclose		Rfclose
+#define gethostbyname	Rgethostbyname
+#else
+#ifdef SOCKS5
+#define connect		SOCKSconnect
+#define getsockname	SOCKSgetsockname
+#define getpeername	SOCKSgetpeername
+#define bind		SOCKSbind
+#define accept		SOCKSaccept
+#define listen		SOCKSlisten
+#define select		SOCKSselect
+#define recvfrom	SOCKSrecvfrom
+#define sendto		SOCKSsendto
+#define recv		SOCKSrecv
+#define send		SOCKSsend
+#define read		SOCKSread
+#define write		SOCKSwrite
+#define rresvport	SOCKSrresvport
+#define shutdown	SOCKSshutdown
+#define listen		SOCKSlisten
+#define close		SOCKSclose
+#define dup		SOCKSdup
+#define dup2		SOCKSdup2
+#define fclose		SOCKSfclose
+#define gethostbyname	SOCKSgethostbyname
+#endif /* SOCKS5 */
+#endif /* SOCKS4 */
+#endif /* SOCKS */
 </PRE>
 <H2>
   Network Family
@@ -1075,6 +1117,10 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 
 #ifndef NETWRITE
 #define NETWRITE write		/* Routine to write to a TCP-IP socket */
+#endif
+
+#ifndef NETWRITEV
+#define NETWRITEV writev
 #endif
 </PRE>
 <H2>
@@ -1116,6 +1162,7 @@ This is necessary in order to support Windows NT...
   Additional Network variables for SOCKET, file access bits
 </H2>
 <PRE>
+#if 0
 #ifndef _WINSOCKAPI_
 #define FD_READ         0x01
 #define FD_WRITE        0x02
@@ -1124,6 +1171,7 @@ This is necessary in order to support Windows NT...
 #define FD_CONNECT      0x10
 #define FD_CLOSE        0x20
 #endif /* _WINSOCKAPI_ */
+#endif
 </PRE>
 <H2>
   Rough estimate of max path length
@@ -1251,7 +1299,7 @@ versions of some system calls.
 #ifdef HT_REENTRANT
 #define HOSTENT_MAX	128
 #define CTIME_MAX	26
-#endif
+#endif /* HT_REENTRANT */
 </PRE>
 <PRE>
 #endif
