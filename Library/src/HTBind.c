@@ -274,35 +274,38 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 {
     int cnt;
-    HTList *cur;
-    char *suffix = NULL;
-    char delimiter[2];
-    *delimiter = *HTDelimiters;
-    *(delimiter+1) = '\0';
+    HTList * cur;
+    HTChunk * suffix = HTChunk_new(48);
+    char delimiter = *HTDelimiters;
+    BOOL ct=NO, ce=NO, cl=NO;
     if (anchor) {
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = HTBindings[cnt])) { 
 		HTBind *pres;
 		while ((pres = (HTBind *) HTList_nextObject(cur))) {
-		    if ((pres->type && pres->type==anchor->content_type)) {
-			StrAllocCat(suffix, delimiter);
-			StrAllocCat(suffix, pres->suffix);
-		    } else if (pres->encoding && anchor->content_encoding) {
+		    if (!ct && (pres->type && pres->type==anchor->content_type)){
+			HTChunk_putc(suffix, delimiter);
+			HTChunk_puts(suffix, pres->suffix);
+			ct = YES;
+		    } else if (!ce && pres->encoding && anchor->content_encoding) {
+
+			/* @@@ Search list @@@ */
+			ce = YES;
+
+		    } else if (!cl && !pres->language && anchor->content_language) {
 
 			/* @@@ Search list @@@ */
 
-		    } else if (pres->language && anchor->content_language) {
-
-			/* @@@ Search list @@@ */
-
+			cl = YES;
 		    }
 		}
 	    }
 	}
     }
-    return suffix;
+    return HTChunk_toCString(suffix);
 }
 
+#if 0
 /*	Determine the description of a file
 **	-----------------------------------
 **  Use the set of bindings to find the combination of language,
@@ -314,7 +317,7 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 **  Returns a contentdescription object with the representations found. This
 **  must be freed by the caller
 */
-PUBLIC HTContentDescription * HTBind_getDescription (char * file)
+PRIVATE HTContentDescription * HTBind_getDescription (char * file)
 {
     HTContentDescription * cd;
     if ((cd = (HTContentDescription  *) HT_CALLOC(1, sizeof(HTContentDescription))) == NULL)
@@ -328,6 +331,7 @@ PUBLIC HTContentDescription * HTBind_getDescription (char * file)
 	return NULL;
     }
 }
+#endif /* Not needed anymore */
 
 /*	Determine the content of an Anchor
 **	----------------------------------

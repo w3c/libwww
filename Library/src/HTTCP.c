@@ -601,7 +601,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 **			HT_OK		if connected
 **			HT_WOULD_BLOCK  if operation would have blocked
 */
-PUBLIC int HTDoCLose (HTNet * net)
+PUBLIC int HTDoClose (HTNet * net)
 {
     int status = -1;
     if (net && net->sockfd != INVSOC) {

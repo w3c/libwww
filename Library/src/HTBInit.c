@@ -88,7 +88,6 @@ PUBLIC void HTFileInit (void)
     HTBind_add("png",	"image/png",			NULL,	"binary",	NULL,	1.0);	/* PNG			*/
     HTBind_add("pnm",	"image/x-portable-anymap",	NULL,	"binary",	NULL,	1.0);	/* PBM Anymap format	*/
     HTBind_add("ppm",	"image/x-portable-pixmap",	NULL,	"binary",	NULL,	1.0);	/* PBM Pixmap format	*/
-    HTBind_add("PS",	"application/postscript",	NULL,	"8bit",		NULL,	0.8);	/* PostScript		*/
     HTBind_add("ps",	"application/postscript",	NULL,	"8bit",		NULL,	0.8);
     HTBind_add("qt",	"video/quicktime",		NULL,	"binary",	NULL,	1.0);	/* QuickTime		*/
     HTBind_add("ras",	"image/cmu-raster",		NULL,	"binary",	NULL,	1.0);

@@ -7,7 +7,8 @@
 <BODY>
 <P>
 <A HREF="../"><IMG alt="W3C" SRC="../Icons/WWW/w3c_48x48"></A>
-<A HREF="../Consortium/Prospectus/ActivityList"><IMG alt="Activities" src="../Icons/WWW/activity_48x48"></A>
+<A HREF="../Consortium/Prospectus/ActivityList.html"><IMG alt="Activities"
+    src="../Icons/WWW/activity_48x48"></A>
 <A href="./"><IMG alt="Library" src="../Icons/WWW/Lib48x"></A>
 <H1>
   W3C Reference Library Position Statement
@@ -37,34 +38,13 @@ to the list.
   Current Status
 </H2>
 <P>
-The Library was first developed on Unix machines but the user profile of
-the Web has changed dramatically since then. One of the main goals of the
-4.0 version was to integrate libwww with MS Windows and the Mac environments
-in order to provide a freely available set of Web APIs for building applications
-on MS Windows and Macintosh machines as well as Unix.
-<P>
-The second main goal was to stabilize the APIs so that people could rely
-on the same features being there from version to version. This goal was also
-fulfilled as libwww is now a highly modular package consisting of a small
-core to which the application provider can hook exactly the functionality
-needed for a particular application.
-<H2>
-  Accomplishments
-</H2>
-<P>
-W3C member organizations can obtain a copy of each alpha, beta, and public
-distribution of the reference code (this latter with a one month lead time
-over public release) at no charge. The frequency with which new distributions
-is twice per year. Libwww version 4.1 was released December 1st to W3C members
-and became publicly available January 1st 1996. During the month of January,
-it was downloaded more than 6,000 times and it is actively being used in
-commercial Web products.
-<P>
-The first beta version of Library version 4.1 has been released May 24 to
-W3C members and will be officially released Mid June 1996.
-<H2>
-  Example Applications
-</H2>
+Version 4.0 of the <A HREF="../../">W3C Reference Library</A>, a.k.a. libwww,
+was released to the public in January. Our expectations were high as the
+Library had undertaken a major revision of its APIs and it was the first
+version that supported both the Microsoft Windows and the Macintosh platforms.
+However, from the number of people who downloaded the Library, it was considered
+a success. In the period from January 12 to February 12, version 4.0 was
+downloaded almost 6000 times from our FTP server.
 <P>
 We maintain a number of small example applications in order to guarantee
 diversity in the libwww architecture and to show how to use libwww and how
@@ -102,10 +82,34 @@ to build applications on top of it.
     <B>Listen</B>
   <DD>
     A small tool that can listen on a socket. Good for debugging clients.
+  <DT>
 </DL>
+<H2>
+  Accomplishments
+</H2>
+<P>
+The libwww API was presented at the
+"<A HREF="http://www.cs.vu.nl/~eliens/WWW5/program.html">Programming the
+Web - a search for APIs</A>" workshop in connection with the
+<A HREF="http://www.w3.org/pub/Conferences/WWW5/">5th World Wide Web
+conference</A> in Paris. The
+<A HREF="http://www.w3.org/pub/Conferences/WWW5/">libwww position paper</A>
+presented at the workshop discusses &nbsp;the basic requirements of a generic
+Web API and the lessons learned from the development of the libwww API. The
+most important requirement that we see today is that the Web must move towards
+<I>language independent, formalized APIs.</I> Only by doing this can we ensure
+that the APIs can keep up with the Web explosion which does not show signs
+of slowing down. W3C sees the development of generic and open Web APIs as
+an essential part of building new generations of Web applications and takes
+an active role in focusing efforts towards this goal.
 <H2>
   Next Step
 </H2>
+<P>
+Libwww is still in use by many applications and lately our own Amaya Web
+client has been added to the list. Many new and exiting features have been
+added and we are now ready to present the first beta release of version 4.1
+- scheduled for final release June 15.
 <P>
 We are actively looking into how the experiences from building the libwww
 API fits into the paradigm of <A HREF="../MobileCode/">mobile code</A> being
@@ -130,6 +134,7 @@ For a more specific list of new features, please look at the
 <A href="../"><IMG SRC="../Icons/WWW/w3c_48x48" ALT="W3C"></A>
 <ADDRESS>
   Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

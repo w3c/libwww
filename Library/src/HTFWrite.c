@@ -170,6 +170,7 @@ PRIVATE char *get_filename (char * base, const char * url, const char * suffix)
 		break;					/* Got the file name */
 	}
     }
+    if (STREAM_TRACE) HTTrace("Save file... Temporaray file `%s\'\n", path);
     return path;
 }
 

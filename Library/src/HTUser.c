@@ -18,7 +18,7 @@
 
 /* The default directory for "save locally" and "save and execute" files: */
 #ifndef HT_TMP_ROOT
-#define HT_TMP_ROOT		"/tmp"
+#define HT_TMP_ROOT		"/tmp/"	      /* URL format - not local file */
 #endif
 
 struct _HTUserProfile {
@@ -61,6 +61,8 @@ PUBLIC HTUserProfile * HTUserProfile_new (const char * name, void * context)
 
 	/* Find the default location for temporary files */
 	StrAllocCopy(me->tmp, HT_TMP_ROOT);
+	if (*(me->tmp+strlen(me->tmp)-1) != '/')
+	    StrAllocCat(me->tmp, "/");
 
 	/* Set the context */
 	me->context = context;
@@ -136,6 +138,8 @@ PUBLIC BOOL HTUserProfile_setTmp (HTUserProfile * up, const char * tmp)
 {
     if (up && tmp) {
 	StrAllocCopy(up->tmp, tmp);
+	if (*(up->tmp+strlen(up->tmp)-1) != '/')
+	    StrAllocCat(up->tmp, "/");
 	return YES;
     }
     return NO;

@@ -94,7 +94,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 **			HT_OK		if connected
 **			HT_WOULD_BLOCK  if operation would have blocked
 */
-PUBLIC int HTFileCLose (HTNet * net)
+PUBLIC int HTFileClose (HTNet * net)
 {
     int status = -1;
     if (net) {

@@ -443,7 +443,26 @@ if test $ac_cv_struct_gmtoff = yes; then
   AC_DEFINE(HAVE_TM_GMTOFF)
 fi
 
-AC_CHECK_EXTERNS(timezone altzone)
+AC_MSG_CHECKING(for time.h that defines timezone)
+AC_CACHE_VAL(ac_cv_extern_timezone,
+[AC_TRY_COMPILE([#include <time.h>], [return timezone;],
+  ac_cv_extern_timezone=yes,
+  ac_cv_extern_timezone=no)])
+AC_MSG_RESULT($ac_cv_extern_timezone)
+if test $ac_cv_extern_timezone = yes; then
+  AC_DEFINE(HAVE_TIMEZONE)
+fi
+
+dnl Borrowed from the Python distribution...
+AC_MSG_CHECKING(for time.h that defines altzone)
+AC_CACHE_VAL(ac_cv_extern_altzone,
+[AC_TRY_COMPILE([#include <time.h>], [return altzone;],
+  ac_cv_extern_altzone=yes,
+  ac_cv_extern_altzone=no)])
+AC_MSG_RESULT($ac_cv_extern_altzone)
+if test $ac_cv_extern_altzone = yes; then
+  AC_DEFINE(HAVE_ALTZONE)
+fi
 
 if test $ac_cv_extern_timezone = yes; then
   AC_REQUIRE([AC_ISC_POSIX])dnl

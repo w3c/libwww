@@ -116,6 +116,12 @@
 /* Define this if it isn't in the header files.  */
 #undef u_long
 
+/* Define this if you have the external variable 'timezone' */
+#undef HAVE_TIMEZONE
+
+/* Define this if you have the external variable 'altzone' */
+#undef HAVE_ALTZONE
+
 /* Define this if tm structure includes a tm_gmtoff entry. */
 #undef HAVE_TM_GMTOFF
 

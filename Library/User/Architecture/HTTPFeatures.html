@@ -1,157 +1,143 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Usage of State machines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
-<NEXTID N="z10">
+  <TITLE>Architecture - Usage of State machines</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>Protocol Modules as State machines</H1>
-
-A part of the libwww thread model is to keep track of the current
-state in the communication interface to the network. As an example,
-this section describes the current implementation of the <A
-HREF="../../src/HTTP.html">HTTP module</A> and how it has
-been implemented as a state machine. The HTTP module is based on the
-HTTP 1.0 specification but is backwards compatible with the 0.9
-version. The major difference between the implementation before
-version 3.0 of the Library is that this version is a state machine
-based on the state diagram illustrated below. This implementation has
-several advantages even though the HTTP protocol is stateless by
-nature.
-
-<P><IMG SRC="HTTP"><P>
-
-The individual states and the transitions between them are explained
-in the following sections.
-
+<H1>
+  Protocol Modules as State machines
+</H1>
+<P>
+A part of the libwww thread model is to keep track of the current state in
+the communication interface to the network. As an example, this section describes
+the current implementation of the <A HREF="../../src/HTTP.html">HTTP module</A>
+and how it has been implemented as a state machine. The HTTP module is based
+on the HTTP 1.0 specification but is backwards compatible with the 0.9 version.
+The major difference between the implementation before version 3.0 of the
+Library is that this version is a state machine based on the state diagram
+illustrated below. This implementation has several advantages even though
+the HTTP protocol is stateless by nature.
+<P>
+<IMG SRC="HTTP.gif" WIDTH="522" HEIGHT="457">
+<P>
+The individual states and the transitions between them are explained in the
+following sections.
+<P>
 <DL>
-
-<DT><A NAME="initial">BEGIN State</A>
-
-<DD>This state is the idle state or initial state where the HTTP
-module awaits a new request passed from the application.
-
-<A NAME="connect"><DT>NEED_CONNECTION State</A>
-
-<DD>The HTTP module is now ready for setting up a connection to the
-remote host. The connection is always initiated by a <EM>connect</EM>
-system call. In order to minimize the access to the Domain Name
-Server, all host names to previous visited hosts are stored in a local
-host cache as explained in section "<A HREF="DNSCache.html">DNS Cache
-and Host Name Canonicalization</A>". The cache handles multi homed
-hosts in a special way in that it measures the time it takes to
-actually make a connection to one of the IP-addresses. This time is
-stored together with the specific IP-address and the host name in the
-cache and on the next connection to the same host the IP-address with
-the fastest connect time is chosen.
-
-<DT>NEED_REQUEST State
-
-<DD>The <A HREF="../../../Protocols/">HTTP Request</A> is what the
-application sends to the remote HTTP server just after the
-establishment of the connection. The request consists of a HTTP header
-line, a set of HTTP Headers, and possibly a data object to be posted
-to the server. The header line has the following format:
-
-<PRE>
+  <DT>
+    <A NAME="initial">BEGIN State</A>
+  <DD>
+    This state is the idle state or initial state where the HTTP module awaits
+    a new request passed from the application. <A NAME="connect"></A>
+  <DT>
+    NEED_CONNECTION State
+  <DD>
+    The HTTP module is now ready for setting up a connection to the remote host.
+    The connection is always initiated by a <EM>connect</EM> system call. In
+    order to minimize the access to the Domain Name Server, all host names to
+    previous visited hosts are stored in a local host cache as explained in section
+    "<A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>". The
+    cache handles multi homed hosts in a special way in that it measures the
+    time it takes to actually make a connection to one of the IP-addresses. This
+    time is stored together with the specific IP-address and the host name in
+    the cache and on the next connection to the same host the IP-address with
+    the fastest connect time is chosen.
+  <DT>
+    NEED_REQUEST State
+  <DD>
+    The <A HREF="../../../Protocols/">HTTP Request</A> is what the application
+    sends to the remote HTTP server just after the establishment of the connection.
+    The request consists of a HTTP header line, a set of HTTP Headers, and possibly
+    a data object to be posted to the server. The header line has the following
+    format:
+    <PRE>
 	&lt;<A HREF="../../../Protocols/">METHOD</A>&gt; &lt;<A HREF="ftp://nic.ddn.mil/rfc/rfc1630.txt">URI</A>&gt; &lt;HTTP-VERSION&gt; CRLF
 </PRE>
- 
-<DT>SENT_REQUEST State
-
-<DD>When the request is sent the module waits until a response is
-given from the server or the connection is timed out in case or an
-error situation. As the module does not know whether the remote server
-is a HTTP 0.9 server or a HTTP 1.0 it must look at the first part of
-the response to figure out what version of HTTP is returned. The
-reason is that the HTTP protocol 0.9 does not contain a HTTP header
-line in the response. It simply starts to send the requested data
-object as soon as the GET request is handled. 
-
-<DT>NEED_ACCESS_AUTHORIZATION State
-
-<DD>If a <A HREF="../../../Protocols/">401 Unauthorized</A> status
-code is returned the module asks the user for a user id and a
-password, see also the "<A HREF="../../../Protocols/"> HTTP Basic
-Access Authorization Scheme</A>". The connection is closed before the
-user is asked for the user-id and password so any new request
-initiated upon a <A HREF="../../../Protocols/">401 status code</A>
-causes a new connection to be established. This is done in order to
-avoid having the connection hanging around waiting while the
-applications is waiting for user input.
-
-<DT>REDIRECTION State
-
-<DD>The remote server returns a redirection <A
-HREF="../../../Protocols/">status code</A> if the URI has either been
-moved temporarily or permanent to another location, possibly on
-another HTTP server or any other service, for example FTP or
-gopher. The HTTP module supports both a temporarily and a permanent
-redirection code returned from the server:
-
-<DL>
-
-<DT><A HREF="../../../Protocols/">301 Moved</A>
-
-<DD>The load procedure is recursively called on a 301 redirection
-code. The new URI is parsed back to the user as information via the <A
-HREF="../../../Library/src/HTError.html">Error and
-Information module</A>, and a new request generated. The new request
-can be of any <A HREF="../../../Addressing/URL/4_1_Schemes.html">
-access scheme</A> accepted in a URI. An upper limit of redirections
-has been defined (default to 10) in order to avoid infinite loops.
-
-<DT><A HREF="../../../Protocols/">302 Found</A>
-
-<DD>The functionality is the same as for a 301 Moved return status. A
-clever application can use the returned URI to change the document in
-which the URI originates so that the URI points to the new location.
-
+  <DT>
+    SENT_REQUEST State
+  <DD>
+    When the request is sent the module waits until a response is given from
+    the server or the connection is timed out in case or an error situation.
+    As the module does not know whether the remote server is a HTTP 0.9 server
+    or a HTTP 1.0 it must look at the first part of the response to figure out
+    what version of HTTP is returned. The reason is that the HTTP protocol 0.9
+    does not contain a HTTP header line in the response. It simply starts to
+    send the requested data object as soon as the GET request is handled.
+  <DT>
+    NEED_ACCESS_AUTHORIZATION State
+  <DD>
+    If a <A HREF="../../../Protocols/">401 Unauthorized</A> status code is returned
+    the module asks the user for a user id and a password, see also the
+    "<A HREF="../../../Protocols/"> HTTP Basic Access Authorization Scheme</A>".
+    The connection is closed before the user is asked for the user-id and password
+    so any new request initiated upon a <A HREF="../../../Protocols/">401 status
+    code</A> causes a new connection to be established. This is done in order
+    to avoid having the connection hanging around waiting while the applications
+    is waiting for user input.
+  <DT>
+    REDIRECTION State
+  <DD>
+    The remote server returns a redirection <A HREF="../../../Protocols/">status
+    code</A> if the URI has either been moved temporarily or permanent to another
+    location, possibly on another HTTP server or any other service, for example
+    FTP or gopher. The HTTP module supports both a temporarily and a permanent
+    redirection code returned from the server:
+    <DL>
+      <DT>
+	<A HREF="../../../Protocols/">301 Moved</A>
+      <DD>
+	The load procedure is recursively called on a 301 redirection code. The new
+	URI is parsed back to the user as information via the
+	<A HREF="../../../Library/src/HTError.html">Error and Information module</A>,
+	and a new request generated. The new request can be of any
+	<A HREF="../../../Addressing/URL/4_1_Schemes.html"> access scheme</A> accepted
+	in a URI. An upper limit of redirections has been defined (default to 10)
+	in order to avoid infinite loops.
+      <DT>
+	<A HREF="../../../Protocols/">302 Found</A>
+      <DD>
+	The functionality is the same as for a 301 Moved return status. A clever
+	application can use the returned URI to change the document in which the
+	URI originates so that the URI points to the new location.
+    </DL>
+  <DD>
+  <DT>
+    NO_DATA State
+  <DD>
+    When a return code indicates that no data object or resource follows the
+    HTTP headers the HTTP module can terminate the request and pass control back
+    to the application.
+  <DT>
+    NEED_BODY State
+  <DD>
+    If a body is included in the response from the server, the module must prepare
+    to read the data from the network and direct it to the destination set up
+    by the application. This is done by setting up a stream stack with the required
+    conversions.
+  <DT>
+    GOT_DATA State
+  <DD>
+    When the data object has been parsed through the stream stack, the HTTP module
+    terminates the request and handles control back to the application.
+  <DT>
+    ERROR or FAILURE State
+  <DD>
+    If at any point in the request handling a fatal error occurs the request
+    is aborted and the connection closed. All information about the error is
+    parsed back to the application via the
+    <A HREF="../../../Library/src/HTError.html">Error and Information Module</A>.
+    As the HTTP protocol is stateless, all errors are fatal between the server
+    and the server. If the erroneous request is to be repeated, the request starts
+    in the <A HREF="#initial">initial state</A>.
 </DL>
-
-<DD>
-
-<DT>NO_DATA State
-
-<DD>When a return code indicates that no data object or resource
-follows the HTTP headers the HTTP module can terminate the request and
-pass control back to the application.
-
-<DT>NEED_BODY State
-
-<DD>If a body is included in the response from the server, the module
-must prepare to read the data from the network and direct it to the
-destination set up by the application. This is done by setting up a
-stream stack with the required conversions.
-
-<DT>GOT_DATA State
-
-<DD>When the data object has been parsed through the stream stack, the
-HTTP module terminates the request and handles control back to the
-application.
-
-<DT>ERROR or FAILURE State
-
-<DD>If at any point in the request handling a fatal error occurs the
-request is aborted and the connection closed. All information about
-the error is parsed back to the application via the <A
-HREF="../../../Library/src/HTError.html">Error and
-Information Module</A>. As the HTTP protocol is stateless, all errors
-are fatal between the server and the server. If the erroneous request
-is to be repeated, the request starts in the <A
-HREF="#initial">initial state</A>.
-
-</DL>
-
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

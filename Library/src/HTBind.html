@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 15-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Jun-1996 -->
   <TITLE>W3C Reference Library libwww File Suffix Binding</TITLE>
 </HEAD>
 <BODY>
@@ -159,21 +159,6 @@ extern BOOL HTBind_getFormat (const char *	filename,
 			      HTEncoding *	cte,
 			      HTLanguage *	lang,
 			      double *		quality);
-</PRE>
-<H2>
-  Multi Format Management
-</H2>
-<P>
-Use the set of bindings to find the combination of language, media type and
-encoding of a given anchor. If more than one suffix is found they are all
-searched. The last suffix has highest priority, the first one lowest. Returns
-the format, encoding, and language found. See also
-<CODE>HTBind_getBindings</CODE>, and <CODE>HTBind_getFormat</CODE>.
-<PRE>
-#define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
-#define MAX_SUFF 15		/* Maximum number of suffixes for a file */
-
-extern HTContentDescription * HTBind_getDescription (char * file);
 </PRE>
 <P>
 End of declaration module

@@ -1,0 +1,30 @@
+<HTML>
+<HEAD>
+  <TITLE>Architecture - File Suffix Binding</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<H1>
+  File Suffix Binding
+</H1>
+<P>
+This module sets up the binding between a file suffix and a media type, language,
+encoding etc. In a client application the suffixes are used in protocols
+that does not directly support media types etc., like FTP, and in server
+applications they are used to make the bindings between the server and the
+local file store that the server can serve to the rest of the world (well
+almost). The <A HREF="../../src/HTFormat.html">HTFormat module</A> holds
+this information against the accept headers received in a request and uses
+if for format negotiation. All the binding management can all be replaced
+by a database interface.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

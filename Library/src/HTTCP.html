@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Socket Open and Close</TITLE>
 </HEAD>
 <BODY>
@@ -66,6 +66,15 @@ and 32 on SVR4). Returns <CODE>HT_ERROR</CODE> or <CODE>HT_OK</CODE>.
 <PRE>
 extern int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog);
 </PRE>
+
+<H2>Closing a socket</H2>
+
+Closes a socket
+
+<PRE>
+extern int HTDoClose (HTNet * net);
+</PRE>
+
 <PRE>
 #endif   /* HTTCP_H */
 </PRE>

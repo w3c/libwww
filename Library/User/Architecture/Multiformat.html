@@ -1,22 +1,62 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Format Negotiation</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <TITLE>Architecture - Stream Pipe Manager</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>The Data Format Manager</H1>
-
-This is explained in the <A HREF="../Using/Prefs.html">User's Guide</A>
-
+<H1>
+  The Stream Pipe Manager
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+The Stream Pipe Manager is responsible for setting up the stream pipe from
+the <A HREF="../../src/HTChannl.html">Channel Object</A> to the
+<A HREF="../../src/HTReq.html">Request Object</A> when data is arriving,
+for example as a response to s <A HREF="../../src/HTTP.html">HTTP</A>
+<B>Get</B> request. As data arrives, we start to parse it and the more we
+know the more we can build up our stream pipe. For example, in the case of
+HTTP, we first have a stream that can parse the HTTP response line containing
+"<CODE>200 OK</CODE>". Then we have a <A HREF="../../src/HTMIME.html">MIME
+parser</A> for handling the MIME headers. When the MIME headers have been
+parsed, we know the content type and any encoding of the MIME body. If we
+need to decode a chunked encoding then we set up a chunked decoder, and if
+we have to parse a HTML object then we set up a HTML parser.
+<P>
+The Format Manager is also responsible for keeping track of the
+"<I>preferences</I>" of the application and/or user. It is an integral part
+of the Web and HTTP, that the client application can express its preferences
+as a set of "accept" headers in a HTTP request. This task is highly related
+to the task mentioned above as we there use the modules that are registered
+and here tell the remote server what we are capable of doing and what we
+would prefer.
+<P>
+Currently there are four dimensions for handling "accept" headers:
+<P>
+<UL>
+  <LI>
+    <A HREF="#type">Content Type Converters and Presenters</A>
+  <LI>
+    <A HREF="#encoding">Content Encoders and Decoders</A>
+  <LI>
+    <A HREF="#charset">Content Charsets</A>
+  <LI>
+    <A HREF="#language">Natural Languages</A>
+</UL>
+<P>
+The application can assign its preferences in two ways: either <I>locally</I>
+to a single request or <I>globally</I> to all requests. The local assignment
+can either <I>add to </I>or <I>override</I> the global settings depending
+on how they are registered. All local registration is handled by the
+<A HREF="../../src/HTReq.html">Request Object</A> and the global registration
+is handled by the Format Manager
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

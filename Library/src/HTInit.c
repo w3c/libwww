@@ -10,11 +10,9 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTFormat.h"
-#include "HTList.h"
-#include "HTProt.h"
-#include "HTReqMan.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "HTReqMan.h"		/* @@@ Should be removed */
 #include "HTInit.h"				         /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -25,16 +23,6 @@
 */
 PUBLIC void HTConverterInit (HTList * c)
 {
-    /*
-    ** This set of converters uses the HTML/HText interface.
-    ** If you do not want this interface then replace them!
-    */
-    HTConversion_add(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
-    HTConversion_add(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-    HTConversion_add(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
-    HTConversion_add(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
-    HTConversion_add(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
-
     /*
     ** You can get debug information out through the debug stream if you set
     ** the debug format appropriately

@@ -55,6 +55,7 @@ typedef enum _FileState {
 typedef struct _file_info {
     FileState		state;		  /* Current state of the connection */
     char *		local;		/* Local representation of file name */
+    struct stat		stat_info;	      /* Contains actual file chosen */
 } file_info;
 
 struct _HTStream {
@@ -421,10 +422,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		file->state = FS_TRY_FTP;
 		break;
 	    }
-
-	    /* If cache element then jump directly to OPEN FILE state */
-	    file->state = HTAnchor_cacheHit(anchor) ?
-		FS_NEED_OPEN_FILE : FS_DO_CN;
+	    file->state = FS_DO_CN;
 	    break;
 
 	  case FS_DO_CN:
@@ -437,53 +435,60 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** We stat the file in order to find the size and to see it if
 	    ** exists.
 	    */
-	    {
-		struct stat stat_info;	      /* Contains actual file chosen */
-		if (HTRequest_negotiation(request)) {
-		    char *new_path=HTMulti(request,file->local,&stat_info);
-		    if (new_path) {
-			HT_FREE(file->local);
-			file->local = new_path;
-			HTAnchor_setPhysical(anchor, new_path);
-		    } else {
-			file->state = FS_ERROR;
-			break;
-		    }
+	    if ((HTRequest_negotiation(request) &&
+		 HTMethod_isSafe(HTRequest_method(request)) &&
+		 !HTAnchor_cacheHit(anchor))) {
+ 		char * conneg = HTMulti(request, file->local,&file->stat_info);
+		if (conneg) {
+		    HT_FREE(file->local);
+		    file->local = conneg;
+		    HTAnchor_setPhysical(anchor, conneg);
+		    if (PROT_TRACE)
+			HTTrace("Load File... Found `%s\'\n", conneg);
 		} else {
-		    if (HT_STAT(file->local, &stat_info) == -1) {
-			if (PROT_TRACE)
-			    HTTrace("HTLoadFile.. Can't stat %s\n",
-				    file->local);
-			HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
-				   NULL, 0, "HTLoadFile");
-			file->state = FS_ERROR;
-			break;
-		    }
+		    if (PROT_TRACE)
+			HTTrace("Load File... Not found - even tried content negotiation\n");
+		    file->state = FS_ERROR;
+		    break;
 		}
-		/* Check to see if the 'localname' is in fact a directory */
-		if (((stat_info.st_mode) & S_IFMT) == S_IFDIR)
-		    file->state = FS_PARSE_DIR;
-		else {
-		    /*
-		    ** If empty file then only serve it if it is editable
-		    */
-		    BOOL editable = HTEditable(file->local, &stat_info);
-		    HTBind_getBindings(anchor);
-		    if (editable)
-			HTAnchor_appendMethods(anchor, METHOD_PUT);
-		    if (stat_info.st_size)
-			HTAnchor_setLength(anchor, stat_info.st_size);
-
-		    /* Done with relevant metainformation in anchor */
-		    HTAnchor_setHeaderParsed(anchor);
-
-		    if (!editable && !stat_info.st_size) {
-			HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
-				   NULL, 0, "HTLoadFile");
-			file->state = FS_NO_DATA;
-		    } else
-			file->state = FS_NEED_OPEN_FILE;
+	    } else {
+		if (HT_STAT(file->local, &file->stat_info) == -1) {
+		    if (PROT_TRACE)
+			HTTrace("Load.File... Not found `%s\'\n", file->local);
+		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+				       NULL, 0, "HTLoadFile");
+		    file->state = FS_ERROR;
+		    break;
 		}
+	    }
+
+	    /*
+	    ** Check to see if the 'localname' is in fact a directory
+	    */
+	    if (((file->stat_info.st_mode) & S_IFMT) == S_IFDIR) {
+		file->state = FS_PARSE_DIR;
+		break;
+	    }
+
+	    /*
+	    ** If empty file then only serve it if it is editable
+	    */
+	    {
+		BOOL editable = HTEditable(file->local, &file->stat_info);
+		HTBind_getBindings(anchor);
+		if (editable) HTAnchor_appendMethods(anchor, METHOD_PUT);
+		if (file->stat_info.st_size)
+		    HTAnchor_setLength(anchor, file->stat_info.st_size);
+
+		/* Done with relevant metainformation in anchor */
+		HTAnchor_setHeaderParsed(anchor);
+
+		if (!editable && !file->stat_info.st_size) {
+		    HTRequest_addError(request, ERR_FATAL,NO,HTERR_NO_CONTENT,
+				       NULL, 0, "HTLoadFile");
+		    file->state = FS_NO_DATA;
+		} else
+		    file->state = FS_NEED_OPEN_FILE;
 	    }
 	    break;
 

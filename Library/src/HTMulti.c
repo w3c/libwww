@@ -1,5 +1,5 @@
-/*								      HTMulti.c
-**	MULTIFORMAT HANDLING
+/*
+**	CONTENT NEGOTIATION
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -17,8 +17,215 @@
 #include "HTMulti.h"
 #include "HTFile.h"
 
+#define MULTI_SUFFIX	".multi"/* Extension for scanning formats */
+#define MAX_SUFF	15	/* Maximum number of suffixes for a file */
+#define VARIANTS	4	/* We start with this array size */
+
+typedef struct _HTContentDescription {
+    char *	filename;
+    HTFormat	content_type;
+    HTLanguage	content_language;
+    HTEncoding	content_encoding;
+    HTEncoding	content_transfer;
+    int		content_length;
+    double	quality;
+} HTContentDescription;
+
 PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
 
+/* ------------------------------------------------------------------------- */
+
+/*
+**  Sort the q values in descending order
+*/
+PRIVATE int VariantSort (const void * a, const void * b)
+{
+    HTContentDescription * aa = *(HTContentDescription **) a;
+    HTContentDescription * bb = *(HTContentDescription **) b;
+    return (aa->quality > bb->quality) ? -1 : 1;
+}
+
+PRIVATE BOOL wild_match (HTAtom * tmplate, HTAtom * actual)
+{
+    const char *t, *a;
+    char *st, *sa;
+    BOOL match = NO;
+
+    if (tmplate && actual && (t = HTAtom_name(tmplate))) {
+	if (!strcmp(t, "*"))
+	    return YES;
+
+	if (strchr(t, '*') &&
+	    (a = HTAtom_name(actual)) &&
+	    (st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
+
+	    *sa = 0;
+	    *st = 0;
+
+	    if ((*(st-1)=='*' &&
+		 (*(st+1)=='*' || !strcasecomp(st+1, sa+1))) ||
+		(*(st+1)=='*' && !strcasecomp(t,a)))
+		match = YES;
+
+	    *sa = '/';
+	    *st = '/';
+	}    
+    }
+    return match;
+}
+
+/*
+ * Added by takada@seraph.ntt.jp (94/04/08)
+ */
+PRIVATE BOOL lang_match (HTAtom * tmplate, HTAtom * actual)
+{
+    const char *t, *a;
+    char *st, *sa;
+    BOOL match = NO;
+
+    if (tmplate && actual &&
+	(t = HTAtom_name(tmplate)) && (a = HTAtom_name(actual))) {
+	st = strchr(t, '_');
+	sa = strchr(a, '_');
+	if ((st != NULL) && (sa != NULL)) {
+	    if (!strcasecomp(t, a))
+	      match = YES;
+	    else
+	      match = NO;
+	}
+	else {
+	    if (st != NULL) *st = 0;
+	    if (sa != NULL) *sa = 0;
+	    if (!strcasecomp(t, a))
+	      match = YES;
+	    else
+	      match = NO;
+	    if (st != NULL) *st = '_';
+	    if (sa != NULL) *sa = '_';
+	}
+    }
+    return match;
+}
+
+PRIVATE double type_value (HTAtom * content_type, HTList * accepted)
+{
+    if (!content_type) return (1.0);
+    if (accepted) {
+	HTList * cur = accepted;
+	HTPresentation * pres;
+	HTPresentation * wild = NULL;
+	while ((pres = (HTPresentation *) HTList_nextObject(cur))) {
+	    if (pres->rep == content_type)
+		return pres->quality;
+	    else if (wild_match(pres->rep, content_type))
+		wild = pres;
+	}
+	if (wild) return wild->quality;
+	else return (0.0);				  /* Nothing matched */
+    }
+    return (1.0);				      /* We accept all types */
+}
+
+PRIVATE double lang_value (HTAtom * language, HTList * accepted)
+{
+    if (!language) return (1.0);
+    if (accepted) {
+	HTList * cur = accepted;
+	HTAcceptNode * node;
+	HTAcceptNode * wild = NULL;
+	while ((node = (HTAcceptNode *) HTList_nextObject(cur))) {
+	    if (node->atom == language)
+		return node->quality;
+	    /*
+	     * patch by takada@seraph.ntt.jp (94/04/08)
+	     * the original line was
+	     * else if (wild_match(node->atom, language)) {
+	     * and the new line is
+	     */
+	    else if (lang_match(node->atom, language))
+		wild = node;
+	}
+	if (wild) return wild->quality;
+	else return (0.0);				  /* Nothing matched */
+    }
+    return (1.0);				  /* We accept all languages */
+}
+
+PRIVATE double encoding_value (HTAtom * encoding, HTList * accepted)
+{
+    if (!encoding) return (1.0);
+    if (accepted) {
+	HTList * cur = accepted;
+	HTAcceptNode * node;
+	HTAcceptNode * wild = NULL;
+	const char * e = HTAtom_name(encoding);
+	if (!strcmp(e, "7bit") || !strcmp(e, "8bit") || !strcmp(e, "binary"))
+	    return (1.0);
+	while ((node = (HTAcceptNode*)HTList_nextObject(cur))) {
+	    if (node->atom == encoding)
+		return node->quality;
+	    else if (wild_match(node->atom, encoding))
+		wild = node;
+	}
+	if (wild) return wild->quality;
+	else return (0.0);				  /* Nothing matched */
+    }
+    return (1.0);				  /* We accept all encodings */
+}
+
+PRIVATE BOOL HTRank (HTRequest * request, HTArray * variants)
+{
+    HTContentDescription * cd;
+    void ** data;
+    if (!variants) {
+	if (PROT_TRACE) HTTrace("Ranking..... No variants\n");
+	return NO;
+    }
+    /* 
+    **  Walk through the list of local and global preferences and find the
+    **  overall q factor for each variant
+    */
+    cd = (HTContentDescription *) HTArray_firstObject(variants, data);
+    while (cd) {
+	double ctq_local  = type_value(cd->content_type, HTRequest_conversion(request));
+	double ctq_global = type_value(cd->content_type, HTFormat_conversion());
+	double clq_local  = lang_value(cd->content_language, HTRequest_language(request));
+	double clq_global = lang_value(cd->content_language, HTFormat_language());
+	double ceq_local  = encoding_value(cd->content_encoding, HTRequest_encoding(request));
+	double ceq_global = encoding_value(cd->content_encoding, HTFormat_contentCoding());
+	if (PROT_TRACE)
+	    HTTrace("Qualities... Content type: %.3f, Content language: %.3f, Content encoding: %.3f\n",
+		    HTMAX(ctq_local, ctq_global),
+		    HTMAX(clq_local, clq_global),
+		    HTMAX(ceq_local, ceq_global));
+	cd->quality *= (HTMAX(ctq_local, ctq_global) *
+			HTMAX(clq_local, clq_global) *
+			HTMAX(ceq_local, ceq_global));
+	cd = (HTContentDescription *) HTArray_nextObject(variants, data);
+    }
+
+    /* Sort the array of all our accepted preferences */
+    HTArray_sort(variants, VariantSort);
+
+    /* Write out the result */
+    if (PROT_TRACE) {
+	int cnt = 1;
+	cd = (HTContentDescription *) HTArray_firstObject(variants, data);
+	HTTrace("Ranking.....\n");
+	HTTrace("RANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING  FILE\n");
+	while (cd) {
+	    HTTrace("%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
+		    cnt++,
+		    cd->quality,
+		    cd->content_type ? HTAtom_name(cd->content_type) : "-",
+		    cd->content_language?HTAtom_name(cd->content_language):"-",
+		    cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
+		    cd->filename ? cd->filename :"-");
+	    cd = (HTContentDescription *) HTArray_nextObject(variants, data);
+	}
+    }
+    return YES;
+}
 
 /* PUBLIC						HTSplitFilename()
 **
@@ -114,7 +321,7 @@ PRIVATE BOOL multi_match (char ** required, int m, char ** actual, int n)
 **		describing the mathing files.
 **
 */
-PRIVATE HTList * dir_matches (char * path)
+PRIVATE HTArray * dir_matches (char * path)
 {
     static char * required[MAX_SUFF+1];
     static char * actual[MAX_SUFF+1];
@@ -125,7 +332,7 @@ PRIVATE HTList * dir_matches (char * path)
     char * multi = NULL;
     DIR * dp;
     struct dirent * dirbuf;
-    HTList * matches = NULL;
+    HTArray * matches = NULL;
 #ifdef HT_REENTRANT
     DIR result;				    /* For readdir_r */
 #endif
@@ -152,7 +359,7 @@ PRIVATE HTList * dir_matches (char * path)
 	goto dir_match_failed;
     }
 
-    matches = HTList_new();
+    matches = HTArray_new(VARIANTS);
 #ifdef HT_REENTRANT
 	while ((dirbuf = (DIR *) readdir_r(dp, &result))) {
 #else
@@ -171,16 +378,25 @@ PRIVATE HTList * dir_matches (char * path)
 	    n = HTSplitFilename(dirbuf->d_name, actual);
 	    if (multi_match(required, m, actual, n)) {
 		HTContentDescription * cd;
-		cd = HTBind_getDescription(dirbuf->d_name);
-		if (cd) {
+		if ((cd = (HTContentDescription  *)
+		     HT_CALLOC(1, sizeof(HTContentDescription))) == NULL)
+		    HT_OUTOFMEM("dir_matches");
+		if (HTBind_getFormat(dirbuf->d_name,
+				     &cd->content_type,
+				     &cd->content_encoding,
+				     &cd->content_transfer,
+				     &cd->content_language,
+				     &cd->quality)) {
 		    if (cd->content_type) {
 			if ((cd->filename = (char *) HT_MALLOC(strlen(dirname) + 2 + strlen(dirbuf->d_name))) == NULL)
 			    HT_OUTOFMEM("dir_matches");
-			sprintf(cd->filename, "%s/%s",
-				dirname, dirbuf->d_name);
-			HTList_addObject(matches, (void*)cd);
+			sprintf(cd->filename, "%s/%s", dirname, dirbuf->d_name);
+			HTArray_addObject(matches, (void *) cd);
+		    } else {
+			HT_FREE(cd);
 		    }
-		    else HT_FREE(cd);
+		} else {
+		    HT_FREE(cd);
 		}
 	    }
 	}
@@ -207,67 +423,53 @@ PRIVATE HTList * dir_matches (char * path)
 */
 PRIVATE char * HTGetBest (HTRequest * req, char * path)
 {
-    HTList * matches;
-    HTList * cur;
-    HTContentDescription * cd;
-    HTContentDescription * best = NULL;
-    char * best_path = NULL;
+    HTArray * variants = NULL;
+    char * representation = NULL;
 
     if (!path || !*path) return NULL;
 
-    matches = dir_matches(path);
-    if (!matches) {
-	if (PROT_TRACE)
-	    HTTrace("No matches.. for \"%s\"\n", path);
+    if ((variants = dir_matches(path)) == NULL) {
+	if (PROT_TRACE) HTTrace("No matches.. for \"%s\"\n", path);
 	return NULL;
     }
 
-    /* BEGIN DEBUG */
-    cur = matches;
-    if (PROT_TRACE)
+    if (PROT_TRACE) {
+	void ** data;
+	HTContentDescription * cd = HTArray_firstObject(variants, data);
 	HTTrace("Multi....... Possibilities for \"%s\"\n", path);
-    if (PROT_TRACE)
-	HTTrace("\nCONTENT-TYPE  LANGUAGE  ENCODING  QUALITY  FILE\n");
-    while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
-	if (PROT_TRACE)
-	   HTTrace("%s\t%s\t%s\t  %.5f  %s\n",
-		   cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
-		   cd->content_language?HTAtom_name(cd->content_language):"-",
-		   cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
-		   cd->quality,
-		   cd->filename        ?cd->filename                     :"-");
+	HTTrace("     QUALITY CONTENT-TYPE         LANGUAGE ENCODING  FILE\n");
+	while (cd) {
+	    HTTrace("     %.4f  %-20.20s %-8.8s %-10.10s %s\n",
+		    cd->quality,
+		    cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
+		    cd->content_language?HTAtom_name(cd->content_language):"-",
+		    cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
+		    cd->filename        ?cd->filename                    :"-");
+	    cd = (HTContentDescription *) HTArray_nextObject(variants, data);
+	}
     }
-    if (PROT_TRACE) HTTrace("\n");
-    /* END DEBUG */
 
     /*
-    ** Finally get best that is readable
+    ** Finally get the best variant which is readable
     */
-    if (HTRank(matches,
-	       HTRequest_conversion(req),
-	       HTRequest_language(req),
-	       HTRequest_encoding(req))) {
-	cur = matches;
-	while ((best = (HTContentDescription*)HTList_nextObject(cur))) {
-	    if (best && best->filename) {
-		if (access(best->filename, R_OK) != -1) {
-		    StrAllocCopy(best_path, best->filename);
-		    break;
-		} else if (PROT_TRACE)
-		    HTTrace("Bad News.... \"%s\" is not readable\n",
-			    best->filename);
+    if (HTRank(req, variants)) {
+	void ** data;
+	HTContentDescription * cd = HTArray_firstObject(variants, data);
+	while (cd) {
+	    if (cd->filename) {
+		if (access(cd->filename, R_OK) != -1)
+		    StrAllocCopy(representation, cd->filename);
+		else if (PROT_TRACE)
+		    HTTrace("Multi....... `%s\' is not readable\n",
+			    cd->filename);
 	    }
+	    HT_FREE(cd->filename);
+	    HT_FREE(cd);
+	    cd = (HTContentDescription *) HTArray_nextObject(variants, data);
 	}
-    } /* Select best */
-
-    cur = matches;
-    while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
-	if (cd->filename) HT_FREE(cd->filename);
-	HT_FREE(cd);
     }
-    HTList_delete(matches);
-
-    return best_path;
+    HTArray_delete(variants);
+    return representation;
 }
 
 
@@ -375,8 +577,7 @@ PUBLIC char * HTMulti (HTRequest *	req,
     if (*(path+strlen(path)-1) == '/') {	/* Find welcome page */
 	new_path = get_best_welcome(path);
 	if (new_path) path = new_path;
-    }
-    else{
+    } else{
 	char * multi = strrchr(path, MULTI_SUFFIX[0]);
 	if (multi && !strcasecomp(multi, MULTI_SUFFIX)) {
 	    if (PROT_TRACE)
@@ -387,13 +588,11 @@ PUBLIC char * HTMulti (HTRequest *	req,
 		return NULL;
 	    }
 	    path = new_path;
-	}
-	else {
+	} else {
 	    stat_status = HT_STAT(path, stat_info);
 	    if (stat_status == -1) {
 		if (PROT_TRACE)
-		    HTTrace(
-			    "AutoMulti... can't stat \"%s\"(errno %d)\n",
+		    HTTrace("AutoMulti... can't stat \"%s\"(errno %d)\n",
 			    path, errno);
 		if (!(new_path = HTGetBest(req, path))) {
 		    if (PROT_TRACE)
@@ -413,8 +612,7 @@ PUBLIC char * HTMulti (HTRequest *	req,
 	    HTTrace("Stat fails.. on \"%s\" -- giving up (errno %d)\n",
 		    path, errno);
 	return NULL;
-    }
-    else {
+    } else {
 	if (!new_path) {
 	    StrAllocCopy(new_path, path);
 	    return new_path;

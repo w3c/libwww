@@ -1,26 +1,62 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Request Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <TITLE>Architecture - Request Class</TITLE>
+  <LINK REL=ToC HREF="Overview.html">
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>The Request Object</H1>
-
-<IMG SRC="../../../Icons/WWW/construction" ALT="Under Construction"> Under
-construction. Any suggestions or ideas are welcome at
-<EM>libwww@w3.org</EM>.
-
+<H1>
+  The Request Class
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+Libwww is based on a request/response paradigm and the Request class defines
+"<I>an operation to be performed on a URL</I>". The request object is the
+main entry point for an application to issue a request to the Library - all
+operations on a URL <I>must</I> use a Request object. The request object
+is application independent in that both servers and clients use the same
+Request class. Examples of requests passed to the Library are a client
+application issuing a <B>GET</B> request on a HTTP URL, or a server issuing
+a load on a local file URL. The only difference is that the client gets the
+input from a user whereas the server gets the input via the network.
+<P>
+A request object is created with a default set of parameters which are applicable
+for many URL requests but the class defines a huge set of methods that an
+be used to customize a request for a particular purpose. Example of things
+that you can define is natural language, media types, what RFC 822 headers
+to use, whether the request should be refreshed from cache etc. Scroll down
+and see the set of parameters you can tune.
+<P>
+A request object is registered in the library by issuing an operation on
+a URL - for example <B>PUT</B>, <B>POST</B>, or <B>DELETE</B>. You can find
+many higher level "request issuing functions" in the
+<A HREF="../../src/HTAccess.html">Access module</A> - the methods defined
+by the Request class itself are very low level but can of course be used
+directly if needed.
+<P>
+Whereas the lifetime of the URL (in form of an anchor) often is very long
+(for example as long as the application is running), the lifetime of a request
+is limited to the time it takes to service the request. The core does not
+automatically delete any request object created by the application - it is
+for the application to do. In many cases a request object can be deleted
+when any of the <A HREF="../../src/HTNet.html#callout">termination callback
+functions</A> are called but the application may keep request objects around
+longer than that.
+<P>
+The Library can accept an unlimited number of simultaneous requests passed
+by the application. One of the main functions of the Library core is to handle
+any number of ongoing requests in an intelligent manner by limiting the number
+of active request to the fit the available resources as defined by the
+application. This is described in more detail by the
+<A HREF="../../src/HTNet.html">Net Class</A>.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
-
-
+</BODY></HTML>

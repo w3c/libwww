@@ -1,42 +1,55 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - The Protocol Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <TITLE>Architecture - The Protocol Class</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>The Protocol Object</H1>
-
-The Core Library doesn't know anything about protocol modules. This has the big advantage that an
-application can register any number of protocols including access to the local file system. The
-Library core is independent of whether you make an application capable of speaking all known Internet
-protocols or only can access, for example a HTTP server - to the Library it's all a set of callback
-functions. <P>
-
-The Protocol object handles two types of callback functions: one for a client application and one
-for a server application. This means that you can register not only any type of protocol clients but
-also their server counterparts. Whether it is a client module or a server module, a protocol module
-is identified by an access scheme which is identical to the access scheme known from the URL syntax,
-for example
-
+<H1>
+  The Protocol Class
+</H1>
+<P>
+The Protocol class defines an application level protocol (HTTP, FTP, Gopher,
+etc.) to be used by libwww. Please note that access to the local file system
+also is considered to be an application level protocol treated identically
+to for example the HTTP protocol. The Protocol class does only know about
+the application layer protocol and it relies on the
+<A HREF="../../src/HTTrans.html">Transport Class</A> to do the actual
+communication with the network, the local file system etc. The protocol class
+defines an access method for both a client and a server. A typical client
+application would probably only want to use the client method and a server
+only the server method. However, any application can use both which allows
+it to seamlessly to change between server and client profile as needed.
+<P>
+Libwww doesn't know anything about protocol modules. This has the big advantage
+that an application can register any number of protocols including access
+to the local file system. Libwww is independent of whether you make an
+application capable of speaking all known Internet protocols or only can
+access, for example a HTTP server - to the Library it's all a set of callback
+functions.
+<P>
+The Protocol object handles two types of callback functions: one for a client
+application and one for a server application. This means that you can register
+not only any type of protocol clients but also their server counterparts.
+Whether it is a client module or a server module, a protocol module is identified
+by an access scheme which is identical to the access scheme known from the
+URL syntax, for example
 <PRE>
 	<B>http</B>://www.w3.org
 	<B>ftp</B>://ftp.w3.org
 	etc.
 </PRE>
-
-The <A HREF="../Using/Methods.html">User's Guide</A> describes in detail how you can set up the
-protocol modules in your application.
-
-
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+The <A HREF="../Using/Methods.html">User's Guide</A> describes in detail
+how you can set up the protocol modules in your application.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

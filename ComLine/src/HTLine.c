@@ -24,8 +24,8 @@
 #include "WWWRules.h"
 #include "WWWTrans.h"
 
-#include "HTPlain.h"
-#include "HTBInit.h"
+#include "HTBInit.h"				/* Initialization */
+#include "HTInit.h"
 
 #include "HTLine.h"			     		 /* Implemented here */
 
@@ -269,16 +269,6 @@ PRIVATE int timeout_handler (HTRequest * request)
     HTRequest_kill(request);
     Cleanup(cl, -1);
     return 0;
-}
-
-/*	header_handler
-**	---------------
-**	This function is registered to handle unknown MIME headers
-*/
-PRIVATE int header_handler (HTRequest * request, const char * token)
-{
-    if (SHOW_MSG) HTTrace("Parsing unknown header `%s\'\n", token);
-    return HT_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -595,9 +585,6 @@ int main (int argc, char ** argv)
     HTNetCall_addAfter(redirection_handler, NULL, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
     
-    /* Register our own MIME header handler for extra headers */
-    HTHeader_addParser("*", NO, header_handler);
-
     /* Set timeout on sockets */
     HTEventrg_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
 

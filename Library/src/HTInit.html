@@ -70,10 +70,10 @@ extern void HTAccessInit (void);
   Default MIME Parsers
 </H2>
 <P>
-The core doesn't have any built in MIME parsers, but many of the protocols 
-need them. For instance, many elements of the library rely on the 
-Content-Length being correctly set. HTMIMEInit provides the minimal 
-functionality needed for library reliablilty.
+The core doesn't have any built in MIME parsers, but many of the protocols
+need them. For instance, many elements of the library rely on the Content-Length
+being correctly set. HTMIMEInit provides the minimal functionality needed
+for library reliablilty.
 <PRE>
 extern void HTMIMEInit (void);
 </PRE>
@@ -93,11 +93,7 @@ real threads.
 The <EM>Converters</EM> are used to convert a media type to another media
 type, or to present it on screen. This is a part of the stream stack algorithm.
 The Presenters are also used in the stream stack, but are initialized separately.
-<PRE>
-#include "HTML.h"			/* Uses HTML/HText interface */
-#include "HTPlain.h"			/* Uses HTML/HText interface */
-
-#include "WWWMIME.h"
+<PRE>#include "WWWMIME.h"
 #include "WWWHTML.h"
 #include "WWWStream.h"
 #include "WWWDir.h"

@@ -1,26 +1,30 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Errors</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <TITLE>Architecture - Errors</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>The Error Object</H1>
-
-The error object contains error information about a request. Errors may occur at any instant during
-a request and often an error result in a cascade of errors. This is explained in the <A
-HREF="../Using/Error.html">User's Guide</A>
-
+<H1>
+  The Error Class
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+The Error class provides an easy API for registering errors occurring while
+the Library serves a request. All errors are registered in an "error
+stack"&nbsp;in the <A HREF="../../src/HTReq.html">Request object</A> which
+allows for nested errors. The Error class is both natural language independent
+and application independent in that it uses enumerations in order to refer
+to specific errors. It is for the application to provide an error presentation
+module which interprets the errors associated with a request. An example
+of such an implementation can be found in the
+<A HREF="../../src/HTDialog.html">HTDialog module</A>.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id:
+  Errors.html,v 1.7 1996/05/21 01:23:28 frystyk Exp $
 </ADDRESS>
-</BODY>
-</HTML>
-
-
+</BODY></HTML>

@@ -1,0 +1,30 @@
+<HTML>
+<HEAD>
+  <TITLE>Architecture - The User Profile Class</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<H1>
+  The User Profile Class
+</H1>
+<P>
+The User profile&nbsp;class manages what we know about a <I>user on this
+host</I>. This can for example be the FQDN of the host, the user's email
+address, the time zone, the news server etc. Note that this information does
+not correspond to the actual information for the host but instead represents
+"the information that the user wants to show the world". The user may use
+an arbitrary email address to be used in a
+<A HREF="../../src/HTTPGen.html">HTTP request</A>, for example. The application
+may assign a context to each use which gives the application to extend the
+use of this class.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

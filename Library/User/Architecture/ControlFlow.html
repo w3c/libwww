@@ -1,172 +1,165 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Overview of the Core</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Dec-1995 -->
-<NEXTID N="z78">
+  <!-- Changed by: Henrik Frystyk Nielsen, 11-Dec-1995 -->
+  <NEXTID N="z78">
+  <TITLE>Architecture - Overview of the Core</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>Overview of the Core</H1>
-
-The main concept in the Library is a "request/response" model where an
-application issues a request for a URI (URL). The Library then tries
-to fulfill the request as efficient as possible either by requesting
-the URL at the origin server, a proxy server, a gateway, directly from
-the local file system, or a locally cached version. Data is delivered
-back to the application as soon as it gets ready which guarantees
-minimum access delay for the application. From version 3.0, the
-Library supports threads including its own platform independent thread
-model called "<A HREF="Threads.html">libwww threads</A>". This allows
-multiple requests to be handled simultaneously without blocking the
-application while waiting on data. <P>
-
-<H2>Requests and Responses</H2>
-
-The "request/response" model is illustrated in the control/data
-diagram shown below. The diagram shows only the core modules - the
-other modules are "pasted in" later. Note, that the Library code is to
-the right of the thick vertical line (green), and the application to
-the left can be any type of application, for example a proxy or a
-client. The architecture of the Library does support clients and
-proxies in pretty much the same way as it makes little difference to
-the Library: a client has a user interface whereas a server has a
-network interface. It is a good idea to study the <A
-HREF="../../../LineMode/">Line Mode Browser</A> and the <A
-HREF="../../../Daemon/">httpd</A> as reference implementations using
-the Library to see this duality.<P>
-
-Another thing to note is that the Library from version 3.1 supports
-large scale data flow from the application to the network as well as
-from the network to the application. This has an important impact on
-the functionality that can be put into applications, for example
-allowing collaborative authoring possibilities via the Web. The
-architecture behind this is described in the section <A
-HREF="PostWeb.html">"Post Webs - an API for PUT and POST"</A>.
-
-<P><IMG SRC="LibCore" ALT="Flow"><P>
-
-The thin lines (red) is control flow, the thick lines (blue) is data
-flow and the "lightning" (magenta) is control flow as a result of
-events handled by the Library. Let's see what happens when an
-application issues a request. The description is based on having an
-event loop - this can either be the one provided by the Library or an
-external event loop provided by the application. The section on <A
-HREF="Threads.html">libwww threads</A> explains more on how this can
-be set up. The numbers refer to the figure above.
-
-<OL>
-
-<LI>The event manager is waiting for an event from the application.  This can for example be a user
-clicking the mouse on a link or types a number on the keyboard. When an event arrives, the event
-manager calls the user event handler provided by the application.
-
-<LI>The user event handler creates a request object and uses one of the load methods.
-
-<LI>The Request object creates a new Net object.
-
-<LI>The Net object calls any call back functions registered to be called <EM>before</EM> the request
-is actually started. This can for example be mapping the URL to another destination, checking the
-cache, look for proxy servers and gateways etc.
-
-<LI>if the request has to access the net then the Net object passes it to the protocol object 
-
-<LI>The <EM>after</EM> callback functions are called when the request is terminated. Types of
-operations you want to make here can for example be logging, history update etc. If the
-<EM>before</EM> call back functions implies that no net access is required then the protocol object
-is not used at all.
-
-<LI>The event callback function is now called to actually get the document.
-
-<LI>When data is arriving then the Format manager is contacted to build a stream stack.
-
-<LI>The converted data is either handed from the network to the application <EM>or</EM> from the
-application to the network as it gets ready. If no data is ready, control is given back to the event
-manager.
-
-<LI>If an error occurs then a dialog callback function is called to notify the user
-
-</OL>
-
-This description is the "macro" description of how the core modules
-interact and in the rest of this document we shall see more of the
-details of what is going on inside the core modules and what objects
-are involved. Note that by using a threaded model, the Library can
-handle multiple requests simultaneously. An example on how to do this
-is described in the section "<A HREF="Threads.html">Libwww
-Threads</A>".
-
-<DL>
-
-<DT><A HREF="../../src/HTReq.html">Request Object</A>
-<DD>The access manager is the main entry point for requesting a data object pointed to by a URI. It
-has a set of methods that allows the application to request different services, for example to get a
-URI, post a URI, or to search a URI.
-
-<DT><A HREF="../../src/HTProt.html">Protocol Object</A>
-
-<DD>The protocol manager is invoked by the access manager in order to
-access a document not found in memory or in cache. The manager
-consists of a set of protocol modules handling the access schemes
-HTTP, FTP, NNTP, Gopher, WAIS, Telnet, and access to the local file
-system. The protocol modules are registered dynamically (using static
-linking) and the <A HREF="../Using/">User's Guide</A> describes how
-modules can be registered. Each protocol module is responsible for
-establishing the connection to the remote server (or the local
-file-system) and extract information using a specific access
-method. When data arrives from the network, it is passed on to the
-format manager.
-
-<DT><A HREF="../../src/HTFormat.html">Format Manager</A>
-
-<DD>The stream format manager takes care of the transportation of
-streams of data from the network to the application and vice versa. It
-also performs any parsing and data format conversion requested based
-on a set of registered format converters and a simple algorithm for
-selecting the best conversion. As the protocol modules, data format
-converters can be registered dynamically, and the current set of
-streams includes among others: MIME, SGML, HTML, and LaTeX.
-
-<DT><A HREF="../../src/HTError.html">Error Object</A>
-
-<DD>This module manages an information stack which contains
-information of all errors occurred during the communication with a
-remote server or simply information about the current state. Using a
-stack for this kind of information provides the possibility of nested
-error messages where each message can be classified and filtered
-according to its impact on the current request, for example "Fatal",
-"Non-Fatal", "Warning" etc. The filtering can be used to decide which
-level of messages will be passed back to the user.
-
-<DT><A HREF="../../src/HTNet.html">Net Object</A>
-
-<DD>The net manager provides an interface for handling asynchronous
-sockets which is an integral part of the Library.
-
-<DT><A HREF="../../src/HTEvent.html">Event Manager</A>
-
-<DD>The event manager is a "session layer" handling which thread
-should be the active thread. A thread can either be an internal libwww
-thread or an external thread, for example a Posix thread, and the
-event manager can itself be either the internal Library manager or an
-external event manager. Currently the internal event manager uses a
-select function call to decide which thread should be made the active
-one, however an external event manager can use another decision
-model. One of the design ideas behind the event manager is that it can
-be extended to a full session layer manager handling for example the
-control of a HTTP-NG connection. The event manager is described
-together with the internal thread model in the section "<A
-HREF="Threads.html">Libwww Threads</A>".
-
-</DL>
-
+<H1>
+  Overview of the Core
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+Libwww is built on the request/response paradigm where an application issues
+a request for a URI (URL). Libwww then tries to fulfill the request as efficient
+as possible either by requesting the URL at the origin server, a proxy server,
+a gateway, directly from the local file system, or a locally cached version.
+Data is delivered back to the application as soon as it gets ready which
+guarantees minimum access delay for the application. Libwww is capable of
+accepting many simultaneous requests and handling them in an intelligent
+manner in order to save network bandwidth.
+<H2>
+  Requests and Responses
+</H2>
+<P>
+The request/response paradigm is illustrated in the control/data diagram
+shown below. The diagram shows only the core modules - the other modules
+are "pasted in" later. Note, that libwww code is to the right of the thick
+vertical line (green), and the application to the left can be any type of
+application, for example a proxy or a client. The architecture of libwww
+does support clients and proxies in pretty much the same way as it makes
+little difference to libwww: a client has a user interface whereas a server
+has a network interface.
+<P>
+Another thing to note is that libwww supports large scale data flow from
+the application to the network as well as from the network to the application.
+This has an important impact on the functionality that can be put into
+applications, for example allowing collaborative authoring possibilities
+via the Web. The architecture behind this is described in the section
+<A HREF="PostWeb.html">"Post Webs - an API for PUT and POST"</A>.
+<P>
+<IMG SRC="LibCore.gif" ALT="Flow" WIDTH="550" HEIGHT="475">
+<P>
+The thin lines (red) is control flow, the thick lines (blue) is data flow
+and the "lightning" (magenta) is control flow as a result of events handled
+by libwww. Let's see what happens when an application issues a request. The
+description is based on having an event loop - this can either be the one
+provided by libwww or an external event loop provided by the application.
+The section on <A HREF="Events.html">Threads and Event Loops</A> explains
+more on how this can be set up. The numbers refer to the figure above.
+<P>
+<OL>
+  <LI>
+    The event manager is waiting for an event from the application. This can
+    for example be a user clicking the mouse on a link or types a number on the
+    keyboard. When an event arrives, the event manager calls the user event handler
+    provided by the application.
+  <LI>
+    The user event handler creates a request object and uses one of the load
+    methods.
+  <LI>
+    The Request object creates a new Net object.
+  <LI>
+    The Net object calls any call back functions registered to be called
+    <EM>before</EM> the request is actually started. This can for example be
+    mapping the URL to another destination, checking the cache, look for proxy
+    servers and gateways etc.
+  <LI>
+    If the request has to access the net then the Net object passes it to the
+    protocol object
+  <LI>
+    The <EM>after</EM> callback functions are called when the request is terminated.
+    Types of operations you want to make here can for example be logging, history
+    update etc. If the <EM>before</EM> call back functions implies that no net
+    access is required then the protocol object is not used at all.
+  <LI>
+    The event callback function is now called to actually get the document.
+  <LI>
+    When data is arriving then the Format manager is contacted to build a stream
+    stack.
+  <LI>
+    The converted data is either handed from the network to the application
+    <EM>or</EM> from the application to the network as it gets ready. If no data
+    is ready, control is given back to the event manager.
+  <LI>
+    If an error occurs then a dialog callback function is called to notify the
+    user
+</OL>
+<P>
+This description is the "macro" description of how the core modules interact
+and in the rest of this document we shall see more of the details of what
+is going on inside the core modules and what objects are involved. Note that
+by using a threaded model, libwww can handle multiple requests simultaneously.
+An example on how to do this is described in the section
+"<A HREF="Threads.html">Libwww Threads</A>".
+<DL>
+  <DT>
+    <A HREF="../../src/HTReq.html">Request Object</A>
+  <DD>
+    The access manager is the main entry point for requesting a data object pointed
+    to by a URI. It has a set of methods that allows the application to request
+    different services, for example to get a URI, post a URI, or to search a
+    URI.
+  <DT>
+    <A HREF="../../src/HTProt.html">Protocol Object</A>
+  <DD>
+    The protocol manager is invoked by the access manager in order to access
+    a document not found in memory or in cache. The manager consists of a set
+    of protocol modules handling the access schemes HTTP, FTP, NNTP, Gopher,
+    WAIS, Telnet, and access to the local file system. The protocol modules are
+    registered dynamically (using static linking) and the
+    <A HREF="../Using/">User's Guide</A> describes how modules can be registered.
+    Each protocol module is responsible for establishing the connection to the
+    remote server (or the local file-system) and extract information using a
+    specific access method. When data arrives from the network, it is passed
+    on to the format manager.
+  <DT>
+    <A HREF="../../src/HTFormat.html">Format Manager</A>
+  <DD>
+    The stream format manager takes care of the transportation of streams of
+    data from the network to the application and vice verse. It also performs
+    any parsing and data format conversion requested based on a set of registered
+    format converters and a simple algorithm for selecting the best conversion.
+    As the protocol modules, data format converters can be registered dynamically,
+    and the current set of streams includes among others: MIME, SGML, HTML, and
+    LaTeX.
+  <DT>
+    <A HREF="../../src/HTError.html">Error Object</A>
+  <DD>
+    This module manages an information stack which contains information of all
+    errors occurred during the communication with a remote server or simply
+    information about the current state. Using a stack for this kind of information
+    provides the possibility of nested error messages where each message can
+    be classified and filtered according to its impact on the current request,
+    for example "<I>Fatal</I>", "<I>Non-Fatal</I>", "<I>Warning</I>" etc. The
+    filtering can be used to decide which level of messages will be passed back
+    to the user.
+  <DT>
+    <A HREF="../../src/HTNet.html">Net Object</A>
+  <DD>
+    The net manager provides an interface for handling asynchronous sockets which
+    is an integral part of libwww.
+  <DT>
+    <A HREF="../../src/HTEvent.html">Event Manager</A>
+  <DD>
+    The event manager is a "session layer" handling which thread should be the
+    active thread. A thread can either be a pseudo thread or a native thread,
+    for example a Posix thread, and the event loop can be provied by the application.
+    Libwww comes with an example of an event loop which ses a
+    <CODE>select()</CODE> function call to decide which thread should be made
+    the active one, however the event loop may use another decision model. One
+    of the design ideas behind the event manager is that it can be extended to
+    a full session layer manager handling for example the control of a HTTP-NG
+    connection. 
+</DL>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -1,10 +1,11 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Reference Library libwww Format Negotiation</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww Stream Pipe Manager</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  The Format Manager
+  The Stream Pipe Manager
 </H1>
 <PRE>
 /*
@@ -13,18 +14,18 @@
 */
 </PRE>
 <P>
-The Format Manager is responsible for setting up the stream pipe from the
-<A HREF="HTChannl.html">Channel Object</A> to the <A HREF="HTReq.html">Request
-Object</A> when data is arriving, for example as a response to s
-<A HREF="HTTP.html">HTTP</A> <B>Get</B> request. As data arrives, we start
-to parse it and the more we know the more we can build up our stream pipe.
-For example, in the case of HTTP, we first have a stream that can parse the
-HTTP response line containing "<CODE>200 OK</CODE>". Then we have a
-<A HREF="HTMIME.html">MIME parser</A> for handling the MIME headers. When
-the MIME headers have been parsed, we know the content type and any encoding
-of the MIME body. If we need to decode a chunked encoding then we set up
-a chunked decoder, and if we have to parse a HTML object then we set up a
-HTML parser.
+The Stream Pipe Manager is responsible for setting up the stream pipe from
+the <A HREF="HTChannl.html">Channel Object</A> to the
+<A HREF="HTReq.html">Request Object</A> when data is arriving, for example
+as a response to s <A HREF="HTTP.html">HTTP</A> <B>Get</B> request. As data
+arrives, we start to parse it and the more we know the more we can build
+up our stream pipe. For example, in the case of HTTP, we first have a stream
+that can parse the HTTP response line containing "<CODE>200 OK</CODE>". Then
+we have a <A HREF="HTMIME.html">MIME parser</A> for handling the MIME headers.
+When the MIME headers have been parsed, we know the content type and any
+encoding of the MIME body. If we need to decode a chunked encoding then we
+set up a chunked decoder, and if we have to parse a HTML object then we set
+up a HTML parser.
 <P>
 The Format Manager is also responsible for keeping track of the
 "<I>preferences</I>" of the application and/or user. It is an integral part
@@ -81,18 +82,6 @@ encodings, and one for content transfer encodings:
     <A HREF="#CEStack">The Content Encoding Stream Stack</A>
   <LI>
     <A HREF="#CTEStack">The Content Transfer Encoding Stream Stack</A>
-</UL>
-<P>
-As part of the HTTP content negotiation, a server must be able to match the
-preferences sent by the client in an HTTP request with the possible set of
-documents that it has avaiable fro this URL. For example , it may have an
-English and a Danish version in which case it looks at the Accept-Language
-header and sees what the client prefers. The Library has a simple "Match"
-algorithm for finding the best match.
-<P>
-<UL>
-  <LI>
-    <A HREF="#ranking">Content negotiation</A>
 </UL>
 <P>
 This module is implemented by <A HREF="HTFormat.c">HTFormat.c</A>, and it
@@ -549,28 +538,6 @@ extern HTList * HTFormat_charset	(void);
 This is a convenience function that might make life easier.
 <PRE>
 extern void HTFormat_deleteAll (void);
-</PRE>
-<H2>
-  <A NAME="ranking">Ranking of Accepted Formats</A>
-</H2>
-<P>
-This function is used when the best match among several possible documents
-is to be found as a function of the accept headers sent in the client request.
-<PRE>
-typedef struct _HTContentDescription {
-    char *	filename;
-    HTFormat	content_type;
-    HTLanguage	content_language;
-    HTEncoding	content_encoding;
-    HTEncoding	content_transfer;
-    int		content_length;
-    double	quality;
-} HTContentDescription;
-
-extern BOOL HTRank (HTList * possibilities,
-		    HTList * accepted_content_types,
-		    HTList * accepted_content_languages,
-		    HTList * accepted_content_encodings);
 </PRE>
 <H2>
   <A NAME="CTStack">The Content Type Stream Stack</A>

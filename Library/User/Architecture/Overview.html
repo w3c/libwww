@@ -12,14 +12,15 @@
   Libwww Architecture
 </H1>
 <P>
-The W3C Reference Library, a.k.a. Library of Common Code, is a general code
-base written in portable C that can be used as a basis for building clients,
-servers and many other Web applications. It contains reference code for accessing
-HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local file system.
-Furthermore it provides modules for parsing, managing and presenting hypertext
-objects to the user and a wide spectra of generic programming utilities.
-The Library is the basis for many <A HREF="../">World-Wide Web</A> applications
-and the W3C reference applications are built on top of it.
+The W3C Reference Library, a.k.a. Library of Common Code - or libwww, is
+a general code base written in portable C that can be used as a basis for
+building clients, servers and many other Web applications. It contains reference
+code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the
+local file system. Furthermore it provides modules for parsing, managing
+and presenting hypertext objects to the user and a wide spectra of generic
+programming utilities. The Library is the basis for many
+<A HREF="../">World-Wide Web</A> applications and many W3C reference applications
+are built on top of it.
 <P>
 This document describes the architecture of the Library in generic terms
 without referring too much directly to the code itself. It is meant to give
@@ -42,27 +43,37 @@ for printout. Please note that not all links in this version work!
     <A HREF="ControlFlow.html">The Core</A>
     <UL>
       <LI>
-	<A HREF="DataStructures.html">Core Classes and APIs</A>
-      <LI>
-	<A HREF="Anchors.html">The Anchor Class</A>
-      <LI>
-	<A HREF="Request.html">The Request Object</A>
-      <LI>
-	<A HREF="Threads.html">The Net Object</A>
-      <LI>
-	<A HREF="Errors.html">The Error Object</A>
-      <LI>
-	<A HREF="Streams.html">The Stream Object</A>
-      <LI>
-	<A HREF="Protocol.html">The Protocol Object</A>
-      <LI>
-	<A HREF="Multiformat.html">The Data Format Manager</A>
-      <LI>
-	<A HREF="Events.html">Internal and External Events</A>
+	<A HREF="Request.html">The Request Class</A>
       <LI>
 	<A HREF="PostWeb.html">Post Web - a Generic Model for Posting on the Web</A>
       <LI>
+	<A HREF="Anchors.html">The Anchor Class</A>
+      <LI>
+	<A HREF="UserProfile.html">The User Profile Class</A>
+      <LI>
+	<A HREF="Events.html">Threads and Event Loops</A>
+      <LI>
+	<A HREF="Errors.html">The Error Class</A>
+      <LI>
+	<A HREF="Alert.html">The Alert Class</A>
+      <LI>
+	<A HREF="Bind.html">File Suffix Binding</A>
+      <LI>
+	<A HREF="Streams.html">The Stream Class</A>
+      <LI>
+	<A HREF="IOStreams.html">Input and Output Streams</A>
+      <LI>
+	<A HREF="Multiformat.html">The Stream Pipe Manager</A>
+      <LI>
 	<A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>
+      <LI>
+	<A HREF="Host.html">The Host Information Class</A>
+      <LI>
+	<A HREF="Threads.html">The Net Class</A>
+      <LI>
+	<A HREF="Transport.html">The Transport Class</A>
+      <LI>
+	<A HREF="Protocol.html">The Protocol Class</A>
     </UL>
   <LI>
     <A HREF="App.html">Application Modules</A>
@@ -76,7 +87,8 @@ for printout. Please note that not all links in this version work!
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id:
-  Overview.html,v 1.14 1996/05/15 17:28:14 frystyk Exp $
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

@@ -1,49 +1,65 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww FORMAT NEGOTIATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww Content Negotiation</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Multiformat Handling</H1>
-
+<H1>
+  Content Negotation
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
+<P>
+As part of the HTTP content negotiation, a server must be able to match the
+preferences sent by the client in an HTTP request with the possible set of
+documents that it has avaiable for this URL. For example , it may have an
+English and a Danish version in which case it looks at the
+<CODE>Accept-Language</CODE> header and sees what the client prefers. The
+Library has a simple "Match" algorithm for finding the best as specified
+by the HTTP specification. As the content algorithm is part of the File Interface
+then all file access regardless of whether it is from a server or a client
+application will be able to content negotiotion.
+<P>
 This module is implemented by <A HREF="HTMulti.c">HTMulti.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
-
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>
 <PRE>
 #ifndef HTMULTI_H
 #define HTMULTI_H
 
 #include "HTReq.h"
-
-/*
-**	Set default file name for welcome page on each directory.
-*/
-extern void HTAddWelcome (char * welcome_name);
-
-/*
-**	Perform multiformat handling
-*/
+</PRE>
+<P>
+This function is used when the best match among several possible documents
+is to be found as a function of the accept headers sent in the client request.
+<H2>
+  Set the default Welcome page
+</H2>
+<P>
+Set default file name for welcome page on each directory.
+<PRE>extern void HTAddWelcome (char * welcome_name);
+</PRE>
+<H2>
+  Content Negotiation Algorithm
+</H2>
+<P>
+This function looks for a set of <A HREF="HTBind.html">bindings</A> between
+a set of possible objects to be served on a request on the local file system.
+<PRE>
 extern char * HTMulti (HTRequest *	req,
 		      char *		path,
 		      struct stat *	stat_info);
-
-#endif /* HTMULTI_H */
-
 </PRE>
-
-<HR>
+<PRE>
+#endif /* HTMULTI_H */
+</PRE>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

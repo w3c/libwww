@@ -11,7 +11,8 @@
   W3C Library Interfaces
 </H1>
 <P>
-This is an overview of all <I>interfaces</I> in the W3C Reference Library.
+The W3C Reference Library consists of a set of small APIs called
+<I>interfaces</I>. This section is an overview of all interfaces in the Library.
 An interface can cover multiple related C modules and it is defined by a
 <B>WWW*.h</B> include file, for example
 <A HREF="../../src/WWWCore.html">WWWCore.h</A>. On
@@ -21,20 +22,21 @@ and data objects. You can also have a look at the
 <A HREF="../../src/windows/wwwlist.txt">complete list of all public
 functions</A>.
 <P>
-<A NAME="headers"></A> Every module in the Library has a HTML document associated
-with it containing a detailed description of the functionality and interface
-to other modules. This page is the top node for the implementation specific
-documentation and contains links to all the modules in the Library. The
-documentation is dynamically kept up to date as the actual include files
-(.h) are generated from the HTML documents using the
-<A HREF="../../../LineMode/">Line Mode Browser</A>.
+Every module in the Library has a HTML document associated with it containing
+a detailed description of the functionality and interface to other modules.
+This page is the top node for the implementation specific documentation and
+contains links to all the modules in the Library. The documentation is
+dynamically kept up to date as the actual include files (.h) are generated
+from the HTML documents using the <A HREF="../../../LineMode/">Line Mode
+Browser</A>.
 <P>
-When compiling the Library please make sure that you have a relatively new
-version of the <A HREF="../../../LineMode/">Line Mode Browser</A> that parses
-the HTML documents correctly (2.13 and newer versions). Find out what version
-of the Line Mode Browser you are using by typing
+If you are changing any of the interfaces then please note that when compiling
+make sure that you have a relatively new version of the
+<A HREF="../../../LineMode/">Line Mode Browser</A> that parses the HTML documents
+correctly (2.13 and newer versions). Find out what version of the Line Mode
+Browser you are using by typing
 <PRE>
-	./www -version
+	www -version
 </PRE>
 <P>
 Also remember that when editing the module interfaces or adding functionality
@@ -181,7 +183,7 @@ specific modules which are required to compile and build the DIRECTORY DLL.
 <P>
 This interface provides a set of specialized stream. For example a stream
 for guessing unknown media types from magic words. It also contains streams
-for downloading a document into a memory buffer, counting content lenght
+for downloading a document into a memory buffer, counting content length
 and much more.
 <P>
 <UL>
@@ -351,6 +353,7 @@ therefore by use of HTTP forward all requests to for example a proxy server
 which then handle the communications with the remote server, for example
 using FTP about the document and return it to the application (proxy client)
 using HTTP.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwrules.dll</B>
@@ -366,6 +369,7 @@ using HTTP.
 This module provides some "make life easier" functions in order to get the
 application going. They help you generate the first anchor, also called the
 <EM>home anchor</EM>. It also contains a nice set of default WWW addresses.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwapp.dll</B>
@@ -396,7 +400,8 @@ directly if desired.
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id:
-  Overview.html,v 1.13 1996/05/15 17:29:00 frystyk Exp $
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

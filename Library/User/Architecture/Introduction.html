@@ -1,64 +1,61 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Introduction</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Jul-1995 -->
-</HEAD>  
+  <!-- Changed by: Henrik Frystyk Nielsen,  6-Jul-1995 -->
+  <TITLE>Architecture - Introduction</TITLE>
+  <LINK REL="ToC" HREF="Overview.html">
+</HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
 <A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
-
-<H1>Introduction</H1>
-
-The W3C Reference Library is a general code base that can be used as a
-basis for building a large variety of World-Wide Web applications. Its
-main purpose is to provide services to transmit data objects rendered
-in many different media types either to or from a remote server using
-the most common Internet access methods or the local file system. It
-provides plain C reference implementations of those specifications and
-is especially designed to be used on a large set of different
-platforms. Version 3.1 supports more than 20 Unix flavors, VMS,
-Windows NT, and ongoing work is being done to extend the set of
-platforms.<P>
-
-Even though plain C does not support an object oriented model but
-merely enables the concept, many of the data structures in the Library
-are derived from the class notation. This leads to situations where
-forced type casting is required in order to use a reference to a
-subclass where a superclass is expected. The forced type casting
-problem and inheritance in general would be solved if an object
-oriented programming language was to be used instead of C, but the
-current standardization and deployment level of object oriented
-languages in general would imply that a part of the portability would
-get lost in the transition. There are several intermediate solutions
-under consideration where one or more object oriented APIs built on
-top of the Library provides the application programmer with a cleaner
-interface. <P>
-
-Many of the features of the Library are demonstrated in the <A
-HREF="../../../LineMode/">Line Mode Browser</A> which is a text
-terminal client built right on top of the Library. Even though this
-application is usable as an independent Web application, its main
-purpose is to show a working example of how the Library can be
-used. However, it is important to note that the Line Mode Browser is
-only <EM>one</EM> way of using the Library and many other applications
-may want to use it in other ways.<P>
-
-The development of the W3C Reference Library was started by <A
-HREF="../../../People.html#BernersLee">Tim Berners-Lee</A> in 1990,
-and today the Library is a multi functional code base with a large
-amount of knowledge about network programming and portability built
-into it with help from <A HREF="../../../People.html#Luotonen">Ari
-Luotonen</A>, <A HREF="../../../People.html#Groff">Jean-Francois
-Groff</A>, <A HREF="../../../People/howcome/">H&aring;kon W. Lie</A>
-and a large number of people on the Internet.
-
+<H1>
+  Introduction
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A
-HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+The W3C Reference Library is a general code base that can be used as a basis
+for building a large variety of World-Wide Web applications. Its main purpose
+is to provide services to transmit data objects rendered in many different
+media types either to or from a remote server using the most common Internet
+access methods or the local file system. It provides plain C reference
+implementations of those specifications and is especially designed to be
+used on a large set of different platforms. Version 3.1 supports more than
+20 Unix flavors, VMS, Windows NT, and ongoing work is being done to extend
+the set of platforms.
+<P>
+Even though plain C does not support an object oriented model but merely
+enables the concept, many of the data structures in the Library are derived
+from the class notation. This leads to situations where forced type casting
+is required in order to use a reference to a subclass where a superclass
+is expected. The forced type casting problem and inheritance in general would
+be solved if an object oriented programming language was to be used instead
+of C, but the current standardization and deployment level of object oriented
+languages in general would imply that a part of the portability would get
+lost in the transition. There are several intermediate solutions under
+consideration where one or more object oriented APIs built on top of the
+Library provides the application programmer with a cleaner interface.
+<P>
+Many of the features of the Library are demonstrated in the
+<A HREF="../../../LineMode/">Line Mode Browser</A> which is a text terminal
+client built right on top of the Library. Even though this application is
+usable as an independent Web application, its main purpose is to show a working
+example of how the Library can be used. However, it is important to note
+that the Line Mode Browser is only <EM>one</EM> way of using the Library
+and many other applications may want to use it in other ways.
+<P>
+The development of the W3C Reference Library was started by
+<A HREF="../../../People.html#BernersLee">Tim Berners-Lee</A> in 1990, and
+today the Library is a multi functional code base with a large amount of
+knowledge about network programming and portability built into it with help
+from <A HREF="../../../People.html#Luotonen">Ari Luotonen</A>,
+<A HREF="../../../People.html#Groff">Jean-Francois Groff</A>,
+<A HREF="../../../People/howcome/">H&aring;kon W. Lie</A> and a large number
+of people on the Internet.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML> 
+</BODY></HTML>

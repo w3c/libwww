@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-# Makefile.in generated automatically by automake 0.32 from Makefile.am
+# Makefile.in generated automatically by automake 1.0 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -39,6 +39,7 @@ INSTALL_SCRIPT = ${INSTALL} -m 755
 transform = s,x,x,
 
 SUFFIXES = .files .def
+# PL  := $(wildcard *.pl) I don't think we need this anymore - EGP
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -49,13 +50,12 @@ BUILT_SOURCES = \
 	wwwstream.def	wwwhtml.def	wwwhttp.def \
 	wwwmime.def	wwwnews.def	wwwrules.def \
 	wwwtelnt.def	wwwutils.def	wwwwais.def \
-	wwwtrans.def	wwwlist.txt
+	wwwtrans.def
 
 EXTRA_DIST = \
 	wwwdll.def \
 	$(SRC) \
-	$(MAK) \
-	$(PL)
+	$(MAK)
 mkinstalldirs = $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = ../../../config.h
 DIST_COMMON = README Makefile.am Makefile.in README
@@ -146,13 +146,10 @@ mostlyclean distclean maintainer-clean
 
 SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
-PL  := $(wildcard *.pl)
+#	$(PL) - EGP
 
 .files.def:
 	../../../config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
-
-wwwlist.txt:
-	ls -1 ../*.c | sed -e s=\.\./==1 | ../../../config/makedefs.pl @ > wwwlist.txt
 .SUFFIXES:
 .SUFFIXES: $(SUFFIXES)
 

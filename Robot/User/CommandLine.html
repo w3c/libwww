@@ -1,123 +1,146 @@
 <HTML>
 <HEAD>
-<TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 10-Feb-1996 -->
-<NEXTID N="z29">
+  <!-- Changed by: Henrik Frystyk Nielsen, 10-Feb-1996 -->
+  <NEXTID N="z29">
+  <TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
 </HEAD>
-
 <BODY>
-
+<P>
 <A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../"><IMG ALT="Robot" SRC="../../Icons/WWW/robot48x"></A>
 <IMG ALT="MANUAL" SRC="../../Icons/WWW/doc48x">
-
-<H1>Command Line Syntax</H1>
-
+<H1>
+  Command Line Syntax
+</H1>
+<P>
 The generic syntax is:
-
 <PRE>
 	webbot [ <A HREF="#z19">options</A> ]  [ <A HREF="#z16">docaddress</A> [ <A HREF="#z17">keywords</A> ]]
 </PRE>
-
-<H2><A NAME="z19">Options</A></H2>
-
-The order of the options is not important and options can in fact be specified on either side of any
-<A HREF="#z16"NAME="z14">docaddress</A>. Currently available options are:-
-
-<H3>Getting Help</H3>
-
+<H2>
+  <A NAME="z19">Options</A>
+</H2>
+<P>
+The order of the options is not important and options can in fact be specified
+on either side of any <A HREF="#z16"NAME="z14">docaddress</A>. Currently
+available options are:-
+<H3>
+  Getting Help
+</H3>
 <DL>
-<DT><B>-help</B> or <B>-?</B>
-<DD>Load this file from directly into the browser
-<DT><B>-v [ a | b | c | g | p | s | t | u ] </B>
-<DD>Verbose mode: Gives a running commentary on the program's attempts to read data in various
-ways. As the amount of verbose output is substantial, the <CODE>-v</CODE> option can now be followed
-by zero, one or more of the following flags (without space) in order to differentiate the verbose
-output generated:
-
-<UL>
-<LI><B>a</B>: Anchor relevant information
-<LI><B>b</B>: Bindings to local file system
-<LI><B>c</B>: Cache trace
-<LI><B>g</B>: SGML trace
-<LI><B>p</B>: Protocol module information
-<LI><B>s</B>: SGML/HTML relevant information
-<LI><B>t</B>: Thread trace
-<LI><B>u</B>: URI relevant information
-</UL>
-
-The <CODE>-v</CODE> option without any appended options shows all
-trace messages. An example is
-
-<PRE>
+  <DT>
+    <B>-v [ a | b | c | g | p | s | t | u ] </B>
+  <DD>
+    Verbose mode: Gives a running commentary on the program's attempts to read
+    data in various ways. As the amount of verbose output is substantial, the
+    <CODE>-v</CODE> option can now be followed by zero, one or more of the following
+    flags (without space) in order to differentiate the verbose output generated:
+    <UL>
+      <LI>
+	<B>a</B>: Anchor relevant information
+      <LI>
+	<B>b</B>: Bindings to local file system
+      <LI>
+	<B>c</B>: Cache trace
+      <LI>
+	<B>g</B>: SGML trace
+      <LI>
+	<B>p</B>: Protocol module information
+      <LI>
+	<B>s</B>: SGML/HTML relevant information
+      <LI>
+	<B>t</B>: Thread trace
+      <LI>
+	<B>u</B>: URI relevant information
+    </UL>
+    <P>
+    The <CODE>-v</CODE> option without any appended options shows all trace messages.
+    An example is
+    <PRE>
 	-vpt
 </PRE>
-
-showing <EM>thread</EM> and <EM>protocol</EM> trace messages
-
-<DT><B>-version</B>
-<DD>Prints out the version number of the software, and the version
-number of the WWW library, and exits.
+    <P>
+    showing <EM>thread</EM> and <EM>protocol</EM> trace messages
+  <DT>
+    <B>-version</B>
+  <DD>
+    Prints out the version number of the software, and the version number of
+    the WWW library, and exits.
 </DL>
-
-<H3>Configuration Options</H3>
-
+<H3>
+  Configuration Options
+</H3>
 <DL>
-
-<DT><B>-img</B>
-<DD>Test include inlined images
-
-<DT><B>-l</B> [ file ]
-<DD>Specifies a log file with a list of visited documents. The default
-value is "www-log"
-
-<DT><B>-link</B> [ n ]
-
-<DD>Fetch all links from this document. By indicating an integer "n" as the parameter you can
-specify the depth of which the search should go. The default value is 0 which means that only the
-start page is searched. Level 1 insicates that the start page <B>and</B> all pages directly linked
-from the start page are searched.
-
-<DT><B>-n</B>
-<DD>Non-interactive mode. Outputs the formatted document to the
-standard output, then exits. Pages are delimited with form feed (FF)
-characters.
-
-<DT><B>-o</B> [ file ]
-<DD>Redirects output to specified file. The default value is
-"www-out". This mode forced non-interactive mode
-
-<DT><B>-r</B> &lt;file&gt;
-<DD>Rule file, a.k.a. configuration file. If this is specified, a rule file may be used to map URLs,
-and to set up other aspects of the behavior of the browser. Many rule files may be given with
-successive -r options, and a default rule file name may be given using the <B>WWW_CONFIG</B>
-environment variable.
-
-<DT><B>-ss</B>
-<DD>Print out date and time for start and stop for the job.
-
-<DT><A NAME="single"><B>-single</B></A>
-<DD>Singlethreaded mode. If this flag is set then the browser uses
-blocking, non interruptible I/O in interactive mode. Non-interactive
-mode always uses blocking I/O.
-
-<DT><B>-timeout</B> &lt;n&gt;
-<DD>Timeout in seconds on sockets
-
+  <DT>
+    <B>-img</B>
+  <DD>
+    Test include inlined images
+  <DT>
+    <B>-l</B> [ file ]
+  <DD>
+    Specifies a log file with a list of visited documents. The default value
+    is "www-log"
+  <DT>
+    <B>-link</B> [ n ]
+  <DD>
+    Fetch all links from this document. By indicating an integer "n" as the parameter
+    you can specify the depth of which the search should go. The default value
+    is 0 which means that only the start page is searched. Level 1 indicates
+    that the start page <B>and</B> all pages directly linked from the start page
+    are searched.
+  <DT>
+    <B>-n</B>
+  <DD>
+    Non-interactive mode. Outputs the formatted document to the standard output,
+    then exits. Pages are delimited with form feed (FF) characters.
+  <DT>
+    <B>-o</B> [ file ]
+  <DD>
+    Redirects output to specified file. The default value is "www-out". This
+    mode forced non-interactive mode
+  <DT>
+    <B>-r</B> &lt;file&gt;
+  <DD>
+    Rule file, a.k.a. configuration file. If this is specified, a rule file may
+    be used to map URLs, and to set up other aspects of the behavior of the browser.
+    Many rule files may be given with successive -r options, and a default rule
+    file name may be given using the <B>WWW_CONFIG</B> environment variable.
+  <DT>
+    <B>-ss</B>
+  <DD>
+    Print out date and time for start and stop for the job.
+  <DT>
+    <A NAME="single"><B>-single</B></A>
+  <DD>
+    Single threaded mode. If this flag is set then the browser uses blocking,
+    non interruptible I/O in interactive mode. Non-interactive mode always uses
+    blocking I/O.
+  <DT>
+    <B>-timeout</B> &lt;n&gt;
+  <DD>
+    Timeout in seconds on sockets
 </DL>
-
-<H2><A NAME="z16">docaddress</A></H2>
-
-If present, the next argument (docaddress) is the <A HREF="../../Addressing/Addressing.html">
-hypertext address</A> , of the document at which you want to start browsing. You may want to define
-an alias for www followed by name of your favorite index. <H2><A NAME="z17">keywords</A></H2>Any
-further command line arguments are taken as keywords. The first argument must refer to an index in
-this case. The index is searched for entries matching the keywords, and a list of matching entries
-is displayed.
-
+<H2>
+  <A NAME="z16">docaddress</A>
+</H2>
 <P>
-<HR>
-<ADDRESS><A HREF="../../People.html#Frystyk">Henrik Frystyk</A>, <A
-HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
-</BODY>
-</HTML>
+If present, the next argument (docaddress) is the
+<A HREF="../../Addressing/Addressing.html"> hypertext address</A> , of the
+document at which you want to start browsing. You may want to define an alias
+for www followed by name of your favorite index.
+<H2>
+  <A NAME="z17">keywords</A>
+</H2>
+<P>
+Any further command line arguments are taken as keywords. The first argument
+must refer to an index in this case. The index is searched for entries matching
+the keywords, and a list of matching entries is displayed.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

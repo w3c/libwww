@@ -461,10 +461,14 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 	}
 	if (HTDoListen(dnet, DataPort, 1) == HT_OK)
 	    break;
+#if 0
 	if (dnet->sockfd != INVSOC) {
 	    NETCLOSE(dnet->sockfd);
-	    dnet->sockfd = INVSOC:
+	    dnet->sockfd = INVSOC;
 	}
+#else
+	HTDoClose(dnet);
+#endif
     }
 #else
     if (HTDoListen(dnet, 0, cnet->sockfd, 1) != HT_OK) return NO;
@@ -1038,8 +1042,12 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		HTChannel_setMode(dnet->channel, HT_CH_BATCH);
 		ctrl->substate = NEED_ACTION;
 	    } else {			 	  /* Swap to PORT on the fly */
+#if 0
 		NETCLOSE(dnet->sockfd);
 		dnet->sockfd = INVSOC;
+#else
+		HTDoClose(dnet);
+#endif
 		if (PROT_TRACE)
 		    HTTrace("FTP......... Swap to PORT on the fly\n");
 		ctrl->substate = 0;

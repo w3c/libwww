@@ -1,0 +1,36 @@
+<HTML>
+<HEAD>
+  <TITLE>Architecture - The Alert Class</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
+<H1>
+  The Alert Class
+</H1>
+<P>
+The Alert class defines a set of methods to be used by libwww to be used
+for passing prompts and message to a user. In order to maintain the Library
+core application independent and natural language independent, libwww does
+not know how to communicate with a <I>user</I>. Note here that a <I>user</I>
+is a somewhat abstract notion for &nbsp;something that can receive a message
+or prompt from the Library. This can for example be a person, but is may
+also be handled automatically by a robot or a client receiving a response
+from a HTTP server.
+<P>
+Libwww has a set of <B>opcodes</B> that classifies the nature of the message,
+for example that it is a question that must be confirmed in order to continue
+a request or simply a progress notification. The application can register
+a method for any number of the defined opcodes - in case the Library has
+a message for an opcode that does not have a method associated, the message
+is ignored. You can also globally disable any message send from the Library.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

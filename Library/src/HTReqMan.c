@@ -92,7 +92,7 @@ PUBLIC HTRequest * HTRequest_new (void)
     me->priority = HT_PRIORITY_MAX;
 
     /* Content negotiation */
-    me->ContentNegotiation = NO;		       /* Do this by default */
+    me->ContentNegotiation = YES;		       /* Do this by default */
 
 #if 0 /* WWW_WIN_ASYNC */
     HTEvent_winHandle(me);

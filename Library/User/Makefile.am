@@ -7,7 +7,7 @@ DOCS :=	$(wildcard *.html *.gif)
 EXTRA_DIST = \
 	$(DOCS)
 
-SUBDIRS = Patch Architecture Using Guide
+SUBDIRS = Patch Architecture Using Guide Style Platform
 
 BUILT_SOURCES = \
 	Extrnals.html

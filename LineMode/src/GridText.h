@@ -41,7 +41,7 @@ extern int HText_getLines (HText * text);
 
 /*
 
-Memory Cache Handler
+MEMORY CACHE HANDLER
 
    Check if document is already loaded. As the application handles the memory cache, we
    call the application to ask. Also check if it has expired in which case we reload it

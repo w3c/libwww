@@ -87,7 +87,8 @@ BUILT_SOURCES = sysdep.h \
 	HTTPUtil.h	HTMux.h		HTTrans.h \
 	HTIOStream.h	HTChannl.h	HTInet.h \
 	HTHost.h	HTLocal.h	HTReader.h \
-	HTANSI.h	HTBufWrt.h	HTTChunk.h
+	HTANSI.h	HTBufWrt.h	HTTChunk.h \
+	HTHInit.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h
