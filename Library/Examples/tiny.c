@@ -14,7 +14,7 @@
 **	details.
 **
 **      A very simple event loop demo showing how to write an event driven
-**	libwww app and also how to use various contexts
+**	libwww app and also how to use various contexts and the HTML parser
 */
 
 #include "WWWLib.h"
@@ -122,8 +122,13 @@ PRIVATE void mime_setup (void)
 			   fixedHandlers[i].pHandler);
 }
 
+/*
+**  This is normally done by the libwww profiles but because we are more
+**  careful only taking the things we need, we do it by hand
+*/
 PRIVATE void libwww_setup (void)
 {
+
     /* Set up TCP as transport */
     HTTransport_add("buffered_tcp", HT_TP_SINGLE, HTReader_new, HTBufferWriter_new);
 
@@ -133,7 +138,7 @@ PRIVATE void libwww_setup (void)
     /* Setup up transfer coders */
     HTFormat_addTransferCoding("chunked", HTChunkedEncoder, HTChunkedDecoder, 1.0);
 
-    /* Setup MIME parsers */
+    /* Setup MIME stream converters */
     HTFormat_addConversion("message/rfc822", "*/*", HTMIMEConvert, 1.0, 0.0, 0.0);
     HTFormat_addConversion("message/x-rfc822-foot", "*/*", HTMIMEFooter, 1.0, 0.0, 0.0);
     HTFormat_addConversion("message/x-rfc822-head", "*/*", HTMIMEHeader, 1.0, 0.0, 0.0);
@@ -154,11 +159,7 @@ PRIVATE void libwww_setup (void)
     /* Set max number of sockets we want open simultanously */ 
     HTNet_setMaxSocket(32);
 
-    /*
-    ** Register our HTML element handler. We don't actually create a HText
-    ** object as this is not needed. We only register the specific link
-    ** callback.
-    */
+    /* Register our HTML parser callbacks */
     HText_registerCDCallback (text_new, text_delete);
     HText_registerBuildCallback (text_build);
     HText_registerTextCallback(text_add);
