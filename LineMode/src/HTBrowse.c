@@ -989,10 +989,13 @@ int main ARGS2(int, argc, char **, argv)
     int		keycnt = 0;
     char *	abs_home = HTFindRelatedName();
 
-    BOOL	filter = NO;		      	 	 /* Load from stdin? */
     HTFormat	input_format = WWW_HTML;	         /* Used with filter */
+
+    BOOL	filter = NO;		      	 	 /* Load from stdin? */
     BOOL       	show_refs = NO;	  	  	  /* -listrefs option used?  */
     BOOL	reformat_html = NO;		   	   /* Reformat html? */
+    BOOL	count_bytes = NO;		   /* Content lenght counter */
+    BOOL	no_timeout = NO;		      /* No timeout function */
 
     char *     	logfile = NULL;			 	    /* Log file name */
     char *	outputfile = NULL;		 	 	  /* -o xxxx */
@@ -1148,6 +1151,10 @@ int main ARGS2(int, argc, char **, argv)
 	    } else if (!strcmp(argv[arg], "-n")) {
 		HTPrompt_setInteractive(NO);
 
+	    /* No time out */
+	    } else if (!strcmp(argv[arg], "-nt")) {
+		no_timeout = YES;
+
 	    /* Multithreaded ot not? */
 	    } else if (!strcmp(argv[arg], "-single")) {
 		HTRequest_setPreemtive(request, YES);
@@ -1158,6 +1165,11 @@ int main ARGS2(int, argc, char **, argv)
 		outputfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_OUTPUT_FILE;
 		    HTPrompt_setInteractive(NO);
+
+	    /* Content Length Counter */
+	    } else if (!strcmp(argv[arg], "-cl")) { 
+		count_bytes = YES;
+		HTPrompt_setInteractive(NO);
 
 	    /* Handling of Expire: */
 	    } else if (!strncmp(argv[arg], "-x", 2)) { 
@@ -1231,7 +1243,7 @@ int main ARGS2(int, argc, char **, argv)
 		VersionInfo();
 		goto endproc;				
 
-#ifdef TRACE
+#ifdef WWWTRACE
 	   /* Verify: Turns on trace */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
 	    	char *p = argv[arg]+2;
@@ -1325,13 +1337,13 @@ int main ARGS2(int, argc, char **, argv)
     /* Open output file */
     if (!HTPrompt_interactive()) {
     	if (outputfile) {	    
-	    if ((output = fopen(outputfile, "wb")) == NULL) {
+	    if ((output = fopen(outputfile, "wb")))
+		request->output_stream = HTFWriter_new(output, YES);
+	    else {
 	        if (SHOW_MSG)
-		    fprintf(TDEST, "Can't open file for writing (%s)\n",
-			    outputfile);
+		    fprintf(TDEST, "Can't open file `%s'\\n", outputfile);
 	    }
 	}
-	request->output_stream = HTFWriter_new(output, YES);
 
 	/* To reformat HTML, just put it through a parser running
 	** into a regenerator   tbl 940613
@@ -1344,6 +1356,13 @@ int main ARGS2(int, argc, char **, argv)
 	}
     }
     
+    /* Content Length Counter */
+    if (count_bytes) {
+	HTRequest_setOutputFormat(request, WWW_SOURCE);
+	HTRequest_setOutputStream(request, HTContentCounter(HTBlackHole(),
+							    request, 0x2000));
+    }
+
     /* Open Log File */
     if (logfile)
 	HTLog_enable(logfile, YES, NO);
@@ -1380,13 +1399,15 @@ int main ARGS2(int, argc, char **, argv)
     /* If in interactive mode then start the event loop which will run until
        the program terminates */
     if (HTPrompt_interactive()) {
-	struct timeval tv;
-	tv.tv_sec = SEC_TIMEOUT;	      /* Default timeout for sockets */
-	tv.tv_usec = USEC_TIMEOUT;
 
 	/* Set timeout on sockets */
-	HTEvent_registerTimeout(&tv, request, timeout_handler, NO);
-	
+	if (!no_timeout) {
+	    struct timeval tv;
+	    tv.tv_sec = SEC_TIMEOUT;	      /* Default timeout for sockets */
+	    tv.tv_usec = USEC_TIMEOUT;
+	    HTEvent_registerTimeout(&tv, request, timeout_handler, NO);
+	}
+
 	/* Set max number of sockets we want open simultanously */
 	HTNet_setMaxSocket(6);
 
@@ -1414,7 +1435,7 @@ int main ARGS2(int, argc, char **, argv)
 #endif
 
 	/* Set the DNS timeout */
-	HTDNS_setTimeout(300);
+	HTDNS_setTimeout(3600);
 
 	/* Go into the event loop... */
 	HTEvent_Loop(request);
@@ -1426,6 +1447,10 @@ endproc:
     if (keywords) HTChunkFree(keywords);
     if (output && output!=stdout)
 	fclose(output);
+    if (count_bytes) {
+	fprintf(TDEST, "Content Length found to be %d\n",
+		HTAnchor_length(home_anchor));
+    }
     Thread_deleteAll();
     if (abs_home)
 	free(abs_home);
