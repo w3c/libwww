@@ -720,14 +720,14 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    status = HTInputSocket_read(http->isoc, http->target);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
-	    else if (status == HT_INTERRUPTED)
-		status = (*http->target->isa->abort)(http->target, NULL);
-	    else
-		status = (*http->target->isa->_free)(http->target);
-	    if (status >= 0 && http->state == HTTP_NEED_BODY)
-		http->state = HTTP_GOT_DATA;
-	    else
+	    else if (status == HT_INTERRUPTED) {
+		(*http->target->isa->abort)(http->target, NULL);
 		http->state = HTTP_ERROR;
+	    } else {
+		(*http->target->isa->_free)(http->target);
+		if (http->state == HTTP_NEED_BODY)
+		    http->state = HTTP_GOT_DATA;
+	    }
 	    break;
 
           case HTTP_REDIRECTION:

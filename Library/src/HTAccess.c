@@ -293,10 +293,9 @@ PUBLIC BOOL HTLibInit NOARGS
     if (TRACE)
 	fprintf(stderr, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
     if (!protocols)
-	HTAccessInit();
-    HTAccessInit();			     /* Initilizing protocol modules */
+	HTAccessInit();			     /* Initilizing protocol modules */
 
-#ifdef LIB_SIG
+#ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
     ** to a port where er should get `connection refused'. We ignore this 
     ** using the following function call
@@ -1187,9 +1186,10 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	if (fp) {
 	    fclose(fp);
 	} else {
-	if (TRACE) fprintf(stderr,
-	    "HTBrowse: No local home document ~/%s or %s\n",
-	    PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
+	    if (TRACE)
+		fprintf(stderr,
+			"HTBrowse: No local home document ~/%s or %s\n",
+			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
 	    free(my_home_document);
 	    my_home_document = NULL;
 	}
@@ -1201,9 +1201,10 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 		    "file:",
 		    PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
-	if (TRACE) fprintf(stderr,
-	    "HTAccess: Using custom home page %s i.e. address %s\n",
-	    my_home_document, ref);
+	if (TRACE)
+	    fprintf(stderr,
+		   "HTAccess.... `%s\' used for custom home page as\n`%s\'\n",
+		    my_home_document, ref);
 	free(my_home_document);
     }
     anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
