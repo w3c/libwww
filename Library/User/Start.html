@@ -44,9 +44,9 @@ a robot.
   Client Profile
 </H3>
 <P>
-The <A HREF="../src/HTProf.html#Client">Client profile</A> initializes a
-large set of features often used in client applications. These include features
-like:
+The <A HREF="../src/HTProfil.html#Client">Client profile</A> initializes
+a large set of features often used in client applications. These include
+features like:
 <UL>
   <LI>
     HTTP, FTP, Gopher, News, Telnet Access , local file access and optionally
@@ -68,8 +68,8 @@ like:
   Robot Profile
 </H3>
 <P>
-The <A HREF="../src/HTProf.html#Robot">Robot profile</A> initializes a large
-set of features often used in client applications. These include features
+The <A HREF="../src/HTProfil.html#Robot">Robot profile</A> initializes a
+large set of features often used in client applications. These include features
 like:
 <UL>
   <LI>
@@ -197,7 +197,7 @@ organized with a description of the model below.
     Use this interface if you do <I>not</I> want to use any of the SGML/HTML
     parsers in libwww. The default mode is <I>not</I> to initialize the libwww
     SGML/HTML parser. You will have to set if up explicitly, for example by calling
-    <A HREF="../src/HTHInit.html">HTMLInit</A>. 
+    <A HREF="../src/HTHInit.html">HTMLInit</A>.
   <DT>
     <I>Structured Stream Interface</I>
   <DD>
@@ -205,7 +205,7 @@ organized with a description of the model below.
     HTML parser. The SGML parser is a generic (but crude) SGML parser which can
     be setup with a specific DTD. It should of course only be a SGML lexer but
     this is not the case. It normally feeds the HTML parser with structured data.
-    In this case, you will be emulating the <A HREF="../src/HTML.c">HTML
+    In this case, you will be emulating the <A HREF="../src/HTML.html">HTML
     module</A>, and generating a hypertext object from the structured stream.
   <DT>
     <I>HText Call Back Interface</I>
@@ -216,7 +216,7 @@ organized with a description of the model below.
     are all declared but not defined in the <A HREF="../src/HText.html">HText
     module</A>. The client must provide the actual code that defines the presentation
     method used for a specific HTML tag. You can set up this mode by calling
-    <A HREF="../src/HTHInit.html">HTMLInit</A>. 
+    <A HREF="../src/HTHInit.html">HTMLInit</A>.
 </DL>
 <P>
   <HR>
