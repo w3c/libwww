@@ -178,11 +178,8 @@ typedef struct _Context {
 } Context;
 
 PRIVATE int scan_command (SOCKET s, void * param, HTEventType type);
-HTEvent ConsoleEvent = {
-    HT_PRIORITY_MAX,
-    scan_command, 
-    0, 0
-};
+
+PRIVATE HTEvent * ConsoleEvent = NULL;
 
 #ifndef WWW_WIN_WINDOW
 PRIVATE FILE *		OUTPUT = stdout;
@@ -1411,6 +1408,24 @@ PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, HTEventTy
     return (HT_OK);
 }
 
+/*	timeout_handler
+**	---------------
+**	This function is registered to handle timeout in select eventloop
+*/
+PRIVATE int timeout_handler (SOCKET s, void * param, HTEventType type)
+{
+    if (!HTAlert_interactive()) {
+	HTRequest * req = (HTRequest *) param;
+	Context * context = (Context *) HTRequest_context(req);
+	LineMode * lm = context->lm;
+	if (SHOW_MSG) HTTrace("Request timed out");
+	HTNet_killAll();
+	Cleanup(lm, -1);
+    }
+    if (SHOW_MSG) HTTrace(".");
+    return 0;
+}
+
 PRIVATE int scan_command (SOCKET s, void * param, HTEventType type)
 {
     HTRequest * req = (HTRequest *)param;
@@ -1419,7 +1434,12 @@ PRIVATE int scan_command (SOCKET s, void * param, HTEventType type)
 #ifdef WWW_MSWINDOWS
     int red;
     int ret;
+#endif
 
+    /* Handle any timeout here */
+    if (type == HTEvent_TIMEOUT) return timeout_handler (s, param, type);
+
+#ifdef WWW_MSWINDOWS
     while(1) {
 #ifdef WWW_WIN_CONSOLE
 	if (!readConsole((HANDLE)s, buf, sizeof(buf), &red)) {
@@ -1435,18 +1455,6 @@ PRIVATE int scan_command (SOCKET s, void * param, HTEventType type)
     if (!fgets(buf, sizeof(buf), stdin))		  /* Read User Input */
         return HT_ERROR;				      /* Exit if EOF */
     return ((*PInputParser)(buf, s, req, type));
-#if 0
-	if ((red = read(s, buf, sizeof(buf))) < 0) {
-#ifdef EAGAIN
-	    if (socerrno==EINPROGRESS || socerrno==EAGAIN)
-#else /* EAGAIN */
-	    if (socerrno==EINPROGRESS)
-#endif /* !EAGAIN */
-		return (HT_OK);
-    	    if (PROT_TRACE) HTTrace("Read Console... READ ERROR\n");
-	    return HT_ERROR;
-	}
-#endif /* 0 */
 #endif /* !WWW_MSWINOWS */
 }
 
@@ -1512,23 +1520,6 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     Thread_cleanup(lm);
     if (!HTAlert_interactive()) Cleanup(lm, -1);
     return HT_OK;
-}
-
-/*	timeout_handler
-**	---------------
-**	This function is registered to handle timeout in select eventloop
-*/
-PRIVATE int timeout_handler (HTRequest * request)
-{
-    if (!HTAlert_interactive()) {
-	Context * context = (Context *) HTRequest_context(request);
-	LineMode * lm = context->lm;
-	if (SHOW_MSG) HTTrace("Request timed out");
-	HTNet_killAll();
-	Cleanup(lm, -1);
-    }
-    if (SHOW_MSG) HTTrace(".");
-    return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1922,10 +1913,11 @@ int main (int argc, char ** argv)
 		      (void *)lm);
      /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-    HTEventList_registerTimeout(lm->tv, request, timeout_handler, NO);
 
-/*    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))
-        HTTrace("Unable to load PICS user list \"%s\".\n", picsUserList); */
+#if 0
+    HTEventList_registerTimeout(lm->tv, request, timeout_handler, NO);
+#endif
+
     if (picsUser && !LoadPICSUser(lm, picsUser))
         HTTrace("Unable to load PICS user \"%s\".\n", picsUser);
 
@@ -1963,13 +1955,13 @@ int main (int argc, char ** argv)
 	** Register STDIN as the user socket IF not STDIN is connected to
 	** /dev/null or other non-terminal devices
 	*/
-	ConsoleEvent.param = lm->console;
+	ConsoleEvent = HTEvent_new(scan_command, lm->console, HT_PRIORITY_MAX, 1000);
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
-	    HTEventList_register(STDIN_FILENO, HTEvent_READ, &ConsoleEvent);
+	    HTEventList_register(STDIN_FILENO, HTEvent_READ, ConsoleEvent);
 	}
 #else
-	HTEventList_register(GetStdHandle(STD_INPUT_HANDLE), HTEvent_READ, &ConsoleEvent);
+	HTEventList_register(GetStdHandle(STD_INPUT_HANDLE), HTEvent_READ, ConsoleEvent);
 #endif
     }
 
