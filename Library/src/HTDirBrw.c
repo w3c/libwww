@@ -427,40 +427,25 @@ PRIVATE void HTDirOutMessage ARGS2(HTStructured *, target,
 PRIVATE void HTDirOutReadme ARGS2(HTStructured *, target,
 				  CONST char *, localname)
 { 
-    FILE * fp;
-    char * readme_file_name = (char *) 
+    FILE *fp;
+    int ch;
+    char *readme_file_name = (char *) 
 	malloc(strlen(localname)+1+strlen(HT_DIR_README_FILE)+1);
+
+    if (TRACE) fprintf(stderr, "HTReadMe.... Looking for file `%s'\n",
+		       localname ? localname : "-null-");
+    if (!target || !localname) {
+	free(readme_file_name);
+	return;
+    }
     strcpy(readme_file_name, localname);
     strcat(readme_file_name, "/");
     strcat(readme_file_name, HT_DIR_README_FILE);
     
-    fp = fopen(readme_file_name,  "r");
-    
-    if (fp) {
-	HTStructuredClass targetClass;
-	
-	targetClass =  *target->isa;	/* (Can't init agregate in K&R) */
+    if ((fp = fopen(readme_file_name, "r")) != NULL) {
 	START(HTML_PRE);
-	for(;;){
-	    char c = fgetc(fp);
-	    if (c == (char)EOF) break;
-	    switch (c) {
-	    	case '&':
-		case '<':
-		case '>':
-			PUTC('&');
-			PUTC('#');
-			PUTC((char)(c / 10));
-			PUTC((char) (c % 10));
-			PUTC(';');
-			break;
-/*	    	case '\n':
-			PUTC('\r');    
-Bug removed thanks to joe@athena.mit.edu */			
-		default:
-			PUTC(c);
-	    }
-	}
+	while ((ch = fgetc(fp)) > 0)
+	    PUTC(ch);
 	END(HTML_PRE);
 	fclose(fp);
     } 

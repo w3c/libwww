@@ -994,7 +994,8 @@ PUBLIC void HTFileCopy ARGS2(
 **   The file number given is assumed to be a TELNET stream ie containing
 **   CRLF at the end of lines which need to be stripped to LF for unix
 **   when the format is textual.
-**
+**	
+**	Character handling is now of type int, Henrik, May 09-94
 */
 PUBLIC void HTCopyNoCR ARGS2(
 	int,			file_number,
@@ -1002,6 +1003,7 @@ PUBLIC void HTCopyNoCR ARGS2(
 {
     HTStreamClass targetClass;
     HTInputSocket * isoc;   
+    int ch;
     
 /*	Push the data, ignoring CRLF, down the stream
 **
@@ -1014,12 +1016,8 @@ PUBLIC void HTCopyNoCR ARGS2(
 **	cheat and don't ignore CR! :-}
 */  
     isoc = HTInputSocket_new(file_number);
-    for(;;) {
-	char character;
-	character = HTInputSocket_getCharacter(isoc);
-	if (character == (char)EOF) break;
-	(*targetClass.put_character)(sink, character);           
-    }
+    while ((ch = HTInputSocket_getCharacter(isoc)) >= 0)
+	(*targetClass.put_character)(sink, ch);
     HTInputSocket_free(isoc);
 }
 

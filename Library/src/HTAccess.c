@@ -8,12 +8,13 @@
 ** History
 **       8 Jun 92 Telnet hopping prohibited as telnet is not secure TBL
 **	26 Jun 92 When over DECnet, suppressed FTP, Gopher and News. JFG
-**	 6 Oct 92 Moved HTClientHost and logfile into here. TBL
+**	 6 Oct 92 Moved HTClientHost and HTlogfile into here. TBL
 **	17 Dec 92 Tn3270 added, bug fix. DD
 **	 4 Feb 93 Access registration, Search escapes bad chars TBL
 **		  PARAMETERS TO HTSEARCH AND HTLOADRELATIVE CHANGED
 **	28 May 93 WAIS gateway explicit if no WAIS library linked in.
 **	   Dec 93 Bug change around, more reentrant, etc
+**	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
 ** Bugs
 **	This module assumes that that the graphic object is hypertext, as it
 **	needs to select it when it has been loaded.  A superclass needs to be
@@ -52,10 +53,7 @@
 PUBLIC char * HTCacheDir = 0;	/* Root for cached files or 0 for no cache */
 PUBLIC char * HTSaveLocallyDir = SAVE_LOCALLY_HOME_DIR;	/* Save & exe files */
 PUBLIC char * HTClientHost = 0;	/* Name of remote login host if any */
-
-#ifdef OLD_CODE	/* WAIS now defines its own logfile */
-PUBLIC FILE * logfile = 0;	/* File to which to output one-liners */
-#endif
+PUBLIC FILE * HTlogfile = 0;	/* File to which to output one-liners */
 
 PUBLIC BOOL HTForceReload = NO;	/* Force reload from cache or net */
 PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
@@ -204,12 +202,21 @@ PRIVATE void HTAccessInit NOARGS			/* Call me once */
 GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
 #ifndef DECNET
 GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
+
+/* This is the replacement when HTWhoIs gets a complete protocol module */
+/* GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher, HTWhoIs;		*/
+/* -------------------------------------------------------------------- */
+
 #ifdef DIRECT_WAIS
 GLOBALREF  HTProtocol HTWAIS;
 #endif
     HTRegisterProtocol(&HTFTP);
     HTRegisterProtocol(&HTNews);
     HTRegisterProtocol(&HTGopher);
+
+/* This should be added when HTWhoIs gets a complete protocol module */
+/*  HTRegisterProtocol(&HTWhoIs);				     */
+/* ----------------------------------------------------------------- */
 #ifdef DIRECT_WAIS
     HTRegisterProtocol(&HTWAIS);
 #endif
@@ -602,24 +609,21 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     
 /*	Log the access if necessary
 */
-#ifdef OLD_CODE	/* WAIS now defines its own logfile */
-    if (logfile) {
+    if (HTlogfile) {
 	time_t theTime;
 	time(&theTime);
-	fprintf(logfile, "%24.24s %s %s %s\n",
+	fprintf(HTlogfile, "%24.24s %s %s %s\n",
 	    ctime(&theTime),
 	    HTClientHost ? HTClientHost : "local",
 	    status<0 ? "FAIL" : "GET",
 	    full_address);
-	fflush(logfile);	/* Actually update it on disk */
+	fflush(HTlogfile);	/* Actually update it on disk */
 	if (TRACE) fprintf(stderr, "Log: %24.24s %s %s %s\n",
 	    ctime(&theTime),
 	    HTClientHost ? HTClientHost : "local",
 	    status<0 ? "FAIL" : "GET",
 	    full_address);
     }
-#endif
-    
 
     if (status == HT_LOADED) {
 	if (TRACE) {
