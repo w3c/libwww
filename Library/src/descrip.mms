@@ -83,7 +83,7 @@ TCP=MULTINET
 .INCLUDE Version.make
 
 .IFDEF DECNET  ! Strip FTP, Gopher, News, WAIS
-HEADERS = HTUtils.h, HTStream.h, tcp.h, HText.h -
+HEADERS = HTUtils.h, HTStream.h, tcp.h, HText.h, -
         HTParse.h, HTAccess.h, HTTP.h, HTFile.h, - 
 	HTBTree.h, HTTCP.h, SGML.h, -
 	HTML.h, HTMLDTD.h, HTChunk.h, HTPlain.h, -
@@ -103,7 +103,7 @@ MODULES = HTParse, HTAccess, HTTP, HTFile, -
 	HTMIME, HTHistory, HTTelnet
 
 .ELSE
-HEADERS = HTUtils.h, HTStream.h, tcp.h, HText.h -
+HEADERS = HTUtils.h, HTStream.h, tcp.h, HText.h, -
         HTParse.h, HTAccess.h, HTTP.h, HTFile.h, - 
 	HTBTree.h, HTTCP.h, SGML.h, -
 	HTML.h, HTMLDTD.h, HTChunk.h, HTPlain.h, -
@@ -563,8 +563,8 @@ Version.make :  $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/Version.mak
 ! latest version of this one:
 
 .IFDEF U
-descrip.mms : $(U)"/userd/tbl/hypertext/WWW/Library/vms/descrip.mms"
-	copy $(U)"/userd/tbl/hypertext/WWW/Library/vms/descrip.mms" -
+descrip.mms : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/descrip.mms"
+	copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/descrip.mms" -
 	descrip.mms
 	write sys$output: "Please rebuild with new MMS file"
 	exit 2	! Error

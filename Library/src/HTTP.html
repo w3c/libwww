@@ -1,26 +1,17 @@
-<PRE>
-/*	HyperText Tranfer Protocol					HTTP.h
-**	==========================
-*/
-
-#ifndef HTTP_H
+<HTML>
+<HEAD>
+<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTTP.html</TITLE></HEAD>
+<BODY>
+<H1>HyperText Tranfer Protocol</H1>
+<PRE>#ifndef HTTP_H
 #define HTTP_H
 
 #include "HTAccess.h"
 
-
-#ifdef OLD_CODE
-/*	Load Document using HTTP
-**	------------------------
-*/
-extern int HTLoadHTTP PARAMS((
-	CONST char *		arg,
-/*	CONST char * 		gateway, */
-	HTParentAnchor * 	anAnchor,
-	int diag));
-#endif
-
-extern HTProtocol HTTP;
+GLOBALREF HTProtocol HTTP;
 
 #endif /* HTTP_H */
-</PRE>
+
+</PRE>end of HTTP module definition</A><P>
+</BODY>
+</HTML>

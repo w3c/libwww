@@ -1,5 +1,6 @@
-<HEADER>
-<TITLE>Network News Transfer protocol module for the WWW library</TITLE></HEADER>
+<HTML>
+<HEAD>
+<TITLE>Network News Transfer protocol module for the WWW library</TITLE></HEAD>
 <BODY>
 <H1>HTNews</H1>
 <PRE>/* History:
@@ -12,11 +13,8 @@
 
 #include "HTAccess.h"
 #include "HTAnchor.h"
-/* extern int HTLoadNews PARAMS((const char *arg,
-	HTParentAnchor * anAnchor,
-	int diag));
-*/
-extern HTProtocol HTNews;
+
+GLOBALREF HTProtocol HTNews;
 
 extern void HTSetNewsHost PARAMS((CONST char *value));
 extern CONST char * HTGetNewsHost NOPARAMS;
@@ -25,4 +23,5 @@ extern char * HTNewsHost;
 #endif /* HTNEWS_H */
 
 
-</PRE>tbl</BODY>
+</PRE>tbl</A></BODY>
+</HTML>

@@ -1,10 +1,15 @@
+<HTML>
+<HEAD>
+<TITLE>Gopher protocol module for libwww</TITLE></HEAD>
+<BODY>
+<H1>GOPHER ACCESS</H1>
+<H3>History:</H3>
+<DL>
+<DT>8 Jan 92
+<DD>Adapted from HTTP TBL
+</DL>
+
 <PRE>
-/*			GOPHER ACCESS				HTGopher.h
-**			=============
-**
-** History:
-**	 8 Jan 92	Adapted from HTTP TBL
-*/
 
 #ifndef HTGOPHER_H
 #define HTGOPHER_H
@@ -12,11 +17,9 @@
 #include "HTAccess.h"
 #include "HTAnchor.h"
 
-/* extern int HTLoadGopher PARAMS((const char *arg,
-	HTParentAnchor * anAnchor,
-	int diag));
-*/
-extern HTProtocol HTGopher;
+GLOBALREF HTProtocol HTGopher;
 
 #endif /* HTGOPHER_H */
-</PRE>
+
+</PRE>end of gopher module</BODY>
+</HTML>

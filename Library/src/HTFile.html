@@ -1,14 +1,15 @@
-<HEADER>
+<HTML>
+<HEAD>
 <TITLE>File access in libwww</TITLE>
-<NEXTID N="4">
-</HEADER>
+<NEXTID N="z4">
+</HEAD>
 <BODY>
 <H1>File Access</H1>These are routines for local file
 access used by WWW browsers and servers.
 Implemented by HTFile.c. <P>
 If the file is not a local file,
 then we pass it on to <A
-NAME=z3 HREF="HTFTP.html">HTFTP</A> in case
+NAME="z3" HREF="HTFTP.html">HTFTP</A> in case
 it can be reached by FTP.
 <PRE>#ifndef HTFILE_H
 #define HTFILE_H
@@ -78,7 +79,7 @@ a linked directory entry.
 
 </PRE>
 <H2><A
-NAME=z1>HTSetSuffix: Define the representation
+NAME="z1">HTSetSuffix: Define the representation
 for a file suffix</A></H2>This defines a mapping between local
 file suffixes and file content types
 and encodings.
@@ -91,7 +92,7 @@ important (normally, yes!)
 <DD> is MIME-style content-type
 <DT>encoding
 <DD> is MIME-style <A
-NAME=z0 HREF="../../Protocols/rfc1341/5_Content-Transfer-Encoding.html#z0">content-transfer-encoding</A>
+NAME="z0" HREF="../../Protocols/rfc1341/5_Content-Transfer-Encoding.html#z0">content-transfer-encoding</A>
 (8bit, 7bit, etc)
 <DT>quality
 <DD> an a priori judgement of
@@ -115,12 +116,12 @@ and Encoding from file name</H2>
 <H3>On exit,</H3>
 <DL>
 <DT>return
-<DD>The represntation it imagines
+<DD> The represntation it imagines
 the file is in
 <DT>*pEncoding
-<DD>The encoding (binary, 7bit,
-etc). See <A
-NAME=z2 HREF="#z1">HTSetSuffix</A>.
+<DD> The encoding (binary,
+7bit, etc). See <A
+NAME="z2" HREF="#z1">HTSetSuffix</A> .
 </DL>
 
 <PRE>extern HTFormat HTFileFormat PARAMS((
@@ -177,8 +178,9 @@ NULL.
 
 </PRE>
 <H2>The Protocols</H2>
-<PRE>extern HTProtocol HTFTP, HTFile;
+<PRE>GLOBALREF HTProtocol HTFTP, HTFile;
 
 #endif /* HTFILE_H */
 
-</PRE>end of HTFile</BODY>
+</PRE>end of HTFile</A></BODY>
+</HTML>

@@ -1,14 +1,17 @@
 <HTML>
 <HEAD>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="z72">
+<NEXTID N="z73">
 </HEAD>
 <BODY>
-<H1>libwww Internals</H1>The <A
+<H1>libwww Internals and Programmer's
+Guide</H1>This guide incldues a specification
+of each module in the libwww.<P>
+The <A
 NAME="5" HREF="../../TheProject.html">WWW</A> browsers and servers share
 a common architrecure, and a <A
 NAME="z71" HREF="../Status.html">library
-of common code</A>. (See also: Browser<A
+of common code</A> . (See also: Browser<A
 NAME="7" HREF="../../Architecture/BrowserOperation.html">
 operation</A> , and<A
 NAME="23" HREF="../../Architecture/UtilityOverview.html"> utility modules</A> which
@@ -31,14 +34,14 @@ is HTDaemon. The application is called
 by the operating system, and manages
 the overall running of the program.
 It asks the <A
-NAME="19" HREF="Overview.html#8">navigation</A> module to
+NAME="19" HREF="#8">navigation</A> module to
 load the default page. 
 <DT><A
 NAME="8" HREF="HTAccess.html">Access Manager</A>
 <DD> The module which acually
 loads documents is based in HTAccess.c.
 This uses all the <A
-NAME="3" HREF="Overview.html#2">protocol modules</A>
+NAME="3" HREF="#2">protocol modules</A>
 .  Given an anchor ID to jump to,
 it asks the anchor object for the
 address in order to load it.
@@ -51,7 +54,7 @@ user vists.  Optional use in client.
 NAME="z29" HREF="HTFormat.html">HTFormat: Format manager</A>
 <DD> The format
 manager uses the <A
-NAME="15" HREF="Overview.html#11">parser modules</A> to
+NAME="15" HREF="#11">parser modules</A> to
 load the document as appropriate.
 It can also decide on the format
 of a file from its name.
@@ -112,7 +115,7 @@ modules.
 NAME="z46" HREF="HTFile.html">File access</A>
 <DD> HTFile.c provides access
 to files, using <A
-NAME="z61" HREF="Overview.html#z60">HTFTP</A> for remote
+NAME="z61" HREF="#z60">HTFTP</A> for remote
 access if the hostname isn't the
 local one.  The latter uses HTTCP
 for common TCP routines.
@@ -140,6 +143,10 @@ links to telnet nodes etc) is handled
 by <A
 NAME="26" HREF="../../Architecture/../Implementation/HTGopher.h">HTGopher</A> .
 <DT><A
+NAME="z72" HREF="HTTelnet.html">Telnet access</A>
+<DD>A dummy access which
+forks a session. Also rlogin, tn3270.
+<DT><A
 NAME="z39" HREF="HTWAIS.html">WAIS access</A>
 <DD> WAIS access is also implemented
 in a separate<A
@@ -151,7 +158,7 @@ NAME="11">Format conversion</A></H2>These modules (streams and structured
 streams) allow different formats
 to be used to generate graphic objects.
 They invoked by the <A
-NAME="z30" HREF="Overview.html#z29">format manager</A>
+NAME="z30" HREF="#z29">format manager</A>
 . Currently we only parse HTML and
 plain text and MIME messages, but
 obviously other formats can be added.
@@ -207,9 +214,9 @@ converts into whatever -- typically
 styled text for display or HTML.
 <DT><A
 NAME="z70" HREF="HTFormat.html#z11">HTNetToText</A>
-<DD>Converts "Net ascii" (the
-stuff telnet sessions are made of)
-info local C textual data stream.
+<DD> Converts "Net ascii"
+(the stuff telnet sessions are made
+of) info local C textual data stream.
 </DL>
 
 <H2><A
@@ -249,7 +256,7 @@ to a structured stream from a stream
 of SGML.  A hypertext editor will
 output to a structured stream when
 writing out a document.  Many <A
-NAME="z56" HREF="Overview.html#2">protocol
+NAME="z56" HREF="#2">protocol
 modules</A> output to a structures stream
 when generating their data structures.<P>
 Here are two structured stream modules:
@@ -261,7 +268,7 @@ one as it actually PRESENTS a hypertext
 object to the user.  GUI writers
 replace this module with your own,
 or use it and replaced the <A
-NAME="z53" HREF="Overview.html#12">HText</A>
+NAME="z53" HREF="#12">HText</A>
 module which it feeds.
 <DT><A
 NAME="z55" HREF="HTMLGen.html">HTMLGen</A>
@@ -291,7 +298,7 @@ the entry points in HTML with your
 own, to prevent the library modules
 from being loaded.<P>
 The <A
-NAME="z66" HREF="Overview.html#z54">HTML</A> object mentioned above flattens
+NAME="z66" HREF="#z54">HTML</A> object mentioned above flattens
 structured text into styled text.
 The HTPlain object generates a styled
 text for a plain ascii document.<P>

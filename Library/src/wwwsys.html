@@ -1,7 +1,8 @@
-<HEADER>
+<HTML>
+<HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<NEXTID N="4">
-</HEADER>
+<NEXTID N="z4">
+</HEAD>
 <BODY>
 <H1>System Dependencies</H1>System-system differences for TCP
 include files and macros. This file
@@ -16,6 +17,8 @@ CERN, &lt;timbl@info.cern.ch>
 <DD> Eelco van Asperen &lt;evas@cs.few.eur.nl>
 <DT>MA
 <DD> Marc Andreesen NCSA
+<DT>MD
+<DD> Mark Donszelmann &lt;duns@vxcern.cern.ch>
 <DT>AT
 <DD> Aleksandar Totic &lt;atotic@ncsa.uiuc.edu>
 <DT>SCW
@@ -28,12 +31,14 @@ CERN, &lt;timbl@info.cern.ch>
 <DD> Written (TBL) as part of
 the WWW library.
 <DT>16 Jan 92
-<DD> PC code from EvA
+<DD> PC code from (EvA)
 <DT>22 Apr 93
 <DD> Merged diffs bits from
 xmosaic release
 <DT>29 Apr 93
-<DD> Windows/NT code from SCW
+<DD> Windows/NT code from (SCW)
+<DT>29 Sep 93
+<DD> VMS fixes (MD)
 </DL>
 
 <PRE>
@@ -44,7 +49,7 @@ xmosaic release
 <H2>Default values</H2>These values may be reset and altered
 by system-specific sections later
 on.  there are also a bunch of <A
-NAME=z2 HREF="#z1">defaults
+NAME="z2" HREF="#z1">defaults
 at the end</A> .
 <PRE>/* Default values of those: */
 #define NETCLOSE close	    /* Routine to close a TCP-IP socket		*/
@@ -318,8 +323,9 @@ will be greater than 10 but a unix
 file descriptor less than 10.  It
 works.
 <PRE>#ifdef vms
-</PRE>#define CACHE_FILE_PREFIX  "SYS$LOGIN:Z_"
-<PRE>#ifdef WIN_TCP
+#define CACHE_FILE_PREFIX  "SYS$LOGIN:Z_"
+
+#ifdef WIN_TCP
 #undef NETREAD
 #undef NETWRITE
 #undef NETCLOSE
@@ -403,7 +409,24 @@ works.
 
 #define TCP_INCLUDES_DONE
 
+</PRE>On VMS machines, the linker needs
+to be told to put global data sections
+into a data segment using these storage
+classes. (MarkDonszelmann)
+<PRE>#ifdef VAXC
+#define GLOBALDEF globaldef
+#define GLOBALREF globalref
+#endif /*  VAXC */
+
 #endif	/* vms */
+
+</PRE>On non-VMS machines, the GLOBALDEF
+and GLOBALREF storage types default
+to normal C storage types.
+<PRE>#ifndef GLOBALREF
+#define GLOBALDEF
+#define GLOBALREF extern
+#endif
 
 
 
@@ -458,7 +481,7 @@ already defined specifically.
 
 </PRE>
 <H2><A
-NAME=z1>Defaults</A></H2>
+NAME="z1">Defaults</A></H2>
 <H3>Include files for TCP</H3>
 <PRE>#ifndef TCP_INCLUDES_DONE
 #include &lt;sys/socket.h>
@@ -485,7 +508,7 @@ typedef unsigned int fd_set;
 
 </PRE>
 <H3><A
-NAME=z0>M</A> acros for converting characters</H3>
+NAME="z0">M</A> acros for converting characters</H3>
 <PRE>#ifndef TOASCII
 #define TOASCII(c) (c)
 #define FROMASCII(c) (c)                                   
@@ -508,3 +531,4 @@ is turned off.
 
 
 </PRE>end of system-specific file</BODY>
+</HTML>
