@@ -1351,15 +1351,21 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 
     if (type == HTEvent_CLOSE) {			      /* Interrupted */
-        if (soc == HTNet_socket(cnet))
+        if (soc == HTNet_socket(cnet) && data->complete<1)
 	    FTPCleanup(request, HT_INTERRUPTED);
 	else
 	    FTPCleanup(request, HT_LOADED);
 	return HT_OK;
     } else if (type == HTEvent_TIMEOUT) {
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_TIME_OUT,
-			   NULL, 0, "HTLoadHTTP");
-	FTPCleanup(request, HT_TIMEOUT);
+
+	/*
+	** Don't time out the control connection if we are actually recieving data
+	** on the data connection
+	*/
+	if (!(soc == HTNet_socket(cnet) && !(data->complete & 1) && HTNet_bytesRead(ctrl->dnet)>0)) {
+	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_TIME_OUT, NULL, 0, "HTLoadHTTP");
+	    FTPCleanup(request, HT_TIMEOUT);
+	}
 	return HT_OK;
 
     } else {
