@@ -50,7 +50,7 @@ PROD= webbot
 FTP = /afs/w3.org/devel/Dist/Robot
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(CL)
-LFLAGS2 = $(LFLAGS) -L$(LIB) $(WAISLIB) $(MATHLIB) -lwww
+LFLAGS2 = $(LFLAGS) -L$(LIB) $(WAISLIB) $(MATHLIB) -lwww $(SYSLIBS)
 
 #	memory leak checkers
 PROOF = proof
