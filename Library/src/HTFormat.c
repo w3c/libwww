@@ -706,7 +706,8 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 	HTAtom_name(rep_in),	
 	HTAtom_name(rep_out));
 		
-    if (rep_out == rep_in) return request->output_stream;
+    if (rep_out == WWW_SOURCE || rep_out == rep_in)
+	return request->output_stream;
 
     conversion[0] = request->conversions;
     conversion[1] = HTConversions;
