@@ -4,9 +4,9 @@ noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	chunk chunkbody LoadToFile postform multichunk put post trace \
 	range tzcheck mget isredirected listen eventloop memput \
 	getheaders \
-	showlinks showtags showtext tiny upgrade cookie @SHOWXML@
+	showlinks showtags showtext tiny upgrade cookie @SHOWXML@ @WWWSSLEX@
 
-EXTRA_PROGRAMS = showxml ptri stri
+EXTRA_PROGRAMS = showxml ptri stri wwwssl
 
 LDADD = \
 	../src/libwwwinit.la \
@@ -26,11 +26,13 @@ LDADD = \
 	../src/libwwwtrans.la \
 	../src/libwwwcore.la \
 	../src/libwwwutils.la \
+	@LIBWWWSSL@ \
 	-lm @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@
 
 INCLUDES = \
 	-I$(srcdir)/../src \
-	-I$(top_srcdir)/modules/expat/xmlparse
+	-I$(top_srcdir)/modules/expat/xmlparse \
+	-I$(srcdir)/../src/SSL
 
 DOCS :=	$(wildcard *.html)
 
@@ -67,3 +69,5 @@ purify: $(mget_OBJECTS) $(mget_DEPENDENCIES)
 	../../modules/expat/xmlparse/.libs/libxmlparse.a \
 	../../modules/expat/xmltok/.libs/libxmltok.a \
 	$(LIBS)
+
+

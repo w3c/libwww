@@ -31,7 +31,7 @@ EXTRA_LTLIBRARIES = \
 	libwwwwais.la \
 	libwwwsql.la
 
-SUBDIRS = windows vms
+SUBDIRS = @LIBWWWSSLDIR@ windows vms
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
