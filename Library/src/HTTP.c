@@ -161,6 +161,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     if (http && http->timer) {
 	HTTimer_delete(http->timer);
 	http->timer = NULL;
+	http->lock = NO;
     }
 
     /*

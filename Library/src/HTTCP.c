@@ -299,6 +299,9 @@ PUBLIC int HTDoConnect (HTNet * net)
 	}
 
 	case TCP_NEED_CONNECT:
+#ifdef _WINSOCKAPI_
+	    HTHost_register(host, net, HTEvent_CONNECT);
+#endif /* _WINSOCKAPI_ */
 	    status = connect(HTChannel_socket(host->channel), (struct sockaddr *) &host->sock_addr,
 			     sizeof(host->sock_addr));
 	    /*
@@ -324,7 +327,10 @@ PUBLIC int HTDoConnect (HTNet * net)
 		if (NETCALL_WOULDBLOCK(socerrno))
 		{
 		    HTTRACE(PROT_TRACE, "HTDoConnect. WOULD BLOCK `%s'\n" _ hostname);
+#ifndef _WINSOCKAPI_
+
 		    HTHost_register(host, net, HTEvent_CONNECT);
+#endif /* _WINSOCKAPI_ */
 		    return HT_WOULD_BLOCK;
 		}
 #ifdef _WINSOCKAPI_

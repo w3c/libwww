@@ -102,6 +102,12 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last)
         CLEARME(timer);
 	return HT_ERROR;
     }
+#ifdef WWW_WIN_ASYNC
+    /* 2000/07/31 Jens Meggers (meggers@firepad.com):
+       On Windows, timers are always repetitive, so we have to delete the 
+       timer */
+    DeletePlatformTimer(timer);
+#endif /* WWW_WIN_ASYNC */
     if (timer->repetitive)
 	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES, YES);
     else

@@ -162,6 +162,15 @@ PUBLIC void HTRequest_delete (HTRequest * me)
 	HTTRACE(CORE_TRACE, "Request..... Delete %p\n" _ me);
 	if (me->net) HTNet_setRequest(me->net, NULL);
 
+	/*
+	** Make sure we don't delete the same stream twice, when the output
+	** stream and the debug stream are the same.
+	*/
+	if (me->orig_output_stream == me->orig_debug_stream)
+	{
+	    me->orig_debug_stream = NULL;
+	}
+
 	/* Should we delete the output stream? */
 	if (me->orig_output_stream) {
 	    HTTRACE(CORE_TRACE, "Request..... Deleting dangling output stream\n");

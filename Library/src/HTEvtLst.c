@@ -681,6 +681,12 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	}
 
 	/*
+	** Check whether we still have to continue the event loop. It could
+	** be that one of the timer handlers ended the loop.
+	*/
+	if (HTEndLoop) break;
+
+	/*
 	**  Now we copy the current active file descriptors to pass them to select.
 	*/
         treadset = FdArray[HTEvent_INDEX(HTEvent_READ)];
