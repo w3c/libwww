@@ -546,16 +546,18 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** other protocol module even though we are in fact doing
 		** blocking connect
 		*/
-		if (HTNet_preemptive(net)) {
-		    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
-		    if (!file->timer) {
-			file->timer = HTTimer_new(NULL, ReturnEvent, file, 1, YES, NO);
+		if (HTEvent_isCallbacksRegistered()) {
+		    if (!HTRequest_preemptive(request)) {
+			if (!HTNet_preemptive(net)) {
+			    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
+			    HTHost_register(HTNet_host(net), net, HTEvent_READ);
+			} else if (!file->timer) {
+			    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
+			    file->timer =
+				HTTimer_new(NULL, ReturnEvent, file, 1, YES, NO);
+			}
+			return HT_OK;
 		    }
-		    return HT_OK;
-		} else {
-		    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
-		    HTHost_register(HTNet_host(net), net, HTEvent_READ);
-		    return HT_OK;
 		}
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
