@@ -764,6 +764,7 @@ PUBLIC void LMHText_beginAnchor (HText * text,
     char marker[100];
     TextAnchor * a;
 
+			/* this is because it's called as link callback */
     if (elem_num != HTML_A)
 	return;
 
@@ -794,7 +795,7 @@ PUBLIC void LMHText_endAnchor (HText * text)
     TextAnchor * a = text->current_anchor;
     char marker[100];
 
-    if (!a)
+    if (!a)			/* </A> without <A> */
 	return;
 
     if (a->number && display_anchors) {	 /* If it goes somewhere */
