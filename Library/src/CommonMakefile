@@ -118,8 +118,8 @@ SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
 	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB $(VMS)/setup.com \
  	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
 	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
-	$(VMS)/build_ucx.com_alpha \
-	$(VMS)/ucx.opt_alpha \
+	$(VMS)/build_ucx.com $(VMS)/build_ucx.com_alpha \
+	$(VMS)/ucx.opt $(VMS)/ucx.opt_alpha \
 	$(VMS)/patchlevel.h $(VMS)/ufc-crypt.h \
 	$(VMS)/crypt.c $(VMS)/crypt_util.c \
 	$(VMS)/getline.c $(VMS)/getpass.c \
