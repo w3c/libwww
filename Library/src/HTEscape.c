@@ -111,8 +111,8 @@ PUBLIC char * HTUnEscape ARGS1( char *, str)
         if (*p == HEX_ESCAPE) {
 	    p++;
 	    if (*p) *q = from_hex(*p++) * 16;
-	    if (*p) *q = FROMASCII(*q + from_hex(*p++));
-	    q++;
+	    if (*p) *q = FROMASCII(*q + from_hex(*p));
+	    p++, q++;
 	} else {
 	    *q++ = *p++; 
 	}

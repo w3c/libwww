@@ -18,6 +18,7 @@
 #include "tcp.h"
 #include "HTUtils.h"		/* Coding convention macros */
 #include "HTString.h"
+#include "HTMLPDTD.h"
 #include "HTMLGen.h"
 #include "HTParse.h"
 #include "HTFormat.h"

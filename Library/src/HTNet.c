@@ -197,9 +197,9 @@ PUBLIC HTList *HTNet_activeQueue (void)
 **	----------------
 **	Returns the number of active requests
 */
-PUBLIC int HTNet_activeCount (void)
+PUBLIC BOOL HTNet_idle (void)
 {
-    return HTList_count(HTNetActive);
+    return HTList_isEmpty(HTNetActive);
 }
 
 /*	HTNet_pendingQueue

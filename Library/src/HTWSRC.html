@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>A parser for WAIS source files</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -13,20 +14,17 @@
 */
 </PRE>
 
-This converter returns a <A
-HREF="http://www.w3.org/pub/WWW/Library/User/Guide/Stream.html">stream
-object</A> into which a <A
+This converter returns a <A HREF="HTStream.html">stream object</A>
+into which a <A
 HREF="http://www.w3.org/pub/Products/WAIS/Overview.html">WAIS</A>
 source file can be written.  The result is put via a <A
-HREF="http://www.w3.org/pub/WWW/Library/User/Guide/Stream">structured
-stream</A> into whatever format was required for the output stream.<P>
-See also: <A NAME="z4" HREF="HTWAIS.html">HTWAIS</A> protocol
-interface module.<P>
+HREF="HTStruct.html">structured stream</A> into whatever format was
+required for the output stream.<P> See also: <A NAME="z4"
+HREF="HTWAIS.html">HTWAIS</A> protocol interface module.<P>
 
-This module is implemented by <A HREF="HTWSRC.c">HTWSRC.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+This module is implemented by <A HREF="HTWSRC.c">HTWSRC.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTWSRC_H
@@ -34,9 +32,7 @@ W3C Reference Library</A>.
 
 #include "HTFormat.h"
 
-#ifndef pyramid
 extern  HTConverter HTWSRCConvert;
-#endif
 
 </PRE>
 <H2>Escaping Strings</H2>HTDeSlash takes out the invlaid characters
@@ -53,7 +49,6 @@ extern char * HTEnSlash PARAMS((CONST char * str));
 #endif
 
 </PRE>
-<ADDRESS><A
-NAME="0" HREF="http://www.w3.org./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
+<ADDRESS><A HREF="http://www.w3.org./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
 </ADDRESS></BODY>
 </HTML>

@@ -32,6 +32,7 @@
 #include "HTWriter.h"
 #include "HTNetMan.h"
 #include "HTBind.h"
+#include "HTMLPDTD.h"
 #include "HTMLGen.h"
 #include "HTDir.h"
 #include "HTGopher.h"					 /* Implemented here */

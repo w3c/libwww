@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTML Generator</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -18,9 +18,8 @@ This module converts structed stream into stream.  That is, given a
 stream to write to, it will give you a structured stream to. <P>
 
 This module is implemented by <A HREF="HTMLGen.c">HTMLGen.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
-Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTMLGEN_H
@@ -28,8 +27,14 @@ Library</A>.
 
 #include "HTStruct.h"
 #include "HTFormat.h"
-#include "HTMLPDTD.h"
+</PRE>
 
+The HTML generator stream is almost a converter stream but it returns
+a structured stream instead of a generic stream. The difference is
+that a structured stream has methods for starting and ending mark up
+elements and for HTML/SGML entities.
+
+<PRE>
 extern HTStructured* HTMLGenerator PARAMS((HTRequest *	request,
 					   void *	param,
 					   HTFormat	input_format,
@@ -37,9 +42,7 @@ extern HTStructured* HTMLGenerator PARAMS((HTRequest *	request,
 					   HTStream *	output_stream));
 
 
-#ifndef pyramid
 extern HTConverter HTPlainToHTML;
-#endif
 
 #endif
 </PRE>

@@ -521,7 +521,7 @@ normal_text:
 	    int value;
 	    HTChunkTerminate(string);
 	    if (sscanf(string->data, "%d", &value)==1)
-	        PUTC(FROMASCII((char)value));
+	        PUTC((char) value);
 	    context->state = S_text;
 	}
 	break;

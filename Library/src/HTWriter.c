@@ -74,8 +74,10 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 	int cnt;
 	me->ascbuf = (char *) malloc(len);
 	dest = me->ascbuf;
-	for (cnt=0; cnt<len; cnt++)
-	    *dest++ = TOASCII(*orig++);
+	for (cnt=0; cnt<len; cnt++) {
+	    *dest = TOASCII(*orig);
+	    dest++, orig++;
+	}
 	me->write_pointer = me->ascbuf;
 	limit = me->ascbuf+len;
     }

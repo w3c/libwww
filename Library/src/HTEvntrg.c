@@ -582,7 +582,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 	/* If timeout then see if we should call callback function */
 	if (active_sockets == 0) {
-	    if (seltime.tcbf && (seltime.always || HTNet_activeCount())) {
+	    if (seltime.tcbf && (seltime.always || !HTNet_idle())) {
 		if (THD_TRACE)
 		    fprintf(TDEST, "Event Loop.. calling timeout cbf\n");
 		(*(seltime.tcbf))(seltime.request);

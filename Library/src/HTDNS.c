@@ -148,7 +148,7 @@ PUBLIC void HTDNS_setServerVersion (HTdns * dns, int version)
 */
 PUBLIC HTTCPType HTDNS_connection (HTdns *dns)
 {
-     return dns ? dns->type : 0;
+     return dns ? dns->type : HT_TCP_PLAIN;
 }
 
 PUBLIC void HTDNS_setConnection (HTdns * dns, HTTCPType type)

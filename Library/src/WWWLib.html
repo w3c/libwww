@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Global Include File for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -24,16 +24,20 @@ one.
 <PRE>
 #ifndef WWWLIB_H
 #define WWWLIB_H
-
-#ifdef __cplusplus
-extern "C" { 
-#endif
 </PRE>
 
 <H2>System dependencies</H2>
 
 <PRE>
 #include "tcp.h"
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
 </PRE>
 
 <H2>General Utilities</H2>

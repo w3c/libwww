@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -126,11 +126,13 @@ extern int  HTNet_maxSocket (void);
 <H2>List Active Queue</H2>
 
 Returns the list of active requests that are currently having an open
-connection. Returns list of HTNet objects or NULL if error
+connection. Returns list of HTNet objects or NULL if
+error. <CODE>HTNet_idle()</CODE> returns YES if no active sockets are
+registered.
 
 <PRE>
 extern HTList *HTNet_activeQueue (void);
-extern int HTNet_activeCount (void);
+extern BOOL HTNet_idle (void);
 </PRE>
 
 <H2>List Pending Queue</H2>

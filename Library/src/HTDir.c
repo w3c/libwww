@@ -22,6 +22,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
+#include "HTMLPDTD.h"
 #include "HTMLGen.h"
 #include "HTBind.h"
 #include "HTEscape.h"

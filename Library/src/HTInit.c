@@ -41,15 +41,6 @@
 
 #include "HTInit.h"				         /* Implemented here */
 
-/*
-** A bug in the Pyramid compiler requires this
-*/
-#ifdef pyramid
-extern HTConverter HTMIMEConvert, HTMLToC, HTMLToPlain, HTMLPresent,
-                   HTMLToTeX, HTPlainToHTML, HTPlainPresent, HTSaveLocally,
-                   HTWSRCConvert;
-#endif /* pyramid */
-
 /* ------------------------------------------------------------------------- */
 
 /*	BINDINGS BETWEEN A SOURCE MEDIA TYPE AND A DEST MEDIA TYPE (CONVERSION)
