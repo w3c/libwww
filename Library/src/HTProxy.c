@@ -33,12 +33,18 @@
 typedef struct _HTProxy {
     char *	access;
     char *	url;			          /* URL of Gateway or Proxy */
+#ifdef HT_POSIX_REGEX
+    regex_t *	regex;				  /* Compiled regex */
+#endif
 } HTProxy;
 
 typedef struct _HTHostlist {
     char *	access;
-    char *	host;				      /* Host or domain name */
+    char *	host;				  /* Host or domain name */
     unsigned	port;
+#ifdef HT_POSIX_REGEX
+    regex_t *	regex;				  /* Compiled regex */
+#endif
 } HTHostList;
 
 PRIVATE HTList * proxies = NULL;		    /* List of proxy servers */
@@ -51,10 +57,41 @@ PRIVATE HTList * onlyproxy = NULL;  /* Proxy only on these hosts and domains */
 
 /* ------------------------------------------------------------------------- */
 
+#ifdef HT_POSIX_REGEX
+PRIVATE char * get_regex_error (int errcode, regex_t * compiled)
+{
+    size_t length = regerror (errcode, compiled, NULL, 0);
+    char * str = NULL;
+    if ((str = (char *) HT_MALLOC(length+1)) == NULL)
+	HT_OUTOFMEM("get_regex_error");
+    (void) regerror (errcode, compiled, str, length);
+    return str;
+}
+
+PRIVATE regex_t * get_regex_t (const char * regex_str, int cflags)
+{
+    regex_t * regex = NULL;
+    if (regex_str && *regex_str) {
+	int status;
+	if ((regex = (regex_t *) HT_CALLOC(1, sizeof(regex_t))) == NULL)
+	    HT_OUTOFMEM("get_regex_t");
+	if ((status = regcomp(regex, regex_str, cflags))) {
+	    char * err_msg = get_regex_error(status, regex);
+	    if (PROT_TRACE)
+		HTTrace("HTProxy..... Regular expression error: %s\n", err_msg);
+	    HT_FREE(err_msg);
+	    HT_FREE(regex);
+	}
+    }
+    return regex;
+}
+#endif
+
 /*
 **	Existing entries are replaced with new ones
 */
-PRIVATE BOOL add_object (HTList * list, const char * access, const char * url)
+PRIVATE BOOL add_object (HTList * list, const char * access, const char * url,
+			 BOOL regex, int regex_flags)
 {
     HTProxy *me;
     if (!list || !access || !url || !*url)
@@ -62,10 +99,24 @@ PRIVATE BOOL add_object (HTList * list, const char * access, const char * url)
     if ((me = (HTProxy *) HT_CALLOC(1, sizeof(HTProxy))) == NULL)
 	HT_OUTOFMEM("add_object");
     StrAllocCopy(me->access, access);		     	    /* Access method */
+
+#ifdef HT_POSIX_REGEX
+    /* 
+    **  If we support regular expressions then compile one up for
+    **  this regular expression. Otherwise use is as a normal
+    **  access scheme.
+    */
+    if (regex) {
+	me->regex = get_regex_t(access,
+				regex_flags < 0 ?
+				W3C_DEFAULT_REGEX_FLAGS : regex_flags);
+    } else
+#endif
     {
 	char *ptr = me->access;
 	while ((*ptr = TOLOWER(*ptr))) ptr++;
     }
+
     me->url = HTParse(url, "", PARSE_ACCESS+PARSE_HOST+PARSE_PUNCTUATION);
     if (*(me->url+strlen(me->url)-1) != '/')
 	StrAllocCat(me->url, "/");
@@ -85,6 +136,9 @@ PRIVATE BOOL add_object (HTList * list, const char * access, const char * url)
 			me->url, me->access);
 	    HT_FREE(pres->access);
 	    HT_FREE(pres->url);
+#ifdef HT_POSIX_REGEX
+	    if (pres->regex) regfree(pres->regex);
+#endif
 	    HTList_removeObject(list, (void *) pres);
 	    HT_FREE(pres);
 	}
@@ -104,6 +158,9 @@ PRIVATE BOOL remove_allObjects (HTList * list)
 	while ((pres = (HTProxy *) HTList_nextObject(cur)) != NULL) {
 	    HT_FREE(pres->access);
 	    HT_FREE(pres->url);
+#ifdef HT_POSIX_REGEX
+	    if (pres->regex) regfree(pres->regex);
+#endif
 	    HT_FREE(pres);
 	}
 	return YES;
@@ -116,13 +173,21 @@ PRIVATE BOOL remove_allObjects (HTList * list)
 **	Existing entries are replaced with new ones
 */
 PRIVATE BOOL add_hostname (HTList * list, const char * host,
-			   const char * access, unsigned port)
+			   const char * access, unsigned port,
+			   BOOL regex, int regex_flags)
 {
     HTHostList *me;
     if (!list || !host || !*host)
 	return NO;
     if ((me = (HTHostList *) HT_CALLOC(1, sizeof(HTHostList))) == NULL)
         HT_OUTOFMEM("add_hostname");
+#ifdef HT_POSIX_REGEX
+    if (regex)
+	me->regex = get_regex_t(host,
+				regex_flags < 0 ?
+				W3C_DEFAULT_REGEX_FLAGS : regex_flags);
+#endif
+
     if (access) {
 	char *ptr;
 	StrAllocCopy(me->access, access);      	     	    /* Access method */
@@ -149,6 +214,9 @@ PRIVATE BOOL remove_AllHostnames (HTList * list)
 	while ((pres = (HTHostList *) HTList_nextObject(cur)) != NULL) {
 	    HT_FREE(pres->access);
 	    HT_FREE(pres->host);
+#ifdef HT_POSIX_REGEX
+	    if (pres->regex) regfree(pres->regex);
+#endif
 	    HT_FREE(pres);
 	}
 	return YES;
@@ -180,7 +248,40 @@ PUBLIC BOOL HTProxy_add (const char * access, const char * proxy)
 	HTNet_addAfter(HTAuthFilter, NULL, NULL,
 		       HT_PROXY_REAUTH, HT_FILTER_MIDDLE);
     }
-    return add_object(proxies, access, proxy);
+    return add_object(proxies, access, proxy, NO, -1);
+}
+
+/*	HTProxy_addRegex
+**	----------------
+**	Registers a proxy as the server to contact for any URL matching the
+**	regular expression. `proxy' should be a fully valid name, like
+**	"http://proxy.w3.org:8001".
+**	If an entry exists for this access then delete it and use the 
+**	new one. Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTProxy_addRegex (const char * regex,
+			      const char * proxy,
+			      int regex_flags)
+{
+    /*
+    **  If this is the first time here then also add a before filter to handle
+    **  proxy authentication and the normal AA after filter as well.
+    **  These filters will be removed if we remove all proxies again.
+    */
+    if (!proxies) {
+	proxies = HTList_new();
+	HTNet_addBefore(HTAA_proxyBeforeFilter, NULL, NULL,
+			HT_FILTER_MIDDLE);
+	HTNet_addAfter(HTAuthFilter, NULL, NULL,
+		       HT_NO_PROXY_ACCESS, HT_FILTER_MIDDLE);
+	HTNet_addAfter(HTAuthFilter, NULL, NULL,
+		       HT_PROXY_REAUTH, HT_FILTER_MIDDLE);
+    }
+#ifdef HT_POSIX_REGEX
+    return add_object(proxies, regex, proxy, YES, regex_flags);
+#else
+    return add_object(proxies, regex, proxy, NO, -1);
+#endif
 }
 
 /*
@@ -217,7 +318,7 @@ PUBLIC BOOL HTGateway_add (const char * access, const char * gate)
 {
     if (!gateways)
 	gateways = HTList_new();
-    return add_object(gateways, access, gate);
+    return add_object(gateways, access, gate, NO, -1);
 }
 
 /*
@@ -248,7 +349,24 @@ PUBLIC BOOL HTNoProxy_add (const char * host, const char * access,
 {
     if (!noproxy)
 	noproxy = HTList_new();    
-    return add_hostname(noproxy, host, access, port);
+    return add_hostname(noproxy, host, access, port, NO, -1);
+}
+
+/*	HTNoProxy_addRegex
+**	------------------
+**	Registers a regular expression where URIs matching this expression
+**      should go directly and not via a proxy.
+**
+*/
+PUBLIC BOOL HTNoProxy_addRegex (const char * regex, int regex_flags)
+{
+    if (!noproxy)
+	noproxy = HTList_new();    
+#ifdef HT_POSIX_REGEX
+    return add_hostname(noproxy, regex, NULL, 0, YES, regex_flags);
+#else
+    return add_hostname(noproxy, regex, NULL, 0, NO, -1);
+#endif
 }
 
 /*	HTNoProxy_deleteAll
@@ -296,6 +414,17 @@ PUBLIC char * HTProxy_find (const char * url)
 	    HTList *cur = noproxy;
 	    HTHostList *pres;
 	    while ((pres = (HTHostList *) HTList_nextObject(cur)) != NULL) {
+#ifdef HT_POSIX_REGEX
+		if (pres->regex) {
+		    BOOL match = regexec(pres->regex, url, 0, NULL, 0) ? NO : YES;
+		    if (match) {
+			if (PROT_TRACE)
+			    HTTrace("GetProxy.... No proxy directive found: `%s\'\n", pres->host);
+			HT_FREE(access);
+			return NULL;
+		    }
+		} else
+#endif
 		if (!pres->access ||
 		    (pres->access && !strcmp(pres->access, access))) {
 		    if (pres->port == port) {
@@ -320,6 +449,17 @@ PUBLIC char * HTProxy_find (const char * url)
 	HTList *cur = proxies;
 	HTProxy *pres;
 	while ((pres = (HTProxy *) HTList_nextObject(cur)) != NULL) {
+#ifdef HT_POSIX_REGEX
+	    if (pres->regex) {
+		BOOL match = regexec(pres->regex, url, 0, NULL, 0) ? NO : YES;
+		if (match) {
+		    StrAllocCopy(proxy, pres->url);
+		    if (PROT_TRACE)
+			HTTrace("GetProxy.... Found: `%s\'\n", pres->url);
+		    break;
+		}
+	    } else
+#endif
 	    if (!strcmp(pres->access, access)) {
 		StrAllocCopy(proxy, pres->url);
 		if (PROT_TRACE)

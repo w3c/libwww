@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
   <TITLE>W3C Sample Code Library libwww Proxies and Gateways</TITLE>
 </HEAD>
 <BODY>
@@ -34,7 +33,7 @@ Library</A>.
 #include "HTList.h"
 </PRE>
 <H2>
-  Registering a proxy server
+  Registering a Proxy Server
 </H2>
 <P>
 A proxy server is registered with a corresponding access method, for example
@@ -44,13 +43,34 @@ not required. If an entry exists for this access then delete it and use the
 new one.
 <PRE>
 extern BOOL HTProxy_add		(const char * access, const char * proxy);
+</PRE>
+<H3>
+  Registering a Proxy Using Regular Expressions
+</H3>
+<P>
+Registers a proxy as the server to contact for any URL matching the regular
+expression. This requires that you have compiled with the
+<TT>HT_POSIX_REGEX</TT> flag, see the <A HREF="../../INSTALL.html">installation
+instructions</A>. If you call this function without having compiled with
+the <TT>HT_POSIX_REGEX</TT> flag then you will essentially get the non-regex
+version.&nbsp;The name of the proxy should be a fully valid URL, like
+"<TT>http://proxy.w3.org:8001</TT>". Returns YES if OK, else NO
+<PRE>
+extern BOOL HTProxy_addRegex (const char * regex,
+                              const char * proxy,
+                              int regex_flags);
+</PRE>
+<H3>
+  Deleting All Registered Proxies
+</H3>
+<PRE>
 extern BOOL HTProxy_deleteAll	(void);
 </PRE>
 <P>
 The remove function removes all registered proxies. This is automatically
 done in <A HREF="HTLib.html"> HTLibTerminate()</A> <A NAME="noproxy"></A>
 <H2>
-  Registering a host or domain with no proxy
+  Registering a No Proxy Location
 </H2>
 <P>
 The <EM>noproxy</EM> list is a list of host names and domain names where
@@ -63,6 +83,27 @@ of host names are <CODE>w3.org</CODE> and <CODE>www.close.com</CODE>
 <PRE>
 extern BOOL HTNoProxy_add	(const char * host, const char * access,
 				 unsigned port);
+</PRE>
+<H3>
+  Registering a NoProxy Location Using Regular Expressions
+</H3>
+<P>
+Registers a regular expression where URIs matching this expression should
+go directly and not via a proxy. Examples:
+<CODE>http://&lt;star&gt;\.w3\.org</CODE> and
+<CODE>http://www\.noproxy\.com/&lt;star&gt;</CODE> (I use
+<TT>&lt;star&gt;</TT> in order not interfere with C comments) This requires
+that you have compiled with the <TT>HT_POSIX_REGEX</TT> flag, see the
+<A HREF="../../INSTALL.html">installation instructions</A>. If you call this
+function without having compiled with the <TT>HT_POSIX_REGEX</TT> flag then
+you will essentially get the non-regex version.&nbsp;
+<PRE>
+extern BOOL HTNoProxy_addRegex (const char * regex, int regex_flags);
+</PRE>
+<H3>
+  Delete all Noproxy Destinations
+</H3>
+<PRE>
 extern BOOL HTNoProxy_deleteAll	(void);
 </PRE>
 <P>
