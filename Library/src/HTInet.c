@@ -614,11 +614,11 @@ PUBLIC char * HTGetTmpFileName (const char * abs_dir)
 #ifdef WWW_MSWINDOWS
     if (abs_dir) {
 #else
-    if (abs_dir && *abs_dir=='/') {
+    if (abs_dir && *abs_dir==DIR_SEPARATOR_CHAR) {
 #endif /* WWW_MSWINDOWS */
 	strcpy(result, abs_dir);
 	offset = result+strlen(result);
-	if (*(offset-1) != '/') *offset++ = '/';
+	if (*(offset-1) != DIR_SEPARATOR_CHAR) *offset++ = DIR_SEPARATOR_CHAR;
 
 #ifdef HT_REENTRANT
 	tmpnam_r(offset);
@@ -627,11 +627,7 @@ PUBLIC char * HTGetTmpFileName (const char * abs_dir)
 #endif
 
 	{
-#ifdef WWW_MSWINDOWS
-	    char * orig = strrchr(offset, '\\');
-#else
-	    char * orig = strrchr(offset, '/');
-#endif /* WWW_MSWINDOWS */
+	    char * orig = strrchr(offset, DIR_SEPARATOR_CHAR);
 	    char * dest = offset;
 	    if (orig++) while ((*dest++ = *orig++));
 	}
