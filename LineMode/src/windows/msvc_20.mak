@@ -52,32 +52,63 @@ $(OUTDIR) :
 # ADD MTL /nologo /D "NDEBUG" /win32
 MTL_PROJ=/nologo /D "NDEBUG" /win32 
 # ADD BASE CPP /nologo /W3 /GX /YX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FR /c
-# ADD CPP /nologo /W3 /GX /YX /O2 /I "..\..\..\Library\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /c
-# SUBTRACT CPP /Fr
-CPP_PROJ=/nologo /W3 /GX /YX /O2 /I "..\..\..\Library\Implementation" /D\
- "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /Fp$(OUTDIR)/"www.pch"\
- /Fo$(INTDIR)/ /c 
+# ADD CPP /nologo /W3 /GX /YX /O2 /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR /c
+CPP_PROJ=/nologo /W3 /GX /YX /O2 /I "..\..\..\Library\Implementation" /I\
+ "..\..\..\Pics\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
+ "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR$(INTDIR)/\
+ /Fp$(OUTDIR)/"www.pch" /Fo$(INTDIR)/ /c 
 CPP_OBJS=.\WinRel/
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
-RSC_PROJ=/l 0x409 /fo$(INTDIR)/"WWW.res" /d "NDEBUG" 
+RSC_PROJ=/l 0x409 /fo$(INTDIR)/"www.res" /d "NDEBUG" 
 BSC32=bscmake.exe
-BSC32_SBRS= \
-	
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"www.bsc" 
+BSC32_SBRS= \
+	.\WinRel\HTDir.sbr \
+	.\WinRel\HTFTPDir.sbr \
+	.\WinRel\HTTelnet.sbr \
+	.\WinRel\www.sbr \
+	.\WinRel\HTWSRC.sbr \
+	.\WinRel\HTLog.sbr \
+	.\WinRel\HTHome.sbr \
+	.\WinRel\HTInit.sbr \
+	.\WinRel\HTIcons.sbr \
+	.\WinRel\HTFile.sbr \
+	.\WinRel\HTTeXGen.sbr \
+	.\WinRel\lib.sbr \
+	.\WinRel\HTML.sbr \
+	.\WinRel\HTHist.sbr \
+	.\WinRel\HTGopher.sbr \
+	.\WinRel\HTFTP.sbr \
+	.\WinRel\HTPlain.sbr \
+	.\WinRel\HTGuess.sbr \
+	.\WinRel\scroll.sbr \
+	.\WinRel\HTMulti.sbr \
+	.\WinRel\GridStyle.sbr \
+	.\WinRel\GridText.sbr \
+	.\WinRel\HTBrowse.sbr \
+	.\WinRel\DefaultStyles.sbr \
+	.\WinRel\HTMLPDTD.sbr \
+	.\WinRel\SGML.sbr \
+	.\WinRel\wwwpics.sbr
 
 .\WinRel\www.bsc : $(OUTDIR)  $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /MACHINE:I386
-# ADD LINK32 kernel32.lib gdi32.lib comdlg32.lib wsock32.lib /NOLOGO /SUBSYSTEM:windows /MACHINE:I386
-LINK32_FLAGS=kernel32.lib gdi32.lib comdlg32.lib wsock32.lib /NOLOGO\
+# ADD LINK32 user32.lib comdlg32.lib gdi32.lib wsock32.lib /NOLOGO /SUBSYSTEM:windows /MACHINE:I386
+LINK32_FLAGS=user32.lib comdlg32.lib gdi32.lib wsock32.lib /NOLOGO\
  /SUBSYSTEM:windows /INCREMENTAL:no /PDB:$(OUTDIR)/"www.pdb" /MACHINE:I386\
- /DEF:".\WWW32.DEF" /OUT:$(OUTDIR)/"www.exe" 
-DEF_FILE=.\WWW32.DEF
+ /OUT:$(OUTDIR)/"www.exe" 
+DEF_FILE=
 LINK32_OBJS= \
 	.\WinRel\HTDir.obj \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib \
 	.\WinRel\HTFTPDir.obj \
 	.\WinRel\HTTelnet.obj \
 	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwdll.lib \
@@ -86,13 +117,16 @@ LINK32_OBJS= \
 	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcore.lib \
 	.\WinRel\HTWSRC.obj \
 	.\WinRel\HTLog.obj \
-	.\WinRel\HTMLPDTD.obj \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib \
 	.\WinRel\HTHome.obj \
 	.\WinRel\HTInit.obj \
 	.\WinRel\HTIcons.obj \
-	.\WinRel\WWW.res \
 	.\WinRel\HTFile.obj \
 	.\WinRel\HTTeXGen.obj \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
 	.\WinRel\lib.obj \
 	.\WinRel\HTML.obj \
 	.\WinRel\HTHist.obj \
@@ -106,14 +140,10 @@ LINK32_OBJS= \
 	.\WinRel\GridText.obj \
 	.\WinRel\HTBrowse.obj \
 	.\WinRel\DefaultStyles.obj \
+	.\WinRel\HTMLPDTD.obj \
 	.\WinRel\SGML.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
-	.\WinRel\HTDialog.obj
+	.\WinRel\www.res \
+	.\WinRel\wwwpics.obj
 
 .\WinRel\www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -142,32 +172,63 @@ $(OUTDIR) :
 # ADD MTL /nologo /D "_DEBUG" /win32
 MTL_PROJ=/nologo /D "_DEBUG" /win32 
 # ADD BASE CPP /nologo /W3 /GX /Zi /YX /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /c
-# ADD CPP /nologo /W3 /GX /Zi /YX /Od /I "..\..\..\Library\Implementation" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "DEBUG" /c
-# SUBTRACT CPP /Fr
-CPP_PROJ=/nologo /W3 /GX /Zi /YX /Od /I "..\..\..\Library\Implementation" /D\
- "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "DEBUG"\
+# ADD CPP /nologo /W3 /GX /Zi /YX /Od /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR /c
+CPP_PROJ=/nologo /W3 /GX /Zi /YX /Od /I "..\..\..\Library\Implementation" /I\
+ "..\..\..\Pics\Implementation" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS"\
+ /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR$(INTDIR)/\
  /Fp$(OUTDIR)/"www.pch" /Fo$(INTDIR)/ /Fd$(OUTDIR)/"www.pdb" /c 
 CPP_OBJS=.\WinDebug/
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
-RSC_PROJ=/l 0x409 /fo$(INTDIR)/"WWW.res" /d "_DEBUG" 
+RSC_PROJ=/l 0x409 /fo$(INTDIR)/"www.res" /d "_DEBUG" 
 BSC32=bscmake.exe
-BSC32_SBRS= \
-	
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"www.bsc" 
+BSC32_SBRS= \
+	.\WinDebug\HTDir.sbr \
+	.\WinDebug\HTFTPDir.sbr \
+	.\WinDebug\HTTelnet.sbr \
+	.\WinDebug\www.sbr \
+	.\WinDebug\HTWSRC.sbr \
+	.\WinDebug\HTLog.sbr \
+	.\WinDebug\HTHome.sbr \
+	.\WinDebug\HTInit.sbr \
+	.\WinDebug\HTIcons.sbr \
+	.\WinDebug\HTFile.sbr \
+	.\WinDebug\HTTeXGen.sbr \
+	.\WinDebug\lib.sbr \
+	.\WinDebug\HTML.sbr \
+	.\WinDebug\HTHist.sbr \
+	.\WinDebug\HTGopher.sbr \
+	.\WinDebug\HTFTP.sbr \
+	.\WinDebug\HTPlain.sbr \
+	.\WinDebug\HTGuess.sbr \
+	.\WinDebug\scroll.sbr \
+	.\WinDebug\HTMulti.sbr \
+	.\WinDebug\GridStyle.sbr \
+	.\WinDebug\GridText.sbr \
+	.\WinDebug\HTBrowse.sbr \
+	.\WinDebug\DefaultStyles.sbr \
+	.\WinDebug\HTMLPDTD.sbr \
+	.\WinDebug\SGML.sbr \
+	.\WinDebug\wwwpics.sbr
 
 .\WinDebug\www.bsc : $(OUTDIR)  $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DEBUG /MACHINE:I386
-# ADD LINK32 kernel32.lib gdi32.lib comdlg32.lib wsock32.lib /NOLOGO /SUBSYSTEM:windows /DEBUG /MACHINE:I386
-LINK32_FLAGS=kernel32.lib gdi32.lib comdlg32.lib wsock32.lib /NOLOGO\
+# ADD LINK32 user32.lib comdlg32.lib gdi32.lib wsock32.lib /NOLOGO /SUBSYSTEM:windows /DEBUG /MACHINE:I386
+LINK32_FLAGS=user32.lib comdlg32.lib gdi32.lib wsock32.lib /NOLOGO\
  /SUBSYSTEM:windows /INCREMENTAL:yes /PDB:$(OUTDIR)/"www.pdb" /DEBUG\
- /MACHINE:I386 /DEF:".\WWW32.DEF" /OUT:$(OUTDIR)/"www.exe" 
-DEF_FILE=.\WWW32.DEF
+ /MACHINE:I386 /OUT:$(OUTDIR)/"www.exe" 
+DEF_FILE=
 LINK32_OBJS= \
 	.\WinDebug\HTDir.obj \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib \
 	.\WinDebug\HTFTPDir.obj \
 	.\WinDebug\HTTelnet.obj \
 	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwdll.lib \
@@ -176,13 +237,16 @@ LINK32_OBJS= \
 	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcore.lib \
 	.\WinDebug\HTWSRC.obj \
 	.\WinDebug\HTLog.obj \
-	.\WinDebug\HTMLPDTD.obj \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib \
 	.\WinDebug\HTHome.obj \
 	.\WinDebug\HTInit.obj \
 	.\WinDebug\HTIcons.obj \
-	.\WinDebug\WWW.res \
 	.\WinDebug\HTFile.obj \
 	.\WinDebug\HTTeXGen.obj \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib \
+	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
 	.\WinDebug\lib.obj \
 	.\WinDebug\HTML.obj \
 	.\WinDebug\HTHist.obj \
@@ -196,14 +260,10 @@ LINK32_OBJS= \
 	.\WinDebug\GridText.obj \
 	.\WinDebug\HTBrowse.obj \
 	.\WinDebug\DefaultStyles.obj \
+	.\WinDebug\HTMLPDTD.obj \
 	.\WinDebug\SGML.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
-	.\WinDebug\HTDialog.obj
+	.\WinDebug\www.res \
+	.\WinDebug\wwwpics.obj
 
 .\WinDebug\www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -245,6 +305,11 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDir.c
 ################################################################################
 # Begin Source File
 
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFTPDir.c
 
 !IF  "$(CFG)" == "Win32 Release"
@@ -259,11 +324,6 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFTPDir.c
 
 !ENDIF 
 
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\WWW32.DEF
 # End Source File
 ################################################################################
 # Begin Source File
@@ -358,20 +418,18 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTLog.c
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLPDTD.c
+SOURCE=\
+\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib
+# End Source File
+################################################################################
+# Begin Source File
 
-!IF  "$(CFG)" == "Win32 Release"
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib
+# End Source File
+################################################################################
+# Begin Source File
 
-.\WinRel\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
-
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib
 # End Source File
 ################################################################################
 # Begin Source File
@@ -430,27 +488,6 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTIcons.c
 ################################################################################
 # Begin Source File
 
-SOURCE=.\WWW.RC
-DEP_WWW_R=\
-	.\WWW.ICO\
-	E:\u\eric\PROJECTS\WINLIB\COMM.RC
-
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\WWW.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
-   $(RSC) $(RSC_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\WWW.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
-   $(RSC) $(RSC_PROJ)  $(SOURCE) 
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFile.c
 
 !IF  "$(CFG)" == "Win32 Release"
@@ -483,6 +520,18 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTeXGen.c
 
 !ENDIF 
 
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\
+\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\
+\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib
 # End Source File
 ################################################################################
 # Begin Source File
@@ -717,6 +766,24 @@ SOURCE=\PROJECTS\LIBWWW\WWW\LineMode\Implementation\DefaultStyles.c
 ################################################################################
 # Begin Source File
 
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLPDTD.c
+
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
+
+# End Source File
+################################################################################
+# Begin Source File
+
 SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\SGML.c
 
 !IF  "$(CFG)" == "Win32 Release"
@@ -735,54 +802,39 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\SGML.c
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\
-\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\
-\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\
-\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDialog.c
-DEP_HTDIA=\
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\WWWLib.h\
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\WWWApp.h\
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\HTReqMan.h\
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDialog.h
+SOURCE=.\www.rc
+DEP_WWW_R=\
+	.\www.ico\
+	E:\u\eric\PROJECTS\WINLIB\COMM.RC
 
 !IF  "$(CFG)" == "Win32 Release"
 
-.\WinRel\HTDialog.obj :  $(SOURCE)  $(DEP_HTDIA) $(INTDIR)
+.\WinRel\www.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
+   $(RSC) $(RSC_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\www.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
+   $(RSC) $(RSC_PROJ)  $(SOURCE) 
+
+!ENDIF 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Pics\Implementation\wwwpics.c
+DEP_WWWPI=\
+	\PROJECTS\LIBWWW\WWW\Pics\Implementation\wwwpics.h
+
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\wwwpics.obj :  $(SOURCE)  $(DEP_WWWPI) $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 !ELSEIF  "$(CFG)" == "Win32 Debug"
 
-.\WinDebug\HTDialog.obj :  $(SOURCE)  $(DEP_HTDIA) $(INTDIR)
+.\WinDebug\wwwpics.obj :  $(SOURCE)  $(DEP_WWWPI) $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 !ENDIF 
