@@ -700,7 +700,7 @@ PUBLIC void HTML_free ARGS1(HTStructured *, me)
     if (me->target) {
         (*me->targetClass.free)(me->target);
     }
-    HTChunkClear(me->title);	/* Leak fix Henrik 18/02-94 */
+    HTChunkClear(&me->title);	/* Henrik 18/02-94 */
     free(me);
 }
 
@@ -711,7 +711,7 @@ PRIVATE void HTML_abort ARGS2(HTStructured *, me, HTError, e)
     if (me->target) {
         (*me->targetClass.abort)(me->target, e);
     }
-    HTChunkClear(me->title);	/* Leak fix Henrik 18/02-94 */
+    HTChunkClear(&me->title);	/* Henrik 18/02-94 */
     free(me);
 }
 
