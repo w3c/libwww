@@ -94,6 +94,7 @@ struct _HText {
 /* For Internal use: */	
 	HTStyle *		style;			/* Current style */
 	int			display_on_the_fly;	/* Lines left */
+	BOOL			all_pages;		/* Loop on the fly */
 	int			top_of_screen;		/* Line number */
 	HTLine *		top_of_screen_line;	/* Top */
 	HTLine *		next_line;		/* Bottom + 1 */
@@ -129,6 +130,9 @@ PRIVATE HTList * loaded_texts;	/* A list of all those in memory */
 
 /*			Creation Method
 **			---------------
+**
+**	Interactive version
+**
 */
 PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
 {
@@ -164,6 +168,7 @@ PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
     HTMainText = self;
     HTMainAnchor = anchor;
     self->display_on_the_fly = DISPLAY_LINES;
+    self->all_pages = NO;	/* One page at a time on the fly */
     
     if (!space_string) {	/* Make a blank line */
         char *p;
@@ -181,6 +186,7 @@ PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
 /*			Creation Method 2
 **			---------------
 **
+**	Non-interative
 **	Stream is assumed open and left open.
 */
 PUBLIC HText *	HText_new2 ARGS2(
@@ -188,13 +194,14 @@ PUBLIC HText *	HText_new2 ARGS2(
 		HTStream*,		stream)
 
 {
-    HText * this = HText_new(anchor);
+    HText * me = HText_new(anchor);
         
     if (stream) {
-        this->target = stream;
-	this->targetClass = *stream->isa;	/* copy action procedures */
-    }    
-    return this;
+        me->target = stream;
+	me->targetClass = *stream->isa;	/* copy action procedures */
+    }
+    me->all_pages = YES;	/* Display whole file on the fly */    
+    return me;
 }
 
 
@@ -446,6 +453,8 @@ PUBLIC void HText_beginAppend ARGS1(HText *,text)
 **		before split.
 **	text->display_on_the_fly
 **		may be set to indicate direct output of the finished line.
+**	text->all_pages
+**		if set indicates all pages are to be done on the fly.
 ** On exit,
 **		A new line has been made, justified according to the
 **		current style. Text after the split (if split nonzero)
@@ -553,6 +562,12 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
 	}
 	display_line(text, previous);
 	text->display_on_the_fly--;
+	
+	/* Loop to top of next page? */
+	if (!text->display_on_the_fly && text->all_pages) {
+	    PUTS("\f\n"); /* Form feed on its own line a la rfc1111 */
+	    text->display_on_the_fly = DISPLAY_LINES;
+	}
     }
 } /* split_line */
 

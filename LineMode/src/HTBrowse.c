@@ -581,12 +581,13 @@ int main
 	while (YES) Selection_Prompt();
 	
     } else if (!HTOutputSource) {	/* Non-interactive but formatted */
+#ifdef OLD_CODE
 	fprintf(output, "\f");		/* Form feed for new page */
 	while(HText_canScrollDown(HTMainText)) {
 	    HText_scrollDown(HTMainText);
 	    fprintf(output, "\f");		/* Form feed for new page */
 	}
-	
+#endif	
 	if (listrefs_option) {
 	    Reference_List(NO);		/* List without titles */
 	}
