@@ -701,7 +701,7 @@ PRIVATE BOOL setup_anchors (HTRequest * request,
 	char * hostname = HTParse(addr, "", PARSE_HOST);
 	HTHost * host = HTHost_find(hostname);
 	HTMethod public_methods = HTHost_publicMethods(host);
-	HTMethod private_methods = HTAnchor_methods(dest);
+	HTMethod private_methods = HTAnchor_allow(dest);
 	HT_FREE(hostname);
 	HT_FREE(addr);
 	if (!(method & (private_methods | public_methods))) {
@@ -968,7 +968,8 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 /*
 **	After filter for handling PUT of document. We should now have the 
 */
-PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
+PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
+			  void * param, int status)
 {
     HTPutContext * me = (HTPutContext *) param;
     if (APP_TRACE)
@@ -990,7 +991,7 @@ PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
     */
     if (status == HT_TEMP_REDIRECT || status == HT_PERM_REDIRECT) {
 	HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
-	HTAnchor * redirection = HTRequest_redirection(request);
+	HTAnchor * redirection = HTResponse_redirection(response);
 	if (prompt && redirection) {
 	    if (me->state == HT_LOAD_SOURCE) {
 		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_SOURCE_MOVED,
@@ -1133,7 +1134,13 @@ PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 		HT_OUTOFMEM("HTPutDocumentAnchor");
 	    context->source = source;
 	    context->destination = destination;
-	    HTRequest_addAfter(request, HTSaveFilter, context, HT_ALL, NO);
+
+	    /*
+	    **  We register the after filter with a NULL template as we
+	    **  don't know the source of the data.
+	    */
+	    HTRequest_addAfter(request, HTSaveFilter, NULL, context, HT_ALL,
+			       HT_FILTER_FIRST, NO);
 
 	    /* Turn off progress notifications */
 	    HTRequest_setInternal(request, YES);
@@ -1394,7 +1401,7 @@ PUBLIC BOOL HTHeadAnchor (HTAnchor * anchor, HTRequest * request)
 {
     if (anchor && request) {
 	HTRequest_setAnchor(request, anchor);
-	HTRequest_setOutputFormat(request, WWW_DEBUG);
+	HTRequest_setOutputFormat(request, WWW_MIME);
 	HTRequest_setMethod(request, METHOD_HEAD);
 	return launch_request(request, NO);
     }

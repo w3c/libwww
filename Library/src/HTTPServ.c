@@ -147,9 +147,9 @@ PRIVATE int MakeReplyPipe (HTStream * me, HTRequest * client)
 	HTParentAnchor * anchor = HTRequest_anchor(client);
 	HTFormat format = HTAnchor_format(anchor);
 	me->target = (format == WWW_UNKNOWN) ?
-	    HTTPResponse_new(client, me->target, YES) :
+	    HTTPResponse_new(client, me->target, YES, HTTP_11) :
 	    HTMIMERequest_new(client,
-	        HTTPResponse_new(client,me->target,NO), YES);
+	        HTTPResponse_new(client,me->target, NO, HTTP_11), YES);
     }
     return HT_OK;
 }

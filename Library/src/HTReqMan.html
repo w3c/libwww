@@ -50,11 +50,7 @@ struct _HTRequest {
     time_t		date;      /* Time stamp when the request was issued */
 
     HTMethod		method;
-    HTReload		reload;
 
-    int			retrys;       	      /* Number of automatic reloads */
-    time_t		retry_after;		 /* Absolut time for a retry */
-    HTNet *		net;		    /* Information about socket etc. */
     HTPriority		priority;		/* Priority for this request */
 </PRE>
 <H3>
@@ -66,9 +62,94 @@ information about this host and the user issuing the request.
 <PRE>
     HTUserProfile *	userprofile;
 </PRE>
+
+<H3>
+Net Object
+</H3>
+Each request is assigned a Net object which contains pointers to other objects handling the request.
+<PRE>
+    HTNet *		net;		    /* Information about socket etc. */
+</PRE>
+
+<H3>
+Response Object
+</H3>
+
+When we start getting MIME headers in as a response we keep it in this object until we know what to do with it.
+
+<PRE>
+    HTResponse *        response;
+</PRE>
+
+<H3>
+  Error Manager
+</H3>
+<PRE>
+    HTList *		error_stack;		           /* List of errors */
+</PRE>
+
+<H3>
+Have many times do We Want to Try?
+</H3>
+
+<PRE>
+    int			retrys;       	      /* Number of automatic reloads */
+    int                 max_forwards;
+</PRE>
+
+<H3>
+  Preemtive or Non-Preemptive load?
+</H3>
+
+Each protocol module is registered with a default behavior but if you have registered a protocol module for non-preemtive load you can override this by using the following flag.
+
+<PRE>
+    BOOL		preemptive;
+</PRE>
+
+<H3>
+Content Negotiation
+</H3>
+
+Normally, when we access the local file system we do content negotiation in order to find the most suited representation. However, you can turn this off by using the following flag.
+
+<PRE>
+    BOOL		ContentNegotiation;
+</PRE>
+
+<H3>
+  Headers and header information
+</H3>
+
+These are the masks that decides what headers to send.
+
+<PRE>
+    HTGnHd		GenMask;
+    HTRsHd		ResponseMask;
+    HTRqHd		RequestMask;
+    HTEnHd		EntityMask;
+
+    HTList *		generators;
+    BOOL		gens_local;
+</PRE>
+
+<H3>
+Local MIME Header Parsers 
+</H3>
+
+Each request can be assigned its own MIME header parsers.
+
+<PRE>
+    HTMIMEParseSet *	parseSet;
+    BOOL		pars_local;
+</PRE>
+
 <H3>
   Accept headers
 </H3>
+
+These are the accept headers that we want to send out.
+
 <PRE>
     HTList *		conversions;
     BOOL		conv_local;
@@ -91,21 +172,71 @@ information about this host and the user issuing the request.
     HTList *		afters;
     BOOL		afters_local;
 </PRE>
+
 <H3>
-  Headers and header information
+Are we using a Proxy?
 </H3>
+
+If so then we keep the name in this variable
+
 <PRE>
-    HTGnHd		GenMask;
-    HTRsHd		ResponseMask;
-    HTRqHd		RequestMask;
-    HTEnHd		EntityMask;
-
-    HTMIMEParseSet *	parseSet;
-    BOOL		pars_local;
-
-    HTList *		generators;
-    BOOL		gens_local;
+    char * 		proxy;
+    BOOL                full_uri;
 </PRE>
+
+<H3>
+  Cache Control Directives
+</H3>
+<P>
+This association list is a list of the cache control directives that are
+to be sent as part of the <CODE>Cache-Control</CODE> header.
+<PRE>
+    HTReload		reload;
+    HTAssocList *       cache_control;
+</PRE>
+
+<H3>
+Byte Ranges
+</H3>
+
+This association list is a list of the cache control directives that are
+to be sent as part of the <CODE>Range</CODE> header.
+
+<PRE>
+    HTAssocList *       byte_ranges;
+</PRE>
+
+<H3>
+  Connection Control Directives
+</H3>
+<P>
+This association list is a list of the connection control directives that
+are to be sent as part of the <CODE>Connection</CODE> header.
+
+<PRE>
+    HTAssocList *       connection;
+</PRE>
+<H3>
+  Access Authentication Information
+</H3>
+<P>
+The <CODE>credentials</CODE> list contains the information that we are to send as part of the <CODE>Authorization</CODE> header. The realm is if we already know that we need to generate credentials for a specific realm.
+<PRE>
+    char *		realm;				    /* Current realm */
+    HTAssocList *	credentials;	   /* Credentials received by server */
+</PRE>
+<H3>
+  Protocol Extension Protocol (PEP) Information
+</H3>
+
+These association lists contain the information that we are to send as PEP headers in the request.
+
+<PRE>
+    HTAssocList *	protocol;
+    HTAssocList *	protocol_info;
+    HTAssocList *	protocol_request;
+</PRE>
+
 <H3>
   Anchors
 </H3>
@@ -114,15 +245,6 @@ information about this host and the user issuing the request.
 
     HTChildAnchor *	childAnchor;	    /* For element within the object */
     HTParentAnchor *	parentAnchor;			/* For referer field */
-</PRE>
-<H4>
-  Redirection
-</H4>
-<P>
-If we get a redirection back then we return the new destination for this
-request to the application using this anchor.
-<PRE>
-    HTAnchor *		redirectionAnchor;		  /* Redirection URL */
 </PRE>
 <H3>
   Streams From Network to Application
@@ -156,24 +278,6 @@ request to the application using this anchor.
     void *		context;
 </PRE>
 <H3>
-  Other Flags
-</H3>
-<PRE>
-    BOOL		preemptive;
-    BOOL		ContentNegotiation;
-
-    BOOL                full_uri;
-    char * 		proxy;
-
-    int                 max_forwards;
-</PRE>
-<H3>
-  Error Manager
-</H3>
-<PRE>
-    HTList *		error_stack;		           /* List of errors */
-</PRE>
-<H3>
   PostWeb Information
 </H3>
 <PRE>
@@ -184,68 +288,6 @@ request to the application using this anchor.
     HTList *		destinations;		 /* List of related requests */
     int			destRequests;	   /* Number of destination requests */
     int			destStreams;	    /* Number of destination streams */
-</PRE>
-<H3>
-  Cache Control Directives
-</H3>
-<P>
-This association list is a list of the cache control directives that are
-to be sent as part of the <CODE>Cache-Control</CODE> header.
-<CODE>Cache-control</CODE> directives can be sent in both directions - we
-keep the out-going ones here and the incoming becomes part of the
-<A HREF="HTAnchor.html">anchor object</A>.
-<PRE>
-    HTAssocList *       cache_control;
-</PRE>
-<H3>
-  Original Header Values
-</H3>
-<P>
-The cache uses (for the moment) the original header values when it creates
-a cache entry. We can pass the headers to the cache manager using this list
-<PRE>
-    HTAssocList *      headers;
-</PRE>
-<H3>
-  Connection Control Directives
-</H3>
-<P>
-This association list is a list of the connection control directives that
-are to be sent as part of the <CODE>Connection</CODE> header.
-<CODE>Connection</CODE> directives can be sent in both directions - that
-is - from the server to the client and vise-verse. In order to separate outgoing
-from incoming connections directives, we keep two lists - one for outgoing
-and one for incoming.
-<PRE>
-    HTAssocList *       client_connection;
-    HTAssocList *       server_connection;
-</PRE>
-<H3>
-  Access Authentication Information
-</H3>
-<P>
-The <CODE>challenge</CODE> and the <CODE>credentials</CODE> entries are use
-by the authentication parsers and generators respectively.
-<PRE>    char *		realm;				    /* Current realm */
-    char *		scheme;				   /* Current scheme */
-
-    HTAssocList *	challenge;           /* Challenge received by client */
-    HTAssocList *	credentials;	   /* Credentials received by server */
-</PRE>
-<H3>
-  Protocol Extension Protocol (PEP) Information
-</H3>
-<PRE>
-    HTAssocList *	protocol;
-    HTAssocList *	protocol_info;
-    HTAssocList *	protocol_request;
-</PRE>
-<P>
-As a small alternative to the PEP protocol headers, we also support the extension
-header which works pretty much the same way but is somewhat simpler in use.
-<PRE>
-    HTAssocList *       client_extension;
-    HTAssocList *       server_extension;
 </PRE>
 <PRE>
 };

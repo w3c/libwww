@@ -13,6 +13,9 @@
 /* Define to build using reentrant system calls. */
 #undef HT_REENTRANT
 
+/* Define to be the package name. */
+#undef PACKAGE
+
 /* Define to be the version. */
 #undef W3C_VERSION
 

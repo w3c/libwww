@@ -25,8 +25,8 @@
 
 struct _HTPEPModule {
     char *		name;
-    HTNetCallback *	before;
-    HTNetCallback *	after;
+    HTNetBefore *	before;
+    HTNetAfter *	after;
     HTUTree_gc *	gc;
 };
 
@@ -91,8 +91,8 @@ PRIVATE HTPEPModule * find_module (const char * name, HTList ** hashlist)
 }
 
 PUBLIC HTPEPModule * HTPEP_newModule (const char *	name,
-				      HTNetCallback *	before,
-				      HTNetCallback *	after,
+				      HTNetBefore *	before,
+				      HTNetAfter *	after,
 				      HTUTree_gc *	gc)
 {
     if (name) {
@@ -346,7 +346,7 @@ PUBLIC BOOL HTPEP_addNode (const char * protocol,
 **	------------------
 **	Return YES or whatever callback returns
 */
-PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int mode)
 {
     int ret = HT_OK;
     char * url = HTAnchor_physical(HTRequest_anchor(request));
@@ -359,7 +359,7 @@ PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int status)
 	while ((pres = (HTPEPElement *) HTList_nextObject(list))) {
 	    HTPEPModule * module = HTPEP_findModule(pres->name);
 	    if (module) {
-		ret = (*module->before)(request, pres->context, status);
+		ret = (*module->before)(request, pres->context, mode);
 		if (ret != HT_OK) break;
 	    }
 	}
@@ -371,10 +371,11 @@ PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int status)
 **	-----------------
 **	Return YES or whatever callback returns
 */
-PUBLIC int HTPEP_afterFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTPEP_afterFilter (HTRequest * request, HTResponse * response,
+			      void * param, int status)
 {
     int ret = HT_OK;
-    HTAssocList * protocols = HTRequest_serverExtension(request);
+    HTAssocList * protocols = HTResponse_protocol(response);
     if (protocols) {
 	HTPEPElement * pres;
 	if (APP_TRACE)
@@ -382,7 +383,7 @@ PUBLIC int HTPEP_afterFilter (HTRequest * request, void * param, int status)
 	while ((pres = (HTPEPElement *) HTList_nextObject(protocols))) {
 	    HTPEPModule * module = HTPEP_findModule(pres->name);
 	    if (module) {
-		ret = (*module->after)(request, pres->context, status);
+		ret = (*module->after)(request, response, pres->context, status);
 		if (ret != HT_OK) break;
 	    }
 	}

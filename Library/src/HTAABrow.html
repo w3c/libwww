@@ -37,8 +37,8 @@ Reference Library</A>.
 This is the set of callback functions for handling basic authentication.
 
 <PRE>
-extern HTNetCallback	HTBasic_parse;
-extern HTNetCallback	HTBasic_generate;
+extern HTNetBefore	HTBasic_generate;
+extern HTNetAfter 	HTBasic_parse;
 extern HTUTree_gc	HTBasic_delete;
 </PRE>
 

@@ -40,7 +40,12 @@
 #define FREE_TARGET	(*me->target->isa->_free)(me->target)
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
+#define HTTP_DUMP
+
+#ifdef HTTP_DUMP
 #define HTTP_OUTPUT	"w3chttp.out"
+PRIVATE FILE * htfp = NULL;
+#endif
 
 /* Type definitions and global variables etc. local to this module */
 
@@ -106,6 +111,13 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 	    (*input->isa->_free)(input);
 	HTRequest_setInputStream(req, NULL);
     }
+
+#ifdef HTTP_DUMP
+    if (htfp) {
+	fclose(htfp);
+	htfp = NULL;
+    }
+#endif
 
     /* Remove the request object and our own context structure for http */
     HT_FREE(http);
@@ -404,11 +416,17 @@ PRIVATE void HTTPNextState (HTStream * me)
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	http->next = HTTP_ERROR;
 
-	/* If Retry-After header is found then return HT_RETRY else HT_ERROR */
-	if (HTRequest_retryTime(me->request))
-	    http->result = HT_RETRY;
-	else
-	    http->result = HT_ERROR;
+	/*
+	** If Retry-After header is found then return HT_RETRY else HT_ERROR.
+	** The caller may want to reissue the request at a later point in time.
+	*/
+	{
+	    HTResponse * response = HTRequest_response(me->request);
+	    if (HTResponse_retryTime(response))
+		http->result = HT_RETRY;
+	    else
+		http->result = HT_ERROR;
+	}
 	break;
 
       case 504:
@@ -454,7 +472,6 @@ PRIVATE void HTTPNextState (HTStream * me)
 PRIVATE int stream_pipe (HTStream * me)
 {
     HTRequest * request = me->request;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     HTNet * net = HTRequest_net(request);
     HTHost * host = HTNet_host(net);
     if (me->target) {
@@ -491,6 +508,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	HTHost_setVersion(host, HTTP_09);
 	return status;
     } else {
+	HTResponse * response = HTRequest_response(request);
 	char *ptr = me->buffer+4;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
 
@@ -538,28 +556,52 @@ PRIVATE int stream_pipe (HTStream * me)
 	**  metainformation so in that case we don't clear the anchor.
 	*/
 	if (me->status==200 || me->status==203 || me->status==300) {
-	    HTMethod  method = HTRequest_method(request);
-	    if (!HTMethod_addMeta(method)) HTAnchor_clearHeader(anchor);
-	    HTAnchor_setCachable(anchor, YES);
+	    /*
+	    **  200, 203 and 300 are all fully cacheable responses. No byte 
+	    **  ranges or anything else make life hard in this case.
+	    */
+	    HTResponse_setCachable(response, YES);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_outputFormat(request),
 				       HTRequest_outputStream(request),
 				       request, NO);
+	} else if (me->status==206) {
+	    /*
+	    **  We got a partial response and now we must check whether
+	    **  we issued a cache If-Range request or it was a new 
+	    **  partial response which we don't have in cache. In the latter
+	    **  case, we don't cache the object and in the former we append
+	    **  the result to the already existing cache entry.
+	    */
+	    HTReload reload = HTRequest_reloadMode(request);
+	    if (reload == HT_CACHE_RANGE_VALIDATE) {
+		HTResponse_setCachable(response, YES);
+		me->target = HTStreamStack(WWW_MIME_PART,
+					   HTRequest_outputFormat(request),
+					   HTRequest_outputStream(request),
+					   request, NO);
+	    } else {
+		me->target = HTStreamStack(WWW_MIME,
+					   HTRequest_outputFormat(request),
+					   HTRequest_outputStream(request),
+					   request, NO);
+	    }
 	} else if (me->status==204 || me->status==304) {
-	    HTAnchor_setCachable(anchor, YES);
+	    HTResponse_setCachable(response, YES);
 	    me->target = HTStreamStack(WWW_MIME_HEAD,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
 				       request, NO);
 	} else if (HTRequest_debugStream(request)) {
-	    HTAnchor_clearHeader(anchor);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
 				       request, NO);
 	} else {
-	    /* We still need to parse the MIME part */
-	    HTAnchor_clearHeader(anchor);
+	    /*
+	    **  We still need to parse the MIME part in order to find any
+	    **  valuable meta information which is needed from the response.
+	    */
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
@@ -738,29 +780,26 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
 	    status = HTDoConnect(net, HTAnchor_physical(anchor), HTTP_PORT);
 	    if (status == HT_OK) {
+		HTHost * host = HTNet_host(net);
+
 		/*
-		** Check the protocol class to see if we have connected to a
-		** the right class of server, in this case HTTP.
+		**  Check the protocol class to see if we have connected to a
+		**  the right class of server, in this case HTTP. If we don't 
+		**  know the server then assume a HTTP/1.0
 		*/
 		{
-		    HTHost * host = HTNet_host(net);
 		    char * s_class = HTHost_class(host);
-		    if (s_class && strcasecomp(s_class, "http")) {
+		    if (!s_class) {
+			if (HTRequest_proxy(request) == NULL)
+			    HTRequest_addConnection(request, "Keep-Alive", "");
+			HTHost_setClass(host, "http");
+		    } else if (strcasecomp(s_class, "http")) {
 			HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
 					   NULL, 0, "HTLoadHTTP");
 			http->state = HTTP_ERROR;
 			break;
 		    }
-		    HTHost_setClass(host, "http");
 		}
-
-		/*
-		**  For backwards compatibility with servers that understand
-		**  Connection: Keep-Alive, we send it along. However, we do
-		**  NOT send it to a proxy as it may confuse HTTP/1.0 proxies
-		*/
-		if (HTRequest_proxy(request) == NULL)
-		    HTRequest_addClientConnection(request, "Keep-Alive", "");
 
 		/* 
 		** Create the stream pipe FROM the channel to the application.
@@ -780,13 +819,14 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		*/
 		{
 		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+		    int version = HTHost_version(host);
 		    HTStream * app = NULL;
 #ifdef HTTP_DUMP
 		    if (PROT_TRACE) {
-			FILE * fp = NULL;
-			if ((fp = fopen(HTTP_OUTPUT, "wb"))) {
-			    output = HTTee(output,
-					   HTFWriter_new(request,fp,YES),NULL);
+			if ((htfp = fopen(HTTP_OUTPUT, "wb"))) {
+			    output = (HTOutputStream *)
+				HTTee((HTStream *) output,
+				      HTFWriter_new(request, htfp, YES), NULL);
 			    HTTrace("HTTP........ Dumping request to `%s\'\n",
 				    HTTP_OUTPUT);
 			}
@@ -794,9 +834,11 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 #endif /* HTTP_DUMP */
 		    app = HTMethod_hasEntity(HTRequest_method(request)) ?
 			HTMIMERequest_new(request,
-					  HTTPRequest_new(request,(HTStream *)
-							  output,NO),YES) :
-			HTTPRequest_new(request, (HTStream*) output, YES);
+			    HTTPRequest_new(request, (HTStream *) output, NO,
+					    version),
+					  YES) :
+			HTTPRequest_new(request, (HTStream *) output, YES,
+					version);
 		    HTRequest_setInputStream(request, app);
 		}
 
@@ -846,12 +888,10 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			    return HT_OK;
 			else {
 			    status = pcbf(request, input);
-			    if (status == HT_PAUSE) {
+			    if (status == HT_PAUSE || status == HT_LOADED) {
 				ops = FD_READ;
 				http->lock = YES;
-			    } else if (status == HT_LOADED)
-				ops = FD_READ;
-			    else if (status == HT_ERROR) {
+			    } else if (status == HT_ERROR) {
 				http->result = HT_INTERRUPTED;
 				http->state = HTTP_ERROR;
 				break;

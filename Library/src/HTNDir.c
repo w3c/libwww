@@ -837,7 +837,7 @@ PUBLIC BOOL HTNewsDir_free (HTNewsDir * dir)
 	}
 
 	/* Update the cache */
-	if (dir->cache) HTNewsCache_after(dir->request, dir->cache, 0);
+	if (dir->cache) HTNewsCache_after(dir->request, NULL, dir->cache, 0);
     }
 
     /* Put out the end of the HTML stuff */

@@ -94,10 +94,11 @@ in the <I>PEP Manager</I>.
 <P>
 You can add a PEP protocol by using the following method. Each of the callback
 function must have the type as defined below.
-<PRE>extern HTPEPModule * HTPEP_newModule(const char *		protocol,
-					  HTNetCallback *	before,
-					  HTNetCallback *	after,
-					  HTUTree_gc *		gc);
+<PRE>
+extern HTPEPModule * HTPEP_newModule(const char *	protocol,
+				     HTNetBefore *	before,
+			             HTNetAfter *	after,
+				     HTUTree_gc *	gc);
 </PRE>
 <H3>
   Find a PEP Module
@@ -149,7 +150,8 @@ As mentioned, the <I>PEP Manager</I> is itself a set of
 <A HREF="HTFilter.html">filters</A> that can be registered by the
 <A HREF="HTNet.html">Net manager</A>.
 <PRE>
-extern HTNetCallback HTPEP_beforeFilter, HTPEP_afterFilter;
+extern HTNetBefore HTPEP_beforeFilter;
+extern HTNetAfter  HTPEP_afterFilter;
 </PRE>
 <PRE>
 #endif	/* NOT HTPEP_H */

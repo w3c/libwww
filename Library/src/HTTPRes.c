@@ -154,7 +154,7 @@ PRIVATE const HTStreamClass HTTPResponseClass =
 **	This stream generates server specific headers
 */
 PUBLIC HTStream * HTTPResponse_new (HTRequest *	request, HTStream * target,
-				    BOOL endHeader)
+				    BOOL endHeader, int version)
 {
     HTStream * me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
@@ -163,5 +163,5 @@ PUBLIC HTStream * HTTPResponse_new (HTRequest *	request, HTStream * target,
     me->target = target;
     me->request = request;
     me->transparent = NO;
-    return HTTPGen_new(request, me, endHeader);
+    return HTTPGen_new(request, me, endHeader, version);
 }

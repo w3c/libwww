@@ -1,11 +1,12 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-  <TITLE>W3C Reference Library libwww Content Length Counter Stream</TITLE>
+  <TITLE>W3C Reference Library libwww Content Length Counter and Other Buffer
+  Streams</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Content Length Counter Stream
+  Content Length Counter and Other Buffer Streams
 </H1>
 <PRE>
 /*
@@ -14,15 +15,14 @@
 */
 </PRE>
 <P>
-This stream also buffers the result to find out the content length before
-the data is forwarded to the target stream. This means that you can use this
-stream when generating a HTTP response in order to find the content length
-before writing the object to the socket, for example If a maximum buffer
-limit is reached Content-Length is calculated for logs but it is not sent
-to the client -- rather the buffer is flushed right away. Code taken from
-HTRequest.c written by Ari Luotonen and modified to fit new stream model.
-The buffer stream is a small buffer that can be used to optimize net work
-access in order to prevent multiple writes.
+This module provides various forms of buffering streams. You can also check
+out the <A HREF="HTSChunk.html">chunk buffer stream</A> which converts a
+stream to a memory buffer. These streams preseerve the streaming model.
+<P>
+The content length counter &nbsp;stream buffers the result&nbsp;to find out
+the content length&nbsp;before the data is forwarded to the target stream.
+You can use this stream when generating a HTTP response in order to find
+the content length before writing the object to the socket, for example.
 <P>
 This module is implemented by <A HREF="HTConLen.c">HTConLen.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
@@ -39,7 +39,8 @@ This stream can be inserted anywhere to count the content length of the body.
 The result is passed to the <A HREF="HTAnchor.html">Anchor object</A> of
 this request so that future requests for the content length will get the
 right size.
-<PRE>extern HTStream * HTContentCounter	(HTStream *	target,
+<PRE>
+extern HTStream * HTContentCounter	(HTStream *	target,
 					 HTRequest *	request,
 					 int		max_size);
 </PRE>
@@ -49,10 +50,27 @@ right size.
 <P>
 This stream does almost the same as the content length counter stream except
 that it doesn't count the length! In other words - it's a completely normal
-memory buffer for the stream.
-<PRE>extern HTStream * HTBuffer_new		(HTStream *	target,
+memory buffer for the stream. If the buffer fills up, this stream flushes
+the buffer and goes transparent so that all new data will be pumped through
+without any buffering.
+<PRE>
+extern HTStream * HTBuffer_new		(HTStream *	target,
 					 HTRequest *	request,
 					int		max_size);
+</PRE>
+<H2>
+  Pipe Buffer Stream
+</H2>
+<P>
+This stream is much like the buffer stream above but instead of goin transparent
+when the buffer fills up, it returns <CODE>HT_PAUSE</CODE> which indicates
+that the stream doesn't accept more data and so the caller should not put
+any more data into it. When the buffer is flushed (the flush method invoked)
+then the stream goes into transparent mode, just like the buffer stream.
+<PRE>
+extern HTStream * HTPipeBuffer_new	(HTStream *	target,
+					 HTRequest *	request,
+					 int		max_size);
 </PRE>
 <P>
 End of definition module

@@ -41,6 +41,7 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTConversion_add(c,"message/x-rfc822-foot",	"*/*",		HTMIMEFooter,	1.0, 0.0, 0.0);
     HTConversion_add(c,"message/x-rfc822-head",	"*/*",		HTMIMEHeader,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"message/x-rfc822-partial","*/*",		HTMIMEPartial,	1.0, 0.0, 0.0);
     HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
 
@@ -70,6 +71,7 @@ PUBLIC void HTConverterInit (HTList * c)
     ** file
     */
     HTConversion_add(c,"www/cache",		"*/*",		HTCacheWriter,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"www/cache-append",	"*/*",		HTCacheAppend,	1.0, 0.0, 0.0);
 
     /*
     ** Handling Rule files is handled just like any other stream
@@ -142,12 +144,12 @@ PUBLIC void HTEncoderInit (HTList * c)
 */
 PUBLIC void HTBeforeInit (void)
 {
-    HTNetCall_addBefore(HTMemoryCacheFilter, NULL, 0);
-    HTNetCall_addBefore(HTCacheFilter, NULL, 0);
-    HTNetCall_addBefore(HTPEP_beforeFilter, NULL, 0);
-    HTNetCall_addBefore(HTCredentialsFilter, NULL, 0);
-    HTNetCall_addBefore(HTRuleFilter, NULL, 0);
-    HTNetCall_addBefore(HTProxyFilter, NULL, 0);
+    HTNet_addBefore(HTMemoryCacheFilter,	NULL, 		NULL, 5);
+    HTNet_addBefore(HTCacheFilter,		"http://*",	NULL, 5);
+    HTNet_addBefore(HTCredentialsFilter,	"http://*",	NULL, 6);
+    HTNet_addBefore(HTPEP_beforeFilter, 	"http://*",	NULL, 6);
+    HTNet_addBefore(HTRuleFilter,		NULL,		NULL, 10);
+    HTNet_addBefore(HTProxyFilter,		NULL,		NULL, 10);
 }
 
 /*	REGISTER AFTER FILTERS
@@ -159,14 +161,14 @@ PUBLIC void HTBeforeInit (void)
 */
 PUBLIC void HTAfterInit (void)
 {
-    HTNetCall_addAfter(HTAuthFilter, NULL, HT_NO_ACCESS);
-    HTNetCall_addAfter(HTPEP_afterFilter, NULL, HT_ALL);
-    HTNetCall_addAfter(HTRedirectFilter, NULL, HT_TEMP_REDIRECT);
-    HTNetCall_addAfter(HTRedirectFilter, NULL, HT_PERM_REDIRECT);
-    HTNetCall_addAfter(HTUseProxyFilter, NULL, HT_USE_PROXY);
-    HTNetCall_addAfter(HTCacheUpdateFilter, NULL, HT_NOT_MODIFIED);
-    HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL);
-    HTNetCall_addAfter(HTInfoFilter, NULL, HT_ALL);
+    HTNet_addAfter(HTAuthFilter, 	"http://*",	NULL, HT_NO_ACCESS, 	5);
+    HTNet_addAfter(HTPEP_afterFilter, 	"http://*",	NULL, HT_ALL, 		5);
+    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, 5);
+    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_PERM_REDIRECT, 5);
+    HTNet_addAfter(HTUseProxyFilter, 	"http://*",	NULL, HT_USE_PROXY, 	5);
+    HTNet_addAfter(HTCacheUpdateFilter, "http://*",	NULL, HT_NOT_MODIFIED, 	5);
+    HTNet_addAfter(HTLogFilter, 	NULL,		NULL, HT_ALL, 		HT_FILTER_LAST);
+    HTNet_addAfter(HTInfoFilter, 	NULL,		NULL, HT_ALL,		HT_FILTER_LAST);
 }
 
 /*	REGISTER DEFAULT AUTHENTICATION SCHEMES
@@ -319,41 +321,24 @@ PUBLIC void HTMIMEInit (void)
 	{"accept-encoding", &HTMIME_acceptEncoding}, 
 	{"accept-language", &HTMIME_acceptLanguage}, 
 	{"accept-ranges", &HTMIME_acceptRanges}, 
-	{"age", &HTMIME_age}, 
-	{"allow", &HTMIME_allow},
 	{"authorization", NULL},
 	{"cache-control", &HTMIME_cacheControl},
 	{"connection", &HTMIME_connection}, 
-	{"content-base", &HTMIME_contentBase}, 
 	{"content-encoding", &HTMIME_contentEncoding}, 
-	{"content-language", &HTMIME_contentLanguage}, 
 	{"content-length", &HTMIME_contentLength}, 
-	{"content-location", &HTMIME_contentLocation}, 
-	{"content-md5", &HTMIME_contentMD5},
 	{"content-range", &HTMIME_contentRange},
 	{"content-transfer-encoding", &HTMIME_contentTransferEncoding}, 
 	{"content-type", &HTMIME_contentType},
-	{"content-version", &HTMIME_version},
-	{"date", &HTMIME_date},
-  	{"derived-from", &HTMIME_derivedFrom}, 
 	{"digest-MessageDigest", &HTMIME_messageDigest}, 
-	{"etag", &HTMIME_etag},
-        {"expires", &HTMIME_expires},
-        {"extension", &HTMIME_extension},
-	{"from", &HTMIME_from},
-	{"host", &HTMIME_host},
-	{"if-modified-since", &HTMIME_ifModifiedSince}, 
-	{"if-match", &HTMIME_ifMatch}, 
-	{"if-none-match", &HTMIME_ifNoneMatch}, 
-	{"if-range", &HTMIME_ifRange}, 
-	{"if-unmodified-since", &HTMIME_ifUnmodifiedSince}, 
 	{"keep-alive", NULL}, 
-	{"last-modified", &HTMIME_lastModified}, 
 	{"link", &HTMIME_link},
 	{"location", &HTMIME_location},
 	{"max-forwards", &HTMIME_maxForwards}, 
 	{"mime-version", NULL}, 
 	{"pragma", &HTMIME_pragma},
+        {"protocol", &HTMIME_protocol},
+        {"protocol-info", &HTMIME_protocolInfo},
+        {"protocol-request", &HTMIME_protocolRequest},
 	{"proxy-authenticate", &HTMIME_authenticate},
 	{"proxy-authorization", &HTMIME_proxyAuthorization},
 	{"public", &HTMIME_public},
@@ -361,13 +346,10 @@ PUBLIC void HTMIMEInit (void)
 	{"referer", &HTMIME_referer},
 	{"retry-after", &HTMIME_retryAfter}, 
 	{"server", &HTMIME_server}, 
-	{"title", &HTMIME_title}, 
 	{"transfer-encoding", &HTMIME_contentTransferEncoding}, 
 	{"upgrade", &HTMIME_upgrade},
-	{"uri", &HTMIME_uri},
 	{"user-agent", &HTMIME_userAgent},
 	{"vary", &HTMIME_vary},
-	{"version", &HTMIME_version},
 	{"via", &HTMIME_via},
 	{"warning", &HTMIME_warning},
 	{"www-authenticate", &HTMIME_authenticate}, 

@@ -1,5 +1,5 @@
 /*
-**	DEFAULT MIME HEADER PARSER 
+**	DEFAULT MIME HEADER PARSERS
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -17,98 +17,86 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "HTReqMan.h"	/* @@@ */
 #include "HTHeader.h"
 #include "HTMIMImp.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
 
-PUBLIC int HTMIME_accept (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_accept (HTRequest * request, HTResponse * response,
+			  char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_acceptCharset (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_acceptCharset (HTRequest * request, HTResponse * response,
+				 char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_acceptEncoding (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_acceptEncoding (HTRequest * request, HTResponse * response,
+				  char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_acceptLanguage (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_acceptLanguage (HTRequest * request, HTResponse * response,
+				  char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_acceptRanges (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_acceptRanges (HTRequest * request, HTResponse * response,
+				char * token, char * value)
 {
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_age (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setAge(anchor,
-		    HTParseTime(value, HTRequest_userProfile(request), NO));
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_allow (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    while ((field = HTNextField(&value)) != NULL) {
-        HTMethod new_method;
-	/* We treat them as case-insensitive! */
-	if ((new_method = HTMethod_enum(field)) != METHOD_INVALID)
-	    HTAnchor_appendMethods(anchor, new_method);
+    if (value) {
+	HTNet * net = HTRequest_net(request);
+	HTHost * host = HTNet_host(net);
+	HTHost_setRangeUnits(host, value);
     }
-    if (STREAM_TRACE)
-        HTTrace("MIMEParser.. Methods allowed: %d\n", HTAnchor_methods(anchor));
     return HT_OK;
 }
 
-PUBLIC int HTMIME_authenticate (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_authenticate (HTRequest * request, HTResponse * response,
+				char * token, char * value)
 {    
     char * scheme = HTNextField(&value);
     if (scheme) {
-	HTRequest_addChallenge(request, scheme, value);
-	HTRequest_setScheme(request, scheme);
+	HTResponse_addChallenge(response, scheme, value);
+	HTResponse_setScheme(response, scheme);
     }
     return HT_OK;
 }
 
-PUBLIC int HTMIME_authorization (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_authorization (HTRequest * request, HTResponse * response,
+				 char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_cacheControl (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_cacheControl (HTRequest * request, HTResponse * response,
+				char * token, char * value)
 {
     /*
     **  Walk through the set of cache-control directives and add them to the
     **  response association list for cache control directives
     */
     char * name_val;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     while ((name_val = HTNextPair(&value)) != NULL) {
 	char * name = HTNextField(&name_val);
 	char * val = HTNextField(&name_val);
-	if (name) HTAnchor_addCacheControl(anchor, name, val ? val : "");
+	if (name) HTResponse_addCacheControl(response, name, val ? val : "");
     }
     return HT_OK;
 }
 
-PUBLIC int HTMIME_connection (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
+			      char * token, char * value)
 {
     /*
     **  Walk through the set of connection directives and add them to the
@@ -135,106 +123,64 @@ PUBLIC int HTMIME_connection (HTRequest * request, char * token, char * value)
 		HTNet_setPersistent(net, YES, HT_TP_SINGLE);
 		if (STREAM_TRACE)HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
 	    } else
-		HTRequest_addServerConnection(request, name, val ? val : "");
+		HTResponse_addConnection(response, name, val ? val : "");
 	}
     }
     return HT_OK;
 }
 
-PUBLIC int HTMIME_contentBase (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setBase(anchor, HTStrip(value));
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_contentEncoding (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_contentEncoding (HTRequest * request, HTResponse * response,
+				   char * token, char * value)
 {
     char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     while ((field = HTNextField(&value)) != NULL) {
         char * lc = field;
 	while ((*lc = TOLOWER(*lc))) lc++;
-	HTAnchor_addEncoding(anchor, HTAtom_for(field));
+	HTResponse_addEncoding(response, HTAtom_for(field));
     }
     return HT_OK;
 }
 
-PUBLIC int HTMIME_contentLanguage (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_contentLength (HTRequest * request, HTResponse * response,
+				 char * token, char * value)
 {
     char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    while ((field = HTNextField(&value)) != NULL) {
-        char * lc = field;
-	while ((*lc = TOLOWER(*lc))) lc++;
-	HTAnchor_addLanguage(anchor, HTAtom_for(field));
-    }
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_contentLength (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setLength(anchor, atol(field));
+        HTResponse_setLength(response, atol(field));
     return HT_OK;
 }
 
-/*
-**	For content location we create a new anchor for the specific URL
-**	and then register this as a variant of that anchor
-*/
-PUBLIC int HTMIME_contentLocation (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setLocation(anchor, HTStrip(value));
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_contentMD5 (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_contentRange (HTRequest * request, HTResponse * response,
+				char * token, char * value)
 {
     char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setMd5(anchor, field);
+    if ((field = HTNextField(&value)))
+	HTResponse_addRange(response, field, value);
     return HT_OK;
 }
 
-PUBLIC int HTMIME_contentRange (HTRequest * request, char * token, char * value)
-{
-    /*
-    **  We don't support range responses and don't wanna cache them for now.
-    **  This is only to prevent a server from sending us something that 
-    **  confuses us.
-    */
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setCachable(anchor, NO);
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_contentTransferEncoding (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_contentTransferEncoding (HTRequest * request, HTResponse * response,
+					   char * token, char * value)
 {
     char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     if ((field = HTNextField(&value)) != NULL) {
         char *lc = field;
 	while ((*lc = TOLOWER(*lc))) lc++;
-	HTAnchor_setTransfer(anchor, HTAtom_for(field));
+	HTResponse_setTransfer(response, HTAtom_for(field));
     }
     return HT_OK;
 }
 
-PUBLIC int HTMIME_contentType (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_contentType (HTRequest * request, HTResponse * response,
+			       char * token, char * value)
 {
     char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
     if ((field = HTNextField(&value)) != NULL) {
 
 	/* Get the Content-Type */
         char *lc = field;
 	while ((*lc = TOLOWER(*lc))) lc++; 
-	HTAnchor_setFormat(anchor, HTAtom_for(field));
+	HTResponse_setFormat(response, HTAtom_for(field));
 
 	/* Get all the parameters to the Content-Type */
 	{
@@ -245,156 +191,44 @@ PUBLIC int HTMIME_contentType (HTRequest * request, char * token, char * value)
 		while ((*lc = TOLOWER(*lc))) lc++;
 		lc = param;
 		while ((*lc = TOLOWER(*lc))) lc++;
-		HTAnchor_addFormatParam(anchor, field, param);
+		HTResponse_addFormatParam(response, field, param);
 	    }
 	}
     }
     return HT_OK;
 }
 
-PUBLIC int HTMIME_date (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setDate(anchor, HTParseTime(value, 
-					 HTRequest_userProfile(request), YES));
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_derivedFrom (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setDerived(anchor, field);
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_etag (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setEtag(anchor, field);
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_expires (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setExpires(anchor, HTParseTime(value, 
-					    HTRequest_userProfile(request),
-					    YES));
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_extension (HTRequest * request, char * token, char * value)
-{
-    char * param = NULL;
-    char * extension = HTNextSExp(&value, &param);
-    if (extension) {
-	if (PROT_TRACE)
-	    HTTrace("Extension... Name: `%s\', value: `%s\'\n",
-		    extension, param);
-	HTRequest_addServerExtension(request, extension, param);
-    }
-    return HT_OK;
-}
-
-/*
-**	We add the from information to the User object
-**	Create a new User Profile if we are using the global libwww one.
-*/
-PUBLIC int HTMIME_from (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    if ((field = HTNextField(&value)) != NULL) {
-	HTUserProfile * up = HTRequest_userProfile(request);
-	if (up == HTLib_userProfile())
-	    up = HTUserProfile_new("server-profile", NULL);
-	HTUserProfile_setEmail(up, field);
-    }
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_host (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_link (HTRequest * request, HTResponse * response,
+			char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_ifModifiedSince (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_ifMatch (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_ifNoneMatch (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_ifRange (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_ifUnmodifiedSince (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_lastModified (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setLastModified(anchor,
-			     HTParseTime(value, 
-					 HTRequest_userProfile(request),
-					 YES));
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_link (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_location (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_location (HTRequest * request, HTResponse * response,
+			    char * token, char * value)
 {
     HTAnchor * redirection = HTAnchor_findAddress(HTStrip(value));
-    HTRequest_setRedirection(request, redirection);
-
-    /* 
-    ** If moved permanent then make a typed link between the old and the new
-    ** anchor. If the location header is part of a 201 response then make a new
-    ** anchor and link this to the original anchor with "created".
-    */
+    HTResponse_setRedirection(response, redirection);
     return HT_OK;
 }
 
-PUBLIC int HTMIME_maxForwards (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_maxForwards (HTRequest * request, HTResponse * response,
+			       char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_messageDigest (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_messageDigest (HTRequest * request, HTResponse * response,
+				 char * token, char * value)
 {
-    if (!request->challenge) request->challenge = HTAssocList_new();
-    HTAssocList_addObject(request->challenge, "Digest-MessageDigest", value);
+    HTResponse_addChallenge(response, "Digest-MessageDigest", value);
     return HT_OK;
 }
 
-PUBLIC int HTMIME_pragma (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_pragma (HTRequest * request, HTResponse * response,
+			  char * token, char * value)
 {
     /*
     **  Walk through the set of pragma directives and search for one that may
@@ -405,8 +239,7 @@ PUBLIC int HTMIME_pragma (HTRequest * request, char * token, char * value)
 	char * name = HTNextField(&name_val);
 	if (name) {
 	    if (!strcasecomp(name, "no-cache")) {
-		HTParentAnchor * anchor = HTRequest_anchor(request);
-		HTAnchor_setCachable(anchor, NO);
+		HTResponse_setCachable(response, NO);
 		if (STREAM_TRACE) HTTrace("MIMEParser.. No-Cache Pragma\n");
 	    }
 	}
@@ -414,13 +247,57 @@ PUBLIC int HTMIME_pragma (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
-PUBLIC int HTMIME_proxyAuthorization (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_protocol (HTRequest * request, HTResponse * response,
+			    char * token, char * value)
+{
+    char * param = NULL;
+    char * protocol = HTNextSExp(&value, &param);
+    if (protocol) {
+	if (PROT_TRACE)
+	    HTTrace("Protocol.... Name: `%s\', value: `%s\'\n",
+		    protocol, param);
+	HTResponse_addProtocol(response, protocol, param);
+    }
+    return HT_OK;
+}
+
+PUBLIC int HTMIME_protocolInfo (HTRequest * request, HTResponse * response,
+				char * token, char * value)
+{
+    char * param = NULL;
+    char * info = HTNextSExp(&value, &param);
+    if (info) {
+	if (PROT_TRACE)
+	    HTTrace("Protocol.... Info: `%s\', value: `%s\'\n",
+		    info, param);
+	HTResponse_addProtocolInfo(response, info, param);
+    }
+    return HT_OK;
+}
+
+PUBLIC int HTMIME_protocolRequest (HTRequest * request, HTResponse * response,
+				   char * token, char * value)
+{
+    char * param = NULL;
+    char * preq = HTNextSExp(&value, &param);
+    if (preq) {
+	if (PROT_TRACE)
+	    HTTrace("Protocol.... Request: `%s\', value: `%s\'\n",
+		    preq, param);
+	HTResponse_addProtocolRequest(response, preq, param);
+    }
+    return HT_OK;
+}
+
+PUBLIC int HTMIME_proxyAuthorization (HTRequest * request, HTResponse * response,
+				      char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_public (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_public (HTRequest * request, HTResponse * response,
+			  char * token, char * value)
 {
     char * field;
     HTNet * net = HTRequest_net(request);
@@ -437,26 +314,30 @@ PUBLIC int HTMIME_public (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
-PUBLIC int HTMIME_range (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_range (HTRequest * request, HTResponse * response,
+			 char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_referer (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_referer (HTRequest * request, HTResponse * response,
+			   char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_retryAfter (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_retryAfter (HTRequest * request, HTResponse * response,
+			      char * token, char * value)
 {
-    HTRequest_setDate(request,
-		      HTParseTime(value, HTRequest_userProfile(request), YES));
+    HTUserProfile * up = HTRequest_userProfile(request);
+    HTResponse_setRetryTime(response, HTParseTime(value, up, YES));
     return HT_OK;
 }
 
-PUBLIC int HTMIME_server (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_server (HTRequest * request, HTResponse * response,
+			  char * token, char * value)
 {
     char * field;
     HTNet * net = HTRequest_net(request);
@@ -466,28 +347,15 @@ PUBLIC int HTMIME_server (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
-PUBLIC int HTMIME_title (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setTitle(anchor, field);
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_upgrade (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_upgrade (HTRequest * request, HTResponse * response,
+			   char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_uri (HTRequest * request, char * token, char * value)
-{
-
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_userAgent (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_userAgent (HTRequest * request, HTResponse * response,
+			     char * token, char * value)
 {
     char * field;
     HTNet * net = HTRequest_net(request);
@@ -497,28 +365,22 @@ PUBLIC int HTMIME_userAgent (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
-PUBLIC int HTMIME_vary (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_vary (HTRequest * request, HTResponse * response,
+			char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_version (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setVersion(anchor, field);
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_via (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_via (HTRequest * request, HTResponse * response,
+		       char * token, char * value)
 {
 
     return HT_OK;
 }
 
-PUBLIC int HTMIME_warning (HTRequest * request, char * token, char * value)
+PUBLIC int HTMIME_warning (HTRequest * request, HTResponse * response,
+			   char * token, char * value)
 {
     char * codestr = HTNextField(&value);
     char * agent = HTNextField(&value);

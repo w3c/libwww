@@ -126,10 +126,10 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
     HTNet_setMaxSocket(6);
 
     /* Register some default set of BEFORE and AFTER filters */
-    HTNetCall_addBefore(HTRuleFilter, NULL, 0); 
-    HTNetCall_addBefore(HTProxyFilter, NULL, 0); 
-    HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL); 
-    HTNetCall_addAfter(HTInfoFilter, NULL, HT_ALL); 
+    HTNet_addBefore(HTRuleFilter, NULL, NULL, 5); 
+    HTNet_addBefore(HTProxyFilter, NULL, NULL, 6); 
+    HTNet_addAfter(HTLogFilter, NULL, NULL, HT_ALL, HT_FILTER_LAST); 
+    HTNet_addAfter(HTInfoFilter, NULL, NULL, HT_ALL, HT_FILTER_LAST); 
 
     /* Get any proxy or gateway environment variables */
     HTProxy_getEnvVar();

@@ -3,10 +3,12 @@
   <!-- Changed by: Henrik Frystyk Nielsen, 23-May-1996 -->
   <TITLE>Change History for W3C Reference Library</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../"><IMG ALT="libwww" SRC="../../Icons/WWW/Lib48x"></A>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../"><IMG ALT="libwww" SRC="../../Icons/WWW/Lib48x" WIDTH="48" HEIGHT="48"
+    BORDER="0"></A>
 <H1>
   Change History of libwww
 </H1>
@@ -1144,7 +1146,6 @@ month from the release date.
 A lot of the work put into this release has been to update the API of the
 Library. This is mainly described in the new "User Guide", so please do read
 this and remember that comments are welcome!
-<P>
 <H3>
   New Features and Interfaces
 </H3>
@@ -1236,7 +1237,6 @@ this and remember that comments are welcome!
 A lot of the work put into this release has been to update the API of the
 Library. This is mainly described in the new <A HREF="../Using/">User
 Guide</A>, so please do read this and remember that comments are welcome!
-<P>
 <H3>
   New Features and Interfaces
 </H3>
@@ -1293,11 +1293,11 @@ Guide</A>, so please do read this and remember that comments are welcome!
     Many platform dependent macros introduced and a lot of cleanup
 </UL>
 <P>
-  <HR>
-<IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> CERN terminated its direct
-engagement in the World-Wide Web with the release of Library version 3.0.
-The code is now developed and maintained at W3C. 
-  <HR>
+<B><BIG><BIG> <IMG SRC="../../Icons/32x32/caution" ALT="Note" BORDER="0">
+</BIG></BIG></B><BIG><BIG><I><A HREF="http://www.cern.ch">CERN</A> terminated
+its direct engagement in the World Wide Web with the release of Library version
+3.0. The code is now developed and maintained by
+<A HREF="http://www.w3.org">W3C</A>. </I></BIG></BIG>
 <H2>
   Library 3.0, Mar 21 1995
 </H2>
@@ -1491,8 +1491,6 @@ Many of the modifications and new features are mentioned under the pre-releases.
     Handling of gopher items of type ERROR (3) changed so no more core dumps
     in server
 </UL>
-<P>
-  <HR>
 <H2>
   2.17 Release on November 25 1994
 </H2>
@@ -1616,8 +1614,6 @@ Many of the modifications and new features are mentioned under the pre-releases.
     Bug fixed in HTWriter.c function <CODE>flush()</CODE> where a partial success
     in NETWRITE would produce a wrong output (repeated buffer)
 </UL>
-<P>
-  <HR>
 <H2>
   2.16 Prerelease 2, November 1994
 </H2>
@@ -1653,8 +1649,6 @@ The WAIS client has been improved and some bugs have been fixed:
   <LI>
     Missing initialization fixed
 </UL>
-<P>
-  <HR>
 <H2>
   2.16 Prerelease 1, April 1994
 </H2>
@@ -1957,8 +1951,6 @@ This is a list of fixed bugs from earlier versions.
     Functions from <A HREF="../src/HTAlert.html">HTAlert Module</A> that prompt
     the user don't get confused about <EM>ctrl-D</EM> anymore.
 </UL>
-<P>
-  <HR>
 <H2>
   27 March 94 2.16beta VMS version
 </H2>
@@ -1967,8 +1959,6 @@ This is a list of fixed bugs from earlier versions.
     <A NAME="z0" HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">Distribution
     for VMS</A>
 </UL>
-<P>
-  <HR>
 <H2>
   25 March 94 - 2.15
 </H2>
@@ -2070,8 +2060,6 @@ This is a list of fixed bugs from earlier versions.
   <LI>
     Bug fixed in HTBTree.c that crashed for some large directories.
 </UL>
-<P>
-  <HR>
 <H2>
   15 December 2.14vms
 </H2>
@@ -2080,8 +2068,6 @@ This is a list of fixed bugs from earlier versions.
     <A NAME="z17" HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">Provisional
     Distribution for VMS</A>
 </UL>
-<P>
-  <HR>
 <H2>
   17 November 2.14
 </H2>
@@ -2094,8 +2080,6 @@ This is a list of fixed bugs from earlier versions.
   <LI>
     Buf fix: static string returned by crypt() was free() 'd.
 </UL>
-<P>
-  <HR>
 <H2>
   4 Nov 93 Version 2.13
 </H2>
@@ -2109,8 +2093,6 @@ This is a list of fixed bugs from earlier versions.
   <LI>
     Extensive filename suffix recognition defaults.
 </UL>
-<P>
-  <HR>
 <H2>
   11 Oct 93 Version 2.12
 </H2>
@@ -2123,8 +2105,6 @@ This is a list of fixed bugs from earlier versions.
   <LI>
     Some other bug fixes. Not all the reported ones.
 </UL>
-<P>
-  <HR>
 <H2>
   8 Sept 93 Version 2.11
 </H2>
@@ -2150,8 +2130,6 @@ This is a list of fixed bugs from earlier versions.
     Bug fix: HTTPD would return an old-style (non-MIME) response when sending
     back a file in unrecognised format, evn if client was using HTTP 1.0.
 </UL>
-<P>
-  <HR>
 <H2>
   Version 2.10 Not released due to WWWWW
 </H2>
@@ -2161,8 +2139,6 @@ This is a list of fixed bugs from earlier versions.
   <LI>
     WAIS type "HTML" recognised as HTML. Other types treated as application/binary.
 </UL>
-<P>
-  <HR>
 <H2>
   30 November 1993, version 2.09a
 </H2>
@@ -2176,8 +2152,6 @@ This is a list of fixed bugs from earlier versions.
   <LI>
     Bug fix: Compilation under IBM MVS didn't work.
 </UL>
-<P>
-  <HR>
 <H2>
   23 November 1993, version 2.09
 </H2>
@@ -2196,8 +2170,7 @@ means you can do a
 and it will work as expected.
 <P>
 On the client side, you can define the presentation method for any given
-MIME-style 'content type". This is done in the rule file too. 
-  <HR>
+MIME-style 'content type". This is done in the rule file too.
 <H2>
   2.08
 </H2>
@@ -2210,8 +2183,6 @@ MIME-style 'content type". This is done in the rule file too.
     You can define how a new content type will be rendered in the rule file of
     a client.
 </UL>
-<P>
-  <HR>
 <H2>
   15 November 93, version 2.07
 </H2>
@@ -2224,8 +2195,6 @@ MIME-style 'content type". This is done in the rule file too.
     Library uses fopen() rather than open(), allowing file access on non-unix
     machines.
 </UL>
-<P>
-  <HR>
 <H2>
   7 November 93, 2.06
 </H2>
@@ -2240,8 +2209,6 @@ MIME-style 'content type". This is done in the rule file too.
     FTP client fix: Continuation lines which do not have - in are now handled
     properly as per the spec.
 </UL>
-<P>
-  <HR>
 <H2>
   May 1993 version 2.05a
 </H2>
@@ -2252,8 +2219,6 @@ MIME-style 'content type". This is done in the rule file too.
   <LI>
     Bug fix in DIR handling for browers: tabs work again in directory listsings.
 </UL>
-<P>
-  <HR>
 <H2>
   22 April 1993 version 2.04
 </H2>
@@ -2266,8 +2231,6 @@ MIME-style 'content type". This is done in the rule file too.
     sysdep.h systems specifics for SCO picked up from mosaic but directory handling
     not fixed yet ...
 </UL>
-<P>
-  <HR>
 <H2>
   20 April 1993 version 2.03c:
 </H2>
@@ -2283,8 +2246,6 @@ MIME-style 'content type". This is done in the rule file too.
     Server bug fix after Sebastian.Wilhelmi@isst.fhg.de -- exited with bad status
     even if all OK.
 </UL>
-<P>
-  <HR>
 <H2>
   19 April 1993 version 2.03b
 </H2>
@@ -2298,8 +2259,6 @@ MIME-style 'content type". This is done in the rule file too.
   <LI>
     Bug fix: Sometimes, client would ignore first part of returned file.
 </UL>
-<P>
-  <HR>
 <H2>
   17 Mar 93 Version 2.02-beta
 </H2>
@@ -2309,8 +2268,6 @@ MIME-style 'content type". This is done in the rule file too.
   <LI>
     BUILD file for easy installation of library, httpd and www
 </UL>
-<P>
-  <HR>
 <H2>
   15 Mar 93 Version 2.0 alpha:
 </H2>
@@ -2349,8 +2306,6 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
     General hooks for status messages, user query, progress monitoring, etc.
     (HTAlert module)
 </UL>
-<P>
-  <HR>
 <H2>
   6 January 1993, Version1.1a
 </H2>
@@ -2366,8 +2321,6 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
     Bug fix in HTML.c: Would crash when a list was the first visible element
     in a text object.
 </UL>
-<P>
-  <HR>
 <H2>
   <A NAME="z4">11 December 1992, Version 1.1</A>
 </H2>
@@ -2377,8 +2330,6 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
   <LI>
     Added numeric character reference handling for future use.
 </UL>
-<P>
-  <HR>
 <H2>
   December 1992, Version 1.0c
 </H2>
@@ -2393,8 +2344,6 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
   <LI>
     Fixed bug in NEWS handling, failed on non-ASCII platforms.
 </UL>
-<P>
-  <HR>
 <H2>
   November 1992 Version1.0b
 </H2>
@@ -2413,8 +2362,6 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
     Local file access not allowed in secure mode. (telnet access was never allowed
     in this mode). Secure mode is used for telnet server and mail robot.
 </UL>
-<P>
-  <HR>
 <H2>
   November 1992 version 1.0
 </H2>
@@ -2426,7 +2373,8 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, <BR>
+  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

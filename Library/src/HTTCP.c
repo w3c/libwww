@@ -332,7 +332,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    /* Added EINVAL `invalid argument' as this is what I 
 		       get back from a non-blocking connect where I should 
 		       get `connection refused' on BSD. SVR4 gives SIG_PIPE */
-#if defined(__srv4__) || defined (_WINSOCKAPI_)
+#if defined(__svr4__) || defined (_WINSOCKAPI_)
 		    if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
 			socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
 			socerrno==EHOSTDOWN)

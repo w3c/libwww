@@ -25,6 +25,8 @@ Library</A>.
 #ifndef HTLIST_H
 #define HTLIST_H
 
+#include "HTArray.h"
+
 typedef struct _HTList HTList;
 
 struct _HTList {
@@ -58,10 +60,17 @@ the list (the end is the first entered object) by using the following function:
   Remove List Elements
 </H2>
 <P>
-You can delete elements in a list usin the following methods
-<PRE>extern BOOL	HTList_removeObject		(HTList *me, void *oldObject);
-extern void *	HTList_removeLastObject		(HTList *me);
-extern void *	HTList_removeFirstObject	(HTList *me);
+You can delete elements in a list using the following methods. The
+first method only removes the first entry that it finds matching the
+<CODE>oldObject</CODE> whereas the second method removes all
+occurances of <CODE>oldObject</CODE>.
+
+<PRE>
+extern BOOL	HTList_removeObject		(HTList * me, void * oldObject);
+extern BOOL	HTList_removeObjectAll		(HTList * me, void * oldObject);
+
+extern void *	HTList_removeLastObject		(HTList * me);
+extern void *	HTList_removeFirstObject	(HTList * me);
 </PRE>
 <H2>
   Size of a List
@@ -105,6 +114,18 @@ it with the same variable until it returns NULL.
 <PRE>
 #define		HTList_nextObject(me) \
 		((me) &amp;&amp; ((me) = (me)-&gt;next) ? (me)-&gt;object : NULL)
+</PRE>
+<H2>
+  Insertion Sort a List
+</H2>
+<P>
+This function sorts a list using the insertion sort mechanism. The comparison
+function is passed as a parameter and you can &nbsp;find the definition of
+<CODE>HTComparer</CODE> in the <A HREF="HTArray.html">HTArray</A> module.
+Insertion sort is good method whenever a list is nearly in the correct order
+and few items are many positions away from their sorted location. If the
+list gets very long then you may wanna use a quicksort instead.
+<PRE>extern BOOL HTList_insertionSort(HTList * list, HTComparer * comp);
 </PRE>
 <H2>
   Free list

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Jun-1996 -->
   <TITLE>W3C Reference Library libwww File Suffix Binding</TITLE>
 </HEAD>
 <BODY>
@@ -138,10 +138,23 @@ extern char * HTBind_getSuffix	(HTParentAnchor * anchor);
 Use the set of bindings to find the combination of language, media type and
 encoding of a given anchor. If more than one suffix is found they are all
 searched. The last suffix has highest priority, the first one lowest. Returns
-the anchor object with the representations found. See also
-<CODE>HTBind_getFormat</CODE>
+the <A HREF="HTAnchor.html">HTAnchor object</A> with the representations
+found. See also <CODE>HTBind_getFormat</CODE>
 <PRE>
-extern BOOL HTBind_getBindings	(HTParentAnchor * anchor);
+extern BOOL HTBind_getAnchorBindings	(HTParentAnchor * anchor);
+</PRE>
+<H2>
+  Determine the content of a Response
+</H2>
+<P>
+Use the set of bindings to find the combination of language, media type and
+encoding of a given anchor. If more than one suffix is found they are all
+searched. The last suffix has highest priority, the first one lowest. Returns
+the <A HREF="HTResponse.html">HTResponse object</A> with the representations
+found. See also <CODE>HTBind_getFormat</CODE>
+<PRE>
+extern BOOL HTBind_getResponseBindings	(HTResponse * response,
+                                         const char * url);
 </PRE>
 <H2>
   Determine the content of File

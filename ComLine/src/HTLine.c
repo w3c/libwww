@@ -169,7 +169,8 @@ PRIVATE void VersionInfo (void)
 **	-----------------
 **	This function is registered to handle the result of the request
 */
-PRIVATE int terminate_handler (HTRequest * request, void * param, int status) 
+PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
+			       void * param, int status) 
 {
     ComLine * cl = (ComLine *) HTRequest_context(request);
     if (status == HT_LOADED) {
@@ -240,7 +241,7 @@ int main (int argc, char ** argv)
     HTAlert_add(HTProgress, HT_A_PROGRESS);
 
     /* Add our own filter to update the history list */
-    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
+    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Scan command Line for parameters */
     for (arg=1; arg<argc; arg++) {

@@ -173,8 +173,10 @@ PUBLIC BOOL HTProxy_add (const char * access, const char * proxy)
     */
     if (!proxies) {
 	proxies = HTList_new();
-	HTNetCall_addBefore(HTAA_proxyBeforeFilter, NULL, 0);
-	HTNetCall_addAfter(HTAuthFilter, NULL, HT_NO_PROXY_ACCESS);
+	HTNet_addBefore(HTAA_proxyBeforeFilter, NULL, NULL,
+			HT_FILTER_MIDDLE);
+	HTNet_addAfter(HTAuthFilter, NULL, NULL,
+		       HT_NO_PROXY_ACCESS, HT_FILTER_MIDDLE);
     }
     return add_object(proxies, access, proxy);
 }
@@ -192,7 +194,7 @@ PUBLIC BOOL HTProxy_deleteAll (void)
 	** proxy authentication. We therefore unregister the filters for
 	** handling proxy authentication
 	*/
-	HTNetCall_deleteBefore(HTAA_proxyBeforeFilter);
+	HTNet_deleteBefore(HTAA_proxyBeforeFilter);
 
 	proxies = NULL;
 	return YES;

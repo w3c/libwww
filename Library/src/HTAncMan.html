@@ -70,18 +70,15 @@ struct _HTParentAnchor {
   char * 	address;	/* Absolute address of this node */
   BOOL		isIndex;	/* Acceptance of a keyword search */
 
+  HTAssocList * headers;        /* Unparsed headers */
   BOOL		header_parsed;	/* Are we done parsing? */
 
   /* We keep a list of variants of this anchor, if any */
   HTList *	variants;
 
-  /* Cache controls */
-  BOOL          cachable;       /* Default value is YES */
-  HTAssocList * cache_control;
-
   /* Entity header fields */
   char *	title;
-  HTMethod	methods;	/* Allowed methods (bit-flag) */
+  HTMethod	allow;	        /* Allowed methods (bit-flag) */
 
   HTFormat	content_type;	/* Content type */
   HTAssocList *	type_parameters;/* Content type parameters (charset etc.) */
@@ -103,12 +100,6 @@ struct _HTParentAnchor {
 
   char *	derived_from;	/* Opaque string */
   char *	version;	/* Opaque string */
-
-#if 0
-  /* List of unknown headers coming in from the network. Use the field in the
-     request structure for sending test headers. */
-  HTList *	extra_headers;
-#endif
 };
 </PRE>
 

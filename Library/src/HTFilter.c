@@ -35,7 +35,7 @@
 **	host portion) to proxy servers. Therefore, we tell the Library whether
 **	to use the full URL or the traditional HTTP one without the host part.
 */
-PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTProxyFilter (HTRequest * request, void * param, int mode)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * addr = HTAnchor_physical(anchor);
@@ -80,7 +80,7 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
 **	resource. Hence this filter translates the physical address
 **	(if any translations are found)
 */
-PUBLIC int HTRuleFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTRuleFilter (HTRequest * request, void * param, int mode)
 {
     HTList * list = HTRule_global();
     HTParentAnchor * anchor = HTRequest_anchor(request);
@@ -105,11 +105,11 @@ PUBLIC int HTRuleFilter (HTRequest * request, void * param, int status)
 **	We only check the cache in caseof a GET request. Otherwise, we go
 **	directly to the source.
 */
-PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTCacheFilter (HTRequest * request, void * param, int mode)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTCache * cache = NULL;
-    HTReload mode = HTRequest_reloadMode(request);
+    HTReload reload = HTRequest_reloadMode(request);
     HTMethod method = HTRequest_method(request);
     HTDisconnectedMode disconnect = HTCacheMode_disconnected();
     BOOL validate = NO;
@@ -125,7 +125,7 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
     */
     if (method != METHOD_GET) {
 	if (CACHE_TRACE) HTTrace("Cachefilter. We only check GET methods\n");
-    } else if (mode == HT_CACHE_FLUSH) {
+    } else if (reload == HT_CACHE_FLUSH) {
 	/*
 	** If the mode if "Force Reload" then don't even bother to check the
 	** cache - we flush everything we know abut this document anyway.
@@ -138,7 +138,8 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 	HTRequest_addCacheControl(request, "no-cache", "");
 
 	/*
-	** We also flush the information in the anchor
+	**  We also flush the information in the anchor as we don't want to
+	**  inherit any "old" values
 	*/
 	HTAnchor_clearHeader(anchor);
 
@@ -151,14 +152,23 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 	*/
 	cache = HTCache_find(anchor);
 	if (cache) {
-	    mode = HTMAX(mode, HTCache_isFresh(cache, request));
+	    reload = HTMAX(reload, HTCache_isFresh(cache, request));
+	    HTRequest_setReloadMode(request, reload);
 
 	    /*
 	    **  Now check the mode and add the right headers for the validation
 	    **  If we are to validate a cache entry then we get a lock
 	    **  on it so that not other requests can steal it.
 	    */
-	    if (mode == HT_CACHE_END_VALIDATE) {
+	    if (reload == HT_CACHE_RANGE_VALIDATE) {
+		/*
+		**  If we were asked to range validate the cached object then
+		**  use the etag or the last modified for cache validation
+		*/
+		validate = YES;
+		HTCache_getLock(cache, request);
+		HTRequest_addRqHd(request, HT_C_IF_RANGE);
+	    } else if (reload == HT_CACHE_END_VALIDATE) {
 		/*
 		**  If we were asked to end-to-end validate the cached object
 		**  then use a max-age=0 cache control directive
@@ -166,10 +176,11 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 		validate = YES;
 		HTCache_getLock(cache, request);
 		HTRequest_addCacheControl(request, "max-age", "0");
-	    } else if (mode == HT_CACHE_VALIDATE) {
+	    } else if (reload == HT_CACHE_VALIDATE) {
 		/*
 		**  If we were asked to validate the cached object then
 		**  use the etag or the last modified for cache validation
+		**  We use both If-None-Match or If-Modified-Since.
 		*/
 		validate = YES;
 		HTCache_getLock(cache, request);
@@ -177,12 +188,21 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 	    } else {
 		/*
 		**  The entity does not require any validation at all. We
-		**  can just go ahead and get it from the cache
+		**  can just go ahead and get it from the cache. In case we
+		**  have a fresh subpart of the entity, then we issue a 
+		**  conditional GET request with the range set by the cache
+		**  manager. Issuing the conditional range request is 
+		**  equivalent to a validation as we have to go out on the
+		**  net. This may have an effect if running in disconnected
+		**  mode. We disable all BEFORE filters as they don't make
+		**  sense while loading the cache entry.
 		*/
-		char * name = HTCache_name(cache);
-		HTAnchor_setPhysical(anchor, name);
-		HTCache_addHit(cache);
-		HT_FREE(name);
+		{
+		    char * name = HTCache_name(cache);
+		    HTAnchor_setPhysical(anchor, name);
+		    HTCache_addHit(cache);
+		    HT_FREE(name);
+		}
 	    }
 	}
     }
@@ -206,58 +226,15 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 }
 
 /*
-**	Cache Update AFTER filter
-**	-------------------------
-**	On our way out we catch the metainformation and stores it in
-**	our persistent store. If we have a cache validation (a 304
-**	response then we use the new metainformation and merges it with
-**	the existing information already captured in the cache.
-*/
-PUBLIC int HTCacheUpdateFilter (HTRequest * request, void * param, int status)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTCache * cache = HTCache_find(anchor);
-
-    /*
-    **  If this request resulted in a "304 Not Modified" response then
-    **  we merge the new metainformation with the old.
-    */
-    if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
-
-    /*
-    **  It may in fact be that the information in the 304 response
-    **  told us that we can't cache the entity anymore. If this is the
-    **  case then flush it now. Otherwise prepare for a cache read
-    */
-    if (HTAnchor_cachable(anchor) == NO) {
-	HTCache_remove(cache);
-    } else {
-	HTCache_updateMeta(cache, request);
-	HTRequest_setReloadMode(request, HT_CACHE_OK);
-    }
-
-    /*
-    **  Start request directly from the cache. As with the redirection filter
-    **  we reuse the same request object which means that we must
-    **  keep this around until the cache load request has terminated
-    **  In the case of a 
-    */
-    {
-	HTLoad(request, NO);
-	return HT_ERROR;
-    }
-}
-
-/*
-**	Check the Memory Cache (History list) 
-**	-------------------------------------
+**	Check the Memory Cache (History list) BEFORE filter
+**	---------------------------------------------------
 **	Check if document is already loaded. The user can define whether
 **	the history list should follow normal expiration or work as a
 **	traditional history list where expired documents are not updated.
 **	We don't check for anything but existence proof of a document
 **	associated with the anchor as the definition is left to the application
 */
-PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int mode)
 {
     HTReload validation = HTRequest_reloadMode(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
@@ -329,12 +306,57 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
 }
 
 /*
+**	Cache Update AFTER filter
+**	-------------------------
+**	On our way out we catch the metainformation and stores it in
+**	our persistent store. If we have a cache validation (a 304
+**	response then we use the new metainformation and merges it with
+**	the existing information already captured in the cache.
+*/
+PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
+				void * param, int status)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache * cache = HTCache_find(anchor);
+
+    /*
+    **  If this request resulted in a "304 Not Modified" response then
+    **  we merge the new metainformation with the old.
+    */
+    if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
+
+    /*
+    **  It may in fact be that the information in the 304 response
+    **  told us that we can't cache the entity anymore. If this is the
+    **  case then flush it now. Otherwise prepare for a cache read
+    */
+    if (HTResponse_isCachable(response) == NO) {
+	HTCache_remove(cache);
+    } else {
+	HTCache_updateMeta(cache, request, response);
+	HTRequest_setReloadMode(request, HT_CACHE_OK);
+    }
+
+    /*
+    **  Start request directly from the cache. As with the redirection filter
+    **  we reuse the same request object which means that we must
+    **  keep this around until the cache load request has terminated
+    **  In the case of a 
+    */
+    {
+	HTLoad(request, NO);
+	return HT_ERROR;
+    }
+}
+
+/*
 **	Error and Information AFTER filter
 **	----------------------------------
 **	It checks the status code from a request and generates an 
 **	error/information message if required.
 */
-PUBLIC int HTInfoFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTInfoFilter (HTRequest * request, HTResponse * response,
+			 void * param, int status)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * uri = HTAnchor_address((HTAnchor*) anchor);
@@ -342,7 +364,7 @@ PUBLIC int HTInfoFilter (HTRequest * request, void * param, int status)
     case HT_RETRY:
 	if (PROT_TRACE)
 	    HTTrace("Load End.... NOT AVAILABLE, RETRY AT %ld\n",
-		    HTRequest_retryTime(request));
+		    HTResponse_retryTime(response));
 	break;
 
     case HT_ERROR:
@@ -404,10 +426,11 @@ PUBLIC int HTInfoFilter (HTRequest * request, void * param, int status)
 **	The redirection handler only handles redirections
 **	on the GET or HEAD method (or any other safe method)
 */
-PUBLIC int HTRedirectFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
+			     void * param, int status)
 {
     HTMethod method = HTRequest_method(request); 
-    HTAnchor * new_anchor = HTRequest_redirection(request); 
+    HTAnchor * new_anchor = HTResponse_redirection(response); 
     if (!new_anchor) {
 	if (PROT_TRACE) HTTrace("Redirection. No destination\n");
 	return HT_OK;
@@ -448,14 +471,15 @@ PUBLIC int HTRedirectFilter (HTRequest * request, void * param, int status)
 } 
 
 /*
-**	Retry through Proxy Filter
-**	--------------------------
+**	Retry through Proxy AFTER Filter
+**	--------------------------------
 **	This filter handles a 305 Use Proxy response and retries the request
 **	through the proxy
 */
-PUBLIC int HTUseProxyFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTUseProxyFilter (HTRequest * request, HTResponse * response,
+			     void * param, int status)
 {
-    HTAnchor * proxy_anchor = HTRequest_redirection(request); 
+    HTAnchor * proxy_anchor = HTResponse_redirection(response); 
     if (!proxy_anchor) {
 	if (PROT_TRACE) HTTrace("Use Proxy... No proxy location\n");
 	return HT_OK;
@@ -495,13 +519,13 @@ PUBLIC int HTUseProxyFilter (HTRequest * request, void * param, int status)
 **	The filter generates the credentials required to access a document
 **	Getting the credentials may involve asking the user
 */
-PUBLIC int HTCredentialsFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTCredentialsFilter (HTRequest * request, void * param, int mode)
 {
     /*
     ** Ask the authentication module to call the right credentials generator
     ** that understands this scheme
     */
-    if (HTAA_beforeFilter(request, param, status) == HT_OK) {
+    if (HTAA_beforeFilter(request, param, mode) == HT_OK) {
 	if (PROT_TRACE) HTTrace("Credentials. verified\n");
 	return HT_OK;
     } else {
@@ -519,13 +543,14 @@ PUBLIC int HTCredentialsFilter (HTRequest * request, void * param, int status)
 **	By default these are the ones used by the line mode browser but you can
 **	just register something else.
 */
-PUBLIC int HTAuthFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTAuthFilter (HTRequest * request, HTResponse * response,
+			 void * param, int status)
 {
     /*
     ** Ask the authentication module to call the right challenge parser
     ** that understands this scheme
     */
-    if (HTAA_afterFilter(request, param, status) == HT_OK) {
+    if (HTAA_afterFilter(request, response, param, status) == HT_OK) {
 
 	/*
 	** Start request with new credentials. As with the redirection filter
@@ -549,7 +574,8 @@ PUBLIC int HTAuthFilter (HTRequest * request, void * param, int status)
 **	---------------------------
 **	Default Logging filter using the log manager provided by HTLog.c
 */
-PUBLIC int HTLogFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTLogFilter (HTRequest * request, HTResponse * response,
+			void * param, int status)
 {
     if (request) {
 	if (HTLog_isOpen()) HTLog_add(request, status);

@@ -1292,7 +1292,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FTP_BEGIN:
 	    HTFTPParseURL(request, url, ctrl, data);
 	    if (data->type != 'N') {
-		HTBind_getBindings(anchor);
+		HTBind_getAnchorBindings(anchor);
 #if 0
 		if (HTAnchor_encoding(anchor) != HTAtom_for("7bit"))
 #endif

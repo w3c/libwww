@@ -1,32 +1,30 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww CONTENT TYPE GUESSING STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww Content-Type Guessing Stream</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Content-Type Guesser</H1>
-
+<H1>
+  Content-Type Guessing Stream
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This interface provides functionality for guessing unknown media types
-from magic words. The stream is a one that reads first a chunk of
-stuff, tries to figure out the format, and calls
-<CODE>HTStreamStack()</CODE>. This is a kind of lazy-evaluation of
-<CODE>HTStreamStack()</CODE>. <P>
-
-This could be extended arbitrarily to recognize all the possible
-file formats in the world, if someone only had time to do it. <P>
-
-This module is implemented by <A HREF="HTGuess.c">HTGuess.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+This interface provides functionality for guessing unknown media types from
+magic words. The stream is a one that reads first a chunk of stuff, tries
+to figure out the format, and calls <CODE>HTStreamStack()</CODE>. This is
+a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>.
+<P>
+This could be extended arbitrarily to recognize all the possible file formats
+in the world, if someone only had time to do it.
+<P>
+This module is implemented by <A HREF="HTGuess.c">HTGuess.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTGUESS_H
 #define HTGUESS_H
@@ -38,10 +36,9 @@ extern HTConverter HTGuess_new;
 
 #endif	/* !HTGUESS_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -2,11 +2,12 @@
 <HEAD>
   <TITLE>Line Mode Browser Commands</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
-<A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x"></A>
-<IMG ALT="MANUAL" SRC="../../Icons/WWW/doc48x">
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48" WIDTH="48"
+    HEIGHT="48" BORDER="0"></A>
+<A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x" WIDTH="48" HEIGHT="48"
+    BORDER="0"></A> <IMG ALT="MANUAL" SRC="../../Icons/WWW/doc48x">
 <H1>
   Line Mode Browser Commands
 </H1>
@@ -16,22 +17,20 @@ Line Mode Browser</A> when used in interactive mode. Not all of them are
 applicable at all times, but the online help shows which commands can be
 used at a particular moment. All commands may be abbreviated and case is
 not significant. As an example, you can type "<A HREF="#put">put</A>" as:
-<PRE>
-	pu, put, Put, PUT, etc.
+<PRE>	pu, put, Put, PUT, etc.
 </PRE>
 <P>
 If the browser is run in "multi threaded" mode, then you can type in a new
 command at all times. You do not have to wait until a command is terminated.
 All requests can be interrupted by hitting 'z' (or 'Z') and then return:
-<PRE>
-	<B>z</B> &lt;RETURN&gt;
+<PRE>	<B>z</B> &lt;RETURN&gt;
 </PRE>
 <P>
 When run in single threaded mode using the
 <A HREF="CommandLine.html#single">-single</A> command line option, it is
 not possible to interrupt a request.
 <H3>
-  Getting Help
+  Getting Help and Information
 </H3>
 <DL>
   <DT>
@@ -48,7 +47,11 @@ not possible to interrupt a request.
   <DT>
     <B>verbose</B>
   <DD>
-    Toggles verbose mode (for maintenance purposes).
+    Toggles verbose mode (for maintenance purposes)
+  <DT>
+    <B>which</B>
+  <DD>
+    Shows the title and location of the current document
 </DL>
 <H3>
   Getting around in a document
@@ -176,18 +179,35 @@ on a remote HTTP server.
   <DT>
     <B>refresh</B>
   <DD>
-    Refresh the screen
+    Refresh the screen but does not cause freshness validation of any kind
+  <DT>
+    <A NAME="z11"><B>source</B></A>
+  <DD>
+    Followed by another command, causes raw source to be generated for that command
+    but without any MIME headers wrapped around it.
+</DL>
+<H3>
+  Persistent Cache Management
+</H3>
+<DL>
+  <DT>
+    <B>flush</B>
+  <DD>
+    Flushes the persistent cache by deleting all entries on disk
+  <DT>
+    <B>validate</B>
+  <DD>
+    Validates the current document with the nearest cache or at the origin server
+  <DT>
+    <B>revalidate</B>
+  <DD>
+    End-validates the current document by forcing validation of all caches and
+    at the origin server
   <DT>
     <B>reload</B>
   <DD>
     Forces a full reload of the document regardless of whether the object might
     already be in either the memory cache or in the local file cache.
-  <DT>
-    <A NAME="z11"><B>source</B></A>
-  <DD>
-    Followed by another command, causes raw source to be generated for that command
-    but without any MIME headers wrapped around it. This is useful for printing
-    postscript files without formatting, with SOURCE PRINT.
 </DL>
 <H3>
   On Unix versions, the following extra commands are available:
@@ -232,7 +252,7 @@ on a remote HTTP server.
   <HR>
 <ADDRESS>
   <A HREF="../../People.html#BernersLee">Tim BL</A>, and
-  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk Nielsen</A>,
   <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
   <P>
   @(#) $Id$

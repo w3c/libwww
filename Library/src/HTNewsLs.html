@@ -36,7 +36,8 @@ extern HTConverter HTNewsList, HTNewsGroup;
 
 The news list cache uses a URL tree to store the information
 <PRE>
-HTNetCallback HTNewsCache_before, HTNewsCache_after;
+HTNetBefore HTNewsCache_before;
+HTNetAfter HTNewsCache_after;
 </PRE>
 <PRE>
 #endif /* HTNEWSLS_H */

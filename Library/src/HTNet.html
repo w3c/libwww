@@ -1,8 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
-  <!-- Changed by: Eric Prud'hommeaux, 14-May-1996 -->
-  <!-- Changed by: Henrik Frystyk Nielsen,  5-Jul-1996 -->
   <TITLE>W3C Reference Library libwww HTNet Class</TITLE>
 </HEAD>
 <BODY>
@@ -52,39 +49,109 @@ typedef struct _HTNet HTNet;
 
 #include "HTEvent.h"
 #include "HTReq.h"
+#include "HTResponse.h"
 #include "HTTrans.h"
 #include "HTHost.h"
 #include "HTChannl.h"
 #include "HTDNS.h"
 </PRE>
 <H2>
-  <A NAME="callout">Before and After Filters</A>
+  <A NAME="callout">Generic BEFORE and AFTER Filter Management</A>
 </H2>
 <P>
 Filter functions can be registered to be called <EM>before</EM> and
-<EM>after</EM> a request has either been started or has terminated. The following
-functions are the generic registration mechanisms where we use lists as the
-basic data container. Then there is two methods for binding a list of filter
-functions to the set which is called <EM>before</EM> and to the set set which
-is called <EM>after</EM>
-<P>
-In both cases there can be more than one filter function which are called
-on turn and each filter function can be associated with a status code of
-the request. For example one filter function can be registered for
-<CODE>HT_LOADED</CODE>, another for <CODE>HT_ERROR</CODE> etc.
+<EM>after</EM> a request has either been started or has terminated. The
+conditions for <I>BEFORE</I> and <I>AFTER</I> filters are not the same so
+we maintain them independently. Filters can be registered globally or locally.
+The global filters are registered directly by the Net Object (this module)
+and the local filters are registered by the
+<A HREF="HTReq.html">HTRequest</A> Object. However, both &nbsp;local and
+global filters use the same regisration mechanism which we provide here.
 <H3>
-  Register a Net Filter
+  Filter Ordering
 </H3>
 <P>
-Several filters can be registered in which case all of them are called in
-the reverse order of which they were registered (last one first). We name
-the calling mechansm of calling the filter for the <EM>before</EM> loop and
-the <EM>after</EM> loop.
+Filters can be registered by anyone and as they are an often used mechanism
+for introducing extensions in libwww, they are videly used to handle
+authentication, redirection, etc. Many filters can be registered at once
+and not all of the filters may know about the other filters. Therefore, it
+is difficult to specify an absolute ordering by which the filters should
+be called. Instead you can decide a relative order by which the filters should
+be called. The order works pretty much like the Unix priority mechanism running
+from <CODE>HT_FILTER_FIRST</CODE> to <CODE>HT_FILTER_LAST</CODE> having
+<CODE>HT_FILTER_MIDDLE</CODE> being the "normal" case.
+<PRE>
+#define HT_FILTER_FIRST		0
+#define HT_FILTER_MIDDLE	5
+#define HT_FILTER_LAST		10
+</PRE>
 <P>
-In case the filter function is registered as being called <EM>after</EM>
-the request has terminated the result of the request is passed to the function.
-The status signifies which call back function to call depending of the result
-of the request. This can be
+In case multiple filters are registered with the same order then they are
+called in the <I>inverse</I> order they were registered.&nbsp;
+<H3>
+  Filter URL Templates
+</H3>
+<P>
+Both <I>BEFORE</I> and <I>AFTER</I> filters can be registered with a <I>URL
+template</I> in which case they are only called when the <I>Request URL</I>
+matches the template. A template is simply a string which is matched against
+the <I>Request URL</I>. The string can be terminated by a&nbsp;single
+"<CODE>*</CODE>" in which case all strings matching the template up til the
+"*" is considered a match. A template can be as short as the access scheme
+which enmables a filter for a specific access method only, for example
+"<CODE>http//&lt;star&gt;</CODE>".
+<H3>
+  BEFORE Filters
+</H3>
+<P>
+A <I>BEFORE</I> filter is called whenever we issue a request and they have
+been selected by the execution procedure. <I>BEFORE</I> filters are registered
+with a <I>context</I> and a <I>filter order</I> by which they are to be called
+and a <I>URL template</I> which may be NULL. In this case, the filter is
+called on every request. The mode can be used by anybody to pass an extra
+parameter to a filter. This is not really OO thinking - but hey - this is C ;-)
+<PRE>typedef int HTNetBefore (HTRequest * request, void * param, int mode);
+</PRE>
+<P>
+You can add a <I>BEFORE</I> filter in the list provided by the caller. Several
+filters can be registered in which case they are called with the filter ordering
+in mind.
+<PRE>
+extern BOOL HTNetCall_addBefore (HTList * list, HTNetBefore * before,
+				 const char * tmplate, void * param,
+                                 int order);
+</PRE>
+<P>
+You can also unregister all instances of a BEFORE filter from a list using
+the following function
+<PRE>
+extern BOOL HTNetCall_deleteBefore (HTList * list, HTNetBefore * before);
+</PRE>
+<P>
+You get rid of all BEFORE filters usign this function
+<PRE>
+extern BOOL HTNetCall_deleteBeforeAll (HTList * list);
+</PRE>
+<P>
+The BEFORE filters are expected and called if appropriate every time we issue
+a new request. Libwww calls the BEFORE filters in the order specified at
+registration time. If a filter returns other than HT_OK then stop and return
+immediately. Otherwise return what the last filter returns.
+<PRE>
+extern int HTNetCall_executeBefore (HTList * list, HTRequest * request);
+</PRE>
+<H3>
+  AFTER Filters
+</H3>
+<P>
+An <I>AFTER</I> filter is called whenever we have terminated a request. That
+is, on the way out from the <A HREF="HTProt.html">protocol module</A> and
+back to the application. <I>AFTER</I> filters are registered with a
+<I>context</I>, a <I>status</I>, a <I>filter order</I> by which they are
+to be called and a <I>URL template</I> which may be NULL. The status of the
+request may determine which filter to call. The set of possible values are
+given below. An <I>AFTER</I> filter can be registered to handle one or more
+of the codes.
 <DL>
   <DT>
     HT_ERROR
@@ -125,72 +192,90 @@ of the request. This can be
     All of above
 </DL>
 <P>
-Any filter can return any code it likes, but <B>IF NOT</B> the code is
-<EM>HT_OK</EM>, then the filter loop is stopped. If we are in the
-<EM>before</EM> loop and a filter returns anything else than <EM>HT_OK</EM>
-then we immediately jump to the <EM>after</EM> loop <B>passing</B> the last
-return code from the <EM>before</EM> loop.
+A Protocol module can also in certain cases return a <CODE>HT_IGNORE </CODE>in
+which case no filters are called
 <PRE>
-typedef int HTNetCallback (HTRequest * request, void * param, int status);
-
-extern BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf,
-			  void * param, int status);
+typedef int HTNetAfter (HTRequest * request, HTResponse * response,
+                        void * param, int status);
 </PRE>
-<H3>
-  Delete a single Filter
-</H3>
 <P>
-Removes a filter function from a list
+You can register a AFTER filter in the list provided by the caller. Several
+filters can be registered in which case they are called with the filter ordering
+in mind.
 <PRE>
-extern BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf);
+extern BOOL HTNetCall_addAfter (HTList * list, HTNetAfter * after,
+				const char * tmplate, void * param,
+				int status, int order);
 </PRE>
-<H3>
-  Delete a list of Filters
-</H3>
 <P>
-Unregisters all call back functions in the list
+You can either unregister all filters registered for a given status using this function or the filter for all status codes.
 <PRE>
-extern BOOL HTNetCall_deleteAll (HTList * list);
+extern BOOL HTNetCall_deleteAfter (HTList * list, HTNetAfter * after);
+extern BOOL HTNetCall_deleteAfterStatus (HTList * list, int status);
 </PRE>
-<H3>
-  Call List of Registered Filter Functions
-</H3>
 <P>
-Call all the filters registered in the list <I>IF</I> not the status is
-<CODE>HT_IGNORE</CODE>. The filters are called in the order of which they
-were registered. At the moment an application filter is called, it can free
-the request object - it is no longer used by the Library. Returns what the
-last filter returns
+You can also delete all AFTER filters in list
 <PRE>
-extern int HTNetCall_execute (HTList * list, HTRequest * request, int status);
+extern BOOL HTNetCall_deleteAfterAll (HTList * list);
 </PRE>
-<H3>
-  Handling BEFORE Filters
-</H3>
 <P>
-Global set of filters BEFORE the request is issued. The list can be NULL.
+This function calls all the AFTER filters in the order specified at registration
+time and if it has the right status code and it's not <CODE>HT_IGNORE</CODE>.
+We also check for any template and whether it matches or not. If a filter
+returns other than HT_OK then stop and return immediately. Otherwise return
+what the last filter returns.
 <PRE>
-extern BOOL HTNetCall_addBefore	(HTNetCallback *cbf, void * param, int status);
-extern BOOL HTNetCall_deleteBefore (HTNetCallback * cbf);
-
-extern BOOL HTNet_setBefore	(HTList * list);
-extern HTList * HTNet_before	(void);
-
-extern int HTNet_callBefore	(HTRequest *request, int status);
+extern int HTNetCall_executeAfter (HTList * list, HTRequest * request,
+				   int status);
 </PRE>
-<H3>
-  Handling AFTER Filters
-</H3>
+<H2>
+  Global BEFORE and AFTER Filter Management
+</H2>
 <P>
-Global set of filters AFTER the request is issued. The list can be NULL
+Global filters are inspected on every request (they do not have to be called
+- only if the conditions match). You can also register filters locally in
+the Request object.
+<H4>
+  Global BEFORE Filters
+</H4>
+<P>
+These are the methods to handle global <I>BEFORE</I> Filters.
 <PRE>
-extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, void * param, int status);
-extern BOOL HTNetCall_deleteAfter (HTNetCallback * cbf);
+extern BOOL HTNet_setBefore (HTList * list);
 
-extern BOOL HTNet_setAfter	(HTList * list);
-extern HTList * HTNet_after	(void);
+extern HTList * HTNet_before (void);
 
-extern int HTNet_callAfter	(HTRequest *request, int status);
+extern BOOL HTNet_addBefore (HTNetBefore * before, const char * tmplate,
+			     void * param, int order);
+
+extern BOOL HTNet_deleteBefore (HTNetBefore * before);
+</PRE>
+<P>
+You can call both the local and the global BEFORE filters (if any)
+<PRE>
+extern int HTNet_executeBeforeAll (HTRequest * request);
+</PRE>
+<H4>
+  Global AFTER Filters
+</H4>
+<P>
+These are the methods to handle global <I>AFTER</I> Filters.
+<PRE>
+extern BOOL HTNet_setAfter (HTList * list);
+
+extern HTList * HTNet_after (void);
+
+extern BOOL HTNet_addAfter (HTNetAfter * after, const char * tmplate,
+			    void * param, int status, int order);
+
+extern BOOL HTNet_deleteAfter (HTNetAfter * after);
+
+extern BOOL HTNet_deleteAfterStatus (int status);
+</PRE>
+<P>
+You can call both the local and the global AFTER filters (if any)
+<PRE>
+extern int HTNet_executeAfterAll (HTRequest * request, int status);
 </PRE>
 <H2>
   Socket Resource Management

@@ -39,13 +39,10 @@ stored in a hashed array of lists of HTMIMEParseEl.
 <PRE>
 typedef struct _HTMIMEParseEl HTMIMEParseEl;
 
-#define HT_MAX_NO_CACHE		9     /* Number of headers to exclude */
-
 struct _HTMIMEParseSet {
     int size;
     HTMIMEParseEl ** parsers;
     HTMIMEParseEl * regexParsers;
-    int no_cache[HT_MAX_NO_CACHE];
 };
 
 #define MIMEParseSet_NULL {0, NULL, NULL}
@@ -88,8 +85,7 @@ extern int HTMIMEParseSet_delete (HTMIMEParseSet * me, const char * token);
 Find <CODE>HTParserCallback</CODE> which matches the string.
 <PRE>
 extern int HTMIMEParseSet_dispatch (HTMIMEParseSet * me, HTRequest * request, 
-				    char * token, char * value, BOOL * pFound,
-                                    BOOL CacheFilter);
+				    char * token, char * value, BOOL * pFound);
 </PRE>
 <PRE>
 #endif /* HTMIMPRS_H */

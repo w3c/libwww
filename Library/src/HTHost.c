@@ -35,6 +35,7 @@ struct _HTHost {
     HTMethod		methods;	       	/* Public methods (bit-flag) */
     char *		server;				      /* Server name */
     char *		user_agent;			       /* User Agent */
+    char *		range_units;		   /* Acceptable range units */
     HTTransportMode	mode;	      			   /* Supported mode */
     HTChannel *		channel;		       /* Persistent channel */
     HTList *		pipeline;		 /* Pipe line of net objects */
@@ -55,6 +56,9 @@ PRIVATE void free_object (HTHost * me)
     if (me) {
 	HT_FREE(me->hostname);
 	HT_FREE(me->type);
+	HT_FREE(me->server);
+	HT_FREE(me->user_agent);
+	HT_FREE(me->range_units);
 	if (me->channel) {
 	    HTChannel_delete(me->channel, HT_OK);
 	    me->channel = NULL;
@@ -308,6 +312,52 @@ PUBLIC BOOL HTHost_setUserAgent (HTHost * host, const char * userAgent)
     if (host && userAgent) {
 	StrAllocCopy(host->user_agent, userAgent);
 	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Get and set acceptable range units
+*/
+PUBLIC char * HTHost_rangeUnits (HTHost * host)
+{
+     return host ? host->range_units : NULL;
+}
+
+PUBLIC BOOL HTHost_setRangeUnits (HTHost * host, const char * units)
+{
+    if (host && units) {
+	StrAllocCopy(host->range_units, units);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Checks whether a specific range unit is OK. We always say
+**	YES except if we have a specific statement from the server that
+**	it doesn't understand byte ranges - that is - it has sent "none"
+**	in a "Accept-Range" response header
+*/
+PUBLIC BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit)
+{
+    if (host && unit) {
+#if 0
+	if (host->range_units) {
+	    char * start = strcasestr(host->range_units, "none");
+
+	    /*
+	    **  Check that "none" is infact a token. It could be part of some
+	    **  other valid string, so we'd better check for it.
+	    */
+	    if (start) {
+		
+		
+	    }
+	    return NO;
+	}
+#endif
+	return strcasecomp(unit, "bytes") ? NO : YES;
     }
     return NO;
 }

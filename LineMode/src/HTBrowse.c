@@ -24,7 +24,7 @@
 **              record of previous nodes visited to be kept.
 **   6 Apr 91:  When a node is accessed, it is immediately read into a 
 **              buffer, in an unformatted state, as soon as the connection is  
-**              made, so that the server is HT_FREEd as quickly as possible. 
+**              made, so that the server is freed as quickly as possible. 
 **              The program now also uses the additional modules HTBufferFile.c
 **              and HTBufferFile.h.
 **  17 Apr 91:  Can be used on machines running ANSI C and ordinary C.
@@ -183,7 +183,7 @@ PRIVATE InputParser_t parse_command;
 InputParser_t * PInputParser = &parse_command;
 
 /* Net callback handlers */
-PRIVATE HTNetCallback terminate_handler;
+PRIVATE HTNetAfter terminate_handler;
 
 /* ------------------------------------------------------------------------- */
 
@@ -416,11 +416,11 @@ PRIVATE void SetSignal (void)
 */
 PRIVATE void VersionInfo (LineMode * lm)
 {
-    HTView * pView = lm ? lm->pView : 0;
+    HTView * pView = lm ? lm->pView : NULL;
     OutputData(pView, "\n\nW3C Reference Software\n\n");
     OutputData(pView, "\tW3C Line Mode Browser version %s.\n", APP_VERSION);
     OutputData(pView, "\tW3C Reference Library version %s.\n\n",HTLib_version());
-    OutputData(pView, "Please send feedback to <www-bug@w3.org>\n");
+    OutputData(pView, "Please send feedback to <libwww@w3.org>\n");
 }
 
 /* 	Reference_List
@@ -1203,6 +1203,18 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	} else
 	    found = NO;
 	break;
+
+      case 'W':
+	if (CHECK_INPUT("WHICH", token)) {     /* Show title/URL of current page */
+	    HTView * pView = lm ? lm->pView : NULL;
+	    char * current_address = HTAnchor_address((HTAnchor *) HTMainAnchor);
+	    const char * title = HTAnchor_title(HTMainAnchor);
+	    if (title)
+		OutputData(pView, "\n\nYou are reading\n\t`%s\'\nwith address\n\t%s\n\n",
+			   title, current_address);
+	} else
+	    found = NO;
+	break;
 	
       case 'Z':
 	HText_setStale(HTMainText);			    /* Force refresh */
@@ -1426,7 +1438,8 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 **	-----------------
 **	This function is registered to handle the result of the request
 */
-PRIVATE int terminate_handler (HTRequest * request, void * param, int status) 
+PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
+			       void * param, int status) 
 {
     Context * context = (Context *) HTRequest_context(request);
     LineMode * lm;
@@ -1515,8 +1528,6 @@ int main (int argc, char ** argv)
     HTRequest *	request = NULL;
     LineMode *	lm;
     char *      picsUser = NULL;
-
-/*    char *      picsUserList = NULL; */
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -1891,7 +1902,7 @@ int main (int argc, char ** argv)
     CSApp_registerApp(PICSCallback, CSApp_callOnBad, PICS_userCallback, 
 		      (void *)lm);
      /* Add our own filter to update the history list */
-    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
+    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
     HTEventrg_registerTimeout(lm->tv, request, timeout_handler, NO);
 
 /*    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))

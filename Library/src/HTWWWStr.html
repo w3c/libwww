@@ -91,13 +91,17 @@ typedef enum _HTEOLState {
   RFC1123 Date/Time Stamp String
 </H2>
 <P>
-Returns a pointer to a static area!
+Returns a string containing a date/time stamp string in RFC-1123 format.
+The string is in static memory so be aware!
 <PRE>
-extern const char *HTDateTimeStr (time_t *calendar, BOOL local);
+extern const char * HTDateTimeStr (time_t *calendar, BOOL local);
 </PRE>
 <H2>
   Date used for directory listings
 </H2>
+<P>
+Generates a date/time stamp string used in directory listings. There is nothing
+special about this format, it is just to make directory listings look alike.
 <PRE>
 extern BOOL HTDateDirStr (time_t * time, char * str, int len);
 </PRE>
@@ -105,12 +109,13 @@ extern BOOL HTDateDirStr (time_t * time, char * str, int len);
   Parse a Date/Time String
 </H2>
 <P>
-Converts a string representation in GMT to a local representation of localtime
-<CODE>time_t</CODE>. The local time zone is taken from the
-<A HREF="HTUser.html">user profile</A> information. If the time is relative
-(for example in the <CODE>Age</CODE> header) then you can indicate whether
-it should be expanded to local time or not by using the <CODE>expand</CODE>
-argument.
+Converts a variety of different string representations of date time stamps
+in GMT to a local representation of localtime <CODE>time_t</CODE>. The local
+<I>time zone</I> is taken from the <A HREF="HTUser.html">user profile</A>
+information or directly from the system if <CODE>NULL</CODE> is passed as
+user profile . If the time is relative (for example in the <CODE>Age</CODE>
+header) then you can indicate whether it should be expanded to local time
+or not by using the <CODE>expand</CODE> argument.
 <PRE>
 extern time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand);
 </PRE>
@@ -120,7 +125,7 @@ extern time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand);
 <P>
 The message ID string can for example be use as a RFC 822 header. The content
 is based on the information taken from the <A HREF="HTUser.html">user
-profile</A> which can be supplied by the applciation.
+profile</A> which can be supplied by the application.
 <PRE>extern const char * HTMessageIdStr (HTUserProfile * up);
 </PRE>
 <H2>

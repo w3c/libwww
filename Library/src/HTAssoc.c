@@ -97,8 +97,12 @@ PUBLIC char * HTAssocList_findObject (HTAssocList * list, const char * name)
     return NULL;
 }
 
+/*
+**  Searches the whole list and removes all elements with this name
+*/
 PUBLIC BOOL HTAssocList_removeObject (HTAssocList * list, const char * name)
 {
+    BOOL found = NO;
     if (list && name) {
 	HTAssocList * cur = list;
 	HTAssoc * assoc;
@@ -107,9 +111,9 @@ PUBLIC BOOL HTAssocList_removeObject (HTAssocList * list, const char * name)
 	    if (!strncasecomp(assoc->name, name, len)) {
 		HTList_removeObject(list, assoc);
 		HT_FREE(assoc);
-		return YES;
+		found = YES;
 	    }
 	}
     }
-    return NO;
+    return found;
 }

@@ -15,7 +15,7 @@
 #include "HTSChunk.h"					 /* Implemented here */
 
 #define HT_MAXSIZE	0x10000		      /* Max size of allocated chunk */
-#define HT_GROWSIZE	0x2000			      /* Increment buffer by */
+#define HT_MAXGROWSIZE	0x4000		 /* Increment buffer by no more than */
 
 struct _HTStream {
     HTStreamClass *	isa;
@@ -60,17 +60,23 @@ PRIVATE int HTSC_putBlock (HTStream * me, const char * b, int l)
     me->cur_size += l;
 
     /*
-    ** Currently we ask the user whether to proceed even though we have a full
-    ** buffer. In the case of puting a document we could also just start 
-    ** sending data.
+    ** If we get a buffer overflow and we are going to PUT or POST the document
+    ** then ask the user whether it is OK to proceed buffering. Otherwise we
+    ** must give up the request. In all other cases we stop if the buffer fills
+    ** up.
     */
     if (!me->ignore && me->cur_size > me->max_size) {
-	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
-	if ((cbf && (*cbf)(me->request, HT_A_CONFIRM, HT_MSG_BIG_PUT,
-			   NULL, NULL, NULL)))
-	    me->ignore = YES;
-	else
+	HTMethod method = HTRequest_method(me->request);
+	if (HTMethod_hasEntity(method)) {
+	    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
+	    if ((cbf && (*cbf)(me->request, HT_A_CONFIRM, HT_MSG_BIG_PUT,
+			       NULL, NULL, NULL)))
+		me->ignore = YES;
+	    else
+		me->give_up = YES;
+	} else {
 	    me->give_up = YES;
+	}
     }
     if (!me->give_up) {
 	HTChunk_putb(me->chunk, b, l);
@@ -111,9 +117,10 @@ PUBLIC HTStream * HTStreamToChunk (HTRequest * 	request,
 	me->isa = &HTStreamToChunkClass;
 	me->request = request;
 	me->max_size = (max_size > 0) ? max_size : HT_MAXSIZE;
-	me->chunk = *chunk = HTChunk_new(HTMIN(me->max_size, HT_GROWSIZE));
+	me->chunk = *chunk = HTChunk_new(HTMIN(me->max_size, HT_MAXGROWSIZE));
 	if (STREAM_TRACE)
-	    HTTrace("ChunkStream. Chunk %p created\n", me->chunk);
+	    HTTrace("ChunkStream. Chunk %p created with max size %d\n",
+		    me->chunk, me->max_size);
 	return me;
     }
     return HTErrorStream();

@@ -53,12 +53,9 @@ struct _HTStream {
 };
 
 /* --------------------------------------------------------------------------*/
-/*			Management of the HTRequest structure		     */
+/*			Create and delete the HTRequest Object		     */
 /* --------------------------------------------------------------------------*/
 
-/*  Create  a request structure
-**  ---------------------------
-*/
 PUBLIC HTRequest * HTRequest_new (void)
 {
     HTRequest * me;
@@ -82,7 +79,6 @@ PUBLIC HTRequest * HTRequest_new (void)
     me->EntityMask	= DEFAULT_ENTITY_HEADERS;
 
     /* Default retry after value */
-    me->retry_after = -1;
     me->priority = HT_PRIORITY_MAX;
 
     /* Default max forward value */
@@ -93,9 +89,6 @@ PUBLIC HTRequest * HTRequest_new (void)
 
     if (CORE_TRACE) HTTrace("Request..... Created %p\n", me);
 
-#if 0 /* WWW_WIN_ASYNC */
-    HTEvent_winHandle(me);
-#endif
     return me;
 }
 
@@ -111,10 +104,12 @@ PUBLIC BOOL HTRequest_clear (HTRequest * me)
 	me->error_stack = NULL;
 	me->net = NULL;
 	me->realm = NULL;
-	me->scheme = NULL;
-	me->challenge = NULL;
 	me->credentials = NULL;
 	me->connected = NO;
+	if (me->response) {
+	    HTResponse_delete(me->response);
+	    me->response = NULL;
+	}
 	return YES;
     }
     return NO;
@@ -155,200 +150,388 @@ PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
     return me;
 }
 
-/*  Delete a request structure
-**  --------------------------
-*/
-PUBLIC void HTRequest_delete (HTRequest * request)
+PUBLIC void HTRequest_delete (HTRequest * me)
 {
-    if (request) {
-	if (CORE_TRACE) HTTrace("Request..... Delete %p\n", request);
-	if (request->net) HTNet_setRequest(request->net, NULL);
+    if (me) {
+	if (CORE_TRACE) HTTrace("Request..... Delete %p\n", me);
+	if (me->net) HTNet_setRequest(me->net, NULL);
 
 	/* Should we delete the output stream? */
-	if (!request->connected && request->output_stream) {
+	if (!me->connected && me->output_stream) {
 	    if (CORE_TRACE)
 		HTTrace("Request..... Deleting dangling output stream\n");
-	    (*request->output_stream->isa->_free)(request->output_stream);
-	    request->output_stream = NULL;
+	    (*me->output_stream->isa->_free)(me->output_stream);
+	    me->output_stream = NULL;
 	}
 
 	/* Clean up the error stack */
-	if (request->error_stack) HTError_deleteAll(request->error_stack);
+	if (me->error_stack) HTError_deleteAll(me->error_stack);
 
 	/* Before and After Filters */
-	if (request->afters) HTList_delete(request->afters);
-	if (request->befores) HTList_delete(request->befores);
+	if (me->afters) HTList_delete(me->afters);
+	if (me->befores) HTList_delete(me->befores);
 
 	/* Access Authentication */
-	if (request->challenge) HTAssocList_delete(request->challenge);
-	if (request->credentials) HTAssocList_delete(request->credentials);
-	HT_FREE(request->realm);
-	HT_FREE(request->scheme);
+	HT_FREE(me->realm);
+	if (me->credentials) HTAssocList_delete(me->credentials);
 
 	/* Cache control headers */
-	if (request->cache_control)
-	    HTAssocList_delete(request->cache_control);
+	if (me->cache_control)
+	    HTAssocList_delete(me->cache_control);
 
-	/* Original headers for cache */
-	if (request->headers)
-	    HTAssocList_delete(request->headers);
+	/* Byte ranges */
+	if (me->byte_ranges) HTAssocList_delete(me->byte_ranges);
 
 	/* Connection headers */
-	if (request->client_connection)
-	    HTAssocList_delete(request->client_connection);
-	if (request->server_connection)
-	    HTAssocList_delete(request->server_connection);
+	if (me->connection) HTAssocList_delete(me->connection);
 
 	/* Proxy information */
-	HT_FREE(request->proxy);
+	HT_FREE(me->proxy);
 
 	/* PEP Information */
+	if (me->protocol) HTAssocList_delete(me->protocol);
+	if (me->protocol_request) HTAssocList_delete(me->protocol_request);
+	if (me->protocol_info) HTAssocList_delete(me->protocol_info);
 
-	/* more */
+	/* Any response object */
+	if (me->response) HTResponse_delete(me->response);
 
-	/* Simple extension protocol */
-	if (request->client_extension)
-	    HTAssocList_delete(request->client_extension);
-	if (request->server_extension)
-	    HTAssocList_delete(request->server_extension);
-
-	HT_FREE(request);
+	HT_FREE(me);
     }
+}
+
+/*
+**	Kill this request
+*/
+PUBLIC BOOL HTRequest_kill(HTRequest * me)
+{
+    return me ? HTNet_kill(me->net) : NO;
+}
+
+/* --------------------------------------------------------------------------*/
+/*			Methods on the HTRequest Object			     */
+/* --------------------------------------------------------------------------*/
+
+/*
+**  Internal request object
+*/
+PUBLIC BOOL HTRequest_setInternal (HTRequest * me, BOOL mode)
+{
+    if (me) {
+	me->internal = mode;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_internal (HTRequest * me)
+{
+    return (me ? me->internal : NO);
+}
+
+/*
+**	Date/time stamp when then request was issued
+**	This is normally set when generating the request headers.
+*/
+PUBLIC time_t HTRequest_date (HTRequest * me)
+{
+    return me ? me->date : -1;
+}
+
+PUBLIC BOOL HTRequest_setDate (HTRequest * me, time_t date)
+{
+    if (me) {
+	me->date = date;
+	return YES;
+    }
+    return NO;
 }
 
 /*
 **	Method
 */
-PUBLIC void HTRequest_setMethod (HTRequest *request, HTMethod method)
+PUBLIC void HTRequest_setMethod (HTRequest * me, HTMethod method)
 {
-    if (request) request->method = method;
+    if (me) me->method = method;
 }
 
-PUBLIC HTMethod HTRequest_method (HTRequest *request)
+PUBLIC HTMethod HTRequest_method (HTRequest * me)
 {
-    return request ? request->method : METHOD_INVALID;
-}
-
-/*
-**	Reload Mode
-*/
-PUBLIC void HTRequest_setReloadMode (HTRequest *request, HTReload mode)
-{
-    if (request) request->reload = mode;
-}
-
-PUBLIC HTReload HTRequest_reloadMode (HTRequest *request)
-{
-    return request ? request->reload : HT_CACHE_OK;
+    return me ? me->method : METHOD_INVALID;
 }
 
 /*
-**	Accept Format Types
-**	list can be NULL
+**  Priority to be inherited by all HTNet object hanging off this request
+**  The priority can later be chaned by calling the HTNet object directly
 */
-PUBLIC void HTRequest_setConversion (HTRequest *request, HTList *type,
-				     BOOL override)
+PUBLIC BOOL HTRequest_setPriority (HTRequest * me, HTPriority priority)
 {
-    if (request) {
-	request->conversions = type;
-	request->conv_local = override;
+    if (me) {
+	me->priority = priority;
+	return YES;
     }
+    return NO;
 }
 
-PUBLIC HTList * HTRequest_conversion (HTRequest *request)
+PUBLIC HTPriority HTRequest_priority (HTRequest * me)
 {
-    return request ? request->conversions : NULL;
-}
-
-/*
-**	Accept Encoding 
-**	list can be NULL
-*/
-PUBLIC void HTRequest_setEncoding (HTRequest *request, HTList *enc,
-				   BOOL override)
-{
-    if (request) {
-	request->encodings = enc;
-	request->enc_local = override;
-    }
-}
-
-PUBLIC HTList * HTRequest_encoding (HTRequest *request)
-{
-    return request ? request->encodings : NULL;
+    return (me ? me->priority : HT_PRIORITY_INV);
 }
 
 /*
-**	Accept Transfer Encoding 
-**	list can be NULL
+**	User Profile
 */
-PUBLIC void HTRequest_setTransfer (HTRequest * request,
-				   HTList * cte, BOOL override)
+PUBLIC BOOL HTRequest_setUserProfile (HTRequest * me, HTUserProfile * up)
 {
-    if (request) {
-	request->ctes = cte;
-	request->cte_local = override;
+    if (me) {
+	me->userprofile = up;
+	return YES;
     }
+    return NO;
 }
 
-PUBLIC HTList * HTRequest_transfer (HTRequest * request)
+PUBLIC HTUserProfile * HTRequest_userProfile (HTRequest * me)
 {
-    return request ? request->ctes : NULL;
+    return me ? me->userprofile : NULL;
 }
 
 /*
-**	Accept Language
-**	list can be NULL
+**	Net Object
 */
-PUBLIC void HTRequest_setLanguage (HTRequest *request, HTList *lang,
-				   BOOL override)
+PUBLIC BOOL HTRequest_setNet (HTRequest * me, HTNet * net)
 {
-    if (request) {
-	request->languages = lang;
-	request->lang_local = override;
+    if (me) {
+	me->net = net;
+	return YES;
     }
+    return NO;
 }
 
-PUBLIC HTList * HTRequest_language (HTRequest *request)
+PUBLIC HTNet * HTRequest_net (HTRequest * me)
 {
-    return request ? request->languages : NULL;
+    return me ? me->net : NULL;
 }
 
 /*
-**	Accept Charset
-**	list can be NULL
+**	Response Object. If the object does not exist then create it at the
+**	same time it is asked for.
 */
-PUBLIC void HTRequest_setCharset (HTRequest *request, HTList *charset,
-				  BOOL override)
+PUBLIC HTResponse * HTRequest_response (HTRequest * me)
 {
-    if (request) {
-	request->charsets = charset;
-	request->char_local = override;
+    if (me) {
+	if (!me->response)
+	    me->response = HTResponse_new();
+	return me->response;
     }
+    return NULL;
 }
 
-PUBLIC HTList * HTRequest_charset (HTRequest *request)
+PUBLIC BOOL HTRequest_setResponse (HTRequest * me, HTResponse * response)
 {
-    return request ? request->charsets : NULL;
+    if (me) {
+	me->response = response;
+	return YES;
+    }
+    return NO;
+}
+
+/*	Error Management
+**	----------------
+**	Returns the error stack if a stream is 
+*/
+PUBLIC HTList * HTRequest_error (HTRequest * me)
+{
+    return me ? me->error_stack : NULL;
+}
+
+PUBLIC void HTRequest_setError (HTRequest * me, HTList * list)
+{
+    if (me) me->error_stack = list;
+}
+
+PUBLIC BOOL HTRequest_addError (HTRequest * 	me,
+				HTSeverity	severity,
+				BOOL		ignore,
+				int		element,
+				void *		par,
+				unsigned int	length,
+				char *		where)
+{
+    if (me) {
+	if (!me->error_stack) me->error_stack = HTList_new();
+	return HTError_add(me->error_stack, severity, ignore, element,
+			   par, length, where);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_addSystemError (HTRequest * 	me,
+				      HTSeverity 	severity,
+				      int		errornumber,
+				      BOOL		ignore,
+				      char *		syscall)
+{
+    if (me) {
+	if (!me->error_stack) me->error_stack = HTList_new();
+	return HTError_addSystem(me->error_stack, severity, errornumber,
+				 ignore, syscall);
+    }
+    return NO;
+}
+
+/*
+**  Set max number of automatic reload. Default is HT_MAX_RELOADS
+*/
+PUBLIC BOOL HTRequest_setMaxRetry (int newmax)
+{
+    if (newmax > 0) {
+	HTMaxRetry = newmax;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC int HTRequest_maxRetry (void)
+{
+    return HTMaxRetry;
+}
+
+PUBLIC int HTRequest_retrys (HTRequest * me)
+{
+    return me ? me->retrys : 0;
+}
+
+PUBLIC BOOL HTRequest_addRetry (HTRequest * me)
+{
+    return (me && me->retrys++);
+}
+
+/*
+**	Should we try again?
+**	--------------------
+**	Returns YES if we are to retry the load, NO otherwise. We check
+**	this so that we don't go into an infinte loop
+*/
+PUBLIC BOOL HTRequest_doRetry (HTRequest * me)
+{
+    return (me && me->retrys < HTMaxRetry-1);
+}
+
+/*
+**	Socket mode: preemptive or non-preemptive (blocking or non-blocking)
+*/
+PUBLIC void HTRequest_setPreemptive (HTRequest * me, BOOL mode)
+{
+    if (me) me->preemptive = mode;
+}
+
+PUBLIC BOOL HTRequest_preemptive (HTRequest * me)
+{
+    return me ? me->preemptive : NO;
+}
+
+/*
+**	Should we use content negotiation?
+*/
+PUBLIC void HTRequest_setNegotiation (HTRequest * me, BOOL mode)
+{
+    if (me) me->ContentNegotiation = mode;
+}
+
+PUBLIC BOOL HTRequest_negotiation (HTRequest * me)
+{
+    return me ? me->ContentNegotiation : NO;
+}
+
+/*
+**	Set General Headers
+*/
+PUBLIC void HTRequest_setGnHd (HTRequest * me, HTGnHd gnhd)
+{
+    if (me) me->GenMask = gnhd;
+}
+
+PUBLIC void HTRequest_addGnHd (HTRequest * me, HTGnHd gnhd)
+{
+    if (me) me->GenMask |= gnhd;
+}
+
+PUBLIC HTGnHd HTRequest_gnHd (HTRequest * me)
+{
+    return me ? me->GenMask : 0;
+}
+
+/*
+**	Set Request Headers
+*/
+PUBLIC void HTRequest_setRqHd (HTRequest * me, HTRqHd rqhd)
+{
+    if (me) me->RequestMask = rqhd;
+}
+
+PUBLIC void HTRequest_addRqHd (HTRequest * me, HTRqHd rqhd)
+{
+    if (me) me->RequestMask |= rqhd;
+}
+
+PUBLIC HTRqHd HTRequest_rqHd (HTRequest * me)
+{
+    return me ? me->RequestMask : 0;
+}
+
+/*
+**	Set Response Headers
+*/
+PUBLIC void HTRequest_setRsHd (HTRequest * me, HTRsHd rshd)
+{
+    if (me) me->ResponseMask = rshd;
+}
+
+PUBLIC void HTRequest_addRsHd (HTRequest * me, HTRsHd rshd)
+{
+    if (me) me->ResponseMask |= rshd;
+}
+
+PUBLIC HTRsHd HTRequest_rsHd (HTRequest * me)
+{
+    return me ? me->ResponseMask : 0;
+}
+
+/*
+**	Set Entity Headers (for the object)
+*/
+PUBLIC void HTRequest_setEnHd (HTRequest * me, HTEnHd enhd)
+{
+    if (me) me->EntityMask = enhd;
+}
+
+PUBLIC void HTRequest_addEnHd (HTRequest * me, HTEnHd enhd)
+{
+    if (me) me->EntityMask |= enhd;
+}
+
+PUBLIC HTEnHd HTRequest_enHd (HTRequest * me)
+{
+    return me ? me->EntityMask : 0;
 }
 
 /*
 **	Extra Header Generators. list can be NULL
 */
-PUBLIC void HTRequest_setGenerator (HTRequest *request, HTList *generator,
+PUBLIC void HTRequest_setGenerator (HTRequest * me, HTList *generator,
 				    BOOL override)
 {
-    if (request) {
-	request->generators = generator;
-	request->gens_local = override;
+    if (me) {
+	me->generators = generator;
+	me->gens_local = override;
     }
 }
 
-PUBLIC HTList * HTRequest_generator (HTRequest *request, BOOL *override)
+PUBLIC HTList * HTRequest_generator (HTRequest * me, BOOL *override)
 {
-    if (request) {
-	*override = request->gens_local;
-	return request->generators;
+    if (me) {
+	*override = me->gens_local;
+	return me->generators;
     }
     return NULL;
 }
@@ -375,865 +558,201 @@ PUBLIC HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest * me, BOOL * pLocal)
 }
 
 /*
-**	Set General Headers
+**	Accept Format Types
+**	list can be NULL
 */
-PUBLIC void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd)
+PUBLIC void HTRequest_setConversion (HTRequest * me, HTList *type,
+				     BOOL override)
 {
-    if (request) request->GenMask = gnhd;
-}
-
-PUBLIC void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd)
-{
-    if (request) request->GenMask |= gnhd;
-}
-
-PUBLIC HTGnHd HTRequest_gnHd (HTRequest *request)
-{
-    return request ? request->GenMask : 0;
-}
-
-/*
-**	Set Request Headers
-*/
-PUBLIC void HTRequest_setRqHd (HTRequest *request, HTRqHd rqhd)
-{
-    if (request) request->RequestMask = rqhd;
-}
-
-PUBLIC void HTRequest_addRqHd (HTRequest *request, HTRqHd rqhd)
-{
-    if (request) request->RequestMask |= rqhd;
-}
-
-PUBLIC HTRqHd HTRequest_rqHd (HTRequest *request)
-{
-    return request ? request->RequestMask : 0;
-}
-
-/*
-**	Set Response Headers
-*/
-PUBLIC void HTRequest_setRsHd (HTRequest *request, HTRsHd rshd)
-{
-    if (request) request->ResponseMask = rshd;
-}
-
-PUBLIC void HTRequest_addRsHd (HTRequest *request, HTRsHd rshd)
-{
-    if (request) request->ResponseMask |= rshd;
-}
-
-PUBLIC HTRsHd HTRequest_rsHd (HTRequest *request)
-{
-    return request ? request->ResponseMask : 0;
-}
-
-/*
-**	Set Entity Headers (for the object)
-*/
-PUBLIC void HTRequest_setEnHd (HTRequest *request, HTEnHd enhd)
-{
-    if (request) request->EntityMask = enhd;
-}
-
-PUBLIC void HTRequest_addEnHd (HTRequest *request, HTEnHd enhd)
-{
-    if (request) request->EntityMask |= enhd;
-}
-
-PUBLIC HTEnHd HTRequest_enHd (HTRequest *request)
-{
-    return request ? request->EntityMask : 0;
-}
-
-/*
-**	Anchor
-*/
-PUBLIC void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor)
-{
-    if (request) {
-	request->anchor = HTAnchor_parent(anchor);
-	request->childAnchor = ((HTAnchor *) request->anchor != anchor) ?
-	    (HTChildAnchor *) anchor : NULL;
+    if (me) {
+	me->conversions = type;
+	me->conv_local = override;
     }
 }
 
-PUBLIC HTParentAnchor * HTRequest_anchor (HTRequest *request)
+PUBLIC HTList * HTRequest_conversion (HTRequest * me)
 {
-    return request ? request->anchor : NULL;
-}
-
-PUBLIC HTChildAnchor * HTRequest_childAnchor (HTRequest * request)
-{
-    return request ? request->childAnchor : NULL;
+    return me ? me->conversions : NULL;
 }
 
 /*
-**	Net
+**	Accept Encoding 
+**	list can be NULL
 */
-PUBLIC BOOL HTRequest_setNet (HTRequest * request, HTNet * net)
+PUBLIC void HTRequest_setEncoding (HTRequest * me, HTList *enc,
+				   BOOL override)
 {
-    if (request) {
-	request->net = net;
-	return YES;
+    if (me) {
+	me->encodings = enc;
+	me->enc_local = override;
     }
-    return NO;
 }
 
-PUBLIC HTNet * HTRequest_net (HTRequest * request)
+PUBLIC HTList * HTRequest_encoding (HTRequest * me)
 {
-    return request ? request->net : NULL;
+    return me ? me->encodings : NULL;
 }
 
 /*
-**	User Profile
+**	Accept Transfer Encoding 
+**	list can be NULL
 */
-PUBLIC BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up)
+PUBLIC void HTRequest_setTransfer (HTRequest * me,
+				   HTList * cte, BOOL override)
 {
-    if (request) {
-	request->userprofile = up;
-	return YES;
+    if (me) {
+	me->ctes = cte;
+	me->cte_local = override;
     }
-    return NO;
 }
 
-PUBLIC HTUserProfile * HTRequest_userProfile (HTRequest * request)
+PUBLIC HTList * HTRequest_transfer (HTRequest * me)
 {
-    return request ? request->userprofile : NULL;
-}
-
-/*
-**	Parent anchor for Referer field
-*/
-PUBLIC void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent)
-{
-    if (request) request->parentAnchor = parent;
-}
-
-PUBLIC HTParentAnchor * HTRequest_parent (HTRequest *request)
-{
-    return request ? request->parentAnchor : NULL;
+    return me ? me->ctes : NULL;
 }
 
 /*
-**	Output stream
+**	Accept Language
+**	list can be NULL
 */
-PUBLIC void HTRequest_setOutputStream (HTRequest *request, HTStream *output)
+PUBLIC void HTRequest_setLanguage (HTRequest * me, HTList *lang,
+				   BOOL override)
 {
-    if (request) request->output_stream = output;
-}
-
-PUBLIC HTStream *HTRequest_outputStream (HTRequest *request)
-{
-    return request ? request->output_stream : NULL;
-}
-
-/*
-**	Output format
-*/
-PUBLIC void HTRequest_setOutputFormat (HTRequest *request, HTFormat format)
-{
-    if (request) request->output_format = format;
-}
-
-PUBLIC HTFormat HTRequest_outputFormat (HTRequest *request)
-{
-    return request ? request->output_format : NULL;
-}
-
-/*
-**	Debug stream
-*/
-PUBLIC void HTRequest_setDebugStream (HTRequest *request, HTStream *debug)
-{
-    if (request) request->debug_stream = debug;
-}
-
-PUBLIC HTStream *HTRequest_debugStream (HTRequest *request)
-{
-    return request ? request->debug_stream : NULL;
-}
-
-/*
-**	Debug Format
-*/
-PUBLIC void HTRequest_setDebugFormat (HTRequest *request, HTFormat format)
-{
-    if (request) request->debug_format = format;
-}
-
-PUBLIC HTFormat HTRequest_debugFormat (HTRequest *request)
-{
-    return request ? request->debug_format : NULL;
-}
-
-/*
-**	Input stream
-*/
-PUBLIC void HTRequest_setInputStream (HTRequest *request, HTStream *input)
-{
-    if (request) request->input_stream = input;
-}
-
-PUBLIC HTStream *HTRequest_inputStream (HTRequest *request)
-{
-    return request ? request->input_stream : NULL;
-}
-
-/*
-**	Net before and after callbacks
-*/
-PUBLIC BOOL HTRequest_addBefore (HTRequest * request, HTNetCallback * filter,
-				 void * param, int status,
-				 BOOL override)
-{
-    if (request) {
-	request->befores_local = override;
-	if (!request->befores) request->befores = HTList_new();
-	return HTNetCall_add(request->befores, filter, param, status);
+    if (me) {
+	me->languages = lang;
+	me->lang_local = override;
     }
-    return NO;
 }
 
-PUBLIC BOOL HTRequest_deleteBefore (HTRequest * request, HTNetCallback * filter)
+PUBLIC HTList * HTRequest_language (HTRequest * me)
 {
-    if (request && request->befores)
-	return HTNetCall_delete(request->befores, filter);
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteBeforeAll (HTRequest * request)
-{
-    if (request && request->befores) {
-	HTNetCall_deleteAll(request->befores);
-	request->befores = NULL;
-	request->befores_local = NO;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTList * HTRequest_before (HTRequest *request, BOOL *override)
-{
-    if (request) {
-	*override = request->befores_local;
-	return request->befores;
-    }
-    return NULL;
-}
-
-PUBLIC BOOL HTRequest_addAfter (HTRequest * request, HTNetCallback * filter,
-				void * param, int status,
-				BOOL override)
-{
-    if (request) {
-	request->afters_local = override;
-	if (!request->afters) request->afters = HTList_new();
-	return HTNetCall_add(request->afters, filter, param, status);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteAfter (HTRequest * request, HTNetCallback * filter)
-{
-    if (request && request->afters)
-	return HTNetCall_delete(request->afters, filter);
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteAfterAll (HTRequest * request)
-{
-    if (request && request->afters) {
-	HTNetCall_deleteAll(request->afters);
-	request->afters = NULL;
-	request->afters_local = NO;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTList * HTRequest_after (HTRequest *request, BOOL *override)
-{
-    if (request) {
-	*override = request->afters_local;
-	return request->afters;
-    }
-    return NULL;
+    return me ? me->languages : NULL;
 }
 
 /*
-**	Call back function for context swapping
+**	Accept Charset
+**	list can be NULL
 */
-PUBLIC void HTRequest_setCallback (HTRequest *request, HTRequestCallback *cbf)
+PUBLIC void HTRequest_setCharset (HTRequest * me, HTList *charset,
+				  BOOL override)
 {
-    if (request) request->callback = cbf;
+    if (me) {
+	me->charsets = charset;
+	me->char_local = override;
+    }
 }
 
-PUBLIC HTRequestCallback *HTRequest_callback (HTRequest *request)
+PUBLIC HTList * HTRequest_charset (HTRequest * me)
 {
-    return request ? request->callback : NULL;
-}
-
-/*
-**	Context pointer to be used in context call back function
-*/
-PUBLIC void HTRequest_setContext (HTRequest *request, void *context)
-{
-    if (request) request->context = context;
-}
-
-PUBLIC void *HTRequest_context (HTRequest *request)
-{
-    return request ? request->context : NULL;
-}
-
-/*
-**	Socket mode: preemptive or non-preemptive (blocking or non-blocking)
-*/
-PUBLIC void HTRequest_setPreemptive (HTRequest *request, BOOL mode)
-{
-    if (request) request->preemptive = mode;
-}
-
-PUBLIC BOOL HTRequest_preemptive (HTRequest *request)
-{
-    return request ? request->preemptive : NO;
-}
-
-/*
-**	Has output stream been connected to the channel? If not then we
-**	must free it explicitly when deleting the request object
-*/
-PUBLIC void HTRequest_setOutputConnected (HTRequest * request, BOOL mode)
-{
-    if (request) request->connected = mode;
-}
-
-PUBLIC BOOL HTRequest_outputConnected (HTRequest * request)
-{
-    return request ? request->connected : NO;
-}
-
-/*
-**	Should we use content negotiation?
-*/
-PUBLIC void HTRequest_setNegotiation (HTRequest *request, BOOL mode)
-{
-    if (request) request->ContentNegotiation = mode;
-}
-
-PUBLIC BOOL HTRequest_negotiation (HTRequest *request)
-{
-    return request ? request->ContentNegotiation : NO;
+    return me ? me->charsets : NULL;
 }
 
 /*
 **	Are we using the full URL in the request or not?
 */
-PUBLIC void HTRequest_setFullURI (HTRequest *request, BOOL mode)
+PUBLIC void HTRequest_setFullURI (HTRequest * me, BOOL mode)
 {
-    if (request) request->full_uri = mode;
+    if (me) me->full_uri = mode;
 }
 
-PUBLIC BOOL HTRequest_fullURI (HTRequest *request)
+PUBLIC BOOL HTRequest_fullURI (HTRequest * me)
 {
-    return request ? request->full_uri : NO;
+    return me ? me->full_uri : NO;
 }
 
 /*
 **	Are we using a proxy or not and in that case, which one?
 */
-PUBLIC BOOL HTRequest_setProxy (HTRequest * request, const char * proxy)
+PUBLIC BOOL HTRequest_setProxy (HTRequest * me, const char * proxy)
 {
-    if (request && proxy) {
-	StrAllocCopy(request->proxy, proxy);
+    if (me && proxy) {
+	StrAllocCopy(me->proxy, proxy);
 	return YES;
     }
     return NO;
 }
 
-PUBLIC char * HTRequest_proxy (HTRequest * request)
+PUBLIC char * HTRequest_proxy (HTRequest * me)
 {
-    return request ? request->proxy : NULL;
+    return me ? me->proxy : NULL;
 }
 
-PUBLIC BOOL HTRequest_deleteProxy (HTRequest * request)
+PUBLIC BOOL HTRequest_deleteProxy (HTRequest * me)
 {
-    if (request) {
-	HT_FREE(request->proxy);
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**	Bytes read in this request
-*/
-PUBLIC long HTRequest_bytesRead(HTRequest * request)
-{
-    return request ? HTNet_bytesRead(request->net) : -1;
-}
-
-/*
-**	Bytes written in this request
-*/
-PUBLIC long HTRequest_bytesWritten (HTRequest * request)
-{
-    return request ? HTNet_bytesWritten(request->net) : -1;
-}
-
-/*
-**	Kill this request
-*/
-PUBLIC BOOL HTRequest_kill(HTRequest * request)
-{
-    return request ? HTNet_kill(request->net) : NO;
-}
-
-/*	Error Management
-**	----------------
-**	Returns the error stack if a stream is 
-*/
-PUBLIC HTList * HTRequest_error (HTRequest * request)
-{
-    return request ? request->error_stack : NULL;
-}
-
-PUBLIC void HTRequest_setError (HTRequest * request, HTList * list)
-{
-    if (request) request->error_stack = list;
-}
-
-PUBLIC BOOL HTRequest_addError (HTRequest * 	request,
-				HTSeverity	severity,
-				BOOL		ignore,
-				int		element,
-				void *		par,
-				unsigned int	length,
-				char *		where)
-{
-    if (request) {
-	if (!request->error_stack) request->error_stack = HTList_new();
-	return HTError_add(request->error_stack, severity, ignore, element,
-			   par, length, where);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_addSystemError (HTRequest * 	request,
-				      HTSeverity 	severity,
-				      int		errornumber,
-				      BOOL		ignore,
-				      char *		syscall)
-{
-    if (request) {
-	if (!request->error_stack) request->error_stack = HTList_new();
-	return HTError_addSystem(request->error_stack, severity, errornumber,
-				 ignore, syscall);
-    }
-    return NO;
-}
-
-/*
-**	When to retry a request if HT_RETRY
-**	Returns -1 if not available
-*/
-PUBLIC time_t HTRequest_retryTime (HTRequest * request)
-{
-    return request ? request->retry_after : -1;
-}
-
-PUBLIC BOOL HTRequest_setRetryTime (HTRequest * request, time_t retry)
-{
-    if (request) {
-	request->retry_after = retry;
+    if (me) {
+	HT_FREE(me->proxy);
 	return YES;
     }
     return NO;
 }
 
 /*
-**	Date/time stamp when then request was issued
-**	This is normally set when generating the request headers.
+**	Reload Mode
 */
-PUBLIC time_t HTRequest_date (HTRequest * request)
+PUBLIC void HTRequest_setReloadMode (HTRequest * me, HTReload mode)
 {
-    return request ? request->date : -1;
+    if (me) me->reload = mode;
 }
 
-PUBLIC BOOL HTRequest_setDate (HTRequest * request, time_t date)
+PUBLIC HTReload HTRequest_reloadMode (HTRequest * me)
 {
-    if (request) {
-	request->date = date;
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**    Redirection informantion
-*/
-PUBLIC HTAnchor * HTRequest_redirection (HTRequest * request)
-{
-    return (request ? request->redirectionAnchor : NULL);
-}
-
-PUBLIC BOOL HTRequest_setRedirection (HTRequest * request, HTAnchor * anchor)
-{
-    if (request && anchor) {
-	request->redirectionAnchor = (HTAnchor *) HTAnchor_parent(anchor);
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**  Set max number of automatic reload. Default is HT_MAX_RELOADS
-*/
-PUBLIC BOOL HTRequest_setMaxRetry (int newmax)
-{
-    if (newmax > 0) {
-	HTMaxRetry = newmax;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC int HTRequest_maxRetry (void)
-{
-    return HTMaxRetry;
-}
-
-PUBLIC int HTRequest_retrys (HTRequest * request)
-{
-    return request ? request->retrys : 0;
-}
-
-PUBLIC BOOL HTRequest_addRetry (HTRequest * request)
-{
-    return (request && request->retrys++);
-}
-
-/*
-**	Should we try again?
-**	--------------------
-**	Returns YES if we are to retry the load, NO otherwise. We check
-**	this so that we don't go into an infinte loop
-*/
-PUBLIC BOOL HTRequest_doRetry (HTRequest *request)
-{
-    return (request && request->retrys < HTMaxRetry-1);
-}
-
-/*
-**	Handle the max forward header value
-*/
-PUBLIC BOOL HTRequest_setMaxForwards (HTRequest * request, int maxforwards)
-{
-    if (request && maxforwards >= 0) {
-	request->max_forwards = maxforwards;
-	HTRequest_addRqHd(request, HT_C_MAX_FORWARDS);	       /* Turn it on */
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC int HTRequest_maxForwards (HTRequest * request)
-{
-    return request ? request->max_forwards : -1;
-}
-
-/*
-**  Priority to be inherited by all HTNet object hanging off this request
-**  The priority can later be chaned by calling the HTNet object directly
-*/
-PUBLIC BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority)
-{
-    if (request) {
-	request->priority = priority;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTPriority HTRequest_priority (HTRequest * request)
-{
-    return (request ? request->priority : HT_PRIORITY_INV);
-}
-
-/*
-**  Access Authentication Credentials
-*/
-PUBLIC BOOL HTRequest_deleteCredentials (HTRequest * request)
-{
-    if (request && request->credentials) {
-	HTAssocList_delete(request->credentials);
-	request->credentials = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_addCredentials (HTRequest * request,
-				    char * token, char * value)
-{
-    if (request) {
-	if (!request->credentials) request->credentials = HTAssocList_new();
-	return HTAssocList_addObject(request->credentials, token, value);
-    }
-    return NO;
-}
-
-PUBLIC HTAssocList * HTRequest_credentials (HTRequest * request)
-{
-    return (request ? request->credentials : NULL);
-}
-
-/*
-**  Access Authentication Challenges
-*/
-PUBLIC BOOL HTRequest_addChallenge (HTRequest * request,
-				    char * token, char * value)
-{
-    if (request) {
-	if (!request->challenge) request->challenge = HTAssocList_new();
-	return HTAssocList_addObject(request->challenge, token, value);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteChallenge (HTRequest * request)
-{
-    if (request && request->challenge) {
-	HTAssocList_delete(request->challenge);
-	request->challenge = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTAssocList * HTRequest_challenge (HTRequest * request)
-{
-    return (request ? request->challenge : NULL);
-}
-
-/*
-**  Access Authentication Realms
-*/
-PUBLIC BOOL HTRequest_setRealm (HTRequest * request, char * realm)
-{
-    if (request && realm) {
-	StrAllocCopy(request->realm, realm);
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC const char * HTRequest_realm (HTRequest * request)
-{
-    return (request ? request->realm : NULL);
-}
-
-/*
-**  Access Authentication Schemes
-*/
-PUBLIC BOOL HTRequest_setScheme (HTRequest * request, char * scheme)
-{
-    if (request && scheme) {
-	StrAllocCopy(request->scheme, scheme);
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC const char * HTRequest_scheme (HTRequest * request)
-{
-    return (request ? request->scheme : NULL);
-}
-
-/*
-**  Source request
-*/
-PUBLIC BOOL HTRequest_setSource (HTRequest * request, HTRequest * source)
-{
-    if (request) {
-	request->source = source;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTRequest * HTRequest_source (HTRequest * request)
-{
-    return (request ? request->source : NULL);
-}
-
-PUBLIC BOOL HTRequest_isPostWeb (HTRequest * request)
-{
-    return (request ? request->source != NULL: NO);
-}
-
-/*
-**  Internal request object
-*/
-PUBLIC BOOL HTRequest_setInternal (HTRequest * request, BOOL mode)
-{
-    if (request) {
-	request->internal = mode;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_internal (HTRequest * request)
-{
-    return (request ? request->internal : NO);
-}
-
-/*
-**	POST Call back function for sending data to the destination
-*/
-PUBLIC void HTRequest_setPostCallback (HTRequest *request, HTPostCallback *cbf)
-{
-    if (request) request->PostCallback = cbf;
-}
-
-PUBLIC HTPostCallback * HTRequest_postCallback (HTRequest * request)
-{
-    return request ? request->PostCallback : NULL;
-}
-
-/*
-**	Entity Anchor
-*/
-PUBLIC BOOL HTRequest_setEntityAnchor (HTRequest * request,
-				       HTParentAnchor * anchor)
-{
-    if (request) {
-	request->source_anchor = anchor;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTParentAnchor * HTRequest_entityAnchor (HTRequest * request)
-{
-    return request ? request->source_anchor ? request->source_anchor :
-	request->anchor : NULL;
-}
-
-/*
-**	Simple Extension Protocol. The extensions can be initiated by both
-**	the server and the client which is the reason for keeping two lists
-*/
-PUBLIC BOOL HTRequest_addClientExtension (HTRequest * request,
-					  char * token, char * value)
-{
-    if (request) {
-	if (!request->client_extension)
-	    request->client_extension = HTAssocList_new();
-	return HTAssocList_addObject(request->client_extension, token, value);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteClientExtension (HTRequest * request)
-{
-    if (request && request->client_extension) {
-	HTAssocList_delete(request->client_extension);
-	request->client_extension = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTAssocList * HTRequest_clientExtension (HTRequest * request)
-{
-    return (request ? request->client_extension : NULL);
-}
-
-PUBLIC BOOL HTRequest_addServerExtension (HTRequest * request,
-					  char * token, char * value)
-{
-    if (request) {
-	if (!request->server_extension)
-	    request->server_extension = HTAssocList_new();
-	return HTAssocList_addObject(request->server_extension, token, value);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteServerExtension (HTRequest * request)
-{
-    if (request && request->server_extension) {
-	HTAssocList_delete(request->server_extension);
-	request->server_extension = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTAssocList * HTRequest_serverExtension (HTRequest * request)
-{
-    return (request ? request->server_extension : NULL);
+    return me ? me->reload : HT_CACHE_OK;
 }
 
 /*
 **	Cache control directives. The cache control can be initiated by both
 **	the server and the client which is the reason for keeping two lists
 */
-PUBLIC BOOL HTRequest_addCacheControl (HTRequest * request,
-					     char * token, char * value)
+PUBLIC BOOL HTRequest_addCacheControl (HTRequest * me,
+				       char * token, char * value)
 {
-    if (request) {
-	if (!request->cache_control) request->cache_control=HTAssocList_new();
-	return HTAssocList_replaceObject(request->cache_control, token, value);
+    if (me) {
+	if (!me->cache_control) me->cache_control = HTAssocList_new();
+	return HTAssocList_replaceObject(me->cache_control, token, value);
     }
     return NO;
 }
 
-PUBLIC BOOL HTRequest_deleteCacheControl (HTRequest * request)
+PUBLIC BOOL HTRequest_deleteCacheControl (HTRequest * me)
 {
-    if (request && request->cache_control) {
-	HTAssocList_delete(request->cache_control);
-	request->cache_control = NULL;
+    if (me && me->cache_control) {
+	HTAssocList_delete(me->cache_control);
+	me->cache_control = NULL;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTAssocList * HTRequest_cacheControl (HTRequest * request)
+PUBLIC HTAssocList * HTRequest_cacheControl (HTRequest * me)
 {
-    return (request ? request->cache_control : NULL);
+    return (me ? me->cache_control : NULL);
 }
 
 /*
-** 	Original header information used by the cache filter
+**  Byte ranges
 */
-PUBLIC BOOL HTRequest_addHeaders (HTRequest * request,
-				  char * token, char * value)
+PUBLIC BOOL HTRequest_deleteRange (HTRequest * me)
 {
-    if (request) {
-	if (!request->headers)
-	    request->headers=HTAssocList_new();
-	return HTAssocList_addObject(request->headers, token, value);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteHeaders (HTRequest * request)
-{
-    if (request && request->headers) {
-	HTAssocList_delete(request->headers);
-	request->headers = NULL;
+    if (me && me->byte_ranges) {
+	HTAssocList_delete(me->byte_ranges);
+	me->byte_ranges = NULL;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTAssocList * HTRequest_headers (HTRequest * request)
+PUBLIC BOOL HTRequest_addRange (HTRequest * me, char * unit, char * range)
 {
-    return (request ? request->headers : NULL);
+    if (me) {
+	if (!me->byte_ranges) me->byte_ranges = HTAssocList_new();
+	return HTAssocList_replaceObject(me->byte_ranges, unit, range);
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_range (HTRequest * me)
+{
+    return (me ? me->byte_ranges : NULL);
 }
 
 /*
@@ -1241,58 +760,480 @@ PUBLIC HTAssocList * HTRequest_headers (HTRequest * request)
 **	both the server and the client which is the reason for keeping two
 **	lists
 */
-PUBLIC BOOL HTRequest_addClientConnection (HTRequest * request,
-					   char * token, char * value)
+PUBLIC BOOL HTRequest_addConnection (HTRequest * me,
+				     char * token, char * value)
 {
-    if (request) {
-	if (!request->client_connection)
-	    request->client_connection=HTAssocList_new();
-	return HTAssocList_replaceObject(request->client_connection,
-					 token, value);
+    if (me) {
+	if (!me->connection) me->connection = HTAssocList_new();
+	return HTAssocList_replaceObject(me->connection, token, value);
     }
     return NO;
 }
 
-PUBLIC BOOL HTRequest_deleteClientConnection (HTRequest * request)
+PUBLIC BOOL HTRequest_deleteConnection (HTRequest * me)
 {
-    if (request && request->client_connection) {
-	HTAssocList_delete(request->client_connection);
-	request->client_connection = NULL;
+    if (me && me->connection) {
+	HTAssocList_delete(me->connection);
+	me->connection = NULL;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTAssocList * HTRequest_clientConnection (HTRequest * request)
+PUBLIC HTAssocList * HTRequest_connection (HTRequest * me)
 {
-    return (request ? request->client_connection : NULL);
+    return (me ? me->connection : NULL);
 }
 
-PUBLIC BOOL HTRequest_addServerConnection (HTRequest * request,
-					   char * token, char * value)
+/*
+**  Access Authentication Credentials
+*/
+PUBLIC BOOL HTRequest_deleteCredentialsAll (HTRequest * me)
 {
-    if (request) {
-	if (!request->server_connection)
-	    request->server_connection=HTAssocList_new();
-	return HTAssocList_replaceObject(request->server_connection,
-					 token, value);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteServerConnection (HTRequest * request)
-{
-    if (request && request->server_connection) {
-	HTAssocList_delete(request->server_connection);
-	request->server_connection = NULL;
+    if (me && me->credentials) {
+	HTAssocList_delete(me->credentials);
+	me->credentials = NULL;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTAssocList * HTRequest_serverConnection (HTRequest * request)
+PUBLIC BOOL HTRequest_addCredentials (HTRequest * me,
+				    char * token, char * value)
 {
-    return (request ? request->server_connection : NULL);
+    if (me) {
+	if (!me->credentials) me->credentials = HTAssocList_new();
+	return HTAssocList_addObject(me->credentials, token, value);
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_credentials (HTRequest * me)
+{
+    return (me ? me->credentials : NULL);
+}
+
+/*
+**  Access Authentication Realms
+*/
+PUBLIC BOOL HTRequest_setRealm (HTRequest * me, char * realm)
+{
+    if (me && realm) {
+	StrAllocCopy(me->realm, realm);
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC const char * HTRequest_realm (HTRequest * me)
+{
+    return (me ? me->realm : NULL);
+}
+
+/*
+**  PEP Protocol header
+*/
+PUBLIC BOOL HTRequest_addProtocol (HTRequest * me,
+				   char * token, char * value)
+{
+    if (me) {
+	if (!me->protocol) me->protocol = HTAssocList_new();
+	return HTAssocList_addObject(me->protocol, token,value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteProtocolAll (HTRequest * me)
+{
+    if (me && me->protocol) {
+	HTAssocList_delete(me->protocol);
+	me->protocol = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_protocol (HTRequest * me)
+{
+    return (me ? me->protocol : NULL);
+}
+
+/*
+**  PEP Protocol Info header
+*/
+PUBLIC BOOL HTRequest_addProtocolInfo (HTRequest * me,
+				       char * token, char * value)
+{
+    if (me) {
+	if (!me->protocol_info) me->protocol_info = HTAssocList_new();
+	return HTAssocList_addObject(me->protocol_info, token,value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteProtocolInfoAll (HTRequest * me)
+{
+    if (me && me->protocol_info) {
+	HTAssocList_delete(me->protocol_info);
+	me->protocol_info = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_protocolInfo (HTRequest * me)
+{
+    return (me ? me->protocol_info : NULL);
+}
+
+/*
+**  PEP Protocol request header
+*/
+PUBLIC BOOL HTRequest_addProtocolRequest (HTRequest * me,
+					  char * token, char * value)
+{
+    if (me) {
+	if (!me->protocol_request) me->protocol_request = HTAssocList_new();
+	return HTAssocList_addObject(me->protocol_request, token,value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteProtocolRequestAll (HTRequest * me)
+{
+    if (me && me->protocol_request) {
+	HTAssocList_delete(me->protocol_request);
+	me->protocol_request = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_protocolRequest (HTRequest * me)
+{
+    return (me ? me->protocol_request : NULL);
+}
+
+/*
+**	Anchor
+*/
+PUBLIC void HTRequest_setAnchor (HTRequest * me, HTAnchor *anchor)
+{
+    if (me) {
+	me->anchor = HTAnchor_parent(anchor);
+	me->childAnchor = ((HTAnchor *) me->anchor != anchor) ?
+	    (HTChildAnchor *) anchor : NULL;
+    }
+}
+
+PUBLIC HTParentAnchor * HTRequest_anchor (HTRequest * me)
+{
+    return me ? me->anchor : NULL;
+}
+
+PUBLIC HTChildAnchor * HTRequest_childAnchor (HTRequest * me)
+{
+    return me ? me->childAnchor : NULL;
+}
+
+/*
+**	Parent anchor for Referer field
+*/
+PUBLIC void HTRequest_setParent (HTRequest * me, HTParentAnchor *parent)
+{
+    if (me) me->parentAnchor = parent;
+}
+
+PUBLIC HTParentAnchor * HTRequest_parent (HTRequest * me)
+{
+    return me ? me->parentAnchor : NULL;
+}
+
+/*
+**	Output stream
+*/
+PUBLIC void HTRequest_setOutputStream (HTRequest * me, HTStream *output)
+{
+    if (me) me->output_stream = output;
+}
+
+PUBLIC HTStream *HTRequest_outputStream (HTRequest * me)
+{
+    return me ? me->output_stream : NULL;
+}
+
+/*
+**	Output format
+*/
+PUBLIC void HTRequest_setOutputFormat (HTRequest * me, HTFormat format)
+{
+    if (me) me->output_format = format;
+}
+
+PUBLIC HTFormat HTRequest_outputFormat (HTRequest * me)
+{
+    return me ? me->output_format : NULL;
+}
+
+/*
+**	Debug stream
+*/
+PUBLIC void HTRequest_setDebugStream (HTRequest * me, HTStream *debug)
+{
+    if (me) me->debug_stream = debug;
+}
+
+PUBLIC HTStream *HTRequest_debugStream (HTRequest * me)
+{
+    return me ? me->debug_stream : NULL;
+}
+
+/*
+**	Debug Format
+*/
+PUBLIC void HTRequest_setDebugFormat (HTRequest * me, HTFormat format)
+{
+    if (me) me->debug_format = format;
+}
+
+PUBLIC HTFormat HTRequest_debugFormat (HTRequest * me)
+{
+    return me ? me->debug_format : NULL;
+}
+
+/*
+**	Input stream
+*/
+PUBLIC void HTRequest_setInputStream (HTRequest * me, HTStream *input)
+{
+    if (me) me->input_stream = input;
+}
+
+PUBLIC HTStream *HTRequest_inputStream (HTRequest * me)
+{
+    return me ? me->input_stream : NULL;
+}
+
+/*
+**	Net before and after callbacks
+*/
+PUBLIC BOOL HTRequest_addBefore (HTRequest * me, HTNetBefore * filter,
+				 const char * tmplate, void * param,
+				 int order, BOOL override)
+{
+    if (me) {
+	me->befores_local = override;
+	if (filter) {
+	    if (!me->befores) me->befores = HTList_new();
+	    return HTNetCall_addBefore(me->befores, filter,
+				       tmplate, param, order);
+	}
+	return YES;			/* It's OK to register a NULL filter */
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteBefore (HTRequest * me, HTNetBefore * filter)
+{
+    if (me && me->befores)
+	return HTNetCall_deleteBefore(me->befores, filter);
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteBeforeAll (HTRequest * me)
+{
+    if (me && me->befores) {
+	HTNetCall_deleteBeforeAll(me->befores);
+	me->befores = NULL;
+	me->befores_local = NO;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTList * HTRequest_before (HTRequest * me, BOOL *override)
+{
+    if (me) {
+	*override = me->befores_local;
+	return me->befores;
+    }
+    return NULL;
+}
+
+PUBLIC BOOL HTRequest_addAfter (HTRequest * me, HTNetAfter * filter,
+				const char * tmplate, void * param,
+				int status, int order, BOOL override)
+{
+    if (me) {
+	me->afters_local = override;
+	if (filter) {
+	    if (!me->afters) me->afters = HTList_new();
+	    return HTNetCall_addAfter(me->afters, filter,
+				      tmplate, param, status, order);
+	}
+	return YES;			/* It's OK to register a NULL filter */
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteAfter (HTRequest * me, HTNetAfter * filter)
+{
+    return (me && me->afters) ?
+	HTNetCall_deleteAfter(me->afters, filter) : NO;
+}
+
+PUBLIC BOOL HTRequest_deleteAfterStatus (HTRequest * me, int status)
+{
+    return (me && me->afters) ?
+	HTNetCall_deleteAfterStatus(me->afters, status) : NO;
+}
+
+PUBLIC BOOL HTRequest_deleteAfterAll (HTRequest * me)
+{
+    if (me && me->afters) {
+	HTNetCall_deleteAfterAll(me->afters);
+	me->afters = NULL;
+	me->afters_local = NO;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTList * HTRequest_after (HTRequest * me, BOOL *override)
+{
+    if (me) {
+	*override = me->afters_local;
+	return me->afters;
+    }
+    return NULL;
+}
+
+/*
+**	Call back function for context swapping
+*/
+PUBLIC void HTRequest_setCallback (HTRequest * me, HTRequestCallback *cbf)
+{
+    if (me) me->callback = cbf;
+}
+
+PUBLIC HTRequestCallback *HTRequest_callback (HTRequest * me)
+{
+    return me ? me->callback : NULL;
+}
+
+/*
+**	Context pointer to be used in context call back function
+*/
+PUBLIC void HTRequest_setContext (HTRequest * me, void *context)
+{
+    if (me) me->context = context;
+}
+
+PUBLIC void *HTRequest_context (HTRequest * me)
+{
+    return me ? me->context : NULL;
+}
+
+/*
+**	Has output stream been connected to the channel? If not then we
+**	must free it explicitly when deleting the request object
+*/
+PUBLIC void HTRequest_setOutputConnected (HTRequest * me, BOOL mode)
+{
+    if (me) me->connected = mode;
+}
+
+PUBLIC BOOL HTRequest_outputConnected (HTRequest * me)
+{
+    return me ? me->connected : NO;
+}
+
+/*
+**	Bytes read in this request
+*/
+PUBLIC long HTRequest_bytesRead(HTRequest * me)
+{
+    return me ? HTNet_bytesRead(me->net) : -1;
+}
+
+/*
+**	Bytes written in this request
+*/
+PUBLIC long HTRequest_bytesWritten (HTRequest * me)
+{
+    return me ? HTNet_bytesWritten(me->net) : -1;
+}
+
+/*
+**	Handle the max forward header value
+*/
+PUBLIC BOOL HTRequest_setMaxForwards (HTRequest * me, int maxforwards)
+{
+    if (me && maxforwards >= 0) {
+	me->max_forwards = maxforwards;
+	HTRequest_addRqHd(me, HT_C_MAX_FORWARDS);	       /* Turn it on */
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC int HTRequest_maxForwards (HTRequest * me)
+{
+    return me ? me->max_forwards : -1;
+}
+
+/*
+**  Source request
+*/
+PUBLIC BOOL HTRequest_setSource (HTRequest * me, HTRequest * source)
+{
+    if (me) {
+	me->source = source;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTRequest * HTRequest_source (HTRequest * me)
+{
+    return (me ? me->source : NULL);
+}
+
+PUBLIC BOOL HTRequest_isPostWeb (HTRequest * me)
+{
+    return (me ? me->source != NULL: NO);
+}
+
+/*
+**	POST Call back function for sending data to the destination
+*/
+PUBLIC void HTRequest_setPostCallback (HTRequest * me, HTPostCallback *cbf)
+{
+    if (me) me->PostCallback = cbf;
+}
+
+PUBLIC HTPostCallback * HTRequest_postCallback (HTRequest * me)
+{
+    return me ? me->PostCallback : NULL;
+}
+
+/*
+**	Entity Anchor
+*/
+PUBLIC BOOL HTRequest_setEntityAnchor (HTRequest * me,
+				       HTParentAnchor * anchor)
+{
+    if (me) {
+	me->source_anchor = anchor;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTParentAnchor * HTRequest_entityAnchor (HTRequest * me)
+{
+    return me ? me->source_anchor ? me->source_anchor :
+	me->anchor : NULL;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1536,32 +1477,38 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 **		YES	if request has been registered (success)
 **		NO	an error occured
 */
-PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
+PUBLIC BOOL HTLoad (HTRequest * me, BOOL recursive)
 {
-    if (!request || !request->anchor) {
+    if (!me || !me->anchor) {
         if (CORE_TRACE) HTTrace("Load Start.. Bad argument\n");
         return NO;
     }
 
     /* Make sure that we don't carry over any old physical address */
-    HTAnchor_clearPhysical(request->anchor);
+    HTAnchor_clearPhysical(me->anchor);
 
-    /* Set the default method */
-    if (request->method == METHOD_INVALID) request->method = METHOD_GET;
+    /* Set the default method if not already done */
+    if (me->method == METHOD_INVALID) me->method = METHOD_GET;
 
     /* Should we keep the error stack or not? */
-    if (!recursive && request->error_stack) {
-	HTError_deleteAll(request->error_stack);
-	request->error_stack = NULL;
+    if (!recursive && me->error_stack) {
+	HTError_deleteAll(me->error_stack);
+	me->error_stack = NULL;
+    }
+
+    /* Delete any old Response Object */
+    if (me->response) {
+	HTResponse_delete(me->response);
+	me->response = NULL;
     }
 
     /*
     **  We set the start point of handling a request to here.
     **  This time will be used by the cache
     */
-    HTRequest_setDate(request, time(NULL));
+    HTRequest_setDate(me, time(NULL));
 
     /* Now start the Net Manager */
-    return HTNet_newClient(request);
+    return HTNet_newClient(me);
 }
 

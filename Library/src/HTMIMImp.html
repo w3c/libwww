@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Default MIME/RFC822 Header Parsers</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Default MIME/RFC822 Header Parser
+  Default MIME/RFC822 Header Parsers
 </H1>
 <PRE>
 /*
@@ -42,55 +42,34 @@ extern HTParserCallback
 	HTMIME_acceptEncoding, 
 	HTMIME_acceptLanguage, 
 	HTMIME_acceptRanges, 
-	HTMIME_age, 
-	HTMIME_allow,
+	HTMIME_authenticate,
 	HTMIME_authorization,
 	HTMIME_cacheControl,
 	HTMIME_connection, 
-	HTMIME_contentBase, 
 	HTMIME_contentEncoding, 
-	HTMIME_contentLanguage, 
-	HTMIME_contentLength, 
-	HTMIME_contentLocation, 
-	HTMIME_contentMD5,
+	HTMIME_contentLength,
 	HTMIME_contentRange,
 	HTMIME_contentTransferEncoding, 
 	HTMIME_contentType,
-	HTMIME_date,
-  	HTMIME_derivedFrom, 
-	HTMIME_messageDigest, 
-	HTMIME_etag,
-        HTMIME_expires,
-        HTMIME_extension,
-	HTMIME_from,
-	HTMIME_host,
-	HTMIME_ifModifiedSince, 
-	HTMIME_ifMatch, 
-	HTMIME_ifNoneMatch, 
-	HTMIME_ifRange, 
-	HTMIME_ifUnmodifiedSince, 
-	HTMIME_lastModified, 
 	HTMIME_link,
 	HTMIME_location,
 	HTMIME_maxForwards, 
-	HTMIME_newsGroups, 
+	HTMIME_messageDigest,
 	HTMIME_pragma,
+	HTMIME_protocol,
+	HTMIME_protocolInfo,
+	HTMIME_protocolRequest,
 	HTMIME_proxyAuthorization,
 	HTMIME_public,
 	HTMIME_range,
 	HTMIME_referer,
 	HTMIME_retryAfter, 
 	HTMIME_server, 
-	HTMIME_title, 
-	HTMIME_contentTransferEncoding, 
 	HTMIME_upgrade,
-	HTMIME_uri,
 	HTMIME_userAgent,
 	HTMIME_vary,
-	HTMIME_version,
 	HTMIME_via,
-	HTMIME_warning,
-	HTMIME_authenticate; 
+	HTMIME_warning;
 </PRE>
 <PRE>
 #endif

@@ -54,7 +54,8 @@ to figure out the format, and calls <CODE>HTStreamStack()</CODE>. This is
 a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. This could be
 extended arbitrarily to recognize all the possible file formats in the world,
 if someone only had time to do it.
-<PRE>#include "<A HREF="HTGuess.html">HTGuess.h</A>"			/* Guess stream */
+<PRE>
+#include "<A HREF="HTGuess.html">HTGuess.h</A>"			/* Guess stream */
 </PRE>
 <H3>
   Tee Stream
@@ -64,7 +65,20 @@ The Tee stream just writes everything you put into it into two oter streams.
 One use (the only use?!) is for taking a cached copey on disk while loading
 the main copy, without having to wait for the disk copy to be finished and
 reread it.
-<PRE>#include "<A HREF="HTTee.html">HTTee.h</A>"			/* T streem for splitting a stream */
+<PRE>
+#include "<A HREF="HTTee.html">HTTee.h</A>"
+</PRE>
+<H3>
+  Merge Stream
+</H3>
+<P>
+The Merge stream can be used to merge multiple streams into a single target
+stream. The Merge stream does not prevent any of the streams from writing
+and no ordering is imposed. The main feature is basically that the free and
+abort methods can be called <B>n</B> times where <B>n</B> equals the number
+of <I>feeds</I> that put data to the stream.
+<PRE>
+#include "<A HREF="HTMerge.html">HTMerge.h</A>"
 </PRE>
 <H3>
   Stream to Chunk Conversion
@@ -74,7 +88,8 @@ If you do not like the stream model in libwww, then you can use this stream
 to convert a <A HREF="HTStream.html">stream object </A>into a
 <A HREF="HTChunk.html">Chunk object</A> which is a dynamic character string
 buffer in memory.
-<PRE>#include "<A HREF="HTSChunk.html">HTSChunk.h</A>"
+<PRE>
+#include "<A HREF="HTSChunk.html">HTSChunk.h</A>"
 </PRE>
 <H3>
   Stream to Memory Object Conversion
@@ -85,7 +100,8 @@ stream from libwww. The HTXParse_put_* and HTXParse_write routines copy the
 content of the incoming buffer into a buffer that is realloced whenever
 necessary. This buffer is handed over to the client in
 <CODE>HTXParse_free</CODE>.
-<PRE>#include "<A HREF="HTXParse.html">HTXParse.h</A>"			/* External parse stream */
+<PRE>
+#include "<A HREF="HTXParse.html">HTXParse.h</A>"			/* External parse stream */
 </PRE>
 <PRE>
 #ifdef __cplusplus

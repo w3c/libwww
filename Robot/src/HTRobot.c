@@ -280,7 +280,8 @@ PRIVATE void VersionInfo (void)
 **	This function is registered to handle the result of the request.
 **	If no more requests are pending then terminate program
 */
-PRIVATE int terminate_handler (HTRequest * request, void * param, int status) 
+PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
+			       void * param, int status) 
 {
     Robot * mr = (Robot *) HTRequest_context(request);
     Thread_delete(mr, request);
@@ -575,7 +576,7 @@ int main (int argc, char ** argv)
     if (mr->logfile) HTLog_open(mr->logfile, YES, YES);
 
     /* Register our own someterminater filter */
-    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
+    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
     
     /* Set timeout on sockets */
     HTEventrg_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);

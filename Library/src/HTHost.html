@@ -140,6 +140,26 @@ pick up this information and add it to the Host Object
 <PRE>extern char * HTHost_userAgent 	(HTHost * host);
 extern BOOL HTHost_setUserAgent	(HTHost * host, const char * userAgent);
 </PRE>
+<H4>
+  Range Units Accepted by this Host
+</H4>
+<P>
+Since all HTTP entities are represented in HTTP messages as sequences of
+bytes, the concept of a byte range is meaningful for any HTTP entity. (However,
+not all clients and servers need to support byte-range operations.) Byte
+range specifications in HTTP apply to the sequence of bytes in the entity-body
+(not necessarily the same as the message-body). A byte range operation may
+specify a single range of bytes, or a set of ranges within a single entity.
+<P>
+You can also check whether a specific range unit is OK. We always say
+<CODE>YES</CODE> except if we have a specific statement from the server that
+it doesn't understand byte ranges - that is - it has sent "none" in a
+"Accept-Range" response header
+<PRE>
+extern char * HTHost_rangeUnits  (HTHost * host);
+extern BOOL HTHost_setRangeUnits (HTHost * host, const char * units);
+extern BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit);
+</PRE>
 <H3>
   Register a Persistent Channel
 </H3>

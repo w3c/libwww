@@ -51,6 +51,7 @@ typedef struct _HTChildAnchor	HTChildAnchor;
 
 #include "HTLink.h"
 #include "HTMethod.h"
+#include "HTResponse.h"
 </PRE>
 <H2>
   The Anchor Class
@@ -258,54 +259,20 @@ the object.
 <H3>
   Clear All header Information
 </H3>
-<PRE>extern void HTAnchor_clearHeader	(HTParentAnchor *me);
-</PRE>
-<H3>
-  Cache Information
-</H3>
-<P>
-If the cache manager finds a cached object, it is registered in the anchor
-object. This way the <A HREF="HTFile.html">file loader</A> knows that it
-is a MIME data object. The cache manager does not know whether the data object
-is out of date (for example if a <EM>Expires:</EM> header is in the MIME
-header. This is for the <A HREF="HTMIME.html">MIME parser</A> to find out.
-<PRE>extern BOOL HTAnchor_cacheHit		(HTParentAnchor	* me);
-extern void HTAnchor_setCacheHit	(HTParentAnchor	* me, BOOL cacheHit);
-</PRE>
-<H3>
-  Is the Object Cachable?
-</H3>
-<P>
-The various cache-control headers and directives decides whether an object
-is cachable or not. Check these methods before starting caching!
-<PRE>extern BOOL HTAnchor_cachable           (HTParentAnchor * me);
-extern BOOL HTAnchor_setCachable        (HTParentAnchor * me, BOOL mode);
-</PRE>
-<H3>
-  Cache Control Directives
-</H3>
-<P>
-The cache control directives are all part of the cache control header and
-control the behavior of any intermediate cache between the user agent and
-the origin server. <CODE>Cache-control</CODE> directives can be sent in both
-directions - that is - from the server to the client and vise-verse. We keep
-the incoming ones here and the out-going as part of the
-<A HREF="HTReq.html">request object</A>.
 <PRE>
-extern BOOL HTAnchor_addCacheControl       (HTParentAnchor * anchor,
-                                            char * token, char * value);
-extern BOOL HTAnchor_deleteCacheControl    (HTParentAnchor * anchor);
-extern HTAssocList * HTAnchor_cacheControl (HTParentAnchor * anchor);
+extern void HTAnchor_clearHeader	(HTParentAnchor *me);
 </PRE>
-
-Some useful helper functions for handling specific cache directives
-
+<H3>
+  Inherit Metainformation from the Response object
+</H3>
+<P>
+Once we have decided to cache the object we transfer already parsed
+metainformation from the <A HREF="HTResponse.html">HTResponse object </A>to
+the anchor object and also the unparsed headers as we may wanna use that
+information later.
 <PRE>
-extern time_t HTAnchor_maxAge              (HTParentAnchor * anchor);
-extern BOOL   HTAnchor_mustRevalidate      (HTParentAnchor * anchor);
-extern char * HTAnchor_noCache             (HTParentAnchor * anchor);
+extern BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response);
 </PRE>
-
 <H3>
   Is the Anchor searchable?
 </H3>
@@ -331,19 +298,24 @@ extern void HTAnchor_appendTitle	(HTParentAnchor *me,
   Content Base
 </H3>
 <P>
-The <CODE>Content-Base</CODE> header may be used for resolving relative URLs
-within the entity.
-<PRE>extern char * HTAnchor_base	(HTParentAnchor * me);
+The <CODE>Content-Base</CODE> header may be used for resolving
+relative URLs within the entity. If it there is no
+<CODE>Content-Base</CODE> header then we use the Content-Location if
+present and absolute.
+<PRE>
+extern char * HTAnchor_base	(HTParentAnchor * me);
 extern BOOL HTAnchor_setBase 	(HTParentAnchor * me, char * base);
 </PRE>
 <H3>
   Content Location
 </H3>
 <P>
-Content location can either be an absolute or a relative URL. If it is relative
-then parse it relative to the <CODE>Content-Base</CODE> header of the request
-URI.
-<PRE>extern char * HTAnchor_location		(HTParentAnchor * me);
+Content location can either be an absolute or a relative URL. The URL may
+be either absolute or relative. If it is relative then we parse it relative
+to the <CODE>Content-Base</CODE> header of the request URI if any, otherwise
+we use the Request URI.
+<PRE>
+extern char * HTAnchor_location		(HTParentAnchor * me);
 extern BOOL HTAnchor_setLocation	(HTParentAnchor * me, char * location);
 </PRE>
 <H3>
@@ -419,15 +391,15 @@ extern void HTAnchor_addLength	(HTParentAnchor * me, long int deltalength);
 </H3>
 <PRE>
 extern char * HTAnchor_md5	(HTParentAnchor * me);
-extern void HTAnchor_setMd5	(HTParentAnchor * me, const char * hash);
+extern BOOL HTAnchor_setMd5	(HTParentAnchor * me, const char * hash);
 </PRE>
 <H3>
   Allowed methods (Allow)
 </H3>
 <PRE>
-extern HTMethod HTAnchor_methods (HTParentAnchor * me);
-extern void HTAnchor_setMethods (HTParentAnchor * me, HTMethod methodset);
-extern void HTAnchor_appendMethods (HTParentAnchor * me, HTMethod methodset);
+extern HTMethod HTAnchor_allow   (HTParentAnchor * me);
+extern void HTAnchor_setAllow    (HTParentAnchor * me, HTMethod methodset);
+extern void HTAnchor_appendAllow (HTParentAnchor * me, HTMethod methodset);
 </PRE>
 <H3>
   Version
@@ -498,8 +470,19 @@ extern void HTAnchor_setDerived	(HTParentAnchor *me, const char *derived_from);
 <P>
 This is primarily for internal use. It is so that we can check whether the
 header has been parsed or not.
-<PRE>extern BOOL HTAnchor_headerParsed	(HTParentAnchor *me);
+<PRE>
+extern BOOL HTAnchor_headerParsed	(HTParentAnchor *me);
 extern void HTAnchor_setHeaderParsed	(HTParentAnchor *me);
+</PRE>
+<H3>
+  Original Response Headers
+</H3>
+<P>
+The <A HREF="HTMIME.html">MIME parser</A> may add the original response headers
+as (name,value) pairs.
+<PRE>
+extern BOOL HTAnchor_setHeader       (HTParentAnchor * me, HTAssocList * list);
+extern HTAssocList * HTAnchor_header (HTParentAnchor * me);
 </PRE>
 <PRE>
 #endif /* HTANCHOR_H */

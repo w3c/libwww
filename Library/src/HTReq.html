@@ -71,7 +71,7 @@ typedef struct _HTRequest HTRequest;
 #include "HTError.h"
 #include "HTNet.h"
 #include "HTUser.h"
-/* #include "HTMIMPrs.h" */
+#include "HTResponse.h"
 </PRE>
 <H2>
   Issuing a Request
@@ -152,15 +152,16 @@ This function deletes the object and cleans up the memory.
 extern void HTRequest_delete (HTRequest * request);
 </PRE>
 <H2>
-  User Profile
+  Date and Time Stamp when Request was Issued
 </H2>
 <P>
-Each request is associated with a <A HREF="HTUser.html">User profile</A>
-which contains information about the local host name, email address of the
-user, news server etc. A request object is created with a default "generic
-user" but can be assigned a specific user at any time.
-<PRE>extern BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up);
-extern HTUserProfile * HTRequest_userProfile (HTRequest * request);
+The start time when the request was issued may be of value to the cache
+validation mechanism as described by the HTTP/1.1 specification. The value
+is automatically set when creating the request headers and sending off the
+request. The time is a local time.
+<PRE>
+extern time_t HTRequest_date  (HTRequest * request);
+extern BOOL HTRequest_setDate (HTRequest * request, time_t date);
 </PRE>
 <H2>
   Set the Method for the Request
@@ -182,169 +183,83 @@ extern void HTRequest_setMethod (HTRequest *request, HTMethod method);
 extern HTMethod HTRequest_method (HTRequest *request);
 </PRE>
 <H2>
-  HTTP Connection Control Directives
+  Priority Management
 </H2>
 <P>
-The connection control directives are all part of the connection header and
-control the behavior of this connection. <CODE>Connection</CODE> directives
-can be sent in both directions - that is - from the server to the client
-and vise-verse. In order to separate outgoing from incoming cache control
-directives, we keep two lists - one for outgoing and one for incoming.
-<H4>
-  Client Connection Directives
-</H4>
-<P>
-This association list is a list of the connection control directives that
-are to be sent as part of the <CODE>Cache-Control</CODE> header.
+The request can be assigned an initial priority which then gets inherited
+by all HTNet objects and other requests objects created as a result of this
+one. You can also assign a separate priority to an indicidual HTNet object
+by using the methods in the <A HREF="HTNet.html">Net manager</A>.
 <PRE>
-extern BOOL HTRequest_addClientConnection (HTRequest * request,
-                                           char * token, char * value);
-extern BOOL HTRequest_deleteClientConnection (HTRequest * request);
-extern HTAssocList * HTRequest_clientConnection (HTRequest * request);
-</PRE>
-<H4>
-  Server Connection Directives
-</H4>
-<P>
-This association list is a list of the cache control directives that have
-been received as part of the <CODE>Cache-Control</CODE> header.
-<PRE>
-extern BOOL HTRequest_addServerConnection (HTRequest * request,
-                                           char * token, char * value);
-extern BOOL HTRequest_deleteServerConnection (HTRequest * request);
-extern HTAssocList * HTRequest_serverConnection (HTRequest * request);
+extern HTPriority HTRequest_priority (HTRequest * request);
+extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
 </PRE>
 <H2>
-  Cache Validation and Cache Control
+  Binding to a User Profile
 </H2>
 <P>
-The Library has two concepts of caching: in memory and on file. When loading
-a document, this flag can be set in order to define who can give a response
-to the request. The mempory buffer is considered to be equivalent to a history
-buffer. That is, it doesn't not follow the same expiration mechanism that
-is characteristic for a persistent file cache.<P>
-
-You can also set the cache to run in disconnected mode - see the <A HREF="HTCache.html">Cache manager</A> for more details on how to do this.
-
+Each request is associated with a <A HREF="HTUser.html">User profile</A>
+which contains information about the local host name, email address of the
+user, news server etc. A request object is created with a default "generic
+user" but can be assigned a specific user at any time.
 <PRE>
-typedef enum _HTReload {
-    HT_CACHE_OK	          = 0x0,	        /* Use any version available */
-    HT_CACHE_FLUSH_MEM	  = 0x1,	/* Reload from file cache or network */
-    HT_CACHE_VALIDATE	  = 0x2,	             /* Validate cache entry */
-    HT_CACHE_END_VALIDATE = 0x4,                    /* End to end validation */
-    HT_CACHE_FLUSH	  = 0x8                         /* Force full reload */
-} HTReload;
-
-extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);
-extern HTReload HTRequest_reloadMode (HTRequest *request);
-</PRE>
-<H3>
-  HTTP Cache Control Directives
-</H3>
-<P>
-The cache control directives are all part of the cache control header and
-control the behavior of any intermediate cache between the user agent and
-the origin server. <CODE>Cache-control</CODE> directives can be sent in both
-directions - that is - from the server to the client and vise-verse. We keep
-the out-going ones here and the incoming becomes part of the anchor object.
-This association list is a list of the cache control directives that are
-to be sent as part of the <CODE>Cache-Control</CODE> request header.
-<PRE>
-extern BOOL HTRequest_addCacheControl (HTRequest * request,
-                                       char * token, char * value);
-extern BOOL HTRequest_deleteCacheControl (HTRequest * request);
-extern HTAssocList * HTRequest_cacheControl (HTRequest * request);
+extern BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up);
+extern HTUserProfile * HTRequest_userProfile (HTRequest * request);
 </PRE>
 <H2>
-  Redirections
+  Binding to a Net Object
 </H2>
 <P>
-When a redirection response is returned to the Library, for example from
-a remote HTTP server, this code is passed back to the application. The
-application can then decide whether a new request should be established or
-not. These two methods return the redirection information required to issue
-a new request, that is the new anchor and any list of keywords associated
-with this anchor.
+If a request is actually going on the net then the <A HREF="HTNet.html">Net
+Manager</A> is contacted to handle the request. The Net manager creates a
+HTNEt object and links it to the Request object. You can get to the HTNet
+object using the following functions.
 <PRE>
-extern HTAnchor * HTRequest_redirection (HTRequest * request);
-extern BOOL HTRequest_setRedirection (HTRequest * request, HTAnchor * anchor);
+extern HTNet * HTRequest_net (HTRequest * request);
+extern BOOL HTRequest_setNet (HTRequest * request, HTNet * net);
 </PRE>
 <H2>
-  <A NAME="Access">Access Authentication</A>
+  Binding to a Response Object
 </H2>
 <P>
-When a access denied response is returned to the Library, for example from
-a remote HTTP server, this code is passed back to the application. The
-application can then decide whether a new request should be established or
-not. These two methods return the authentication information required to
-issue a new request, that is the new anchor and any list of keywords associated
-with this anchor.
-<H3>
-  Challenges
-</H3>
+If a request is actually going on the net and we are getting a response back
+then we also create a HTResponse object and bind it to the request object.
+Once we know what to do with the response, we may transfer the information
+to the anchor object.
 <PRE>
-extern BOOL HTRequest_addChallenge (HTRequest * request, char * token, char * value);
-
-extern BOOL HTRequest_deleteChallenge (HTRequest * request);
-
-extern HTAssocList * HTRequest_challenge (HTRequest * request);
-</PRE>
-<H3>
-  Credentials
-</H3>
-<PRE>
-extern BOOL HTRequest_addCredentials (HTRequest * request, char * token, char * value);
-
-extern BOOL HTRequest_deleteCredentials (HTRequest * request);
-
-extern HTAssocList * HTRequest_credentials (HTRequest * request);
-</PRE>
-<H3>
-  Realms
-</H3>
-<PRE>
-extern BOOL HTRequest_setRealm (HTRequest * request, char * realm);
-extern const char * HTRequest_realm (HTRequest * request);
-</PRE>
-<H3>
-  Access Authentication Schemes
-</H3>
-<PRE>
-extern BOOL HTRequest_setScheme (HTRequest * request, char * scheme);
-extern const char * HTRequest_scheme (HTRequest * request);
+extern HTResponse * HTRequest_response (HTRequest * request);
+extern BOOL HTRequest_setResponse (HTRequest * request, HTResponse * response);
 </PRE>
 <H2>
-  HTTP Extensions (PEP)
+  <A NAME="Error">Error Object</A>
 </H2>
 <P>
-HTTP can be extended in several ways but traditionally it has been by using
-new headers. Here we present a new idea which provides a framework for describing
-extensions and their scope. This is only an idea an may be modified later!
-The implementation of the extensions can be found in the
-<A HREF="HTPEP.html">PEP module</A>
-<H4>
-  Client Extensions Directives
-</H4>
-<P>
-This association list is a list of the extension directives that are to be
-sent as part of the <CODE>Extension</CODE> header.
+Errors are like almost anything kept in lists and a error list can be associated
+with a request using the following functions. In order to make life easier,
+there are also some easy mapping functions to the
+<A HREF="HTError.html">HTError object</A>, so that you can add an error directly
+to a request object.
 <PRE>
-extern BOOL HTRequest_addClientExtension (HTRequest * request,
-                                          char * token, char * value);
-extern BOOL HTRequest_deleteClientExtension (HTRequest * request);
-extern HTAssocList * HTRequest_clientExtension (HTRequest * request);
+extern HTList * HTRequest_error (HTRequest * request);
+extern void HTRequest_setError	(HTRequest * request, HTList * list);
 </PRE>
-<H4>
-  Server Extensions Directives
-</H4>
 <P>
-This association list is a list of the extension directives that have been
-received as part of the <CODE>Extension</CODE> header.
+These are the cover functions that go directly to the
+<A HREF="HTError.html">Error Object</A>
 <PRE>
-extern BOOL HTRequest_addServerExtension (HTRequest * request,
-                                          char * token, char * value);
-extern BOOL HTRequest_deleteServerExtension (HTRequest * request);
-extern HTAssocList * HTRequest_serverExtension (HTRequest * request);
+extern BOOL HTRequest_addError (HTRequest * 	request,
+				HTSeverity	severity,
+				BOOL		ignore,
+				int		element,
+				void *		par,
+				unsigned int	length,
+				char *		where);
+
+extern BOOL HTRequest_addSystemError (HTRequest * 	request,
+				      HTSeverity 	severity,
+				      int		errornumber,
+				      BOOL		ignore,
+				      char *		syscall);
 </PRE>
 <H2>
   Max number of Retrys for a Down Load
@@ -385,97 +300,31 @@ A <CODE>TRACE</CODE> request <I>MUST NOT</I> include an entity.
 extern int HTRequest_maxForwards (HTRequest * request);
 </PRE>
 <H2>
-  Date and Time Stamp when Request was Issued
+  Preemptive or Non-preemptive Access
 </H2>
 <P>
-The start time when the request was issued may be of value to the cache
-validation mechanism as described by the HTTP/1.1 specification. The value
-is automatically set when creating the request headers and sending off the
-request. The time is a local time.
+A access scheme is defined with a default for using either preemptive (blocking
+I/O) or non-premitve (non-blocking I/O). This is basically a result of the
+implementation of the protocol module itself. However, if non-blocking I/O
+is the default then some times it is nice to be able to set the mode to blocking
+instead. For example when loading the first document (the home page) then
+blocking can be used instead of non-blocking.
 <PRE>
-extern time_t HTRequest_date  (HTRequest * request);
-extern BOOL HTRequest_setDate (HTRequest * request, time_t date);
+extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_preemptive (HTRequest *request);
 </PRE>
 <H2>
-  Retry Request After
+  Content Negotiation
 </H2>
 <P>
-Some services, for example HTTP, can in case they are unavailable at the
-time the request is issued send back a time and date stamp to the client
-telling when they are expected to back online. In case a request results
-in a HT_RETRY status, the application can use any time indicated in this
-field to retry the request at a later time. The Library does not initiate
-any request on its own - it's for the application to do. The time returned
-by this function is in calendar time or -1 if not available.
+When accessing the local file system, the Library is capable of performing
+content negotioation as described by the HTTP protocol. This is mainly for
+server applications, but some client applications might also want to use
+content negotiation when accessing the local file system. This method enables
+or disables content negotiation - the default value is <EM>ON</EM>.
 <PRE>
-extern time_t HTRequest_retryTime (HTRequest * request);
-extern BOOL HTRequest_setRetryTime (HTRequest * request, time_t retry);
-</PRE>
-<H2>
-  Accept Headers
-</H2>
-<P>
-The Accept family of headers is an important part of HTTP handling the format
-negotiation. The Library supports both a global set of accept headers that
-are used in <EM>all</EM> HTTP requests and a local set of accept headers
-that are used in specific requests only. The global ones are defined in the
-<A HREF="HTFormat.html">Format Manager</A>.
-<P>
-Each request can have its local set of accept headers that either are added
-to the global set or replaces the global set of accept headers. Non of the
-headers <EM>have</EM> to be set. If the global set is sufficient for all
-requests then this us perfectly fine. If the parameter "override" is set
-then only local accept headers are used, else <EM>both</EM> local and global
-headers are used.
-<H3>
-  Content Types
-</H3>
-<P>
-The <EM>local</EM> list of specific conversions which the format manager
-can do in order to fulfill the request. It typically points to a list set
-up on initialisation time for example by <A HREF="HTInit.html">HTInit()</A>.
-There is also a <A HREF="HTFormat.html#z17"><EM>global</EM></A> list of
-conversions which contains a generic set of possible conversions.
-<PRE>
-extern void HTRequest_setConversion (HTRequest *request, HTList *type, BOOL override);
-extern HTList * HTRequest_conversion (HTRequest *request);
-</PRE>
-<H3>
-  Content Encodings
-</H3>
-<P>
-The list of encodings acceptable in the output stream.
-<PRE>
-extern void HTRequest_setEncoding (HTRequest *request, HTList *enc, BOOL override);
-extern HTList * HTRequest_encoding (HTRequest *request);
-</PRE>
-<H3>
-  Content Transfer Encodings
-</H3>
-<P>
-The list of transfer encodings acceptable in the output stream.
-<PRE>
-extern void HTRequest_setTransfer (HTRequest *request, HTList *cte, BOOL override);
-extern HTList * HTRequest_transfer (HTRequest *request);
-</PRE>
-<H3>
-  Content Languages
-</H3>
-<P>
-The list of (human) language values acceptable in the response. The default
-is all languages.
-<PRE>
-extern void HTRequest_setLanguage (HTRequest *request, HTList *lang, BOOL override);
-extern HTList * HTRequest_language (HTRequest *request);
-</PRE>
-<H3>
-  Content Charsets
-</H3>
-<P>
-The list of charsets accepted by the application
-<PRE>
-extern void HTRequest_setCharset (HTRequest *request, HTList *charset, BOOL override);
-extern HTList * HTRequest_charset (HTRequest *request);
+extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_negotiation (HTRequest *request);
 </PRE>
 <H2>
   Handling Metainformation (RFC822 Headers)
@@ -610,46 +459,9 @@ extern void HTRequest_setEnHd (HTRequest *request, HTEnHd enhd);
 extern void HTRequest_addEnHd (HTRequest *request, HTEnHd enhd);
 extern HTEnHd HTRequest_enHd (HTRequest *request);
 </PRE>
-<H3>
-  Referer Field
-</H3>
-<P>
-If this parameter is set then a `Referer: &lt;parent address&gt; can be generated
-in the request to the server, see
-<A HREF="http://www.w3.org/pub/WWW/Protocols/">Referer field in a HTTP
-Request</A>
-<PRE>
-extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
-extern HTParentAnchor * HTRequest_parent (HTRequest *request);
-</PRE>
-<H3>
-  Extra Headers
-</H3>
-<P>
-Extra header information can be send along with a request using this variable.
-The text is sent as is so it must be preformatted with &lt;CRLF&gt; line
-terminators. This will get changed at some point so that you can register
-a header together with a handler in the MIME parser.
-<PRE>
-extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, 
-				    BOOL override);
-extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
-</PRE>
-<H3>
-  Original Headers
-</H3>
-<P>
-The <A HREF="HTMIME.html">MIME parser</A> may add the original headers as
-(name,value) pairs. The information may be picked up by the
-<A HREF="WWWCache.html">persistent cache manager</A>.
-<PRE>
-extern BOOL HTRequest_addHeaders (HTRequest * request, char * token, char * value);
-extern BOOL HTRequest_deleteHeaders (HTRequest * request);
-extern HTAssocList * HTRequest_headers (HTRequest * request);
-</PRE>
-<H3>
-  MIME Parsers
-</H3>
+<H2>
+  Local MIME header Parsers
+</H2>
 <P>
 MIMEParsers get their own type which is optimized for static and regex parser
 strings.
@@ -659,6 +471,310 @@ extern void HTRequest_setMIMEParseSet (HTRequest *request,
 				       HTMIMEParseSet * parseSet, BOOL local);
 extern HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest *request,
 					      BOOL * pLocal);
+</PRE>
+<H2>
+  Accept Headers
+</H2>
+<P>
+The Accept family of headers is an important part of HTTP handling the format
+negotiation. The Library supports both a global set of accept headers that
+are used in <EM>all</EM> HTTP requests and a local set of accept headers
+that are used in specific requests only. The global ones are defined in the
+<A HREF="HTFormat.html">Format Manager</A>.
+<P>
+Each request can have its local set of accept headers that either are added
+to the global set or replaces the global set of accept headers. Non of the
+headers <EM>have</EM> to be set. If the global set is sufficient for all
+requests then this us perfectly fine. If the parameter "override" is set
+then only local accept headers are used, else <EM>both</EM> local and global
+headers are used.
+<H3>
+  Content Types
+</H3>
+<P>
+The <EM>local</EM> list of specific conversions which the format manager
+can do in order to fulfill the request. It typically points to a list set
+up on initialisation time for example by <A HREF="HTInit.html">HTInit()</A>.
+There is also a <A HREF="HTFormat.html#z17"><EM>global</EM></A> list of
+conversions which contains a generic set of possible conversions.
+<PRE>
+extern void HTRequest_setConversion (HTRequest *request, HTList *type, BOOL override);
+extern HTList * HTRequest_conversion (HTRequest *request);
+</PRE>
+<H3>
+  Content Encodings
+</H3>
+<P>
+The list of encodings acceptable in the output stream.
+<PRE>
+extern void HTRequest_setEncoding (HTRequest *request, HTList *enc, BOOL override);
+extern HTList * HTRequest_encoding (HTRequest *request);
+</PRE>
+<H3>
+  Content Transfer Encodings
+</H3>
+<P>
+The list of transfer encodings acceptable in the output stream.
+<PRE>
+extern void HTRequest_setTransfer (HTRequest *request, HTList *cte, BOOL override);
+extern HTList * HTRequest_transfer (HTRequest *request);
+</PRE>
+<H3>
+  Content Languages
+</H3>
+<P>
+The list of (human) language values acceptable in the response. The default
+is all languages.
+<PRE>
+extern void HTRequest_setLanguage (HTRequest *request, HTList *lang, BOOL override);
+extern HTList * HTRequest_language (HTRequest *request);
+</PRE>
+<H3>
+  Content Charsets
+</H3>
+<P>
+The list of charsets accepted by the application
+<PRE>
+extern void HTRequest_setCharset (HTRequest *request, HTList *charset, BOOL override);
+extern HTList * HTRequest_charset (HTRequest *request);
+</PRE>
+<H2>
+  HTTP Cache Validation and Cache Control
+</H2>
+<P>
+The Library has two concepts of caching: in memory and on file. When loading
+a document, this flag can be set in order to define who can give a response
+to the request. The mempory buffer is considered to be equivalent to a history
+buffer. That is, it doesn't not follow the same expiration mechanism that
+is characteristic for a persistent file cache.
+<P>
+You can also set the cache to run in disconnected mode - see the
+<A HREF="HTCache.html">Cache manager</A> for more details on how to do this.
+<PRE>
+typedef enum _HTReload {
+    HT_CACHE_OK	            = 0x0,	        /* Use any version available */
+    HT_CACHE_FLUSH_MEM	    = 0x1,	/* Reload from file cache or network */
+    HT_CACHE_VALIDATE	    = 0x2,	             /* Validate cache entry */
+    HT_CACHE_END_VALIDATE   = 0x4,                  /* End to end validation */
+    HT_CACHE_RANGE_VALIDATE = 0x8,
+    HT_CACHE_FLUSH	    = 0x10                      /* Force full reload */
+} HTReload;
+
+extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);
+extern HTReload HTRequest_reloadMode (HTRequest *request);
+</PRE>
+<H3>
+  HTTP Cache Control Directives
+</H3>
+<P>
+The cache control directives are all part of the cache control header and
+control the behavior of any intermediate cache between the user agent and
+the origin server. This association list is a list of the connection control
+directives that are to be sent as part of the <CODE>Cache-Control</CODE>
+header.
+<PRE>
+extern BOOL HTRequest_addCacheControl        (HTRequest * request,
+                                              char * token, char *value);
+extern BOOL HTRequest_deleteCacheControlAll  (HTRequest * request);
+extern HTAssocList * HTRequest_cacheControl  (HTRequest * request);
+</PRE>
+<H3>
+  Partial Requests and Range Retrievals
+</H3>
+<P>
+Libwww can issue range requests in case we have already obtained a part of
+the entity body. Since all HTTP entities are represented in HTTP messages
+as sequences of bytes, the concept of a byte range is meaningful for any
+HTTP entity. (However, not all clients and servers need to support byte-range
+operations.) Byte range specifications in HTTP apply to the sequence of bytes
+in the entity-body (not necessarily the same as the message-body). A byte
+range operation may specify a single range of bytes, or a set of ranges within
+a single entity.
+<PRE>
+extern BOOL HTRequest_addRange       (HTRequest * request,
+                                      char * unit, char * range);
+extern BOOL HTRequest_deleteRangeAll (HTRequest * request);
+extern HTAssocList * HTRequest_range (HTRequest * request);
+</PRE>
+<H2>
+  HTTP Connection Control Request Directives
+</H2>
+<P>
+The connection control directives are all part of the connection header and
+control the behavior of this connection. This association list is a list
+of the connection control directives that are to be sent as part of the
+<CODE>Connection</CODE> header.
+<PRE>
+extern BOOL HTRequest_addConnection        (HTRequest * request,
+                                            char * token, char * value);
+extern BOOL HTRequest_deleteConnection     (HTRequest * request);
+extern HTAssocList * HTRequest_connection  (HTRequest * request);
+</PRE>
+<H2>
+  <A NAME="Access">HTTP Access Authentication Credentials</A>
+</H2>
+<P>
+When a access denied response is returned to the Library, for example from
+a remote HTTP server, this code is passed back to the application. The
+application can then decide whether a new request should be established or
+not. These two methods return the authentication information required to
+issue a new request, that is the new anchor and any list of keywords associated
+with this anchor.
+<PRE>
+extern BOOL HTRequest_addCredentials       (HTRequest * request,
+                                            char * token, char * value);
+extern BOOL HTRequest_deleteCredentialsAll (HTRequest * request);
+extern HTAssocList * HTRequest_credentials (HTRequest * request);
+</PRE>
+<H3>
+  Realms
+</H3>
+<PRE>
+extern BOOL HTRequest_setRealm (HTRequest * request, char * realm);
+extern const char * HTRequest_realm (HTRequest * request);
+</PRE>
+<H2>
+  HTTP Extensions (PEP)
+</H2>
+<P>
+HTTP can be extended in several ways but traditionally it has been by using
+new headers. Here we present a new idea which provides a framework for describing
+extensions and their scope. This is only an idea an may be modified later!
+The implementation of the extensions can be found in the
+<A HREF="HTPEP.html">PEP module</A>
+<H3>
+  Protocol
+</H3>
+<P>
+This association list is a list of the extension directives that are to be
+sent as part of the request.
+<PRE>
+extern BOOL HTRequest_addProtocol       (HTRequest * request,
+                                         char * token, char * value);
+extern BOOL HTRequest_deleteProtocolAll (HTRequest * request);
+extern HTAssocList * HTRequest_Protocol (HTRequest * request);
+</PRE>
+<H3>
+  Protocol Info
+</H3>
+<P>
+This association list is a list of the extension directives that are to be
+sent as part of the request.
+<PRE>
+extern BOOL HTRequest_addProtocolInfo       (HTRequest * request,
+                                            char * token, char * value);
+extern BOOL HTRequest_deleteProtocolInfoAll (HTRequest * request);
+extern HTAssocList * HTRequest_ProtocolInfo (HTRequest * request);
+</PRE>
+<H3>
+  Protocol Request
+</H3>
+<P>
+This association list is a list of the extension directives that are to be
+sent as part of the request.
+<PRE>
+extern BOOL HTRequest_addProtocolRequest       (HTRequest * request,
+                                               char * token, char * value);
+extern BOOL HTRequest_deleteProtocolRequestAll (HTRequest * request);
+extern HTAssocList * HTRequest_ProtocolRequest (HTRequest * request);
+</PRE>
+<H2>
+  HTTP Referer Field
+</H2>
+<P>
+If this parameter is set then a `Referer: &lt;parent address&gt; can be generated
+in the request to the server, see
+<A HREF="http://www.w3.org/pub/WWW/Protocols/">Referer field in a HTTP
+Request</A>
+<PRE>
+extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
+extern HTParentAnchor * HTRequest_parent (HTRequest *request);
+</PRE>
+<H2>
+  Extra Headers
+</H2>
+<P>
+Extra header information can be send along with a request using this variable.
+The text is sent as is so it must be preformatted with
+<CODE>&lt;CRLF&gt;</CODE> line terminators. This will get changed at some
+point so that you can register a header together with a handler in the MIME
+parser.
+<PRE>
+extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, 
+				    BOOL override);
+extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
+</PRE>
+<H2>
+  <A NAME="before">BEFORE and AFTER Filters</A>
+</H2>
+<P>
+The request object may have it's own before and after
+<A HREF="HTFilter.html">filters</A>. These may override or suplement the
+global set in <A HREF="HTNet.html">HTNet</A>. The request object itself handles
+the list element, that is this should not be freed bu the caller.
+<H3>
+  BEFORE Filters
+</H3>
+<P>
+The BEFORE <A HREF="HTFilter.html">filters</A> are called just after the
+request has been passed to the Library but before any request is issued over
+the network. A BEFORE can infact stop a request completely from being processed.
+<H4>
+  Add a local BEFORE Filter
+</H4>
+<P>
+You can add a local <I>BEFORE</I> filter for a single request so that the
+both the local and global <I>BEFORE</I> filters are called or you can replace
+the global filters with a local set. Note that the local set can be NULL.
+This can be used to effectively disable all <I>BEFORE</I> filters without
+unregistering the global ones.
+<PRE>
+extern BOOL HTRequest_addBefore (HTRequest * request, HTNetBefore * filter,
+				 const char * tmplate, void * param,
+                                 int order, BOOL override);
+extern HTList * HTRequest_before (HTRequest * request, BOOL * override);
+</PRE>
+<H4>
+  Delete a Local BEFORE Filter
+</H4>
+<P>
+You can delete a local BEFORE filter explicitly by passing the filter itself
+or you can delete all filters which are registered for a certain status code.
+<PRE>extern BOOL HTRequest_deleteBefore (HTRequest * request, HTNetBefore * filter);
+extern BOOL HTRequest_deleteBeforeAll (HTRequest * request);
+</PRE>
+<H3>
+  AFTER Filters
+</H3>
+<P>
+You can add a local AFTER filter for a single request so that the both the
+local and global AFTER filters are called or you can replace the global filters
+with a local set. Note that the local set can be NULL. This can be used to
+effectively disable all AFTER filters without unregistering the global ones.
+<P>
+AFTER filters can be registered to handle a certain set of return values
+from the protocol modules, for example explicitly to handle redirection,
+authentication, etc. You can find all the available codes in the HTNet object
+description.
+<H4>
+  Add a local AFTER Filter
+</H4>
+<PRE>
+extern BOOL HTRequest_addAfter (HTRequest * request, HTNetAfter * filter,
+				const char * tmplate, void * param,
+                                int status, int order, BOOL override);
+extern HTList * HTRequest_after (HTRequest * request, BOOL * override);
+</PRE>
+<H4>
+  Delete an AFTER Filter
+</H4>
+<P>
+You can delete a local AFTER filter explicitly by passing the filter itself
+or you can delete all filters which are registered for a certain status code.
+<PRE>
+extern BOOL HTRequest_deleteAfter (HTRequest * request, HTNetAfter * filter);
+extern BOOL HTRequest_deleteAfterStatus (HTRequest * request, int status);
+extern BOOL HTRequest_deleteAfterAll (HTRequest * request);
 </PRE>
 <H2>
   Sending data to the Network
@@ -784,47 +900,6 @@ extern void HTRequest_setDebugFormat (HTRequest *request, HTFormat format);
 extern HTFormat HTRequest_debugFormat (HTRequest *request);
 </PRE>
 <H2>
-  <A NAME="before">BEFORE and AFTER Filters</A>
-</H2>
-<P>
-The request object may have it's own before and after
-<A HREF="HTFilter.html">filters</A>. These may override or suplement the
-global set in <A HREF="HTNet.html">HTNet</A>. The request object itself handles
-the list element, that is this should not be freed bu the caller.
-<H3>
-  BEFORE Filters
-</H3>
-<P>
-The BEFORE <A HREF="HTFilter.html">filters</A> are called just after the
-request has been passed to the Library but before any request is issued over
-the network. A BEFORE can infact stop a request completely from being processed.
-<PRE>
-extern BOOL HTRequest_addBefore (HTRequest * request, HTNetCallback * filter,
-				 void * param, int status,
-				 BOOL override);
-
-extern BOOL HTRequest_deleteBefore (HTRequest * request, HTNetCallback * filter);
-extern BOOL HTRequest_deleteBeforeAll (HTRequest * request);
-
-extern HTList * HTRequest_before (HTRequest *request, BOOL *override);
-</PRE>
-<H3>
-  After Filters
-</H3>
-<P>
-The AFTER filters are called when the request has terminted.
-<PRE>
-extern BOOL HTRequest_addAfter (HTRequest * request, HTNetCallback * filter,
-				void * param, int status,
-				BOOL override);
-
-extern BOOL HTRequest_deleteAfter (HTRequest * request, HTNetCallback * filter);
-
-extern BOOL HTRequest_deleteAfterAll (HTRequest * request);
-
-extern HTList * HTRequest_after (HTRequest *request, BOOL *override);
-</PRE>
-<H2>
   <A NAME="context">Context Swapping</A>
 </H2>
 <P>
@@ -847,72 +922,20 @@ extern void HTRequest_setContext (HTRequest *request, void *context);
 extern void *HTRequest_context (HTRequest *request);
 </PRE>
 <H2>
-  Preemptive or Non-preemptive Access
-</H2>
-<P>
-A access scheme is defined with a default for using either preemptive (blocking
-I/O) or non-premitve (non-blocking I/O). This is basically a result of the
-implementation of the protocol module itself. However, if non-blocking I/O
-is the default then some times it is nice to be able to set the mode to blocking
-instead. For example when loading the first document (the home page) then
-blocking can be used instead of non-blocking.
-<PRE>
-extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
-extern BOOL HTRequest_preemptive (HTRequest *request);
-</PRE>
-<H2>
-  Priority Management
-</H2>
-<P>
-The request can be assigned an initial priority which then gets inherited
-by all HTNet objects and other requests objects created as a result of this
-one. You can also assign a separate priority to an indicidual HTNet object
-by using the methods in the <A HREF="HTNet.html">Net manager</A>.
-<PRE>
-extern HTPriority HTRequest_priority (HTRequest * request);
-extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
-</PRE>
-<H2>
   Binding to an Anchor Object
 </H2>
 <P>
 Every request object has an <A HREF="HTAnchor.html">anchor</A> associated
 with it. The anchor normally lives until the application terminates but a
-request object only lives as long as the request is being serviced.
-<P>
-If the anchor that we have requested is infact a child anchor then we always
-load the parent anchor and then after the load jump to the location. A child
-anchor is a an anchor which points to a subpart of the document (has a "#"
-in the URL).
+request object only lives as long as the request is being serviced. If the
+anchor that we have requested is infact a child anchor then we always load
+the parent anchor and then after the load jump to the location. A child anchor
+is a an anchor which points to a subpart of the document (has a "#" in the
+URL).
 <PRE>extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
 extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
 
 extern HTChildAnchor * HTRequest_childAnchor (HTRequest * request);
-</PRE>
-<H2>
-  Binding to a Net Object
-</H2>
-<P>
-If a request is actually going on the net then the <A HREF="HTNet.html">Net
-Manager</A> is contacted to handle the request. The Net manager creates a
-HTNEt object and links it to the Request object. You can get to the HTNet
-object using the following functions.
-<PRE>
-extern HTNet * HTRequest_net (HTRequest * request);
-extern BOOL HTRequest_setNet (HTRequest * request, HTNet * net);
-</PRE>
-<H2>
-  Format Negotiation
-</H2>
-<P>
-When accessing the local file system, the Library is capable of performing
-content negotioation as described by the HTTP protocol. This is mainly for
-server applications, but some client applications might also want to use
-content negotiation when accessing the local file system. This method enables
-or disables content negotiation - the default value is <EM>ON</EM>.
-<PRE>
-extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
-extern BOOL HTRequest_negotiation (HTRequest *request);
 </PRE>
 <H2>
   Should we Issue a full HTTP Request-URI?
@@ -938,37 +961,6 @@ the Request object on deletion.
 extern BOOL HTRequest_setProxy    (HTRequest * request, const char * proxy);
 extern char * HTRequest_proxy     (HTRequest * request);
 extern BOOL HTRequest_deleteProxy (HTRequest * request);
-</PRE>
-<H2>
-  <A NAME="Error">Error Object</A>
-</H2>
-<P>
-Errors are like almost anything kept in lists and a error list can be associated
-with a request using the following functions. In order to make life easier,
-there are also some easy mapping functions to the
-<A HREF="HTError.html">HTError object</A>, so that you can add an error directly
-to a request object.
-<PRE>
-extern HTList * HTRequest_error (HTRequest * request);
-extern void HTRequest_setError	(HTRequest * request, HTList * list);
-</PRE>
-<P>
-These are the cover functions that go directly to the
-<A HREF="HTError.html">Error Object</A>
-<PRE>
-extern BOOL HTRequest_addError (HTRequest * 	request,
-				HTSeverity	severity,
-				BOOL		ignore,
-				int		element,
-				void *		par,
-				unsigned int	length,
-				char *		where);
-
-extern BOOL HTRequest_addSystemError (HTRequest * 	request,
-				      HTSeverity 	severity,
-				      int		errornumber,
-				      BOOL		ignore,
-				      char *		syscall);
 </PRE>
 <H2>
   Bytes Read or Written in a Request

@@ -22,6 +22,7 @@
 #include "HTFormat.h"
 #include "HTParse.h"
 #include "HTMethod.h"
+#include "HTWWWStr.h"
 #include "HTAncMan.h"					 /* Implemented here */
 
 #define HASH_SIZE	101	   /* Arbitrary prime. Memory/speed tradeoff */
@@ -533,8 +534,7 @@ PUBLIC char * HTAnchor_expandedAddress  (HTAnchor * me)
     char *addr = NULL;
     if (me) {
 	HTParentAnchor * parent = me->parent;
-	char * base = parent->content_location ? parent->content_location :
-	    parent->content_base ? parent->content_base : parent->address;
+	char * base = HTAnchor_base(parent);
 	if (((HTParentAnchor *) me == me->parent) ||
 	    !((HTChildAnchor *) me)->tag) { /* it's an adult or no tag */
 	    StrAllocCopy(addr, base);
@@ -578,51 +578,46 @@ PUBLIC BOOL HTAnchor_hasChildren  (HTParentAnchor * me)
     return (me && me->children);
 }
 
-/*
-**  Check whether we can cache this object or not.
-*/
-PUBLIC BOOL HTAnchor_cachable (HTParentAnchor * me)
-{
-    if (me) {
-
-	/* We may already have decided that this object is not cachable */
-	if (me->cachable == NO) return NO;
-
-	/*  We don't cache negotiated resources for the moment */
-	if (me->variants) return NO;
-
-	/*
-	**  Check if we should cache this object or not. We are very liberale
-	**  in that we cache everything except if we explicit are told not to
-	**  cache (no-store, no-cache). In all other cases we can get around
-	**  it by forcing revalidation
-	*/
-	if (me->cache_control) {
-	    char * token;
-	    if ((token=HTAssocList_findObject(me->cache_control, "no-store")))
-		return NO;
-	    if ((token=HTAssocList_findObject(me->cache_control, "no-cache")))
-		if (!*token) return NO;
-	}
-
-	/* Cache everything else */
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTAnchor_setCachable (HTParentAnchor * me, BOOL mode)
-{
-    if (me) {
-	me->cachable = mode;
-	return YES;
-    }
-    return NO;
-}
-
 /* ------------------------------------------------------------------------- */
 /*			      Entity Header Information			     */
 /* ------------------------------------------------------------------------- */
+
+/*
+**  Take the relevant infomration from the response object and cache it
+**  in the anchor object. We inherit the information that is already
+**  parsed in the response along with the unparsed headers.
+*/
+PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
+{
+    if (me && response) {
+
+	if (ANCH_TRACE)
+	    HTTrace("HTAnchor.... Updating metainformation for %p\n", me);
+
+	/*
+	**  The content length and type is already parsed at this point
+	**  in time. We also check for format parameters like charset etc.
+	**  and copy the contents in the anchor object
+	*/
+	me->content_length = HTResponse_length(response);
+	me->content_type = HTResponse_format(response);
+	me->type_parameters = HTResponse_formatParam(response);
+	
+	/*
+	**  Inherit all the unparsed headers - we may need them later!
+	*/
+	me->headers = HTResponse_header(response);
+
+	/*
+	**  Notifify the response object not to delete the lists that we
+	**  have inherited in the anchor object
+	*/
+	HTResponse_isCached(response, YES);
+
+	return YES;
+    }
+    return NO;
+}
 
 /*
 **	Variants. If this anchor has any variants then keep them in a list
@@ -651,55 +646,6 @@ PUBLIC BOOL HTAnchor_deleteVariant (HTParentAnchor * me,
 }
 
 /*
-**  Cache control directives that we haev received
-*/
-PUBLIC BOOL HTAnchor_addCacheControl (HTParentAnchor * anchor,
-				      char * token, char * value)
-{
-    if (anchor) {
-	if (!anchor->cache_control) anchor->cache_control = HTAssocList_new();
-	return HTAssocList_addObject(anchor->cache_control, token, value);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTAnchor_deleteCacheControl (HTParentAnchor * anchor)
-{
-    if (anchor && anchor->cache_control) {
-	HTAssocList_delete(anchor->cache_control);
-	anchor->cache_control = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTAssocList * HTAnchor_cacheControl (HTParentAnchor * anchor)
-{
-    return (anchor ? anchor->cache_control : NULL);
-}
-
-PUBLIC time_t HTAnchor_maxAge (HTParentAnchor * anchor)
-{
-    if (anchor && anchor->cache_control) {
-	char * token = HTAssocList_findObject(anchor->cache_control, "max-age");
-	if (token) return atol(token);
-    }
-    return (time_t) -1;
-}
-
-PUBLIC BOOL HTAnchor_mustRevalidate (HTParentAnchor * anchor)
-{
-    return anchor && anchor->cache_control &&
-	(HTAssocList_findObject(anchor->cache_control, "must-revalidate") != NULL);
-}
-
-PUBLIC char * HTAnchor_noCache (HTParentAnchor * anchor)
-{
-    return (anchor && anchor->cache_control) ?
-	HTAssocList_findObject(anchor->cache_control, "no-cache") : NULL;
-}
-
-/*
 **	Is this resource an index?
 */
 PUBLIC void HTAnchor_clearIndex  (HTParentAnchor * me)
@@ -722,18 +668,35 @@ PUBLIC BOOL HTAnchor_isIndex  (HTParentAnchor * me)
 */
 PUBLIC char * HTAnchor_base (HTParentAnchor * me)
 {
-    return me ? me->content_base : NULL;
+    if (me) {
+	if (me->content_base) return me->content_base;
+	if (me->headers) {
+	    char * base = HTAssocList_findObject(me->headers, "content-base");
+	    /*
+	    **  If no base is found then take the content-location if this
+	    **  is present and is absolute, else use the Request-URI.
+	    */
+	    if (base)
+		StrAllocCopy(me->content_base, HTStrip(base));
+	    else {
+		char * location = HTAnchor_location(me);
+		StrAllocCopy(me->content_base,
+			     (location && HTURL_isAbsolute(location)) ?
+			     location : me->address);
+	    }
+	    return me->content_base;
+	}
+    }
+    return NULL;
 }
 
 PUBLIC BOOL HTAnchor_setBase (HTParentAnchor * me, char * base)
 {
-    if (!me || !base) {
-	if (ANCH_TRACE)
-	    HTTrace("HTAnchor.... set base called with null argument\n");
-	return NO;
+    if (me && base) {
+	StrAllocCopy(me->content_base, base);
+	return YES;
     }
-    StrAllocCopy(me->content_base, base);
-    return YES;
+    return NO;
 }
 
 /*	Content Location
@@ -741,7 +704,16 @@ PUBLIC BOOL HTAnchor_setBase (HTParentAnchor * me, char * base)
 */
 PUBLIC char * HTAnchor_location (HTParentAnchor * me)
 {
-    return me ? me->content_location : NULL;
+    if (me) {
+	if (me->content_location)
+	    return *me->content_location ? me->content_location : NULL;
+	if (me->headers) {
+	    char * location = HTAssocList_findObject(me->headers, "content-location");
+	    StrAllocCopy(me->content_location, location ? HTStrip(location) : "");
+	    return me->content_location;
+	}
+    }
+    return NULL;
 }
 
 /*
@@ -751,7 +723,8 @@ PUBLIC char * HTAnchor_location (HTParentAnchor * me)
 PUBLIC BOOL HTAnchor_setLocation (HTParentAnchor * me, char * location)
 {
     if (me && location) {
-	char * base = me->content_base ? me->content_base : me->address;
+	char * base = HTAnchor_base(me);
+	if (!base) base = me->address;
 	me->content_location = HTParse(location, base, PARSE_ALL);
 	return YES;
     }
@@ -828,7 +801,7 @@ PUBLIC HTList * HTAnchor_encoding (HTParentAnchor * me)
     return me ? me->content_encoding : NULL;
 }
 
-PUBLIC BOOL HTAnchor_addEncoding (HTParentAnchor * me, HTEncoding  encoding)
+PUBLIC BOOL HTAnchor_addEncoding (HTParentAnchor * me, HTEncoding encoding)
 {
     if (me && encoding) {
 	if (!me->content_encoding) me->content_encoding = HTList_new();
@@ -842,29 +815,29 @@ PUBLIC BOOL HTAnchor_addEncoding (HTParentAnchor * me, HTEncoding  encoding)
 */
 PUBLIC HTList * HTAnchor_language (HTParentAnchor * me)
 {
-    return me ? me->content_language : NULL;
+    if (me) {
+	if (me->content_language == NULL && me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "content-language");
+	    char * field;
+	    if (!me->content_language) me->content_language = HTList_new();
+	    while ((field = HTNextField(&value)) != NULL) {
+		char * lc = field;
+		while ((*lc = TOLOWER(*lc))) lc++;
+		HTList_addObject(me->content_language, HTAtom_for(field));
+	    }
+	}
+	return me->content_language;
+    }
+    return NULL;
 }
 
-PUBLIC BOOL HTAnchor_addLanguage (HTParentAnchor * me, HTLanguage  language)
+PUBLIC BOOL HTAnchor_addLanguage (HTParentAnchor * me, HTLanguage language)
 {
     if (me && language) {
 	if (!me->content_language) me->content_language = HTList_new();
 	return HTList_addObject(me->content_language, language);
     }
     return NO;
-}
-
-/*
-**	Content Transfer Encoding
-*/
-PUBLIC HTEncoding HTAnchor_transfer (HTParentAnchor * me)
-{
-    return me ? me->transfer : NULL;
-}
-
-PUBLIC void HTAnchor_setTransfer (HTParentAnchor * me, HTEncoding transfer)
-{
-    if (me) me->transfer = transfer;
 }
 
 /*
@@ -891,21 +864,52 @@ PUBLIC void HTAnchor_addLength (HTParentAnchor * me, long int deltalength)
 }
 
 /*
+**	Content Transfer Encoding
+*/
+PUBLIC HTEncoding HTAnchor_transfer (HTParentAnchor * me)
+{
+    return me ? me->transfer : NULL;
+}
+
+PUBLIC void HTAnchor_setTransfer (HTParentAnchor * me, HTEncoding transfer)
+{
+    if (me) me->transfer = transfer;
+}
+
+/*
 **	Allowed methods	(Allow)
 */
-PUBLIC HTMethod HTAnchor_methods (HTParentAnchor * me)
+PUBLIC HTMethod HTAnchor_allow (HTParentAnchor * me)
 {
-    return me ? me->methods : METHOD_INVALID;
+    if (me) {
+	if (me->allow == 0 && me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "allow");
+	    char * field;
+
+	    /*
+	    **  We treat methods allowed on this object as case insensitive
+	    **  in case we receive the information over the net - that is -
+	    **  in the Allow header.
+	    */
+	    while ((field = HTNextField(&value)) != NULL) {
+		HTMethod new_method;
+		if ((new_method = HTMethod_enum(field)) != METHOD_INVALID)
+		    me->allow |= new_method;
+	    }
+	}
+	return me->allow;
+    }	
+    return METHOD_INVALID;
 }
 
-PUBLIC void HTAnchor_setMethods (HTParentAnchor * me, HTMethod methodset)
+PUBLIC void HTAnchor_setAllow (HTParentAnchor * me, HTMethod methodset)
 {
-    if (me) me->methods = methodset;
+    if (me) me->allow = methodset;
 }
 
-PUBLIC void HTAnchor_appendMethods (HTParentAnchor * me, HTMethod methodset)
+PUBLIC void HTAnchor_appendAllow (HTParentAnchor * me, HTMethod methodset)
 {
-    if (me) me->methods |= methodset;
+    if (me) me->allow |= methodset;
 }
 
 /*
@@ -913,7 +917,17 @@ PUBLIC void HTAnchor_appendMethods (HTParentAnchor * me, HTMethod methodset)
 */
 PUBLIC const char * HTAnchor_title  (HTParentAnchor * me)
 {
-    return me ? me->title : NULL;
+    if (me) {
+	if (me->title)
+	    return *me->title ? me->title : NULL;
+	if (me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "title");
+	    char * title;
+	    if ((title = HTNextField(&value))) StrAllocCopy(me->title, title);
+	    return me->title;
+	}
+    }
+    return NULL;
 }
 
 PUBLIC void HTAnchor_setTitle (HTParentAnchor * me, const char * title)
@@ -931,7 +945,18 @@ PUBLIC void HTAnchor_appendTitle (HTParentAnchor * me, const char * title)
 */
 PUBLIC char * HTAnchor_version (HTParentAnchor * me)
 {
-    return me ? me->version : NULL;
+    if (me) {
+	if (me->version)
+	    return *me->version ? me->version : NULL;
+	if (me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "version");
+	    char * version;
+	    if ((version = HTNextField(&value)))
+		StrAllocCopy(me->version, version);
+	    return me->version;
+	}
+    }
+    return NULL;
 }
 
 PUBLIC void HTAnchor_setVersion (HTParentAnchor * me, const char * version)
@@ -944,7 +969,18 @@ PUBLIC void HTAnchor_setVersion (HTParentAnchor * me, const char * version)
 */
 PUBLIC char * HTAnchor_derived (HTParentAnchor * me)
 {
-    return me ? me->derived_from : NULL;
+    if (me) {
+	if (me->derived_from)
+	    return *me->derived_from ? me->derived_from : NULL;
+	if (me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "derived-from");
+	    char * derived_from;
+	    if ((derived_from = HTNextField(&value)))
+		StrAllocCopy(me->derived_from, derived_from);
+	    return me->derived_from;
+	}
+    }
+    return NULL;
 }
 
 PUBLIC void HTAnchor_setDerived (HTParentAnchor * me, const char *derived_from)
@@ -957,12 +993,26 @@ PUBLIC void HTAnchor_setDerived (HTParentAnchor * me, const char *derived_from)
 */
 PUBLIC char * HTAnchor_md5 (HTParentAnchor * me)
 {
-    return me ? me->content_md5 : NULL;
+    if (me) {
+	if (me->content_md5)
+	    return *me->content_md5 ? me->content_md5 : NULL;
+	if (me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "content-md5");
+	    char * md5;
+	    if ((md5 = HTNextField(&value))) StrAllocCopy(me->content_md5,md5);
+	    return me->content_md5;
+	}
+    }
+    return NULL;
 }
 
-PUBLIC void HTAnchor_setMd5 (HTParentAnchor * me, const char * hash)
+PUBLIC BOOL HTAnchor_setMd5 (HTParentAnchor * me, const char * hash)
 {
-    if (me && hash) StrAllocCopy(me->content_md5, hash);
+    if (me && hash) {
+	StrAllocCopy(me->content_md5, hash);
+	return YES;
+    }
+    return NO;
 }
 
 /*
@@ -970,7 +1020,14 @@ PUBLIC void HTAnchor_setMd5 (HTParentAnchor * me, const char * hash)
 */
 PUBLIC time_t HTAnchor_date (HTParentAnchor * me)
 {
-    return me ? me->date : -1;
+    if (me) {
+	if (me->date == (time_t) -1 && me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "date");
+	    if (value) me->date = HTParseTime(value, NULL, YES);
+	}
+	return me->date;
+    }	
+    return (time_t) -1;
 }
 
 PUBLIC void HTAnchor_setDate (HTParentAnchor * me, const time_t date)
@@ -983,7 +1040,14 @@ PUBLIC void HTAnchor_setDate (HTParentAnchor * me, const time_t date)
 */
 PUBLIC time_t HTAnchor_expires (HTParentAnchor * me)
 {
-    return me ? me->expires : -1;
+    if (me) {
+	if (me->expires == (time_t) -1 && me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "expires");
+	    if (value) me->expires = HTParseTime(value, NULL, YES);
+	}
+	return me->expires;
+    }	
+    return (time_t) -1;
 }
 
 PUBLIC void HTAnchor_setExpires (HTParentAnchor * me, const time_t expires)
@@ -996,7 +1060,14 @@ PUBLIC void HTAnchor_setExpires (HTParentAnchor * me, const time_t expires)
 */
 PUBLIC time_t HTAnchor_lastModified (HTParentAnchor * me)
 {
-    return me ? me->last_modified : -1;
+    if (me) {
+	if (me->last_modified == (time_t) -1 && me->headers) {
+	    char * value = HTAssocList_findObject(me->headers,"last-modified");
+	    if (value) me->last_modified = HTParseTime(value, NULL, YES);
+	}
+	return me->last_modified;
+    }	
+    return (time_t) -1;
 }
 
 PUBLIC void HTAnchor_setLastModified (HTParentAnchor * me, const time_t lm)
@@ -1009,7 +1080,14 @@ PUBLIC void HTAnchor_setLastModified (HTParentAnchor * me, const time_t lm)
 */
 PUBLIC time_t HTAnchor_age (HTParentAnchor * me)
 {
-    return me ? me->age : -1;
+    if (me) {
+	if (me->age == (time_t) -1 && me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "age");
+	    if (value) me->age = atol(value);
+	}
+	return me->age;
+    }	
+    return (time_t) -1;
 }
 
 PUBLIC void HTAnchor_setAge (HTParentAnchor * me, const time_t age)
@@ -1022,6 +1100,17 @@ PUBLIC void HTAnchor_setAge (HTParentAnchor * me, const time_t age)
 */
 PUBLIC char * HTAnchor_etag (HTParentAnchor * me)
 {
+    if (me) {
+	if (me->etag)
+	    return *me->etag ? me->etag : NULL;
+	if (me->headers) {
+	    char * value = HTAssocList_findObject(me->headers, "etag");
+	    char * etag;
+	    if ((etag = HTNextField(&value))) StrAllocCopy(me->etag, etag);
+	    return me->etag;
+	}
+    }
+
     return me ? me->etag : NULL;
 }
 
@@ -1035,26 +1124,22 @@ PUBLIC BOOL HTAnchor_isEtagWeak (HTParentAnchor * me)
     return (me && me->etag && !strncasecomp(me->etag, "W/", 2));
 }
 
-#if 0
 /*
-**	Extra Header List of unknown headers
+**	Original headers (if any)
 */
-PRIVATE HTList * HTAnchor_Extra  (HTParentAnchor * me)
+PUBLIC HTAssocList * HTAnchor_header (HTParentAnchor * me)
 {
-    return me ? me->extra_headers : NULL;
+    return me ? me->headers : NULL;
 }
 
-PRIVATE void HTAnchor_addExtra (HTParentAnchor * me, const char * header)
+PUBLIC BOOL HTAnchor_setHeader (HTParentAnchor * me, HTAssocList * headers)
 {
     if (me) {
-	char *newhead = NULL;
-	StrAllocCopy(newhead, header);
-	if (!me->extra_headers)
-	    me->extra_headers = HTList_new();
-	HTList_addObject(me->extra_headers, (void *) newhead);
+	me->headers = headers;
+	return YES;
     }
+    return NO;
 }
-#endif
 
 /*
 **  Validate anchor values and finish up parsing
@@ -1071,9 +1156,6 @@ PUBLIC void HTAnchor_setHeaderParsed (HTParentAnchor * me)
 	/*
 	**  If we don't get a Last-Modified header then set it to date
 	*/
-#if 0
-	if (me->last_modified < 0) me->last_modified = me->date;
-#endif
 	if (ANCH_TRACE) HTTrace("HTAnchor.... Anchor is parsed\n");
 	me->header_parsed = YES;
     }
@@ -1089,8 +1171,8 @@ PUBLIC BOOL HTAnchor_headerParsed (HTParentAnchor * me)
 */
 PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
 {
-    if (ANCH_TRACE) HTTrace("HTAnchor.... Clearing header\n");
-    me->methods = METHOD_INVALID;
+    if (ANCH_TRACE) HTTrace("HTAnchor.... Clear all header information\n");
+    me->allow = METHOD_INVALID;
     if (me->content_encoding) {
 	HTList_delete(me->content_encoding);
 	me->content_encoding = HTList_new();
@@ -1102,7 +1184,6 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     HT_FREE(me->content_base);
     HT_FREE(me->content_location);
     me->content_length = -1;					  /* Invalid */
-    me->transfer = NULL;
 
     /* Delete the title */
     HT_FREE(me->title);
@@ -1114,13 +1195,6 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
 	me->type_parameters = NULL;
     }    
 
-    /* Cache controls */
-    me->cachable = NO;
-    if (me->cache_control) {
-	HTAssocList_delete(me->cache_control);
-	me->cache_control = NULL;
-    }
-
     /* Dates etc. */
     me->date = (time_t) -1;
     me->expires = (time_t) -1;
@@ -1130,6 +1204,10 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     HT_FREE(me->derived_from);
     HT_FREE(me->version);
     HT_FREE(me->etag);
+
+    /* Delete any original headers */
+    if (me->headers) HTAssocList_delete(me->headers);
+    me->headers = NULL;
 
     /* Anchor is cleared */
     me->header_parsed = NO;

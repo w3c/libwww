@@ -46,7 +46,7 @@ only send a full URL (including the host portion) to proxy servers. Therefore,
 we tell the Library whether to use the full URL or the traditional HTTP one
 without the host part.
 <PRE>
-extern HTNetCallback HTProxyFilter;
+extern HTNetBefore HTProxyFilter;
 </PRE>
 <H3>
   Rule Translation BEFORE Filter
@@ -59,7 +59,7 @@ the anchor. However, it also have a "physical address" which is the place
 we are actually going to look for the resource. Hence this filter translates
 from the address to the physical address (if any translations are found)
 <PRE>
-extern HTNetCallback HTRuleFilter;
+extern HTNetBefore HTRuleFilter;
 </PRE>
 <H3>
   Memory Cache (History List) Validation BEFORE Filter
@@ -70,7 +70,8 @@ list should follow normal expiration or work as a traditional history list
 where expired documents are not updated. We don't check for anything but
 existence proof of a document associated with the anchor as the definition
 is left to the application.
-<PRE>extern HTNetCallback HTMemoryCacheFilter;
+<PRE>
+extern HTNetBefore HTMemoryCacheFilter;
 </PRE>
 <H3>
   Persistent Cache Validation BEFORE Filter
@@ -80,7 +81,7 @@ Check the cache mode to see if we can use an already loaded version of this
 document. If so and our copy is valid then we don't have to go out and get
 it unless we are forced to
 <PRE>
-extern HTNetCallback HTCacheFilter;
+extern HTNetBefore HTCacheFilter;
 </PRE>
 <H3>
   Client side authentication BEFORE filter
@@ -90,7 +91,7 @@ The filter generates the credentials required to access a document Getting
 the credentials may involve asking the user in which case we use the methods
 registered by the <A HREF="HTAlert.html">HTAlert module</A>
 <PRE>    
-extern HTNetCallback HTCredentialsFilter;
+extern HTNetBefore HTCredentialsFilter;
 </PRE>
 <H2>
   AFTER Filters
@@ -110,7 +111,7 @@ response then we use the new metainformation and merges it with
 the existing information already captured in the cache.
 
 <PRE>
-extern HTNetCallback HTCacheUpdateFilter;
+extern HTNetAfter HTCacheUpdateFilter;
 </PRE>
 
 <H3>
@@ -120,7 +121,7 @@ extern HTNetCallback HTCacheUpdateFilter;
 It checks the status code from a request and generates an error/information
 message if required.
 <PRE>
-extern HTNetCallback HTInfoFilter;
+extern HTNetAfter HTInfoFilter;
 </PRE>
 <H3>
   Redirection filter
@@ -129,7 +130,7 @@ extern HTNetCallback HTInfoFilter;
 The redirection handler only handles redirections on the <CODE>GET</CODE>
 or <CODE>HEAD</CODE> method (or any other safe method)
 <PRE>
-extern HTNetCallback HTRedirectFilter;
+extern HTNetAfter HTRedirectFilter;
 </PRE>
 <H3>
   Proxy Redirection filter
@@ -138,7 +139,7 @@ extern HTNetCallback HTRedirectFilter;
 This filter handles a "<CODE>305 Use Proxy"</CODE> response and retries the
 request through the proxy
 <PRE>
-extern HTNetCallback HTUseProxyFilter;
+extern HTNetAfter HTUseProxyFilter;
 </PRE>
 <H3>
   Client side authentication filter
@@ -148,7 +149,7 @@ The client side authentication filter uses the user dialog messages registered
 in the <A HREF="HTAlert.html">HTAlert module</A>. By default these are the
 ones used by the line mode browser but you can just register something else.
 <PRE>
-extern HTNetCallback HTAuthFilter;
+extern HTNetAfter HTAuthFilter;
 </PRE>
 <H3>
   Request Logging filter
@@ -157,7 +158,7 @@ extern HTNetCallback HTAuthFilter;
 Default Logging filter using the log manager provided by the
 <A HREF="HTLog.html">Log Manager</A>.
 <PRE>
-extern HTNetCallback HTLogFilter;
+extern HTNetAfter HTLogFilter;
 </PRE>
 <PRE>
 #endif /* HTFILTER_H */

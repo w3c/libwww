@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
-  <TITLE>W3C Reference Library libwww MIME/RFC822 Parser</TITLE>
+  <TITLE>W3C Reference Library libwww MIME/RFC822 Parsers</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  MIME Parser
+  MIME Parsers
 </H1>
 <PRE>
 /*
@@ -33,9 +33,6 @@ Library</A>.
 #include "HTStream.h"
 #include "HTFormat.h"
 </PRE>
-<H2>
-  Stream Converters in this Module
-</H2>
 <H3>
   MIME header parser stream
 </H3>
@@ -64,6 +61,18 @@ extern HTConverter HTMIMEHeader;
 Parse only a footer, for example after a chunked encoding.
 <PRE>
 extern HTConverter HTMIMEFooter;
+</PRE>
+<H3>
+  Partial MIME Response parser
+</H3>
+<P>
+In case we sent a <I>Range conditional GET</I> we may get back a partial
+response. This response must be appended to the already existing cache entry
+before presented to the user. That is, first we load the cached object and
+pump it down the pipe and then the new data follows. Only the latter part
+gets appended to the cache, of course.
+<PRE>
+extern HTConverter HTMIMEPartial;
 </PRE>
 <PRE>
 #endif

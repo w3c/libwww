@@ -14,7 +14,7 @@
 ** History:
 **	   Feb 92	Written Tim Berners-Lee, CERN
 **	 8 Jul 94  FM	Insulate free() from _free structure element.
-**	14 Mar 95  HFN	Now using anchor for storing data. No more `\n',
+**	14 Mar 95  HFN	Now using response for storing data. No more `\n',
 **			static buffers etc.
 */
 
@@ -34,14 +34,15 @@
 
 typedef enum _HTMIMEMode {
     HT_MIME_HEADER	= 0x1,
-    HT_MIME_FOOTER	= 0x2
+    HT_MIME_FOOTER	= 0x2,
+    HT_MIME_PARTIAL	= 0x4
 } HTMIMEMode;
 
 struct _HTStream {
     const HTStreamClass *	isa;
     HTRequest *			request;
+    HTResponse *		response;
     HTNet *			net;
-    HTParentAnchor *		anchor;
     HTStream *			target;
     HTFormat			target_format;
     HTChunk *			token;
@@ -51,7 +52,6 @@ struct _HTStream {
     HTMIMEMode			mode;
     BOOL			transparent;
     BOOL			haveToken;
-    BOOL			cache;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -59,26 +59,41 @@ struct _HTStream {
 PRIVATE int pumpData (HTStream * me)
 {
     HTRequest * request = me->request;
-    HTParentAnchor * anchor = me->anchor;
-    HTFormat format = HTAnchor_format(anchor);
-    HTEncoding transfer = HTAnchor_transfer(anchor);
-    long length = HTAnchor_length(anchor);
+    HTResponse * response = me->response;
+    HTFormat format = HTResponse_format(response);
+    HTEncoding transfer = HTResponse_transfer(response);
+    long length = HTResponse_length(response);
     me->transparent = YES;		  /* Pump rest of data right through */
-    HTAnchor_setHeaderParsed(anchor);
 
-    /* If this request is a source in PostWeb then pause here */
+    /*  If this request is a source in PostWeb then pause here */
     if (HTRequest_isSource(request)) return HT_PAUSE;
 
-    /* If HEAD method then we just stop here */
+    /*
+    **  Cache the metainformation in the anchor object by moving
+    **  it from the response object. This we do regardless if
+    **  we have a persistent cache or not as the memory cache will
+    **  use it as well. If we are updating a cache entry using
+    **  byte ranges then we alreayd have the metainformation and
+    **  hence we can ignore the new one as it'd better be the same.
+    */
+    if (!(me->mode & (HT_MIME_PARTIAL | HT_MIME_FOOTER)) &&
+	HTResponse_isCachable(me->response)) {
+	HTAnchor_update(HTRequest_anchor(request), me->response);
+    }
+
+    /*
+    **  If we asked only to read the header or footer or we used a HEAD
+    **  method then we stop here as we don't expect any body part.
+    */
     if (me->mode & (HT_MIME_HEADER | HT_MIME_FOOTER) ||
-	HTRequest_method(me->request) == METHOD_HEAD) {
+	HTRequest_method(request) == METHOD_HEAD) {
 	return HT_LOADED;
     }
 
     /*
-    ** If there is no content-length, no transfer encoding and no
-    ** content type then we assume that there is no
-    ** bodypart in the message and we can return HT_LOADED
+    **  If there is no content-length, no transfer encoding and no
+    **  content type then we assume that there is no body part in
+    **  the message and we can return HT_LOADED
     */
     if (length<=0 && format==WWW_UNKNOWN && transfer==NULL) {
 	if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
@@ -86,21 +101,22 @@ PRIVATE int pumpData (HTStream * me)
     }
 
     /*
-    ** Handle any Content Type
+    **  Handle any Content Type
     */
-    {
-	if (format != WWW_UNKNOWN || length>0 || transfer) {
-	    if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
-				      HTAtom_name(format),
-				      HTAtom_name(me->target_format));
-	    me->target = HTStreamStack(format, me->target_format,
-				       me->target, request, YES);
-	}
+    if (!(me->mode & HT_MIME_PARTIAL) &&
+	(format != WWW_UNKNOWN || length > 0 || transfer)) {
+	if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
+				  HTAtom_name(format),
+				  HTAtom_name(me->target_format));
+	me->target = HTStreamStack(format, me->target_format,
+				   me->target, request, YES);
     }
 
-    /* Handle any Content Encoding */
+    /*
+    **  Handle any Content Encoding
+    */
     {
-	HTList * cc = HTAnchor_encoding(anchor);
+	HTList * cc = HTResponse_encoding(response);
 	if (cc) {
 	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
 	    me->target = HTContentDecodingStack(cc, me->target, request, NULL);
@@ -108,18 +124,33 @@ PRIVATE int pumpData (HTStream * me)
     }
 
     /*
-    ** Can we cache the data object? If so then create a T stream and hook it 
-    ** into the stream pipe. We do it before the transfer decoding so that we
-    ** don't have to deal with that when we retrieve the object from cache
+    **  Can we cache the data object? If so then create a T stream and hook it 
+    **  into the stream pipe. We do it before the transfer decoding so that we
+    **  don't have to deal with that when we retrieve the object from cache.
+    **  If we are appending to a cache entry then use a different stream than
+    **  if creating a new entry.
     */
-    if (HTCacheMode_enabled() && HTAnchor_cachable(anchor))  {
-	HTStream * cache;
-	if ((cache = HTStreamStack(WWW_CACHE, me->target_format,
-				   me->target, request, NO)))
-	    me->target = HTTee(me->target, cache, NULL);
+    if (HTCacheMode_enabled()) {
+	if (me->mode & HT_MIME_PARTIAL) {
+	    HTStream * append = HTStreamStack(WWW_CACHE_APPEND,
+					      me->target_format,
+					      me->target, request, NO);
+#if 0
+	if (cache) me->target = HTTee(me->target, cache, NULL);
+	me->target = HTPipeBuffer_new(me->target, request, 0);
+#else
+	me->target = append;
+#endif
+	} else if (HTResponse_isCachable(me->response)) {
+	    HTStream * cache = HTStreamStack(WWW_CACHE, me->target_format,
+					     me->target, request, NO);
+	    if (cache) me->target = HTTee(me->target, cache, NULL);
+	}
     }
 
-    /* Handle any Transfer encoding */
+    /*
+    **  Handle any Transfer encoding
+    */
     {
 	if (!HTFormat_isUnityTransfer(transfer)) {
 	    if (STREAM_TRACE) HTTrace("Building.... C-T-E stack\n");
@@ -127,6 +158,7 @@ PRIVATE int pumpData (HTStream * me)
 					       request, NULL, NO);
 	}
     }
+
     return HT_OK;
 }
 
@@ -138,7 +170,8 @@ PRIVATE int _dispatchParsers (HTStream * me)
     int status;
     char * token = HTChunk_data(me->token);
     char * value = HTChunk_data(me->value);
-    BOOL found, local;
+    BOOL found = NO;
+    BOOL local = NO;
     HTMIMEParseSet * parseSet;
 
     /* In case we get an empty header consisting of a CRLF, we fall thru */
@@ -148,25 +181,28 @@ PRIVATE int _dispatchParsers (HTStream * me)
     if (!token) return HT_OK;			    /* Ignore noop token */
 
     /*
+    ** Remember the original header
+    */
+    HTResponse_addHeader(me->response, token, value);
+
+    /*
     ** Search the local set of MIME parsers
     */
     if ((parseSet = HTRequest_MIMEParseSet(me->request, &local)) != NULL) {
         status = HTMIMEParseSet_dispatch(parseSet, me->request, 
-					 token, value, &found, me->cache);
-	if (found)
-	    return status;
-	if (local)
-	    return HT_OK; /* not found, but that's OK */
+					 token, value, &found);
+	if (found) return status;
     }
 
     /*
     ** Search the global set of MIME parsers
     */
-    if ((parseSet = HTHeader_MIMEParseSet()) == NULL) return HT_OK;
-    status = HTMIMEParseSet_dispatch(parseSet, me->request, 
-				     token, value, &found, me->cache);
-    if (found) return status;
-    if (STREAM_TRACE) HTTrace("MIME header. Ignoring %s: %s\n", token, value);
+    if (local==NO && (parseSet = HTHeader_MIMEParseSet()) != NULL) {
+	status = HTMIMEParseSet_dispatch(parseSet, me->request, 
+					 token, value, &found);
+	if (found) return status;
+    }
+
     return HT_OK;
 }
 
@@ -289,7 +325,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	if ((status = (*me->target->isa->put_block)(me->target, b, l)) != HT_OK)
 	    return status;
 	/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
-	cl = HTAnchor_length(me->anchor);
+	cl = HTResponse_length(me->response);
 	return (cl>=0 && HTNet_bytesRead(me->net)>=cl) ? HT_LOADED : HT_OK;
     }
     return HT_LOADED;
@@ -391,13 +427,12 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
         HT_OUTOFMEM("HTMIMEConvert");
     me->isa = &HTMIME;       
     me->request = request;
-    me->anchor = HTRequest_anchor(request);
+    me->response = HTRequest_response(request);
     me->net = HTRequest_net(request);
     me->target = output_stream;
     me->target_format = output_format;
     me->token = HTChunk_new(256);
     me->value = HTChunk_new(256);
-    me->cache = HTCacheMode_enabled() && HTAnchor_cachable(me->anchor);
     me->hash = 0;
     me->EOLstate = EOL_BEGIN;
     me->haveToken = NO;
@@ -439,3 +474,80 @@ PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
     me->EOLstate = EOL_FLF;
     return me;
 }
+
+/*	Partial Response MIME parser stream
+**	-----------------------------------
+**	In case we sent a Range conditional GET we may get back a partial
+**	response. This response must be appended to the already existing
+**	cache entry before presented to the user.
+**	We do this by continuing to load the new object into a temporary 
+**	buffer and at the same time start the cache load of the already
+**	existing object. When we have loaded the cache we merge the two
+**	buffers.
+*/
+PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
+				 void *		param,
+				 HTFormat	input_format,
+				 HTFormat	output_format,
+				 HTStream *	output_stream)
+{
+#if 0
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTStream * me = NULL;
+    HTStream * merge = NULL;
+    /*
+    **  The merge stream is a place holder for where we can put data when it
+    **  arrives. We have two feeds: one from the cache and one from the net.
+    **  We call the stream stack already now to get the right output stream.
+    **  We can do this as we already know the content type from when we got the
+    **  first part of the object.
+    */
+    {
+	HTFormat format = HTAnchor_format(anchor);
+	if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
+				  HTAtom_name(format),
+				  HTAtom_name(output_format));
+	merge = HTMerge(HTStreamStack(format, output_format, output_stream,
+				      request, YES), 2);
+    }
+
+#else
+    /*
+    **  Set up the MIME parser as the one feed to the merge stream. The MIME
+    **  parser then calls the PIPE buffer. We use source output as the stream
+    **  stack has already been called.
+    */
+    HTStream * me = HTMIMEConvert(request, param, input_format,
+				  output_format, output_stream);
+    me->mode |= HT_MIME_PARTIAL;
+#endif
+
+    /*
+    **  Now start the second load from the cache. First we read this data from
+    **  the cache and then we flush the data that we have read from the net.
+    **  We use the same anchor as before but with another physical address.
+    */
+    {
+	HTParentAnchor * anchor = HTRequest_anchor(request);
+	HTRequest * creq = HTRequest_new();
+	HTCache * cache = NULL;
+
+	/* Set up the request */
+#if 0
+	HTRequest_setOutputFormat(creq, WWW_SOURCE);
+	HTRequest_setOutputStream(creq, me);
+#endif
+	HTRequest_setAnchor(creq, (HTAnchor *) anchor);
+
+	/* Set up the anchor */
+	if ((cache = HTCache_find(anchor))) {
+	    char * name = HTCache_name(cache);
+	    HTAnchor_setPhysical(anchor, name);
+	    HT_FREE(name);
+	    if (STREAM_TRACE) HTTrace("Partial..... Starting cache load\n");
+	    HTLoad(creq, NO);
+	}
+    }
+    return me;
+}
+

@@ -34,7 +34,8 @@
 /* Library Includes */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTAncMan.h"
+#include "HTAnchor.h"
+#include "HTResponse.h"
 #include "HTParse.h"
 #include "HTBind.h"					 /* Implemented here */
 
@@ -278,21 +279,24 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
     HTChunk * suffix = HTChunk_new(48);
     char delimiter = *HTDelimiters;
     BOOL ct=NO, ce=NO, cl=NO;
+    HTFormat format = HTAnchor_format(anchor);
+    HTList * encoding = HTAnchor_encoding(anchor);
+    HTList * language = HTAnchor_language(anchor);
     if (anchor) {
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = HTBindings[cnt])) { 
 		HTBind *pres;
 		while ((pres = (HTBind *) HTList_nextObject(cur))) {
-		    if (!ct && (pres->type && pres->type==anchor->content_type)){
+		    if (!ct && (pres->type && pres->type == format)){
 			HTChunk_putc(suffix, delimiter);
 			HTChunk_puts(suffix, pres->suffix);
 			ct = YES;
-		    } else if (!ce && pres->encoding && anchor->content_encoding) {
+		    } else if (!ce && pres->encoding && encoding) {
 
 			/* @@@ Search list @@@ */
 			ce = YES;
 
-		    } else if (!cl && !pres->language && anchor->content_language) {
+		    } else if (!cl && pres->language && language) {
 
 			/* @@@ Search list @@@ */
 
@@ -305,45 +309,17 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
     return HTChunk_toCString(suffix);
 }
 
-#if 0
-/*	Determine the description of a file
-**	-----------------------------------
+/*
 **  Use the set of bindings to find the combination of language,
-**  media type and encoding of a given file name.
+**  media type and encoding of a given object. This information can either be
+**  stored in the anchor obejct or in the response object depending on which
+**  function is called.
 **
-**  If more than one suffix is found they are all searched. The last suffix
-**  has highest priority, the first one lowest. See also HTBind_getFormat()
-**
-**  Returns a contentdescription object with the representations found. This
-**  must be freed by the caller
-*/
-PRIVATE HTContentDescription * HTBind_getDescription (char * file)
-{
-    HTContentDescription * cd;
-    if ((cd = (HTContentDescription  *) HT_CALLOC(1, sizeof(HTContentDescription))) == NULL)
-        HT_OUTOFMEM("HTContentDescription");
-    if (HTBind_getFormat(file, &cd->content_type, &cd->content_encoding,
-			 &cd->content_transfer, &cd->content_language,
-			 &cd->quality))
-	return cd;
-    else {
-	HT_FREE(cd);
-	return NULL;
-    }
-}
-#endif /* Not needed anymore */
-
-/*	Determine the content of an Anchor
-**	----------------------------------
-**  Use the set of bindings to find the combination of language,
-**  media type and encoding of a given anchor.
 **  We comprise here as bindings only can have one language and one encoding.
 **  If more than one suffix is found they are all searched. The last suffix
 **  has highest priority, the first one lowest. See also HTBind_getFormat()
-**
-**  Returns the anchor object with the representations found
 */
-PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
+PUBLIC BOOL HTBind_getAnchorBindings (HTParentAnchor * anchor)
 {
     BOOL status = NO;
     double quality=1.0;		  /* @@@ Should we add this into the anchor? */
@@ -360,7 +336,7 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 	    HTEncoding encoding = NULL;
 	    HTEncoding transfer = NULL;
 	    HTLanguage language = NULL;
- 	    if (BIND_TRACE) HTTrace("Get Binding. for file: `%s\'\n", path);
+ 	    if (BIND_TRACE) HTTrace("Anchor...... Get bindings for `%s\'\n", path);
 	    status = HTBind_getFormat(file, &format, &encoding, &transfer,
 				      &language, &quality);
 	    if (status) {
@@ -375,6 +351,38 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
     return status;
 }
 
+PUBLIC BOOL HTBind_getResponseBindings (HTResponse * response, const char * url)
+{
+    BOOL status = NO;
+    double quality = 1.0;
+    if (response) {
+	char * path = HTParse(url, "", PARSE_PATH + PARSE_PUNCTUATION);
+	char * file;
+	char * end;
+	if ((end = strchr(path, ';')) || (end = strchr(path, '?')) ||
+	    (end = strchr(path, '#')))
+	    *end = '\0';
+	if ((file = strrchr(path, '/'))) {
+	    HTFormat format = NULL;
+	    HTEncoding encoding = NULL;
+	    HTEncoding transfer = NULL;
+	    HTLanguage language = NULL;
+ 	    if (BIND_TRACE) HTTrace("Response.... Get Bindings for `%s\'\n", path);
+	    status = HTBind_getFormat(file, &format, &encoding, &transfer,
+				      &language, &quality);
+	    if (status) {
+		HTResponse_setFormat(response, format);
+		HTResponse_setTransfer(response, transfer);
+		HTResponse_addEncoding(response, encoding);
+#if 0
+		HTResponse_addLanguage(response, language);
+#endif
+	    }
+	}
+	HT_FREE(path);
+    }
+    return status;
+}
 
 /*	Determine the content of an file name
 **	-------------------------------------

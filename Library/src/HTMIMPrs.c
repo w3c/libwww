@@ -27,19 +27,6 @@ struct _HTMIMEParseEl{
     HTParserCallback * 	pFunk;
 };
 
-PRIVATE char * no_cache_headers[HT_MAX_NO_CACHE] =
-{
-    "date",
-    "etag",
-    "expires",
-    "connection",
-    "keep-alive",
-    "public",
-    "proxy-authenticate",
-    "transfer-encoding",
-    "upgrade"
-};
-
 PRIVATE HTMIMEParseEl * HTMIMEParseEl_new(HTMIMEParseEl ** pBefore, 
 					  const char * token, 
 					  BOOL caseSensitive, 
@@ -87,16 +74,6 @@ PUBLIC HTMIMEParseSet * HTMIMEParseSet_new(int hashSize)
     if ((me = (HTMIMEParseSet *) HT_CALLOC(1, sizeof(HTMIMEParseSet))) == NULL)
         HT_OUTOFMEM("HTMIMEParseSet");
     me->size = hashSize;
-
-    /*
-    **  Using the hash size we have, calculate the constant set of headers that a cache
-    **  should never cache
-    */
-    {
-	int cnt = 0;
-	for (; cnt < HT_MAX_NO_CACHE; cnt++)
-	    *(me->no_cache+cnt) = HTMIMEParseSet_hash(me, *(no_cache_headers+cnt));
-    }
     return me;
 }
 
@@ -179,47 +156,41 @@ PUBLIC int HTMIMEParseSet_delete (HTMIMEParseSet * me, const char * token)
 **	If a parser isn't found, the function returns HT_OK
 */
 PUBLIC int HTMIMEParseSet_dispatch (HTMIMEParseSet * me, HTRequest * request, 
-				    char * token, char * value, BOOL * pFound,
-				    BOOL CacheFilter)
+				    char * token, char * value, BOOL * pFound)
 {
     int hash;
+    HTResponse * response = HTRequest_response(request);
     HTMIMEParseEl * pEl;
     
     if (pFound) *pFound = NO;
 
     /*
-    **
+    **  Get a hash value for this token. This has is a function of the hash
+    **  size given when the MIME header parse set was created.
     */
     hash = HTMIMEParseSet_hash(me, token);
 
     /*
-    **  Add the name-value pair to the list of headers that we want to cache.
-    **  We do not at this point in time look into whether there are cache
-    **  directives preventing us from caching the headers. This is done at
-    **  write time.
+    **  Search for an exact match
     */
-    if (CacheFilter) {
-	int cnt = 0;
-	for (; cnt < HT_MAX_NO_CACHE; cnt++)
-	    if (hash == *(me->no_cache+cnt)) break;
-	if (cnt == HT_MAX_NO_CACHE) HTRequest_addHeaders(request, token, value);
-    }
-
     for (pEl = me->parsers[hash]; pEl; pEl = pEl->next) {
         if ((pEl->caseSensitive && !strcmp(pEl->token, token)) || 
 	    (!pEl->caseSensitive && !strcasecomp(pEl->token, token))) {
 	    if (pFound) *pFound = YES;
 	    if (!pEl->pFunk) return HT_OK; /* registered with no callback*/
-	    return (*pEl->pFunk)(request, token, value);
+	    return (*pEl->pFunk)(request, response, token, value);
 	}
     }
 
+    /*
+    **  Search for best match using regular expressions. 
+    */
     for (pEl = me->regexParsers; pEl; pEl = pEl->next) {
         if ((pEl->caseSensitive && HTStrMatch(pEl->token, token)) || 
 	    (!pEl->caseSensitive && HTStrCaseMatch(pEl->token, token))) {
 	    if (pFound) *pFound = YES;
 	    if (!pEl->pFunk) return HT_OK; /* registered with no callback*/
-	    return (*pEl->pFunk)(request, token, value);
+	    return (*pEl->pFunk)(request, response, token, value);
 	}
     }
 

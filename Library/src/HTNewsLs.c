@@ -279,7 +279,7 @@ PRIVATE BOOL HTNewsCache_update (HTRequest * request,
 /*
 **	Before filter: Check whether we have a cache entry for this host
 */
-PUBLIC int HTNewsCache_before (HTRequest * request, void * context, int status)
+PUBLIC int HTNewsCache_before (HTRequest * request, void * context, int mode)
 {
     char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
     HTNewsCache * element = HTNewsCache_find(request, url);
@@ -311,7 +311,8 @@ PUBLIC int HTNewsCache_before (HTRequest * request, void * context, int status)
 /*
 **	After filter: Update the cache entry for this host
 */
-PUBLIC int HTNewsCache_after (HTRequest * request, void * context, int status)
+PUBLIC int HTNewsCache_after (HTRequest * request, HTResponse * response,
+			      void * context, int status)
 {
     HTArray * array = (HTArray *) context;
     if (PROT_TRACE) HTTrace("News Cache.. AFTER filter\n");

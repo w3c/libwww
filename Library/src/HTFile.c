@@ -416,8 +416,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    */
 	    {
 		BOOL editable = HTEditable(file->local, &file->stat_info);
-		HTBind_getBindings(anchor);
-		if (editable) HTAnchor_appendMethods(anchor, METHOD_PUT);
+		HTBind_getAnchorBindings(anchor);
+		if (editable) HTAnchor_appendAllow(anchor, METHOD_PUT);
 		if (file->stat_info.st_size)
 		    HTAnchor_setLength(anchor, file->stat_info.st_size);
 		if (!editable && !file->stat_info.st_size) {

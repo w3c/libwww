@@ -515,7 +515,8 @@ PUBLIC char * HTGetNewsServer (void)
 */
 PUBLIC time_t HTGetTimeZoneOffset (void)
 {
-    time_t HTTimeZone = 0;
+    static time_t HTTimeZone = -1;		  /* Invalid timezone offset */
+    if (HTTimeZone != -1) return HTTimeZone;		     /* Already done */
 #ifdef HAVE_TIMEZONE
     {
 	time_t cur_t = time(NULL);

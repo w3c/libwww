@@ -206,11 +206,15 @@ for example sent as a HTML document in a HTTP redirection message.
 MIME type <EM>"application/octet-stream"</EM> in that we haven't even tried
 to figure out the content type at this point.
 <PRE>
-#define WWW_CACHE     HTAtom_for("www/cache")
+#define WWW_CACHE         HTAtom_for("www/cache")
+#define WWW_CACHE_APPEND  HTAtom_for("www/cache-append")
 </PRE>
 <P>
 <CODE>WWW_CACHE</CODE> is the internal content-type designated for a persistent
-cache module which can store the object to local storage.
+cache module which can store the object to local storage. The cache append
+format is special in that we append information to an already existing cache
+entry. This can happen if we have issued a <CODE>If-Range </CODE>request
+and got back a "206 Partial response".
 <P>
 These are regular MIME types defined. Others can be added!
 <PRE>
@@ -221,6 +225,7 @@ These are regular MIME types defined. Others can be added!
 #define WWW_MIME	HTAtom_for("message/rfc822")
 #define WWW_MIME_HEAD	HTAtom_for("message/x-rfc822-head")
 #define WWW_MIME_FOOT	HTAtom_for("message/x-rfc822-foot")
+#define WWW_MIME_PART   HTAtom_for("message/x-rfc822-partial")
 
 #define WWW_AUDIO       HTAtom_for("audio/basic")
 

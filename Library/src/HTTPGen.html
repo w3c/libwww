@@ -37,7 +37,7 @@ If <CODE>endHeader</CODE> is YES then we send an empty <CODE>CRLF</CODE>
 in order to end the header.
 <PRE>
 extern HTStream * HTTPGen_new  (HTRequest * request, HTStream * target,
-				BOOL endHeader);
+				BOOL endHeader, int version);
 </PRE>
 <PRE>
 #endif

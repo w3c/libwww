@@ -16,12 +16,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTFormat.h"
-#include "HTAlert.h"
-#include "HTAncMan.h"
-#include "HTList.h"
+#include "WWWUtil.h"
+#include "WWWLib.h"
 #include "HTGuess.h"
 
 #define SAMPLE_SIZE	200	/* Number of chars to look at */
@@ -33,8 +29,8 @@
 struct _HTStream {
 	const HTStreamClass *	isa;
 
-	HTRequest *		req;
-	HTParentAnchor *	anchor;
+	HTRequest *		request;
+        HTResponse *		response;
 	HTFormat		output_format;
 	HTStream *		output_stream;
 	HTStream *		target;
@@ -62,6 +58,7 @@ PRIVATE BOOL is_html (char * buf)
     char * p = strchr(buf,'<');
 
     if (p && (!strncasecomp(p, "<HTML>", 6) ||
+	      !strncasecomp(p, "<!DOCTYPE HTML", 13) ||
 	      !strncasecomp(p, "<HEAD", 5) ||
 	      !strncasecomp(p, "<TITLE>", 7) ||
 	      !strncasecomp(p, "<BODY>", 6) ||
@@ -75,17 +72,19 @@ PRIVATE BOOL is_html (char * buf)
 PRIVATE int HTGuess_flush (HTStream * me)
 {
     if (!me->transparent) {
-	HTParentAnchor * anchor = me->anchor;
-	if (STREAM_TRACE)
-	    HTTrace("GUESSING.... text=%d newline=%d ctrl=%d high=%d\n",
-		     me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
+	HTResponse * response = me->response;
+
+	/*
+	**  First we look for magic tokens and evaluate the contents of the buffer
+	**  that we are investigating. 
+	*/
 	if (me->cnt) {
-	    if (STREAM_TRACE) HTTrace(
-				    "Percentages. text=%d%% newlines=%d%% ctrl=%d%% high=%d%%\n",
-				    (int)(100*me->text_cnt/me->cnt + 0.5),
-				    (int)(100*me->lf_cnt  /me->cnt + 0.5),
-				    (int)(100*me->ctrl_cnt/me->cnt + 0.5),
-				    (int)(100*me->high_cnt/me->cnt + 0.5));
+	    if (STREAM_TRACE)
+		HTTrace("GUESSING.... Result of content analysis: Text=%d%% Newlines=%d%% Ctrl=%d%% High=%d%%\n",
+			(int)(100*me->text_cnt/me->cnt + 0.5),
+			(int)(100*me->lf_cnt  /me->cnt + 0.5),
+			(int)(100*me->ctrl_cnt/me->cnt + 0.5),
+			(int)(100*me->high_cnt/me->cnt + 0.5));
 	}
 	
 	if (!me->ctrl_cnt ||
@@ -96,78 +95,88 @@ PRIVATE int HTGuess_flush (HTStream * me)
 	    *me->write_ptr = 0;	/* terminate buffer */
 	    
 	    if (me->high_cnt > 0)
-		HTAnchor_setTransfer(anchor, WWW_CTE_8BIT);
+		HTResponse_setTransfer(response, WWW_CTE_8BIT);
 	    else
-		HTAnchor_setTransfer(anchor, WWW_CTE_7BIT);
+		HTResponse_setTransfer(response, WWW_CTE_7BIT);
 	    
 	    if (is_html(me->buffer))
-		HTAnchor_setFormat(anchor, HTAtom_for("text/html"));
+		HTResponse_setFormat(response, HTAtom_for("text/html"));
 	    
 	    else if (!strncmp(me->buffer, "%!", 2))
-		HTAnchor_setFormat(anchor, HTAtom_for("application/postscript"));
+		HTResponse_setFormat(response, HTAtom_for("application/postscript"));
 	    
 	    else if (strstr(me->buffer, "#define") &&
 		     strstr(me->buffer, "_width") &&
 		     strstr(me->buffer, "_bits"))
-		HTAnchor_setFormat(anchor, HTAtom_for("image/x-xbitmap"));
+		HTResponse_setFormat(response, HTAtom_for("image/x-xbitmap"));
 	    
 	    else if ((ptr = strstr(me->buffer, "converted with BinHex"))!=NULL)
-		HTAnchor_setTransfer(anchor, WWW_CTE_MACBINHEX);
+		HTResponse_setTransfer(response, WWW_CTE_MACBINHEX);
 
 	    else if (!strncmp(me->buffer, "begin ", 6))
-		HTAnchor_setTransfer(anchor, WWW_CTE_BASE64);
+		HTResponse_setTransfer(response, WWW_CTE_BASE64);
 
 	    else
-		HTAnchor_setFormat(anchor, WWW_PLAINTEXT);
+		HTResponse_setFormat(response, WWW_PLAINTEXT);
 	}
 	else {
 	    if (!strncmp(me->buffer, "GIF", 3))
-		HTAnchor_setFormat(anchor, WWW_GIF);
+		HTResponse_setFormat(response, WWW_GIF);
 
 	    else if (!strncmp(me->buffer, "\377\330\377\340", 4))
-		HTAnchor_setFormat(anchor, WWW_JPEG);
+		HTResponse_setFormat(response, WWW_JPEG);
 
 	    else if (!strcmp(me->buffer, "MM"))	/* MM followed by a zero */
-		HTAnchor_setFormat(anchor, WWW_TIFF);
+		HTResponse_setFormat(response, WWW_TIFF);
 
  	    else if (!strncmp(me->buffer, "\211PNG\r\n\032\n", 8))
- 		HTAnchor_setFormat(anchor, WWW_PNG);
+ 		HTResponse_setFormat(response, WWW_PNG);
 
 	    else if (!strncmp(me->buffer, ".snd", 4))
-		HTAnchor_setFormat(anchor, WWW_AUDIO);
+		HTResponse_setFormat(response, WWW_AUDIO);
 
 	    else if (!strncmp(me->buffer, "\037\235", 2))
-		HTAnchor_addEncoding(anchor, WWW_CE_COMPRESS);
+		HTResponse_addEncoding(response, WWW_CE_COMPRESS);
 
 	    else if (!strncmp(me->buffer, "\037\213", 2))
-		HTAnchor_addEncoding(anchor, WWW_CE_GZIP);
+		HTResponse_addEncoding(response, WWW_CE_GZIP);
 
 	    else
-		HTAnchor_setFormat(anchor, WWW_BINARY);
+		HTResponse_setFormat(response, WWW_BINARY);
 	}
 	
-	if (anchor->content_type == WWW_UNKNOWN)
-	    HTAnchor_setFormat(anchor, WWW_BINARY);
-	if (!anchor->content_encoding)
-	    HTAnchor_setTransfer(anchor, WWW_CTE_BINARY);
-	
+	/*
+	**  If we couldn't find any magic tokens then we try and look at the suffix
+	**  of the URL file name and use our own bindings to see if that gives any
+	**  results.
+	*/
+	if (HTResponse_format(response) == WWW_UNKNOWN) {
+	    HTParentAnchor * anchor = HTRequest_anchor(me->request);
+	    char * addr = HTAnchor_physical(anchor);
+	    if (STREAM_TRACE) HTTrace("GUESSING.... Hmm - trying local bindings\n");
+	    HTBind_getResponseBindings (response, addr);
+	}
+
+	/*
+	**  If nothing worked then give up and say binary...
+	*/
+	if (HTResponse_format(response) == WWW_UNKNOWN) {
+	    if (STREAM_TRACE) HTTrace("GUESSING.... That's it - I'm giving up!\n");
+	    HTResponse_setFormat(response, WWW_BINARY);
+	}
+		
 	if (STREAM_TRACE) {
-	    HTTrace("Guessed..... C-T  : %s\n",
-		    HTAtom_name(anchor->content_type));
-	    HTTrace("............ C-E  : <...>\n");
-
-	    /* @@@ */
-
-	    HTTrace("............ C-T-E: <...>\n");
-
-	    /* @@@ */
-
+	    HTFormat format = HTResponse_format(response);
+	    HTTrace("Guessed..... Content-Type `%s\'\n", HTAtom_name(format));
 	}
-	if ((me->target = HTStreamStack(anchor->content_type,
+
+	/*
+	**  Set up the new stream stack with the type we figured out 
+	*/
+	if ((me->target = HTStreamStack(HTResponse_format(response),
 					me->output_format, me->output_stream,
-					me->req, NO)) == NULL) {
-	    if (STREAM_TRACE)
-		HTTrace("HTGuess..... Can't convert media type\n");
+					me->request, NO)) == NULL) {
+	    if (STREAM_TRACE) HTTrace("HTGuess..... Can't convert media type\n");
 	    me->target = HTErrorStream();
 	}
 	me->transparent = YES;
@@ -256,7 +265,7 @@ PRIVATE const HTStreamClass HTGuessClass =
 	HTGuess_put_block
 };
 
-PUBLIC HTStream * HTGuess_new (HTRequest *	req,
+PUBLIC HTStream * HTGuess_new (HTRequest *	request,
 			       void *		param,
 			       HTFormat		input_format,
 			       HTFormat		output_format,
@@ -266,8 +275,8 @@ PUBLIC HTStream * HTGuess_new (HTRequest *	req,
     if ((me = (HTStream  *) HT_CALLOC(1,sizeof(HTStream))) == NULL)
         HT_OUTOFMEM("HTGuess_new");
     me->isa = &HTGuessClass;
-    me->req = req;
-    me->anchor = HTRequest_anchor(req);
+    me->request = request;
+    me->response = HTRequest_response(request);
     me->output_format = output_format;
     me->output_stream = output_stream;
     me->write_ptr = me->buffer;

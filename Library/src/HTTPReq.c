@@ -88,17 +88,46 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     }
 
     /*
-    ** Generate the Request URI. If we are using full request URI then it's
-    ** easy. Otherwise we must filter out the path part of the URI.
-    ** In case it's a OPTIONS request then if there is no pathinfo then use
-    ** a * instead.
+    **  Generate the Request URI. If we are using full request URI then it's
+    **  easy. Otherwise we must filter out the path part of the URI.
+    **  In case it's a OPTIONS request then if there is no pathinfo then use
+    **  a * instead. If we use a method different from GET or HEAD then use
+    **  the content-location if available.
     */
-    if (me->state == 1) {	
+    if (me->state == 1) {
+	char * abs_location = NULL;
 	char * addr = HTAnchor_physical(anchor);
-	int status = HT_OK;
-	if (HTRequest_fullURI(request)) {
-	    status = PUTS(addr);
-	} else {
+
+	/*
+	**  If we are using a method different from HEAD and GET then use
+	**  the Content-Location if available, else the Request-URI.
+	*/
+	if (!HTMethod_isSafe(method)) {
+	    char * location = HTAnchor_location(anchor);
+	    if (location) {
+		if (HTURL_isAbsolute(location))
+		    addr = location;
+		else {
+		    /*
+		    **  We have a content-location but it is relative and
+		    **  must expand it either to the content-base or to
+		    **  the Request-URI itself.
+		    */
+		    char * base = HTAnchor_base(anchor);
+		    abs_location = HTParse(location, base, PARSE_ALL);
+		    addr = abs_location;
+		}
+	    }
+	}
+
+	/*
+	**  If we are using a proxy or newer versions of HTTP then we can
+	**  send the full URL. Otherwise we only send the path.
+	*/
+	if (HTRequest_fullURI(request))
+	    StrAllocCopy(me->url, addr);
+	else {
+	    me->url = HTParse(addr, "", PARSE_PATH | PARSE_PUNCTUATION);
 	    if (method == METHOD_OPTIONS) {
 		/*
 		** We don't preserve the final slash or lack of same through
@@ -106,18 +135,19 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		** but it gives a problem OPTIONS. We can either send a "*"
 		** or a "/" but not both. For now we send a "*".
 		*/
-		if (!me->url) {
-		    me->url = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
-		    if (!strcmp(me->url, "/")) *me->url = '*';
-		}
-		status = PUTS(me->url);
-	    } else {
-		if (!me->url)
-		    me->url = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
-		status = PUTS(me->url);
+		if (!strcmp(me->url, "/")) *me->url = '*';
 	    }
 	}
-	if (status != HT_OK) return status;
+	HT_FREE(abs_location);
+	me->state++;
+    }
+
+    /*
+    **  Now send the URL that we have put together
+    */
+    if (me->state == 2) {
+	int status = HT_OK;
+	if ((status = PUTS(me->url)) != HT_OK) return status;
 	me->state++;
     }
     PUTC(' ');
@@ -274,9 +304,16 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     /*
     **  In the "If-*" series of headers, the ones related to etags have higher
     **  priority than the date relates ones. That is, if we have a etag then
-    **  use that, otherwise use the date
+    **  use that, otherwise use the date. First we check for range, match, and
+    **  unmodified-since.
     */
-    if (request_mask & HT_C_IF_MATCH && etag) {
+    if (request_mask & HT_C_IF_RANGE && etag) {
+	PUTS("If-Range: \"");
+	PUTS(etag);
+	PUTC('"');
+	PUTBLOCK(crlf, 2);
+	if (PROT_TRACE) HTTrace("HTTP........ If-Range using etag `%s\'\n", etag);
+    } else if (request_mask & HT_C_IF_MATCH && etag) {
 	PUTS("If-Match: \"");
 	PUTS(etag);
 	PUTC('"');
@@ -291,6 +328,12 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    if (PROT_TRACE) HTTrace("HTTP........ If-Unmodified-Since\n");
 	}
     }
+
+    /*
+    **  If-None-Match and If-Modified-Since are equivalent except that the
+    **  first uses etags and the second uses dates. Etags have precedence over
+    **  dates.
+    */
     if (request_mask & HT_C_IF_NONE_MATCH && etag) {
 	PUTS("If-None-Match: \"");
 	PUTS(etag);
@@ -307,11 +350,10 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
     }
 
-    if (request_mask & HT_C_IF_RANGE) {
-
-	/* Not supported */
-
-    }
+    /*
+    **  Max forwards is mainly for TRACE where we want to be able to stop the
+    **  TRACE at a specific location un the message path.
+    */
     if (request_mask & HT_C_MAX_FORWARDS) {
 	int hops = HTRequest_maxForwards(request);
 	if (hops >= 0) {
@@ -321,10 +363,25 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTBLOCK(crlf, 2);
 	}
     }
+
+    /*
+    **  Range requests. For now, we only take the first entry registered for
+    **  this request. This means that you can only send a single "unit" and
+    **  then a set of range within this unit. This is in accordance with 
+    **  HTTP/1.1. Multiple units will go on multiple lines.
+    */
     if (request_mask & HT_C_RANGE) {
-
-	/* Not supported */
-
+	HTAssocList * cur = HTRequest_range(request);
+	if (cur) {				    	   /* Range requests */
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+		PUTS("Range: ");
+		PUTS(HTAssoc_name(pres));			     /* Unit */
+		PUTS("=");
+		PUTS(HTAssoc_value(pres));	  /* Ranges within this unit */
+		PUTBLOCK(crlf, 2);
+	    }
+	}
     }
     if (request_mask & HT_C_REFERER) {
 	HTParentAnchor * parent_anchor = HTRequest_parent(request);
@@ -437,19 +494,17 @@ PRIVATE const HTStreamClass HTTPRequestClass =
 };
 
 PUBLIC HTStream * HTTPRequest_new (HTRequest * request, HTStream * target,
-				   BOOL endHeader)
+				   BOOL endHeader, int version)
 {
-    HTNet * net = HTRequest_net(request);
-    HTHost * host = HTNet_host(net);
     HTStream * me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
         HT_OUTOFMEM("HTTPRequest_new");
     me->isa = &HTTPRequestClass;
     me->target = target;
     me->request = request;
-    me->version = HTHost_version(host);
+    me->version = version;
     me->transparent = NO;
 
     /* Return general HTTP header stream */
-    return HTTPGen_new(request, me, endHeader);
+    return HTTPGen_new(request, me, endHeader, version);
 }

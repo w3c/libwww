@@ -28,7 +28,7 @@ Library</A>.
 #ifndef HTHEADER_H
 #define HTHEADER_H
 
-#include "HTReq.h"
+#include "HTResponse.h"
 #include "HTStream.h"
 </PRE>
 <P>
@@ -37,7 +37,8 @@ needs a stream to put down the extra headers. This one is defined in the
 <A HREF="HTReq.html">Request Manager</A>. The other one is for parsing. This
 needs the string to parse.
 <PRE>
-typedef int HTParserCallback (HTRequest * request, char * token, char * value);
+typedef int HTParserCallback (HTRequest * request, HTResponse * response,
+                              char * token, char * value);
 </PRE>
 <H2>
   Header Parser Management

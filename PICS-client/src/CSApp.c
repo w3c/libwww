@@ -437,9 +437,10 @@ struct _HTStream {
     /* ... */
 };
 
-/* HTNetCallbacks */
-PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status);
-PRIVATE int CSApp_bureauAfter (HTRequest * pReq, void * context, int status)
+/* HTNet Filters */
+PRIVATE HTNetAfter CSApp_bureauError;
+PRIVATE int CSApp_bureauAfter (HTRequest * pReq, HTResponse * response,
+			       void * context, int status)
 {
     ReqParms_t * pReqParms = (ReqParms_t *)context;
     /*    if (!pReqParms || (pReq != pReqParms->pBureauReq))
@@ -459,7 +460,8 @@ PRIVATE int CSApp_bureauAfter (HTRequest * pReq, void * context, int status)
     return HTLoadAnchor((HTAnchor *)pReqParms->anchor, pReq);
 }
 
-PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status)
+PRIVATE int CSApp_bureauError (HTRequest * pReq, HTResponse * response,
+			       void * context, int status)
 {
     ReqParms_t * pReqParms = (ReqParms_t *)context;
     /*    if (!pReqParms || (pReq != pReqParms->pBureauReq))
@@ -469,7 +471,7 @@ PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status)
     return HT_OK;
 }
 
-PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
+PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int mode)
 {
     HTParentAnchor * pParentAnchor;
     ReqParms_t * pReqParms;
@@ -514,10 +516,8 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
     if (PICS_TRACE) HTTrace("PICS: label request:\n%s\n", ptr);
     /* get label and set disposition */
 
-    HTRequest_addAfter(pReq, CSApp_bureauAfter, 
-		       (void *)pReqParms, HT_LOADED, YES);
-    HTRequest_addAfter(pReq, CSApp_bureauError,  
-		       (void *)pReqParms, HT_ERROR, YES);
+    HTRequest_addAfter(pReq, CSApp_bureauAfter, NULL, (void *) pReqParms, HT_LOADED, 5, YES);
+    HTRequest_addAfter(pReq, CSApp_bureauError, NULL, (void *) pReqParms, HT_ERROR, 5, YES);
 
     pParentAnchor = (HTParentAnchor *) HTAnchor_findAddress(ptr);
     if ((ret = HTLoadAnchor((HTAnchor *) pParentAnchor, pReq)) != YES)
@@ -559,7 +559,8 @@ HTTrace("PICS: CSApp_headerGenerator prob\n");
 }
 
 /*HTParserCallback CSApp_headerParser;*/
-PRIVATE int CSApp_headerParser (HTRequest * pReq, char * token, char * value)
+PRIVATE int CSApp_headerParser (HTRequest * pReq, HTResponse * response,
+				char * token, char * value)
 {
     CSParse_t * pCSParse;
     ReqParms_t * pReqParms = ReqParms_getReq(pReq);
@@ -603,7 +604,7 @@ PUBLIC BOOL CSApp_registerApp(CSDisposition_callback * pCallback,
         ListWithHeaderGenerator = HTList_new();
     HTList_addObject(ListWithHeaderGenerator, (void *)CSApp_headerGenerator);
     /*    HTHeader_addGenerator(CSApp_headerGenerator); */
-    HTNetCall_addBefore(CSApp_netBefore, NULL, HT_ALL);
+    HTNet_addBefore(CSApp_netBefore, NULL, NULL, 5);
     HTHeader_addParser(S_mimeLabel, FALSE, CSApp_headerParser);
 
     /* set converters so pics profiles may be read */

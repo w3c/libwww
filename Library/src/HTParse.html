@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Reference Library libwww URIs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww URI Management</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  URI Parsing
+  URI Management
 </H1>
 <PRE>
 /*
@@ -76,23 +76,33 @@ extern char * HTParse  (const char * aName, const char * relatedName,
 This function creates and returns a string which gives an expression of one
 address as related to another. Where there is no relation, an absolute address
 is retured.
-<H3>
-  On entry,
-</H3>
-<P>
-Both names must be absolute, fully qualified names of nodes (no anchor bits)
-<H3>
-  On exit,
-</H3>
-<P>
-The return result points to a newly allocated name which, if parsed by HTParse
-relative to relatedName, will yield aName. The caller is responsible for
-freeing the resulting name later.
+<DL>
+  <DT>
+    On entry,
+  <DD>
+    Both names must be absolute, fully qualified names of nodes (no anchor bits)
+  <DT>
+    On exit,
+  <DD>
+    The return result points to a newly allocated name which, if parsed by HTParse
+    relative to relatedName, will yield aName. The caller is responsible for
+    freeing the resulting name later.
+</DL>
 <PRE>
 extern char * HTRelative (const char * aName, const char *relatedName);
 </PRE>
 <H2>
-  Canonicalization
+  Is a URL Relative or Absolute?
+</H2>
+<P>
+Search the URL and determine whether it is a relative or absolute URL. We
+check to see if there is a ":" before any "/", "?", and "#". If this is the
+case then we say it is absolute. Otherwise we say it is relative.
+<PRE>
+extern BOOL HTURL_isAbsolute (const char * url);
+</PRE>
+<H2>
+  URL Canonicalization
 </H2>
 <P>
 Canonicalization of URIs is a difficult job, but it saves a lot of down loads

@@ -295,6 +295,24 @@ PRIVATE char * HTCanon (char ** filename, char * host)
     return path;
 }
 
+/*
+**  Search the URL and determine whether it is a relative or absolute URL.
+**  We check to see if there is a ":" before any "/", "?", and "#". If this
+**  is the case then we say it is absolute. Otherwise it is relative.
+*/
+PUBLIC BOOL HTURL_isAbsolute (const char * url)
+{    
+    if (url) {	
+	const char * ptr = url;
+	while (*ptr) {
+	    if (*ptr == ':') return YES;
+	    if (*ptr == '/' || *ptr == '?' || *ptr == '#') break;
+	    ptr ++;
+	}
+    }	
+    return NO;
+}
+
 /*	        Simplify a URI
 //		--------------
 // A URI is allowed to contain the seqeunce xxx/../ which may be

@@ -82,6 +82,8 @@ extern const char * HTCacheMode_getRoot	(void);
 We set the default cache size to 20M. We set the minimum size to 5M in order
 not to get into weird problems while writing the cache. The size is indicated
 in Mega bytes. The size is given in MBytes and is also returned in MBytes.
+We don't consider the metainformation as part of the total cache size which
+is the the reason for why the min cache size should not be less than 5M.
 <PRE>
 extern BOOL HTCacheMode_setMaxSize (int size);
 extern int  HTCacheMode_maxSize    (void);
@@ -172,22 +174,30 @@ Filling the cache is done as all other transportation of bulk data in libwww
 using <A HREF="HTStream.html">streams</A>. The cache object creater is a
 stream which in many cases sits on a <A HREF="HTTee.html">T stream</A> so
 that we get the original feed and at the same time can parse the contents.
+<P>
+In some situations, we want to append data to an already exiting cache entry.
+This is the case when a use has interrupted a download and we are stuck with
+a subpart of the document. If the user later on whishes to download the object
+again we can issue a range request and continue from where we were. This
+will in many situations save a lot of bandwidth.
 <PRE>
-extern HTConverter HTCacheWriter;
+extern HTConverter HTCacheWriter, HTCacheAppend;
 </PRE>
 <P>
 This function writes the metainformation along with the data object stored
 by the HTCacheWriter stream above. If no headers are available then the meta
 file is empty
 <PRE>
-extern BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request);
+extern BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request,
+                               HTResponse * response);
 </PRE>
 <P>
 In case we received a "<CODE>304 Not Modified</CODE>" response then we do
 not have to tough the body but must merge the metainformation with the previous
 version. Therefore we need a special metainformation update function.
 <PRE>
-extern BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request);
+extern BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
+                                HTResponse * response);
 </PRE>
 <H3>
   Load a Cached Object
@@ -238,18 +248,6 @@ for example it might have expired. Use the cache validation methods for checking
 this.
 <PRE>
 extern HTCache * HTCache_find (HTParentAnchor * anchor);
-</PRE>
-<H3>
-  Set the Size of a Cached Object
-</H3>
-<P>
-Set and get the size of a cached object. We don't consider the metainformation
-as part of the size which is the the reason for why the min cache size should
-not be less than 5M. When we set the cache size we also check whether we
-should run the gc or not.
-<PRE>
-extern BOOL HTCache_setSize (HTCache * cache, long size);
-extern long HTCache_size    (HTCache * cache);
 </PRE>
 <H3>
   Verify if an Object is Fresh

@@ -12,6 +12,7 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "HTParse.h"
+#include "HTInet.h"
 #include "HTUser.h"
 #include "HTWWWStr.h"					 /* Implemented here */
 
@@ -339,7 +340,7 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand)
 
 #ifdef HAVE_MKTIME
     t = mktime(&tm);
-    t += (HTUserProfile_timezone(up));
+    t += (up ? HTUserProfile_timezone(up) : HTGetTimeZoneOffset());
 #else
 #ifdef HAVE_TIMEGM
     t = timegm(&tm);

@@ -39,8 +39,8 @@
 
 struct _HTAAModule {
     char *		scheme;
-    HTNetCallback *	before;
-    HTNetCallback *	after;
+    HTNetBefore *	before;
+    HTNetAfter *	after;
     HTUTree_gc *	gc;
 };
 
@@ -79,8 +79,8 @@ PRIVATE HTAAModule * find_module (const char * scheme)
 }
 
 PUBLIC HTAAModule * HTAA_newModule (const char *	scheme,
-				    HTNetCallback *	before,
-				    HTNetCallback *	after,
+				    HTNetBefore *	before,
+				    HTNetAfter *	after,
 				    HTUTree_gc *	gc)
 {
     if (scheme) {
@@ -338,7 +338,7 @@ PUBLIC void * HTAA_updateNode (BOOL proxy_access, char const * scheme,
 **	this URL and hence we don't call any BEFORE filters at all.
 **	Return HT_OK or whatever callback returns
 */
-PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int mode)
 {
     char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
     const char * realm = HTRequest_realm(request);
@@ -349,12 +349,9 @@ PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
     if (element) {
 	HTAAModule * module = HTAA_findModule(element->scheme);
 	if (module) {
-
-	    /* Delete any old challenges if any */
-	    HTRequest_deleteChallenge(request);
 	    if (AUTH_TRACE) HTTrace("Auth Engine. Found BEFORE filter %p\n",
-				   module->before);
-	    return (*module->before)(request, element->context,status);
+				    module->before);
+	    return (*module->before)(request, element->context, mode);
 	}
     }
     return HT_OK;
@@ -365,9 +362,10 @@ PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
 **	Call the AFTER filter that knows how to handle this scheme.
 **	Return YES or whatever callback returns
 */
-PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTAA_afterFilter (HTRequest * request, HTResponse * response,
+			     void * param, int status)
 {
-    const char * scheme = HTRequest_scheme(request);
+    const char * scheme = HTResponse_scheme(response);
     HTAAModule * module = NULL;
     if (AUTH_TRACE) HTTrace("Auth Engine. After filter status %d\n", status);
     /*
@@ -375,14 +373,14 @@ PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
     **  try to make up for it by creating our own "noop" realm and use basic.
     */
     if (!scheme) {
-	HTRequest_addChallenge(request, "basic", "realm LIBWWW-UNKNOWN");
+	HTResponse_addChallenge(response, "basic", "realm LIBWWW-UNKNOWN");
 	scheme = "basic";
     }
     if ((module = HTAA_findModule(scheme)) != NULL) {
 	if (AUTH_TRACE)
 	    HTTrace("Auth Engine. Found AFTER filter %p\n", module->after);
-	HTRequest_deleteCredentials(request);
-	return (*module->after)(request, NULL, status);
+	HTRequest_deleteCredentialsAll(request);
+	return (*module->after)(request, response, NULL, status);
     }
     return HT_ERROR;
 }
@@ -394,7 +392,7 @@ PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
 **	this URL and hence we don't call any BEFORE filters at all.
 **	Return HT_OK or whatever callback returns
 */
-PUBLIC int HTAA_proxyBeforeFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTAA_proxyBeforeFilter (HTRequest * request, void * param, int mode)
 {
     char * url = HTRequest_proxy(request);
 
@@ -410,9 +408,6 @@ PUBLIC int HTAA_proxyBeforeFilter (HTRequest * request, void * param, int status
 	if (element) {
 	    HTAAModule * module = HTAA_findModule(element->scheme);
 	    if (module) {
-
-		/* Delete any old challenges if any */
-		HTRequest_deleteChallenge(request);
 		if (AUTH_TRACE)
 		    HTTrace("Auth Engine. Found Proxy BEFORE filter %p with context %p\n",
 			    module->before, element->context);

@@ -1,5 +1,5 @@
 /*								     HTNet.c
-**	ASYNCRONOUS SOCKET MANAGEMENT
+**	HTNet Class
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -36,19 +36,28 @@
 
 #define HASH_SIZE	67
 
-typedef struct _NetCall {
-    HTNetCallback *	cbf;
+typedef struct _BeforeFilter {
+    HTNetBefore *	before;				  /* Filter function */
+    char *		tmplate;     /* URL template for when to call filter */
+    int			order;			 /* Relative execution order */
     void *		param;				    /* Local context */
-    int 		status;	     /* Status associated with this callback */
-} NetCall;
+} BeforeFilter;
+
+typedef struct _AfterFilter {
+    HTNetAfter *	after;				  /* Filter function */
+    char *		tmplate;     /* URL template for when to call filter */
+    int			order;			 /* Relative execution order */
+    void *		param;				    /* Local context */
+    int			status;	   /* Status of load for when to call filter */
+} AfterFilter;
 
 struct _HTStream {
     const HTStreamClass *	isa;
     /* ... */
 };
 
-PRIVATE HTList *HTBefore = NULL;	      /* List of call back functions */
-PRIVATE HTList *HTAfter = NULL;	      	      /* List of call back functions */
+PRIVATE HTList * HTBefore = NULL;	    /* List of global BEFORE filters */
+PRIVATE HTList * HTAfter = NULL;	     /* List of global AFTER filters */
 
 PRIVATE int MaxActive = HT_MAX_SOCKETS;  	      /* Max active requests */
 PRIVATE int Active = 0;				      /* Counts open sockets */
@@ -58,77 +67,83 @@ PRIVATE HTList ** NetTable = NULL;		      /* List of net objects */
 PRIVATE int HTNetCount = 0;		       /* Counting elements in table */
 
 /* ------------------------------------------------------------------------- */
-/*			  BEFORE and AFTER filters			     */
+/*		   GENERIC BEFORE and AFTER filter Management		     */
 /* ------------------------------------------------------------------------- */
 
-/*	HTNetCall_add
-**	-------------
-**	Register a call back function that is to be called on every request.
-**	Several call back functions can be registered
-**	in which case all of them are called in the order of which they
-**	were registered.
-**
-**	The status signifies which call back function to call depending of the 
-**	result of the request. This can be
-**
-**		HT_ERROR	An error occured
-**		HT_LOADED	The document was loaded
-**		HT_NO_DATA	OK, but no data
-**		HT_REDIRECT	If we received a redirection
-**		HT_RETRY	Retry request after at a later time
-**		HT_ALL		All of above
-*/
-PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback * cbf,
-			   void * param, int status)
+PRIVATE int HTBeforeOrder (const void * a, const void * b)
 {
-    if (CORE_TRACE) 
-	HTTrace("Net Filter.. Add %p with context %p\n",
-		(void *) cbf, param);
-    if (list && cbf) {
-	NetCall *me;
-	if ((me = (NetCall  *) HT_CALLOC(1, sizeof(NetCall))) == NULL)
-	    HT_OUTOFMEM("HTNetCall_add");
-	me->cbf = cbf;
+    return ((BeforeFilter *) b)->order - ((BeforeFilter *) a)->order;
+}
+
+PRIVATE int HTAfterOrder (const void * a, const void * b)
+{
+    return ((AfterFilter *) b)->order - ((AfterFilter *) a)->order;
+}
+
+PRIVATE int check_order (int order)
+{
+    return (order<HT_FILTER_FIRST) ? HT_FILTER_FIRST :
+	(order>HT_FILTER_LAST) ? HT_FILTER_LAST : order;
+}
+
+/*
+**	Register a BEFORE filter in the list provided by the caller.
+**	Several filters can be registered in which case they are called
+**	with the filter ordering in mind.
+*/
+PUBLIC BOOL HTNetCall_addBefore (HTList * list, HTNetBefore * before,
+				 const char * tmplate, void * param, 
+				 int order)
+{
+    if (list && before) {
+	BeforeFilter * me;
+	if ((me = (BeforeFilter *) HT_CALLOC(1, sizeof(BeforeFilter)))==NULL)
+	    HT_OUTOFMEM("HTNetCall_addBefore");
+	me->before = before;
+	if (tmplate) StrAllocCopy(me->tmplate, tmplate);
+	me->order = check_order(order);
 	me->param = param;
-	me->status = status;
-	return HTList_addObject(list, (void *) me);
+	if (CORE_TRACE)
+	    HTTrace("Net Before.. Add %p with order %d tmplate `%s\' context %p\n",
+		    before, me->order, tmplate ? tmplate : "<null>", param);
+	return (HTList_addObject(list, me) &&
+		HTList_insertionSort(list, HTBeforeOrder));
     }
     return NO;
 }
 
-/*	HTNetCall_delete
-**	----------------
-**	Unregister a call back function from a list
+/*
+**	Unregister all instances of a BEFORE filter from a list.
 */
-PUBLIC BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf)
+PUBLIC BOOL HTNetCall_deleteBefore (HTList * list, HTNetBefore * before)
 {
-    if (CORE_TRACE) HTTrace("Net Filter.. Delete %p\n", (void *) cbf);
-    if (list && cbf) {
-	HTList *cur = list;
-	NetCall *pres;
-	while ((pres = (NetCall *) HTList_nextObject(cur))) {
-	    if (pres->cbf == cbf) {
+    if (CORE_TRACE) HTTrace("Net Before.. Delete %p\n", before);
+    if (list && before) {
+	HTList * cur = list;
+	BeforeFilter * pres;
+	while ((pres = (BeforeFilter *) HTList_nextObject(list))) {
+	    if (pres->before == before) {
 		HTList_removeObject(list, (void *) pres);
+		HT_FREE(pres->tmplate);
 		HT_FREE(pres);
-		return YES;
+		cur = list;
 	    }
 	}
     }
     return NO;
 }
 
-/*	HTNetCall_deleteAll
-**	-------------------
-**	Unregisters all call back functions
+/*
+**	Deletes all BEFORE filters in list
 */
-PUBLIC BOOL HTNetCall_deleteAll (HTList * list)
+PUBLIC BOOL HTNetCall_deleteBeforeAll (HTList * list)
 {
-    if (CORE_TRACE) HTTrace("Net Filter. Delete All filters\n");
+    if (CORE_TRACE) HTTrace("Net Before. Delete All filters\n");
     if (list) {
-	HTList *cur = list;
-	NetCall *pres;
-	while ((pres = (NetCall *) HTList_nextObject(cur))) {
-	    HTList_removeObject(list, (void *) pres);
+	HTList * cur = list;
+	BeforeFilter * pres;
+	while ((pres = (BeforeFilter *) HTList_nextObject(cur))) {
+	    HT_FREE(pres->tmplate);
 	    HT_FREE(pres);
 	}
 	HTList_delete(list);
@@ -137,34 +152,164 @@ PUBLIC BOOL HTNetCall_deleteAll (HTList * list)
     return NO;
 }
 
-/*	HTNetCall_execute
-**	-----------------
-**	Call all the call back functions registered in the list IF not the 
-**	status is HT_IGNORE.
-**	The callback functions are called in the order of which they
-**	were registered. At the moment an application callback function is
-**	called, it can free the request object - it is no longer used by the
-**	Library.
-**	Returns what the last callback function returns
+/*
+**	Call all the BEFORE filters in the order specified at registration
+**	time. We also check for any template and whether it matches or not. 
+**	If a filter returns other than HT_OK then stop and return immediately.
+**	Otherwise return what the last filter returns.
 */
-PUBLIC int HTNetCall_execute (HTList * list, HTRequest * request, int status)
+PUBLIC int HTNetCall_executeBefore (HTList * list, HTRequest * request)
 {
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * url = HTAnchor_physical(anchor);
+    char * addr = url ? url : HTAnchor_address((HTAnchor *) anchor);
     int ret = HT_OK;
-    if (list && request && status != HT_IGNORE) {	
-	int cnt = HTList_count(list);
-	while (--cnt >= 0) {
-	    NetCall *pres = (NetCall *) HTList_objectAt(list, cnt);
-	    if (pres && (pres->status == status || pres->status == HT_ALL)) {
-		if (CORE_TRACE)
-		    HTTrace("Net Filter.. %p (request=%p, status=%d)\n",
-			    (void *) pres->cbf, request, status);
-		if ((ret=(*(pres->cbf))(request, pres->param,status)) != HT_OK)
-		    break;
+    int mode = 0;    
+    if (list && request && addr) {
+	BeforeFilter * pres;	
+	while ((pres = (BeforeFilter *) HTList_nextObject(list))) {
+	    if (!pres->tmplate ||
+		(pres->tmplate && HTStrMatch(pres->tmplate, addr))) {
+		if (CORE_TRACE) HTTrace("Net Before.. calling %p (request %p, context %p)\n",
+					pres->before,
+					request, pres->param);
+		ret = (*pres->before)(request, pres->param, mode);
+		if (ret != HT_OK) break;
 	    }
 	}
     }
+    if (!url) HT_FREE(addr);
     return ret;
 }
+
+/*
+**	Register a AFTER filter in the list provided by the caller.
+**	Several filters can be registered in which case they are called
+**	with the filter ordering in mind.
+*/
+PUBLIC BOOL HTNetCall_addAfter (HTList * list, HTNetAfter * after,
+				const char * tmplate, void * param,
+				int status, int order)
+{
+    if (list && after) {
+	AfterFilter * me;
+	if ((me = (AfterFilter *) HT_CALLOC(1, sizeof(AfterFilter)))==NULL)
+	    HT_OUTOFMEM("HTNetCall_addAfter");
+	me->after = after;
+	if (tmplate) StrAllocCopy(me->tmplate, tmplate);
+	me->order = check_order(order);
+	me->param = param;
+	me->status = status;
+	if (CORE_TRACE)
+	    HTTrace("Net After... Add %p with order %d tmplate `%s\' code %d context %p\n",
+		    after, me->order, tmplate ? tmplate : "<null>", status, param);
+	return (HTList_addObject(list, me) &&
+		HTList_insertionSort(list, HTAfterOrder));
+    }
+    return NO;
+}
+
+/*
+**	Unregister all instances of an AFTER filter from a list.
+*/
+PUBLIC BOOL HTNetCall_deleteAfter (HTList * list, HTNetAfter * after)
+{
+    if (CORE_TRACE) HTTrace("Net After... Delete %p\n", after);
+    if (list && after) {
+	HTList * cur = list;
+	AfterFilter * pres;
+	while ((pres = (AfterFilter *) HTList_nextObject(cur))) {
+	    if (pres->after == after) {
+		HTList_removeObject(list, (void *) pres);
+		HT_FREE(pres->tmplate);
+		HT_FREE(pres);
+		cur = list;
+	    }
+	}
+    }
+    return NO;
+}
+
+/*
+**	Unregister all filters registered for a given status.
+*/
+PUBLIC BOOL HTNetCall_deleteAfterStatus (HTList * list, int status)
+{
+    if (CORE_TRACE) HTTrace("Net After... Delete all with status %d\n",status);
+    if (list) {
+	HTList * cur = list;
+	AfterFilter * pres;
+	while ((pres = (AfterFilter *) HTList_nextObject(cur))) {
+	    if (pres->status == status) {
+		HTList_removeObject(list, (void *) pres);
+		HT_FREE(pres->tmplate);
+		HT_FREE(pres);
+		cur = list;
+	    }
+	}
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Deletes all AFTER filters in list
+*/
+PUBLIC BOOL HTNetCall_deleteAfterAll (HTList * list)
+{
+    if (CORE_TRACE) HTTrace("Net After. Delete All filters\n");
+    if (list) {
+	HTList * cur = list;
+	AfterFilter * pres;
+	while ((pres = (AfterFilter *) HTList_nextObject(cur))) {
+	    HT_FREE(pres->tmplate);
+	    HT_FREE(pres);
+	}
+	HTList_delete(list);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Call all the AFTER filters in the order specified at registration
+**	time and if it has the right status code and it's not HT_IGNORE.
+**	We also check for any template and whether it matches or not.
+**	If a filter returns other than HT_OK then stop and return immediately.
+**	Otherwise return what the last filter returns.
+*/
+PUBLIC int HTNetCall_executeAfter (HTList * list, HTRequest * request,
+				   int status)
+{
+    int ret = HT_OK;
+    if (status != HT_IGNORE) {
+	HTParentAnchor * anchor = HTRequest_anchor(request);
+	char * url = HTAnchor_physical(anchor);
+	char * addr = url ? url : HTAnchor_address((HTAnchor *) anchor);
+	HTResponse * response = HTRequest_response(request);
+	if (list && request && addr) {
+	    AfterFilter * pres;
+	    while ((pres = (AfterFilter *) HTList_nextObject(list))) {
+		if ((pres->status == status || pres->status == HT_ALL) &&
+		    (!pres->tmplate ||
+		     (pres->tmplate && HTStrMatch(pres->tmplate, addr)))) {
+		    if (CORE_TRACE)
+			HTTrace("Net After... calling %p (request %p, response %p, status %d, context %p)\n",
+				pres->after, request, response,
+				status, pres->param);
+		    ret = (*pres->after)(request, response, pres->param, status);
+		    if (ret != HT_OK) break;
+		}
+	    }
+	}
+	if (!url) HT_FREE(addr);
+    }
+    return ret;
+}
+
+/* ------------------------------------------------------------------------- */
+/*		   GLOBAL BEFORE and AFTER filter Management		     */
+/* ------------------------------------------------------------------------- */
 
 /*
 **	Global set of callback functions BEFORE the request is issued
@@ -172,7 +317,6 @@ PUBLIC int HTNetCall_execute (HTList * list, HTRequest * request, int status)
 */
 PUBLIC BOOL HTNet_setBefore (HTList *list)
 {
-/*    if (HTBefore) HTNetCall_deleteAll(HTBefore); */
     HTBefore = list;
     return YES;
 }
@@ -182,30 +326,31 @@ PUBLIC HTList * HTNet_before (void)
     return HTBefore;
 }
 
-PUBLIC int HTNet_callBefore (HTRequest *request, int status)
+PUBLIC BOOL HTNet_addBefore (HTNetBefore * before, const char * tmplate,
+			     void * param, int order)
+{
+    if (!HTBefore) HTBefore = HTList_new();
+    return HTNetCall_addBefore(HTBefore, before, tmplate, param, order);
+}
+
+PUBLIC BOOL HTNet_deleteBefore (HTNetBefore * cbf)
+{
+    return HTNetCall_deleteBefore(HTBefore, cbf);
+}
+
+/*
+**  Call both the local and the global BEFORE filters (if any)
+*/
+PUBLIC int HTNet_executeBeforeAll (HTRequest * request)
 {
     int ret;
     BOOL override = NO;
     HTList * befores;
-
     if ((befores = HTRequest_before(request, &override))) {
-         if ((ret = HTNetCall_execute(befores, request, status)) != HT_OK)
-	     return ret;
+	if ((ret = HTNetCall_executeBefore(befores, request)) != HT_OK)
+	    return ret;
     }
-    if (override)
-        return HT_OK;
-    return HTNetCall_execute(HTBefore, request, status);
-}
-
-PUBLIC BOOL HTNetCall_addBefore (HTNetCallback * cbf, void * param, int status)
-{
-    if (!HTBefore) HTBefore = HTList_new();
-    return HTNetCall_add(HTBefore, cbf, param, status);
-}
-
-PUBLIC BOOL HTNetCall_deleteBefore (HTNetCallback * cbf)
-{
-    return HTNetCall_delete(HTBefore, cbf);
+    return override ? HT_OK : HTNetCall_executeBefore(HTBefore, request);
 }
 
 /*
@@ -214,7 +359,6 @@ PUBLIC BOOL HTNetCall_deleteBefore (HTNetCallback * cbf)
 */
 PUBLIC BOOL HTNet_setAfter (HTList *list)
 {
-/*    if (HTAfter) HTNetCall_deleteAll(HTAfter); */
     HTAfter = list;
     return YES;
 }
@@ -224,30 +368,36 @@ PUBLIC HTList * HTNet_after (void)
     return HTAfter;
 }
 
-PUBLIC int HTNet_callAfter (HTRequest *request, int status)
+PUBLIC BOOL HTNet_addAfter (HTNetAfter * after, const char * tmplate,
+			    void * param, int status, int order)
+{
+    if (!HTAfter) HTAfter = HTList_new();
+    return HTNetCall_addAfter(HTAfter, after, tmplate, param, status, order);
+}
+
+PUBLIC BOOL HTNet_deleteAfter (HTNetAfter * cbf)
+{
+    return HTNetCall_deleteAfter(HTAfter, cbf);
+}
+
+PUBLIC BOOL HTNet_deleteAfterStatus (int status)
+{
+    return HTNetCall_deleteAfterStatus(HTAfter, status);
+}
+
+/*
+**  Call both the local and the global AFTER filters (if any)
+*/
+PUBLIC int HTNet_executeAfterAll (HTRequest * request, int status)
 {
     int ret;
     BOOL override = NO;
     HTList * afters;
-
     if ((afters = HTRequest_after(request, &override))) {
-         if ((ret = HTNetCall_execute(afters, request, status)) != HT_OK)
-	     return ret;
+	if ((ret = HTNetCall_executeAfter(afters, request, status)) != HT_OK)
+	    return ret;
     }
-    if (override)
-        return HT_OK;
-    return HTNetCall_execute(HTAfter, request, status);
-}
-
-PUBLIC BOOL HTNetCall_addAfter (HTNetCallback * cbf, void * param, int status)
-{
-    if (!HTAfter) HTAfter = HTList_new();
-    return HTNetCall_add(HTAfter, cbf, param, status);
-}
-
-PUBLIC BOOL HTNetCall_deleteAfter (HTNetCallback * cbf)
-{
-    return HTNetCall_delete(HTAfter, cbf);
+    return override ? HT_OK : HTNetCall_executeAfter(HTAfter, request, status);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -472,13 +622,13 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     ** continue with this request or not. If we receive a callback status
     ** that is NOT HT_OK then jump directly to the after callbacks and return
     */
-    if ((status = HTNet_callBefore(request, HT_OK)) != HT_OK) {
-	HTNet_callAfter(request, status);
+    if ((status = HTNet_executeBeforeAll(request)) != HT_OK) {
+	HTNet_executeAfterAll(request, status);
 	return YES;
     }
 
     /*
-    ** If no translation was provided by the application then use the anchor
+    ** If no translation was provided by the filters then use the anchor
     ** address directly
     */
     if (!(physical = HTAnchor_physical(anchor))) {
@@ -656,7 +806,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	}
 
     	/* Call AFTER filters */
-	HTNet_callAfter(request, status);
+	HTNet_executeAfterAll(request, status);
         return YES;
     }
     return NO;

@@ -202,10 +202,10 @@ PRIVATE BOOL basic_credentials (HTRequest * request, HTBasic * basic)
 **	stored as an association list in the request object.
 **	This is a callback function for the AA handler.
 */
-PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
+PUBLIC int HTBasic_generate (HTRequest * request, void * context, int mode)
 { 
     HTBasic * basic = (HTBasic *) context;
-    BOOL proxy = status==HT_NO_PROXY_ACCESS ? YES : NO;
+    BOOL proxy = mode==HT_NO_PROXY_ACCESS ? YES : NO;
     if (request) {
 	const char * realm = HTRequest_realm(request);
 
@@ -249,9 +249,10 @@ PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
 **	the right set of credentials to generate.
 **	The function is a callback function for the AA handler.
 */
-PUBLIC int HTBasic_parse (HTRequest * request, void * context, int status)
+PUBLIC int HTBasic_parse (HTRequest * request, HTResponse * response,
+			  void * context, int status)
 {
-    HTAssocList * challenge = HTRequest_challenge(request);
+    HTAssocList * challenge = HTResponse_challenge(response);
     HTBasic * basic = NULL;
     BOOL proxy = status==HT_NO_PROXY_ACCESS ? YES : NO;
     if (request && challenge) {
@@ -434,10 +435,10 @@ PRIVATE BOOL digest_credentials (HTRequest * request, HTDigest * digest)
 **	stored as an association list in the request object.
 **	This is a callback function for the AA handler.
 */
-PUBLIC int HTDigest_generate (HTRequest * request, void * context, int status)
+PUBLIC int HTDigest_generate (HTRequest * request, void * context, int mode)
 { 
     HTDigest * digest = (HTDigest *) context;
-    BOOL proxy = status==HT_NO_PROXY_ACCESS ? YES : NO;
+    BOOL proxy = mode==HT_NO_PROXY_ACCESS ? YES : NO;
     if (request) {
 	const char * realm = HTRequest_realm(request);
 
@@ -482,9 +483,10 @@ PUBLIC int HTDigest_generate (HTRequest * request, void * context, int status)
 **	the right set of credentials to generate.
 **	The function is a callback function for the AA handler.
 */
-PUBLIC int HTDigest_parse (HTRequest * request, void * context, int status)
+PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
+			   void * context, int status)
 {
-    HTAssocList * challenge = HTRequest_challenge(request);
+    HTAssocList * challenge = HTResponse_challenge(response);
     HTDigest * digest = NULL;    
     BOOL proxy = status==HT_NO_PROXY_ACCESS ? YES : NO;
     if (request && challenge) {

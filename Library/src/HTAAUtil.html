@@ -106,8 +106,8 @@ of the callback function must have the type as defined below.
 typedef struct _HTAAModule HTAAModule;
 
 extern HTAAModule * HTAA_newModule (const char *		scheme,
-				    HTNetCallback *		before,
-				    HTNetCallback *		after,
+				    HTNetBefore *		before,
+				    HTNetAfter *		after,
 				    HTUTree_gc *		gc);
 </PRE>
 <H3>
@@ -169,14 +169,16 @@ As mentioned, the <I>Access Authentication Manager</I> is itself a set of
 Make a lookup in the URL tree to find any context for this node, If no context
 is found then we assume that we don't know anything about this URL and hence
 we don't call any <I>BEFORE</I> filters at all.
-<PRE>extern int HTAA_beforeFilter (HTRequest * request, void * param, int status);
+<PRE>
+HTNetBefore HTAA_beforeFilter;
 </PRE>
 <H3>
   After Filter
 </H3>
 <P>
 Call the <I>AFTER</I> filter that knows how to handle this scheme.
-<PRE>extern BOOL HTAA_afterFilter (HTRequest * request, void * param, int status);
+<PRE>
+HTNetAfter HTAA_afterFilter;
 </PRE>
 <H3>
   Proxy Authentication Filter
@@ -192,7 +194,7 @@ as the out going filter is identical to the normal authentication filter.
 The filter requires to be called after a proxy filter as we otherwise don't
 know whether we are using a proxy or not.
 <PRE>
-extern int HTAA_proxyBeforeFilter (HTRequest * request, void * param, int status);
+HTNetBefore HTAA_proxyBeforeFilter;
 </PRE>
 <PRE>
 #endif	/* NOT HTAAUTIL_H */

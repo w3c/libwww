@@ -26,6 +26,12 @@ typedef struct _HTBufItem {
     struct _HTBufItem *	next;
 } HTBufItem;
 
+typedef enum _BufferState {
+    HT_BUFFER_OK	= 0,		/* Buffering is OK */
+    HT_BUFFER_PAUSE,			/* Buffer full and we pause */
+    HT_BUFFER_TRANSPARENT		/* Don't buffer anymore data */
+} BufferState;
+
 struct _HTStream {
     HTStreamClass *	isa;
     HTRequest *		request;
@@ -41,8 +47,9 @@ struct _HTStream {
     int			cur_size;
     int			conlen;
 
-    BOOL		ignore;
-    BOOL		give_up;
+    BOOL		count;     /* Count the length or just do buffering? */
+    BOOL		pause;	      /* Pause or flush when buffer is full? */
+    BufferState		state;			   /* State of the buffering */
 };
 
 /* ------------------------------------------------------------------------- */
@@ -119,46 +126,96 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
     return NO;
 }
 
+/*
+**	After flushing the buffer we go into transparent mode so that we still
+**	can handle incoming data. If we already are in transparent mode then
+**	don't do anything.
+*/
 PRIVATE int buf_flush (HTStream * me)
 {
-    HTBufItem * cur;
-    if (me->tmp_buf) append_buf(me);
-    while ((cur = me->head)) {
-	int status;
-	if ((status = PUTBLOCK(cur->buf, cur->len)) != HT_OK) return status;
-	me->head = cur->next;
-	free_buf(cur);
+    if (me->state != HT_BUFFER_TRANSPARENT) {
+	HTBufItem * cur;
+	if (me->tmp_buf) append_buf(me);
+	while ((cur = me->head)) {
+	    int status;
+	    if ((status = PUTBLOCK(cur->buf, cur->len)) != HT_OK) {
+		return status;
+	    }
+	    me->head = cur->next;
+	    free_buf(cur);
+	}
+	me->state = HT_BUFFER_TRANSPARENT;		/* No more buffering */
     }
-    me->give_up = YES;
     return HT_OK;
 }
 
 PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
 {
+    /*
+    **  If we are in pause mode then don't write anything but return PAUSE.
+    **  The upper stream should then respect it and don't write any more data.
+    */
+    if (me->state == HT_BUFFER_PAUSE) return HT_PAUSE;
+
+    /*
+    **  Start handling the incoming data. If we are still buffering then add
+    **  it to the buffer. Otherwise just pump it through. Note that we still
+    **  count the length - even if we have given up buffering!
+    */
     me->conlen += l;
-    if (!me->give_up) {
+    if (me->state == HT_BUFFER_OK) {
+
+	/*
+	**  If there is still room in the existing chunk then fill it up.
+	**  Otherwise create a new chunk and add it to the linked list of
+	**  chunks. If the buffer fills up then either return HT_PAUSE or
+	**  flush it and go transparent.
+	*/
 	if (me->tmp_buf && me->tmp_max-me->tmp_ind >= l) {     /* Still room */
 	    memcpy(me->tmp_buf + me->tmp_ind, b, l);
 	    me->tmp_ind += l;
 	    return HT_OK;
 	} else {
+
+	    /*
+	    **  Add the temporary buffer (if any) to the list of chunks
+	    */
 	    if (me->tmp_buf) append_buf(me);
+
+	    /*
+	    **  Find the right size of the next chunk. We increase the size
+	    **  exponentially until we reach HT_MAX_BLOCK in order to minimize
+	    **  the number of mallocs.
+	    */
 	    if (me->cur_size < HT_MAX_BLOCK) {
 		int newsize = me->cur_size ? me->cur_size : HT_MIN_BLOCK;
 		while (l > newsize && newsize < HT_MAX_BLOCK) newsize *= 2;
 		me->cur_size = newsize;
 	    }
-	    if (!alloc_new(me, me->cur_size)) {
-		int status = buf_flush(me);
-		if (status != HT_OK) return status;
-		me->give_up = YES;
-	    } else {
+
+	    if (alloc_new(me, me->cur_size)) {
+		/* Buffer could accept the new data */
 		memcpy(me->tmp_buf, b, l);
 		me->tmp_ind = l;
+	    } else if (me->pause) {
+		/* Buffer ran full and we pause */
+		me->state = HT_BUFFER_PAUSE;
+		if (STREAM_TRACE) HTTrace("StreamBuffer. Paused\n");
+		return HT_PAUSE;
+	    } else {
+		/* Buffer ran full and we flush and go transparent */
+		int status = buf_flush(me);
+		if (status != HT_OK) return status;
 	    }
 	}
     }
-    if (me->give_up) return PUTBLOCK(b, l);
+
+    /*
+    **  If we couldn't buffer the data then check whether we should give up
+    **  or pause the stream. If we are in transparent mode then put the rest
+    **  of the data down the pipe.
+    */
+    if (me->state == HT_BUFFER_TRANSPARENT) return PUTBLOCK(b, l);
     return HT_OK;
 }
 
@@ -175,13 +232,23 @@ PRIVATE int buf_put_string (HTStream * me, const char * s)
 PRIVATE int buf_free (HTStream * me)
 {
     int status = HT_OK;
-    if (!me->ignore) {
-	HTParentAnchor *anchor = HTRequest_anchor(me->request);
+
+    /*
+    **  Should we count the content length and assign it to the
+    **  anchor?
+    */
+    if (me->count) {
+	HTParentAnchor * anchor = HTRequest_anchor(me->request);
 	if (STREAM_TRACE)
 	    HTTrace("\nCalculated.. content-length: %d\n", me->conlen);
 	HTAnchor_setLength(anchor, me->conlen);
     }
-    if (!me->give_up && (status = buf_flush(me)) != HT_OK)
+
+    /*
+    **  Flush the buffered data - even if we are paused. That is, we always
+    **  flush - except if we have already flushed the buffer, of course.
+    */
+    if ((status = buf_flush(me)) != HT_OK)
 	return status;
     if ((status = (*me->target->isa->_free)(me->target)) != HT_OK)
 	return status;
@@ -229,6 +296,22 @@ PUBLIC HTStream * HTBuffer_new (HTStream *	target,
 				int		max_size)
 {
     HTStream * me = HTContentCounter(target, request, max_size);
-    if (me) me->ignore = YES;
-    return me;
+    if (me) {
+	me->count = NO;
+	return me;
+    }
+    return HTErrorStream();
+}
+
+PUBLIC HTStream * HTPipeBuffer_new (HTStream *	target,
+				    HTRequest *	request,
+				    int		max_size)
+{
+    HTStream * me = HTContentCounter(target, request, max_size);
+    if (me) {
+	me->count = NO;
+	me->pause = YES;
+	return me;
+    }
+    return HTErrorStream();
 }

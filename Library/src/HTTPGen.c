@@ -17,6 +17,7 @@
 #include "WWWCore.h"
 #include "WWWMIME.h"
 #include "WWWTrans.h"
+#include "HTTPUtil.h"
 #include "HTTPReq.h"					       /* Implements */
 
 #define MIME_VERSION	"MIME/1.0"
@@ -29,6 +30,7 @@ struct _HTStream {
     const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
+    int				version;
     BOOL			endHeader;
     BOOL			transparent;
 };
@@ -73,7 +75,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	}
     }
     if (gen_mask & HT_G_CONNECTION) {
-	HTAssocList * cur = HTRequest_clientConnection(request);
+	HTAssocList * cur = HTRequest_connection(request);
 	if (cur) {
 	    BOOL first=YES;
 	    HTAssoc * pres;
@@ -214,7 +216,7 @@ PRIVATE const HTStreamClass HTTPGenClass =
 };
 
 PUBLIC HTStream * HTTPGen_new (HTRequest * request, HTStream * target,
-			       BOOL endHeader)
+			       BOOL endHeader, int version)
 {
     HTStream * me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
@@ -224,5 +226,15 @@ PUBLIC HTStream * HTTPGen_new (HTRequest * request, HTStream * target,
     me->request = request;
     me->endHeader = endHeader;
     me->transparent = NO;
+
+    /*
+    **  For backwards compatibility with HTTP applications that understand
+    **  Connection: Keep-Alive, we send it along. However, we do NOT send
+    **  it to a proxy as it may confuse HTTP/1.0 proxies
+    */
+    me->version = version;
+    if (me->version == HTTP_10 && HTRequest_proxy(request) == NULL)
+	HTRequest_addConnection(request, "Keep-Alive", "");
+
     return me;
 }
