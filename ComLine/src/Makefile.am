@@ -26,7 +26,7 @@ SUBDIRS = windows
 
 INCLUDES = \
 	-I$(srcdir)/../../Library/src \
-	-I$(top_srcdir)/modules/expat/xmlparse
+	-I$(top_srcdir)/modules/expat/lib
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
