@@ -1033,6 +1033,9 @@ int main()
 	    ],
 	    [
 		ac_cv_getlogin_r_style=2
+	    ],
+	    [
+		ac_cv_getlogin_r_style=
 	    ])
     fi
     if test -z "$ac_cv_getlogin_r_style"; then
