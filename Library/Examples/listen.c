@@ -102,14 +102,16 @@ PRIVATE void SetSignal (void)
 }
 #endif /* CATCH_SIG */
 
-PRIVATE void VersionInfo (void)
+PRIVATE void VersionInfo (const char * name)
 {
     HTTrace("\nW3C OpenSource Software");
     HTTrace("\n-----------------------\n\n");
     HTTrace("\tListen tool version %s\n", APP_VERSION);
     HTTrace("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
-    HTTrace("\tPlease send feedback to the <www-lib@w3.org> mailing list,\n");
-    HTTrace("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
+    HTTrace("Format\n\n");
+    HTTrace("\t%s -port n [-v[sopt]] [-version]\n\n", name ? name : "listen");
+    HTTrace("Please send feedback to the <www-lib@w3.org> mailing list,\n");
+    HTTrace("see \"http://www.w3.org/Library/#Forums\" for details\n\n");
 }
 
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
@@ -117,6 +119,8 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 {
     /* We are done with this request */
     HTRequest_delete(request);
+
+    if (status == HT_ERROR) HTTrace("Can't listen on this port\n");
 
     /* Terminate libwww */
     HTProfile_delete();
@@ -150,7 +154,7 @@ int main (int argc, char ** argv)
 
     /* Check if we should just provide some help */
     if (argc==1) {
-	VersionInfo();
+	VersionInfo(argv[0]);
 	Cleanup(ms, 0);
     }
 
@@ -165,7 +169,7 @@ int main (int argc, char ** argv)
 
 	    /* Print version and exit */
 	    } else if (!strcmp(argv[arg], "-version")) { 
-		VersionInfo();
+		VersionInfo(argv[0]);
 		Cleanup(ms, 0);
 		
 #ifdef WWWTRACE
@@ -174,11 +178,11 @@ int main (int argc, char ** argv)
 		HTSetTraceMessageMask(argv[arg]+2);
 #endif
 	    } else {
-		VersionInfo();
+		VersionInfo(argv[0]);
 		Cleanup(ms, 0);
 	    }
         } else {
-	    VersionInfo();
+	    VersionInfo(argv[0]);
 	    Cleanup(ms, 0);
 	}
     }
@@ -203,8 +207,9 @@ int main (int argc, char ** argv)
 				  HTFWriter_new(ms->request, OUTPUT, YES));
 
 	/* Start listening on the socket */
+	HTTrace("Listening on port %d\n", ms->port);
 	if ((status = HTServeAbsolute("noop://localhost", ms->request)) == NO) {
-	    if (WWWTRACE) HTTrace("Can't listen on port %d\n", ms->port);
+	    HTTrace("Can't listen on port %d\n", ms->port);
 	    Cleanup(ms, -1);
 	}
 
