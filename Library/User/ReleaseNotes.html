@@ -37,31 +37,76 @@ the latest &nbsp;<A HREF="Guide/">WWW APIs</A> and &nbsp;a complete
 <A HREF="Extrnals.html">list of public functions</A></B>
 <P>
   <HR>
+<A NAME="latest"></A>
 <H2>
   Release 5.1n (To be released)
 </H2>
-These are the things that are upcoming in the next release
-
+<P>
+These are the things that are upcoming in the next release.
 <H3>
   New Features
 </H3>
-
 <H3>
   Bug Fixes
 </H3>
 <UL>
   <LI>
-    A close socket event wasn't registered on Windows. This is now
-    done in <A HREF="../src/HTHost.c">HTHost.c</A>.
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTProxy.c?r1=2.15&amp;r2=2.16">Now
+    also removes the after authentication filter is all proxies are
+    unregistered</A>
   <LI>
-    On some platforms, it is not possible to refer to function
-    addresses accrosss shared libraries. The result is that the libwww
-    API that uses function addresses don't always work. I have added
-    an opcode version of the <A HREF="../src/HTAlert.html">HTAlert
-    API</A> to handle this for user messages and progress
-    notifications.
+    Changed the progress notifications in HTAlert to also include
+    <B>Interrupted!</B> This affects
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTCache.c?r1=2.50&amp;r2=2.51">HTCache.c</A>
+    (a little),
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAlert.html?r1=2.51&amp;r2=2.52">HTAlert.html</A>
+    (and .h), and
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTDialog.c?r1=2.27&amp;r2=2.28">HTDialog.c</A>
+  <LI>
+    Moved the increment of bytes written (used in PUT) from the
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTBufWrt.c?r1=2.21&amp;r2=2.22">buffered
+    output steam </A>to the
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWriter.c?r1=2.50&amp;r2=2.51">unbuffered
+    output stream</A> which gives a more accurate reading.
+  <LI>
+    Bad typo bug when deleting before filters in
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTNet.c?r1=2.93&amp;r2=2.94">HTNetCall_addBefore</A>
+    which caused deletion problems in the Filter list
+  <LI>
+    Fixed a problem when PUT'ing to a non-existant host (or invalid portnumber)
+    in the
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.142&amp;r2=1.143">Save
+    Filter</A>. The cleanup is now made more cleanly.
+  <LI>
+    Moved the <B>Done!</B> progress notification into
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.87&amp;r2=2.88">HTMIME.c</A>
+    instead of in
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTReader.c?r1=2.24&amp;r2=2.25">HTReader.c</A>
+    as it no longer has much to do with closing the TCP connection.
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTChannl.c?r1=2.17&amp;r2=2.18">Made
+    sure that local files are closed when using ANSI C file descriptors</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWWWStr.c?r1=2.26&amp;r2=2.27">Fixed
+    bug in the conversion from URI to local Windows file in HTWWWToLocal()</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47">Fixed
+    problem in the template generation in the access authentication module</A>.
+    This can cause the authentication module to not find the credentials already
+    given.
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTHost.c?r1=2.46&amp;r2=2.47">Fixed
+    strange deletion of semaphore control for non-persistent connections</A>
+  <LI>
+    A close socket event wasn't registered on Windows. This is now done in
+    <A HREF="../src/HTHost.c">HTHost.c</A>.
+  <LI>
+    On some platforms, it is not possible to refer to function addresses accrosss
+    shared libraries. The result is that the libwww API that uses function addresses
+    don't always work. I have added an opcode version of the
+    <A HREF="../src/HTAlert.html">HTAlert API</A> to handle this for user messages
+    and progress notifications.
 </UL>
-
 <H2>
   Release 5.1m May 21, 1998
 </H2>
@@ -74,16 +119,14 @@ These are the things that are upcoming in the next release
     Added support for <A HREF="../src/HTMIMERq.html">writing out <TT>Link:</TT>
     header fields</A> when <A HREF="../src/HTAccess.html">uploading a document</A>.
     The <TT>Link:</TT> header field is use to represent link relationship between
-    documents 
+    documents
   <LI>
     Changed <A HREF="../src/HTEscape.html">HTEscape</A> to deal with silly MSDos
     file type escaping of &nbsp;the drive name (using ":").
   <LI>
-    Added support for <A
-    HREF="../../ComLine/User/CommandLine.html#auth">automatic
-    authentication (!)</A> in the <a HREF="../../ComLine/">Command
-    Line</A> Tool so that it is now possile to authenticate from
-    scipts etc.
+    Added support for <A HREF="../../ComLine/User/CommandLine.html#auth">automatic
+    authentication (!)</A> in the <A HREF="../../ComLine/">Command Line</A> Tool
+    so that it is now possile to authenticate from scipts etc.
   <LI>
     <A HREF="../cvs.html">Direct access to the CVS repository</A> - checkout
     libwww and work with the latest version!
