@@ -358,10 +358,11 @@ works.
 #define NETWRITE(s,b,l)	((s)>10 ? send((s),(b),(l),0) : write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)>10 ? socket_close(s) : close(s))
 #endif /* Decnet */
-
+         
 /*	Certainly this works for UCX and Multinet; not tried for Wollongong
 */
 #ifdef MULTINET
+#include &lt;time.h>
 #ifdef __TIME_T
 #define __TYPES
 #define __TYPES_LOADED
@@ -422,11 +423,24 @@ works.
 #include &lt;in.h>
 #include &lt;inet.h>
 #include &lt;netdb.h>
+#include &lt;ucx$inetdef.h>
 
 #endif  /* not DECNET */
 #endif  /* of Multinet or other TCP includes */
 
 #define TCP_INCLUDES_DONE
+</PRE>
+
+On VMS directory browsing is available through a separate
+copy of dirent.c. The definition of R_OK seem to be missing
+from the system include files...
+
+<PRE>
+#define USE_DIRENT
+#define GOT_READ_DIR 1
+#include "dirent.h"
+#define STRUCT_DIRENT struct dirent
+#define R_OK 4
 </PRE>
 
 On VMS machines, the linker needs
@@ -450,6 +464,19 @@ to normal C storage types.
 #define GLOBALDEF
 #define GLOBALREF extern
 #endif
+</PRE>
+
+On non-VMS machines HTStat should be stat...On VMS machines
+HTStat is a function that converts directories and devices so that you
+can stat them.
+
+<PRE>
+#ifdef VMS
+#define HTLstat HTStat
+#else /* non VMS */
+#define HTStat stat
+#define HTLstat lstat
+#endif /* non VMS */
 </PRE>
 
 <H2>SCO ODT unix version</H2>

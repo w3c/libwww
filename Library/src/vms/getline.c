@@ -20,12 +20,18 @@ Cambridge, MA 02139, USA.  */
 
 /*
  * <getline.c>
- */
+**
+** HISTORY:
+**	 8 Jul 94  FM	Include "HTUtils.h" for memory allocation and free()
+**			substitutions with VAXC on VMS.
+**
+*/
 
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include "HTUtils.h"
 
 /* Read up to (and including) a newline from STREAM into *LINEPTR
    (and null-terminate it). *LINEPTR is a pointer returned from malloc (or

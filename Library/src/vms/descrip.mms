@@ -53,8 +53,11 @@
 !
 !
 
+
 SRC = [-]
 VMS = []
+
+.INCLUDE $(SRC)Version.make
 
 ! debug flags
 .IFDEF DEBUG
@@ -71,7 +74,11 @@ MACH=VAX
 .ENDIF
 
 .IFDEF DECC
-CQUALDECC=/Standard=VAXC
+.IFDEF UCX
+CQUALDECC=/Standard=VAXC/Prefix=ALL
+.ELSE
+CQUALDECC=/Standard=VAXC/Prefix=ANSI
+.ENDIF
 .ELSE
 CQUALDECC=
 .ENDIF
@@ -83,7 +90,7 @@ CLIST=
 .ENDIF
 
 ! defines valid for all compilations
-EXTRADEFINES = DEBUG,ACCESS_AUTH
+EXTRADEFINES = VMS,DEBUG,ACCESS_AUTH,VC="""$(VC)"""
 
 .IFDEF UCX
 TCP=UCX
@@ -107,7 +114,6 @@ TCP=MULTINET
 LIB=[--.$(MACH).$(TCP)]
 CFLAGS = $(DEBUGFLAGS)$(CQUALDECC)$(CLIST)/DEFINE=($(EXTRADEFINES),$(TCP))/INC=($(VMS),$(SRC))
 
-.INCLUDE $(SRC)Version.make
 
 
 SETUP_FILES = $(LIB)wwwlib.opt
@@ -133,7 +139,9 @@ HEADERS = $(SRC)HTParse.h, $(SRC)HTAccess.h, $(SRC)HTTP.h, $(SRC)HTFile.h, -
 	$(SRC)HTTelnet.h, -
 	$(SRC)HTWAIS.h, $(SRC)HTWSRC.h, -
         $(SRC)HTAAUtil.h, $(SRC)HTAABrow.h, $(SRC)HTAssoc.h, -
-	$(SRC)HTUU.h, $(SRC)HTTeXGen.h -
+	$(SRC)HTUU.h, $(SRC)HTTeXGen.h, $(SRC)HTDirBrw.h, -
+	$(SRC)HTDescript.h, $(SRC)HTGuess.h, $(SRC)HTIcons.h -
+        $(SRC)HTError.h, -
 	$(VMS)HTVMSUtils.h, -
 	$(VMS)ufc-crypt.h, $(VMS)patchlevel.h -
 	$(VMS)dirent.h, $(VMS)sys_dirent.h
@@ -151,6 +159,8 @@ MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTT
 	HTTelnet=$(LIB)HTTelnet.obj, HTWSRC=$(LIB)HTWSRC.obj, -
         HTAAUtil=$(LIB)HTAAUtil.obj, HTAABrow=$(LIB)HTAABrow.obj, HTAssoc=$(LIB)HTAssoc.obj, - 
 	HTUU=$(LIB)HTUU.obj, HTTeXGen=$(LIB)HTTeXGen.obj, -
+	HTDirBrw=$(LIB)HTDirBrw.obj, HTDescript=$(LIB)HTDescript.obj, HTGuess=$(LIB)HTGuess.obj, -
+        HTIcons=$(LIB)HTIcons.obj, HTError=$(LIB)HTError.obj, HTErrorMsg=$(LIB)HTErrorMsg.obj, -
 	HTVMSUtils=$(LIB)HTVMSUtils.obj, -
  	getpass=$(LIB)getpass.obj, getline=$(LIB)getline.obj, -
 	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj -
@@ -168,6 +178,8 @@ MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTT
 	HTTelnet=$(LIB)HTTelnet.obj, HTWSRC=$(LIB)HTWSRC.obj, -
         HTAAUtil=$(LIB)HTAAUtil.obj, HTAABrow=$(LIB)HTAABrow.obj, HTAssoc=$(LIB)HTAssoc.obj, - 
 	HTUU=$(LIB)HTUU.obj, HTTeXGen=$(LIB)HTTeXGen.obj, -
+	HTDirBrw=$(LIB)HTDirBrw.obj, HTDescript=$(LIB)HTDescript.obj, HTGuess=$(LIB)HTGuess.obj, -
+        HTIcons=$(LIB)HTIcons.obj, HTError=$(LIB)HTError.obj, HTErrorMsg=$(LIB)HTErrorMsg.obj, -
 	HTVMSUtils=$(LIB)HTVMSUtils.obj, -
  	getpass=$(LIB)getpass.obj, getline=$(LIB)getline.obj, -
 	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj -
@@ -242,6 +254,30 @@ $(SRC)HTFormat.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTF
 $(SRC)HTFormat.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFormat.h"
 	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFormat.h" -
              $(SRC)HTFormat.h
+.ENDIF
+!_____________________________	HTGuess
+
+$(LIB)HTGuess.obj   : $(SRC)HTGuess.c $(SRC)HTGuess.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTGuess.c
+.IFDEF U
+$(SRC)HTGuess.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGuess.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGuess.c" - 
+             $(SRC)HTGuess.c
+$(SRC)HTGuess.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGuess.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGuess.h" -
+             $(SRC)HTGuess.h
+.ENDIF
+!_____________________________	HTIcons
+
+$(LIB)HTIcons.obj   : $(SRC)HTIcons.c $(SRC)HTIcons.h $(SRC)HTInit.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTIcons.c
+.IFDEF U
+$(SRC)HTIcons.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTIcons.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTIcons.c" - 
+             $(SRC)HTIcons.c
+$(SRC)HTIcons.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTIcons.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTIcons.h" -
+             $(SRC)HTIcons.h
 .ENDIF
 !_____________________________	HTInit
 
@@ -358,7 +394,7 @@ $(SRC)HTChunk.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTCh
 !_____________________________	HTString
 
 $(LIB)HTString.obj   : $(SRC)HTString.c $(SRC)HTString.h $(SRC)tcp.h $(SRC)Version.make $(SRC)HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj /define=(VC="""$(VC)""") $(SRC)HTString.c
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTString.c
 .IFDEF U
 $(SRC)HTString.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTString.c"
 	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTString.c" - 
@@ -369,7 +405,7 @@ $(SRC)HTString.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTS
 .ENDIF
 !_____________________________	HTAlert
 
-$(LIB)HTAlert.obj   : $(SRC)HTAlert.c $(SRC)HTAlert.h $(SRC)HTUtils.h $(SRC)Version.make
+$(LIB)HTAlert.obj   : $(SRC)HTAlert.c $(SRC)HTAlert.h $(SRC)HTUtils.h 
         cc $(CFLAGS)/obj=$*.obj $(SRC)HTAlert.c
 .IFDEF U
 $(SRC)HTAlert.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAlert.c"
@@ -381,7 +417,7 @@ $(SRC)HTAlert.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAl
 .ENDIF
 !_____________________________	HTRules
 
-$(LIB)HTRules.obj   : $(SRC)HTRules.c $(SRC)HTRules.h $(SRC)HTUtils.h $(SRC)Version.make
+$(LIB)HTRules.obj   : $(SRC)HTRules.c $(SRC)HTRules.h $(SRC)HTUtils.h 
         cc $(CFLAGS)/obj=$*.obj $(SRC)HTRules.c
 .IFDEF U
 $(SRC)HTRules.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTRules.c"
@@ -619,6 +655,30 @@ $(SRC)HTFile.h   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTF
 	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFile.h" -
              $(SRC)HTFile.h
 .ENDIF
+!_________________________________ HTDirBrw
+
+$(LIB)HTDirBrw.obj : $(SRC)HTDirBrw.c $(SRC)HTDirBrw.h $(SRC)HTUtils.h 
+         cc $(CFLAGS)/obj=$*.obj $(SRC)HTDirBrw.c
+.IFDEF U
+$(SRC)HTDirBrw.c   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDirBrw.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDirBrw.c" - 
+             $(SRC)HTDirBrw.c
+$(SRC)HTDirBrw.h   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDirBrw.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDirBrw.h" -
+             $(SRC)HTDirBrw.h
+.ENDIF
+!_________________________________ HTDescript
+
+$(LIB)HTDescript.obj : $(SRC)HTDescript.c $(SRC)HTDescript.h $(SRC)HTUtils.h 
+         cc $(CFLAGS)/obj=$*.obj $(SRC)HTDescript.c
+.IFDEF U
+$(SRC)HTDescript.c   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDescript.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDescript.c" - 
+             $(SRC)HTDescript.c
+$(SRC)HTDescript.h   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDescript.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTDescript.h" -
+             $(SRC)HTDescript.h
+.ENDIF
 !_________________________________ HTMulti
 
 $(LIB)HTMulti.obj : $(SRC)HTMulti.c $(SRC)HTMulti.h $(SRC)HTUtils.h 
@@ -683,6 +743,29 @@ $(SRC)HTParse.c  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTP
 $(SRC)HTParse.h  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTParse.h"
 	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTParse.h" -
              $(SRC)HTParse.h
+.ENDIF
+
+!________________________________ HTError
+
+$(LIB)HTError.obj   : $(SRC)HTError.c $(SRC)HTError.h 
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTError.c
+.IFDEF U
+$(SRC)HTError.c  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTError.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTError.c" - 
+             $(SRC)HTError.c
+$(SRC)HTError.h  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTError.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTError.h" -
+             $(SRC)HTError.h
+.ENDIF
+
+!________________________________ HTErrorMsg
+
+$(LIB)HTErrorMsg.obj   : $(SRC)HTErrorMsg.c $(SRC)HTError.h $(SRC)HTUtils.h 
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTErrorMsg.c
+.IFDEF U
+$(SRC)HTErrorMsg.c  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTErrorMsg.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTErrorMsg.c" - 
+             $(SRC)HTErrorMsg.c
 .ENDIF
 
 !_________________________________ include files only:

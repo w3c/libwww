@@ -60,6 +60,12 @@ for something more sophisticated.
 
 </PRE>
 <H2>Standard C library for malloc() etc</H2>
+
+Replace memory allocation and free C RTL functions
+with VAXC$xxx_OPT altrenatives for VAXC (but not DECC)
+on VMS. This makes a big performance difference. (Foteos
+Macrides).
+
 <PRE>#ifdef vax
 #ifdef unix
 #define ultrix	/* Assume vax+unix=ultrix */
@@ -88,8 +94,18 @@ for something more sophisticated.
 
 #else	/* VMS */
 #include &lt;stdio.h>
+#include &lt;stdlib.h>
+#include &lt;unixlib.h>
 #include &lt;ctype.h>
+#if defined(VAXC) && !defined(__DECC)
+#define malloc	VAXC$MALLOC_OPT
+#define calloc	VAXC$CALLOC_OPT
+#define free	VAXC$FREE_OPT
+#define cfree	VAXC$CFREE_OPT
+#define realloc	VAXC$REALLOC_OPT
+#endif /* VAXC but not DECC */
 #define unlink remove
+#define gmtime localtime
 #include &lt;stat.h>
 #define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
 #define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)

@@ -119,7 +119,7 @@ typedef struct _HTStructuredClass{
 
 	char*  name;				/* Just for diagnostics */
 
-	void (*free) PARAMS((
+	void (*_free) PARAMS((
 		HTStructured*	me));
 
 	void (*abort) PARAMS((

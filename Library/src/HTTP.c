@@ -7,6 +7,7 @@
 **    < May 24 94 ??	Unknown - but obviously written
 **	May 24 94 HF	Made reentrent and cleaned up a bit. Implemented
 **			Forward, redirection, error handling and referer field
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
 **
 */
 
@@ -35,7 +36,7 @@
 /* Macros and other defines */
 #define PUTBLOCK(b, l)	(*target->isa->put_block)(target, b, l)
 #define PUTS(s)		(*target->isa->put_string)(target, s)
-#define FREE_TARGET	(*target->isa->free)(target)
+#define FREE_TARGET	(*target->isa->_free)(target)
 
 struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */
@@ -558,7 +559,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	** Load results directly to client
 	*/
 	HTCopy(http->sockfd, request->output_stream);
-	(*request->output_stream->isa->free)(request->output_stream);
+	(*request->output_stream->isa->_free)(request->output_stream);
 	HTInputSocket_free(http->isoc);
 	HTTPCleanup(http);
 	return HT_LOADED;

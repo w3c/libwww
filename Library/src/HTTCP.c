@@ -12,7 +12,10 @@
 **			and HTDoAccept
 */
 
+#ifndef VMS
 #include <pwd.h>
+#endif /* not VMS */
+
 #include "tcp.h"		/* Defines SHORT_NAMES if necessary */
 
 #include "HTUtils.h"
@@ -21,6 +24,10 @@
 #include "HTParse.h"
 #include "HTAccess.h"
 #include "HTError.h"
+
+#ifdef VMS 
+#include "HTVMSUtils.h"
+#endif /* VMS */
 
 #ifdef SHORT_NAMES
 #define HTInetStatus		HTInStat
@@ -161,6 +168,7 @@ PUBLIC int HTInetStatus ARGS1(char *, where)
 
 #ifdef MULTINET
     CTRACE(tfp, "         Multinet error             = %lx hex\n", socket_errno); 
+    CTRACE(tfp, "         Error String               = %s\n", vms_errno_string());
 #endif /* MULTINET */
 
 #endif /* VMS */
@@ -710,6 +718,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	fprintf(stderr, "HostName.... Local host name is %s\n", name);
     StrAllocCopy(hostname, name);
 
+#ifndef VMS
     /* Now try the resolver config file */
     if ((fp = fopen(RESOLV_CONF, "r")) != NULL) {
 	char buffer[80];
@@ -753,6 +762,8 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    StrAllocCat(hostname, domain);
 	}
     }
+#endif /* not VMS */
+
     if (TRACE)
 	fprintf(stderr, "HostName.... Full local host name is %s\n", hostname);
     return hostname;
@@ -818,6 +829,13 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 	else
 	    return NULL;       /* No luck the last time so we wont try again */
     }
+
+#ifdef VMS
+    if ((login = (char *) cuserid(NULL)) == NULL) {
+        if (TRACE) fprintf(stderr, "MailAddress. cuserid returns NULL\n");
+    }
+
+#else /* not VMS */
     if ((login = (char *) getlogin()) == NULL) {
 	if (TRACE) fprintf(stderr, "MailAddress. getlogin returns NULL\n");
 	if ((pw_info = getpwuid(getuid())) == NULL) {
@@ -832,6 +850,8 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 	} else
 	    login = pw_info->pw_name;
     }
+#endif /* not VMS */
+
     if (login) {
 	StrAllocCopy(mailaddress, login);
 	StrAllocCat(mailaddress, "@");
@@ -955,10 +975,19 @@ PUBLIC int HTDoAccept ARGS1(HTNetInfo *, net)
     }
 	
     /* First make the socket non-blocking */
+#ifdef VMS
+#ifdef MULTINET
+    {
+       int enable = 1;
+       status = socket_ioctl(net->sockfd, FIONBIO, &enable);
+    }
+#endif /* MULTINET */
+#else /* not VMS */
     if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
-	status |= FNDELAY;
+	status |= FNDELAY;					/* O_NDELAY; */
 	status = FCNTL(net->sockfd, F_SETFL, status);
     }
+#endif /* not VMS */
     if (status == -1) {
 	HTErrorSysAdd(net->request, ERR_FATAL, NO, "fcntl");
 	return -1;

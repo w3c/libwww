@@ -10,6 +10,10 @@
 **	It is not obvious to me right now whether the HEAD should be generated
 **	from the incomming data or the anchor.  Currently it is from the former
 **	which is cleanest. TBL
+**
+** HISTORY:
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
+**
 */
 
 #define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
@@ -349,7 +353,7 @@ PRIVATE void HTMLGen_free ARGS1(HTStructured *, me)
 {
     HTMLGen_flush(me);
     (*me->targetClass.put_character)(me->target, '\n');
-    (*me->targetClass.free)(me->target);	/* ripple through */
+    (*me->targetClass._free)(me->target);	/* ripple through */
     free(me);
 }
 

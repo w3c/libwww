@@ -62,9 +62,11 @@ setting <CODE>HTSearchScript</CODE> into the name of script
 in BinDir doing the actual search by <CODE>search</CODE> rule
 (BinDir must also be set in this case, of course).
 <PRE>
+#ifdef NOT_USED
 extern char * HTSearchScript;	/* Search script name */
 extern char * HTPutScript;	/* Script handling PUT */
 extern char * HTPostScript;	/* Script handling POST */
+#endif /* NOT_USED */
 
 </PRE>
 <H2>HTAddRule:  Add rule to the list</H2>

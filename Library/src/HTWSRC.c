@@ -5,7 +5,8 @@
 **	format information on it and creates a structured stream.
 **	That structured stream is then converted into whatever.
 **
-**	3 June 93	Bug fix: Won't crash if no description
+**	3 Jun 93	Bug fix: Won't crash if no description
+**	8 Jul 94  FM	Insulate free() from _free structure element.
 */
 
 #include "HTWSRC.h"
@@ -367,7 +368,7 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	END(HTML_PRE);
     }
     
-    (*me->target->isa->free)(me->target);
+    (*me->target->isa->_free)(me->target);
     
     return;
 } /* generate html */

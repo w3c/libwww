@@ -10,6 +10,7 @@
 **			a newline, that could cause multiple commands to be
 **			sent to a Gopher server. AL, luotonen@www.cern.ch
 **	12 May 94	Checked and made ready for multi-threads, Frystyk
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
 **
 ** NOTE:
 **	When parsing a gopher menu, we can't use the default HTParseSocket
@@ -44,7 +45,7 @@
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
 #define END(e) (*target->isa->end_element)(target, e)
-#define FREE_TARGET (*target->isa->free)(target)
+#define FREE_TARGET (*target->isa->_free)(target)
 
 /* Type definitions and global variables etc. local to this module */
 typedef enum _HTGopherType {

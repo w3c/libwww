@@ -9,6 +9,7 @@
 **			fixed a possible security hole when the URL contains
 **			a newline, that could cause multiple commands to be
 **			sent to an NNTP server.
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
 */
 /* Implements:
 */
@@ -1130,7 +1131,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	else if (group_wanted) read_group(groupName, first, last);
         else read_article();
 
-	(*targetClass.free)(target);
+	(*targetClass._free)(target);
 	return HT_LOADED;
 	
     } /* Retry loop */
@@ -1141,7 +1142,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 /*    NXRunAlertPanel(NULL, "Sorry, could not load `%s'.",
 	    NULL,NULL,NULL, arg);No -- message earlier wil have covered it */
 
-    (*targetClass.free)(target);	/* AL May 2, 1994 */
+    (*targetClass._free)(target);	/* AL May 2, 1994 */
     return HT_LOADED;
 }
 

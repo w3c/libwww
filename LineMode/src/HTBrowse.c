@@ -404,11 +404,7 @@ int main
 	}
 #endif
 		
-#ifdef VMS  
-      StrAllocCat(default_default, "default.html");
-#else
       StrAllocCat(default_default, "/default.html");
-#endif
 
 /*	Check for command line options
 **	------------------------------

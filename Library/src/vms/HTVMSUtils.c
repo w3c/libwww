@@ -3,9 +3,12 @@
 **
 ** AUTHORS:
 **	MD	Mark Donszelmann    duns@vxdeop.cern.ch
+**	FM	Foteos Macrides	    macrides@sci.wfeb.edu
 **
 ** HISTORY:
 **	14 Nov 93  MD	Written
+**	31 Mar 94  FM	Added HTVMS_disableAllPrv
+**	06 Jul 94  FM	Added HTVMS_getUIC and HTVMS_isOwner
 **
 ** BUGS:
 **
@@ -25,6 +28,8 @@
 
 #include <unixlib.h>
 #include <stdio.h>
+#include <stat.h>
+#include <time.h>
 
 #include "HTUtils.h"
 #include "HTVMSUtils.h"
@@ -131,6 +136,62 @@ unsigned long Prv[2], PreviousPrv[2];
 
 
 
+/* PUBLIC						HTVMS_disableAllPrv()
+**
+**		Disable all privileges except TMPMBX and NETMBX
+**
+** ON ENTRY:
+**	No arguments.
+**
+** ON EXIT:
+**
+*/
+PUBLIC void HTVMS_disableAllPrv NOARGS
+{
+#ifndef MULTINET
+#define bzero(s,n) memset(s,'\0',n)
+#endif
+    union prvdef prvadr;
+
+    bzero((char *) &prvadr, sizeof(prvadr));
+    prvadr.prv$v_cmkrnl = 1;      
+    prvadr.prv$v_cmexec = 1;      
+    prvadr.prv$v_sysnam = 1;      
+    prvadr.prv$v_grpnam = 1;      
+    prvadr.prv$v_allspool = 1;    
+    prvadr.prv$v_detach = 1;      
+    prvadr.prv$v_diagnose = 1;    
+    prvadr.prv$v_log_io = 1;      
+    prvadr.prv$v_group = 1;       
+    prvadr.prv$v_noacnt = 1;      
+    prvadr.prv$v_prmceb = 1;      
+    prvadr.prv$v_prmmbx = 1;      
+    prvadr.prv$v_pswapm = 1;      
+    prvadr.prv$v_setpri = 1;      
+    prvadr.prv$v_setprv = 1;      
+    prvadr.prv$v_world = 1;       
+    prvadr.prv$v_mount = 1;       
+    prvadr.prv$v_oper = 1;        
+    prvadr.prv$v_exquota = 1;     
+    prvadr.prv$v_volpro = 1;      
+    prvadr.prv$v_phy_io = 1;      
+    prvadr.prv$v_bugchk = 1;      
+    prvadr.prv$v_prmgbl = 1;      
+    prvadr.prv$v_sysgbl = 1;      
+    prvadr.prv$v_pfnmap = 1;      
+    prvadr.prv$v_shmem = 1;       
+    prvadr.prv$v_sysprv = 1;      
+    prvadr.prv$v_bypass = 1;      
+    prvadr.prv$v_syslck = 1;      
+    prvadr.prv$v_share = 1;       
+    prvadr.prv$v_upgrade = 1;     
+    prvadr.prv$v_downgrade = 1;   
+    prvadr.prv$v_grpprv = 1;      
+    prvadr.prv$v_readall = 1;     
+    prvadr.prv$v_security = 1;    
+}
+
+
 /* PUBLIC							HTVMS_checkAccess()
 **		CHECKS ACCESS TO FILE FOR CERTAIN USER
 ** ON ENTRY:
@@ -144,6 +205,8 @@ unsigned long Prv[2], PreviousPrv[2];
 **
 ** ON EXIT:
 **	returns YES if access is allowed
+**
+** Not only filename is checked but also filename.dir...
 **	
 */
 PUBLIC BOOL HTVMS_checkAccess ARGS3(
@@ -160,6 +223,7 @@ unsigned long AccessLength;
 unsigned long ObjType;
 
 char *VmsName;
+char Fname[256];
 
 struct dsc$descriptor_s FileNameDesc;
 struct dsc$descriptor_s UserNameDesc;
@@ -173,12 +237,19 @@ char *colon;
       return(NO);
    }
 
+   /* make local copy */
+   strcpy(Fname,FileName);
+
+   /* strip off last slash anyway */
+   if (Fname[strlen(Fname)-1] == '/')
+      Fname[strlen(Fname)-1] = '\0';
+
    /* check Filename and convert */
-   colon = strchr(FileName,':');
+   colon = strchr(Fname,':');
    if (colon)
       VmsName = HTVMS_name("",colon+1);
    else
-      VmsName = HTVMS_name("",FileName);
+      VmsName = HTVMS_name("",Fname);
 
    /* check for GET */
    if ((Method == METHOD_GET) ||
@@ -214,16 +285,23 @@ char *colon;
      FileNameDesc.dsc$b_class = DSC$K_CLASS_S;
      FileNameDesc.dsc$a_pointer = VmsName;
 
-     /* call system */
+     /* call system for filename */
      Result = SYS$CHECK_ACCESS(&ObjType,&FileNameDesc,&UserNameDesc,ItemList);
 
      if (Result == SS$_NORMAL)
         return(YES);
-     else
-     {
-        CTRACE(stderr, "VMSAccess... No access allowed for user '%s', file '%s' under method '%s'\n",UserName,FileName,HTMethod_name(Method));
-        return(NO);
-     }
+
+     /* try with extension .dir... */
+     strcat(VmsName,".dir");
+     FileNameDesc.dsc$w_length = strlen(VmsName);
+     Result = SYS$CHECK_ACCESS(&ObjType,&FileNameDesc,&UserNameDesc,ItemList);
+
+     if (Result == SS$_NORMAL)
+        return(YES);
+
+     /* failed for filename and .dir */
+     CTRACE(stderr, "VMSAccess... No access allowed for user '%s', file '%s' under method '%s'\n",UserName,Fname,HTMethod_name(Method));
+     return(NO);
    }
 
    CTRACE(stderr, "VMSAccess... No access allowed for method '%s'\n",HTMethod_name(Method));
@@ -255,7 +333,11 @@ char *colon;
 **	[.DUNS] 			duns
 **	[.DUNS.ECHO] 			duns/echo
 **	[.DUNS.ECHO]TEST.COM 		duns/echo/test.com 
+**	[.DUNS.ECHO]TEST-BLAH.COM	duns/echo/test-blah.com
+**	[.DUNS-ECHO]TEST.COM 		duns-echo/test.com
+**	[.X-----]TEST.COM		x-----/test.com
 **	TEST.COM 			test.com
+**	DISK$USER:[DUNS].RHOSTS		/disk$user/duns/.rhosts 
 **
 **	
 */
@@ -264,30 +346,44 @@ PUBLIC char * HTVMS_wwwName ARGS1(
 {
 static char wwwname[256];
 char *src, *dst;
-int dir;
+int dir, up;
    dst = wwwname;
    src = vmsname;
    dir = 0;
+   up = 0;
    if (strchr(src,':')) *(dst++) = '/';
    for ( ; *src != '\0' ; src++)
    {
       switch(*src)
       {
          case ':':  *(dst++) = '/'; break;
-         case '-': if (*(src-1) == '-') *(dst++) = '/';
-                   *(dst++) = '.'; 
-                   *(dst++) = '.'; 
+         case '-': /* dashes might exist in filename and directory names... */
+	           if (up)
+                   { /* directory and up */
+		      if (*(src-1) == '-') *(dst++) = '/';
+                      *(dst++) = '.'; 
+                      *(dst++) = '.'; 
+                   }
+                   else
+                   { /* filename or directory name with a dash */
+                      *(dst++) = '-';
+                   }
                    break;
          case '.': if (dir)
                    {
                       if (*(src-1) != '[') *(dst++) = '/';
+                      up = 1;
                    }
                    else
+                   {
+  		      if (*(src-1) == ']') *(dst++) = '/';
                       *(dst++) = '.';
+                   }
                    break;
-         case '[': dir = 1; break;
-         case ']': dir = 0; break;
-         default:  if (*(src-1) == ']') *(dst++) = '/';
+         case '[': dir = 1; up = 1; break;
+         case ']': dir = 0; up = 0; break;
+         default:  up = 0;
+		   if (*(src-1) == ']') *(dst++) = '/';
                    *(dst++) = *src; 
                    break;
       }
@@ -326,7 +422,7 @@ PUBLIC char * HTVMS_name ARGS2(
     char *second;		/* 2nd slash */
     char *last;			/* last slash */
     
-    char * hostname = HTHostName();
+    char * hostname = HTGetHostName();
 
     if (!filename || !nodename) outofmem(__FILE__, "HTVMSname");
     strcpy(filename, fn);
@@ -548,4 +644,232 @@ static char pw_dir[100];
 }
 
 
+
+PUBLIC int HTStat ARGS2(
+	char *, filename, 
+	stat_t *, info)
+{
+   /* 
+      the following stuff does not work in VMS with a normal stat...
+      -->   /disk$user/duns/www if www is a directory
+		is statted like: 	/disk$user/duns/www.dir 
+		after a normal stat has failed
+      -->   /disk$user/duns	if duns is a toplevel directory
+		is statted like:	/disk$user/000000/duns.dir
+      -->   /disk$user since disk$user is a device
+		is statted like:	/disk$user/000000/000000.dir
+      -->   /			
+		searches all devices, no solution yet...
+      -->   /vxcern!/disk$cr/wwwteam/login.com
+		is not statted but granted with fake information...
+   */
+int Result;
+int Len;
+char *Ptr, *Ptr2;
+char Name[256];
+
+   /* try normal stat... */
+   Result = stat(filename,info);
+   if (Result == 0)
+      return(Result);
+
+   /* make local copy */
+   strcpy(Name,filename);
+
+   /* if filename contains a node specification (! or ::), we will try to access
+      the file via DECNET, but we do not stat it..., just return success 
+      with some fake information... */
+   if (HTVMS_checkDecnet(Name))
+   {
+      /* set up fake info, only the one we use... */
+      info->st_dev = NULL;
+      info->st_ino[0] = 0;
+      info->st_ino[1] = 0;
+      info->st_ino[2] = 0;
+      info->st_mode = S_IFREG | S_IREAD;	/* assume it is a regular Readable file */
+      info->st_nlink = NULL;
+      info->st_uid = 0;
+      info->st_gid = 0;
+      info->st_rdev = 0;
+      info->st_size = 0;
+      info->st_atime = time(NULL);
+      info->st_mtime = time(NULL);
+      info->st_ctime = time(NULL);
+
+      return(0);
+   }
+
+   /* failed,so do device search in case root is requested */
+   if (!strcmp(Name,"/"))
+   {  /* root requested */
+      return(-1);
+   }
+   
+   /* failed so this might be a directory, add '.dir' */
+   Len = strlen(Name);
+   if (Name[Len-1] == '/')
+      Name[Len-1] = '\0';
+   
+   /* fail in case of device */
+   Ptr = strchr(Name+1,'/');
+   if ((Ptr == NULL) && (Name[0] == '/'))
+   {  /* device only... */
+      strcat(Name,"/000000/000000");
+   }
+   
+   if (Ptr != NULL)
+   {  /* correct filename in case of toplevel dir */
+      Ptr2 = strchr(Ptr+1,'/');
+      if ((Ptr2 == NULL) && (Name[0] == '/'))
+      {
+         char End[256];
+         strcpy(End,Ptr);
+         *(Ptr+1) = '\0';
+         strcat(Name,"000000");
+         strcat(Name,End);
+      }
+   }
+
+   /* try in case a file on toplevel directory or .DIR was alreadyt specified */
+   Result = stat(Name,info);
+   if (Result == 0)
+      return(Result);
+
+   /* add .DIR and try again */
+   strcat(Name,".dir");
+   Result = stat(Name,info);
+   return(Result);
+}
+
+
+
+PUBLIC int HTVMS_checkDecnet ARGS1(
+	char *, filename) 
+{
+    /* for VMS we take of the first slash in case a nodename is specified 
+       to make sure we access over decnet */
+    /* nodenames can only be specified if the first part in the filename
+       contains either '!', just before the second slash, or '::' */
+int slash = 1;
+    if (filename[0] == '/')
+       for (slash = 1; (filename[slash] != '\0') && (filename[slash] != '/'); slash++)
+          ;
+
+    /* second slash found */
+    if (filename[slash] == '/')
+    {  /* unix syntax */
+       if ( ((slash >= 1) && (filename[slash-1] == '!')) || 
+            ((slash >= 3) && (!strcmp(&filename[slash-3],"%21"))) )
+       {
+           char *p;
+           for (p = filename; *(p+1) != '\0'; p++)
+              *p = *(p+1);
+           *p = *(p+1); 
+           return(1);
+       }
+    }
+    else
+    {  /* vms syntax */
+       if (strstr(filename,"::") ||
+           strstr(filename,"%3A%3A") )
+       {
+           char *p;
+           for (p = filename; *(p+1) != '\0'; p++)
+              *p = *(p+1);
+           *p = *(p+1); 
+           return(1);
+       }
+    }
+    return(0);
+}
+
+
+
+/* PUBLIC							HTVMS_getUIC()
+**		getUIC routine
+** ON ENTRY:
+**	username	Username specification
+**	
+**
+** ON EXIT:
+**	0		error
+**	UIC		VMS User Identification Code for username
+**	
+*/
+PUBLIC unsigned int HTVMS_getUIC ARGS1(
+	CONST char *, username)
+{
+long Result;
+struct dsc$descriptor_s UserNameDesc;
+ItemStruct ItemList[2];
+unsigned long UIC;
+unsigned long UICLength;
+
+   /* construct UserName */
+   UserNameDesc.dsc$w_length = strlen(username);
+   UserNameDesc.dsc$b_dtype = DSC$K_DTYPE_T;
+   UserNameDesc.dsc$b_class = DSC$K_CLASS_S;
+   UserNameDesc.dsc$a_pointer = username;
+
+   /* UIC */
+   ItemList[0].BufferLength = sizeof(UIC);
+   ItemList[0].BufferAddress = &UIC;
+   ItemList[0].ReturnLengthAddress = &UICLength;
+   ItemList[0].ItemCode = UAI$_UIC;
+
+   /* terminate list */
+   ItemList[1].ItemCode = 0;
+   ItemList[1].BufferLength = 0;
+
+   /* get info */
+   Result = SYS$GETUAI(0,0,&UserNameDesc,ItemList,0,0,0);
+   if (Result != SS$_NORMAL)
+      return(0);
+   else
+      return((unsigned int) UIC);
+}
+
+
+
+/* PUBLIC							HTVMS_isOwner()
+**		CHECKS OWNERSHIP OF FILE FOR CERTAIN USER
+** ON ENTRY:
+**	FileName	The file or directory to be checked
+**	UserName	Name of the user to check ownership for.
+**			User nobody, represented by "" is given NO for an answer
+**
+** ON EXIT:
+**	returns YES if FileName is owned by UserName
+**	
+*/
+PUBLIC BOOL HTVMS_isOwner ARGS2(
+	CONST char *, FileName,
+	CONST char *, UserName)
+{
+struct stat buf;
+int Result;
+
+   /* user nobody should access as from account under which server is running */
+   if (0 == strcmp(UserName,""))
+   {
+      CTRACE(stderr, "VMSisOwner.. No access allowed user nobody.\n");
+      return(NO);
+   }
+
+   /* load buf */
+   Result = HTStat(FileName, &buf);
+   if (Result) {
+      CTRACE(stderr, "VMSisOwner.. HTStat() failed for '%s'\n", FileName);
+      return NO;  /* no file or directory, so UserName can't own it */
+   }
+
+   /* compare with UIC for UserName */
+   if (buf.st_uid != HTVMS_getUIC(UserName)) {
+      CTRACE(stderr, "VMSisOwner.. '%s' does not own '%s'\n",
+      		     UserName, FileName);
+      return NO;
+   }
+
+   return YES;
+}
 

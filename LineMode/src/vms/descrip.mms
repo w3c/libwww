@@ -51,7 +51,7 @@
 SRC = [-]
 VMS = []
 WWW_INCL = [---.Library.Implementation]
-WWW_VMS  = [---.Library.vms]
+WWW_VMS  = [---.Library.Implementation.vms]
 
 
 .INCLUDE $(SRC)Version.make
@@ -72,7 +72,11 @@ MACH=VAX
 .ENDIF
 
 .IFDEF DECC
-CQUALDECC=/Standard=VAXC
+.IFDEF UCX
+CQUALDECC=/Standard=VAXC/Prefix=ALL
+.ELSE
+CQUALDECC=/Standard=VAXC/Prefix=ANSI
+.ENDIF
 .ELSE
 CQUALDECC=
 .ENDIF
@@ -93,9 +97,9 @@ LMAP=
 
 ! extra defines
 .IFDEF NORULES
-EXTRADEFINES = DEBUG,VL="""$(VL)""",ACCESS_AUTH
+EXTRADEFINES = VMS,DEBUG,ACCESS_AUTH,VL="""$(VL)""" 
 .ELSE
-EXTRADEFINES = DEBUG,VL="""$(VL)""",RULES,ACCESS_AUTH
+EXTRADEFINES = VMS,DEBUG,RULES,ACCESS_AUTH,VL="""$(VL)""" 
 .ENDIF
 
 
@@ -120,18 +124,20 @@ TCP=MULTINET
 ! now exe points at [--.machine.tcp layer]
 EXE=[--.$(MACH).$(TCP)]
 WWW_LIB=[---.LIBRARY.$(MACH).$(TCP)]
-CFLAGS = $(DEBUGFLAGS)/DEFINE=($(EXTRADEFINES),$(TCP))/INC=$(WWW_INCL)$(CQUALDECC)$(CLIST)
+CFLAGS = $(DEBUGFLAGS)/DEFINE=($(EXTRADEFINES),$(TCP))/INC=($(WWW_INCL),$(WWW_VMS))$(CQUALDECC)$(CLIST)
 
 WWW_LIBS = $(WWW_LIB)wwwlib/lib
 
 
 SETUP_FILES = $(LIB)setup.com
 
-VMS_FILES = $(VMS)setup.com $(VMS)descrip.mms
+VMS_FILES = $(SRC)version.make $(VMS)setup.com $(VMS)descrip.mms
 
-WWW_OBJECTS = $(EXE)HTBrowse.obj, $(EXE)GridText.obj, $(EXE)DefaultStyles.obj
+WWW_OBJECTS = 	$(EXE)HTBrowse.obj, $(EXE)GridText.obj, -
+		$(EXE)DefaultStyles.obj, $(EXE)GridStyle.obj
           
-WWW_HEADERS = $(SRC)HTBrowse.h, $(SRC)GridText.h, $(SRC)HTFont.h
+WWW_HEADERS = 	$(SRC)HTBrowse.h, $(SRC)GridText.h, $(SRC)HTFont.h, -
+		$(SRC)GridStyle.h
 
 !___________________________________________________________________
 .FIRST
@@ -177,7 +183,7 @@ $(SRC)HTBrowse.h : $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/HT
 .ENDIF
 !_____________________________	GridText
 
-$(EXE)GridText.obj   : $(SRC)GridText.c $(SRC)GridText.h -
+$(EXE)GridText.obj   : $(SRC)GridText.c $(SRC)GridText.h $(SRC)GridStyle.h -
 		 $(WWW_INCL)HTAnchor.h $(WWW_INCL)HTStyle.h
         cc $(CFLAGS)/obj=$*.obj $(SRC)GridText.c
 .IFDEF U
@@ -187,6 +193,19 @@ $(SRC)GridText.c : $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/Gr
 $(SRC)GridText.h : $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/GridText.h"
 	     copy $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/GridText.h" - 
              $(SRC)GridText.h
+.ENDIF
+!_____________________________	GridStyle
+
+$(EXE)GridStyle.obj   : $(SRC)GridStyle.c $(SRC)GridStyle.h -
+		 $(WWW_INCL)HTAnchor.h $(WWW_INCL)HTStyle.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)GridStyle.c
+.IFDEF U
+$(SRC)GridStyle.c : $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/GridStyle.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/GridStyle.c" - 
+             $(SRC)GridStyle.c
+$(SRC)GridStyle.h : $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/GridStyle.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/LineMode/Implementation/GridStyle.h" - 
+             $(SRC)GridStyle.h
 .ENDIF
 !_____________________________	DefaultStyles
 

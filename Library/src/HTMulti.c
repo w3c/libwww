@@ -9,24 +9,10 @@
 **
 */
 
+#include "tcp.h"
 #include "HTMulti.h"
 #include "HTFile.h"
 #include "HTList.h"
-
-#ifdef VMS
-#define USE_DIRENT
-#define GOT_READ_DIR
-#include "dirent.h"
-#define R_OK 3
-#endif
-
-#ifdef OLD_CODE
-#ifdef USE_DIRENT		/* Set this for Sys V systems */
-#define STRUCT_DIRENT struct dirent
-#else
-#define STRUCT_DIRENT struct direct
-#endif
-#endif /* OLD_CODE */
 
 
 PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
@@ -361,7 +347,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 	    path = new_path;
 	}
 	else {
-	    stat_status = stat(path, stat_info);
+	    stat_status = HTStat(path, stat_info);
 	    if (stat_status == -1) {
 		CTRACE(stderr,
 		       "AutoMulti... because can't stat \"%s\" (errno %d)\n",
@@ -377,7 +363,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 #endif /* GOT_READ_DIR */
 
     if (stat_status == -1)
-	stat_status = stat(path, stat_info);
+	stat_status = HTStat(path, stat_info);
     if (stat_status == -1) {
 	CTRACE(stderr, "Stat fails.. on \"%s\" -- giving up (errno %d)\n",
 	       path, errno);

@@ -6,6 +6,9 @@
 **	to its output, but prepends Content-Type: field and an
 **	empty line after it.
 **
+** HISTORY:
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
+**
 */
 
 
@@ -199,7 +202,7 @@ PRIVATE void HTGuess_free ARGS1(HTStream *, me)
     if (!me->discard && !me->output_stream)
 	header_and_flush(me);
     if (me->output_stream)
-	(*me->output_stream->isa->free)(me->output_stream);
+	(*me->output_stream->isa->_free)(me->output_stream);
     free(me);
 }
 

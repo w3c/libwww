@@ -19,6 +19,11 @@
 #include "HTChunk.h"
 #include "HTIcons.h"					 /* Implemented here */
 
+#ifdef VMS
+typedef unsigned long mode_t;
+#include "HTVMSUtils.h"
+#endif /* VMS */
+
 /* Globals */
 PUBLIC BOOL HTDirShowBrackets = YES;
 PUBLIC HTIconNode * icon_unknown = NULL;	/* Unknown file type */

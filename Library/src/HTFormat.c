@@ -9,6 +9,9 @@
 **	format, and so ALWAYS converts from ASCII on non-ASCII machines.
 **	Therefore, non-ASCII machines can't read local files.
 **
+** HISTORY:
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
+**
 */
 
 
@@ -1119,7 +1122,7 @@ PUBLIC int HTParseSocket ARGS3(
     } else {   /* ascii text with CRLFs :-( */
         HTCopyNoCR(file_number, stream);
     }
-    (*targetClass.free)(stream);
+    (*targetClass._free)(stream);
     
     return HT_LOADED;
 }
@@ -1162,7 +1165,7 @@ PUBLIC int HTParseFile ARGS3(
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
     HTFileCopy(fp, stream);
-    (*targetClass.free)(stream);
+    (*targetClass._free)(stream);
     
     return HT_LOADED;
 }
@@ -1210,7 +1213,7 @@ PRIVATE void NetToText_put_block ARGS3(HTStream *, me, CONST char*, s, int, l)
 
 PRIVATE void NetToText_free ARGS1(HTStream *, me)
 {
-    me->sink->isa->free(me->sink);		/* Close rest of pipe */
+    me->sink->isa->_free(me->sink);		/* Close rest of pipe */
     free(me);
 }
 

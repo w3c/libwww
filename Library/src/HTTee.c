@@ -4,6 +4,10 @@
 **
 **	The Tee class just writes to two streams.  Easy.
 **	See also the Black Hole stream which is even easier.
+**
+** HISTORY:
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
+**
 */
 
 
@@ -39,8 +43,8 @@ PRIVATE void HTTee_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 }
 PRIVATE void HTTee_free ARGS1(HTStream *, me)
 {
-    (*me->s1->isa->free)(me->s1);
-    (*me->s2->isa->free)(me->s2);
+    (*me->s1->isa->_free)(me->s1);
+    (*me->s2->isa->_free)(me->s2);
     free(me);
 }
 PRIVATE void HTTee_abort ARGS2(HTStream *, me, HTError, e)

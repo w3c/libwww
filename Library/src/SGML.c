@@ -6,7 +6,8 @@
 **	is (currently) created by being passed a DTD structure,
 **	and a target HTStructured oject at which to throw the parsed stuff.
 **	
-**	 6 Feb 93  Binary seraches used. Intreface modified.
+**	 6 Feb 93  	Binary seraches used. Intreface modified.
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
 */
 #include "SGML.h"
 
@@ -316,7 +317,7 @@ PUBLIC void SGML_free  ARGS1(HTStream *, context)
 	context->element_stack = ptr->next;
 	free(ptr);
     }
-    (*context->actions->free)(context->target);
+    (*context->actions->_free)(context->target);
     HTChunkFree(context->string);
     for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	 /* Leak fix Henrik 18/02-94 */
 	if(context->value[cnt])

@@ -8,6 +8,9 @@
 **
 **	Override this module if making a new GUI browser.
 **
+** HISTORY:
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
+**
 */
 
 #include "HTML.h"
@@ -718,7 +721,7 @@ PUBLIC void HTML_free ARGS1(HTStructured *, me)
     HText_endAppend(me->text);
 
     if (me->target) {
-        (*me->targetClass.free)(me->target);
+        (*me->targetClass._free)(me->target);
     }
     HTChunkClear(&me->title);	/* Henrik 18/02-94 */
     free(me);

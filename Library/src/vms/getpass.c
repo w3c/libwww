@@ -20,12 +20,18 @@ Cambridge, MA 02139, USA.  */
 
 /*
  * <getpass.c>
- */
+**
+** HISTORY:
+**	 8 Jul 94  FM	Include "HTUtils.h" for memory allocation and free()
+**			substitutions with VAXC on VMS.
+**
+*/
 
 #include <stdio.h>
 #include <descrip.h>
 #include <psldef.h>
 #include <iodef.h>
+#include "HTUtils.h"
 
 char *getpass (const char *prompt)
 {

@@ -5,6 +5,26 @@
 #ifndef HTVMSUTIL_H
 #define HTVMSUTIL_H
 
+/* define some masks as given in Unix stat.h file... */
+
+#define S_IFLNK		0120000
+#define S_IFSOCK	0140000
+#define S_IFIFO		0010000
+
+#define S_IRWXU         0000700 /* rwx, owner */
+#define         S_IRUSR 0000400 /* read permission, owner */
+#define         S_IWUSR 0000200 /* write permission, owner */
+#define         S_IXUSR 0000100 /* execute/search permission, owner */
+#define S_IRWXG         0000070 /* rwx, group */
+#define         S_IRGRP 0000040 /* read permission, group */
+#define         S_IWGRP 0000020 /* write permission, grougroup */
+#define         S_IXGRP 0000010 /* execute/search permission, group */
+#define S_IRWXO         0000007 /* rwx, other */
+#define         S_IROTH 0000004 /* read permission, other */
+#define         S_IWOTH 0000002 /* write permission, other */
+#define         S_IXOTH 0000001 /* execute/search permission, other */
+
+
 
 /* PUBLIC							HTVMS_authSysPrv()
 **		CHECKS IF THIS PROCESS IS AUTHORIZED TO ENABLE SYSPRV
@@ -163,6 +183,44 @@ PUBLIC struct passwd *HTVMS_getpwnam PARAMS((
 	CONST char *, username));
 
 
+PUBLIC int HTStat PARAMS((
+	CONST char *, filename,
+        stat_t *, info));
+
+PUBLIC int HTVMS_checkDecnet PARAMS((
+	CONST char *, filename));
+
+
+/* PUBLIC							HTVMS_getUIC()
+**		getUIC routine
+** ON ENTRY:
+**	username	Username specification
+**	
+**
+** ON EXIT:
+**	0		error
+**	UIC		VMS User Identification Code for username
+**	
+*/
+PUBLIC unsigned int HTVMS_getUIC PARAMS((
+	CONST char *, username));
+
+
+/* PUBLIC							HTVMS_isOwner()
+**		CHECKS OWNERSHIP OF FILE FOR CERTAIN USER
+** ON ENTRY:
+**	FileName	The file or directory to be checked
+**	UserName	Name of the user to check ownership for.
+**			User nobody, represented by "" is given NO for an answer
+**
+** ON EXIT:
+**	returns YES if FileName is owned by UserName
+**	
+*/
+PUBLIC BOOL HTVMS_isOwner PARAMS((
+	CONST char *, FileName,
+	CONST char *, UserName));
+
+
 #endif /* not HTVMSUTIL_H */
-/*
-   End of file HTVMSUtil.h.  */
+/* End of file HTVMSUtil.h.  */

@@ -7,6 +7,10 @@
 **	expanded to a stack-machine. This would then be in start_element and
 **	end_element...
 **						Henrik 07/03-94
+**
+** HISTORY:
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
+**
 */
 
 #define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
@@ -420,7 +424,7 @@ PRIVATE void HTTeXGen_free ARGS1(HTStructured *, me)
     HTTeXGen_flush(me);
     (*me->targetClass.put_string)(me->target, "\n\\end{document}\n");
     HTTeXGen_flush(me);
-    (*me->targetClass.free)(me->target);	/* ripple through */
+    (*me->targetClass._free)(me->target);	/* ripple through */
     free(me);
 }
 

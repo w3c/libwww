@@ -9,6 +9,7 @@
 **
 ** History:
 **	   Feb 92	Written Tim Berners-Lee, CERN
+**	 8 Jul 94  FM	Insulate free() from _free structure element.
 **
 */
 #include "HTFormat.h"
@@ -284,7 +285,7 @@ PRIVATE void HTMIME_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 */
 PRIVATE void HTMIME_free ARGS1(HTStream *, me)
 {
-    if (me->target) (*me->targetClass.free)(me->target);
+    if (me->target) (*me->targetClass._free)(me->target);
     free(me);
 }
 
