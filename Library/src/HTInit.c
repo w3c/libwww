@@ -199,6 +199,7 @@ PUBLIC void HTAfterInit (void)
     HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_FOUND, 	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTRedirectFilter,	"http://*",	NULL, HT_SEE_OTHER,	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTAuthInfoFilter, 	"http://*",	NULL, HT_ALL, 		HT_FILTER_MIDDLE);
     HTNet_addAfter(HTUseProxyFilter, 	"http://*",	NULL, HT_USE_PROXY, 	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTCacheUpdateFilter, "http://*",	NULL, HT_NOT_MODIFIED, 	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTInfoFilter, 	NULL,		NULL, HT_ALL,		HT_FILTER_LATE);
@@ -210,9 +211,10 @@ PUBLIC void HTAfterInit (void)
 */
 PUBLIC void HTAAInit (void)
 {
-    HTAA_newModule ("basic", HTBasic_generate, HTBasic_parse, HTBasic_delete);
+    HTAA_newModule ("basic", HTBasic_generate, HTBasic_parse, NULL,
+		     HTBasic_delete);
     HTAA_newModule ("digest", HTDigest_generate, HTDigest_parse, 
-		     HTDigest_delete);
+		     HTDigest_updateInfo,  HTDigest_delete);
 }
 
 /*	REGISTER BEFORE AND AFTER FILTERS

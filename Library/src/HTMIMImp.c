@@ -74,19 +74,14 @@ PUBLIC int HTMIME_authenticate (HTRequest * request, HTResponse * response,
     return HT_OK;
 }
 
-/* @@@ WARNING: The following function hasn't been thoroughly tested yet */
 PUBLIC int HTMIME_authenticationInfo (HTRequest * request, 
 		 		      HTResponse * response,
                                       char * token, char * value)
 {
-  /* deal here with the next nonce, the qop, and the digest response (mutual
-     authentication  */  
-  if (value) {
-    if (PROT_TRACE)
-      HTTrace("Protocol.... Authentication-Info: `%s\', value: `%s\'\n",
-	      value);
-    HTDigest_refresh (request, response, FALSE, value);
-  }	
+  if (token && value) {
+    HTResponse_addChallenge(response, token, value);
+    HTResponse_setScheme(response, "digest");
+  }
   return HT_OK;
 }
 
@@ -379,20 +374,16 @@ PUBLIC int HTMIME_proxyAuthorization (HTRequest * request, HTResponse * response
     return HT_OK;
 }
 
-
-/* @@@ WARNING: The following function hasn't been thoroughly tested yet */
 PUBLIC int HTMIME_proxyAuthenticationInfo (HTRequest * request, 
-		 		      HTResponse * response,
-                                      char * token, char * value)
+					   HTResponse * response,
+					   char * token, char * value)
 {
   /* deal here with the next nonce, the qop, and the digest response (mutual
      authentication  */  
-  if (value) {
-    if (PROT_TRACE)
-      HTTrace("Protocol.... Proxy-Authentication-Info: `%s\', value: `%s\'\n",
-	      value);
-    HTDigest_refresh (request, response, TRUE, value);
-  }	
+  if (token && value) {
+    HTResponse_addChallenge(response, token, value);
+    HTResponse_setScheme(response, "digest");
+  }
   return HT_OK;
 }
 

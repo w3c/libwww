@@ -579,6 +579,25 @@ PUBLIC int HTAuthFilter (HTRequest * request, HTResponse * response,
 }
 
 /*
+**	Client side authentication info AFTER filter
+**	---------------------------------------
+*/
+PUBLIC int HTAuthInfoFilter (HTRequest * request, HTResponse * response,
+			     void * param, int status)
+{
+    /*
+    ** Ask the authentication module to call the right authentication info
+    ** parser
+    */
+    if (! HTResponse_challenge (response))
+      return HT_OK;
+    else if (HTAA_updateFilter(request, response, param, status) == HT_OK) 
+      return HT_OK;
+    else
+      return HT_ERROR;
+}
+
+/*
 **	Request Logging AFTER filter
 **	----------------------------
 **	Default Logging filter using the log manager provided by HTLog.c

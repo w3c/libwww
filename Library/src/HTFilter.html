@@ -151,6 +151,18 @@ ones used by the line mode browser but you can just register something else.
 extern HTNetAfter HTAuthFilter;
 </PRE>
 <H3>
+  Client side authentication information filter
+</H3>
+<P>
+This filter updates the client's local authentication information database 
+with new information sent by the server via the authentication-info header.
+This header is currently used only by the Digest authentication scheme.
+This filter is initialized by default, but you can just register something
+else.
+<PRE>
+extern HTNetAfter HTAuthInfoFilter;
+</PRE>
+<H3>
   Request Common Log File Filter
 </H3>
 <P>

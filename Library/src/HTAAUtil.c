@@ -21,10 +21,13 @@
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
 **	MD 	Mark Donszelmann    duns@vxdeop.cern.ch
 **	HFN	Henrik Frystyk
-**
+**      JK      Jose Kahan 	jose@w3.org
+**      
 ** HISTORY:
 **	 8 Nov 93  MD	(VMS only) Added case insensitive comparison
 **			in HTAA_templateCaseMatch
+**      26 Jan 98  JK   Augmented the HTAA module interface with a function
+**                      for processing the auth-info headers (update)
 */
 
 /* Library include files */
@@ -41,6 +44,7 @@ struct _HTAAModule {
     char *		scheme;
     HTNetBefore *	before;
     HTNetAfter *	after;
+    HTNetAfter *	update;
     HTUTree_gc *	gc;
 };
 
@@ -81,6 +85,7 @@ PRIVATE HTAAModule * find_module (const char * scheme)
 PUBLIC HTAAModule * HTAA_newModule (const char *	scheme,
 				    HTNetBefore *	before,
 				    HTNetAfter *	after,
+				    HTNetAfter *	update,
 				    HTUTree_gc *	gc)
 {
     if (scheme) {
@@ -93,6 +98,7 @@ PUBLIC HTAAModule * HTAA_newModule (const char *	scheme,
 	    StrAllocCopy(pres->scheme, scheme);
 	    pres->before = before;
 	    pres->after = after;
+	    pres->update = update;
 	    pres->gc = gc;
 
 	    /* Add the new AA Module to the list */
@@ -429,13 +435,47 @@ PUBLIC int HTAA_afterFilter (HTRequest * request, HTResponse * response,
     }
     if ((module = HTAA_findModule(scheme)) != NULL) {
 	if (AUTH_TRACE)
-	    HTTrace("Auth Engine. Found AFTER filter %p\n", module->after);
+	  HTTrace("Auth Engine. Found AFTER filter %p\n", module->after);
 	HTRequest_deleteCredentialsAll(request);
 	HTRequest_addAARetry (request);
 	return (*module->after)(request, response, NULL, status);
     }
     return HT_ERROR;
 }
+
+/*	HTAA_UpdateFilter
+**	-----------------
+**	Call the Update filter that knows how to handle this scheme.
+**	Return YES or whatever callback returns
+*/
+PUBLIC int HTAA_updateFilter (HTRequest * request, HTResponse * response,
+				 void * param, int status)
+{
+    const char * scheme = HTResponse_scheme(response);
+    HTAAModule * module = NULL;
+    if (AUTH_TRACE) HTTrace("Auth Engine. Update filter status %d\n", status);
+    /*
+    **	If we don't have a scheme then the server has made an error. We
+    **  try to make up for it by creating our own "noop" realm and use basic.
+    */
+    if (!scheme) {
+	HTResponse_addChallenge(response, "basic", "realm LIBWWW-UNKNOWN");
+	scheme = "basic";
+    }
+    if ((module = HTAA_findModule(scheme)) != NULL) {
+	/* we don't call this module systematically, as it could hamper
+	   the execution of Basic authentication requests for nothing */
+      if (module->update) {
+	if (AUTH_TRACE)
+	  HTTrace("Auth Engine. Found Update filter %p\n", module->update);
+	HTRequest_deleteCredentialsAll(request);
+	return (*module->update)(request, response, NULL, status);
+      }
+      return HT_OK;
+    }
+    return HT_ERROR;
+}
+
 
 /*	HTAA_proxybeforeFilter
 **	----------------------

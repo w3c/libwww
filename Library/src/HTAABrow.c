@@ -67,6 +67,8 @@
 
 #define BASIC_AUTH	"basic"
 #define DIGEST_AUTH	"digest"
+#define DIGEST_AI       "authentication-info"
+#define PROXY_DIGEST_AI "proxy-authentication-info"
 
 typedef struct _HTBasic {		  /* Basic challenge and credentials */
     char *	uid;
@@ -479,29 +481,43 @@ PRIVATE int HTDigest_reset (HTDigest *digest)
 	return NO;
 }
 
-/*	HTDigest_refresh
+/*	HTDigest_updateInfo
 **	--------------
 **      This function updates the digest with whatever new 
 ** 	authentification information the server sent back.
-**      In theory, it should be called by an authentication after
-** 	filter responsible for the mutual authenticati.
 */
 
-PUBLIC int HTDigest_refresh (HTRequest *request, HTResponse *response,
-			     BOOL proxy, char *auth_info)
+PUBLIC int HTDigest_updateInfo (HTRequest *request, HTResponse *response,
+				void * context, int status)
 {
-    char * realm = NULL;
-    char * value = NULL;
-    char * token = NULL;
-    
-    if (request && auth_info) {
+    HTAssocList * challenge = HTResponse_challenge(response);
+    const char * realm =  HTRequest_realm (request);
+
+    if (request && challenge && realm) {
+        BOOL proxy = 0;
+	char * value = NULL;
+	char * token = NULL;
+	char * auth_info = NULL;
+	
 	HTDigest *digest;
 	char *url;
-	const char * realm = HTRequest_realm(request);
 
+	/*
+	** try to find the magic string in the challenge 
+	*/
 	if (AUTH_TRACE) HTTrace("Digest Update.. "
 				"processing authentication-info");
-
+	if ((auth_info = HTAssocList_findObject(challenge, DIGEST_AI)))
+	    proxy = 0;
+	else if ((auth_info = HTAssocList_findObject(challenge, 
+						     PROXY_DIGEST_AI)))
+	    proxy = 1;
+	else {
+	    if (AUTH_TRACE) HTTrace("Digest Update.. "
+				    "didn't find any authentication-info");
+	    return HT_OK;
+	}
+    
 	/* 
 	** find the digest credentials 
 	*/
@@ -549,6 +565,7 @@ PUBLIC int HTDigest_refresh (HTRequest *request, HTResponse *response,
 	    }	
 	}
     }
+    return HT_OK;
 }
     
 /*

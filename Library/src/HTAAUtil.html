@@ -107,6 +107,7 @@ typedef struct _HTAAModule HTAAModule;
 extern HTAAModule * HTAA_newModule (const char *		scheme,
 				    HTNetBefore *		before,
 				    HTNetAfter *		after,
+				    HTNetAfter *                update,
 				    HTUTree_gc *		gc);
 </PRE>
 <H3>
@@ -188,6 +189,14 @@ HTNetBefore HTAA_beforeFilter;
 Call the <I>AFTER</I> filter that knows how to handle this scheme.
 <PRE>
 HTNetAfter HTAA_afterFilter;
+</PRE>
+<H3>
+  Update Filter
+</H3>
+<P>
+Call the <I>UPDATE</I> filter that knows how to handle this scheme.
+<PRE>
+HTNetAfter HTAA_updateFilter;
 </PRE>
 <H3>
   Proxy Authentication Filter
