@@ -304,10 +304,8 @@ PRIVATE void change_paragraph_style (HTStructured * me, HTStyle *style)
 **			A C T I O N 	R O U T I N E S
 */
 
-PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
+PRIVATE int HTML_put_character (HTStructured * me, char c)
 {
-    while (l-- > 0) {
-	char c = *b++;
     switch (me->sp[0].tag_number) {
     case HTML_COMMENT:
     	break;					/* Do Nothing */
@@ -343,20 +341,21 @@ PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
 	    me->in_word = YES;
 	}
     } /* end switch */
-    }
+    return HT_OK;
+}
+
+
+PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
+{
+    while (l-- > 0) HTML_put_character(me, *b++);
     return HT_OK;
 }
 
 PRIVATE int HTML_put_string (HTStructured * me, const char* s)
 {
-    return HTML_write(me, s, (int) strlen(s));
+    while (*s) HTML_put_character(me, *s++);
+    return HT_OK;
 }
-
-PRIVATE int HTML_put_character (HTStructured * me, char c)
-{
-    return HTML_write(me, &c, 1);
-}
-
 
 /*	Start Element
 **	-------------

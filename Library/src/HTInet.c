@@ -578,7 +578,7 @@ PUBLIC char * HTGetTmpFileName (const char * dir)
 {
     char * result = NULL;
     char * offset = NULL;
-    if (!(result = (char *) HT_MALLOC(dir ? strlen(dir) : 0 +HT_MAX_TMPNAM+2)))
+    if (!(result = (char *) HT_MALLOC(dir ? strlen(dir) : 0 + HT_MAX_TMPNAM + 2)))
 	HT_OUTOFMEM("HTGetTmpFileName");
     if (dir && *dir) {
 	strcpy(result, dir);

@@ -1074,11 +1074,6 @@ PUBLIC HTProtocol * HTNet_protocol (HTNet * net)
     return (net ? net->protocol : NULL);
 }
 
-PUBLIC int HTNet_home (HTNet * net)
-{
-    return (net ? net->home : 0);
-}
-
 /*
 **	Create the output stream and bind it to the channel
 **	Please read the description in the HTIOStream module on the parameters

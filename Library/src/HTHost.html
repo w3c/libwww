@@ -372,6 +372,10 @@ are down.
 <PRE>
 extern BOOL HTHost_setHome (HTHost * host, int home);
 extern int HTHost_home (HTHost * host);
+
+extern BOOL HTHost_setRetry (HTHost * host, int retry);
+extern int HTHost_retry (HTHost * host);
+extern BOOL HTHost_decreaseRetry (HTHost * host);
 </PRE>
 <PRE>
 #endif /* HTHOST_H */

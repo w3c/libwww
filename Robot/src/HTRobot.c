@@ -34,10 +34,10 @@
 #define DEFAULT_LOG_FILE       	"robot.log"
 #define DEFAULT_MEMLOG		"robot.mem"
 #define DEFAULT_DEPTH		0
-#define DEFAULT_DELAY		200			/* Write delay in ms */
+#define DEFAULT_DELAY		50			/* Write delay in ms */
 
 #if 0
-#define HT_MEMLOG
+#define HT_MEMLOG		/* May be expensive in performance! */
 #endif
 
 /* #define SHOW_MSG		(WWWTRACE || HTAlert_interactive()) */

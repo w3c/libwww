@@ -20,7 +20,6 @@
 #include "HTError.h"
 #include "HTNetMan.h"
 #include "HTTrans.h"
-#include "HTDNS.h"
 #include "HTTPUtil.h"
 #include "HTTCP.h"
 #include "HTHost.h"					 /* Implemented here */
@@ -30,7 +29,7 @@
 #define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
 #define MAX_PIPES		50   /* maximum number of pipelined requests */
 #define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
-#define DEFAULT_DELAY		200	  /* Default write flush delay in ms */
+#define DEFAULT_DELAY		50	  /* Default write flush delay in ms */
 
 struct _HTInputStream {
     const HTInputStreamClass *	isa;
@@ -1102,6 +1101,28 @@ PUBLIC int HTHost_home (HTHost * host)
 {
     if (!host) return 0;
     return host->home;
+}
+
+PUBLIC BOOL HTHost_setRetry (HTHost * host, int retry)
+{
+    if (!host) return NO;
+    host->retry = retry;
+    return YES;
+}
+
+PUBLIC BOOL HTHost_decreaseRetry (HTHost * host)
+{
+    if (!host) {
+	if (host->retry > 0) host->retry--;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC int HTHost_retry (HTHost * host)
+{
+    if (!host) return 0;
+    return host->retry;
 }
 
 #if 0	/* Is a macro right now */

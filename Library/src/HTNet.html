@@ -620,12 +620,6 @@ extern BOOL HTNet_setDns (HTNet * net, HTdns * dns);
 extern HTdns * HTNet_dns (HTNet * net);
 </PRE>
 <P>
-If we are talking to a multi-homed host then we may connect to any of the
-homes. In that case we store the current home in the Net object so that we
-can query about it later.
-<PRE>
-extern int HTNet_home (HTNet * net);
-</PRE>
 
 <H3>
 Target for Input Read Stream

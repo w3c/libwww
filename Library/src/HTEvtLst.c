@@ -811,11 +811,6 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
         if (active_sockets == -1) {
 	    HTRequest_addSystemError( theRequest, ERR_FATAL, socerrno, NO, "select");
 	    EventList_dump();
-#if 0
-	    __DumpFDSet(FdArray+HTEvent_INDEX(HTEvent_READ), "Read");
-	    __DumpFDSet(FdArray+HTEvent_INDEX(HTEvent_WRITE), "Write") ;
-	    __DumpFDSet(FdArray+HTEvent_INDEX(HTEvent_OOB), "Exceptions");
-#endif /* 0 */
 	    return HT_ERROR;
         }
 

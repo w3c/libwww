@@ -92,10 +92,7 @@ struct _HTCache {
 
 struct _HTStream {
     const HTStreamClass *	isa;
-    int				fd;
-#if 0
     FILE *			fp;
-#endif
     long			bytes_written;	  /* Number of bytes written */
     HTCache *			cache;
     HTRequest *			request;
@@ -1499,11 +1496,7 @@ PRIVATE BOOL free_stream (HTStream * me, BOOL abort)
 	**  however, next time we do a load we can use byte ranges to complete
 	**  the request.
 	*/
-#if 0
 	if (me->fp) fclose(me->fp);
-#else
-	if (me->fd) close(me->fd);
-#endif
 
 	/*
 	**  We are done storing the object body and can update the cache entry.
@@ -1558,24 +1551,17 @@ PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 
 PRIVATE int HTCache_flush (HTStream * me)
 {
-#if 0
     return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
-#else    
-    return HT_OK;
-#endif
 }
 
 PRIVATE int HTCache_putBlock (HTStream * me, const char * s, int  l)
 {
-#if 0
     int status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK;
     if (l > 1 && status == HT_OK) {
 	HTCache_flush(me);
 	me->bytes_written += l;
     }
-#else
-    return (write(me->fd, s, l) != l) ? HT_ERROR : HT_OK;
-#endif
+    return status;
 }
 
 PRIVATE int HTCache_putChar (HTStream * me, char c)
@@ -1602,11 +1588,7 @@ PRIVATE const HTStreamClass HTCacheClass =
 PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
 {
     HTCache * cache = NULL;
-#if 0
     FILE * fp = NULL;
-#else
-    int fd = -1;
-#endif
     
     HTResponse * response = HTRequest_response(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
@@ -1636,20 +1618,12 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
     */
     {
 	char * name = HTCache_location(cache, NO);
-#if 0
 	if ((fp = fopen(name, append ? "ab" : "wb")) == NULL) {
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... Can't open `%s\' for writing\n", name);
 	    HTCache_delete(cache);
 	    HT_FREE(name);	    
 	    return NULL;
-#else
-	if ((fd = open(name,
-		       append ? O_WRONLY | O_CREAT : O_WRONLY | O_CREAT | O_TRUNC,
-		       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH )) == -1) {
-	    HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "open");
-	    return NULL;
-#endif
 	} else {
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... %s file `%s\'\n",

@@ -84,7 +84,7 @@ struct _HTHost {
     SockA 		sock_addr;	     /* SockA is defined in sysdep.h */
     int			retry;		     /* Counting attempts to connect */
     int 		home;			 /* Current home if multiple */
-    time_t		connecttime;		 /* Used on multihomed hosts */
+    ms_t		connecttime;	   /* Time in ms on multihomed hosts */
 
     /* Event Management */
     HTEvent *		events[HTEvent_TYPES];/* reading and writing may differ */

@@ -183,8 +183,6 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
     HTHost * me = HTNet_host(net);
     HTRequest * request = HTNet_request(net);
     int preemptive = net->preemptive;
-    int retry = net->retry;
-
     int status = HT_OK;
     char * hostname = HTHost_name(me);
 
@@ -269,8 +267,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_ERROR.\n"), me);
 		break;
 	    }
-	    if (!retry && status > 1)		/* If multiple homes */
-		retry = status;
+	    if (!HTHost_retry(me) && status > 1)		/* If multiple homes */
+		HTHost_setRetry(me, status);
 	    me->tcpstate = TCP_NEED_SOCKET;
 	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_NEED_SOCKET.\n"), me);
 	    break;
@@ -292,7 +290,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #endif /* HT_MUX */
 
 	    /* If multi-homed host then start timer on connection */
-	    if (retry) me->connecttime = time(NULL);
+	    if (HTHost_retry(me)) me->connecttime = HTGetTimeInMillis();
 
 	    /* Progress */
 	    {
@@ -343,8 +341,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_NEED_SOCKET.\n"), me);
 		    break;
 		}
-		if (retry) {
-		    me->connecttime -= time(NULL);
+		if (HTHost_retry(me)) {
+		    me->connecttime -= HTGetTimeInMillis();
 		    /* Added EINVAL `invalid argument' as this is what I 
 		       get back from a non-blocking connect where I should 
 		       get `connection refused' on BSD. SVR4 gives SIG_PIPE */
@@ -360,7 +358,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		        me->connecttime += TCP_DELAY;
 		    else
 		        me->connecttime += TCP_PENALTY;
-		    HTDNS_updateWeigths(me->dns, me->home, me->connecttime);
+		    HTDNS_updateWeigths(me->dns, HTHost_home(me), me->connecttime);
 		}
 		me->tcpstate = TCP_ERROR;		
 		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_ERROR.\n"), me);
@@ -372,11 +370,11 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 
 	  case TCP_CONNECTED:
 	    HTHost_unregister(me, net, HTEvent_CONNECT);
-	    if (retry) {
-		me->connecttime -= time(NULL);
-		HTDNS_updateWeigths(me->dns, me->home, me->connecttime);
+	    if (HTHost_retry(me)) {
+		me->connecttime -= HTGetTimeInMillis();
+		HTDNS_updateWeigths(me->dns, HTHost_home(me), me->connecttime);
 	    }
-	    retry = 0;
+	    HTHost_setRetry(me, 0);
 	    me->tcpstate = TCP_IN_USE;
 	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p connected.\n"), me);
 	    return HT_OK;
@@ -411,7 +409,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    }
 
 	    /* Do we have more homes to try? */
-	    if (--retry > 0) {
+	    HTHost_decreaseRetry(me);
+	    if (HTHost_retry(me) > 0) {
 	        HTRequest_addSystemError(request, ERR_NON_FATAL, socerrno, NO,
 			      "connect");
 		me->tcpstate = TCP_DNS;
@@ -420,7 +419,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    }
 	    HTRequest_addSystemError(request, ERR_FATAL,socerrno,NO,"connect");
 	    HTDNS_delete(hostname);
-	    retry = 0;
+	    HTHost_setRetry(me, 0);
 	    me->tcpstate = TCP_BEGIN;
 	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_BEGIN.\n"), me);
 	    return HT_ERROR;

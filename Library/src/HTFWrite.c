@@ -202,8 +202,6 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
     {
 	HTAlertCallback *cbf = HTAlert_find(HT_A_PROMPT);
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
-	char *suffix = HTBind_getSuffix(anchor);
-	char *deflt = get_filename(tmproot,HTAnchor_physical(anchor),suffix);
 
 	/*
 	**  If we found an alert handler for prompting the user then call it.
@@ -213,12 +211,14 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	*/
 	if (cbf) {
 	    HTAlertPar * reply = HTAlert_newReply();
+	    char * suffix = HTBind_getSuffix(anchor);
+	    char * deflt = get_filename(tmproot, HTAnchor_physical(anchor), suffix);
 	    if ((*cbf)(request, HT_A_PROMPT, HT_MSG_FILENAME,deflt,NULL,reply))
 		filename = HTAlert_replyMessage(reply);
 	    HTAlert_deleteReply(reply);
+	    HT_FREE(suffix);
+	    HT_FREE(deflt);
 	}
-	HT_FREE(suffix);
-	HT_FREE(deflt);
 	if (filename) {
 	    if ((fp = fopen(filename, "wb")) == NULL) {
 		HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
