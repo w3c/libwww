@@ -3,29 +3,34 @@
 <html>
 <head>
 <title>Command Line Syntax for the W3C Mini Robot</title>
-<link rel="STYLESHEET" href="../../StyleSheets/Area/Overview.css"
-type="text/css">
+<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
 </head>
-<body bgcolor="#ffffff" text="#000000" lang="en">
-<p>
-<a href="../"><img alt="W3C" src="../../Icons/WWW/w3c_home" border="0"
-width="72" height="48"></a> <a href="../"><img alt="Robot"
-src="../../Icons/WWW/robot48x" width="48" height="48" border="0"></a> <img
-alt="MANUAL" src="../../Icons/WWW/doc48x"></p>
+<body>
 
-<h1>Command Line Syntax</h1>
-<p>
-</p>
+<p><a href="../"><img alt="W3C" src="../../Icons/WWW/w3c_home" border="0"
+width="72" height="48"></a> <a href="../"><img alt="Robot"
+src="../../Icons/WWW/robot48x" width="48" height="48" border="0"></a> <a
+href="./"><img alt="MANUAL" src="../../Icons/WWW/doc48x" border="0"></a></p>
+
+<h1>Webbot Command Line Syntax</h1>
+
+<p></p>
 
 <div class="intro">
 
 The generic syntax is:
 <pre>         webbot [ <a href="#z19">options</a> ] [ <a href="#z16">URI</a> [ <a href="#z17">keywords</a> ] ]</pre>
-<p>
-Check here the following options</p>
+
+<p>Check here the following options</p>
 <ul>
 <li>
 <a href="#Help">Getting Help</a>
+</li>
+<li>
+<a href="#User">User Interactions - how much or how little</a>
+</li>
+<li>
+<a href="#Configurat">Configuration File</a>
 </li>
 <li>
 <a href="#Constraints">Setting Basic Constraints for Traversal</a>
@@ -37,13 +42,17 @@ Check here the following options</p>
 <a href="#regex">Regular Expressions based Constraints</a>
 </li>
 <li>
-<a href="#Search">Breath First or Depth First Search</a>
+<a href="#Search">Selecting Breath First (BFS) or Depth First Search (DFS)</a>
 </li>
 <li>
 <a href="#Handling">Handling HTTP redirections</a>
 </li>
 <li>
-<a href="#Inlined">Checking Inlined Images</a>
+<a href="#Persistent">Using the HTTP/1.1 Persistent Cache</a>
+</li>
+<li>
+<a href="#Inlined">Verifying or Downloading Inlined Images and other
+objects</a>
 </li>
 <li>
 <a href="#Logging">SQL Based Logging using MySQL</a>
@@ -55,27 +64,24 @@ Check here the following options</p>
 <a href="#Stats">Distribution and Statistics Features</a>
 </li>
 <li>
-<a href="#Persistent">Persistent Cache</a>
-</li>
-<li>
 <a href="#Other">Other Options</a>
 </li>
 </ul>
 </div>
-<p>
-</p>
+
+<p></p>
 <hr>
 
 
 <h2><a name="z19">Options</a></h2>
-<p>
-The order of the options is not important and options can in fact be specified
-on either side of any <a href="#z16" name="z14">URI</a>. Currently available
-options are:-</p>
+
+<p>The order of the options is not important and options can in fact be
+specified on either side of any <a href="#z16" name="z14">URI</a>. Currently
+available options are:-</p>
 
 <h3><a name="Help">Getting Help</a></h3>
 <dl>
-<dt><b>-v [ a | b | c | g | p | s | t | u ] </b></dt>
+<dt><b>-v [ a | b | c | g | p | s | t | u ]</b></dt>
 <dd>
 Verbose mode: Gives a running commentary on the program's attempts to read
 data in various ways. As the amount of verbose output is substantial, the
@@ -107,10 +113,10 @@ flags (without space) in order to differentiate the verbose output generated:
 <b>u</b>: URI relevant information
 </li>
 </ul>
-<p>
-The <tt>-v</tt> option without any appended options shows all trace messages.
-An example is "<tt>-vpt</tt>" showing <em>thread</em> and <em>protocol</em>
-trace messages</p>
+
+<p>The <tt>-v</tt> option without any appended options shows all trace
+messages. An example is "<tt>-vpt</tt>" showing <em>thread</em> and
+<em>protocol</em> trace messages</p>
 </dd>
 <dt><b>-version</b></dt>
 <dd>
@@ -119,10 +125,50 @@ and exits.
 </dd>
 </dl>
 
+<h3><a name="User">User Interactions</a></h3>
+
+<p>Various options can determine how verbose and chatty the robot should
+be</p>
+<dl>
+<dt><b>-n</b></dt>
+<dd>
+Non-interactive mode - don't ask the user anything.
+</dd>
+<dt><b>-q</b></dt>
+<dd>
+Somewhat quiet mode.
+</dd>
+<dt><b>-Q</b></dt>
+<dd>
+Really quiet mode.
+</dd>
+<dt><b>-ss</b></dt>
+<dd>
+Print out date and time for start and stop for the job.
+</dd>
+</dl>
+
+<h3><a name="Configurat">Configuration File</a></h3>
+<dl>
+<dt><b>-r &lt;address></b></dt>
+<dd>
+Rule file, a.k.a. <a
+href="../../Library/User/Using/RuleSyntax.html">configuration file</a> is a
+set of rules and configuration options that can be used to map URLs, and to
+set up other aspects of the behavior of the command line tool. Note that the
+address must be specified as a URI - and in fact it can be located on HTTP
+servers etc. as need be. File URIs are parsed relative to the current folder,
+so a rule file address of "<tt>rules.conf</tt>" will point to a file in the
+location where this tool it started. If a local file then the file suffix must
+be "<tt>.conf</tt>" - otherwise the media type must be
+<tt>application/x-www-rules</tt>.
+</dd>
+</dl>
+
 <h3><a name="Constraints">Setting Basic Constraints for Traversal</a></h3>
-<p>
-These are some very simple constrants that can always be used when running the
-webbot.</p>
+
+<p>These are some very simple constrants that can always be used when running
+the webbot.</p>
 <dl>
 <dt><b>-depth [ n ]</b></dt>
 <dd>
@@ -140,9 +186,10 @@ separate file</a>.
 </dl>
 
 <h3><a name="txt">Robots.txt and HTML META tags</a></h3>
-<p>
-There are situations where you may not want the robot to behave as a robot but
-more as a link checker in which case you may consider using these options:</p>
+
+<p>There are situations where you may not want the robot to behave as a robot
+but more as a link checker in which case you may consider using these
+options:</p>
 <dl>
 <dt><b>-norobotstxt</b></dt>
 <dd>
@@ -159,8 +206,8 @@ robots related META tags</a> then add this command line option
 </dl>
 
 <h3><a name="regex">Regular Expressions based Constraints</a></h3>
-<p>
-Using regular expressions reguires that you <a
+
+<p>Using regular expressions reguires that you <a
 href="../../INSTALL.html#features">link against a regex library</a> handling
 <a href="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expressions</a>
 - see the <a href="../../INSTALL.html">installation instructions</a> for
@@ -169,7 +216,7 @@ more efficiently - both to decide which URIs should be followed and to decide
 whether the webbot should use <code>HEAD</code> or <code>GET</code> when
 checking the links.</p>
 <dl>
-<dt><b>-exclude [ regex ] </b></dt>
+<dt><b>-exclude [ regex ]</b></dt>
 <dd>
 Allows you to define a <a
 href="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</a> of
@@ -194,8 +241,8 @@ which URIs should be included in the traversal
 </dl>
 
 <h3><a name="Search">Breath First or Depth First Search</a></h3>
-<p>
-The webbot can perform either a <a
+
+<p>The webbot can perform either a <a
 href="http://study.haifa.ac.il/~gmazorvs/">Depth First Search (DFS) or a
 Breadth First Search (BFS)</a>. The default is DFS where the robot issues new
 requests as soon as they are encountered. To change to the BFS algorithmn, use
@@ -208,8 +255,8 @@ Use Breadth First Search (BFS) instead of Depth First Search (DFS)
 </dl>
 
 <h3><a name="Handling">Handling HTTP Redirections</a></h3>
-<p>
-By default, the webbot doesn't follow HTTP redirections - it only registers
+
+<p>By default, the webbot doesn't follow HTTP redirections - it only registers
 them in the <a href="#Regular">log files</a>. However, by using the
 <strong>-redir</strong> option, it actually follows the redirections if the
 redirected address fulfills the <a href="#regex">traversing
@@ -225,8 +272,8 @@ the redirectioncode, for example <strong>-redir 302</strong>.
 </dl>
 
 <h3><a name="Inlined">Checking Inlined Images</a></h3>
-<p>
-The webbot can check inlined images as well as normal hyperlinks. You can
+
+<p>The webbot can check inlined images as well as normal hyperlinks. You can
 control this using the following flags:</p>
 <dl>
 <dt><b>-img</b></dt>
@@ -255,8 +302,8 @@ href="#Logging">logged to a separate file</a>.
 </dl>
 
 <h3><a name="Logging">SQL Based Logging using MySQL</a></h3>
-<p>
-Using SQL based logging requires that you have linked against a <a
+
+<p>Using SQL based logging requires that you have linked against a <a
 href="http://www.tcx.se/">MySQL library</a>. See the <a
 href="../../INSTALL.html">installation instructions</a> for details. I like
 the Web interface provided by <a
@@ -286,8 +333,8 @@ of the link etc. The type can either be implicit like "<em>referer</em>" or
 "<em>toc</em>", etc.
 </dd>
 </dl>
-<p>
-The command line options for handling the SQL logging are as follows:</p>
+
+<p>The command line options for handling the SQL logging are as follows:</p>
 <dl>
 <dt><b>-sqlserver [ srvrname ]</b></dt>
 <dd>
@@ -342,8 +389,9 @@ Clears the <b>uris</b> table before starting the traversal.
 </dl>
 
 <h3><a name="Regular">Regular Ascii Text Logging</a></h3>
-<p>
-This set of log files are dumped in normal ASCII format into local files</p>
+
+<p>This set of log files are dumped in normal ASCII format into local
+files</p>
 <dl>
 <dt><b>-404 [ file ]</b></dt>
 <dd>
@@ -377,9 +425,9 @@ href="#Constaints">constraints for traversal</a>.
 </dl>
 
 <h3><a name="Stats">Distribution and Statistics Features</a></h3>
-<p>
-Note that if you are using SQL based logging then the set of statistics that
-can be drawn directly from the database is very high.</p>
+
+<p>Note that if you are using SQL based logging then the set of statistics
+that can be drawn directly from the database is very high.</p>
 <dl>
 <dt><b>-format [ file ]</b></dt>
 <dd>
@@ -410,11 +458,12 @@ attribute) that has the relation specified in the <b>-relation</b> parameter
 (all relations are modelled by libwww as "forward"). For example <tt>"-rellog
 stylesheets-logfile.txt -relation stylesheet"</tt> will produce a log file of
 all link relationships of type "stylesheet". The format of the log file is
-<p align="center">
-<tt>"&lt;relationship> &lt;media type> &lt;from-URI> --> &lt;to-URI>"</tt></p>
-<p>
-meaning that the <tt>from-URI</tt> has the forward <tt>relationship</tt> with
-<tt>to-URI</tt>.</p>
+
+<p align="center"><tt>"&lt;relationship> &lt;media type> &lt;from-URI> -->
+&lt;to-URI>"</tt></p>
+
+<p>meaning that the <tt>from-URI</tt> has the forward <tt>relationship</tt>
+with <tt>to-URI</tt>.</p>
 </dd>
 <dt><b>-title [ file ]</b></dt>
 <dd>
@@ -424,8 +473,8 @@ either as an HTTP header or in the HTML.
 </dl>
 
 <h3><a name="Persistent">Persistent Cache</a></h3>
-<p>
-The webbot can use the persistent cache while traversing the web site which
+
+<p>The webbot can use the persistent cache while traversing the web site which
 may cause a significant performance optimization. These are the command line
 options:</p>
 <dl>
@@ -462,50 +511,17 @@ Specify the write delay in milliseconds for how long we can wait until we
 flush the output buffer when using pipelining. The default value is 50 ms. The
 longer delay, the bigger TCP packets but also longer response time.
 </dd>
-<dt><b>-n</b></dt>
-<dd>
-Non-interactive mode.
-</dd>
 <dt><b>-nopipe</b></dt>
 <dd>
-Do <i>not</i> use HTTP/1.1 pipelining. The default for this option can be set
-using the <a href="../../INSTALL.html">configure script under
-installation</a>.
-</dd>
-<dt><b>-o [ file ]</b></dt>
-<dd>
-Redirects output to specified file. This mode forced non-interactive mode.
-</dd>
-<dt><b>-q</b></dt>
-<dd>
-Somewhat quiet mode.
-</dd>
-<dt><b>-Q</b></dt>
-<dd>
-Really quiet mode.
-</dd>
-<dt><b>-r &lt;address> </b></dt>
-<dd>
-Rule file, a.k.a. <a
-href="../../Library/User/Using/RuleSyntax.html">configuration file</a> is a
-set of rules and configuration options that can be used to map URLs, and to
-set up other aspects of the behavior of the command line tool. Note that the
-address must be specified as a URI - and in fact it can be located on HTTP
-servers etc. as need be. File URIs are parsed relative to the current folder,
-so a rule file address of "<tt>rules.conf</tt>" will point to a file in the
-location where this tool it started. If a local file then the file suffix must
-be "<tt>.conf</tt>" - otherwise the media type must be
-<tt>application/x-www-rules</tt>.
+Do <i>not</i> use HTTP/1.1 pipelining (but still use persistent connections).
+The default for this option can be set using the <a
+href="../../INSTALL.html">configure script under installation</a>.
 </dd>
 <dt><a name="single"><b>-single</b></a></dt>
 <dd>
 Single threaded mode. If this flag is set then the browser uses blocking, non
 interruptible I/O in interactive mode. Non-interactive mode always uses
 blocking I/O.
-</dd>
-<dt><b>-ss</b></dt>
-<dd>
-Print out date and time for start and stop for the job.
 </dd>
 <dt><b>-timeout [ n ]</b></dt>
 <dd>
@@ -515,23 +531,23 @@ then about the request. Default timeout is 20 secs.
 </dl>
 
 <h2><a name="z16">URI</a></h2>
-<p>
-The URI is the <a href="../../Addressing/Addressing.html"> hypertext
+
+<p>The URI is the <a href="../../Addressing/Addressing.html"> hypertext
 address</a> of the document at which you want to start the robot.</p>
 
 <h2><a name="z17">keywords</a></h2>
-<p>
-Any further command line arguments are taken as keywords. Keywords can be used
-as search tokens in an HTTP request-URI encoded so that all spaces are
+
+<p>Any further command line arguments are taken as keywords. Keywords can be
+used as search tokens in an HTTP request-URI encoded so that all spaces are
 replaced with "<tt>+</tt>" and unsafe characters are encoded using the URI
 "<tt>%xx</tt>" escape mechanism. An example of a search query is</p>
-<pre>        webbot http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"</pre>
-<p>
-</p>
+<pre>  webbot http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"</pre>
+
+<p></p>
 <hr>
 
 <address>
-<a href="../../People/Frystyk/">Henrik Frystyk Nielsen</a><br>
+<a href="../../People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
 @(#) $Id$ </address>
 </body>
 </html>

@@ -3,10 +3,9 @@
 <html>
 <head>
 <title>Command Line Syntax for the W3C Command Line Tool</title>
-<link rel="STYLESHEET" href="../../StyleSheets/Area/Overview.css"
-type="text/css">
+<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
 </head>
-<body bgcolor="#ffffff">
+<body>
 
 <p><a href="../../"><img border="0" alt="W3C"
 src="../../Icons/WWW/w3c_home.gif"></a> <a href="../"><img border="0"
@@ -38,6 +37,9 @@ The generic syntax is:
 </li>
 <li>
 <a href="#Destination">Destination for PUT and POST requests</a>
+</li>
+<li>
+<a href="#auth">Automatic authentication</a>
 </li>
 <li>
 <a href="#Format">Data Format Conversions</a>
@@ -73,7 +75,7 @@ available options are:-</p>
 <dd>
 Load this file from directly into the browser
 </dd>
-<dt><b>-v [ a | b | c | g | p | s | t | u ] </b></dt>
+<dt><b>-v [ a | b | c | g | p | s | t | u ]</b></dt>
 <dd>
 Verbose mode: Gives a running commentary on the program's attempts to read
 data in various ways. As the amount of verbose output is substantial, the
@@ -313,16 +315,16 @@ and sent in the body of the request.
 </ol>
 
 <p>An example of a search query is</p>
-<pre>        w3c http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"</pre>
+<pre>  w3c http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"</pre>
 
 <p>and of a POST form submission</p>
-<pre>        w3c -post http://... -form "RECORD=ID" "COL1=a" "COL2=b" "COL3=c" "COL4=d"</pre>
+<pre>  w3c -post http://... -form "RECORD=ID" "COL1=a" "COL2=b" "COL3=c" "COL4=d"</pre>
 
 <p></p>
 <hr>
 
 <address>
-<a href="../../People/Frystyk/">Henrik Frystyk Nielsen</a><br>
+<a href="../../People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
 @(#) $Id$ </address>
 </body>
 </html>

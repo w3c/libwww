@@ -1,142 +1,162 @@
-<HTML>
-<HEAD>
-  <TITLE>Webbot - the W3C Libwww Robot</TITLE>
-  <LINK rel=STYLESHEET href="../StyleSheets/Area/Overview.css" type="text/css">
-</HEAD>
-<BODY BGCOLOR="#ffffff" TEXT="#000000">
-<P>
-<A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
-    HEIGHT="48"></A>
-<A HREF="../Library/"><IMG BORDER="0" ALT="libwww" SRC="../Icons/WWW/Lib48x"></A>
-<IMG ALT="Robot" SRC="../Icons/WWW/robot48x">
-<H1>
-  Webbot - the Libwww Robot
-</H1>
-<P ALIGN="center">
-<A HREF="#Basics">Basics</A> | <A HREF="../Library/Distribution.html">Get
-it!</A> |&nbsp;<A HREF="#Features">Features</A>
-|&nbsp;<A HREF="User/CommandLine.html">Options</A> |
-<A HREF="../Library/User/ReleaseNotes.html">Release Notes</A> |
-<A HREF="#How">How to</A>
-<DIV class="intro">
-  The webbot is a very fast Web walker with support for regular expressions,
-  SQL logging facilities, and many other features. The webbot comes with the
-  <A HREF="../Library/">libwww codebase</A>. It can be used to check links,
-  find bad HTML, map out a web site, download images, etc.
-  <UL>
-    <LI>
-      <A HREF="tcl/">Check out the Tcl/Tk interface for the webbot</A>
-    <LI>
-      <A HREF="www-sql/">Check out the www-sql interface to the mysql generated
-      log files</A>
-  </UL>
-</DIV>
-<P>
-  <HR>
-<H2>
-  <A NAME="Basics">The Basics</A>
-</H2>
-<DL>
-  <DT>
-    Author(s)
-  <DD>
-    <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>, John Punin, Bob
-    Racko
-  <DT>
-    Status
-  <DD>
-    An example application for <A HREF="../Library/">libwww</A>. The robot is
-    the primary tool used for the <A HREF="../Protocols/HTTP/Performance/">HTTP
-    performance measurements</A>.
-  <DT>
-    Plans
-  <DD>
-    New releases follow the releases of <A HREF="../Library/">libwww</A> with
-    no exception.
-  <DT>
-    Platforms
-  <DD>
-    It runs on the <A HREF="../Library/User/Platform/">same platforms as libwww</A>
-  <DT>
-    Getting the Source Code
-  <DD>
-    The webbot comes as an integral part of the
-    <A HREF="../Library/Distribution.html">libwww distribution package</A>.
-  <DT>
-    Forums
-  <DD>
-    Discussions on libwww and its example applications take place on
-    <B>&lt;www-lib@w3.org</B>&gt;
-    (<A HREF="http://lists.w3.org/Archives/Public/www-lib/">archives</A>). See
-    the <A HREF="../Mail/Request.html">documentation for how to subscribe</A>.
-</DL>
-<H2>
-  <A NAME="Features">Features</A>
-</H2>
-<UL>
-  <LI>
-    Really fast <A HREF="../Library/">libwww HTTP/1.1 engine</A> - uses
-    <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which
-    <A HREF="../Protocols/HTTP/Performance/">speeds up performance a lot</A>
-  <LI>
-    Supports
-    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
-    </A>files and
-    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
-    META tags</A>
-  <LI>
-    Smart use of <CODE>GET</CODE> and <CODE>HEAD</CODE> - only downloads the
-    strictly necessary
-  <LI>
-    Check of <A HREF="User/CommandLine.html#Inlined">inlined images</A> as well
-    as hyperlinks
-  <LI>
-    Support for <A HREF="User/CommandLine.html#regex">regular expressions</A>
-    allows detailed Web traversal constraints
-  <LI>
-    Support for <A HREF="User/CommandLine.html#Logging">SQL based logging</A>
-    which allows for an open-ended set of thongs you can do with the logs
-  <LI>
-    Support for <A HREF="User/CommandLine.html#Regular">traditional file based
-    logging</A> using Common Log File formats and Referer log file formats
-  <LI>
-    A <A HREF="User/CommandLine.html#Stats">wealth of logging facilities</A>
-    including:
-    <UL>
-      <LI>
-	Missing or empty ALT tags in inlined images
-      <LI>
-	Broken links
-      <LI>
-	Document titles based on the <CODE>TITLE</CODE> HTML tag and the
-	<CODE>Title</CODE> HTTP header field
-      <LI>
-	Link relationships between documents based on the <CODE>LINK</CODE> HTML
-	tag
-      <LI>
-	Modification dates based on the <CODE>Last-Modified</CODE> HTTP header field
-      <LI>
-	Distributions of content-types and charsets encountered in the traversal
-    </UL>
-</UL>
-<H2>
-  <A NAME="How">How to Run It</A>
-</H2>
-<P>
-Be careful - this is a robot and hence can be used to traverse many links
-- it should be used with care and is not designed to be let loose on the
-Internet at large. Its primary design goal was to be able to test
-<A HREF="../Protocols/HTTP/Performance/Pipeline.html">HTTP/1.1 pipelining
-features</A>.
-<P>
-The robot has a large set of <A HREF="User/CommandLine.html">command line
-options</A> that can be used in a large set of different combinations. You
-can try and <A HREF="src/robot.sh">see this simple script</A> in order to
-see an example of how it can be run.
-<P>
-  <HR>
-<ADDRESS>
-  <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Webbot - the W3C Libwww Robot</title>
+<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
+</head>
+<body>
+
+<p><a href="../"><img alt="W3C" src="../Icons/WWW/w3c_home" border="0"
+width="72" height="48"></a> <a href="../Library/"><img border="0" alt="libwww"
+src="../Icons/WWW/Lib48x"></a> <img alt="Robot"
+src="../Icons/WWW/robot48x"></p>
+
+<h1>Webbot - the Libwww Robot</h1>
+
+<p align="center"><a href="#Basics">Basics</a> | <a
+href="../Library/Distribution.html">Get it!</a> |&nbsp;<a
+href="#Features">Features</a> |&nbsp;<a
+href="User/CommandLine.html">Options</a> | <a
+href="../Library/User/ReleaseNotes.html">Release Notes</a> | <a
+href="#How">How to</a></p>
+
+<div class="intro">
+
+The webbot is a very fast Web walker with support for regular expressions, SQL
+logging facilities, and many other features. The webbot comes with the <a
+href="../Library/">libwww codebase</a>. It can be used to check links, find
+bad HTML, map out a web site, download images, etc.
+<ul>
+<li>
+<a href="tcl/">Check out the Tcl/Tk interface for the webbot</a>
+</li>
+<li>
+<a href="www-sql/">Check out the www-sql interface to the mysql generated log
+files</a>
+</li>
+</ul>
+</div>
+
+<p></p>
+<hr>
+
+
+<h2><a name="Basics">The Basics</a></h2>
+<dl>
+<dt>Author(s)</dt>
+<dd>
+<a href="../People/Frystyk/">Henrik Frystyk Nielsen</a>, John Punin, Bob Racko
+</dd>
+<dt>Status</dt>
+<dd>
+An example application for <a href="../Library/">libwww</a>. The robot is the
+primary tool used for the <a href="../Protocols/HTTP/Performance/">HTTP
+performance measurements</a>.
+</dd>
+<dt>Plans</dt>
+<dd>
+New releases follow the releases of <a href="../Library/">libwww</a> with no
+exception.
+</dd>
+<dt>Platforms</dt>
+<dd>
+It runs on the <a href="../Library/User/Platform/">same platforms as
+libwww</a>
+</dd>
+<dt>Getting the Source Code</dt>
+<dd>
+The webbot comes as an integral part of the <a
+href="../Library/Distribution.html">libwww distribution package</a>.
+</dd>
+<dt>Forums</dt>
+<dd>
+Discussions on libwww and its example applications take place on
+<b>&lt;www-lib@w3.org</b>> (<a
+href="http://lists.w3.org/Archives/Public/www-lib/">archives</a>). See the <a
+href="../Mail/Request.html">documentation for how to subscribe</a>.
+</dd>
+</dl>
+
+<h2><a name="Features">Features</a></h2>
+<ul>
+<li>
+Really fast <a href="../Library/">libwww HTTP/1.1 engine</a> - uses <a
+href="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</a> which <a
+href="../Protocols/HTTP/Performance/">speeds up performance a lot</a>
+</li>
+<li>
+Supports <a
+href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
+</a>files and <a
+href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
+META tags</a>
+</li>
+<li>
+Smart use of <code>GET</code> and <code>HEAD</code> - only downloads the
+strictly necessary
+</li>
+<li>
+Check of <a href="User/CommandLine.html#Inlined">inlined images</a> as well as
+hyperlinks
+</li>
+<li>
+Support for <a href="User/CommandLine.html#regex">regular expressions</a>
+allows detailed Web traversal constraints
+</li>
+<li>
+Support for <a href="User/CommandLine.html#Logging">SQL based logging</a>
+which allows for an open-ended set of thongs you can do with the logs
+</li>
+<li>
+Support for <a href="User/CommandLine.html#Regular">traditional file based
+logging</a> using Common Log File formats and Referer log file formats
+</li>
+<li>
+A <a href="User/CommandLine.html#Stats">wealth of logging facilities</a>
+including:
+<ul>
+<li>
+Missing or empty ALT tags in inlined images
+</li>
+<li>
+Broken links
+</li>
+<li>
+Document titles based on the <code>TITLE</code> HTML tag and the
+<code>Title</code> HTTP header field
+</li>
+<li>
+Link relationships between documents based on the <code>LINK</code> HTML tag
+</li>
+<li>
+Modification dates based on the <code>Last-Modified</code> HTTP header field
+</li>
+<li>
+Distributions of content-types and charsets encountered in the traversal
+</li>
+</ul>
+</li>
+</ul>
+
+<h2><a name="How">How to Run It</a></h2>
+
+<p>Be careful - this is a robot and hence can be used to traverse many links -
+it should be used with care and is not designed to be let loose on the
+Internet at large. Its primary design goal was to be able to test <a
+href="../Protocols/HTTP/Performance/Pipeline.html">HTTP/1.1 pipelining
+features</a>.</p>
+
+<p>The robot has a large set of <a href="User/CommandLine.html">command line
+options</a> that can be used in a large set of different combinations. You can
+try and <a href="src/robot.sh">see this simple script</a> in order to see an
+example of how it can be run.</p>
+
+<p></p>
+<hr>
+
+<address>
+<a href="../People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>
