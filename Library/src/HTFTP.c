@@ -205,6 +205,9 @@ PRIVATE int close_connection(con)
 **	be continued, which are marked with a "-" immediately after the
 **	status code.
 **
+**	Continuation then goes on until a line with a matching reply code
+**	an a space after it.
+**
 ** On entry,
 **	con	points to the connection which is established.
 **	cmd	points to a command, or is NIL to just get the response.
@@ -223,7 +226,7 @@ PRIVATE int response(cmd)
 #endif
 {
     int result;				/* Three-digit decimal code */
-    char	continuation;
+    int	continuation_response = -1;
     int status;
     
     if (!control) {
@@ -258,9 +261,18 @@ PRIVATE int response(cmd)
 	for(;;) {  
 	    if (((*p++=NEXT_CHAR) == LF)
 			|| (p == &response_text[LINE_LENGTH])) {
+		char continuation;
 		*p++=0;			/* Terminate the string */
 		if (TRACE) fprintf(stderr, "    Rx: %s", response_text);
 		sscanf(response_text, "%d%c", &result, &continuation);
+		if  (continuation_response == -1) {
+			if (continuation == '-')  /* start continuation */
+			    continuation_response = result;
+		} else { 	/* continuing */
+			if (continuation_response == result
+				&& continuation == ' ')
+			    continuation_response = -1;	/* ended */
+		}	
 		break;	    
 	    } /* if end of line */
 	    
@@ -273,7 +285,7 @@ PRIVATE int response(cmd)
 	    }
 	} /* Loop over characters */
 
-    } while (continuation == '-');
+    } while (continuation_response != -1);
     
     if (result==421) {
 	if(TRACE) fprintf(stderr, "FTP: They close so we close socket %d\n",

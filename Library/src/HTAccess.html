@@ -1,5 +1,5 @@
 <HEADER>
-<TITLE>Access manager -- libwww</TITLE>
+<TITLE>HTAccess:  Access manager  for libwww</TITLE>
 <NEXTID N="1">
 </HEADER>
 <BODY>
@@ -11,7 +11,7 @@ various combinations of parameters.
 New access protocols may be registered
 at any time.<P>
 Part of the <A
-NAME=z0 HREF="Overview.html">libwww library</A>.
+NAME=z0 HREF="Overview.html">libwww library</A> .
 <PRE>#ifndef HTACCESS_H
 #define HTACCESS_H
 
@@ -37,14 +37,18 @@ NAME=z0 HREF="Overview.html">libwww library</A>.
 				/* Typically, other app started or forked */
 
 </PRE>
-<H2>Default Addresses</H2>
-<PRE>
-#define LOGICAL_DEFAULT "WWW_HOME"  /* Defined to be the home page */
+<H2>Default Addresses</H2>These control the home page selection.
+ To mess with these for normal browses
+is asking for user confusion.
+<PRE>#define LOGICAL_DEFAULT "WWW_HOME"  /* Defined to be the home page */
 
-
-#ifndef LOCAL_DEFAULT
-#define LOCAL_DEFAULT  "file:/usr/local/lib/WWW/default.html"
+#ifndef PERSONAL_DEFAULT
+#define PERSONAL_DEFAULT "WWW/default.html"	/* in home directory */
+#endif
+#ifndef LOCAL_DEFAULT_FILE
 #define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
+#endif
+#ifndef REMOTE_ADDRESS
 #define REMOTE_ADDRESS  "http://info.cern.ch/remote.html"  /* can't be file */
 #endif
 
@@ -57,7 +61,7 @@ NAME=z0 HREF="Overview.html">libwww library</A>.
 /*	If the home page isn't found, use this file:
 */
 #ifndef LAST_RESORT
-#define LAST_RESORT	"http://info.cern.ch:80/default.html"
+#define LAST_RESORT	"http://info.cern.ch/default.html"
 #endif
 
 
@@ -77,20 +81,20 @@ extern HTFormat HTOutputFormat;		/* To convert on load, set this */
 <H3>On Entry,</H3>
 <DL>
 <DT>relative_name
-<DD>The relative address
+<DD> The relative address
 of the file to be accessed.
 <DT>here
-<DD>The anchor of the object being
+<DD> The anchor of the object being
 searched
 </DL>
 
 <H3>On Exit,</H3>
 <DL>
 <DT>returns    YES
-<DD>Success in opening
+<DD> Success in opening
 file
 <DT>NO
-<DD>Failure 
+<DD> Failure 
 </DL>
 
 <PRE>extern  BOOL HTLoadRelative PARAMS((
@@ -103,10 +107,11 @@ file
 <H3>On Entry,</H3>
 <DL>
 <DT>addr
-<DD>The absolute address of the document
-to be accessed.
+<DD> The absolute address of the
+document to be accessed.
 <DT>filter
-<DD>if YES, treat document as HTML
+<DD> if YES, treat document as
+HTML
 </DL>
 
 <PRE>
@@ -116,9 +121,9 @@ to be accessed.
 </PRE>
 <DL>
 <DT>returns YES
-<DD>Success in opening document
+<DD> Success in opening document
 <DT>NO
-<DD>Failure 
+<DD> Failure 
 </DL>
 
 <PRE>extern BOOL HTLoadAbsolute PARAMS((CONST char * addr));
@@ -130,18 +135,19 @@ to a stream</H2>
 <H3>On Entry,</H3>
 <DL>
 <DT>addr
-<DD>The absolute address of the document
-to be accessed.
+<DD> The absolute address of the
+document to be accessed.
 <DT>filter
-<DD>if YES, treat document as HTML
+<DD> if YES, treat document as
+HTML
 </DL>
 
 <H3>On Exit,</H3>
 <DL>
 <DT>returns YES
-<DD>Success in opening document
+<DD> Success in opening document
 <DT>NO
-<DD>Failure 
+<DD> Failure 
 </DL>
 Note: This is equivalent to HTLoadDocument
 <PRE>extern BOOL HTLoadToStream PARAMS((CONST char * addr, BOOL filter,
@@ -165,9 +171,9 @@ parenet anchor to be loaded.
 </PRE>
 <DL>
 <DT>returns YES
-<DD>Success
+<DD> Success
 <DT>returns NO
-<DD>Failure 
+<DD> Failure 
 </DL>
 
 <PRE>
@@ -181,15 +187,15 @@ extern BOOL HTLoadAnchor PARAMS((HTAnchor * destination));
 <H3>On Entry,</H3>
 <DL>
 <DT>anchor
-<DD>is valid anchor which has previously
-beeing loaded
+<DD> is valid anchor which has
+previously beeing loaded
 </DL>
 
 <H3>On exit,</H3>
 <DL>
 <DT>returns
-<DD>0 if error else a stream to
-save the object to.
+<DD> 0 if error else a stream
+to save the object to.
 </DL>
 
 <PRE>
@@ -205,10 +211,10 @@ attempts to open the new address.
 <H3>On Entry,</H3>
 <DL>
 <DT>*keywords
-<DD>space-separated keyword
+<DD> space-separated keyword
 list or similar search list
 <DT>here
-<DD>The anchor of the object being
+<DD> The anchor of the object being
 searched
 </DL>
 
@@ -223,10 +229,10 @@ and attempts to open the new address.
 <H3>On Entry,</H3>
 <DL>
 <DT>*keywords
-<DD>space-separated keyword
+<DD> space-separated keyword
 list or similar search list
 <DT>*indexname
-<DD>is name of object search
+<DD> is name of object search
 is to be done on.
 </DL>
 
@@ -266,4 +272,4 @@ use this.
 <PRE>extern HTParentAnchor * HTHomeAnchor NOPARAMS;
 
 #endif /* HTACCESS_H */
-</PRE>end of HTAccess</BODY>
+</PRE>end of HTAccess</A></BODY>

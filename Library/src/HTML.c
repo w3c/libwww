@@ -77,7 +77,7 @@ PRIVATE void get_styles NOPARAMS;
 
 
 PRIVATE void actually_set_style PARAMS((HTStructured * me));
-PRIVATE void change_style PARAMS((HTStructured * me, HTStyle * style));
+PRIVATE void change_paragraph_style PARAMS((HTStructured * me, HTStyle * style));
 
 /*	Style buffering avoids dummy paragraph begin/ends.
 */
@@ -317,12 +317,13 @@ PRIVATE void actually_set_style ARGS1(HTStructured *, me)
 /*      If you THINK you need to change style, call this
 */
 
-PRIVATE void change_style ARGS2(HTStructured *, me, HTStyle *,style)
+PRIVATE void change_paragraph_style ARGS2(HTStructured *, me, HTStyle *,style)
 {
     if (me->new_style!=style) {
     	me->style_change = YES;
 	me->new_style = style;
     }
+    me->in_word = NO;
 }
 
 /*_________________________________________________________________________
@@ -377,7 +378,7 @@ PRIVATE void HTML_put_character ARGS2(HTStructured *, me, char, c)
 **	---------------
 **
 **	This is written separately from put_character becuase the loop can
-**	in some cases be postponed to a lower level for speed.
+**	in some cases be promoted to a higher function call level for speed.
 */
 PRIVATE void HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
@@ -499,10 +500,9 @@ PRIVATE void HTML_start_element ARGS4(
 	break;
 
     case HTML_DL:
-        change_style(me, present && present[DL_COMPACT]
+        change_paragraph_style(me, present && present[DL_COMPACT]
     		? styles[HTML_DLC]
 		: styles[HTML_DL]);
-    	me->in_word = NO;
 	break;
 	
     case HTML_DT:
@@ -522,8 +522,7 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_OL:
     case HTML_MENU:
     case HTML_DIR:
-	change_style(me, styles[element_number]);
-	me->in_word = NO;
+	change_paragraph_style(me, styles[element_number]);
 	break;
 	
     case HTML_LI:
@@ -539,12 +538,16 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_XMP:
     case HTML_PLAINTEXT:
     case HTML_PRE:
-	change_style(me, styles[element_number]);
+	change_paragraph_style(me, styles[element_number]);
 	UPDATE_STYLE;
     	if (me->comment_end)
     	    HText_appendText(me->text, me->comment_end);
 	break;
-	
+
+    case HTML_HTML:			/* Ignore these altogether */
+    case HTML_HEAD:
+    case HTML_BODY:
+    
     case HTML_IMG:			/* Images -- ignore */
     
     case HTML_TT:			/* Physical character highlighting */
@@ -562,8 +565,16 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_CITE:
     	break;
 	
-    default:
-    	change_style(me, styles[element_number]);	/* May be postponed */
+    case HTML_H1:			/* paragraph styles */
+    case HTML_H2:
+    case HTML_H3:
+    case HTML_H4:
+    case HTML_H5:
+    case HTML_H6:
+    case HTML_H7:
+    case HTML_ADDRESS:
+    case HTML_BLOCKQUOTE:
+    	change_paragraph_style(me, styles[element_number]);	/* May be postponed */
 	break;
 
     } /* end switch */
@@ -626,8 +637,7 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 	
     default:
     
-	change_style(me, me->sp->style);	/* Often won't really change */
-    	me->in_word = NO;		/* Paragraph styles only @@ */
+	change_paragraph_style(me, me->sp->style);	/* Often won't really change */
 	break;
 	
     } /* switch */

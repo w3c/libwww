@@ -133,6 +133,7 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "A"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_MIXED },
     { "ADDRESS"	, no_attr,	0,		SGML_MIXED },
     { "B"	, no_attr,	0,		SGML_MIXED },
+    { "BODY"	, no_attr,	0,		SGML_MIXED },
     { "BLOCKQUOTE", no_attr,	0,		SGML_MIXED },
     { "CITE"	, no_attr,	0,		SGML_MIXED },
     { "CODE"	, no_attr,	0,		SGML_MIXED },
@@ -144,6 +145,7 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "DLC"	, glossary_attr,1,		SGML_MIXED },
     { "DT"	, no_attr,	0,		SGML_EMPTY },
     { "EM"	, no_attr,	0,		SGML_MIXED },
+    { "HEAD"	, no_attr,	0,		SGML_MIXED },
     { "H1"	, no_attr,	0,		SGML_MIXED },
     { "H2"	, no_attr,	0,		SGML_MIXED },
     { "H3"	, no_attr,	0,		SGML_MIXED },
@@ -151,6 +153,7 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "H5"	, no_attr,	0,		SGML_MIXED },
     { "H6"	, no_attr,	0,		SGML_MIXED },
     { "H7"	, no_attr,	0,		SGML_MIXED },
+    { "HTML"	, no_attr,	0,		SGML_MIXED },
     { "I"	, no_attr,	0,		SGML_MIXED },
     { "IMG"     , img_attr,	0,		SGML_EMPTY },
     { "ISINDEX" , no_attr,	0,		SGML_EMPTY },
@@ -188,7 +191,7 @@ PUBLIC CONST SGML_dtd HTML_dtd = {
 **	--------------------
 **
 **	It is kinda convenient to have a particulr routine for
-**	starting an anchor elementm as everything else for HTML is
+**	starting an anchor element, as everything else for HTML is
 **	simple anyway.
 */
 struct _HTStructured {

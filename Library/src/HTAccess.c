@@ -593,39 +593,58 @@ PUBLIC BOOL HTSearchAbsolute ARGS2(
 **
 **	As it involves file access, this should only be done once
 **	when the program first runs.
-**	This is a default algorithm -- browesr don't HAVE to use this.
+**	This is a default algorithm -- browser don't HAVE to use this.
+**	But consistency betwen browsers is STRONGLY recommended!
+**
+**	Priority order is:
+**
+**		1	WWW_HOME environment variable (logical name, etc)
+**		2	~/WWW/default.html
+**		3	/usr/local/bin/default.html
+**		4	http://info.cern.ch/default.html
 **
 */
 PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 {
-    char * my_home = (char *)getenv(LOGICAL_DEFAULT);
-    BOOL got_local_default = NO;
+    char * my_home_document = (char *)getenv(LOGICAL_DEFAULT);
     char * ref;
     HTParentAnchor * anchor;
     
 #ifdef unix
-    {
-	FILE * fp = fopen(LOCAL_DEFAULT_FILE, "r");
+    if (!my_home_document) {
+	FILE * fp = NULL;
+	CONST char * home =  (CONST char*)getenv("HOME");
+	if (home) { 
+	    my_home_document = (char *)malloc(
+		strlen(home)+1+ strlen(PERSONAL_DEFAULT)+1);
+	    if (my_home_document == NULL) outofmem(__FILE__, "HTLocalName");
+	    sprintf(my_home_document, "%s/%s", home, PERSONAL_DEFAULT);
+	    fp = fopen(my_home_document, "r");
+	}
+	
+	if (!fp) {
+	    StrAllocCopy(my_home_document, LOCAL_DEFAULT_FILE);
+	    fp = fopen(my_home_document, "r");
+	}
 	if (fp) {
 	    fclose(fp);
-	    got_local_default = YES;
 	} else {
 	if (TRACE) fprintf(stderr,
-	    "HTBrowse: No local default home %s\n",
-	    LOCAL_DEFAULT_FILE);
+	    "HTBrowse: No local home document ~/%s or %s\n",
+	    PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
 	}
     }
 #endif
-    ref = HTParse( my_home ?	my_home :
-				HTClientHost ? REMOTE_ADDRESS :
-				    got_local_default ? LOCAL_DEFAULT
-					    : LAST_RESORT,
-		    LAST_RESORT,
+    ref = HTParse( my_home_document ?	my_home_document :
+				HTClientHost ? REMOTE_ADDRESS
+				: LAST_RESORT,
+		    "file:",
 		    PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-    if (my_home) {
+    if (my_home_document) {
 	if (TRACE) fprintf(stderr,
 	    "HTAccess: Using custom home page %s i.e. address %s\n",
-	    my_home, ref);
+	    my_home_document, ref);
+	free(my_home_document);
     }
     anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
     free(ref);
