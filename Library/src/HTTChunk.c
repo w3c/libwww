@@ -107,7 +107,12 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 	    me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
 				       me->target, me->request, NO);
 	} else if (me->state == EOL_SLF) {
-	    if (me->lastchunk) return HT_LOADED;
+            if (me->lastchunk) {
+                HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
+                if (cbf) (*cbf)(me->request, HT_PROG_DONE, HT_MSG_NULL,
+                                NULL, NULL, NULL);
+                return HT_LOADED;
+            }
 	    me->state = EOL_BEGIN;
 	}
 
