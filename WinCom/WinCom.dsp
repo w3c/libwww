@@ -464,5 +464,9 @@ SOURCE=.\hlp\Scmin.bmp
 SOURCE=.\hlp\WinCom.cnt
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\res\Filecopy.avi
+# End Source File
 # End Target
 # End Project

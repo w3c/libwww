@@ -3,6 +3,7 @@
 // Used by WinCom.rc
 //
 #define IDD_ABOUTBOX                    100
+#define ID_ANIMATION                    101
 #define IDR_MAINFRAME                   128
 #define IDR_WINCOMTYPE                  129
 #define IDD_OPTIONS                     130
@@ -95,9 +96,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_RESOURCE_VALUE        160
 #define _APS_NEXT_COMMAND_VALUE         32784
-#define _APS_NEXT_CONTROL_VALUE         1036
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

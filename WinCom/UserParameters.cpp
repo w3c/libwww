@@ -237,7 +237,8 @@ PUBLIC BOOL UserPrint (HTRequest * request, HTAlertOpcode op,
                 int cnt;		
                 char *pars = (char *) HTError_parameter(pres, &length);
                 if (length && pars) {
-                    HTChunk_puts(msg, " (Server replies: ");
+		    HTChunk_puts(msg, index != HTERR_SYSTEM ?
+			" (Server replies: " : " ");
 
 		    /* Error number */
 		    if ((code = HTErrors[index].code) > 0) {

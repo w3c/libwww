@@ -93,7 +93,10 @@ PRIVATE int check_handler (HTRequest * request, HTResponse * response,
     ** If head request showed that the document doesn't exist
     ** then just go ahead and PUT it. Otherwise ask for help
     */
-    if (status==HT_INTERRUPTED || status==HT_TIMEOUT) {
+    if (status==HT_ERROR || status==HT_INTERRUPTED || status==HT_TIMEOUT) {
+	delete req;
+	return HT_ERROR;
+    } else if (status==HT_NO_ACCESS || status==HT_NO_PROXY_ACCESS) {
 	delete req;
 	return HT_ERROR;
     } else if (abs(status)/100!=2) {

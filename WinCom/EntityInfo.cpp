@@ -71,7 +71,13 @@ BOOL CEntityInfo::OnKillActive()
 {
     UpdateData();
 
-    // @@@ make sure that all entries are saved!@@@
+    if (!m_mediaType.IsEmpty() ||
+	!m_contentEncoding.IsEmpty() ||
+	!m_charset.IsEmpty() ||
+	!m_language.IsEmpty()) {
+	HTFile_doFileSuffixBinding(NO);
+    } else
+	HTFile_doFileSuffixBinding(YES);
 
     return CPropertyPage::OnKillActive();
 }
