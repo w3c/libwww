@@ -706,13 +706,14 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
     BOOL found = YES;
     BOOL OutSource = NO;			    /* Output source, YES/NO */
     int status = YES;
-    HTRequest * cur_req = req;
-    Context * cur_context;
-    LineMode * lm;
+    HTRequest * cur_req = NULL;
+    Context * cur_context = NULL;
+    LineMode * lm = NULL;
 
 #ifdef WWW_WIN_WINDOW
     req = TTYReq;
 #endif
+    cur_req = req;
     cur_context = (Context *) HTRequest_context(req);
     lm = cur_context->lm;
 
@@ -1122,7 +1123,6 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
     if (cur_req == req)
 	cur_context->state |= LM_NO_UPDATE;
     else if (cur_req != lm->request) {
-	printf("HERE\n");
 	cur_context->state |= LM_INACTIVE;    
     }
     return (status==YES) ? HT_OK : HT_ERROR;

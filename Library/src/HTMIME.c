@@ -620,7 +620,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    else if (*b == LF) {			    /* End of header */
 		int status;
 		HTChunk_putb(me->buffer, start, end-start);
-		parseheader(me, me->request, me->anchor);
+		status = parseheader(me, me->request, me->anchor);
 		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
 		    return status;

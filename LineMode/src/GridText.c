@@ -206,23 +206,26 @@ PUBLIC HText *	HText_new2 (HTRequest *		request,
 */
 PUBLIC void hyperfree (HText *  self)
 {
-    while(YES) {		/* Free off line array */
-        HTLine * l = self->last_line;
-	l->next->prev = l->prev;
-	l->prev->next = l->next;	/* Unlink l */
-	self->last_line = l->prev;
-	HT_FREE(l);
-	if (l == self->last_line) break;	/* empty */
-    };
-    
-    while(self->first_anchor) {		/* Free off anchor array */
-        TextAnchor * l = self->first_anchor;
-	self->first_anchor = l->next;
-	HT_FREE(l);
+    if (self) {
+	while (1) {				      /* Free off line array */
+	    HTLine * last = self->last_line;
+	    if (last) {
+		last->next->prev = last->prev;
+		last->prev->next = last->next;
+		self->last_line = last->prev;
+		if (last == self->last_line) break;
+		HT_FREE(last);
+	    }
+	    break;
+	}
+	while (self->first_anchor) {		    /* Free off anchor array */
+	    TextAnchor * last = self->first_anchor;
+	    self->first_anchor = last->next;
+	    HT_FREE(last);
+	}
+	if (self == HTMainText) HTMainText = NULL;
+	HT_FREE(self);
     }
-    HT_FREE(self);
-    if (self == HTMainText)                       	  /* Henrik 24/02-94 */
-	HTMainText = NULL;
 }
 
 
@@ -231,8 +234,10 @@ PUBLIC void hyperfree (HText *  self)
 */
 PUBLIC void 	HText_free (HText * self)
 {
-    HTAnchor_setDocument(self->node_anchor, NULL);
-    hyperfree(self);
+    if (self) {
+	HTAnchor_setDocument(self->node_anchor, NULL);
+	hyperfree(self);
+    }
 }
 
 
