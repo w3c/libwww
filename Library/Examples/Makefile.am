@@ -3,11 +3,29 @@
 noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	chunk chunkbody LoadToFile postform multichunk put post trace \
 	range tzcheck mget isredirected listen eventloop memput \
-	showlinks showtags showtext tiny showxml upgrade cookie
+	showlinks showtags showtext tiny upgrade cookie @SHOWXML@
+
+EXTRA_PROGRAMS = showxml
 
 LDADD = \
-	-lm \
-	@HTLIBXML@ ../src/libwww.la @LIBWWWMD5@
+	../src/libwwwinit.la \
+	../src/libwwwapp.la \
+	@LIBWWWXML@ ../src/libwwwhtml.la \
+	../src/libwwwtelnet.la \
+	../src/libwwwnews.la \
+	../src/libwwwhttp.la \
+	../src/libwwwmime.la \
+	../src/libwwwgopher.la \
+	../src/libwwwftp.la \
+	../src/libwwwdir.la \
+	../src/libwwwcache.la \
+	../src/libwwwstream.la \
+	../src/libwwwfile.la \
+	../src/libwwwmux.la \
+	../src/libwwwtrans.la \
+	../src/libwwwcore.la \
+	../src/libwwwutils.la \
+	-lm @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@
 
 INCLUDES = \
 	-I$(srcdir)/../src \

@@ -3,8 +3,24 @@
 bin_PROGRAMS = w3c
 
 w3c_LDADD = \
-	-lm \
-	@HTLIBXML@ ../../Library/src/libwww.la @LIBWWWMD5@
+	$(top_builddir)/Library/src/libwwwinit.la \
+	$(top_builddir)/Library/src/libwwwapp.la \
+	$(top_builddir)/Library/src/libwwwhtml.la \
+	$(top_builddir)/Library/src/libwwwtelnet.la \
+	$(top_builddir)/Library/src/libwwwnews.la \
+	$(top_builddir)/Library/src/libwwwhttp.la \
+	$(top_builddir)/Library/src/libwwwmime.la \
+	$(top_builddir)/Library/src/libwwwgopher.la \
+	$(top_builddir)/Library/src/libwwwftp.la \
+	$(top_builddir)/Library/src/libwwwfile.la \
+	$(top_builddir)/Library/src/libwwwdir.la \
+	$(top_builddir)/Library/src/libwwwcache.la \
+	$(top_builddir)/Library/src/libwwwstream.la \
+	$(top_builddir)/Library/src/libwwwmux.la \
+	$(top_builddir)/Library/src/libwwwtrans.la \
+	$(top_builddir)/Library/src/libwwwcore.la \
+	$(top_builddir)/Library/src/libwwwutils.la \
+	-lm @LIBWWWXML@ @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@
 
 SUBDIRS = windows
 

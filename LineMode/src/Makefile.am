@@ -11,9 +11,24 @@ all:
 EXTRA_PROGRAMS = www		# Should be www_PROGRAMS
 
 www_LDADD = \
-	@HTLIBXML@ ../../Library/src/libwww.la @LIBWWWMD5@ \
-	../../PICS-client/src/libpics.a \
-	-lm @A_STDIO@
+	$(top_builddir)/Library/src/libwwwinit.la \
+	$(top_builddir)/Library/src/libwwwapp.la \
+	$(top_builddir)/Library/src/libwwwhtml.la \
+	$(top_builddir)/Library/src/libwwwtelnet.la \
+	$(top_builddir)/Library/src/libwwwnews.la \
+	$(top_builddir)/Library/src/libwwwhttp.la \
+	$(top_builddir)/Library/src/libwwwmime.la \
+	$(top_builddir)/Library/src/libwwwgopher.la \
+	$(top_builddir)/Library/src/libwwwftp.la \
+	$(top_builddir)/Library/src/libwwwfile.la \
+	$(top_builddir)/Library/src/libwwwdir.la \
+	$(top_builddir)/Library/src/libwwwcache.la \
+	$(top_builddir)/Library/src/libwwwstream.la \
+	$(top_builddir)/Library/src/libwwwmux.la \
+	$(top_builddir)/Library/src/libwwwtrans.la \
+	$(top_builddir)/Library/src/libwwwcore.la \
+	$(top_builddir)/Library/src/libwwwutils.la \
+	-lm @LIBWWWXML@ @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@ @A_STDIO@
 
 SUBDIRS = windows vms
 

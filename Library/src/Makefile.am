@@ -1,7 +1,35 @@
 ## Process this file with Automake to create Makefile.in.
 
-lib_LTLIBRARIES = libwww.la
-libwww_la_LDFLAGS = -version-info "1:0:1"
+LDFLAGS = -version-info "1:0:1"
+
+lib_LTLIBRARIES = \
+	libwwwutils.la \
+	libwwwcore.la \
+	libwwwtrans.la \
+	libwwwstream.la \
+	libwwwcache.la \
+	libwwwdir.la \
+	libwwwfile.la \
+	libwwwftp.la \
+	libwwwgopher.la \
+	libwwwmime.la \
+	libwwwhttp.la \
+	libwwwnews.la \
+	libwwwtelnet.la \
+	libwwwhtml.la \
+	libwwwapp.la \
+	libwwwinit.la \
+	libwwwmux.la \
+	@WWWXML@ \
+	@WWWZIP@ \
+	@WWWWAIS@ \
+	@WWWSQL@
+
+EXTRA_LTLIBRARIES = \
+	libwwwxml.la \
+	libwwwzip.la \
+	libwwwwais.la \
+	libwwwsql.la
 
 SUBDIRS = windows vms
 
@@ -26,118 +54,483 @@ CPPFLAGS := $(CPPFLAGS) -DW3C_ICONS=\"$(icondir)\"
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
-libwww_la_SOURCES = \
-	HTParse.c	HTAccess.c 	HTProxy.c \
-	HTMethod.c 	HTProt.c 	HTCache.c \
-	HTReqMan.c 	HTDNS.c 	HTArray.c \
-        HTFile.c 	HTBTree.c 	HTMulti.c \
-	HTFTP.c 	HTTCP.c     	SGML.c \
-	HTML.c		HTMLPDTD.c 	HTDir.c \
-	HTFTPDir.c	HTEPtoCl.c	HTStyle.c \
-	HTPlain.c	HTWriter.c  	HTFWrite.c \
-        HTMLGen.c	HTTee.c 	HTXParse.c \
-	HTChunk.c 	HTAtom.c   	HTAnchor.c \
-	HTList.c  	HTString.c 	HTAlert.c \
-	HTFormat.c 	HTHist.c 	HTMemory.c \
-	HTInit.c 	HTBInit.c  	HTRules.c \
-	HTMIME.c 	HTMIMERq.c 	HTBound.c \
-	HTConLen.c 	HTHeader.c	HTBind.c \
-	HTGopher.c 	HTTelnet.c	HTNetTxt.c \
-	HTNews.c  	HTWSRC.c 	HTSocket.c \
-	HTAAUtil.c 	HTAABrow.c 	HTAssoc.c \
-	HTUU.c		HTTeXGen.c	HTEscape.c \
-	HTDescpt.c 	HTGuess.c 	HTWWWStr.c \
-	HTIcons.c 	HTError.c 	HTLog.c \
-	HTHome.c 	HTDialog.c	HTNDir.c \
-	HTTP.c		HTTPServ.c	HTNewsRq.c \
-	HTTPGen.c 	HTTPReq.c 	HTTPRes.c \
-	HTNet.c 	HTEvtLst.c	HTNewsLs.c \
-	HTUser.c	HTMIMPrs.c	HTEvent.c \
-	HTResponse.c	HTStream.c	HTTrans.c \
-	HTChannl.c	HTInet.c	HTHost.c \
-	HTLocal.c	HTReader.c	HTANSI.c \
-	HTBufWrt.c	HTTChunk.c	HTHInit.c \
-	HTMIMImp.c	HTSChunk.c	HTLib.c \
-	HTLink.c 	HTFilter.c	HTUTree.c \
-	HTPEP.c		HTProfil.c	HTMerge.c \
-	HTDemux.c	HTMuxTx.c	HTMuxCh.c \
-	HTTimer.c	HTTrace.c	HTMemLog.c \
-	HText.c		HTNoFree.c	HTDigest.c \
-	HTFSave.c	HTCookie.c
+libwwwutils_la_SOURCES = \
+	WWWUtil.h \
+	HTArray.h \
+	HTArray.c \
+	HTAssoc.h \
+	HTAssoc.c \
+	HTAtom.h \
+	HTAtom.c \
+	HTBTree.h \
+	HTBTree.c \
+	HTChunk.h \
+	HTChunk.c \
+	HTList.h \
+	HTList.c \
+	HTMemory.h \
+	HTMemory.c \
+	HTString.h \
+	HTString.c \
+	HTTrace.c \
+	HTUtils.h \
+	HTUU.h \
+	HTUU.c
 
-EXTRA_libwww_la_SOURCES = \
+libwwwcore_la_SOURCES = \
+	WWWCore.h \
+	HTAlert.h \
+	HTAlert.c \
+	HTAncMan.h \
+	HTAnchor.c \
+	HTAnchor.h \
+	HTChannl.h \
+	HTChannl.c \
+	HTDNS.h \
+	HTDNS.c \
+	HTError.h \
+	HTError.c \
+	HTEscape.h \
+	HTEscape.c \
+	HTEvent.h \
+	HTEvent.c \
+	HTFormat.c \
+	HTFormat.h \
+	HTHost.h \
+	HTHstMan.h \
+	HTHost.c \
+	HTInet.h \
+	HTInet.c \
+	HTLib.h \
+	HTLib.c \
+	HTLink.h \
+	HTLink.c \
+	HTMemLog.h \
+	HTMemLog.c \
+	HTMethod.h \
+	HTMethod.c \
+	HTNet.h \
+	HTNetMan.h \
+	HTNet.c \
+	HTNoFree.h \
+	HTNoFree.c \
+	HTParse.h \
+	HTParse.c \
+	HTProt.h \
+	HTProt.c \
+	HTReq.h \
+	HTReqMan.h \
+	HTReqMan.c \
+	HTResponse.h \
+	HTResMan.h \
+	HTResponse.c \
+	HTStream.h \
+	HTIOStream.h \
+	HTStream.c \
+	HTStruct.h \
+	HTTCP.h \
+	HTTCP.c \
+	HTTimer.h \
+	HTTimer.c \
+	HTTrans.h \
+	HTTrans.c \
+	HTUTree.h \
+	HTUTree.c \
+	HTUser.h \
+	HTUser.c \
+	HTWWWStr.h \
+	HTWWWStr.c
+
+libwwwtrans_la_SOURCES = \
+	WWWTrans.h \
+	HTANSI.h \
+	HTANSI.c \
+	HTBufWrt.h \
+	HTBufWrt.c \
+	HTLocal.h \
+	HTLocal.c \
+	HTReader.h \
+	HTReader.c \
+	HTSocket.h \
+	HTSocket.c \
+	HTWriter.h \
+	HTWriter.c
+
+libwwwstream_la_SOURCES = \
+	WWWStream.h \
+	HTConLen.h \
+	HTConLen.c \
+	HTEPtoCl.h \
+	HTEPtoCl.c \
+	HTFSave.h \
+	HTFSave.c \
+	HTFWrite.h \
+	HTFWrite.c \
+	HTGuess.h \
+	HTGuess.c \
+	HTMerge.h \
+	HTMerge.c \
+	HTNetTxt.h \
+	HTNetTxt.c \
+	HTSChunk.h \
+	HTSChunk.c \
+	HTTee.h \
+	HTTee.c \
+	HTXParse.h \
+	HTXParse.c
+
+libwwwcache_la_SOURCES = \
+	WWWCache.h \
+	HTCache.h \
+	HTCache.c
+
+libwwwfile_la_SOURCES = \
+	WWWFile.h \
+	HTBInit.h \
+	HTBInit.c \
+	HTBind.h \
+	HTBind.c \
+	HTFile.h \
+	HTFile.c \
+	HTMulti.h \
+	HTMulti.c
+
+libwwwftp_la_SOURCES = \
+	WWWFTP.h \
+	HTFTP.h \
+	HTFTP.c \
+	HTFTPDir.h \
+	HTFTPDir.c
+
+libwwwgopher_la_SOURCES = \
+	WWWGophe.h \
+	HTGopher.h \
+	HTGopher.c
+
+libwwwmime_la_SOURCES = \
+	WWWMIME.h \
+	HTBound.h \
+	HTBound.c \
+	HTHeader.h \
+	HTHeader.c \
+	HTMIME.h \
+	HTMIME.c \
+	HTMIMPrs.h \
+	HTMIMPrs.c \
+	HTMIMERq.h \
+	HTMIMERq.c \
+	HTMIMImp.h \
+	HTMIMImp.c \
+	HTMulpar.h
+
+libwwwhttp_la_SOURCES = \
+	WWWHTTP.h \
+	HTTPUtil.h \
+	HTAABrow.h \
+	HTAABrow.c \
+	HTAAUtil.h \
+	HTAAUtil.c \
+	HTCookie.h \
+	HTCookie.c \
+	HTDigest.h \
+	HTDigest.c \
+	HTTChunk.h \
+	HTTChunk.c \
+	HTTP.h \
+	HTTP.c \
+	HTTPGen.h \
+	HTTPGen.c \
+	HTTPReq.h \
+	HTTPReq.c \
+	HTTPRes.h \
+	HTTPRes.c \
+	HTTPServ.h \
+	HTTPServ.c \
+	HTPEP.h \
+	HTPEP.c
+
+libwwwhttp_la_DEPENDENCIES = \
+	../../modules/md5/libmd5.la
+
+libwwwnews_la_SOURCES = \
+	WWWNews.h \
+	HTNDir.h \
+	HTNDir.c \
+	HTNews.h \
+	HTNews.c \
+	HTNewsLs.h \
+	HTNewsLs.c \
+	HTNewsRq.h \
+	HTNewsRq.c
+
+libwwwtelnet_la_SOURCES = \
+	WWWTelnt.h \
+	HTTelnet.h \
+	HTTelnet.c
+
+libwwwwais_la_SOURCES = \
+	WWWWAIS.h \
+	HTWAIS.h \
 	HTWAIS.c \
-	HTZip.c \
-	HTSQL.c \
-	HTSQLLog.c \
+	HTWSRC.h \
+	HTWSRC.c
+
+libwwwwais_la_LDFLAGS = -rpath $(libdir)
+
+libwwwhtml_la_SOURCES = \
+	WWWHTML.h \
+	HTMLPDTD.h \
+	HTMLPDTD.c \
+	SGML.h \
+	SGML.c \
+	HTMLGen.h \
+	HTMLGen.c \
+	HTTeXGen.h \
+	HTTeXGen.c \
+	HTPlain.h \
+	HTPlain.c \
+	HTML.h \
+	HTML.c \
+	HText.h \
+	HTextImp.h \
+	HText.c \
+	HTHInit.h \
+	HTHInit.c \
+	HTStyle.h \
+	HTStyle.c
+
+libwwwdir_la_SOURCES = \
+	WWWDir.h \
+	HTIcons.h \
+	HTIcons.c \
+	HTDescpt.h \
+	HTDescpt.c \
+	HTDir.h \
+	HTDir.c
+
+libwwwapp_la_SOURCES = \
+	WWWApp.h \
+	HTAccess.h \
+	HTAccess.c \
+	HTDialog.h \
+	HTDialog.c \
+	HTEvtLst.h \
+	HTEvtLst.c \
+	HTFilter.h \
+	HTFilter.c \
+	HTHist.h \
+	HTHist.c \
+	HTInit.h \
+	HTInit.c \
+	HTHome.h \
+	HTHome.c \
+	HTLog.h \
+	HTLog.c \
+	HTProxy.h \
+	HTProxy.c \
+	HTRules.h \
+	HTRules.c
+
+libwwwinit_la_SOURCES = \
+	WWWInit.h \
+	HTProfil.h \
+	HTProfil.c
+
+libwwwmux_la_SOURCES = \
+	WWWMux.h \
+	HTDemux.h \
+	HTDemux.c \
+	HTMuxCh.h \
+	HTMuxCh.c \
+	HTMuxHeader.h \
+	HTMuxTx.h \
+	HTMuxTx.c
+
+libwwwxml_la_SOURCES = \
+	WWWXML.h \
+	HTXML.h \
 	HTXML.c
 
-libwww_la_LIBADD = \
-	@HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
-
-libwww_la_DEPENDENCIES = \
-	@HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@ \
-	../../modules/md5/libmd5.la \
+libwwwxml_la_DEPENDENCIES = \
 	../../modules/expat/xmltok/libxmltok.la \
 	../../modules/expat/xmlparse/libxmlparse.la
+
+libwwwxml_la_LDFLAGS = -rpath $(libdir)
+
+libwwwzip_la_SOURCES = \
+	WWWZip.h \
+	HTZip.h \
+	HTZip.h \
+	HTZip.c
+
+libwwwzip_la_LDFLAGS = -rpath $(libdir)
+
+libwwwsql_la_SOURCES = \
+	WWWSQL.h \
+	HTSQL.h \
+	HTSQL.c \
+	HTSQLLog.h \
+	HTSQLLog.h \
+	HTSQLLog.c
+
+libwwwsql_la_LDFLAGS = -rpath $(libdir)
 
 INCLUDES = \
 	-I/usr/local/include \
 	-I${top_srcdir}/modules/md5 \
 	-I${top_srcdir}/modules/expat/xmlparse
 
-BUILT_SOURCES = wwwsys.h \
-	WWWUtil.h 	WWWCore.h 	WWWLib.h \
-	WWWDir.h 	WWWFTP.h 	WWWFile.h \
-	WWWStream.h 	WWWHTML.h 	WWWHTTP.h \
-	WWWNews.h 	WWWTrans.h 	WWWTelnt.h \
-	WWWCache.h 	WWWApp.h 	WWWInit.h \
-	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
-	WWWMux.h	WWWZip.h	WWWSQL.h \
+BUILT_SOURCES = \
+	wwwsys.h \
+	HTAABrow.h \
+	HTAAUtil.h \
+	HTANSI.h \
+	HTAccess.h \
+	HTAlert.h \
+	HTAncMan.h \
+	HTAnchor.h \
+	HTArray.h \
+	HTAssoc.h \
+	HTAtom.h \
+	HTBInit.h \
+	HTBTree.h \
+	HTBind.h \
+	HTBind.h \
+	HTBound.h \
+	HTBufWrt.h \
+	HTCache.h \
+	HTChannl.h \
+	HTChunk.h \
+	HTConLen.h \
+	HTCookie.h \
+	HTDNS.h \
+	HTDemux.h \
+	HTDescpt.h \
+	HTDialog.h \
+	HTDigest.h \
+	HTDir.h \
+	HTEPtoCl.h \
+	HTError.h \
+	HTEscape.h \
+	HTEvent.h \
+	HTEvtLst.h \
+	HTFSave.h \
+	HTFTP.h \
+	HTFTPDir.h \
+	HTFWrite.h \
+	HTFile.h \
+	HTFilter.h \
+	HTFormat.h \
+	HTGopher.h \
+	HTGuess.h \
+	HTHInit.h \
+	HTHeader.h \
+	HTHist.h \
+	HTHome.h \
+	HTHost.h \
+	HTHstMan.h \
+	HTIOStream.h \
+	HTIcons.h \
+	HTInet.h \
+	HTInit.h \
+	HTLib.h \
+	HTLink.h \
+	HTList.h \
+	HTLocal.h \
+	HTLog.h \
+	HTMIME.h \
+	HTMIMERq.h \
+	HTMIMImp.h \
+	HTMIMPrs.h \
+	HTML.h \
+	HTMLGen.h \
+	HTMLPDTD.h \
+	HTMemLog.h \
+	HTMemory.h \
+	HTMerge.h \
+	HTMethod.h \
+	HTMulpar.h \
+	HTMulti.h \
+	HTMuxCh.h \
+	HTMuxHeader.h \
+	HTMuxTx.h \
+	HTNDir.h \
+	HTNet.h \
+	HTNetMan.h \
+	HTNetTxt.h \
+	HTNews.h \
+	HTNewsLs.h \
+	HTNewsRq.h \
+	HTNoFree.h \
+	HTPEP.h \
+	HTParse.h \
+	HTPlain.h \
+	HTProfil.h \
+	HTProt.h \
+	HTProxy.h \
+	HTReader.h \
+	HTReq.h \
+	HTReqMan.h \
+	HTResMan.h \
+	HTResponse.h \
+	HTRules.h \
+	HTSChunk.h \
+	HTSQL.h \
+	HTSQLLog.h \
+	HTSocket.h \
+	HTStream.h \
+	HTString.h \
+	HTStruct.h \
+	HTStyle.h \
+	HTTCP.h \
+	HTTChunk.h \
+	HTTP.h \
+	HTTPGen.h \
+	HTTPReq.h \
+	HTTPRes.h \
+	HTTPServ.h \
+	HTTPUtil.h \
+	HTTeXGen.h \
+	HTTee.h \
+	HTTelnet.h \
+	HTTimer.h \
+	HTTrans.h \
+	HTUTree.h \
+	HTUU.h \
+	HTUser.h \
+	HTUtils.h \
+	HTWAIS.h \
+	HTWSRC.h \
+	HTWWWStr.h \
+	HTWriter.h \
+	HTXML.h \
+	HTXParse.h \
+	HTZip.h \
+	HText.h \
+	HTextImp.h \
+	SGML.h \
+	WWWApp.h \
+	WWWCache.h \
+	WWWCore.h \
+	WWWDir.h \
+	WWWFTP.h \
+	WWWFile.h \
+	WWWGophe.h \
+	WWWHTML.h \
+	WWWHTTP.h \
+	WWWInit.h \
+	WWWLib.h \
+	WWWMIME.h \
+	WWWMux.h \
+	WWWNews.h \
+	WWWSQL.h \
+	WWWStream.h \
+	WWWTelnt.h \
+	WWWTrans.h \
+	WWWUtil.h \
+	WWWWAIS.h \
 	WWWXML.h \
-	HTParse.h 	HTAccess.h  	HTProxy.h \
-	HTMethod.h 	HTProt.h 	HTCache.h \
-	HTReqMan.h 	HTReq.h  	HTDNS.h \
-	HTMulti.h 	HTBTree.h 	HTFTP.h \
-	SGML.h		HTML.h		HTMLPDTD.h \
-	HTNet.h 	HTNetMan.h 	HTFTPDir.h \
-	HTPlain.h	HTWriter.h	HTFile.h \
-	HTFWrite.h 	HTMLGen.h	HTTCP.h \
-	HTEvtLst.h 	HTArray.h  	HTChunk.h \
-	HTUser.h	HTMIMPrs.h	HTEvent.h \
-	HTStream.h 	HTStruct.h 	HTMulpar.h \
-	HTTee.h 	HTXParse.h 	HTEPtoCl.h \
-	HTAtom.h 	HTAnchor.h 	HTAncMan.h \
-	HTList.h 	HTWWWStr.h 	HTMemory.h \
-	HTString.h 	HTAlert.h 	HTRules.h \
-	HTFormat.h  	HTStyle.h	HTNewsLs.h \
-	HTInit.h 	HTBInit.h	HTBind.h \
-	HTMIME.h 	HTMIMERq.h 	HTBound.h \
-	HTConLen.h 	HTHeader.h	HTHist.h \
-	HTGopher.h 	HTDir.h		HTUtils.h \
-	HTNewsRq.h	HText.h 	HTTelnet.h \
-	HTNDir.h  	HTWSRC.h 	HTSocket.h \
-	HTAAUtil.h 	HTAABrow.h 	HTAssoc.h \
-	HTUU.h		HTTeXGen.h	HTDescpt.h \
-	HTGuess.h	HTNetTxt.h 	HTBind.h \
-	HTIcons.h 	HTError.h 	HTLog.h \
-	HTHome.h 	HTDialog.h 	HTEscape.h \
-	HTTP.h		HTTPServ.h	HTNews.h \
-	HTTPGen.h 	HTTPReq.h 	HTTPRes.h \
-	HTTPUtil.h	HTResMan.h	HTTrans.h \
-	HTIOStream.h	HTChannl.h	HTInet.h \
-	HTHost.h	HTLocal.h	HTReader.h \
-	HTANSI.h	HTBufWrt.h	HTTChunk.h \
-	HTHInit.h	HTMIMImp.h	HTSChunk.h \
-	HTLib.h		HTLink.h	HTFilter.h \
-	HTUTree.h	HTPEP.h		HTProfil.h \
-	HTMerge.h	HTResponse.h 	HTMuxHeader.h \
-	HTDemux.h	HTMuxTx.h	HTMuxCh.h \
-	HTHstMan.h	HTMemLog.h	HTTimer.h \
-	HTWAIS.h	HTZip.h		HTSQL.h \
-	HTSQLLog.h	HTextImp.h	HTDigest.h \
-	HTNoFree.h	HTXML.h		HTFSave.h \
-	HTCookie.h
+	WWWZip.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 
