@@ -11,12 +11,11 @@
   Calling libwww from C++
 </H1>
 <P>
-Even though libwww is written in C, all
-<A HREF="../../src/windows/wwwlist.txt">public functions and data
-objects&nbsp;</A>in libwww can be called from any C++ program as they are
-all declared as having C linkage and defined as separately compiled translation
-unit. An include file can be made to have C linkage by adding the following
-declaration:
+Even though libwww is written in C, all <A HREF="../Extrnals.html">public
+functions and data objects</A> in libwww can be called from any C++ program
+as they are all declared as having C linkage and defined as separately compiled
+translation unit. An include file can be made to have C linkage by adding
+the following declaration:
 <PRE>	#ifdef __cplusplus
 	extern "C" {		/* Start extern C declarations */
 	#endif
@@ -35,7 +34,7 @@ functions directly.
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A> 
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>
   <P>
   @(#) $Id$
 </ADDRESS>

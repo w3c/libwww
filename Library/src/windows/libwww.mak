@@ -5901,7 +5901,7 @@ SOURCE=.\wwwcore\Debug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b1\Library\src\HTMIMPrs.c"
+SOURCE=".\..\HTMIMPrs.c"
 
 !IF  "$(CFG)" == "wwwmime - Win32 Release"
 
