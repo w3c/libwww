@@ -1,0 +1,178 @@
+<HTML>
+<HEAD>
+<TITLE>File Suffix Bind Manager</TITLE>
+</HEAD>
+<BODY>
+
+<H1>File Suffix Bind Manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module sets up the binding between a file Bind and a media type,
+language, encoding etc. In a client application the Binds are used in
+protocols that does not support media types etc., like FTP, and in
+server applications they are used to make the bindings between the
+server and the local file store that the server can serve to the rest
+of the world (well almost). The <A HREF="HTFormat.html">HTFormat
+module</A> holds this information against the accept headers received
+in a request and uses if for format negotiation. All the binding
+management can all be replace by a database interface. <P>
+
+This module is implemented by <A HREF="HTBind.c">HTBind.c</A>, and it
+is a part of the <A
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTBIND_H
+#define HTBIND_H
+
+#include "HTFormat.h"
+#include "HTAnchor.h"
+</PRE>
+
+<H2>Initialization of the Module</H2>
+
+These functions must be called on startup and termination of the
+application. This is done automatically by <A
+HREF="HTAccess.html#Library">HTLibInit() and HTLibTerminate()</A>.
+
+<PRE>
+extern BOOL HTBind_init		NOPARAMS;
+extern BOOL HTBind_deleteAll	NOPARAMS;
+</PRE>
+
+<H2>Case Sensitivity</H2>
+
+Should the search for suffixes be case sensitive or not? The default
+value is <EM>case sensitive</EM>.
+
+<PRE>
+extern void HTBind_setCaseSensitive	PARAMS((BOOL sensitive));
+</PRE>
+
+<H2>Suffix Delimiters</H2>
+
+Change the set of suffix delimiters. The default is a platform
+dependent set defined in the <A HREF="tcp.html">tcp module</A>.
+
+<PRE>
+extern CONST char *HTBind_getDelimiters	NOPARAMS;
+extern void HTBind_setDelimiters	PARAMS((CONST char * new_suffixes));
+</PRE>
+
+<H2>Set up Bindings Associated with a File Suffix</H2>
+
+There are three types of bindings:
+
+<UL>
+<LI>Content Type (media type)
+<LI>Language
+<LI>Content Encoding
+</UL>
+
+And the associated set of methods is defined as:
+
+<PRE>
+extern BOOL HTBind_setBinding	PARAMS((CONST char *	suffix,
+					CONST char *	representation,
+					CONST char *	encoding,
+					CONST char *	language,
+					double		value));
+
+extern BOOL HTBind_setType	PARAMS((CONST char *	suffix,
+					CONST char *	encoding,
+					double		value));
+
+extern BOOL HTBind_setEncoding	PARAMS((CONST char *	suffix,
+					CONST char *	encoding,
+					double		value));
+
+extern BOOL HTBind_setLanguage	PARAMS((CONST char *	suffix,
+					CONST char *	language,
+					double		value));
+</PRE>
+
+The first method is a "super" method for binding information to a file
+suffic. Any of the string values can be <CODE>NULL</CODE>. If filename
+suffix is already defined its previous definition is overridden or
+modified. For example, a <CODE>HTBind_setType</CODE> and
+<CODE>HTBind_setEncoding</CODE> can be called with the same suffix.<P>
+
+Calling this with suffix set to "*" will set the default
+representation. Calling this with suffix set to "*.*" will set the
+default representation for unknown suffix files which contain a "." <P>
+
+<B>NOTE:</B> The suffixes <EM>can</EM> contain characters that must be
+escaped in a URL. However, they should <EM>not</EM> be encoded when
+parsed as the <CODE>suffix</CODE> parameter.
+
+<H2>Determine a suitable suffix</H2>
+
+Use the set of bindings to find a suitable suffix (or index) for a
+certain combination of language, media type and encoding given in the
+anchor. Returns a pointer to a suitable suffix string that must be freed 
+by the caller. If more than one suffix is found they are all
+concatenated. If no suffix is found, NULL is returned.
+
+<PRE>
+extern CONST char * HTBind_getSuffix	PARAMS((HTParentAnchor * anchor));
+</PRE>
+
+
+<H2>Determine the content of an Anchor</H2>
+
+Use the set of bindings to find the combination of language, media
+type and encoding of a given anchor. If more than one suffix is found
+they are all searched. The last suffix has highest priority, the first
+one lowest. Returns the anchor object with the representations
+found. See also <CODE>HTBind_getFormat</CODE>
+
+<PRE>
+extern BOOL HTBind_getBindings		PARAMS((HTParentAnchor * anchor));
+</PRE>
+
+<H2>Determine the content of File</H2>
+
+Use the set of bindings to find the combination of language, media
+type and encoding of a given anchor. If more than one suffix is found
+they are all searched. The last suffix has highest priority, the first
+one lowest. Returns the format, encoding, and language found. See also
+<CODE>HTBind_getBindings</CODE>.
+
+<PRE>
+extern BOOL HTBind_getFormat	PARAMS((CONST char *	filename,
+					HTFormat *	format,
+					HTEncoding *	encoding,
+					HTLanguage *	language,
+					double *	quality));
+</PRE>
+
+<H2>Multi Format Management</H2>
+
+Use the set of bindings to find the combination of language, media
+type and encoding of a given anchor. If more than one suffix is found
+they are all searched. The last suffix has highest priority, the first
+one lowest. Returns the format, encoding, and language found. See also
+<CODE>HTBind_getBindings</CODE>, and <CODE>HTBind_getFormat</CODE>.
+
+<PRE>
+#define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
+#define MAX_SUFF 15		/* Maximum number of suffixes for a file */
+
+extern HTContentDescription * HTBind_getDescription PARAMS((char * file));
+</PRE>
+
+End of declaration module
+
+<PRE>
+#endif /* HTBIND_H */
+</PRE>
+
+</BODY>
+</HTML>
