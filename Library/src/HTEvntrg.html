@@ -1,8 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww EVENTS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 15-May-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
 </HEAD>
 <BODY>
 
@@ -28,20 +27,12 @@ Reference Library</A>. <P>
 #ifndef HTEVNTRG_H
 #define HTEVNTRG_H
 
-typedef enum _HTPriority {
-    HT_PRIORITY_INV = -1,
-    HT_PRIORITY_OFF = 0,
-    HT_PRIORITY_MIN = 1,
-    HT_PRIORITY_MAX = 20
-} HTPriority; 
-
-typedef u_long SockOps; 
-
 #include "sysdep.h"
+#include "HTEvent.h"
 #include "HTReq.h"
 </PRE>
 
-<H2>Windows Specific Handles</H2>
+<H3>Windows Specific Handles</H3>
 
 <PRE>
 #if defined(WWW_WIN_ASYNC) || defined(WWW_WIN_DLL)
@@ -50,19 +41,6 @@ extern BOOL HTEventrg_setWinHandle (HWND window, unsigned long message);
 extern HWND HTEventrg_getWinHandle (unsigned long * pMessage);
 extern LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
-</PRE>
-
-<H2>Event Handlers</H2>
-
-The appplication registers a set of event handlers to be used on a
-specified set of sockets. The eventhandlers must be defined as follows:
-
-<PRE>
-#define FD_NONE	0
-#define FD_ALL (FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT |FD_CLOSE)
-#define FD_UNREGISTER (((FD_ALL) &lt;&lt; 1) & (~(FD_ALL)))
-
-typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
 </PRE>
 
 <H3>Register a TTY Event Handler</H3>

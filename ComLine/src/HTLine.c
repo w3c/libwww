@@ -22,6 +22,7 @@
 #include "WWWGophe.h"
 #include "WWWStream.h"
 #include "WWWRules.h"
+#include "WWWTrans.h"
 
 #include "HTPlain.h"
 #include "HTBInit.h"
@@ -312,7 +313,17 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
+
+    /* Set up our event manager */
+    HTEvent_setRegisterCallback(HTEventrg_register);
+    HTEvent_setUnregisterCallback(HTEventrg_unregister);
+
     HTAlert_setInteractive(YES);
+
+    /* Register a transport */
+    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
+    HTTransport_add("buffered_tcp", HT_CH_SINGLE, HTReader_new, HTBufferWriter_new);
+    HTTransport_add("local", HT_CH_SINGLE, HTANSIReader_new, HTANSIWriter_new);
 
     /* Initialize the protocol modules */
     HTProtocol_add("http", "tcp", NO, HTLoadHTTP, NULL);
@@ -587,7 +598,7 @@ int main (int argc, char ** argv)
     HTHeader_addParser("*", NO, header_handler);
 
     /* Set timeout on sockets */
-    HTEvent_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
+    HTEventrg_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
 
     /* Start the request */
     if (cl->dest)					   /* PUT, POST etc. */
@@ -608,7 +619,7 @@ int main (int argc, char ** argv)
     }
 
     /* Go into the event loop... */
-    HTEvent_Loop(cl->request);
+    HTEventrg_loop(cl->request);
 
     /* Only gets here if event loop fails */
     Cleanup(cl, 0);

@@ -38,7 +38,7 @@
 #include "HTList.h"
 #include "HTCache.h"
 #include "HTNetMan.h"
-#include "HTEvntrg.h"
+#include "HTEvent.h"
 #include "HTProt.h"
 #include "HTProxy.h"
 #include "HTReqMan.h"					 /* Implemented here */

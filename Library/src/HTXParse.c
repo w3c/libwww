@@ -19,7 +19,7 @@
 #include "HTXParse.h"                 /* defines HTStreamClass */
 #include "HTEPtoCl.h"         /* defines dummy routine for talking to client */
 #include "HTSocket.h"
-#include "HTEvntrg.h"
+#include "HTEvent.h"
 
 struct _HTStream {
 	const HTStreamClass *	isa;

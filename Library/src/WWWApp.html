@@ -2,7 +2,7 @@
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
   <NEXTID N="z11">
-  <TITLE>W3C Reference Library libwww APPLICATION</TITLE>
+  <TITLE>W3C Reference Library libwww Application Layer</TITLE>
 </HEAD>
 <BODY>
 <H1>
@@ -43,6 +43,19 @@ is that the Internet world is more complicated than Posix and ANSI.
 #include "sysdep.h"
 </PRE>
 <H2>
+  Event Manager
+</H2>
+<P>
+The core part of libwww only provides the hooks for the event manager. There
+is no event loop internal to the core part. Instead the application must
+provide the event loop in order to use either pseudo threads or real threads.
+If the application only uses blocking sockets without threads then it is
+not required to register any event loop at all. We provide a default
+implementation of an event loop which you can either take or get some ideas
+from.
+<PRE>#include "<A HREF="HTEvntrg.html">HTEvntrg.h</A>"
+</PRE>
+<H2>
   Generating the First Anchor
 </H2>
 <P>
@@ -62,16 +75,6 @@ on almost anu thinkable platform. If you want to provide your own platform
 dependent implementation then fine :-)
 <PRE>
 #include "<A HREF="HTDialog.html">HTDialog.h</A>"
-</PRE>
-<H2>
-  Registering Requests
-</H2>
-<P>
-The library core does not provide an event model. Instead the application
-must register methods to register and unregister requests. This module provides
-those methods so that simple apps, like the LineMode browser, may use this
-event model.
-<PRE>#include "<A HREF="HTHome.html">HTEvntrg.h</A>"
 </PRE>
 <H2>
   After Terminating a Request

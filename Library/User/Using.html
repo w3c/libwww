@@ -216,7 +216,7 @@ HREF="../../LineMode/src/HTBrowse.c">HTBrowse.c module</A>
 
 The Library has a very flexible event model that allows an application to either use it's own event
 loop that the library can makes calls to or to use the event loop in the <A
-HREF="../src/HTEvntrg.html">HTEvntrg module</A> in the library. In most cases the library
+HREF="../src/HTEvent.html">HTEvent module</A> in the library. In most cases the library
 event loop is sufficient which is the case for example on Mac, Window, and Unix platforms. <P>
 
 The application can register as many event handlers for as many channels that it can get input
@@ -244,7 +244,7 @@ extern int HTEvent_Register	(SOCKET sockfd, HTRequest * request, SockOps ops,
 extern int HTEvent_UnRegister	(SOCKET sockfd, SockOps ops);
 </PRE>
 
-See the <A HREF="../src/HTEvntrg.html">HTEvntrg module</A> for more information on the
+See the <A HREF="../src/HTEvent.html">HTEvent module</A> for more information on the
 arguments. Likewise if you are on for example a Windows NT platform then use the following
 functions:
 
@@ -321,7 +321,7 @@ extern int HTMIME_unRegister	(void);
 <A NAME="to"><H2>Register a Select Timeout Function</H2></A>
 
 You can register a call back function together with a timeout that is used in the select call of the
-<A HREF="../src/HTEvntrg.html">event loop</A>. When the select() call times out, the call
+<A HREF="../src/HTEvent.html">event loop</A>. When the select() call times out, the call
 back function is called. The registration can either be so that the call back <EM>always</EM> is
 called when that the select call times out <EM>or</EM> only when Library sockets are in use.
 

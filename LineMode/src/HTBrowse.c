@@ -1667,13 +1667,14 @@ int main (int argc, char ** argv)
 #endif
 
     /* Initiate W3C Reference Library */
-    HTLibInit(APP_NAME, APP_VERSION);
-    HTEvent_setRegisterCallback(HTEventrg_register);
-    HTEvent_setUnregisterCallback(HTEventrg_unregister);
+    HTLibInit(APP_NAME, APP_VERSION);    
 
     /* Create a new Line Mode object */
     lm = LineMode_new();
     request = Thread_new(lm, NO, LM_UPDATE);
+
+    /* Set up our event manager */
+    HTEventInit();
 
     /* Scan command Line for parameters */
     for (arg=1; arg<argc ; arg++) {

@@ -20,7 +20,7 @@
 #include "HTWWWStr.h"
 #include "HTAccess.h"
 #include "HTError.h"
-#include "HTEvntrg.h"
+#include "HTEvent.h"
 #include "HTNetMan.h"
 #include "HTReqMan.h"
 #include "HTTPGen.h"

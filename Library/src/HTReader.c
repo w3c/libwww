@@ -125,7 +125,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
 		if (cbf) (*cbf)(net->request, HT_PROG_DONE,
 				HT_MSG_NULL, NULL, NULL, NULL);
-	        HTEvent_unRegister(soc, FD_READ);
+	        HTEvent_unregister(soc, FD_READ);
 
 		/* Update host information if persistent connection */
 		if (HTNet_persistent(net))

@@ -278,7 +278,7 @@ addresses for <CODE>WWW_HOME</CODE> etc.
 <LI>The flag <CODE>WWW_WIN_ASYNC</CODE> introduced to use the new async window interface. Add this
 define to your project if you want it
 
-<LI>HTsocketWin and HTwinMsg made internal to HTEvntrg.c. They can now be accessed through the methods
+<LI>HTsocketWin and HTwinMsg made internal to HTEvent.c. They can now be accessed through the methods
 
 <UL>
 <LI>HTEvent_setWinHandle
@@ -650,7 +650,7 @@ for example "www.w3.org:" is converted into "www.w3.org"
 
 <LI>HTEvnttd.c is removed from the source tree; it's no longer needed.
 Likewise, HTEvent.c is no longer needed; it has been superseded by
-HTEvntrg.c and HTEvntrg.html.
+HTEvent.c and HTEvent.html.
 
 <LI>Added support for REENTRANT versions of
 

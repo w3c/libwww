@@ -478,6 +478,9 @@ int main (int argc, char ** argv)
     /* Build a new robot object */
     mr = Robot_new();
 
+    /* Set up our event manager */
+    HTEventInit();
+
     /* Initialize the protocol modules */
     HTAccessInit();
 
@@ -657,7 +660,7 @@ int main (int argc, char ** argv)
     HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
     
     /* Set timeout on sockets */
-    HTEvent_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
+    HTEventrg_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
 
     /* Start the request */
     if (keywords)						   /* Search */
@@ -672,7 +675,7 @@ int main (int argc, char ** argv)
     }
 
     /* Go into the event loop... */
-    HTEvent_Loop(mr->request);
+    HTEventrg_loop(mr->request);
 
     /* Only gets here if event loop fails */
     Cleanup(mr, 0);

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww INITIALIZATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -75,6 +75,17 @@ modules in the Library.
 #endif
 
 extern void HTAccessInit (void);
+</PRE>
+
+<H2>Event Manager</H2>
+
+The event loop is used if you are using non-blocking sockets or want
+to use real threads.
+
+<PRE>
+#include "HTEvntrg.h"
+
+extern void HTEventInit (void);
 </PRE>
 
 <H2>Media Type Conversions</H2>

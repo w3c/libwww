@@ -51,7 +51,7 @@ of application you are using and what other libraries you are using.
   <A NAME="unix">Interleaved I/O Using select()</A>
 </H3>
 <P>
-In this mode the <A HREF="../../src/HTEvntrg.html">Event Manager</A> registers
+In this mode the <A HREF="../../src/HTEvent.html">Event Manager</A> registers
 all active sockets and passes them to a <CODE>select()</CODE> call which
 then processes the registered sockets. When <CODE>select()</CODE> returns
 the Event Manager dispatches the appropriate handlers as the sockets get
@@ -65,7 +65,7 @@ this flag. <A NAME="async"></A>
   <A NAME="async">Asynchronous I/O based using Signals</A>
 </H3>
 <P>
-Here the <A HREF="../../src/HTEvntrg.html">Event Manager</A> registers all
+Here the <A HREF="../../src/HTEvent.html">Event Manager</A> registers all
 active sockets using <CODE>WSAAsyncSelect</CODE> which is part of the WinSock
 API. When <CODE>AsyncSelect()</CODE> which is the asynchronous equivalent
 to the <CODE>select()</CODE> returns, the Event Manager dispatches the results

@@ -15,27 +15,24 @@
 **
 */
 
-#include <assert.h>			/* @@@ Should be in sysdep.h @@@ */
-
 /* Implementation dependent include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTReqMan.h"
-#include "HTError.h"
-#include "HTDNS.h"
 #include "HTEvent.h"					 /* Implemented here */
 
-PRIVATE HTEvent_registerCallback * RegisterCBF = 0;
-PRIVATE HTEvent_unregisterCallback * UnregisterCBF = 0;
+PRIVATE HTEvent_registerCallback * RegisterCBF = NULL;
+PRIVATE HTEvent_unregisterCallback * UnregisterCBF = NULL;
 
 PUBLIC void HTEvent_setRegisterCallback(HTEvent_registerCallback * registerCBF)
 {
+    if (CORE_TRACE) HTTrace("Event....... registering %p\n", registerCBF);
     RegisterCBF = registerCBF;
 }
 
 PUBLIC void HTEvent_setUnregisterCallback(HTEvent_unregisterCallback * unregisterCBF)
 {
+    if (CORE_TRACE) HTTrace("Event....... registering %p\n", unregisterCBF);
     UnregisterCBF = unregisterCBF;
 }
 
@@ -43,15 +40,19 @@ PUBLIC void HTEvent_setUnregisterCallback(HTEvent_unregisterCallback * unregiste
 PUBLIC int HTEvent_register (SOCKET s, HTRequest * rq, SockOps ops,
 			     HTEventCallback *cbf, HTPriority p) 
 {
-    if (!RegisterCBF)
+    if (!RegisterCBF) {
+	if (CORE_TRACE) HTTrace("Event....... No handler registered\n");
         return -1;
+    }
     return (*RegisterCBF)(s, rq, ops, cbf, p);
 }
 
 PUBLIC int HTEvent_unregister (SOCKET s, SockOps ops)
 {
-    if (!UnregisterCBF)
+    if (!UnregisterCBF) {
+	if (CORE_TRACE) HTTrace("Event....... No handler registered\n");
         return -1;
+    }
     return (*UnregisterCBF)(s, ops);
 }
 

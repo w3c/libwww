@@ -25,7 +25,7 @@
 #include "HTParse.h"
 #include "HTTrans.h"
 #include "HTReqMan.h"
-#include "HTEvntrg.h"
+#include "HTEvent.h"
 #include "HTStream.h"
 #include "HTNetMan.h"					 /* Implemented here */
 
