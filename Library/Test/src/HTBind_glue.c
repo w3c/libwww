@@ -299,7 +299,7 @@ int HTBind_getBindings_tcl(ClientData clientData, Tcl_Interp *interp,
 /*Determine the content of File*/
 
 			      
-int HTBind_getFormat_tcl(ClientData, Tcl_Interp * interp, 
+int HTBind_getFormat_tcl(ClientData clientData, Tcl_Interp *interp, 
 			 int argc, char **argv) {
   if(argc==7) {
     double quality;
