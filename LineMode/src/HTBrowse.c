@@ -193,21 +193,14 @@ extern int getpid();
 **	================
 */
 
-<<<<<<< HTBrowse.c
 PUBLIC char * HTAppName = "CERN-LineMode";	         /* Application name */
 PUBLIC char * HTAppVersion = VL; 	              /* Application version */
 PUBLIC  int   HTScreenWidth   = SCREEN_WIDTH;		       /* By default */
 PUBLIC  int   HTScreenHeight  = -1;	         		/* Undefined */
 PUBLIC BOOL   display_anchors = YES;	    /* anchor will be shown in text? */
 PUBLIC char * log_file_name = 0;	      	    /* Root of log file name */
-=======
-PUBLIC char * HTAppName = "CERN-LineMode";	/* Application name */
-PUBLIC char * HTAppVersion = VL; 	/* Application version */
 
-
-PUBLIC  int  HTScreenWidth   = SCREEN_WIDTH;	/* By default */
-PUBLIC  int  HTScreenHeight  = -1;	         /* Undefined */
-PUBLIC  BOOL display_anchors = YES;	         /* anchor will be shown in text? */
+#ifdef OLD_CODE
 #ifdef VMS
 #ifdef __DECC
 PUBLIC  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
@@ -215,9 +208,8 @@ PUBLIC  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
 #else /* not VMS */
 PRIVATE  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
 #endif /* not VMS */
-PRIVATE  char * output_file_name = NULL;    /* -o xxxx */
+#endif /* OLD_CODE */
 					   
->>>>>>> 1.17
 PUBLIC char * start_reference = NULL;      /* Format string for start anchor */
 PUBLIC char * end_reference = REF_MARK;     		   /* for end anchor */
 PUBLIC char * reference_mark = "[%d] ";     	      /* for reference lists */
@@ -1510,8 +1502,8 @@ ret:	free (the_choice);
 
 
 /* -------------------------------------------------------------------------
-   General Error Message for Line Mode Browser. If verbose mode is od, then
-   the message is passed to stdout.
+   General Error Message for Line Mode Browser. If verbose mode is on, then
+   the message is passed to stderr.
 
    Henrik Frystyk 02/03-94
    ------------------------------------------------------------------------- */
