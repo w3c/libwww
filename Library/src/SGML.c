@@ -736,15 +736,15 @@ PUBLIC int SGML_write (HTStream * context, CONST char* b, int l)
 /*	Structured Object Class
 **	-----------------------
 */
-PUBLIC CONST HTStreamClass SGMLParser = 
+PRIVATE CONST HTStreamClass SGMLParser = 
 {		
-	"SGMLParser",
-	SGML_flush,
-	SGML_free,
-	SGML_abort,
-	SGML_character, 
-	SGML_string,
-	SGML_write,
+    "SGMLParser",
+    SGML_flush,
+    SGML_free,
+    SGML_abort,
+    SGML_character, 
+    SGML_string,
+    SGML_write,
 }; 
 
 /*	Create SGML Engine
@@ -755,10 +755,7 @@ PUBLIC CONST HTStreamClass SGMLParser =
 **	actions		is the sink for the data as a set of routines.
 **
 */
-
-PUBLIC HTStream* SGML_new  (
-	CONST SGML_dtd *	dtd,
-	HTStructured *		target)
+PUBLIC HTStream * SGML_new (CONST SGML_dtd * dtd, HTStructured * target)
 {
     int i;
     HTStream* context = (HTStream *) malloc(sizeof(*context));

@@ -23,8 +23,8 @@
 
 #define MAX_LINE_LEN 256
 
-PUBLIC char * HTDescriptionFile = ".www_descript";
-PUBLIC BOOL HTPeekTitles = YES;
+PRIVATE char * HTDescriptionFile = ".www_descript";
+PRIVATE BOOL HTPeekTitles = YES;
 
 /*
  *	Get the descriptions for files in the given directory.

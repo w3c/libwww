@@ -116,6 +116,7 @@ managed by <A HREF="HTReq.html">Request Manager</A>
 extern void HTHeader_setParser (HTList * list);
 extern BOOL HTHeader_addParser (CONST char * token, BOOL case_sensitive,
 				HTParserCallback * callback);
+extern BOOL HTHeader_deleteParser (CONST char * token);
 extern HTList * HTHeader_parser (void);
 </PRE>
 
@@ -123,8 +124,8 @@ extern HTList * HTHeader_parser (void);
 
 <PRE>
 extern void HTHeader_setGenerator (HTList * list);
-extern BOOL HTHeader_addGenerator (CONST char * token, BOOL case_sensitive,
-				   HTParserCallback * callback);
+extern BOOL HTHeader_addGenerator (HTPostCallback * callback);
+extern BOOL HTHeader_deleteGenerator (HTPostCallback * callback);
 extern HTList * HTHeader_generator (void);
 </PRE>
 

@@ -94,6 +94,31 @@ PUBLIC void HTLib_setSecure (BOOL mode)
 */
 PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 {
+#ifdef WWW_WIN_ASYNC
+    HWND htSocketWin;
+    static char className[] = "AsyncWindowClass";
+    WNDCLASS wc;
+    
+    wc.style=0;
+    wc.lpfnWndProc=(WNDPROC)AsyncWindowProc;
+    wc.cbClsExtra=0;
+    wc.cbWndExtra=0;
+    wc.hInstance=GetCurrentProcess();
+    wc.hIcon=0;
+    wc.hCursor=0;
+    wc.hbrBackground=0;
+    wc.lpszMenuName=(LPSTR)0;
+    wc.lpszClassName=className;
+#if 0
+   {0, /* no style */
+	AsyncWindowProc, /* to handle our async messages */
+	0, 0, /* allocate no extra bytes */
+	GetCurrentProcess(), /* hInstance to be filled in soon */
+	0, 0, 0, 0, /* icon, cursor, brush, menu */
+	className};
+#endif
+#endif /* WWW_WIN_ASYNC */
+
 #if WWWTRACE_MODE == WWWTRACE_FILE			  /* Open trace file */
     if ((TDEST = fopen(HT_TRACE_FILE, "a")) != NULL) {
 	if (setvbuf(TDEST, NULL, _IOLBF, 0) < 0) {  /* Change to line buffer */
@@ -141,6 +166,19 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
     */
     HTSetSignal();				   /* Set signals in library */
 #endif
+
+#ifdef WWW_WIN_ASYNC
+    if (!RegisterClass(&wc)) {
+    	TTYPrint(TDEST, "HTEvent_Loop.. Can't RegisterClass \"%s\"\n", className);
+	    return NO;
+    }
+    if (!(htSocketWin = CreateWindow(className, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, GetCurrentProcess(),0))) {
+       	TTYPrint(TDEST, "HTEvent_Loop.. Can't CreateWindow \"%s\"\n", "");
+    	return NO;
+    }
+    HTEvent_setWinHandle (htSocketWin, WM_USER);     /* use first available message since app uses none */
+#endif /* WWW_WIN_ASYNC */
 
 #ifdef _WINDOWS
     /*
@@ -193,6 +231,10 @@ PUBLIC BOOL HTLibTerminate (void)
 
 #ifdef _WINDOWS
     WSACleanup();
+#endif
+
+#ifdef WWW_WIN_ASYNC
+    DestroyWindow(HTEvent_getWinHandle(0));
 #endif
 
 #if WWWTRACE_MODE == WWWTRACE_FILE			 /* Close trace file */

@@ -24,7 +24,7 @@
 #include "HTIcons.h"					 /* Implemented here */
 
 /* Globals */
-PUBLIC BOOL HTDirShowBrackets = YES;
+PRIVATE BOOL HTDirShowBrackets = YES;
 PRIVATE HTIconNode * icon_unknown = NULL;	/* Unknown file type */
 PRIVATE HTIconNode * icon_blank = NULL;		/* Blank icon in heading */
 PRIVATE HTIconNode * icon_parent = NULL;	/* Parent directory icon */

@@ -255,13 +255,6 @@ PRIVATE attr option_attr[HTML_OPTION_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-#ifdef OLD_CODE
- PRIVATE attr pre_attr[HTML_PRE_ATTRIBUTES+1] = {
-	{ "WIDTH" },
-	{ 0 }	/* Terminate list */
-};
-#endif
-
 PRIVATE attr render_attr[HTML_RENDER_ATTRIBUTES+1] = {
 	{ "STYLE" },
 	{ "TAG" },
@@ -421,20 +414,11 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
 };
 
 
-#ifdef OLD_CODE
-PUBLIC CONST SGML_dtd HTML_dtd = {
-	tags,
-	HTML_ELEMENTS,
-	entities,
-	sizeof(entities)/sizeof(char**)
-};
-#endif
-
 PUBLIC CONST SGML_dtd HTMLP_dtd = {
-	tags,
-	HTMLP_ELEMENTS,
-	entities,
-	sizeof(entities)/sizeof(char**)
+    tags,
+    HTMLP_ELEMENTS,
+    entities,
+    sizeof(entities)/sizeof(char**)
 };
 
 /*	Utility Routine: useful for people building HTML objects */
@@ -529,6 +513,3 @@ PUBLIC void HTNextID (HTStructured * obj,
     (*obj->isa->start_element)(obj, HTML_NEXTID , present, value);
 
 }
-
-
-

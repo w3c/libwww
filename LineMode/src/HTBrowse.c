@@ -1021,6 +1021,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 **	-----------
 **	non-blocking read of the WIN32 console. EGP
 */
+
 #ifdef _CONSOLE
 PUBLIC BOOL readConsole(HANDLE conIn, char* buf, int len, int* pRed)
 {
@@ -1031,30 +1032,47 @@ PUBLIC BOOL readConsole(HANDLE conIn, char* buf, int len, int* pRed)
     GetNumberOfConsoleInputEvents(conIn, &toRead);
     if (len < (int)toRead)	/* we'll get the rest on the next pass(es). */
     toRead = len;
-    if (!(pInput = (PINPUT_RECORD)malloc(toRead * sizeof(INPUT_RECORD))))
+    if (!(pInput = (PINPUT_RECORD)malloc(toRead * sizeof(INPUT_RECORD))))	/* room for n input records */
 	return (FALSE);
     ReadConsoleInput(conIn, pInput, toRead, &red);
 
     for (recordIndex = bufferIndex = 0; recordIndex < red; recordIndex++) {
 	/* grab all keydown events */
-	if (pInput[recordIndex].EventType == KEY_EVENT &&
-	    pInput[recordIndex].Event.KeyEvent.bKeyDown) {
-	    while (pInput[recordIndex].Event.KeyEvent.wRepeatCount) {
-		/* stuff the buffer with the keys */
-		buf[bufferIndex] = pInput[recordIndex].Event.KeyEvent.uChar.AsciiChar;
-		if (buf[bufferIndex] == '\r')
-		    buf[bufferIndex] = '\n';
-		if (buf[bufferIndex] == '\b')
-		    TTYPrint(STDOUT, "\b ");
-		TTYPrint(STDOUT, "%c", buf[bufferIndex]);
-		bufferIndex++;
-		pInput[recordIndex].Event.KeyEvent.wRepeatCount--;
-	    }
-	}
+#if 1
+        KEY_EVENT_RECORD keyEvent = pInput[recordIndex].Event.KeyEvent;     /* only used if EventType == KEY_EVENT */
+    	if (pInput[recordIndex].EventType == KEY_EVENT && keyEvent.bKeyDown) {
+    	    while (keyEvent.wRepeatCount && keyEvent.uChar.AsciiChar) {
+    		/* stuff the buffer with the keys */
+    		buf[bufferIndex] = keyEvent.uChar.AsciiChar;
+    		if (buf[bufferIndex] == '\r')
+    		    buf[bufferIndex] = '\n';
+    		if (buf[bufferIndex] == '\b')
+    		    TTYPrint(STDOUT, "\b ");
+    		TTYPrint(STDOUT, "%c", buf[bufferIndex]);
+    		bufferIndex++;
+    		keyEvent.wRepeatCount--;
+    	    }
+    	}
+#else
+    	if (pInput[recordIndex].EventType == KEY_EVENT && pInput[recordIndex].Event.KeyEvent.bKeyDown) {
+    	    while (pInput[recordIndex].Event.KeyEvent.wRepeatCount && pInput[recordIndex].Event.KeyEvent.uChar.AsciiChar) {
+    		/* stuff the buffer with the keys */
+    		buf[bufferIndex] = pInput[recordIndex].Event.KeyEvent.uChar.AsciiChar;
+    		if (buf[bufferIndex] == '\r')
+    		    buf[bufferIndex] = '\n';
+    		if (buf[bufferIndex] == '\b')
+    		    TTYPrint(STDOUT, "\b ");
+    		TTYPrint(STDOUT, "%c", buf[bufferIndex]);
+    		bufferIndex++;
+    		pInput[recordIndex].Event.KeyEvent.wRepeatCount--;
+    	    }
+    	}
+#endif
+
     }
 
     free(pInput);
-    *pRed = bufferIndex;	      /* actual characters stuck into buffer */
+    *pRed = bufferIndex;		/* actual characters stuck into buffer */
     return (TRUE);
 }
 #endif /* _CONSOLE */
@@ -1643,7 +1661,7 @@ int main (int argc, char ** argv)
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
 	    HTEvent_RegisterTTY(STDIN_FILENO, lm->request, (SockOps)FD_READ,
-				scan_command, 1);
+				scan_command, HT_PRIORITY_MAX);
 	}
 #else
 	HTEvent_RegisterTTY(0, lm->request, (SockOps)FD_READ, scan_command, 1);

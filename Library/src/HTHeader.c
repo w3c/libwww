@@ -153,6 +153,12 @@ PUBLIC BOOL HTHeader_addParser (CONST char * token, BOOL case_sensitive,
     return HTParser_add(HTParsers, token, case_sensitive, callback);
 }
 
+PUBLIC BOOL HTHeader_deleteParser (CONST char * token)
+{
+    if (!HTParsers) return NO;
+    return HTParser_delete(HTParsers, token);
+}
+
 /*
 **	Global List of header generators. list can be NULL
 */
@@ -166,11 +172,16 @@ PUBLIC HTList * HTHeader_generator (void)
     return HTGenerators;
 }
 
-PUBLIC BOOL HTHeader_addGenerator (CONST char * token, BOOL case_sensitive,
-				   HTParserCallback * callback)
+PUBLIC BOOL HTHeader_addGenerator (HTPostCallback  * callback)
 {
     if (!HTGenerators) HTGenerators = HTList_new();
-    return HTParser_add(HTGenerators, token, case_sensitive, callback);
+    return HTGenerator_add(HTGenerators, callback);
+}
+
+PUBLIC BOOL HTHeader_deleteGenerator (HTPostCallback  * callback)
+{
+    if (!HTGenerators) return NO;
+    return HTGenerator_delete(HTGenerators, callback);
 }
 
 /*

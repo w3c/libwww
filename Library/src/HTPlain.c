@@ -109,13 +109,15 @@ PRIVATE int HTPlain_abort (HTStream * me, HTList * e)
 /*		Structured Object Class
 **		-----------------------
 */
-PUBLIC CONST HTStreamClass HTPlain =
-{		
-	"PlainText",
-	HTPlain_flush,
-	HTPlain_free,
-	HTPlain_abort,
-	HTPlain_put_character, 	HTPlain_put_string, HTPlain_write,
+PRIVATE CONST HTStreamClass HTPlain =
+{
+    "PlainText",
+    HTPlain_flush,
+    HTPlain_free,
+    HTPlain_abort,
+    HTPlain_put_character,
+    HTPlain_put_string,
+    HTPlain_write,
 }; 
 
 

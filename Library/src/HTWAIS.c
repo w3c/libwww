@@ -88,7 +88,7 @@
  
 extern FILE * logfile;		/* Log file output */
 
-PUBLIC int HTMaxWAISLines = 200;/* Max number of entries from a search */
+PRIVATE int HTMaxWAISLines = 200;/* Max number of entries from a search */
 
 PRIVATE BOOL	as_gate;	/* Client is using us as gateway */
 

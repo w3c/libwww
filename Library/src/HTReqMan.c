@@ -81,6 +81,7 @@ PUBLIC HTRequest * HTRequest_new (void)
 
     /* Default retry after value */
     me->retry_after = -1;
+    me->priority = HT_PRIORITY_MAX;
 
     /* Content negotiation */
     me->ContentNegotiation = NO;		       /* Do this by default */
@@ -589,7 +590,7 @@ PUBLIC BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority)
 
 PUBLIC HTPriority HTRequest_priority (HTRequest * request)
 {
-    return (request ? request->priority : -1);
+    return (request ? request->priority : HT_PRIORITY_INV);
 }
 
 /*

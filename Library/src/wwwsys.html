@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -452,12 +452,13 @@ WSA definitions moved from _WIN32 ifdef by EGP
 #define EHOSTDOWN       WSAEHOSTDOWN
 #define EISCONN         WSAEISCONN
 
+#if 0
 #undef NETREAD
 #undef NETWRITE
 
 #define NETREAD(s,b,l)  ((s) >= 10) ? recv((s),(b),(l),0) : read((s), (b), (l))
 #define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s), (b), (l))
-
+#endif
 /* #undef NO_UNIX_IO */ /* CLB NT has some Unix IO - must be more specific */
 
 /* Some compilers do only define WIN32 and NOT _WINDOWS */

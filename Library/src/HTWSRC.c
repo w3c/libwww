@@ -69,6 +69,9 @@ PRIVATE CONST char* par_name[] = {
 #define PAR_COUNT 13
 } ;
 
+#if 0
+PRIVATE  CONST char * hex = "0123456789ABCDEF";
+#endif
 
 enum tokenstate { beginning, before_tag, colon, before_value,
 		value, bracketed_value, quoted_value, escape_in_quoted, done };
@@ -96,20 +99,18 @@ struct _HTStream {
 
 
 
-
-PUBLIC CONST char * hex = "0123456789ABCDEF";
-
+#if 0
 /*	Decode one hex character
 */
 
-PUBLIC char from_hex (char c)
+PRIVATE char from_hex (char c)
 {
     return 		  (c>='0')&&(c<='9') ? c-'0'
 			: (c>='A')&&(c<='F') ? c-'A'+10
 			: (c>='a')&&(c<='f') ? c-'a'+10
 			:		       0;
 }
-
+#endif
 
 /*			State machine
 **			-------------

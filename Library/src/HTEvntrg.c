@@ -162,6 +162,13 @@ PUBLIC BOOL HTEvent_setWinHandle (HWND window, unsigned long message)
     HTwinMsg = message;
     return YES;
 }
+
+PUBLIC HWND HTEvent_getWinHandle (unsigned long * pMessage)
+{
+    if (pMessage)
+        *pMessage = HTwinMsg;
+    return (HTsocketWin);
+}
 #else
 #ifdef WWW_WIN_DLL
 PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
@@ -521,6 +528,7 @@ PUBLIC int HTEvent_UnregisterAll( void )
 }
 
 
+
 /*  HTEvent_Loop
 **  ------------
 **  event loop: that is, we wait for activity from one of our registered 
@@ -533,8 +541,7 @@ PUBLIC int HTEvent_UnregisterAll( void )
 #ifdef WWW_WIN_ASYNC
 int EndLoop = 0;      /* AsyncWindowsProc tells HTEvent_Loop when it is done */
 /* only responsible for WM_TIMER and WSA_AsyncSelect */    	
-LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
-				 LPARAM lParam)
+PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     WORD event;
     SOCKET sock;
@@ -574,37 +581,17 @@ LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 
 PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 {
-    int status;
-    static char className[] = "AsyncWindowClass";
-    WNDCLASS wc = {
-    	0, /* no style */
-	AsyncWindowProc, /* to handle our async messages */
-	0, 0, /* allocate no extra bytes */
-	GetCurrentProcess(), /* hInstance to be filled in soon */
-	0, 0, 0, 0, /* icon, cursor, brush, menu */
-	className
-    };
     MSG msg;
-
-    if (!RegisterClass(&wc)) {
-	TTYPrint(TDEST, "HTEvent_Loop.. Can't RegisterClass \"%s\"\n",
-		 className);
-	return (HT_ERROR);
-    }
-    if (!(HTsocketWin = CreateWindow(className, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, GetCurrentProcess(),0))) {
-   	TTYPrint(TDEST, "HTEvent_Loop.. Can't CreateWindow \"%s\"\n", "");
-	return (HT_ERROR);
-    }
-    HTwinMsg = WM_USER;	      /* first available message since app uses none */
 #ifdef _CONSOLE
     EndLoop = 0;
     while (!EndLoop) {
-	DWORD toRead;
-	if (console_in_use) {
-	    /* Check keystrokes */
-	    GetNumberOfConsoleInputEvents(console_handle, &toRead);
-	    if (toRead) {
-		if (THD_TRACE) 
+    	DWORD toRead;
+    	if (console_in_use) {
+            int status;
+    	    /* Check keystrokes */
+    	    GetNumberOfConsoleInputEvents(console_handle, &toRead);
+    	    if (toRead) {
+    		if (THD_TRACE) 
 		    TTYPrint(TDEST,"Event Loop.. console ready, invoke callback\n");
 		status = __DoUserCallback((SOCKET) console_handle, FD_READ);
 		if (status != HT_OK)
@@ -623,11 +610,10 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
     }
 #else
     while (GetMessage(&msg,0,0,0)) {
-	TranslateMessage(&msg);
-	DispatchMessage(&msg);
+	    TranslateMessage(&msg);
+	    DispatchMessage(&msg);
     }
 #endif
-    DestroyWindow(HTsocketWin);
     return (EndLoop == 1 ? HT_OK : HT_ERROR);
 }
 
@@ -842,7 +828,9 @@ PRIVATE int __DoCallback( SOCKET s, SockOps ops)
     HTRequest * rqp = NULL;
     HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null */
-    return cbf ? cbf(s, rqp, ops) : 0;
+    if (!cbf || rqp->priority == HT_PRIORITY_OFF)
+        return (0);
+    return (*cbf)(s, rqp, ops);
 }
 
 /*
@@ -854,7 +842,9 @@ PRIVATE int __DoUserCallback( SOCKET s, SockOps ops)
     HTRequest * rqp = NULL;
     HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null*/
-    return cbf ? cbf(s, rqp, ops) : 0;
+    if (!cbf || rqp->priority == HT_PRIORITY_OFF)
+        return (0);
+    return (*cbf)(s, rqp, ops);
 }
 
 /*
