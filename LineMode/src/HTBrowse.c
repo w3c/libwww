@@ -1516,7 +1516,18 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	}
 
     } else { /* No page loaded so sit around and wait for a go command */
-	MakeCommandLine(lm, is_index);
+	/*	was MakeCommandLine(lm, is_index); */
+	/*
+	**	stolen from above
+	*/
+	if (HTAlert_interactive()) {
+/*	    HText_setStale(HTMainText); */
+	    MakeCommandLine(lm, is_index);
+	} else {
+	    if (lm->flags & LM_REFS) Reference_List(lm, NO);
+	    Cleanup(lm, 0);
+	}
+
     }
     context->state |= LM_DONE;
     Thread_cleanup(lm);

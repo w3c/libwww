@@ -175,7 +175,7 @@ PRIVATE Robot * Robot_new (void)
     me->tv->tv_sec = DEFAULT_TIMEOUT;
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
-    me->cnt = 1;
+    me->cnt = 0;
     me->fingers = HTList_new();
 
     /* We keep an extra timeout request object for the timeout_handler */
@@ -304,19 +304,19 @@ PRIVATE void VersionInfo (void)
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
-    int count = HTNet_count();
+  /*    int count = HTNet_count(); */
     Finger * finger = (Finger *) HTRequest_context(request);
     Robot * robot = finger->robot;
     if (SHOW_MSG) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
     Finger_delete(finger);
-    switch (count) {
+    switch (robot->cnt) {
     case 0:
 	if (SHOW_MSG) HTTrace("             Everything is finished...\n");
 	Cleanup(robot, 0);
     case 1:
 	HTRequest_forceFlush(request);
     default:
-	if (SHOW_MSG) HTTrace("             %d outstanding requests\n", robot->cnt);
+	if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", robot->cnt, robot->cnt == 1 ? "" : "s");
     }
     return HT_OK;
 }
