@@ -13,7 +13,8 @@
 **	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
 **	details.
 **
-**      A very simple event loop demo showing how write an event driven libwww app
+**      A very simple event loop demo showing how to write an event driven
+**	libwww app and also how to use various contexts
 */
 
 #include "WWWLib.h"
