@@ -153,7 +153,7 @@ typedef struct _ftp_data {
     char 		type;		     /* 'A', 'I', 'L'(IST), 'N'(LST) */
 } ftp_data;
 
-#define MAX_STATUS_LEN		256   /* Max nb of chars to check StatusLine */
+#define MAX_STATUS_LEN		128   /* Max nb of chars to check StatusLine */
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
@@ -163,6 +163,7 @@ struct _HTStream {
     HTSocketEOL			state;
     int				status;
     HTChunk *			welcome;
+    BOOL			junk;		       /* For too long lines */
     BOOL			first_line;
     char 			buffer[MAX_STATUS_LEN+1];
     int				buflen;
@@ -237,7 +238,6 @@ PRIVATE int ScanResponse (HTStream *me)
 	HTChunkPuts(me->welcome, ptr);
 	HTChunkPutc(me->welcome, '\n');
     }
-    me->state = EOL_BEGIN;
     me->buflen = 0;
     if (cont != '-') {
 	me->first_line = YES;
@@ -256,23 +256,36 @@ PRIVATE int FTPStatus_put_block (HTStream * me, CONST char * b, int l)
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
 	    if (*b == LF) {
-		if ((status = ScanResponse(me)) != HT_OK)
-		    return status;
-	    } else {
 		me->state = EOL_BEGIN;
+		if (!me->junk) {
+		    if ((status = ScanResponse(me)) != HT_OK)
+			return status;
+		} else {
+		    me->buflen = 0;		
+		    me->junk = NO;
+		}
 	    }
 	} else if (*b == CR) {
 	    me->state = EOL_FCR;
 	} else if (*b == LF) {
-	    if ((status = ScanResponse(me)) != HT_OK)
-		return status;
+	    me->state = EOL_BEGIN;
+	    if (!me->junk) {
+		if ((status = ScanResponse(me)) != HT_OK)
+		    return status;
+	    } else {
+		me->buflen = 0;		
+		me->junk = NO;
+	    }
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_STATUS_LEN) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "FTP Status.. Line too long - chopped\n");
-		if ((status = ScanResponse(me)) != HT_OK)
-		    return status;
+		me->junk = YES;
+		if ((status = ScanResponse(me)) != HT_OK) {
+		    me->junk = NO;
+		    return status;	
+		}
 	    }
 	}
 	b++;

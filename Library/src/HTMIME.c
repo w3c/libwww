@@ -524,6 +524,7 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	}
     }
 
+#if 0
     /*
     ** If coming from cache then check if the document has expired. We can
     ** either ignore this or attempt a reload
@@ -549,10 +550,11 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    }
 	}
     }
+#endif
 
-    if (anchor->content_type != WWW_UNKNOWN) {
+    if (anchor->content_type!=WWW_UNKNOWN || anchor->content_length>0) {
 	if (STREAM_TRACE)
-	    fprintf(TDEST, "MIMEParser.. Media type %s is converted to %s\n",
+	    fprintf(TDEST, "MIMEParser.. Convert %s to %s\n",
 		    HTAtom_name(anchor->content_type),
 		    HTAtom_name(me->target_format));
 	if ((me->target=HTStreamStack(anchor->content_type, me->target_format,
@@ -574,7 +576,6 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 */
 PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 {
-    int status = HT_OK;
     while (!me->transparent && l-- > 0) {
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == CR) {				    /* End of header */
@@ -630,26 +631,23 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	    HTChunkPutc(me->buffer, *b);
 	b++;
     }
-#if 0
-    if (me->target) {				    /* Is the stream set up? */
-	if (l > 0)					   /* Anything left? */
-	    return (*me->target->isa->put_block)(me->target, b, l);
-	return HT_OK;
-    }
-    return HT_WOULD_BLOCK;
-#endif
 
     /* 
     ** Put the rest down the stream without touching the data but make sure
     ** that we get the correct content length of data
     */
-    if (me->target && l > 0) {
-	int status = (*me->target->isa->put_block)(me->target, b, l);
-	if (status==HT_OK && me->net->bytes_read >=me->anchor->content_length){
-	    return HT_LOADED;
-	}
+    if (l > 0) {
+	if (me->target) {
+	    int status = (*me->target->isa->put_block)(me->target, b, l);
+	    if (status == HT_OK)
+		return (me->net->bytes_read >= me->anchor->content_length) ?
+		    HT_LOADED : HT_OK;
+	    else
+		return status;
+	} else
+	    return HT_WOULD_BLOCK;
     }
-    return status;
+    return HT_OK;
 }
 
 

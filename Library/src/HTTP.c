@@ -415,12 +415,8 @@ PRIVATE int HTTPStatus_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 	    b++;
 	}
     }
-    if (me->target) {				    /* Is the stream set up? */
-	if (l > 0)					   /* Anything left? */
-	    return PUTBLOCK(b, l);
-	return HT_OK;
-    }
-    return HT_WOULD_BLOCK;
+    if (l > 0) return PUTBLOCK(b, l);
+    return HT_OK;
 }
 
 PRIVATE int HTTPStatus_put_string ARGS2(HTStream *, me, CONST char*, s)

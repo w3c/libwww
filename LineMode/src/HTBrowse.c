@@ -93,6 +93,9 @@
 #define SHOW_MSG		(TRACE || HTPrompt_interactive())
 #define CHECK_INPUT(a, b)	(!strncasecomp ((a), (b), strlen((b))))
 
+#define SEC_TIMEOUT		1		       /* timeout in seconds */
+#define USEC_TIMEOUT		0		         /* timeout in usecs */
+
 #if defined(ultrix) || defined(__osf__)
 #define GET_SCREEN_SIZE
 #endif
@@ -154,7 +157,7 @@ PUBLIC char *HTSearchScript;
 #endif /* DECC */
 #endif /* not VMS */ 
 
-#include "HTReqMan.h"
+#include "HTReqMan.h"			/* @@@@@@@@@@@@@@@@@@ */
 
 /* ------------------------------------------------------------------------- */
 /*				THREAD FUNCTIONS			     */
@@ -196,7 +199,7 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
     if (Interactive)
 	HTPresenterInit(newreq->conversions);		/* Set up local list */
     if (Blocking)
-	newreq->preemtive = YES;			 /* Use blocking I/O */
+	HTRequest_setPreemtive(newreq, YES);
     HTList_addObject(reqlist, (void *) newreq);
     HTRequest_addRqHd(newreq, HT_HOST);
     return newreq;
@@ -657,14 +660,14 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	
       case '?':
 	req = Thread_new(YES);
-	req->preemtive = YES;
+	HTRequest_setPreemtive(req, YES);
 	status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	break;
 	
       case 'H':
 	if (CHECK_INPUT("HELP", token)) {		     /* help menu, ..*/
 	    req = Thread_new(YES);
-	    req->preemtive = YES;
+	    HTRequest_setPreemtive(req, YES);
 	    status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	} else if (CHECK_INPUT("HOME", token)) {		/* back HOME */
 	    if (!HTHistory_canBacktrack(hist)) {
@@ -722,7 +725,7 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
       case 'M':
 	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
 	    req = Thread_new(YES);
-	    req->preemtive = YES;
+	    HTRequest_setPreemtive(req, YES);
 	    status = HTLoadRelative(MANUAL, HTMainAnchor,req);
 	} else
 	    found = NO;
@@ -962,6 +965,16 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
     return HT_OK;
 }
 
+/*	timeout_handler
+**	---------------
+**	Is called if select function returns 0
+*/
+PRIVATE int timeout_handler (HTRequest * request)
+{
+    if (SHOW_MSG) fprintf(TDEST, ".");
+    return 0;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
@@ -1136,7 +1149,7 @@ int main ARGS2(int, argc, char **, argv)
 
 	    /* Multithreaded ot not? */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		request->preemtive = YES;
+		HTRequest_setPreemtive(request, YES);
 		Blocking = YES;
 
 	    /* Output filename */
@@ -1353,7 +1366,7 @@ int main ARGS2(int, argc, char **, argv)
     HTMIME_register(HTHeaderParser);
 
     /* Load the first page. This is done using blocking I/O */
-    request->preemtive = YES;
+    HTRequest_setPreemtive(request, YES);
     if ((keywords ?
 	 HTSearch(HTChunkData(keywords), home_anchor, request) :
 	 HTLoadAnchor((HTAnchor*) home_anchor, request)) != YES) {
@@ -1366,7 +1379,13 @@ int main ARGS2(int, argc, char **, argv)
     /* If in interactive mode then start the event loop which will run until
        the program terminates */
     if (HTPrompt_interactive()) {
+	struct timeval tv;
+	tv.tv_sec = SEC_TIMEOUT;	      /* Default timeout for sockets */
+	tv.tv_usec = USEC_TIMEOUT;
 
+	/* Set timeout on sockets */
+	HTEvent_registerTimeout(&tv, request, timeout_handler, NO);
+	
 	/* Set max number of sockets we want open simultanously */
 	HTNet_setMaxSocket(6);
 

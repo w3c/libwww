@@ -723,7 +723,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    else
 			fprintf(TDEST, "HTDoConnect. Non-blocking socket\n");
 		}
-	    } else
+	    } else if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. Blocking socket\n");
 
 	    /* If multi-homed host then start timer on connection */

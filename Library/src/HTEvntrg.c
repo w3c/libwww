@@ -46,7 +46,7 @@ typedef unsigned long DWORD;
 ** and our action. For version 1, we allow one action per socket
 */
 
-typedef struct rq_t RQ ;  	
+typedef struct rq_t RQ;
 
 /*
 ** an action consists of a request, a set of requested operations 
@@ -80,7 +80,7 @@ struct rq_t {
 PRIVATE RQ * table[PRIME_TABLE_SIZE]; 
 PRIVATE SOCKET max_sock = 0 ;		/* max socket value in use */
 PRIVATE int socketsInUse = 0 ;		/* actual sockets in use */
-
+PRIVATE int userSockets = 0;		/* Number of user sockets */
 PRIVATE BOOL console_in_use = NO;
 
 #ifndef _WINDOWS 
@@ -88,6 +88,17 @@ typedef void * HANDLE ;
 #endif
 
 PRIVATE HANDLE console_handle = 0 ;
+
+/* Select Timeout handling */
+typedef struct _HTTimeout {
+    HTEventTimeout *	tcbf;
+    HTRequest *		request;
+    struct timeval	tv;
+    BOOL		always;
+} HTTimeout;
+
+PRIVATE HTTimeout 	seltime;
+PRIVATE struct timeval *tvptr = NULL;
 
 /*
 ** this set of SockOps map our WinSock "socket event SockOps" into 
@@ -104,13 +115,56 @@ PRIVATE CONST SockOps ExceptBits = FD_OOB ;
 /*
 ** Local functions 
 */
-PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallBack, HTPriority); 
-PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, HTPriority);
+PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallBack *, HTPriority); 
+PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack *, HTPriority);
 PRIVATE int __ProcessFds( fd_set *, SockOps, CONST char *);
-PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, HTPriority);
+PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack *, HTPriority);
 PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 
 /* ------------------------------------------------------------------------- */
+
+/*	HTEvent_registerTimeout 
+**	-----------------------
+**	Set the timeout for sockets. This does only works on NON windows
+**	platforms as we need to poll for the console on windows
+**	The default is no timeout. If the tp points to a zero'ed structure
+**	then the select is basically polling. If always is YES then
+**	the callback is called at all times, if NO then only when Library
+**	sockets are active.
+**	Returns YES if OK else NO
+*/
+PUBLIC BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
+				     HTEventTimeout *tcbf, BOOL always)
+{
+#ifdef _WIN32
+    return NO;
+#else
+    if (tp) {
+	tvptr = &seltime.tv;
+	tvptr->tv_sec = tp->tv_sec;
+	tvptr->tv_usec = tp->tv_usec;
+	seltime.tcbf = tcbf;
+	seltime.request = request;
+	seltime.always = always;
+	if (THD_TRACE)
+	    fprintf(TDEST,"Timeout cbf. %p %s (request=%p, sec=%d, usec=%d)\n",
+		    tcbf, always ? "always" : "active",
+		    request, (int) tp->tv_sec, (int) tp->tv_usec);
+    }
+    return YES;
+#endif
+}
+
+/*	HTEvent_unregisterTimeout 
+**	-------------------------
+**	Disables the callback function.
+**	Returns YES if OK else NO
+*/
+PUBLIC BOOL HTEvent_unregisterTimeout (void)
+{
+    tvptr = NULL;
+    return YES;
+}
 
 /*
 ** HTEvent_RegisterTTY 
@@ -134,6 +188,7 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 #ifdef TTY_IS_SELECTABLE 
 
     /* HTEvent_Register adds the request _and_ inserts in fd table */
+    userSockets++;
     return HTEvent_Register( fd, rq, ops, cbf, p) ;
 
 #else 
@@ -168,6 +223,9 @@ PUBLIC int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops)
 #ifdef _WINDOWS
     s = (SOCKET)console_handle ;
 #endif
+#ifdef TTY_IS_SELECTABLE
+    userSockets--;
+#endif
     return HTEvent_UnRegister(s, ops) ;	/* no harm in unregistering...*/
 }
 
@@ -189,17 +247,15 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 
     (void)__HTEvent_addRequest( s, rq, ops, cbf, p);
  
-    socketsInUse++;
-    
 #ifdef _WINSOCKAPI_
     if (rq -> hwnd != 0) {
         if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) {
-	    HTErrorSysAdd( rq, ERR_FATAL, GetLastError(), NO, "WSAAsyncSelect") ;
+	    HTErrorSysAdd( rq, ERR_FATAL, GetLastError(), NO,"WSAAsyncSelect");
 	    return HTERROR;
 	}
     }
 #endif
-        /* insert socket into appropriate file descriptor set */
+    /* insert socket into appropriate file descriptor set */
 
     if (ops & ReadBits)	{
 	if (! FD_ISSET(s, &read_fds))
@@ -222,9 +278,10 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 	    fprintf(TDEST, "Register.... Registering socket for exceptions\n");
     }
 
-    if (! FD_ISSET(s, &all_fds))
-	FD_SET(s, &all_fds) ;
-
+    if (!FD_ISSET(s, &all_fds)) {
+	socketsInUse++;
+	FD_SET(s, &all_fds);
+    }
     if (s > max_sock) 
         max_sock = s ;
     
@@ -237,7 +294,7 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 **  invoked  
 */
 PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
-				 HTEventCallBack cbf, HTPriority p)
+				 HTEventCallBack *cbf, HTPriority p)
 {
     RQ * rqp = 0 , **rqpp = 0 ;
     long v = HASH(s);
@@ -269,7 +326,7 @@ PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
 ** a set of inputs. N.B. This initializes the entire registration structure 
 */
 PRIVATE void __RequestInit(RQ * rqp, SOCKET s, HTRequest * rq, 
-			   SockOps ops, HTEventCallBack cbf, HTPriority p) 
+			   SockOps ops, HTEventCallBack *cbf, HTPriority p) 
 {
     if( THD_TRACE)
     	fprintf(TDEST,"RequestInit. initializing RQ entry for socket %d\n", s);
@@ -285,7 +342,8 @@ PRIVATE void __RequestInit(RQ * rqp, SOCKET s, HTRequest * rq,
 ** updates the actions fields and the unregister value, but doesn't modify 
 ** the socket _or_ the next pointer
 */
-PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf, HTPriority p)
+PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
+			     SockOps ops, HTEventCallBack * cbf, HTPriority p)
 {
     if (THD_TRACE) 
     	fprintf(TDEST, "Req Update.. updating for socket %u\n", s) ;
@@ -406,8 +464,7 @@ PUBLIC int HTEvent_UnregisterAll( void )
 PUBLIC int HTEvent_Loop( HTRequest * theRequest ) 
 {
     fd_set treadset, twriteset, texceptset ;    
-    int active_sockets ; 
-    struct timeval t , *timep = &t ;
+    int active_sockets;
     int maxfds ;
     int readings, writings, exceptions ;
     SOCKET s ;
@@ -423,46 +480,43 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
         maxfds = max_sock ; 
         readings = writings = exceptions = 0; 
 	consoleReady = NO;
-	t.tv_sec = SecondsToWait  ;
-	t.tv_usec = 0 ;
 
 	if (console_in_use) { 
 
 #ifdef _WIN32
-            int result ;   
- 	    DWORD time2wait ;
-
+            int result;
+ 	    DWORD time2wait;
+	    tvptr = &seltime.tv;
+	    tvptr->tv_sec = SecondsToWait;
+	    tvptr->tv_usec = 0;
 	    if (max_sock == 0)     /* no sockets, so wait for keyboard input */
 		time2wait = INFINITE;
  	    else 
 		time2wait = 1000;	      /* this is a poll - one second */
 
 	    if (THD_TRACE)
-		fprintf(TDEST, "Event Loop. console in use: waiting %s\n", (time2wait == 1000) ? 
-		  "1 second" : "forever" ) ;
+		fprintf(TDEST, "Event Loop. console in use: waiting %s\n",
+			(time2wait == 1000) ? "1 second" : "forever" );
 
 	    switch( result = WaitForSingleObject( console_handle, time2wait)) {
 		case WAIT_TIMEOUT:
 			break;
 
 		case WAIT_FAILED :
-		case WAIT_ABANDONED: /* should never happen */
-		    HTErrorSysAdd( theRequest, ERR_FATAL, GetLastError(), NO, "WaitForSingleObject") ;
+		case WAIT_ABANDONED: 		      /* should never happen */
+		    HTErrorSysAdd(theRequest, ERR_FATAL, GetLastError(), NO,
+				  "WaitForSingleObject");
 		    return HT_ERROR;
 		    break ; 
 
 		case WAIT_OBJECT_0:
 		    consoleReady = YES;
-		    t.tv_sec = 0 ;	 /* just poll the sockets */
+		    tvptr->tv_sec = 0 ;		    /* just poll the sockets */
 		    break;
 	     } /* switch */
 	     if (THD_TRACE)
-		fprintf(TDEST, "Console..... %s ready for input\n", consoleReady ? "is" : "ISN'T" );
-#else 
-#ifdef TTY_IS_SELECTABLE 
-	    timep = 0 ;
-#else
-#endif /* TTY_IS_SELECTABLE */
+		fprintf(TDEST, "Console..... %s ready for input\n",
+			consoleReady ? "is" : "ISN'T" );
 #endif /* _WIN32 */
 
 	} /* if tty in use */
@@ -477,17 +531,20 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
-				(int *)&texceptset, (struct timeval *)timep);
+				(int *)&texceptset, (struct timeval *) tvptr);
 #else
         active_sockets = select(maxfds+1, &treadset, &twriteset, &texceptset,
-				(struct timeval *)timep) ;
+				(struct timeval *) tvptr);
 #endif
 	if (THD_TRACE)
 	    fprintf(TDEST, "Event Loop.. select returns %d\n", active_sockets);
 
         switch(active_sockets)  {
             case 0:         /* no activity - timeout - allowed */
-                break;
+#ifndef _WIN32
+	    
+#endif /* WIN32 */
+	    break;
             
             case -1:        /* error has occurred */
 	    	HTErrorSysAdd( theRequest, ERR_FATAL, socerrno, NO, "select");
@@ -522,8 +579,16 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	    
 	} /* if console in use and it's ready */
 
-	if (active_sockets == 0)
-	    continue ;
+	/* If timeout then see if we should call callback function */
+	if (active_sockets == 0) {
+	    if (THD_TRACE)
+		fprintf(TDEST, "Event Loop.. user %d, total %d\n",
+			userSockets, socketsInUse);
+	    if (seltime.tcbf && (seltime.always || userSockets<socketsInUse))
+		(*(seltime.tcbf))(seltime.request);
+	    else
+		continue;
+	}
 
 	/*
 	 * there were active sockets. Determine which fd sets they were in
@@ -596,8 +661,7 @@ PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str)
 */
 PRIVATE int __DoCallBack( SOCKET s, SockOps ops)
 {
-    int status;
-    HTRequest * rqp = 0;
+    HTRequest * rqp = NULL;
     HTEventCallBack *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null */
     return cbf ? cbf(s, rqp, ops) : 0;
@@ -611,7 +675,6 @@ PRIVATE int __DoUserCallBack( SOCKET s, SockOps ops)
 {
     HTRequest * rqp = NULL;
     HTEventCallBack *cbf = HTEvent_Retrieve( s, ops, &rqp);
-
     /* although it makes no sense, callbacks can be null*/
     return cbf ? cbf(s, rqp, ops) : 0;
 }
@@ -648,11 +711,6 @@ PRIVATE void __ResetMaxSock( void )
     return;
 }  
 
-int HTEvent_Count( void ) 
-{
-    return socketsInUse ;
-}
-   
 PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 			      SockOps ops) 
 {
