@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww Generic Message Digest
+  Interface</Title>
+</HEAD>
+<BODY>
+<H1>
+  Generic Message Digest Interface
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT W3C, INRIA 1998.
+**	Please first read the full copyright statement in the file COPYRIGHT.
+*/
+</PRE>
+<P>
+
+Contains a generic interface to the message digest algorithms, inspired
+from the RSA-Euro toolkit. For the moment, it only covers MD5.
+SHA and other algorithms could be added later on. This code is only
+used during message digest authentication.
+
+AUTHORS:
+   JKO	Jose Kahan       jose@w3.org
+
+HISTORY:
+        Dec 98 JK	Created the module from scratch
+
+<P>
+This module is implemented by <A HREF="HTDigest.c">HTDigest.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
+Library</A>.
+<PRE>
+#ifndef HTDigest_H
+#define HTDigest_H
+/* Library include files */
+#include "WWWLib.h"
+/* add the MD algorithm header files here below */
+#include "global.h"
+#include "md5.h"
+</PRE>
+<H2>
+  Interface to message digest algorithms
+</H2>
+<P>
+The list of known message digest algorithms
+<PRE>
+#define HTDaMD5 1
+</PRE>
+<P>
+This is our general digest context structure. If you add a new
+algorithm, include its context in the union.
+<PRE>
+typedef struct _HTDigestContext {
+  int algorithm;          
+    union { 
+           MD5_CTX md5;
+    } context;
+} HTDigestContext;
+</PRE>
+<P>
+This is a set of generic functions for generating a message digest
+<PRE>
+extern BOOL HTDigest_init (HTDigestContext *context, int digesttype);
+extern BOOL HTDigest_update (HTDigestContext *context, char *input, unsigned int inputLen);
+extern BOOL HTDigest_final (unsigned char *digest, HTDigestContext *context);
+</PRE>
+<PRE>
+#endif	/* NOT HTDigest_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
+
+
+
+
+

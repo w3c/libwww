@@ -40,6 +40,20 @@ extern HTNetBefore	HTBasic_generate;
 extern HTNetAfter 	HTBasic_parse;
 extern HTUTree_gc	HTBasic_delete;
 </PRE>
+<H2>
+  Digest Authentication
+</H2>
+<P>
+This is the set of callback functions for handling digest authentication.
+<PRE>
+extern HTNetBefore	HTDigest_generate;
+extern HTNetAfter 	HTDigest_parse;
+extern HTUTree_gc	HTDigest_delete;
+extern int	        HTDigest_refresh (HTRequest *request, 
+					  HTResponse *response,
+					  BOOL proxy,
+					  char *auth_info);
+</PRE>
 <PRE>
 #endif	/* NOT HTAABROW_H */
 </PRE>
@@ -49,3 +63,5 @@ extern HTUTree_gc	HTBasic_delete;
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
+
+

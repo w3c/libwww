@@ -203,6 +203,8 @@ PUBLIC void HTAfterInit (void)
 PUBLIC void HTAAInit (void)
 {
     HTAA_newModule ("basic", HTBasic_generate, HTBasic_parse, HTBasic_delete);
+    HTAA_newModule ("digest", HTDigest_generate, HTDigest_parse, 
+		     HTDigest_delete);
 }
 
 /*	REGISTER BEFORE AND AFTER FILTERS
@@ -413,6 +415,8 @@ PUBLIC void HTMIMEInit (void)
 	{"via", &HTMIME_via},
 	{"warning", &HTMIME_warning},
 	{"www-authenticate", &HTMIME_authenticate}, 
+        {"authentication-info", &HTMIME_authenticationInfo},
+        {"proxy-authentication-info", &HTMIME_proxyAuthenticationInfo}
     };
     int i;
 
