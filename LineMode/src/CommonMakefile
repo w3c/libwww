@@ -92,7 +92,8 @@ HTMLFILES = \
 
 # $(LM)a_stdio.h was added to support -DCYRILLIC
 SPECIFIC =  \
-	$(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
+	$(WWW)/All/*/Makefile.include \
+	$(WWW)/All/Implementation/Makefile.include \
 	$(LM)vms/descrip.mms \
 	$(LM)vms/build_multinet.com \
 	$(LM)vms/setup.com
