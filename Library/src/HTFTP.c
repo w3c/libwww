@@ -52,6 +52,7 @@ BUGS:	@@@  	Limit connection cache size!
 */		
 
 #include "HTFTP.h"	/* Implemented here */
+#include "HTFormat.h"
 
 #define CR   FROMASCII('\015')	/* Must be converted to ^M for transmission */
 #define LF   FROMASCII('\012')	/* Must be converted to ^J for transmission */
@@ -91,6 +92,7 @@ typedef struct _connection {
     u_long			addr;	/* IP address		*/
     int				socket;	/* Socket number for communication */
     BOOL			binary; /* Binary mode? */
+    HTInputSocket *		isoc;
 } connection;
 
 #ifndef NIL
@@ -133,8 +135,6 @@ PRIVATE int	num_sockets;  		/* Number of sockets to scan */
 PRIVATE	unsigned short	passive_port;	/* Port server specified for data */
 #endif
 
-
-#define NEXT_CHAR HTGetChararcter()	/* Use function in HTFormat.c */
 
 #define DATA_BUFFER_SIZE 2048
 PRIVATE char data_buffer[DATA_BUFFER_SIZE];		/* Input data buffer */
@@ -180,6 +180,7 @@ PRIVATE int close_connection(con)
 {
     connection * scan;
     int status = NETCLOSE(con->socket);
+    HTInputSocket_free(con->isoc);
     if (TRACE) fprintf(stderr, "FTP: Closing control socket %d\n", con->socket);
     if (connections==con) {
         connections = con->next;
@@ -217,12 +218,8 @@ PRIVATE int close_connection(con)
 **	returns:  The first digit of the reply type,
 **		  or negative for communication failure.
 */
-#ifdef __STDC__
-PRIVATE int response(char * cmd)
-#else
-PRIVATE int response(cmd)
-    char * cmd;
-#endif
+PRIVATE int response ARGS1(char *, cmd)
+
 {
     int result;				/* Three-digit decimal code */
     int	continuation_response = -1;
@@ -258,7 +255,7 @@ PRIVATE int response(cmd)
     do {
 	char *p = response_text;
 	for(;;) {  
-	    if (((*p++=NEXT_CHAR) == LF)
+	    if (((*p++=HTInputSocket_getCharacter(control->isoc)) == LF)
 			|| (p == &response_text[LINE_LENGTH])) {
 		char continuation;
 		*p++=0;			/* Terminate the string */
@@ -412,7 +409,7 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 	control = con;			/* Current control connection */
 	con->next = connections;	/* Link onto list of good ones */
 	connections = con;
-        HTInitInput(con->socket);/* Initialise buffering for contron connection */
+        con->isoc = HTInputSocket_new(con->socket); /* buffering */
 
 
 /*	Now we log in		Look up username, prompt for pw.
@@ -486,7 +483,7 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 #endif
 	return con->socket;			/* Good return */
     } /* Scope of con */
-}
+}  /* get_connection */
 
 
 #ifdef LISTEN
@@ -656,13 +653,15 @@ PRIVATE int get_listen_socket()
 **			<0 if error.
 */
 PRIVATE int read_directory
-ARGS4 (
+ARGS6 (
+  HTRequest *,			request,
+  void *,			param,
   HTParentAnchor *,		parent,
   CONST char *,			address,
   HTFormat,			format_out,
   HTStream *,			sink )
 {
-    HTStructured* target = HTML_new(parent, format_out, sink);
+    HTStructured* target = HTML_new(request, NULL, WWW_HTML, format_out, sink);
     HTStructuredClass targetClass;
     char *filename = HTParse(address, "", PARSE_PATH + PARSE_PUNCTUATION);
 
@@ -754,7 +753,9 @@ ARGS4 (
 **			<0 if bad.
 */
 PUBLIC int HTFTPLoad
-ARGS4 (
+ARGS6 (
+  HTRequest *,			request,
+  void *,			param,
   CONST char *,			name,
   HTParentAnchor *,		anchor,
   HTFormat,			format_out,
@@ -901,14 +902,10 @@ ARGS4 (
 /* @@ */
 #endif
     if (isDirectory) {
-	return read_directory (anchor, name, format_out, sink);
+	return read_directory(request, NULL, anchor, name, format_out, sink);
       /* returns HT_LOADED or error */
     } else {
-	HTParseSocket(format, format_out,
-		anchor, data_soc, sink);
-		
-	HTInitInput(control->socket);
-	/* Reset buffering to control connection DD 921208 */
+	HTParseSocket(format, data_soc, request);
     
 	status = NETCLOSE(data_soc);
 	if (TRACE) fprintf(stderr, "FTP: Closing data socket %d\n", data_soc);

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTAccess:  Access manager  for libwww</TITLE>
-<NEXTID N="z3">
+<NEXTID N="z4">
 </HEAD>
 <BODY>
 <H1>Access Manager</H1>This module keeps a list of valid
@@ -23,8 +23,6 @@ NAME="z0" HREF="Overview.html">libwww library</A> .
 */
 #include "HTUtils.h"
 #include "tcp.h"
-#include "HTAnchor.h"
-#include "HTFormat.h"
 
 #ifdef SHORT_NAMES
 #define HTClientHost 		HTClHost
@@ -32,6 +30,16 @@ NAME="z0" HREF="Overview.html">libwww library</A> .
 #define HTOutputStream		HTOuStre
 #define HTOutputFormat		HTOuForm
 #endif
+
+</PRE>The following have to be defined
+in advance of the other include files
+because of circular references.
+<PRE>typedef struct _HTRequest HTRequest;
+
+#include "HTAnchor.h"
+#include <A
+NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
+
 
 /*	Return codes from load routines:
 **
@@ -77,17 +85,18 @@ is asking for user confusion.
 #define LAST_RESORT	"http://info.cern.ch/default.html"
 #endif
 
+
 </PRE>
 <H2><A
 NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
 of things about it need to be passed
 along.  These are all put into a
 HTRequest structure.
-<PRE>typedef struct _HTRequest {
+<PRE>struct _HTRequest {
 	HTList * 	conversions;	/* conversions allowed in this case */
 	char *		from;		/* On behalf of whom? */
 	HTStream*	output_stream;	/* For non-interactive, set this */ 
-	HTFormat 	output_format;	/* To convert on load, set this */
+	HTAtom * 	output_format;	/* To convert on load, set this */
 	BOOL		(*callback) PARAMS((
 				struct _HTRequest* request,
 				void *param));
@@ -95,32 +104,32 @@ HTRequest structure.
 
 	HTParentAnchor*	anchor;		/* Set by HTAccess */
 	/* To be added: authentication, etc */
-} HTRequest;
+};
 
 </PRE>The elements of the request structure
 are as follows.
 <DL>
 <DT>conversions
-<DD>NULL, or a list of conversions
+<DD> NULL, or a list of conversions
 which the format manager can do in
 order to fulfill the request.  This
 is set by the caller of HTAccess.
- Typically points to a list set up
+Typically points to a list set up
 an initialisation time for example
 by HTInit.
 <DT>from
-<DD>Email format adderss of person
+<DD> Email format adderss of person
 responible for request
 <DT>output_stream
-<DD>NULL or if a specific
+<DD> NULL or if a specific
 output stream is required, te stream.
 <DT>output_format
-<DD>The output format required,
+<DD> The output format required,
 or a generic format such as www/present
 (present to user). 
 <DT>anchor
-<DD>The anchor for teh object in
-question.  NOTE: Set by HTAcesss.
+<DD> The anchor for teh object
+in question.  NOTE: Set by HTAcesss.
 </DL>
 Just to make things easier especially
 for clients, here is a function to
@@ -371,5 +380,5 @@ use this.
 <PRE>extern HTParentAnchor * HTHomeAnchor NOPARAMS;
 
 #endif /* HTACCESS_H */
-</PRE>end of HTAccess</A></BODY>
+</PRE>end of HTAccess</BODY>
 </HTML>

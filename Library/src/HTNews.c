@@ -43,7 +43,7 @@ struct _HTStructured {
 #define NEWS_PROGRESS(foo) HTProgress(foo)
 
 
-#define NEXT_CHAR HTGetChararcter()
+#define NEXT_CHAR HTInputSocket_getChararcter(isoc)
 #define LINE_LENGTH 512			/* Maximum length of line of ARTICLE etc */
 #define GROUP_NAME_LENGTH	256	/* Maximum length of group name */
 
@@ -65,6 +65,8 @@ PRIVATE int	diagnostic;			/* level: 0=none 2=source */
 #define PUTS(s) (*targetClass.put_string)(target, s)
 #define START(e) (*targetClass.start_element)(target, e, 0, 0)
 #define END(e) (*targetClass.end_element)(target, e)
+
+PUBLIC HTInputSocket *isoc;		/* @@@ non-reentrant */
 
 PUBLIC CONST char * HTGetNewsHost NOARGS
 {
@@ -203,6 +205,7 @@ PRIVATE int response ARGS1(CONST char *,command)
 	    if (TRACE) fprintf(stderr,
 	        "HTNews: Unable to send command. Disconnecting.\n");
 	    NETCLOSE(s);
+	    HTInputSocket_free(isoc);
 	    s = -1;
 	    return status;
 	} /* if bad status */
@@ -221,6 +224,7 @@ PRIVATE int response ARGS1(CONST char *,command)
 	    if (TRACE) fprintf(stderr,
 	    	"HTNews: EOF on read, closing socket %d\n", s);
 	    NETCLOSE(s);	/* End of file, close socket */
+	    HTInputSocket_free(isoc);
 	    return s = -1;	/* End of file on response */
 	}
     } /* Loop over characters */
@@ -355,6 +359,7 @@ PRIVATE void abort_socket NOARGS
     if (TRACE) fprintf(stderr,
 	    "HTNews: EOF on read, closing socket %d\n", s);
     NETCLOSE(s);	/* End of file, close socket */
+    HTInputSocket_free(isoc);
     PUTS("Network Error: connection lost");
     PUTC('\n');
     s = -1;		/* End of file on response */
@@ -904,7 +909,8 @@ PUBLIC int HTLoadNews ARGS2(
 /*	Make a hypertext object with an anchor list.
 */       
     node_anchor = request->anchor;
-    target = HTML_new(request->anchor, request->output_format, request->output_stream);
+    target = HTML_new(request, NULL, WWW_HTML,
+    		request->output_format, request->output_stream);
     targetClass = *target->isa;	/* Copy routine entry points */
     
     	
@@ -929,10 +935,11 @@ PUBLIC int HTLoadNews ARGS2(
 	    } else {
 		if (TRACE) fprintf(stderr, "HTNews: Connected to news host %s.\n",
 				HTNewsHost);
-		HTInitInput(s);		/* set up buffering */
+		isoc = HTInputSocket_new(s);	/* set up buffering */
 		if ((response(NULL) / 100) !=2) {
 			char message[BIG];
 			NETCLOSE(s);
+			HTInputSocket_free(isoc);
 			s = -1;
 			sprintf(message, 
 		  "Can't read news info. News host %.20s responded: %.200s",
@@ -952,6 +959,7 @@ PUBLIC int HTLoadNews ARGS2(
 	    	NULL,NULL,NULL);
 */
 	    NETCLOSE(s);
+	    HTInputSocket_free(isoc);
 	    s = -1;
 /* return HT; -- no:the message might be "Timeout-disconnected" left over */
 	    continue;	/*	Try again */

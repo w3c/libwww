@@ -263,6 +263,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     tmpnam (fnam);
     if (suffix) strcat(fnam, suffix);
     me->filename = NULL;
+    me->request = request;	/* won't be freed */
     
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
@@ -412,6 +413,7 @@ PUBLIC HTStream* HTSaveAndCallBack ARGS5(
 	return NULL;
     }
     me->callback = request->callback;
+    me->request = request;	/* won't be freed */
     me->filename = fnam;   /* will be freed */
     return me;
 }

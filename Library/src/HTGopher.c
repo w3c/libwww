@@ -65,7 +65,7 @@ PRIVATE HTStructuredClass targetClass;		/* Its action routines */
 #define GOPHER_PROGRESS(foo) HTAlert(foo)
 
 
-#define NEXT_CHAR HTGetChararcter() 
+#define NEXT_CHAR HTInputSocket_getChararcter(isoc) 
 
 
 
@@ -146,7 +146,8 @@ PRIVATE void write_anchor ARGS2(CONST char *,text, CONST char *,addr)
 **
 */
 
-PRIVATE void parse_menu ARGS2 (
+PRIVATE void parse_menu ARGS3 (
+	int ,			s,
 	CONST char *,		arg,
 	HTParentAnchor *,	anAnchor)
 {
@@ -159,7 +160,8 @@ PRIVATE void parse_menu ARGS2 (
     char *port;
     char *p = line;
     CONST char *title;
-
+    HTInputSocket * isoc = HTINputSocket_new(s);
+    
 #define TAB 		'\t'
 #define HEX_ESCAPE 	'%'
 
@@ -266,8 +268,11 @@ PRIVATE void parse_menu ARGS2 (
     END(HTML_MENU);
     FREE_TARGET;
     
+    HTInputSocket_free(isoc);
     return;
 }
+
+
 /*	Parse a Gopher CSO document
  **	============================
  **
@@ -282,15 +287,17 @@ PRIVATE void parse_menu ARGS2 (
  **  secret@dxcern.cern.ch .
  */
 
-PRIVATE void parse_cso ARGS2 (
-			      CONST char *,	arg,
-			      HTParentAnchor *,anAnchor)
+PRIVATE void parse_cso ARGS3 (
+			int,	s,
+			CONST char *,		arg,
+			HTParentAnchor *,	anAnchor)
 {
     char ch;
     char line[BIG];
     char *p = line;
     char *second_colon, last_char='\0';
     CONST char *title;
+    HTInputSocket * isoc = HTInputSocket_new(s);
     
     title = HTAnchor_title(anAnchor);
     START(HTML_H1);
@@ -395,6 +402,7 @@ PRIVATE void parse_cso ARGS2 (
     END(HTML_PRE);
     PUTS("\n");
     FREE_TARGET;
+    HTInputSocket_free(isoc);
 
     return;  /* all done */
 } /* end of procedure */
@@ -492,7 +500,7 @@ PUBLIC int HTLoadGopher ARGS2(
     int status;				/* tcp return */
     char gtype;				/* Gopher Node type */
     char * selector;			/* Selector string */
- 
+    HTInputSocket * isoc;		/* Buffers for reading socket */
     struct sockaddr_in soc_address;	/* Binary network address */
     struct sockaddr_in* sin = &soc_address;
     
@@ -532,7 +540,8 @@ PUBLIC int HTLoadGopher ARGS2(
             HTAnchor_setIndex(request->anchor);	/* Search is allowed */
 	    query = strchr(selector, '?');	/* Look for search string */
 	    if (!query || !query[1]) {		/* No search required */
-		target = HTML_new(request->anchor, request->output_format, request->output_stream);
+		target = HTML_new(request, NULL, WWW_HTML,
+			request->output_format, request->output_stream);
 		targetClass = *target->isa;
 		display_index(arg, request->anchor);	/* Display "cover page" */
 		return HT_LOADED;		/* Local function only */
@@ -557,7 +566,8 @@ PUBLIC int HTLoadGopher ARGS2(
             HTAnchor_setIndex(request->anchor);        /* Search is allowed */
             query = strchr(selector, '?');      /* Look for search string */
             if (!query || !query[1]) {          /* No search required */
-		target = HTML_new(request->anchor, request->output_format, request->output_stream);
+		target = HTML_new(request, NULL, WWW_HTML,
+			request->output_format, request->output_stream);
 		targetClass = *target->isa;
                 display_cso(arg, request->anchor);     /* Display "cover page" */
                 return HT_LOADED;                 /* Local function only */
@@ -605,7 +615,6 @@ PUBLIC int HTLoadGopher ARGS2(
 	return HTInetStatus("connect");
     }
     
-    HTInitInput(s);		/* Set up input buffering */
     
     if (TRACE) fprintf(stderr, "HTGopher: Connected, writing command `%s' to socket %d\n", command, s);
     
@@ -630,25 +639,26 @@ PUBLIC int HTLoadGopher ARGS2(
     switch (gtype) {
     
     case GOPHER_HTML :
-    	HTParseSocket(WWW_HTML, request->output_format, request->anchor, s, request->output_stream);
+    	HTParseSocket(WWW_HTML,  s, request);
 	break;
 
     case GOPHER_GIF:
     case GOPHER_IMAGE:
-    	HTParseSocket(HTAtom_for("image/gif"), 
-			   request->output_format, request->anchor, s, request->output_stream);
+    	HTParseSocket(HTAtom_for("image/gif"), s, request);
   	break;
     case GOPHER_MENU :
     case GOPHER_INDEX :
-	target = HTML_new(request->anchor, request->output_format, request->output_stream);
+	target = HTML_new(request, NULL, WWW_HTML,
+			request->output_format, request->output_stream);
 	targetClass = *target->isa;
-        parse_menu(arg, request->anchor);
+        parse_menu(s,arg, request->anchor);
 	break;
 	 
     case GOPHER_CSO:
-	target = HTML_new(request->anchor, request->output_format, request->output_stream);
+	target = HTML_new(request, NULL, WWW_HTML,
+			request->output_format, request->output_stream);
 	targetClass = *target->isa;
-      	parse_cso(arg, request->anchor);
+      	parse_cso(s, arg, request->anchor);
 	break;
    	
       case GOPHER_MACBINHEX:
@@ -656,16 +666,16 @@ PUBLIC int HTLoadGopher ARGS2(
       case GOPHER_UUENCODED:
       case GOPHER_BINARY:
         /* Specifying WWW_UNKNOWN forces dump to local disk. */
-        HTParseSocket (WWW_UNKNOWN, request->output_format, request->anchor, s, request->output_stream);
+        HTParseSocket (WWW_UNKNOWN,  s, request);
 	break;
 
     case GOPHER_TEXT :
     default:			/* @@ parse as plain text */
-     	HTParseSocket(WWW_PLAINTEXT, request->output_format, request->anchor, s, request->output_stream);
+     	HTParseSocket(WWW_PLAINTEXT, s, request);
 	break;
 
       case GOPHER_SOUND :
-    	HTParseSocket(WWW_AUDIO, request->output_format, request->anchor, s, request->output_stream);
+    	HTParseSocket(WWW_AUDIO,  s, request);
 	break;
 	
     } /* switch(gtype) */

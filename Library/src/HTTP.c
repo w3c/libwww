@@ -530,9 +530,7 @@ retry:
     
 copy:
     
-	target = HTStreamStack(format_in,
-			    request->output_format,
-			    request->output_stream , request->anchor);
+	target = HTStreamStack(format_in, request);
     
 	if (!target) {
 	    char buffer[1024];	/* @@@@@@@@ */

@@ -71,6 +71,7 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     if (!me) outofmem(__FILE__, "HTRequest_new()");
     
     me->output_format = WWW_PRESENT;	/* default it to present to user */
+    me->conversions = HTList_new();	/* No conversions registerd yet */
     return me;
 }
 

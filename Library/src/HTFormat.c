@@ -146,19 +146,19 @@ PUBLIC void HTSetConversion ARGS7(
 
 
 
-/*	File buffering
-**	--------------
+/*			Socket Input Buffering
+**			----------------------
+**
+**	This code is used because one cannot in general open a
+**	file descriptor for a socket.
 **
 **	The input file is read using the macro which can read from
-**	a socket or a file.
+**	a socket or a file, but this should not be used for files
+**	as fopen() etc is more portable of course.
+**
 **	The input buffer size, if large will give greater efficiency and
 **	release the server faster, and if small will save space on PCs etc.
 */
-#define INPUT_BUFFER_SIZE 4096		/* Tradeoff */
-PRIVATE char input_buffer[INPUT_BUFFER_SIZE];
-PRIVATE char * input_pointer;
-PRIVATE char * input_limit;
-PRIVATE int input_file_number;
 
 
 /*	Set up the buffering
@@ -167,50 +167,61 @@ PRIVATE int input_file_number;
 **	many parsers, and on PCs and Macs we should not duplicate
 **	the static buffer area.
 */
-PUBLIC void HTInitInput ARGS1 (int,file_number)
+PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (int,file_number)
 {
-    input_file_number = file_number;
-    input_pointer = input_limit = input_buffer;
+    HTInputSocket *isoc = (HTInputSocket *)malloc(sizeof(*isoc));
+    if (!isoc) outofmem(__FILE__, "HTInputSocket_new");
+    isoc->input_file_number = file_number;
+    isoc->input_pointer = isoc->input_limit = isoc->input_buffer;
+    return isoc;
 }
 
 
-PUBLIC char HTGetChararcter NOARGS
+PUBLIC char HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 {
     char ch;
     do {
-	if (input_pointer >= input_limit) {
+	if (isoc-> input_pointer >= isoc->input_limit) {
 	    int status = NETREAD(
-		    input_file_number, input_buffer, INPUT_BUFFER_SIZE);
+		   isoc->input_file_number,
+		   isoc->input_buffer, INPUT_BUFFER_SIZE);
 	    if (status <= 0) {
 		if (status == 0) return (char)EOF;
 		if (TRACE) fprintf(stderr,
 		    "HTFormat: File read error %d\n", status);
 		return (char)EOF; /* -1 is returned by UCX at end of HTTP link */
 	    }
-	    input_pointer = input_buffer;
-	    input_limit = input_buffer + status;
+	    isoc-> input_pointer = isoc->input_buffer;
+	    isoc->input_limit = isoc->input_buffer + status;
 	}
-	ch = *input_pointer++;
+	ch = *isoc-> input_pointer++;
     } while (ch == (char) 13); /* Ignore ASCII carriage return */
     
     return FROMASCII(ch);
 }
 
+PUBLIC void HTInputSocket_free(HTInputSocket * me)
+{
+    if (me) free(me);
+}
+
+
 /*	Stream the data to an ouput file as binary
 */
-PUBLIC int HTOutputBinary ARGS2( int, 		input,
-				  FILE *, 	output)
+PUBLIC int HTOutputBinary ARGS3( HTInputSocket *, isoc,
+				int, 		input,
+				FILE *, 	output)
 {
     do {
 	    int status = NETREAD(
-		    input, input_buffer, INPUT_BUFFER_SIZE);
+		    input, isoc->input_buffer, INPUT_BUFFER_SIZE);
 	    if (status <= 0) {
 		if (status == 0) return 0;
 		if (TRACE) fprintf(stderr,
 		    "HTFormat: File read error %d\n", status);
 		return 2;			/* Error */
 	    }
-	    fwrite(input_buffer, sizeof(char), status, output);
+	    fwrite(isoc->input_buffer, sizeof(char), status, output);
     } while (YES);
 }
 
@@ -353,11 +364,13 @@ PUBLIC void HTCopy ARGS2(
 	HTStream*,		sink)
 {
     HTStreamClass targetClass;    
+    HTInputSocket * isoc;
     
 /*	Push the data down the stream
 **
 */
     targetClass = *(sink->isa);	/* Copy pointers to procedures */
+    isoc = HTInputSocket_new(file_number);
     
     /*	Push binary from socket down sink
     **
@@ -365,7 +378,7 @@ PUBLIC void HTCopy ARGS2(
     */
     for(;;) {
 	int status = NETREAD(
-		file_number, input_buffer, INPUT_BUFFER_SIZE);
+		file_number, isoc->input_buffer, INPUT_BUFFER_SIZE);
 	if (status <= 0) {
 	    if (status == 0) break;
 	    if (TRACE) fprintf(stderr,
@@ -376,15 +389,15 @@ PUBLIC void HTCopy ARGS2(
 #ifdef NOT_ASCII
 	{
 	    char * p;
-	    for(p = input_buffer; p < input_buffer+status; p++) {
+	    for(p = isoc->input_buffer; p < isoc->input_buffer+status; p++) {
 		*p = FROMASCII(*p);
 	    }
 	}
 #endif
 
-	(*targetClass.put_block)(sink, input_buffer, status);
+	(*targetClass.put_block)(sink, isoc->input_buffer, status);
     } /* next bufferload */
-	
+    HTInputSocket_free(isoc);
 }
 
 
@@ -402,6 +415,7 @@ PUBLIC void HTFileCopy ARGS2(
 	HTStream*,		sink)
 {
     HTStreamClass targetClass;    
+    char input_buffer[INPUT_BUFFER_SIZE];
     
 /*	Push the data down the stream
 **
@@ -420,8 +434,7 @@ PUBLIC void HTFileCopy ARGS2(
 	    break;
 	}
 	(*targetClass.put_block)(sink, input_buffer, status);
-    } /* next bufferload */
-	
+    } /* next bufferload */	
 }
 
 
@@ -442,7 +455,8 @@ PUBLIC void HTCopyNoCR ARGS2(
 	int,			file_number,
 	HTStream*,		sink)
 {
-    HTStreamClass targetClass;    
+    HTStreamClass targetClass;
+    HTInputSocket * isoc;   
     
 /*	Push the data, ignoring CRLF, down the stream
 **
@@ -454,13 +468,14 @@ PUBLIC void HTCopyNoCR ARGS2(
 **	@@@@@ To push strings could be faster? (especially is we
 **	cheat and don't ignore CR! :-}
 */  
-    HTInitInput(file_number);
+    isoc = HTInputSocket_new(file_number);
     for(;;) {
 	char character;
-	character = HTGetChararcter();
+	character = HTInputSocket_getCharacter(isoc);
 	if (character == (char)EOF) break;
 	(*targetClass.put_character)(sink, character);           
     }
+    HTInputSocket_free(isoc);
 }
 
 

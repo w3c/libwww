@@ -384,7 +384,7 @@ PUBLIC HTFormat HTFileFormat ARGS2 (
 #ifndef NO_INIT    
     if (!HTSuffixes) HTFileInit();
 #endif
-    *pencoding = NULL;
+    if (pencoding) *pencoding = NULL;
     n = HTList_count(HTSuffixes);
     for(i=0; i<n; i++) {
         int ls;
@@ -392,7 +392,7 @@ PUBLIC HTFormat HTFileFormat ARGS2 (
 	ls = strlen(suff->suffix);
 	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
 	    int j;
-	    *pencoding = suff->encoding;
+	    if (pencoding) *pencoding = suff->encoding;
 	    if (suff->rep) return suff->rep;		/* OK -- found */
 	    
 	    for(j=0; j<n; j++) {  /* Got encoding, need representation */
@@ -415,7 +415,7 @@ PUBLIC HTFormat HTFileFormat ARGS2 (
 	 : &no_suffix;
 	 
     /* set default encoding unless found with suffix already */
-    if (!*pencoding) *pencoding = suff->encoding ? suff->encoding
+    if (pencoding && !*pencoding) *pencoding = suff->encoding ? suff->encoding
 				    : HTAtom_for("binary");
     return suff->rep ? suff->rep : WWW_BINARY;
 }
@@ -752,7 +752,8 @@ forget_multi:
 		if (dirbuf->d_namlen > baselen &&      /* Match? */
 		    !strncmp(dirbuf->d_name, base, baselen)) {	
 		    HTFormat rep = HTFileFormat(dirbuf->d_name, &encoding);
-		    float value = HTStackValue(rep, request->output_format,
+		    float value = HTStackValue(request->conversions,
+		    				rep, request->output_format,
 		    				HTFileValue(dirbuf->d_name),
 						0.0  /* @@@@@@ */);
 		    if (value != NO_VALUE_FOUND) {
@@ -860,7 +861,8 @@ forget_multi:
 		logical = HTAnchor_address((HTAnchor*)request->anchor);
 		tail = strrchr(logical, '/') +1;	/* last part or "" */
 		
-		target = HTML_new(request->anchor, request->output_format, request->output_stream);
+		target = HTML_new(request, NULL, WWW_HTML, 
+			request->output_format, request->output_stream);
 		targetClass = *target->isa;	/* Copy routine entry points */
 		    
   		{ int i;
@@ -1002,7 +1004,7 @@ open_file:
 		    }
 		}
 		free(localname);
-		HTParseFile(format, request->output_format, request->anchor, fp, request->output_stream);
+		HTParseFile(format, fp, request);
 		fclose(fp);
 		return HT_LOADED;
 	    }  /* If succesfull open */

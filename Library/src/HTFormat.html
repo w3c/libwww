@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTFormat: The format manager in the WWW Library</TITLE>
-<NEXTID N="z13">
+<NEXTID N="z16">
 </HEAD>
 <BODY>
 <H1>Manage different document formats</H1>Here we describe the functions of
@@ -37,15 +37,15 @@ NAME="z7" HREF="HTStream.html">"HTStream.h"</A>
 <H2>The HTFormat type</H2>We use the HTAtom object for holding
 representations. This allows faster
 manipulation (comparison and copying)
-that if we stayed with strings.
+that if we stayed with strings.<P>
+The following have to be defined
+in advance of the other include files
+because of circular references.
 <PRE>typedef HTAtom * HTFormat;
 
-</PRE>Now we can pick up the HTAccess definitions
-which we need later on but which
-use HTFormat.
-<PRE>#include "HTAccess.h"   /* Required for HTRequest definition */
-
-			
+#include <A
+NAME="z14" HREF="HTAccess.html">"HTAccess.h"</A>   /* Required for HTRequest definition */
+		
 </PRE>These macros (which used to be constants)
 define some basic internally referenced
 representations. 
@@ -295,19 +295,34 @@ extern void HTCopyNoCR PARAMS((
 
 
 </PRE>
-<H2>Clear input buffer and set file number</H2>This routine and the one below provide
-simple character input from sockets.
-(They are left over from the older
-architecure and may not be used very
-much.)  The existence of a common
-routine and buffer saves memory space
-in small implementations.
-<PRE>extern void HTInitInput PARAMS((int file_number));
+<H2>HT<A
+NAME="z15">Input Socket: Buffering for network
+in</A></H2>
+<H2></H2>This routines provide simple character
+input from sockets. These are used
+for parsing input in arbitrary IP
+protocols (Gopher, NNTP, FTP).
+<PRE>#define INPUT_BUFFER_SIZE 4096		/* Tradeoff spped vs memory*/
+typedef struct _socket_buffer {
+	 char input_buffer[INPUT_BUFFER_SIZE];
+	char * input_pointer;
+	char * input_limit;
+	int input_file_number;
+} HTInputSocket;
+
 
 </PRE>
-<H2>Get next character from buffer</H2>
-<PRE>extern char HTGetChararcter NOPARAMS;
+<H3>Create input buffer and set file
+number</H3>
+<PRE>extern HTInputSocket* HTInputSocket_new PARAMS((int file_number));
 
+</PRE>
+<H3>Get next character from buffer</H3>
+<PRE>extern char HTInputSocket_getCharacter PARAMS((HTInputSocket* isoc));
+
+</PRE>
+<H3>Free input socket buffer</H3>
+<PRE>extern void HTInputSocket_free PARAMS((HTInputSocket * isoc));
 
 </PRE>
 <H2>HTParseSocket: Parse a socket given
