@@ -37,6 +37,11 @@ PUBLIC void HTEvent_setUnregisterCallback(HTEvent_unregisterCallback * unregiste
     UnregisterCBF = unregisterCBF;
 }
 
+PUBLIC BOOL HTEvent_isCallbacksRegistered (void)
+{
+    return (RegisterCBF && UnregisterCBF);
+}
+
 PUBLIC int HTEvent_unregister (SOCKET s, HTEventType type)
 {
     if (!UnregisterCBF) {
