@@ -188,7 +188,8 @@ PRIVATE Context * Context_new (LineMode *lm, HTRequest *request, LMState state)
     me->state = state;
     me->request = request;
     me->lm = lm;
-    HTRequest_setContext(request, (void *) me);
+    HTRequest_setContext(request, (void *) me); 
+    HTList_addObject(lm->active, (void *) me);
     return me;
 }
 
@@ -213,7 +214,6 @@ PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
     if (Interactive) HTRequest_setConversion(newreq, lm->presenters, NO);
     if (lm->flags & LM_PREEMTIVE) HTRequest_setPreemptive(newreq, YES);
     HTRequest_addRqHd(newreq, HT_C_HOST);
-    HTList_addObject(lm->active, (void *) me);
     return newreq;
 }
 
@@ -295,7 +295,6 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 	HTHistory_delete(lm->history);
 	HT_FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
-	HTRequest_delete(lm->console);
 #ifndef WWW_WIN_WINDOW
 	if (OUTPUT && OUTPUT != STDOUT) fclose(OUTPUT);
 #endif
@@ -1421,7 +1420,7 @@ int main (int argc, char ** argv)
     int		arg;			       		  /* Index into argv */
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
-    HTRequest	request = NULL;
+    HTRequest *	request = NULL;
     LineMode *	lm;
 
     /* Starts Mac GUSI socket library */
