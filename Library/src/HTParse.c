@@ -257,7 +257,8 @@ void HTSimplify(filename)
 {
     char * p;
     char * q;
-    for(p=filename+2; *p; p++) {
+    if (filename[0] && filename[1])	/* Bug fix 12 Mar 93 TBL */
+     for(p=filename+2; *p; p++) {
         if (*p=='/') {
 	    if ((p[1]=='.') && (p[2]=='.') && (p[3]=='/' || !p[3] )) {
 		for (q=p-1; (q>filename) && (*q!='/'); q--); /* prev slash */
