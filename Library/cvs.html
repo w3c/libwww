@@ -10,13 +10,16 @@
   Getting Libwww from the CVS Repository
 </H1>
 <P>
-Using <A HREF="http://www.cyclic.com/cvs/info.html">CVS</A> allows you to
-follow the development of libwww closely and to contribute much easier. The
-following requires that you are familiar with CVS - if not then look at
-<A HREF="http://www.cyclic.com/cvs/info.html">Cyclic's pages on CVS</A> or
-the <A HREF="http://www.loria.fr/~molli/cvs-index.html">excellent
-information</A> provided by
-<A HREF="http://www.loria.fr/~molli/">Pascal.Molli</A>.
+Using <A HREF="http://www.cyclic.com/cvs/info.html">CVS</A> allows
+<B>YOU</B> to follow the development of <A HREF="./">libwww</A> and
+its <A HREF="User/Applications.html">sample applications</A> closely
+and to contribute much easier with patches and new features. The
+following requires that you are familiar with CVS - if not then look
+at <A HREF="http://www.cyclic.com/cvs/info.html">Cyclic's pages on
+CVS</A> or the <A
+HREF="http://www.loria.fr/~molli/cvs-index.html">excellent
+information</A> provided by <A
+HREF="http://www.loria.fr/~molli/">Pascal.Molli</A>.
 <H2>
   Libwww Releases
 </H2>
@@ -25,11 +28,13 @@ First of all, using CVS allows you to use the very latest version of libwww
 - as soon as a fix or a new feature is commit'ed to the CVS repository then
 you can update your working version and you will have it right away.
 <P>
-The purpose of "releases" is to say that now we believe that the code is
-stable with a well defined set of features. Until now, we have been giving
-out distribution files every time we announced a release. This will not change,
-but you can use the CVS repository in exactly the same way - often with much
-less overhead than dealing with a distribution package.
+The purpose of "releases" is to say that now we believe that the code
+is stable with a well defined set of features. Until now, we have been
+giving out distribution files every time we announced a release. This
+will not change, but you can <A
+HREF="http://dev.w3.org/cgi-bin/cvsweb/">use the CVS repository</A> in
+exactly the same way - often with much less overhead than dealing with
+a distribution package.
 <P>
 Every release is marked in the CVS repository using tags, so that it is possible
 to retrieve a complete release using the CVS <CODE>-r </CODE>option (note
@@ -42,13 +47,14 @@ the code!
   Anonymous CVS Checkout
 </H2>
 <P>
-This is read-only access which means that you can check out the code but
-not commit any changes. However, it allows you to make up-to-date patches
-which are much easier for the libwww maintainers to integrate. The instructions
-should work for both <A HREF="http://www.cyclic.com/cvs/unix.html">Unix</A>
-and <A HREF="http://www.cyclic.com/cvs/windows.html">Windows</A>. Before
-you can check out the sources, you need to be running CVS 1.9 or later, and
-login by running the following command:
+This is read-only access which means that you can check out the code
+but not commit any changes. It is available to everybody, and it
+allows you to make up-to-date patches which are much easier for the
+libwww maintainers to integrate. The instructions should work for both
+<A HREF="http://www.cyclic.com/cvs/unix.html">Unix</A> and <A
+HREF="http://www.cyclic.com/cvs/windows.html">Windows</A>. Before you
+can check out the sources, you need to be running CVS 1.9 or later,
+and login by running the following command:
 <PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public login</B>
 </PRE>
 <P>
@@ -69,10 +75,13 @@ for the current set of release tags.
   SSH Based CVS Checkout
 </H2>
 <P>
-This is read/write access to the CVS repository which means that you must
-have SSH access to the repository. You setup CVS to using SSH as remote shell
-by setting the <CODE>CVS_RSH</CODE> env variable. Using bash, it looks like
-this:
+Write access is currently reserved to the <A
+HREF="/People/W3Cpeople.html">W3T team</A>. Read/Write access to the
+CVS repository is done through <A
+HREF="http://www.cs.hut.fi/ssh/">SSH</A>. However, it means that you
+<B>MUST</B> have SSH access to the repository. You setup CVS to use
+SSH as remote shell by setting the <CODE>CVS_RSH</CODE> env
+variable. Using bash or similar, it looks like this:
 <PRE>% <B>export CVS_RSH=/usr/local/bin/ssh</B>
 </PRE>
 <P>
@@ -81,7 +90,8 @@ just go ahead checking out libwww like this
 <PRE>% <B>cvs -d dev.w3.org:/sources/public checkout libwww</B>
 </PRE>
 <P>
-Again, if you want a specific revision then use something like this
+and you will be prompted for your SSH credentials. Again, if you want
+a specific revision then use something like this
 <PRE>% <B>cvs -d dev.w3.org:/sources/public -r Release-5-1m checkout libwww</B>
 </PRE>
 <P>
@@ -89,49 +99,67 @@ The <A HREF="http://www.apache.org">Apache Group</A> has some
 <A HREF="http://dev.apache.org/nt-cvs-ssh.txt">special notes on how to use
 SSH for Windows</A>.
 <H2>
-  Getting Bootstrapped
+  <A NAME="Boot">Getting Bootstrapped</A>
 </H2>
 <P>
-When you get libwww from CVS there are some files (header files, make files,
-and Windows def filed) that have to be generated before you can compile it.
-You can either do
+When you get libwww from CVS there are some files (header files, make
+files, and Windows def files) that have to be generated before you can
+compile it.  Start <A HREF="#Easy">here</A> and work your way down...
 <H3>
-  <A NAME="Easy">Easy Way</A>
+  <A NAME="Easy">The Easy Start</A>
 </H3>
 <P>
-If you really only want to generate the header files and the Windows def
-files then you can run <A HREF="../config/winConfigure.pl">this Perl script</A>
-provided by <A HREF="/People/Eric/">Eric Prud'hommeaux</A> - it of course
-requires that you have <A HREF="http://www.perl.org">Perl</A> on your machine!
-<A HREF="../INSTALL.html#Windows">On Windows this should be enough</A> if
-you are using the <A HREF="User/Platform/WinDLL.html#Make">MSVC makefiles</A>.
-On Unix, you <A HREF="#More">need some more</A>...
+If you really only want to generate the header files (<B>for both Unix
+and Windows</B>) and the DLL def files for Windows then you can run <A
+HREF="../config/winConfigure.pl">this Perl script</A> provided by <A
+HREF="/People/Eric/">Eric Prud'hommeaux</A>, which you can find in the
+<CODE>config</CODE> directory after you have checked out the source
+from CVS. Run it as this
+<PRE>% <B>cd libwww</B>
+% <B>perl config/winConfigure.pl</B>
+</PRE>
+<P>
+The script also runs on Unix - never mind that it gives a few warnings
+- they are all OK. Running it of course requires that you have <A
+HREF="http://www.perl.org">Perl</A> on your machine!
+<P>
+If you are <A HREF=../INSTALL.html#Windows">compiling for Windows</A> 
+this should be enough if you are using the
+<A HREF="User/Platform/WinDLL.html#Make">MSVC makefiles</A>. On Unix, you
+<A HREF="#More">need some more</A>...
 <H3>
-  <A NAME="More">More Complex Way</A>
+  <A NAME="More">Adding a bit of Complexity</A>
 </H3>
 <P>
-On Unix, these files are generated by software that you MUST have on your
-platform - luckily they are all free! If you are The list is
+This is mostly for Unix people. First, check that you have the
+following programs with the correct version number:
+<P>
 <DL>
   <DT>
-    <A HREF="http://www.gnu.org/software/automake/index.html">GNU automake</A>
+    <B><A HREF="http://www.gnu.org/software/automake/index.html">GNU
+    automake</A> (at least version 1.3)</B>
   <DD>
-    Automake is a tool for automatically generating Makefile.in's which are used
-    by autoconf
+    Automake is a tool for automatically generating Makefile.in's
+    which are used by autoconf
   <DT>
-    <A HREF="http://www.gnu.org/order/ftp.html">GNU autoconf</A>
+    <B><A HREF="http://www.gnu.org/order/ftp.html">GNU autoconf</A>
+    (at least version 2.12)</B>
   <DD>
-    A tool for automatically generating Makefile's which are used by make
+    A tool for automatically generating Makefile's which are used by
+    make
   <DT>
-    <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU libtool</A>
+    <B><A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
+    libtool</A> (at least version 1.1)</B>
   <DD>
     A tool for automatically handling generation of shared libraries
   <DT>
-    <A HREF="../LineMode/">W3C www</A>
+    <B><A HREF="../LineMode/">W3C www</A></B>
   <DD>
-    The Line Mode Browser. This is used to generate the header files and so if
-    you have already done that <A HREF="#Easy">using the easy way</A> then you
-    don't need it the first time in order to get bootrstrapped.
+    The Line Mode Browser is used to generate the header files (from
+    <CODE>.html</CODE> to <CODE>.h</CODE>). If you have already done
+    this <A HREF="#Easy">the easy way</A> then you don't need it in
+    order to get bootstrapped and can just install the version that
+    you compile here.
 </DL>
 <P>
 I also <B>strongly</B> recommend that you are using
@@ -139,17 +167,34 @@ I also <B>strongly</B> recommend that you are using
 <A HREF="http://www.gnu.org/software/gcc/gcc.html">GCC</A>. Many OS specific
 make's don't have the libwww make files.
 <P>
-After having checked out the libwww code, you should now run the following
-two commands
-<PRE>% <B>automake</B>
+After having checked that you have the programs you need, you are now
+ready to execute the commands
+<PRE>% <B>aclocal</B>
+% <B>automake</B>
 % <B>autoconf</B>
 </PRE>
+
+Note the following:
+<UL>
+<LI>
+  You will see some warnings about <CODE>AC_TRY_RUN</CODE> - <A
+HREF="http://subzero.campus.luth.se/FreeDocs/autoconf-2.12/autoconf_44.html#IDX36">that's
+OK!</A>
+<LI>
+  Libwww uses <A
+HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
+Libtool</A> in order to build shared libraries on a variety of
+systems. While this is very nice for making usable binaries, it can be
+a pain when trying to debug a program. For that reason, compilation of
+shared libraries can be turned off by specifying the
+<CODE>--disable-shared</CODE> option to <CODE>configure</CODE>.
+</UL>
 <H2>
   Compiling libwww
 </H2>
 <P>
 Now you have a set of files equivalent to what you normally get in a distribution
-file. You are now ready to <A HREF="../INSTALL.html">compile the software</A>
+file. You are now ready to <A HREF="../INSTALL.html#Unix">compile the software</A>
 <P>
   <HR>
 <ADDRESS>
