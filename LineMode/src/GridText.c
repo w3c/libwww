@@ -6,6 +6,11 @@
 */
 #include "HText.h"
 
+/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC
+#include "a_stdio.h"
+#endif
+
 #include <assert.h>
 #include <ctype.h>
 #include "HTUtils.h"
@@ -286,7 +291,16 @@ PRIVATE void display_line ARGS2(HText *,text, HTLine *,line)
       }
 #else
    if (!text->target)
+   {
+#ifdef CYRILLIC
+       /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+       a_print(SPACES(line->offset),H,stdout); 
+       a_print(line->data,H,stdout);
+       fputc('\n',stdout);
+#else
        printf("%s%s\n", SPACES(line->offset), line->data);
+#endif
+   }
    else {
        PUTS(SPACES(line->offset));
        PUTS(line->data);

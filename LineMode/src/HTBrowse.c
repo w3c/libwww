@@ -92,6 +92,11 @@
 
 #include "GridText.h"	/* Hypertext definition */
 
+/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC		
+#include "a_stdio.h"
+#endif
+
 #include "HTFormat.h"
 #include "HTTCP.h"	/* TCP/IP utilities */
 #include "HTAnchor.h"   /* Anchor class */
@@ -112,6 +117,11 @@
 #endif
 
 extern HTStyleSheet * styleSheet;
+
+/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC
+struct ARc arc;
+#endif
 
 /* Define Statements */
 /* ================= */
@@ -333,6 +343,11 @@ int main
     int i;
     argc=ccommand(&argv);
 #endif
+    
+/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC
+    arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
+#endif
 
     request =  HTRequest_new();
     /* request->conversions = HTList_new(); Done by HTRequest_new() Henrik 18/02-94 */
@@ -426,6 +441,7 @@ int main
 		argument_found = YES;	    /* Don't try to find other pages */
 
 	    /* from -- Initial represntation (only with filter) */
+
 	    } else if (!strcmp(argv[arg], "-from")) {
 		input_format = (arg+1 >= argc || *argv[arg+1] == '-') ?
 		    WWW_HTML : HTAtom_for(argv[++arg]);
@@ -435,7 +451,13 @@ int main
 	    } else if (!strcmp(argv[arg], "-v")) {
 		WWW_TraceFlag = 1;
 #endif
-	    
+
+/* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
+#ifdef CYRILLIC
+	    } else if (!strcmp(argv[arg], "-koi2alt")) {
+	        doia2k(); printf("Ahak2a!");
+#endif
+
 	    /* Page size */
 	    } else if (!strncmp(argv[arg], "-p", 2)) {
 		if (*(argv[arg]+2)) {

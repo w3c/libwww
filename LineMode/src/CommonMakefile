@@ -58,7 +58,11 @@ BIN = $(WWW)/LineMode/$(WWW_MACH)
 OE = $(OBJ)/.created
 
 WWWLIB = -L$(USELIBDIR) -lwww
+
 OBJS = $(OBJ)/HTBrowse.o $(OBJ)/GridText.o $(OBJ)/DefaultStyles.o
+
+OBJS-CYR = $(OBJ)/HTBrowse-cyr.o $(OBJ)/GridText-cyr.o $(OBJ)/DefaultStyles-cyr.o $(OBJ)/a_stdio.o 
+
 # Final main product
 PROD = www
 
@@ -67,9 +71,14 @@ SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)GridStyle.c	$(LM)GridStyle.html \
 	$(LM)GridStyle.h \
 	$(LM)HTFont.h 		$(LM)Version.make\
-	$(LM)DefaultStyles.c	$(LM)CommonMakefile
+	$(LM)DefaultStyles.c	$(LM)CommonMakefile\
+ 	$(LM)a_stdio.g		$(LM)a_stdio.h
 
-INCLUDES = $(LM)GridStyle.h
+# $(LM)a_stdio.g $(LM)a_stdio.h were added to support -DCYRILLIC
+
+INCLUDES = $(LM)GridStyle.h $(LM)a_stdio.h
+
+# $(LM)a_stdio.h was added to support -DCYRILLIC
 
 SPECIFIC =  \
 	$(LM)apollo_m68k/Makefile \
@@ -122,6 +131,13 @@ purify : $(OBJS) $(USELIBDIR)/libwww.a
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
+
+cyrillic : $(OBJS-CYR) $(USELIBDIR)/libwww.a
+	$(CC) -o $(PROD)_$(VL) $(OBJS) $(OBJ)/a_stdio.o $(LFLAGS) $(WWWLIB) \
+	$(WAISLIB) $(MATHLIB)
+	-rm $(BIN)/$(PROD)
+	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
+	
 
 
 $(USELIBDIR)/libwww.a :
@@ -230,6 +246,22 @@ $(OBJ)/GridText.o : $(OE) $(LM)GridText.c $(LM)GridText.h $(LM)GridStyle.h\
 
 $(OBJ)/DefaultStyles.o : $(OE) $(LM)DefaultStyles.c $(CMN)HTStyle.h
 	$(CC) -c -o $@ $(CFLAGS2) $(LM)DefaultStyles.c  
+
+# the cyrillic version 
+
+$(OBJ)/HTBrowse-cyr.o : $(OE) $(LM)HTBrowse.c $(LM)GridText.h $(LM)Version.make \
+		$(CMN)HTUtils.h $(CMN)HTAccess.h
+	$(CC) -c -o $@ $(CFLAGS2) -DCYRILLIC -DVL=\"$(VL)\" $(LM)HTBrowse.c  
+
+$(OBJ)/GridText-cyr.o : $(OE) $(LM)GridText.c $(LM)GridText.h $(LM)GridStyle.h\
+	 $(CMN)HTAnchor.h $(CMN)HTStyle.h
+	$(CC) -c -o $@ $(CFLAGS2) -DCYRILLIC $(LM)GridText.c
+
+$(OBJ)/DefaultStyles-cyr.o : $(OE) $(LM)DefaultStyles.c $(CMN)HTStyle.h
+	$(CC) -c -o $@ $(CFLAGS2) -DCYRILLIC $(LM)DefaultStyles.c  
+
+$(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
+	$(CC) -c -o $@ $(CFLAGS2) -xc $(LM)a_stdio.g
 
 #_________________________________________________________________
 # For W3 Administrative use only:
