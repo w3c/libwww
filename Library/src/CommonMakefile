@@ -128,8 +128,14 @@ all : inc $(LOB)/libwww.a
 #	Library
 #
 #  On SGI, ranlib is unnecessary and does not exist so we ignore errors
-# for that step
+# for that step.
+#  On next 3.1 and following, the archive must be deleted before being
+#	build, because has ranlib turned it from an archive of fat files
+#	into a fat file of archives. Next time round, ar(1) is 
+#	confused as the .a is now a fat file, not an archive.
+#
 $(LOB)/libwww.a : $(COMMON)
+	- rm $(LOB)/libwww.a
 	ar r $(LOB)/libwww.a $(COMMON)
 	-ranlib $(LOB)/libwww.a
 
