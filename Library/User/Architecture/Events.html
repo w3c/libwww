@@ -1,0 +1,154 @@
+<HTML>
+<HEAD>
+<TITLE>Architecture - Events</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x.gif" ALT="Architecture"></A>
+
+<H1>Internal and External Events</H1>
+
+This section describes what happens when an event arrives to the
+Library - either from the application or from the network. The Library
+provides three different ways of handling events, and it is necessary
+to be aware of these modes in the design phase of an application as
+they have an impact on the architecture of the application. The
+Library can be used in multiple modes simultaneously and an
+application can change mode as a function of the action requested by
+the user. The three different modes are described in the
+following:</P>
+
+<DL>
+
+<DT><B>Base Mode</B>
+
+<DD>In this mode all requests are handled in a preemtive way that does
+not allow for any events to pause the execution of a thread or kill
+it. This mode is in other words strictly single threaded and the major
+difference between this mode and the next two modes is that all
+sockets are made blocking instead of non-blocking. This mode can
+either be used in forking applications or in threaded applications
+using an external thread model where non-blocking I/O is not a
+requirement.
+
+<DT><B>Active Mode</B>
+
+<DD>In this mode the event loop is placed in the Library in the <A
+HREF="../../Implementation/HTEvntrg.html" >HTEvntrg module</A>. The mode
+can either be used by character based applications with a limited
+capability of user interaction, or it can be used by more advanced GUI
+clients where the window widget allows redirection of user events to
+one or more sockets that can be recognized by a select() call. It
+should be noted, that even though all sockets are non-blocking, the
+select() function is blocking if no sockets are pending so if no
+actions are pending, the select call will be put to sleep. <P>
+
+The <A HREF="../../Implementation/HTNet.html">HTNet module</A>
+contains a thread scheduler which gives highest priority to the events
+on the redirected user events which allows a smooth operation on GUI
+applications with a fast response time. This mode has a major impact
+on the design of the application as much of the application code may
+find itself within call back functions. As an example, this mode is
+currently used by the <A HREF="../../../Arena/">Arena client</A> and
+the <A HREF="../../../LineMode/" >Line Mode Browser</A>.
+
+<DT><B>Passive mode</B>
+
+<DD>This mode is intended for applications where user events can not
+be redirected to a socket or there is already an event loop that can
+not work together with the event loop in the Library. The major
+difference from the <B>Active mode</B> is that instead of using the
+event loop defined in the <A
+HREF="../../Implementation/HTEvntrg.html">HTEvntrg module</A>, this
+module is overridden by the application as described in the <A
+HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
+same impact on the application architecture as the <B>Active mode</B>
+except for the event loop, as all library interactions with the
+application are based on call back function.  </DL>
+
+One important limitation in the libwww thread model is that the
+behavior is undefined if an external scheduler is provided using the
+internal threads in the Library with preemptive scheduling mechanism.
+The reason for this is that the Library is "libwww thread safe" when
+using one stack and one set of registers as in <B>Active mode</B> only
+when a change of active thread is done as a result of a blocking I/O
+operation. However, using an external thread model, this problem does
+not exist.</P>
+
+<A NAME="callback"><H3>Providing Call Back Functions</H3></A>
+
+The thread model in the Library is foreseen to work with native thread
+interfaces but can also be used in a non-threaded environment. In the
+latter case, the Library handles the creation and termination of its
+internal threads without any interaction required by the
+application. The thread model is based on call back functions of which
+at least one user event handler and a event terminator must must be
+supplied by the application. However, the application is free to
+register as many additional user event handlers as it wants.
+
+</P><IMG SRC="../Architecture/Internal.gif" ALT="Callback"></P>
+
+The dashed lines from the event loop to some of the access modules
+symbolizes that the access method is not yet implemented using
+non-blocking I/O, but the event loop is still a part of the
+call-stack.  In this situation the Library will automatically use
+blocking sockets which is equivalent to the <B>Base Mode</B>.</P>
+
+<DL>
+
+<DT>User Event Handlers
+
+<DD>An application can register a set of user event handlers to handle
+events on sockets defined by the application to contain actions taken
+by the user. This can for example be interrupting a request, start a
+new request, or scroll a page. However, this requires that the actual
+window manager supports redirection of event on sockets.
+
+<DT>Event Termination
+
+<DD>This function is called from the Library every time a request is
+terminated. It passes the result of the request so that the
+application can update the history list etc. depending on the
+result. From the Library's point of view there is little difference
+between a user event handler and this function, as it in both cases is
+a call back function.
+
+<DT>Timeout Handler
+
+<DD>In <B>Active mode</B>, the select()</CODE> function in the Library
+event loop is blocking even though the sockets are non-blocking. This
+means that if no actions are pending on any of the registered sockets
+then the application will block in the select() call. However, in
+order to avoid sockets hanging around forever, a timeout is provided
+so that hanging threads can be terminated.
+
+</DL>
+
+<H3><A NAME="control">Returning from a Call Back Function</A></H3>
+
+Often an event handler needs to return information about a change of
+state as a result of an action executed by the handler, for example if
+a new request is issued, a ongoing request is interrupted, the
+application is to terminated etc. This information can be handed back
+to the Library using the return values of the call back function.<P>
+
+There are several situations where a thread has to be killed before it
+has terminated normally. This can either be done internally by the
+Library or the application. The application indicates that a thread is
+to be interrupted, for example if the user has requested the operation
+to stop, by using a specific return value from one of the user event
+handlers. The Library then kills the thread immediately and the result
+is returned to the application.
+
+
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+</BODY>
+</HTML>
+
+

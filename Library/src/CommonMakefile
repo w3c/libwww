@@ -32,38 +32,24 @@ SHELL = /bin/sh
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
-
 .SUFFIXES: .h .html
 .html.h:
-#	- chmod +w $*.h
 	www -w90 -na -p -to text/x-c $*.html > $*.h
-#	chmod -w $*.h
 
-# If this is actually run in a subdirectory,
-#
+#	If this is actually run in a subdirectory,
 # WWW = ../../..
-# WWW = ../..	For [cernlib] build in this directory
+# WWW = ../..
 
-WC  = $(WWW)/Library
+#	Directories
+LOB = $(WTMP)/Library/$(WWW_MACH)
 CMN = $(WWW)/Library/Implementation/
+DOC = $(WWW)/Library/User
+ICON= $(WWW)/Icons
 VMS = $(CMN)vms
 PROD= libwww
 FTP = /afs/w3.org/devel/Dist/$(PROD)
 
-# Where shall we put the objects and built library?
-LOB = $(WTMP)/Library/$(WWW_MACH)
-
-# This path, if relative, is taken relative to the directory
-# in which this makefile is, not the pwd.  This screws up the 
-# recursive invocation
-# include $(CMN)Version.make
-
-# This is now done by cat in WWW/All/Implementation/Makefile
-# include $(ABS)$(CMN)Version.make
-
 CFLAGS2 = $(CFLAGS) $(WAISCFLAGS) -I$(CMN) $(SOCKS_FLAGS)
-
-CERNLIBBIN = $(WWW)/bin
 
 COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTProxy.o \
 	$(LOB)/HTMethod.o $(LOB)/HTProt.o $(LOB)/HTCache.o \
@@ -133,8 +119,28 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 
 SOURCES = $(CFILES) $(HFILES) \
 	$(CMN)Version.make $(CMN)CommonMakefile $(CMN)README \
-	$(WWW)/README $(WWW)/COPYRIGH $(WWW)/PATCHES $(WWW)/CERN \
 	$(WWW)/BUILD $(WWW)/BUILD.SH $(WWW)/Makefile
+
+ICONS = $(ICON)/WWW/Bug48x.gif \
+	$(ICON)/WWW/Lib48x.gif \
+	$(ICON)/WWW/WWW48x.gif \
+	$(ICON)/WWW/Platform48x.gif \
+	$(ICON)/WWW/design48x.gif \
+	$(ICON)/WWW/doc48x.gif \
+	$(ICON)/WWW/guide48x.gif \
+	$(ICON)/WWW/internals48x.gif \
+	$(ICON)/WWW/install48x.gif \
+	$(ICON)/WWW/relnotes48x.gif \
+	$(ICON)/WWW/startup48x.gif \
+	$(ICON)/32x32/caution.gif
+
+LEGAL =	$(WWW)/README \
+	$(WWW)/COPYRIGH \
+	$(WWW)/PATCHES \
+	$(WWW)/CERN
+
+DOCS =	$(CMN)*.html \
+	`find $(DOC) \( -name \*.html -o -name \*.gif \) -print`
 
 SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
@@ -149,6 +155,12 @@ SPECIFIC = \
 	$(VMS)/getline.c $(VMS)/getpass.c \
 	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c \
 	$(VMS)/dirent.h $(VMS)/dirent.c $(VMS)/sys_dirent.h
+
+TOTAL =	$(LEGAL) \
+	$(SOURCES) \
+	$(ICONS) \
+	$(DOCS) \
+	$(SPECIFIC)
 
 all : inc $(LOB)/$(PROD).a
 
@@ -165,6 +177,10 @@ $(LOB)/$(PROD).a : $(COMMON)
 	- rm $(LOB)/$(PROD).a
 	ar r $(LOB)/$(PROD).a $(COMMON)
 	-ranlib $(LOB)/$(PROD).a
+
+#	Include files 
+inc : $(HFILES)
+	@echo Include files generated from hypertext.
 
 #	Clean up everything generatable except final products
 clean :
@@ -189,18 +205,12 @@ uninstall :
 #		----------------------
 
 #	Needs www version 2.4 or later to do this
-inc : $(HFILES)
-	@echo Include files generated from hypertext.
-
-binary : $(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a
-	@echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
-
 $(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a : $(PROD).a
 	-mkdir $(FTP)/$(WWW_MACH)
 	cp $(PROD).a $(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a
 
 #	Source Distribution:
-distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
+distribute : $(LEGAL) $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
@@ -211,7 +221,7 @@ distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES
 	@echo Distribution of Library version $(VC) up to date.
 
 #	Source snapshot
-snapshot : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
+snapshot : $(LEGAL) $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
@@ -219,17 +229,14 @@ snapshot : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	@echo Snapshot of Library version $(VC) up to date.
 
 $(FTP)/$(PROD)_$(VC)_src.tar.Z : $(SOURCES)
-	tar cvf $(FTP)/$(PROD)_$(VC)_src.tar \
-	    $(SOURCES) \
-	    $(SPECIFIC) \
-	    $(CMN)*.html
+	tar cvf $(FTP)/$(PROD)_$(VC)_src.tar $(TOTAL)
 	cp $(FTP)/$(PROD)_$(VC)_src.tar $(FTP)/temp.tar
 	compress -f $(FTP)/$(PROD)_$(VC)_src.tar
 	mv $(FTP)/temp.tar $(FTP)/$(PROD)_$(VC)_src.tar
 	gzip -f $(FTP)/$(PROD)_$(VC)_src.tar
 
 # This only works on Linux or other platforms with 'zip'
-zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
+zip : $(LEGAL) $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
@@ -237,10 +244,7 @@ zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	@echo Distribution of Library version $(VC) up to date.
 
 $(FTP)/$(PROD)_$(VC)_src.zip : $(SOURCES)
-	zip -v $(FTP)/$(PROD)_$(VC)_src.zip \
-	    $(SOURCES) \
-	    $(SPECIFIC) \
-	    $(CMN)*.html
+	zip -v $(FTP)/$(PROD)_$(VC)_src.zip $(TOTAL)
 
 #	Hypertext supplied in text format
 #	---------------------------------
@@ -248,7 +252,7 @@ $(FTP)/$(PROD)_$(VC)_src.zip : $(SOURCES)
 $(WWW)/README : /afs/w3.org/member/WWW/README.html
 	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
 
-$(WWW)/COPYRIGHT : /afs/w3.org/member/WWW/COPYRIGHT.html
+$(WWW)/COPYRIGH : /afs/w3.org/member/WWW/COPYRIGHT.html
 	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
 $(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html

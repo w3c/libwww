@@ -29,115 +29,124 @@
 #  If this env var is set to something else Some makes will use that instead
 SHELL = /bin/sh
 
-LM =  $(WWW)/LineMode/Implementation/
-LMD = $(WWW)/LineMode/Defaults
+#	.h files are distributed but originally are made from the
+#	self-documenting hypertext files.
+.SUFFIXES: .h .html
+.html.h:
+	www -w90 -na -p -to text/x-c $*.html > $*.h
+
+#	Directories
+OBJ = $(WTMP)/LineMode/$(WWW_MACH)
+LIB = $(WTMP)/Library/$(WWW_MACH)
 CMN = $(WWW)/Library/Implementation/
-DEFAULTS = $(WWW)/LineMode/Defaults
-PROD = www
+LM  = $(WWW)/LineMode/Implementation/
+DOC = $(WWW)/LineMode/Defaults
+ICON= $(WWW)/Icons
+BIN = $(WWW)/LineMode/$(WWW_MACH)
+PROD= www
 FTP = /afs/w3.org/devel/Dist/linemode
 
-# PURIFY_LOG = /home2/frystyk/purify-output
+CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
+LFLAGS2 = $(LFLAGS) -L$(LIB) -lwww
+
+#	memory leak checkers
+PROOF = proof
 PURIFY_CACHE = /home2/frystyk/purify-cache
 
-CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
-
-CERNLIBBIN = $(WWW)/bin
-
-#	WTMP is either WWW or /tmp for example. It allows the 
-# machine-dependent files to be put in a separate tree so that
-#	- The source tree can be read-only
-#	- The source tree can be shared across platforms
-#
-USELIBDIR = $(WTMP)/Library/$(WWW_MACH)
-OBJ = $(WTMP)/LineMode/$(WWW_MACH)
-BIN = $(WWW)/LineMode/$(WWW_MACH)
-
-OE = $(OBJ)/.created
-
-WWWLIB = -L$(USELIBDIR) -lwww
-
-OBJS = $(OBJ)/HTBrowse.o $(OBJ)/GridText.o $(OBJ)/DefaultStyles.o
+#	MODULES
+OBJS =	$(OBJ)/HTBrowse.o \
+	$(OBJ)/GridText.o \
+	$(OBJ)/DefaultStyles.o
 
 OBJS-CYR = $(OBJ)/HTBrowse-cyr.o $(OBJ)/GridText-cyr.o $(OBJ)/DefaultStyles-cyr.o $(OBJ)/a_stdio.o 
 
-SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
-	$(LM)GridText.c		$(LM)GridText.h \
-	$(LM)GridStyle.c	$(LM)GridStyle.h \
-	$(LM)HTFont.h		$(LM)DefaultStyles.c \
-	$(LM)Version.make	$(LM)CommonMakefile \
-	$(LM)README \
-	$(WWW)/README		$(WWW)/COPYRIGH \
-	$(WWW)/BUILD		$(WWW)/BUILD.SH \
-	$(WWW)/PATCHES		$(WWW)/Makefile \
-	$(WWW)/CERN \
- 	$(LM)a_stdio.g		$(LM)a_stdio.h
+CFILES =$(LM)HTBrowse.c \
+	$(LM)GridText.c \
+	$(LM)GridStyle.c \
+	$(LM)DefaultStyles.c
 
-DISTRIBUTION = \
-	$(LM)DefaultStyles.c.classic \
-	$(LM)DefaultStyles.c.modern
-
-# $(LM)a_stdio.g $(LM)a_stdio.h were added to support -DCYRILLIC
-HTMLFILES = \
-	$(LM)HTBrowse.h \
+HFILES=	$(LM)HTBrowse.h \
 	$(LM)GridStyle.h \
 	$(LM)GridText.h \
-	$(LM)HTFont.h \
-	$(LM)a_stdio.h
+	$(LM)HTFont.h
 
-.SUFFIXES: .h .html
-.html.h:
-	www -w90 -na -to text/x-c $*.html > $*.h
+SOURCES=$(CFILES) $(HFILES) \
+	$(LM)Version.make \
+	$(LM)CommonMakefile \
+	$(LM)README \
+	$(WWW)/Makefile \
+	$(WWW)/BUILD \
+	$(WWW)/BUILD.SH
 
-# $(LM)a_stdio.h was added to support -DCYRILLIC
-SPECIFIC =  \
+ICONS = $(ICON)/WWW/Bug48x.gif \
+	$(ICON)/WWW/LMB48x.gif \
+	$(ICON)/WWW/WWW48x.gif \
+	$(ICON)/WWW/doc48x.gif \
+	$(ICON)/WWW/guide48x.gif \
+	$(ICON)/WWW/internals48x.gif \
+	$(ICON)/WWW/install48x.gif \
+	$(ICON)/WWW/relnotes48x.gif \
+	$(ICON)/WWW/startup48x.gif \
+	$(ICON)/32x32/caution.gif
+
+LEGAL =	$(WWW)/README \
+	$(WWW)/COPYRIGH \
+	$(WWW)/PATCHES \
+	$(WWW)/CERN
+
+DOCS =	$(LM)*.html \
+	`find $(DOC) \( -name \*.html -o -name \*.gif \) -print`
+
+SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
+	$(LM)DefaultStyles.c.classic \
+	$(LM)DefaultStyles.c.modern \
 	$(LM)vms/descrip.mms \
 	$(LM)vms/build_multinet.com \
-	$(LM)vms/setup.com
+	$(LM)vms/setup.com \
+ 	$(LM)a_stdio.g \
+	$(LM)a_stdio.h
 
-# Bug: This path, if relative, is taken relative to the directory
-# in which this makefile is, not the pwd.  This screws up the 
-# recursive invocation
+TOTAL =	$(LEGAL) \
+	$(SOURCES) \
+	$(ICONS) \
+	$(DOCS) \
+	$(SPECIFIC)
 
-# This is now done by cat in WWW/All/Implementation/Makefile
-# include $(ABS)$(LM)Version.make
-
-$(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
-	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS) $(WWWLIB) \
+$(BIN)/$(PROD) : $(OBJS) $(LIB)/libwww.a
+	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS2) \
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
-purify : $(OBJS) $(USELIBDIR)/libwww.a
+purify : $(OBJS) $(LIB)/libwww.a
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS) $(WWWLIB) \
+	$(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS2) \
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
-PROOF = proof
-
-proof : $(OBJS) $(USELIBDIR)/libwww.a
-	$(PROOF) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS) $(WWWLIB) \
+proof : $(OBJS) $(LIB)/libwww.a
+	$(PROOF) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS2) \
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
-cyrillic : $(OBJS-CYR) $(USELIBDIR)/libwww.a
-	$(CC) -o $(PROD)_$(VL) $(OBJS) $(OBJ)/a_stdio.o $(LFLAGS) $(WWWLIB) \
+cyrillic : $(OBJS-CYR) $(LIB)/libwww.a
+	$(CC) -o $(PROD)_$(VL) $(OBJS) $(OBJ)/a_stdio.o $(LFLAGS2) \
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
-	
-$(USELIBDIR)/libwww.a :
+
+$(LIB)/libwww.a :
 	@echo You must get and make the WWWLibrary product first!
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
 lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
-inc :	$(HTMLFILES)
+inc :	$(HFILES)
 	@echo "Include files generated from member"
 
 #	Make a copy of the binary and documentation on this machine
@@ -149,7 +158,6 @@ install :	$(PROD)
 	cp $(DEFAULTS)/*.html /usr/local/lib/WWW
 
 #	Link system to the binary and documentation in this tree
-
 link : Works/$(PROD)
 	ln -s `pwd`/$(PROD) $(BINDIR)/$(PROD)
 	- mkdir /usr/local
@@ -167,64 +175,72 @@ clean :
 	-rmdir $(OBJ)
 
 #	Clean up everything generatable including final products
-
 cleanall : clean
 	rm $(PROD)
 
-#	Binary release
-#
-#	Must be done on anonymous FTP server!
-#
-#  This makefile does not knw how to make $(PROD)_$(VL) so that trying
-#  to make binay or asis on a weird machine doesn't try to build $(PROD)!
+#		Distribution use only:
+#		----------------------
+distribute : $(LEGAL) $(SOURCES)
+	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/LineMode/Implementation/Version.make \
+	-f WWW/LineMode/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
+	(cd $(WWW); cvs tag \
+	    `sed -e 's/V. = /v/' LineMode/Implementation/Version.make | sed -e 's?\.?/?'` \
+	    LineMode)
+	@echo Distribution of Line Mode version $(VC) up to date.
 
-binary : $(PROD)_$(VL)
-	-mkdir $(FTP)/bin/$(WWW_MACH)
-	cp $(PROD)_$(VL) $(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VL)
+#	Source Snapshot
+snapshot : $(LEGAL) $(SOURCES)
+	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/LineMode/Implementation/Version.make \
+	-f WWW/LineMode/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
+	@echo Snapshot of Line Mode version $(VC) up to date.
 
-#	ASIS installation
-#	-----------------
-#	Can only happen on an allocated ASIS development machine and
-#	with uid of the controlling user for the project.
-#
-asis : /asis/share/usr.local/lib/WWW/default.html \
-	/asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD)
-	touch asis
-	@echo ASIS distribution is now up-to-date.
+$(FTP)/$(PROD)_$(VL)_src.tar.Z : $(SOURCES)
+	tar cvf $(FTP)/$(PROD)_$(VL)_src.tar $(TOTAL)
+	cp $(FTP)/$(PROD)_$(VL)_src.tar $(FTP)/temp.tar
+	compress -f $(FTP)/$(PROD)_$(VL)_src.tar
+	mv $(FTP)/temp.tar $(FTP)/$(PROD)_$(VL)_src.tar
+	gzip -f $(FTP)/$(PROD)_$(VL)_src.tar
 
-/asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD) : $(PROD)_$(VL)
-	cp $(PROD)_$(VL) /asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD)_$(VL)
-	rm -f /asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD)
-	ln -s $(PROD)_$(VL) \
-		/asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD)
+zip : $(LEGAL) $(SOURCES)
+	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/LineMode/Implementation/Version.make \
+	-f WWW/LineMode/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VL)_src.zip)
+	@echo Distribution of LineMode version $(VL) up to date.
 
-/asis/share/usr.local/lib/WWW/default.html : $(DEFAULTS)/cern.html
-	- mkdir /asis/share/usr.local/lib/WWW
-	cp $(DEFAULTS)/*.html /asis/share/usr.local/lib/WWW
-	cp $(DEFAULTS)/cern.html /asis/share/usr.local/lib/WWW/default.html
-	cp $(DEFAULTS)/default.html /asis/share/usr.local/lib/WWW/top.html
+$(FTP)/$(PROD)_$(VL)_src.zip : $(SOURCES)
+	zip -v $(FTP)/$(PROD)_$(VL)_src.zip $(TOTAL)
 
-#	CERNLIB installation
-#	--------------------
-#	Assuming the cernlib-style directory structure
-#	Warning: Not suitable for machine-shared file structure.
-#
-cernlib :	$(PROD)
-	- mkdir $(CERNLIBBIN)
-	cp $(PROD) $(CERNLIBBIN)
+#	Hypertext supplied in text format
+#	---------------------------------
 
+$(WWW)/README : /afs/w3.org/member/WWW/README.html
+	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
 
-#_________________________________________________________________________	
-# Compiling the Objects (Dependenies incomplete)
+$(WWW)/COPYRIGHT : /afs/w3.org/member/WWW/COPYRIGHT.html
+	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
-#	Check directory exists
+$(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html
+	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
+
+$(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
+	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
+
+#	OBJECT GENERATION
+#	=================
+#	Directory for object files - .created checks it exists
+OE = $(LOB)/.created
 $(OE) :
-	-mkdir $(WTMP)
-	-mkdir $(WTMP)/LineMode
-	-mkdir $(WTMP)/LineMode/$(WWW_MACH)
-	touch $(OE)
+	if [ ! -r $(WTMP) ] ; then mkdir $(WTMP); else echo OK ; fi
+	if [ ! -r $(WTMP)/Library ] ; then mkdir $(WTMP)/Library; else echo OK ; fi
+	if [ ! -r $(WTMP)/Library/$(WWW_MACH) ] ; \
+		then mkdir $(WTMP)/Library/$(WWW_MACH); else echo OK ; fi
+	touch $@
 
-#
 $(OBJ)/HTBrowse.o : $(OE) $(LM)HTBrowse.c $(LM)GridText.h $(LM)Version.make \
 		$(CMN)HTUtils.h $(CMN)HTAccess.h
 	$(CC) -c -o $@ $(CFLAGS2) -DVL=\"$(VL)\" $(LM)HTBrowse.c  
@@ -251,101 +267,3 @@ $(OBJ)/DefaultStyles-cyr.o : $(OE) $(LM)DefaultStyles.c $(CMN)HTStyle.h
 
 $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 	$(CC) -c -o $@ $(CFLAGS2) -xc $(LM)a_stdio.g
-
-#_________________________________________________________________
-# For W3 Administrative use only:
-
-#	Source Destribution
-distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
-	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
-	-f WWW/LineMode/Implementation/Version.make \
-	-f WWW/LineMode/Implementation/CommonMakefile \
-	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
-	(cd $(WWW); cvs tag \
-	    `sed -e 's/V. = /v/' LineMode/Implementation/Version.make | sed -e 's?\.?/?'` \
-	    LineMode)
-	@echo Distribution of Line Mode version $(VC) up to date.
-
-#	Source Snapshot
-snapshot : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
-	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
-	-f WWW/LineMode/Implementation/Version.make \
-	-f WWW/LineMode/Implementation/CommonMakefile \
-	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
-	@echo Snapshot of Line Mode version $(VC) up to date.
-
-$(FTP)/$(PROD)_$(VL)_src.tar.Z : $(SOURCES)
-	tar cvf $(FTP)/$(PROD)_$(VL)_src.tar \
-	    $(SOURCES) \
-	    $(DISTRIBUTION) \
-	    $(SPECIFIC) \
-	    $(LM)*.html
-	cp $(FTP)/$(PROD)_$(VL)_src.tar $(FTP)/temp.tar
-	compress -f $(FTP)/$(PROD)_$(VL)_src.tar
-	mv $(FTP)/temp.tar $(FTP)/$(PROD)_$(VL)_src.tar
-	gzip -f $(FTP)/$(PROD)_$(VL)_src.tar
-
-zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
-	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
-	-f WWW/LineMode/Implementation/Version.make \
-	-f WWW/LineMode/Implementation/CommonMakefile \
-	$(FTP)/$(PROD)_$(VL)_src.zip)
-	@echo Distribution of LineMode version $(VL) up to date.
-
-$(FTP)/$(PROD)_$(VL)_src.zip : $(SOURCES)
-	zip -v $(FTP)/$(PROD)_$(VL)_src.zip \
-	    $(SOURCES) \
-	    $(DISTRIBUTION) \
-	    $(SPECIFIC) \
-	    $(LM)*.html
-
-#		Member supplied in text format
-#		---------------------------------
-
-$(WWW)/README : /afs/w3.org/member/WWW/README.html
-	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
-
-$(WWW)/COPYRIGHT : /afs/w3.org/member/WWW/COPYRIGHT.html
-	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
-
-$(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html
-	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
-
-$(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
-	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
-
-#	Line Mode Manual
-#
-QUICKGUIDE = \
-	$(LMD)/QuickGuide.html \
-	$(LMD)/Commands.html \
-	    $(LMD)/SourceExamples.html \
-	$(LMD)/CommandLine.html \
-	$(LMD)/Shortcuts.html \
-	    $(LMD)/VMS_Shortcuts.html \
-	$(LMD)/Installation.html \
-	    $(LMD)/Installation_VMS.html \
-	    $(LMD)/Installation_VMS_NewTCP.html \
-	    $(LMD)/Distribution.html \
-	    $(LMD)/Porting.html \
-	    $(LMD)/MachineTypes.html \
-	    $(LMD)/InstallNotSU.html \
-	    $(LMD)/Path.html \
-	    $(LMD)/LoginScript.html \
-	$(LMD)/Customisation.html \
-	    $(LMD)/EnvVariables.html \
-	    $(LMD)/GlobalV.html \
-	    $(LMD)/NewsServer.html \
-	$(LMD)/Bugs.html \
-	$(LMD)/Features.html
-
-doc : $(FTP)/doc/line-mode-guide.txt
-	@echo line mode browser guide exists.
-
-$(FTP)/doc/line-mode-guide.txt : $(LMD)/line-mode-guide.txt
-	cp $? $@
-
-$(LMD)/line-mode-guide.txt : $(QUICKGUIDE)
-	-rm $@
-	for i in $(QUICKGUIDE) ; do www -n -na -p66 $$i >> $@; done
-
