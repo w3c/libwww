@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<TITLE>Compilation on Windows (10-Jan-1996)</TITLE>
+</HEAD>
+<BODY>
+
+<H1>Compilation on Windows</H1>
+
+I have been working with the W3lib on the 16/32-bit Windows platform
+for a couple of months now and would like to share some of the
+important considerations I discovered along the way. Hope this would
+prevent others from running into the same wall(s) and encourage more
+sharing of the W3Lib's Windows port. <P>
+
+These notes are by no means complete, just some which I've deemed 
+important enough to be written down every now and then.
+
+
+<H2>Compiling W3Lib into 16-bit DLLs</H2>
+
+<OL>
+
+<LI>Make sure the Windows prolog/epilog code is generated for
+functions where global variables of the DLL are referenced.
+
+<LI>Can't share a file pointer between different DLLs as the C
+Run-Time routines are linked individually into the DLLs. I'm not
+sure if there's a DLL version of the C Run-Time library (available in VC++ 
+2.x) which can resolve this problem.
+
+
+<LI>I recommend compiling using a Huge model and replacing malloc()
+with the GlobalAllocPtr macro.
+
+<LI>You will probably face the problem of "too many segments" if you 
+try to build the whole library into a single DLL.
+</OL>
+
+<H2>Compiling W3Lib into 32-bit DLLs</H2>
+
+<OL>
+<LI>I/O file handles cannot be shared between different DLLs unless 
+they are linked with the DLL version of the C Run-Time Library.
+ 
+<PRE>
+    i.e.    if function A of DLL X do an "fopen", it cannot call 
+            function B of DLL Y to do subsequent "fread".
+</PRE> 
+</OL>
+
+<H2>Modifications made to the original W3Lib source code</H2>
+
+<UL>
+
+<LI>In "tcp.h", watch out for the following lines if you're not
+developing on the NT platform.
+
+<PRE>
+#undef NETREAD
+#undef NETWRITE
+
+#define NETREAD(s,b,l)  ((s) >= 10) ? recv((s),(b),(l),0) : read ((s),(b), (l))
+#define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s),(b), (l))
+</PRE>
+
+This is a major cause of system crash. Other symtoms I've experienced
+include: messed-up desktop display, warp mouse pointers.
+
+This conditional clause needs to be removed for proper socket use
+under Windows 3.x and Windows 95.
+
+<LI>"sscanf" does not work in 16-bit DLLs. Replacement code has to be
+supplied. I recomment using "atoi" & "atof" where possible.
+
+</UL>
+
+
+<PRE>
+Cheers,
+Kok Hoon
+-----------------------------------------------------------
+M.A.P.S.                   Information Technology Institute
+-----------------------------------------------------------
+</PRE>
+</BODY>
+</HTML>
