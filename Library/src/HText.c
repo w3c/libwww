@@ -69,9 +69,15 @@ PUBLIC HTextImp * HTextImp_new (HTRequest *	 request,
 PUBLIC BOOL HTextImp_delete (HTextImp * me)
 {
     if (me) {
-	HText * app = me->app;
+
+	/*
+	** Note that we do not call the delete method on the app
+	** HText object as this normally stays around after the
+	** request has been deleted and certainly it should be
+	** deleted by the app and not libwww
+	*/
 	HT_FREE(me);
-	return (me->app && me->text_delete) ? (*me->text_delete)(app) : NO;
+	return YES;
     }
     return NO;
 }

@@ -476,6 +476,7 @@ PUBLIC int HTML_free (HTStructured * me)
     if (!me->started) HTextImp_build(me->text, HTEXT_BEGIN);
     if (me->comment_end) HTML_put_string(me, me->comment_end);
     HTextImp_build(me->text, HTEXT_END);
+    HTextImp_delete(me->text);
     HTChunk_delete(me->title);
     if (me->target) FREE_TARGET(me);
     HT_FREE(me);
@@ -486,6 +487,7 @@ PRIVATE int HTML_abort (HTStructured * me, HTList * e)
 {
     if (!me->started) HTextImp_build(me->text, HTEXT_BEGIN);
     HTextImp_build(me->text, HTEXT_ABORT);
+    HTextImp_delete(me->text);
     HTChunk_delete(me->title);
     if (me->target) ABORT_TARGET(me);
     HT_FREE(me);
