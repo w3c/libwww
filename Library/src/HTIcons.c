@@ -24,16 +24,15 @@
 #include "HTIcons.h"					 /* Implemented here */
 
 #ifdef VMS
-typedef unsigned long mode_t;
 #include "HTVMSUtils.h"
 #endif /* VMS */
 
 /* Globals */
 PUBLIC BOOL HTDirShowBrackets = YES;
-PUBLIC HTIconNode * icon_unknown = NULL;	/* Unknown file type */
-PUBLIC HTIconNode * icon_blank = NULL;		/* Blank icon in heading */
-PUBLIC HTIconNode * icon_parent = NULL;		/* Parent directory icon */
-PUBLIC HTIconNode * icon_dir = NULL;		/* Directory icon */
+PRIVATE HTIconNode * icon_unknown = NULL;	/* Unknown file type */
+PRIVATE HTIconNode * icon_blank = NULL;		/* Blank icon in heading */
+PRIVATE HTIconNode * icon_parent = NULL;	/* Parent directory icon */
+PRIVATE HTIconNode * icon_dir = NULL;		/* Directory icon */
 
 /* Type definitions and global variables etc. local to this module */
 PRIVATE HTList * icons = NULL;
@@ -287,13 +286,12 @@ PUBLIC void HTStdIconInit ARGS1(CONST char *, url_prefix)
 /*								 HTGetIcon()
 ** returns the icon corresponding to content_type or content_encoding.
 */
-PUBLIC HTIconNode * HTGetIcon ARGS3(mode_t,	mode,
+PUBLIC HTIconNode * HTGetIcon ARGS3(HTFileMode,	mode,
 				    HTFormat,	content_type,
 				    HTEncoding,	content_encoding)
 {
     if (!icon_unknown) icon_unknown = icon_blank;
-
-    if ((mode & S_IFMT) == S_IFREG) {
+    if (mode == HT_IS_FILE) {
 	char * ct = content_type ? HTAtom_name(content_type) : NULL;
 	char * ce = content_encoding ? HTAtom_name(content_encoding) : NULL;
 	HTList * cur = icons;
@@ -306,12 +304,13 @@ PUBLIC HTIconNode * HTGetIcon ARGS3(mode_t,	mode,
 		return node;
 	    }
 	}
-    } else if ((mode & S_IFMT) == S_IFDIR) {
+    } else if (mode == HT_IS_DIR) {
 	return icon_dir ? icon_dir : icon_unknown;
-    } else if ((mode & S_IFMT) == S_IFLNK) {
-	return icon_dir ? icon_dir : icon_unknown;	/* @@ */
+    } else if (mode == HT_IS_BLANK) {
+	return icon_blank ? icon_blank : icon_unknown;
+    } else if (mode == HT_IS_PARENT) {
+	return icon_parent ? icon_parent : icon_unknown;
     }
-
     return icon_unknown;
 }
 

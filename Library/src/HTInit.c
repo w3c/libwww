@@ -70,14 +70,6 @@ PUBLIC void HTConverterInit ARGS1(HTList *, c)
     HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
 
     /*
-    ** A set of converters that converts from Gopher, news,
-    ** and FTP listings, menues etc. to HTML
-    */
-#if 0
-    HTSetConversion(c,"text/x-ftplist",		"www/present",	HTFTPLongList,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/x-ftpnlst",		"www/present",	HTFTPShortList,	1.0, 0.0, 0.0);
-#endif
-    /*
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */

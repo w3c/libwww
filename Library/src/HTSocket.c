@@ -525,22 +525,21 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 #ifdef EAGAIN
 		if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)      /* POSIX */
 #else
-		    if (socerrno==EWOULDBLOCK) /* BSD */
-#endif
-			{
-			    if (PROT_TRACE)
-				fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
-					isoc->sockfd);
-			    HTEvent_Register(isoc->sockfd, request,
-					     (SockOps) FD_READ, net->cbf,
-					     net->priority);
-			    return HT_WOULD_BLOCK;
-			} else { /* We have a real error */
-			    if (PROT_TRACE)
-				fprintf(TDEST, "Read Socket. READ ERROR %d\n",
-					socerrno);
-			    return HT_ERROR;
-			}
+		if (socerrno==EWOULDBLOCK) 			      /* BSD */
+#endif	
+		{
+		    if (PROT_TRACE)
+			fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
+				isoc->sockfd);
+		    HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
+				     net->cbf, net->priority);
+		    return HT_WOULD_BLOCK;
+		} else { /* We have a real error */
+		    if (PROT_TRACE)
+			fprintf(TDEST, "Read Socket. READ ERROR %d\n",
+				socerrno);
+		    return HT_ERROR;
+		}
 	    } else if (!b_read) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. Finished loading socket %d\n",

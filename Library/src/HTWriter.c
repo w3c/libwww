@@ -91,9 +91,9 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 	if ((b_write = NETWRITE(me->sockfd, me->write_pointer, len)) < 0) {
 
 #ifdef EAGAIN
-	    if (errno == EAGAIN || errno == EWOULDBLOCK)      /* POSIX, SVR4 */
+	    if (socerrno == EAGAIN || socerrno == EWOULDBLOCK)/* POSIX, SVR4 */
 #else
-	    if (errno == EWOULDBLOCK)				      /* BSD */
+	    if (socerrno == EWOULDBLOCK)			      /* BSD */
 #endif
 	    {
 		if (PROT_TRACE)
@@ -103,7 +103,7 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 		return HT_WOULD_BLOCK;
 	    } else {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Write Socket WRITE ERROR %d\n", errno);
+		    fprintf(TDEST, "Write Socket WRITE ERROR %d\n", socerrno);
 		return HT_ERROR;
 	    }
 	}

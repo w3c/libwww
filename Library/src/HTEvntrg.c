@@ -24,6 +24,7 @@
 #include "HTString.h"
 #include "HTError.h"
 #include "HTReqMan.h"
+#include "HTDNS.h"
 #include "HTEvntrg.h"					 /* Implemented here */
 
 /* Type definitions and global variables etc. local to this module */
@@ -581,12 +582,11 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 	/* If timeout then see if we should call callback function */
 	if (active_sockets == 0) {
-	    if (THD_TRACE)
-		fprintf(TDEST, "Event Loop.. user %d, total %d\n",
-			userSockets, socketsInUse);
-	    if (seltime.tcbf && (seltime.always || userSockets<socketsInUse))
+	    if (seltime.tcbf && (seltime.always || HTNet_activeCount())) {
+		if (THD_TRACE)
+		    fprintf(TDEST, "Event Loop.. calling timeout cbf\n");
 		(*(seltime.tcbf))(seltime.request);
-	    else
+	    } else
 		continue;
 	}
 

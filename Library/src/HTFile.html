@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>File Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
 <NEXTID N="z4">
 </HEAD>
 <BODY>
@@ -16,21 +16,11 @@
 </PRE>
 
 These are routines for local file access used by WWW browsers and
-servers. <P>
-
-If the file is not a local file, then we pass it on to <A NAME="z3"
-HREF="HTFTP.html">HTFTP</A> in case it can be reached by FTP. However,
-as this is very time consuming when requesting a local file that
-actually doesn't exist, this redirection will be disabled in the next
-major release, <EM>www-bug@w3.org</EM> June 1994.<P>
-
-<B>Note:</B> All functions that deal with directory listings etc. have
-been moved to <A HREF="HTDirBrw.html">HTDirBrw Module</A>. <P>
+servers.<P>
 
 This module is implemented by <A HREF="HTFile.c">HTFile.c</A>, and it
-is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTFILE_H
@@ -39,20 +29,42 @@ W3C Reference Library</A>.
 #include "HTEvntrg.h"
 
 extern HTEventCallBack HTLoadFile;
-
 </PRE>
 
-<H2>Make a WWW name from a full local path name</H2>
+<H2>Directory Access</H2>
+
+You can define the directory access for file URLs by using the
+following function.
 
 <PRE>
-extern char * WWW_nameOfFile	PARAMS((const char * name));
+typedef enum _HTDirAccess {
+    HT_DIR_FORBID,			/* Altogether forbidden */
+    HT_DIR_SELECTIVE,			/* Only if "selfile" exists */
+    HT_DIR_OK				/* Directory reading always OK */
+} HTDirAccess;
+
+#define DEFAULT_DIR_FILE	".www_browsable"    /* If exists, can browse */
+
+extern HTDirAccess  HTFile_dirAccess	(void);
+extern BOOL HTFile_setDirAccess		(HTDirAccess mode);
 </PRE>
 
-<H2>Determine write access to a file</H2>
+<H2>Readme Files</H2>
+
+You can specify the module to look for a README file and to put into a
+directory listing. These are the possibilities:
 
 <PRE>
-extern BOOL HTEditable		PARAMS((CONST char * filename,
-					struct stat *stat_info));
+typedef enum _HTDirReadme {
+    HT_DIR_README_NONE,
+    HT_DIR_README_TOP,
+    HT_DIR_README_BOTTOM
+} HTDirReadme;
+
+#define DEFAULT_README		"README"
+
+extern HTDirReadme  HTFile_dirReadme	(void);
+extern BOOL HTFile_setDirReadme		(HTDirReadme mode);
 </PRE>
 
 <PRE>

@@ -15,6 +15,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTTCP.h"
+#include "HTParse.h"
 #include "HTString.h"					 /* Implemented here */
 
 #ifdef NO_STDIO
@@ -30,6 +31,15 @@ PUBLIC int WWW_TraceFlag = 0;	/* Global trace flag for ALL W3 code */
 PUBLIC CONST char * HTLibraryVersion = VC; /* String for help screen etc */
 
 PRIVATE long HTTimeZone = 0L;		       /* Offset from GMT in seconds */
+PRIVATE char * months[12] = {
+    "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+};
+
+#ifdef NO_STRFTIME
+PRIVATE char * wkdays[7] = {
+    "Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+};
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -196,80 +206,6 @@ PUBLIC char * HTNextField ARGS1(char **, pstr)
     return start;
 }
 
-
-/*
-**	Returns a string pointer to a static area of the current calendar
-**	time in RFC 1123 format, for example
-**
-**		Sun, 06 Nov 1994 08:49:37 GMT
-**
-**	The result can be given in both local and GMT dependent on the flag
-*/
-PUBLIC CONST char *HTDateTimeStr ARGS2(time_t *, calendar, BOOL, local)
-{
-    static char buf[40];
-
-#ifndef NO_STRFTIME
-    if (local) {
-	/*
-	** Solaris 2.3 has a bug so we _must_ use reentrant version
-	** Thomas Maslen <tmaslen@verity.com>
-	*/
-#if defined(HT_REENTRANT) || defined(SOLARIS)
-	struct tm loctime;
-	localtime_r(calendar, &loctime);
-	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", &loctime);
-#else
-	struct tm *loctime = localtime(calendar);
-	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", loctime);
-#endif /* SOLARIS || HT_REENTRANT */
-    } else {
-#if defined(HT_REENTRANT) || defined(SOLARIS)
-	struct tm gmt;
-	gmtime_r(calendar, &gmt);
-    	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", &gmt);
-#else
-	struct tm *gmt = gmtime(calendar);
-    	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", gmt);
-#endif /* SOLARIS || HT_REENTRANT */
-    }
-#else
-    if (local) {
-#if defined(HT_REENTRANT)
-	struct tm loctime;
-	localtime_r(calendar, &loctime);
-#else
-	struct tm *loctime = localtime(calendar);
-#endif /* HT_REENTRANT */
-	sprintf(buf,"%s, %02d %s 19%02d %02d:%02d:%02d",
-		wkday[gmt->tm_wday],
-		gmt->tm_mday,
-		month[gmt->tm_mon],
-		gmt->tm_year % 100,
-		gmt->tm_hour,
-		gmt->tm_min,
-		gmt->tm_sec);
-    } else {
-#if defined(HT_REENTRANT) || defined(SOLARIS)
-	struct tm gmt;
-	gmtime_r(calendar, &gmt);
-#else
-	struct tm *gmt = gmtime(calendar);
-#endif
-	sprintf(buf,"%s, %02d %s 19%02d %02d:%02d:%02d GMT",
-		wkday[gmt->tm_wday],
-		gmt->tm_mday,
-		month[gmt->tm_mon],
-		gmt->tm_year % 100,
-		gmt->tm_hour,
-		gmt->tm_min,
-		gmt->tm_sec);
-    }
-#endif
-    return buf;
-}
-
-
 /*
 **	Returns a Message-ID string including the open '<' and the closing '>'.
 **	The format of the string is:
@@ -313,12 +249,6 @@ PUBLIC CONST char *HTMessageIdStr NOARGS
 **	These functions are taken from the server written by Ari Luotonen
 */
 
-PRIVATE char * month_names[12] =
-{
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
-
 PRIVATE int make_num ARGS1(CONST char *, s)
 {
     if (*s >= '0' && *s <= '9')
@@ -331,7 +261,7 @@ PRIVATE int make_month ARGS1(CONST char *, s)
 {
     int i;
     for (i=0; i<12; i++)
-	if (!strncasecomp(month_names[i], s, 3))
+	if (!strncasecomp(months[i], s, 3))
 	    return i;
     return 0;
 }
@@ -508,6 +438,108 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
     return t;
 }
 
+/*
+**	Returns a string pointer to a static area of the current calendar
+**	time in RFC 1123 format, for example
+**
+**		Sun, 06 Nov 1994 08:49:37 GMT
+**
+**	The result can be given in both local and GMT dependent on the flag
+*/
+PUBLIC CONST char *HTDateTimeStr ARGS2(time_t *, calendar, BOOL, local)
+{
+    static char buf[40];
+
+#ifndef NO_STRFTIME
+    if (local) {
+	/*
+	** Solaris 2.3 has a bug so we _must_ use reentrant version
+	** Thomas Maslen <tmaslen@verity.com>
+	*/
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+	struct tm loctime;
+	localtime_r(calendar, &loctime);
+	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", &loctime);
+#else
+	struct tm *loctime = localtime(calendar);
+	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", loctime);
+#endif /* SOLARIS || HT_REENTRANT */
+    } else {
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+	struct tm gmt;
+	gmtime_r(calendar, &gmt);
+    	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", &gmt);
+#else
+	struct tm *gmt = gmtime(calendar);
+    	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", gmt);
+#endif /* SOLARIS || HT_REENTRANT */
+    }
+#else
+    if (local) {
+#if defined(HT_REENTRANT)
+	struct tm loctime;
+	localtime_r(calendar, &loctime);
+#else
+	struct tm *loctime = localtime(calendar);
+#endif /* HT_REENTRANT */
+	sprintf(buf,"%s, %02d %s 19%02d %02d:%02d:%02d",
+		wkdays[gmt->tm_wday],
+		gmt->tm_mday,
+		months[gmt->tm_mon],
+		gmt->tm_year % 100,
+		gmt->tm_hour,
+		gmt->tm_min,
+		gmt->tm_sec);
+    } else {
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+	struct tm gmt;
+	gmtime_r(calendar, &gmt);
+#else
+	struct tm *gmt = gmtime(calendar);
+#endif
+	sprintf(buf,"%s, %02d %s 19%02d %02d:%02d:%02d GMT",
+		wkdays[gmt->tm_wday],
+		gmt->tm_mday,
+		months[gmt->tm_mon],
+		gmt->tm_year % 100,
+		gmt->tm_hour,
+		gmt->tm_min,
+		gmt->tm_sec);
+    }
+#endif
+    return buf;
+}
+
+/*	HTDateDirStr
+**	------------
+**	Generates a date string used in directory listings
+*/
+PUBLIC BOOL HTDateDirStr (time_t * time, char * str, int len)
+{
+#ifndef NO_STRFTIME
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+    struct tm loctime;
+    localtime_r(time, &loctime);
+    strftime(str, len, "%d-%b-%y %H:%M", &loctime);
+    return YES;
+#else
+    strftime(str, len, "%d-%b-%y %H:%M", localtime(time));
+    return YES;
+#endif /* HT_REENTRANT || SOLARIS */
+#else
+    if (len >= 16) {
+	struct tm *loctime = localtime(time);
+	sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
+		loctime->tm_mday,
+		months[loctime->tm_mon],
+		loctime->tm_year % 100,
+		loctime->tm_hour,
+		loctime->tm_min);
+	return YES;
+    }
+    return NO;
+#endif /* NO_STRFTIME */		
+}
 
 /*	Strip white space off a string
 **	------------------------------
@@ -516,7 +548,6 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 **	Return value points to first non-white character, or to 0 if none.
 **	All trailing white space is OVERWRITTEN with zero.
 */
-
 PUBLIC char * HTStrip ARGS1(char *, s)
 {
 #define SPACE(c) ((c==' ')||(c=='\t')||(c=='\n')) 
@@ -541,9 +572,13 @@ PUBLIC char * HTStrip ARGS1(char *, s)
 **	next unit.  This doesn't work wrong, it's just a feature.
 **	The "str" must be large enough to contain the result.
 */
-PUBLIC void HTNumToStr ARGS2(unsigned long, n, char *, str)
+PUBLIC void HTNumToStr (unsigned long n, char * str, int len)
 {
     double size = n/1024.0;
+    if (len < 6) {
+	*str = '\0';
+	return;
+    }
     if (n < 1000)
 	sprintf(str, "%dK", n>0 ? 1 : 0);
     else if (size + 0.999 < 1000)
@@ -558,3 +593,111 @@ PUBLIC void HTNumToStr ARGS2(unsigned long, n, char *, str)
 	sprintf(str, "%dG", (int)(size + 0.5));
 }
 
+/*	Convert file URLs into a local representation
+**	---------------------------------------------
+**	The URL has already been translated through the rules in get_physical
+**	in HTAccess.c and all we need to do now is to map the path to a local
+**	representation, for example if must translate '/' to the ones that
+**	turn the wrong way ;-)
+**	Returns:
+**		OK:	local file (that must be freed by caller)
+**		Error:	NULL
+*/
+PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
+{
+    if (url) {
+	char * access = HTParse(url, base, PARSE_ACCESS);
+	char * host = HTParse(url, base, PARSE_HOST);
+	char * path = HTParse(url, base, PARSE_PATH+PARSE_PUNCTUATION);
+	CONST char *myhost = HTGetHostName();
+
+	/* Find out if this is a reference to the local file system */
+	if ((*access && strcmp(access, "file")) ||
+	    (*host && strcasecomp(host, "localhost") &&
+	     myhost && strcmp(host, myhost))) {
+	    if (PROT_TRACE)
+		fprintf(TDEST, "LocalName... Not on local file system\n");
+	    free(access);
+	    free(host);
+	    free(path);
+	    return NULL;
+	} else {
+	    char *ptr;
+	    if ((ptr = strchr(path, ';')) || (ptr = strchr(path, '?')))
+		*ptr = '\0';
+	
+	    /*
+	    ** Do whatever translation is required here in order to fit your
+	    ** platform _before_ the path is unescaped.
+	    */
+#ifdef VMS
+	    HTVMS_checkDecnet(path);
+#endif
+#ifdef _WINDOWS
+	    /* an absolute pathname with logical drive */
+	    if (*path == '/' && path[2] == ':')    
+		/* NB. need memmove because overlaps */
+		memmove( path, path+1, strlen(path) + 1);
+#endif
+	    
+	    HTUnEscape(path);		  /* Take out the escaped characters */
+	    if (PROT_TRACE)
+		fprintf(TDEST, "Node........ `%s' means path `%s'\n",url,path);
+	    free(access);
+	    free(host);
+	    return path;
+	}
+    }
+    return NULL;
+}
+
+/*	Convert a local file name into a URL
+**	------------------------------------
+**	Generates a WWW URL name from a local file name or NULL if error.
+**	Returns:
+**		OK:	local file (that must be freed by caller)
+**		Error:	NULL
+*/
+PUBLIC char * HTLocalToWWW (CONST char * local)
+{
+    char * result = NULL;
+    if (local && *local) {
+	StrAllocCopy(result, "file:");	     /* We get an absolute file name */
+#ifdef VMS 
+	/* convert directory name to Unix-style syntax */
+	{
+	    char * disk = strchr (local, ':');
+	    char * dir = strchr (local, '[');
+	    if (disk) {
+		*disk = '\0';
+		StrAllocCat(result, "/"); /* needs delimiter */
+		StrAllocCat(result, local);
+	    }
+	    if (dir) {
+		char *p;
+		*dir = '/';	/* Convert leading '[' */
+		for (p = dir ; *p != ']'; ++p)
+		    if (*p == '.') *p = '/';
+		*p = '\0';	/* Cut on final ']' */
+		StrAllocCat(result, dir);
+	    }
+	}
+#else  /* not VMS */
+#ifdef WIN32
+	{
+	    char * p = local;					  /* a colon */
+	    StrAllocCat(result, "/");
+	    while( *p != 0 ) { 
+		if (*p == '\\')		         /* change to one true slash */
+		    *p = '/' ;
+		p++;
+	    }
+	    StrAllocCat(result, local);
+	}
+#else /* not WIN32 */
+	StrAllocCat (result, local);
+#endif /* not WIN32 */
+#endif /* not VMS */
+    }
+    return result;
+}

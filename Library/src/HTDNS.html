@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Domain Name Service Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -67,8 +67,9 @@ extern time_t HTDNS_timeout  (time_t timeout);
 
 <PRE>
 extern SOCKFD HTDNS_socket	(HTdns *dns);
-extern BOOL HTDNS_setSocket	(HTdns *dns, SOCKFD socket);
-extern void HTDNS_clearActive	(HTdns *dns);
+extern BOOL   HTDNS_setSocket	(HTdns *dns, SOCKFD socket);
+extern void   HTDNS_clearActive	(HTdns *dns);
+extern int    HTDNS_socketCount (void);
 </PRE>
 
 <H3>Persistent Connection Timeouts</H3>

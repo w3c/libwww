@@ -33,7 +33,7 @@
 #include "HTNetMan.h"
 #include "HTBind.h"
 #include "HTMLGen.h"
-#include "HTDirBrw.h"
+#include "HTDir.h"
 #include "HTGopher.h"					 /* Implemented here */
 
 /* Macros and other defines */
@@ -111,6 +111,8 @@ struct _HTStream {
     int				buflen;
 };
 
+PRIVATE HTDirShow	dir_show = HT_DS_ICON;
+
 /* ------------------------------------------------------------------------- */
 
 /*	GopherIcon
@@ -122,9 +124,10 @@ PRIVATE HTIconNode *GopherIcon (HTGopherType type)
 {
     HTFormat   content_type = NULL;
     HTEncoding content_encoding = NULL;
-    if (type == GT_MENU)
-	return icon_dir ? icon_dir : icon_unknown;
+    HTFileMode mode = HT_IS_FILE;
     switch(type) {
+      case GT_MENU:
+	mode = HT_IS_DIR;
       case GT_TEXT:
 	content_type = HTAtom_for("text/void");
 	break;
@@ -175,7 +178,7 @@ PRIVATE HTIconNode *GopherIcon (HTGopherType type)
 	content_type = HTAtom_for("www/unknown");
 	break;
     }
-    return HTGetIcon(S_IFMT & S_IFREG, content_type, content_encoding);
+    return HTGetIcon(mode, content_type, content_encoding);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -276,7 +279,7 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
 	    START(HTML_PRE);
 	    me->pre = YES;
 	}
-	if (HTDirShowMask & HT_DIR_SHOW_ICON) { 	 /* Put out the icon */
+	if (dir_show & HT_DS_ICON) {		 	 /* Put out the icon */
 	    HTIconNode *icon = GopherIcon(gtype);
 	    if (icon && icon->icon_url) {
 		HTMLPutImg(target, icon->icon_url,
@@ -429,9 +432,9 @@ PRIVATE int GopherMenu_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 		    if (cont == NO) return HT_LOADED;
 		} else
 		    me->junk = NO;			   /* back to normal */
-		me->buflen = 0;
-		me->state = EOL_BEGIN;
 	    }
+	    me->buflen = 0;
+	    me->state = EOL_BEGIN;
 	} else if (*b == CR) {
 	    me->state = EOL_FCR;
 	} else if (*b == LF && me->buflen) {

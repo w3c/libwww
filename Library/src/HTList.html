@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Linked List Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Sep-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -64,7 +64,7 @@ header: it returns the first object and increments the passed list
 pointer.  Call it with the same variable until it returns NULL.
 
 <PRE>#define HTList_nextObject(me) \
-  (me &amp;&amp; (me = me->next) ? me->object : NULL)
+  ((me) &amp;&amp; ((me) = (me)->next) ? (me)->object : NULL)
 </PRE>
 
 <H3>Free list</H3>

@@ -37,7 +37,8 @@
 #include "HTFWrite.h"
 #include "HTFormat.h"
 #include "HTMulti.h"
-#include "HTDirBrw.h"
+#include "HTIcons.h"
+#include "HTDir.h"
 #include "HTBind.h"
 #include "HTSocket.h"
 #include "HTNetMan.h"
@@ -45,27 +46,25 @@
 #include "HTReqMan.h"
 #include "HTFile.h"		/* Implemented here */
 
-/* This is the local definition of HTRequest->net */
-
 /* Final states have negative value */
 typedef enum _FileState {
-    FS_FILE_RETRY		= -4,
-    FS_FILE_ERROR		= -3,
-    FS_FILE_NO_DATA		= -2,
-    FS_FILE_GOT_DATA		= -1,
-    FS_FILE_BEGIN		= 0,
-    FS_FILE_DO_CN,
-    FS_FILE_NEED_OPEN_FILE,
-    FS_FILE_NEED_TARGET,
-    FS_FILE_NEED_BODY,
-    FS_FILE_PARSE_DIR,
-    FS_FILE_TRY_FTP
+    FS_RETRY		= -4,
+    FS_ERROR		= -3,
+    FS_NO_DATA		= -2,
+    FS_GOT_DATA		= -1,
+    FS_BEGIN		= 0,
+    FS_DO_CN,
+    FS_NEED_OPEN_FILE,
+    FS_NEED_TARGET,
+    FS_NEED_BODY,
+    FS_PARSE_DIR,
+    FS_TRY_FTP
 } FileState;
 
 /* This is the context structure for the this module */
 typedef struct _file_info {
     FileState		state;		  /* Current state of the connection */
-    char *		localname;	/* Local representation of file name */
+    char *		local;		/* Local representation of file name */
 #ifdef NO_UNIX_IO    
     FILE *		fp;        /* If we can't use sockets on local files */
 #endif
@@ -77,105 +76,146 @@ struct _HTStream {
     /* ... */
 };
 
-/* Controlling globals */
-PUBLIC BOOL HTTakeBackup = YES;
+PRIVATE BOOL		HTTakeBackup = YES;
 
-PRIVATE char *HTMountRoot = "/Net/";		/* Where to find mounts */
+PRIVATE HTDirReadme	dir_readme = HT_DIR_README_TOP;
+PRIVATE HTDirAccess	dir_access = HT_DIR_OK;
+PRIVATE HTDirShow	dir_show = HT_DS_SIZE+HT_DS_DATE+HT_DS_DES+HT_DS_ICON;
+PRIVATE HTDirKey	dir_key = HT_DK_CINS;
 
 /* ------------------------------------------------------------------------- */
 
-/*	Convert file URLs into a local representation
-**	---------------------------------------------
-**	The URL has already been translated through the rules in get_physical
-**	in HTAccess.c and all we need to do now is to map the path to a local
-**	representation, for example if must translate '/' to the ones that
-**	turn the wrong way ;-)
-**
-** On Entry
-** 	The full URL that's is going to be translated
-** On Exit,
-**	-1	Error
-**	 0	URL is not pointing to the local file system
-**	 1	A local name is returned in `local' which must be freed
-**		by caller
+/*	Directory Access
+**	----------------
 */
-PRIVATE int HTLocalName ARGS2(CONST char *, url, char **, local)
+PUBLIC BOOL HTFile_setDirAccess (HTDirAccess mode)
 {
-    if (url) {
-	char * access = HTParse(url, "", PARSE_ACCESS);
-	char * host = HTParse(url, "", PARSE_HOST);
-	char * path = HTParse(url, "", PARSE_PATH+PARSE_PUNCTUATION);
-	CONST char *myhost;
-	
-	/* Find out if this is a reference to the local file system */
-	if ((*access && strcmp(access, "file")) ||
-	    (*host && strcasecomp(host, "localhost") &&
-	     (myhost=HTGetHostName()) && strcmp(host, myhost))) {
+    dir_access = mode;
+    return YES;
+}
+
+PUBLIC HTDirAccess HTFile_dirAccess (void)
+{
+    return dir_access;
+}
+
+/*	Directory Readme
+**	----------------
+*/
+PUBLIC BOOL HTFile_setDirReadme (HTDirReadme mode)
+{
+    dir_readme = mode;
+    return YES;
+}
+
+PUBLIC HTDirReadme HTFile_dirReadme (void)
+{
+    return dir_readme;
+}
+
+/*	HTFile_readDir
+**	--------------
+**	Reads the directory "path"
+**	Returns:
+**		HT_ERROR	Error
+**		HT_NO_ACCESS	Directory reading not allowed
+**		HT_LOADED	Successfully read the directory
+*/
+PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
+{
+#ifndef GOT_READ_DIR
+    return HT_ERROR;
+#else
+    DIR *dp;
+    struct stat file_info;
+    char *url = HTAnchor_physical(request->anchor);
+    char fullname[HT_MAX_PATH+1];
+    char *name;
+    if (PROT_TRACE) fprintf(TDEST, "Reading..... directory\n");
+    if (dir_access == HT_DIR_FORBID) {
+	HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		   NULL, 0, "HTFile_readDir");
+	return HT_NO_ACCESS;
+    }
+    
+    /* Initialize path name for stat() */
+    if (*(name = (url+strlen(url)-1)) != '/') {
+	char *newurl = NULL;
+	StrAllocCopy(newurl, url);
+	StrAllocCat(newurl, "/");
+	FREE(file->local);
+	file->local = HTWWWToLocal(newurl, "");
+	free(newurl);
+    }
+    strcpy(fullname, file->local);
+    name = fullname+strlen(fullname);		 /* Point to end of fullname */
+
+    /* Check if access is enabled */
+    if (dir_access == HT_DIR_SELECTIVE) {
+	strcpy(name, DEFAULT_DIR_FILE);
+	if (HT_STAT(fullname, &file_info)) {
 	    if (PROT_TRACE)
-		fprintf(TDEST, "LocalName... Not on local file system\n");
-	    free(access);
-	    free(host);
-	    free(path);
-	    return 0;
-	} else {
-	    /*
-	     ** Do whatever translation is required here in order to fit your
-	     ** platform _before_ the path is unescaped.
-	     */
-#if VMS
-	    HTVMS_checkDecnet(path);
-#endif
-#ifdef _WINDOWS
-	    /* an absolute pathname with logical drive */
-	    if (*path == '/' && path[2] == ':')    
-		/* NB. need memmove because overlaps */
-		memmove( path, path+1, strlen(path) + 1);
-#endif
-	    
-	    HTUnEscape(path);		  /* Take out the escaped characters */
-	    if (PROT_TRACE)
-		fprintf(TDEST, "Node........ `%s' means path `%s'\n",url,path);
-	    free(access);
-	    free(host);
-	    *local = path;
-	    return 1;
+		fprintf(TDEST,
+			"Read dir.... `%s\' not found\n", DEFAULT_DIR_FILE);
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		       NULL, 0, "HTFile_readDir");
+	    return HT_NO_ACCESS;
 	}
     }
-    return -1;
-}
 
+    if ((dp = opendir(file->local))) {
+	STRUCT_DIRENT *dirbuf;
+	HTDir *dir = HTDir_new(request, dir_show, dir_key);
+	char datestr[20];
+	char sizestr[10];
+	HTFileMode mode;
+#ifdef HT_REENTRANT
+	STRUCT_DIRENT result;				    /* For readdir_r */
+	while ((dirbuf = (STRUCT_DIRENT *) readdir_r(dp, &result)))
+#else
+	while ((dirbuf = readdir(dp)))
+#endif /* HT_REENTRANT */
+	{
+	    /* Current and parent directories are never shown in list */
+	    if (!dirbuf->d_ino ||
+		!strcmp(dirbuf->d_name, ".") || !strcmp(dirbuf->d_name, ".."))
+		continue;
 
-/*	Make a WWW name from a full local path name
-**
-** Bugs:
-**	At present, only the names of two network root nodes are hand-coded
-**	in and valid for the NeXT only. This should be configurable in
-**	the general case.
-*/
+	    /* Make a lstat on the file */
+	    strcpy(name, dirbuf->d_name);
+	    if (HT_LSTAT(fullname, &file_info)) {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read dir.... lstat failed: %s\n",fullname);
+		continue;
+	    }
 
-PUBLIC char * WWW_nameOfFile ARGS1 (CONST char *,name)
-{
-    char * result;
-#ifdef NeXT
-    if (0==strncmp("/private/Net/", name, 13)) {
-	result = (char *)malloc(7+strlen(name+13)+1);
-	if (result == NULL) outofmem(__FILE__, "WWW_nameOfFile");
-	sprintf(result, "file://%s", name+13);
+	    /* Convert stat info to fit our setup */
+	    if ((file_info.st_mode & S_IFMT) == S_IFDIR) {
+#ifdef VMS
+		char *dot = strstr(name, ".DIR");      /* strip .DIR part... */
+		if (dot) *dot = '\0';
+#endif /* VMS */
+		mode = HT_IS_DIR;
+		if (dir_show & HT_DS_SIZE) strcpy(sizestr, "-");
+	    } else {
+		mode = HT_IS_FILE;
+		if (dir_show & HT_DS_SIZE)
+		    HTNumToStr(file_info.st_size, sizestr, 10);
+	    }
+	    if (dir_show & HT_DS_DATE)
+		HTDateDirStr(&file_info.st_mtime, datestr, 20);
+
+	    /* Add to the list */
+	    if (HTDir_addElement(dir, name, datestr, sizestr, mode) != YES)
+		break;
+	}
+	closedir(dp);
+	HTDir_free(dir);
     } else
-#endif
-    if (0==strncmp(HTMountRoot, name, 5)) {
-	result = (char *)malloc(7+strlen(name+5)+1);
-	if (result == NULL) outofmem(__FILE__, "WWW_nameOfFile");
-	sprintf(result, "file://%s", name+5);
-    } else {
-        result = (char *)malloc(7+strlen(HTGetHostName())+strlen(name)+1);
-	if (result == NULL) outofmem(__FILE__, "WWW_nameOfFile");
-	sprintf(result, "file://%s%s", HTGetHostName(), name);
-    }
-    if (TRACE) fprintf(TDEST, "File `%s'\n\tmeans node `%s'\n", name, result);
-    return result;
+	HTErrorSysAdd(request,  ERR_FATAL, errno, NO, "opendir");
+    return HT_LOADED;
+#endif /* GOT_READ_DIR */
 }
-
 
 /*	Determine write access to a file
 **	--------------------------------
@@ -188,7 +228,7 @@ PUBLIC char * WWW_nameOfFile ARGS1 (CONST char *,name)
 **	1.	No code for non-unix systems.
 **	2.	Isn't there a quicker way?
 */
-PUBLIC BOOL HTEditable ARGS2(CONST char *, filename, struct stat *, stat_info)
+PRIVATE BOOL HTEditable (CONST char * filename, struct stat * stat_info)
 {
 #ifndef NO_UNIX_IO
 #ifdef NO_GROUPS
@@ -212,7 +252,7 @@ PUBLIC BOOL HTEditable ARGS2(CONST char *, filename, struct stat *, stat_info)
     ngroups = getgroups(NGROUPS, groups);	/* Groups to which I belong  */
     myUid = geteuid();				/* Get my user identifier */
 
-    if (TRACE) {
+    if (PROT_TRACE) {
         int i;
 	fprintf(TDEST, 
 	    "File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
@@ -236,7 +276,7 @@ PUBLIC BOOL HTEditable ARGS2(CONST char *, filename, struct stat *, stat_info)
 	        return YES;
 	}
     }
-    if (TRACE) fprintf(TDEST, "\tFile is not editable.\n");
+    if (PROT_TRACE) fprintf(TDEST, "\tFile is not editable.\n");
     return NO;					/* If no excuse, can't do */
 #endif
 #else
@@ -259,9 +299,8 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 {
 
     CONST char * addr = HTAnchor_address((HTAnchor*)request->anchor);
-    char *  filename;
+    char * filename = HTWWWToLocal(addr, "");
     FILE* fp;
-    HTLocalName(addr, &filename);
 
 /*	@ Introduce CVS handling here one day
 */
@@ -287,17 +326,18 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 	if ((fp=fopen(filename, "r"))) {		/* File exists */
 #endif /* not VMS */
 	    fclose(fp);
-	    if (TRACE) fprintf(TDEST, "File `%s' exists\n", filename);
+	    if (PROT_TRACE) fprintf(TDEST, "File `%s' exists\n", filename);
 	    if (REMOVE(backup_filename)) {
-		if (TRACE) fprintf(TDEST, "Backup file `%s' removed\n",
+		if (PROT_TRACE) fprintf(TDEST, "Backup file `%s' removed\n",
 				   backup_filename);
 	    }
 	    if (rename(filename, backup_filename)) {	/* != 0 => Failure */
-		if (TRACE) fprintf(TDEST, "Rename `%s' to `%s' FAILED!\n",
+		if (PROT_TRACE) fprintf(TDEST, "Rename `%s' to `%s' FAILED!\n",
 				   filename, backup_filename);
 	    } else {					/* Success */
-		if (TRACE) fprintf(TDEST, "Renamed `%s' to `%s'\n", filename,
-				   backup_filename);
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Renamed `%s' to `%s'\n", filename,
+			    backup_filename);
 	    }
 	}
     	free(backup_filename);
@@ -328,7 +368,7 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 	    fclose(file->fp);
 	}
 #endif
-	FREE(file->localname);
+	FREE(file->local);
 	free(file);
     }
     HTNet_delete(net, status);
@@ -361,7 +401,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 				HTAnchor_physical(request->anchor));
 	if ((file = (file_info *) calloc(1, sizeof(file_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadFILE");
-	file->state = FS_FILE_BEGIN;
+	file->state = FS_BEGIN;
 	net->context = file;
     } if (ops == FD_CLOSE) {				      /* Interrupted */
 	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
@@ -375,28 +415,25 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
 	switch (file->state) {
-	  case FS_FILE_BEGIN:
+	  case FS_BEGIN:
 	    if (HTSecure) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "LoadFile.... No access to local file system\n");
-		file->state = FS_FILE_TRY_FTP;
+		file->state = FS_TRY_FTP;
 		break;
 	    }
-	    if ((status = HTLocalName(HTAnchor_physical(request->anchor),
-				      &file->localname)) == -1) {
-		file->state = FS_FILE_ERROR;
-		break;
-	    } else if (status == 0) {
-		file->state = FS_FILE_TRY_FTP;
+	    file->local = HTWWWToLocal(HTAnchor_physical(request->anchor), "");
+	    if (!file->local) {
+		file->state = FS_TRY_FTP;
 		break;
 	    }
 
 	    /* If cache element then jump directly to OPEN FILE state */
 	    file->state = HTAnchor_cacheHit(request->anchor) ?
-		FS_FILE_NEED_OPEN_FILE : FS_FILE_DO_CN;
+		FS_NEED_OPEN_FILE : FS_DO_CN;
 	    break;
 
-	  case FS_FILE_DO_CN:
+	  case FS_DO_CN:
 	    /*
 	    ** If we have to do content negotiation then find the object that
 	    ** fits best into either what the client has indicated in the
@@ -409,34 +446,34 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    {
 		struct stat stat_info;	      /* Contains actual file chosen */
 		if (request->ContentNegotiation) {
-		    char *new_path=HTMulti(request,file->localname,&stat_info);
+		    char *new_path=HTMulti(request,file->local,&stat_info);
 		    if (new_path) {
-			FREE(file->localname);
-			file->localname = new_path;
+			FREE(file->local);
+			file->local = new_path;
 			HTAnchor_setPhysical(request->anchor, new_path);
 		    } else {
-			file->state = FS_FILE_ERROR;
+			file->state = FS_ERROR;
 			break;
 		    }
 		} else {
-		    if (HT_STAT(file->localname, &stat_info) == -1) {
+		    if (HT_STAT(file->local, &stat_info) == -1) {
 			if (PROT_TRACE)
 			    fprintf(TDEST, "HTLoadFile.. Can't stat %s\n",
-				    file->localname);
+				    file->local);
 			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				   NULL, 0, "HTLoadFile");
-			file->state = FS_FILE_ERROR;
+			file->state = FS_ERROR;
 			break;
 		    }
 		}
 		/* Check to see if the 'localname' is in fact a directory */
 		if (((stat_info.st_mode) & S_IFMT) == S_IFDIR)
-		    file->state = FS_FILE_PARSE_DIR;
+		    file->state = FS_PARSE_DIR;
 		else {
 		    /*
 		    ** If empty file then only serve it if it is editable
 		    */
-		    BOOL editable = HTEditable(file->localname, &stat_info);
+		    BOOL editable = HTEditable(file->local, &stat_info);
 		    HTBind_getBindings(request->anchor);
 		    if (editable)
 			HTAnchor_appendMethods(request->anchor, METHOD_PUT);
@@ -449,27 +486,27 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (!editable && !stat_info.st_size) {
 			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
 				   NULL, 0, "HTLoadFile");
-			file->state = FS_FILE_NO_DATA;
+			file->state = FS_NO_DATA;
 		    } else
-			file->state = FS_FILE_NEED_OPEN_FILE;
+			file->state = FS_NEED_OPEN_FILE;
 		}
 	    }
 	    break;
 
-	  case FS_FILE_NEED_OPEN_FILE:
+	  case FS_NEED_OPEN_FILE:
 	    /*
 	    ** If we have unix file descriptors then use this otherwise use
 	    ** the ANSI C file descriptors
 	    */
 #ifndef NO_UNIX_IO
-	    if ((net->sockfd = open(file->localname, O_RDONLY)) == -1) {
+	    if ((net->sockfd = open(file->local, O_RDONLY)) == -1) {
 		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "open");
-		file->state = FS_FILE_ERROR;
+		file->state = FS_ERROR;
 		break;
 	    }
 	    if (PROT_TRACE)
 		fprintf(TDEST,"HTLoadFile.. `%s' opened using socket %d \n",
-			file->localname, net->sockfd);
+			file->local, net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
 	    ** I use FCNTL so that I can ask the status before I set it.
@@ -494,22 +531,22 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 #endif /* NO_FCNTL */
 #else
 #ifdef VMS	
-	    if (!(file->fp = fopen(file->localname,"r","shr=put","shr=upd"))) {
+	    if (!(file->fp = fopen(file->local,"r","shr=put","shr=upd"))) {
 #else
-	    if ((file->fp = fopen(file->localname,"r")) == NULL) {
+	    if ((file->fp = fopen(file->local,"r")) == NULL) {
 #endif /* !VMS */
 		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
-		file->state = FS_FILE_ERROR;
+		file->state = FS_ERROR;
 		break;
 	    }
 	    if (PROT_TRACE)
 		fprintf(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
-			file->localname, file->fp);
+			file->local, file->fp);
 #endif /* !NO_UNIX_IO */
-	    file->state = FS_FILE_NEED_TARGET;
+	    file->state = FS_NEED_TARGET;
 	    break;
 
-	  case FS_FILE_NEED_TARGET:
+	  case FS_NEED_TARGET:
 	    /*
 	    ** We need to wait for the destinations to get ready
 	    */
@@ -539,13 +576,13 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 					     request->output_stream);
 	    else
 		net->target = HTStreamStack(HTAnchor_format(request->anchor),
-					     request->output_format,
-					     request->output_stream,
-					     request, YES);
-	    file->state = net->target ? FS_FILE_NEED_BODY : FS_FILE_ERROR;
+					    request->output_format,
+					    request->output_stream,
+					    request, YES);
+	    file->state = net->target ? FS_NEED_BODY : FS_ERROR;
 	    break;
 
-	  case FS_FILE_NEED_BODY:
+	  case FS_NEED_BODY:
 #ifndef NO_UNIX_IO
 	    status = HTSocketRead(request, net);
 #else
@@ -554,21 +591,20 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED) {
-		file->state = FS_FILE_GOT_DATA;
+		file->state = FS_GOT_DATA;
 	    } else
-		file->state = FS_FILE_ERROR;
+		file->state = FS_ERROR;
 	    break;
 
-	  case FS_FILE_PARSE_DIR:
-#ifdef GOT_READ_DIR
-	    file->state = HTBrowseDirectory(request, file->localname) < 0 ?
-		FS_FILE_ERROR : FS_FILE_GOT_DATA;
-#else
-	    file->state = FS_FILE_ERROR;
-#endif
+	  case FS_PARSE_DIR:
+	    status = HTFile_readDir(request, file);
+	    if (status == HT_LOADED)
+		file->state = FS_GOT_DATA;
+	    else
+		file->state = FS_ERROR;
 	    break;
 
-	  case FS_FILE_TRY_FTP:
+	  case FS_TRY_FTP:
 	    {
 		char *url = HTAnchor_physical(request->anchor);
 		HTAnchor *anchor;
@@ -585,7 +621,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    }
 	    break;
 
-	  case FS_FILE_GOT_DATA:
+	  case FS_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
@@ -601,7 +637,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    return HT_OK;
 	    break;
 
-	  case FS_FILE_NO_DATA:
+	  case FS_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
@@ -617,7 +653,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    return HT_OK;
 	    break;
 
-	  case FS_FILE_RETRY:
+	  case FS_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		HTRequest_killPostWeb(request);
@@ -634,7 +670,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    return HT_OK;
 	    break;
 
-	  case FS_FILE_ERROR:
+	  case FS_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);

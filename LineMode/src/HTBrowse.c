@@ -53,6 +53,7 @@
 */
 
 #include "WWWLib.h"			      /* Global Library Include file */
+#include "HTFile.h"				/* Specific protocol modules */
 #include "HTBrowse.h"			     /* Things exported, short names */
 #include "GridText.h"				     /* Hypertext definition */
 
@@ -111,7 +112,7 @@ struct ARc arc;
 #endif
 
 /* These must be defined as they are used in the Library */
-PUBLIC char *		HTAppName = "LineModeBrowser";   /* Application name */
+PUBLIC char *		HTAppName = "W3CLineMode";   /* Application name */
 PUBLIC char *		HTAppVersion = VL;            /* Application version */
 
 /* Screen size parameters */
@@ -1211,12 +1212,12 @@ int main ARGS2(int, argc, char **, argv)
 	    	char *p = argv[arg]+2;
 		for(;*p;p++) {
 		    switch (argv[arg][2]) {
-		      case 'b':	HTDirReadme = HT_DIR_README_BOTTOM; break;
-		      case 'n':	HTDirAccess = HT_DIR_FORBID; break;
-		      case 'r':	HTDirReadme = HT_DIR_README_NONE; break;
-		      case 's': HTDirAccess = HT_DIR_SELECTIVE; break;
-		      case 't':	HTDirReadme = HT_DIR_README_TOP; break;
-		      case 'y':	HTDirAccess = HT_DIR_OK; break;
+		      case 'r':HTFile_setDirReadme(HT_DIR_README_NONE); break;
+		      case 't':HTFile_setDirReadme(HT_DIR_README_TOP); break;
+		      case 'b':HTFile_setDirReadme(HT_DIR_README_BOTTOM);break;
+		      case 'n':HTFile_setDirAccess(HT_DIR_FORBID); break;
+		      case 's':HTFile_setDirAccess(HT_DIR_SELECTIVE); break;
+		      case 'y':HTFile_setDirAccess(HT_DIR_OK); break;
 		      default:
 			if (SHOW_MSG)
 			    fprintf(TDEST,"Bad parameter (%s) for -d option\n",
@@ -1303,8 +1304,8 @@ int main ARGS2(int, argc, char **, argv)
     }
 
     /* Disable free directory browsing when using telnet host */
-    if (HTClientHost && HTDirAccess==HT_DIR_OK)
-	HTDirAccess = HT_DIR_SELECTIVE;
+    if (HTClientHost && HTFile_dirAccess()==HT_DIR_OK)
+	HTFile_setDirAccess(HT_DIR_SELECTIVE);
 
 #ifndef HT_NO_RULES
     {
@@ -1400,8 +1401,12 @@ int main ARGS2(int, argc, char **, argv)
 	HTMemoryCache_register(HTMemoryCache);
 
 	/* Register STDIN as the user socket */
+#ifdef STDIN_FILENO
 	HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,
 			    scan_command, 1);
+#else
+	HTEvent_RegisterTTY(0, request, (SockOps)FD_READ, scan_command, 1);
+#endif
 
 	/* Set the DNS timeout */
 	HTDNS_setTimeout(300);
@@ -1435,7 +1440,8 @@ endproc:
     HTLibTerminate();
     if (HTPrompt_interactive())	   /* Terminate with a LF if not interactive */
 	printf("\n");
-
+    else
+	HTRequest_delete(request);
 #ifdef VMS
     return status ? status : 1;
 #else
@@ -1444,4 +1450,3 @@ endproc:
 }
 
 /* End HTBrowse.c */
-

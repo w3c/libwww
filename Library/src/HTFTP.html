@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>FTP Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -18,16 +18,6 @@
 This is the FTP load module that handles all communication with
 FTP-servers. <P>
 
-<B>Authors</B><P>
-
-<UL>
-<LI>Tim Berners-lee, timbl@w3.org
-<LI>Denis DeLaRoca 310 825-4580, CSP1DWD@mvs.oac.ucla.edu
-<LI>Lou Montulli, montulli@ukanaix.cc.ukans.edu
-<LI>Foteos Macrides, macrides@sci.wfeb.edu
-<LI>Henrik Frystyk, frystyk@w3.org
-</UL>
-
 This module is implemented by <A HREF="HTFTP.c">HTFTP.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
 Reference Library</A>.
@@ -35,23 +25,25 @@ Reference Library</A>.
 <PRE>
 #ifndef HTFTP_H
 #define HTFTP_H
-#include "HTFormat.h"
 #include "HTEvntrg.h"
 
 extern HTEventCallBack HTLoadFTP;
 
-#if 0
-extern HTConcerter HTFTPLongList, HTFTPShortList;
-#endif
-</PRE>
+typedef enum _FTPServerType {
+    FTP_GENERIC 	= 0x1,
+    FTP_MACHTEN		= 0x2,
+    FTP_UNIX		= 0x4,
+    FTP_VMS		= 0x8,
+    FTP_CMS		= 0x10,
+    FTP_DCTS		= 0x20,
+    FTP_TCPC		= 0x40,
+    FTP_PETER_LEWIS	= 0x80,
+    FTP_NCSA		= 0x200,
+    FTP_WINNT		= 0x400,
+    FTP_UNSURE		= 0x8000
+} FTPServerType;
 
-<PRE>
-#if 0
-#include "HTNet.h"
-#include "HTChunk.h"
-extern HTChunk *HTFTPWelcomeMsg (HTNet *data);
-extern BOOL HTFTUseList		(HTNet *data);
-#endif
+#define MAX_FTP_LINE	128			 /* Don't use more than this */
 </PRE>
 
 <PRE>

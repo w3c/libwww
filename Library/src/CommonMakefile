@@ -69,7 +69,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTProxy.o \
 	$(LOB)/HTMethod.o $(LOB)/HTProt.o $(LOB)/HTCache.o \
 	$(LOB)/HTNet.o $(LOB)/HTReqMan.o $(LOB)/HTBind.o \
 	$(LOB)/HTBTree.o $(LOB)/HTTCP.o $(LOB)/HTNetTxt.o \
-	$(LOB)/HTDNS.o \
+	$(LOB)/HTDNS.o $(LOB)/HTArray.o \
 	$(LOB)/SGML.o $(LOB)/HTML.o $(LOB)/HTMLPDTD.o $(LOB)/HTChunk.o \
 	$(LOB)/HTPlain.o $(LOB)/HTWriter.o $(LOB)/HTFWrite.o \
 	$(LOB)/HTMLGen.o $(LOB)/HTTee.o $(LOB)/HTXParse.o $(LOB)/HTEPtoCl.o \
@@ -83,14 +83,14 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTProxy.o \
 	$(LOB)/HTEscape.o $(LOB)/HTDescpt.o $(LOB)/HTGuess.o \
 	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) $(LOB)/HTGopher.o \
 	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTFile.o $(LOB)/HTNews.o \
-	$(LOB)/HTDirBrw.o $(LOB)/HTFTP.o
+	$(LOB)/HTFTP.o  $(LOB)/HTFTPDir.o $(LOB)/HTDir.o
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTMethod.c $(CMN)HTProt.c $(CMN)HTCache.c \
-	$(CMN)HTReqMan.c $(CMN)HTDNS.c\
+	$(CMN)HTReqMan.c $(CMN)HTDNS.c $(CMN)HTArray.c \
         $(CMN)HTFile.c $(CMN)HTBTree.c $(CMN)HTMulti.c \
 	$(CMN)HTFTP.c $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c \
-	$(CMN)HTMLPDTD.c \
+	$(CMN)HTMLPDTD.c $(CMN)HTDir.c $(CMN)HTFTPDir.c \
 	$(CMN)HTPlain.c	$(CMN)HTWriter.c  $(CMN)HTFWrite.c \
         $(CMN)HTMLGen.c	$(CMN)HTTee.c $(CMN)HTXParse.c $(CMN)HTEPtoCl.c \
 	$(CMN)HTChunk.c $(CMN)HTAtom.c   $(CMN)HTAnchor.c $(CMN)HTStyle.c \
@@ -100,17 +100,17 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTWAIS.c  $(CMN)HTWSRC.c $(CMN)HTSocket.c \
 	$(CMN)HTAAUtil.c $(CMN)HTAABrow.c $(CMN)HTAssoc.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
-	$(CMN)HTDirBrw.c $(CMN)HTDescpt.c $(CMN)HTGuess.c \
+	$(CMN)HTDescpt.c $(CMN)HTGuess.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTLog.c \
 	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTNet.c $(CMN)HTEvntrg.c \
 	$(CMN)HTEscape.c $(CMN)HTNetTxt.c $(CMN)HTBind.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTMethod.h $(CMN)HTProt.h $(CMN)HTCache.h \
-	$(CMN)HTReqMan.h $(CMN)HTReq.h  $(CMN)HTDNS.h \
+	$(CMN)HTReqMan.h $(CMN)HTReq.h  $(CMN)HTDNS.h $(CMN)HTArray.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
 	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLPDTD.h $(CMN)HTChunk.h \
-	$(CMN)HTNet.h $(CMN)HTNetMan.h \
+	$(CMN)HTNet.h $(CMN)HTNetMan.h $(CMN)HTFTPDir.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWrite.h 	$(CMN)HTMLGen.h	\
 	$(CMN)HTStream.h	$(CMN)HTStruct.h \
@@ -120,13 +120,13 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
 	$(CMN)HTFormat.h $(CMN)HTInit.h \
 	$(CMN)HTMIME.h $(CMN)HTHist.h $(CMN)HTNews.h \
-	$(CMN)HTGopher.h \
+	$(CMN)HTGopher.h $(CMN)HTDir.h \
 	$(CMN)HTUtils.h $(CMN)tcp.h $(CMN)HText.h \
 	$(CMN)HTTelnet.h \
 	$(CMN)HTWAIS.h  $(CMN)HTWSRC.h $(CMN)HTSocket.h \
 	$(CMN)HTAAUtil.h $(CMN)HTAABrow.h $(CMN)HTAssoc.h \
 	$(CMN)HTUU.h $(CMN)HTTeXGen.h \
-	$(CMN)HTDirBrw.h $(CMN)HTDescpt.h $(CMN)HTGuess.h \
+	$(CMN)HTDescpt.h $(CMN)HTGuess.h \
 	$(CMN)HTIcons.h $(CMN)HTError.h $(CMN)HTLog.h \
 	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTEvntrg.h \
 	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)HTBind.h $(CMN)WWWLib.h
@@ -317,8 +317,11 @@ $(LOB)/HTStyle.o : $(OE) $(CMN)HTStyle.c $(CMN)HTUtils.h
 $(LOB)/HTAtom.o : $(OE) $(CMN)HTAtom.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTAtom.c
 
-$(LOB)/HTChunk.o : $(OE) $(CMN)HTChunk.c $(CMN)HTUtils.h
+$(LOB)/HTChunk.o : $(OE) $(CMN)HTChunk.c $(CMN)HTChunk.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTChunk.c
+
+$(LOB)/HTArray.o : $(OE) $(CMN)HTArray.c $(CMN)HTArray.h $(CMN)HTUtils.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTArray.c
 
 $(LOB)/HTString.o : $(OE) $(CMN)HTString.c $(CMN)HTUtils.h $(CMN)Version.make
 	$(CC) -c -o $@ $(CFLAGS2) -DVC=\"$(VC)\" $(CMN)HTString.c
@@ -395,19 +398,19 @@ $(LOB)/HTUU.o : $(OE) $(CMN)HTUU.c $(CMN)HTUU.h $(CMN)HTUtils.h
 
 #	Communications & Files
 
-$(LOB)/HTTCP.o : $(OE) $(CMN)HTTCP.c $(CMN)HTUtils.h
+$(LOB)/HTTCP.o : $(OE) $(CMN)HTTCP.c $(CMN)HTTCP.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTCP.c
 
-$(LOB)/HTDNS.o : $(OE) $(CMN)HTDNS.c $(CMN)HTUtils.h
+$(LOB)/HTDNS.o : $(OE) $(CMN)HTDNS.c $(CMN)HTDNS.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTDNS.c
 
 $(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTFile.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFile.c
 
-$(LOB)/HTDirBrw.o : $(OE) $(CMN)HTDirBrw.c $(CMN)HTDirBrw.h
-	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTDirBrw.c
+$(LOB)/HTDir.o : $(OE) $(CMN)HTDir.c $(CMN)HTDir.h $(CMN)HTUtils.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTDir.c
 
-$(LOB)/HTIcons.o : $(OE) $(CMN)HTIcons.c $(CMN)HTIcons.h
+$(LOB)/HTIcons.o : $(OE) $(CMN)HTIcons.c $(CMN)HTIcons.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTIcons.c
 
 $(LOB)/HTDescpt.o : $(OE) $(CMN)HTDescpt.c $(CMN)HTDescpt.h
@@ -420,8 +423,11 @@ $(LOB)/HTMulti.o : $(OE) $(CMN)HTMulti.c $(CMN)HTUtils.h \
 $(LOB)/HTBTree.o : $(OE) $(CMN)HTBTree.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTBTree.c
 
-$(LOB)/HTFTP.o : $(OE) $(CMN)HTFTP.c $(CMN)HTUtils.h
+$(LOB)/HTFTP.o : $(OE) $(CMN)HTFTP.c $(CMN)HTFTP.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFTP.c
+
+$(LOB)/HTFTPDir.o : $(OE) $(CMN)HTFTPDir.c $(CMN)HTFTPDir.h $(CMN)HTUtils.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFTPDir.c
 
 $(LOB)/HTAccess.o : $(OE)  $(CMN)HTAccess.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTAccess.c

@@ -193,6 +193,15 @@ PUBLIC HTList *HTNet_activeQueue (void)
     return HTNetActive;
 }
 
+/*	HTNet_activeCount
+**	----------------
+**	Returns the number of active requests
+*/
+PUBLIC int HTNet_activeCount (void)
+{
+    return HTList_count(HTNetActive);
+}
+
 /*	HTNet_pendingQueue
 **	------------------
 **	Returns the list of pending requests that are waiting to become active
@@ -357,14 +366,11 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    HTNet *next;
 	    while ((next = (HTNet *) HTList_nextObject(cur))) {
 		if (next->sockfd == cs) {
-		    BOOL e1, e2;
 		    if (THD_TRACE)
 			fprintf(TDEST, "HTNet delete launch WARM request %p\n",
 				next->request);
-		    e1 = HTList_addObject(HTNetActive, (void *) next);
-		    e2 = HTList_removeObject(HTNetPersistent, (void *) next);
-		    fprintf(TDEST, "TEST........ (%d) and (%d)\n",
-			    e1+0x30, e2+0x30);
+		    HTList_addObject(HTNetActive, (void *) next);
+		    HTList_removeObject(HTNetPersistent, (void *) next);
 		    (*(next->cbf))(next->sockfd, next->request, FD_NONE);
 		    break;
 		}

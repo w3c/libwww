@@ -14,6 +14,7 @@
 
 #include "WWWLib.h"
 #include "HTUtils.h"
+#include "HTStyle.h"
 
 /*	Local definition of style
 **	-------------------------

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 21-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Sep-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -394,7 +394,7 @@ is <CODE>NULL</CODE> which means that the stream goes to the user
 
 <PRE>
 extern void HTRequest_setOutputStream (HTRequest *request, HTStream *output);
-extern HTStream *HTRequest_OutputStream (HTRequest *request);
+extern HTStream *HTRequest_outputStream (HTRequest *request);
 </PRE>
 
 The desired format of the output stream. This can be used to get
@@ -403,7 +403,7 @@ HREF="HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
 
 <PRE>
 extern void HTRequest_setOutputFormat (HTRequest *request, HTFormat format);
-extern HTFormat HTRequest_OutputFormat (HTRequest *request);
+extern HTFormat HTRequest_outputFormat (HTRequest *request);
 </PRE>
 
 <H3>Debug Stream</H3>
@@ -416,7 +416,7 @@ then the stream is not set up.
 
 <PRE>
 extern void HTRequest_setDebugStream (HTRequest *request, HTStream *debug);
-extern HTStream *HTRequest_DebugStream (HTRequest *request);
+extern HTStream *HTRequest_debugStream (HTRequest *request);
 </PRE>
 
 The desired format of the error stream. This can be used to get
@@ -425,7 +425,7 @@ unconverted data etc. from the library. The default value if
 
 <PRE>
 extern void HTRequest_setDebugFormat (HTRequest *request, HTFormat format);
-extern HTFormat HTRequest_DebugFormat (HTRequest *request);
+extern HTFormat HTRequest_debugFormat (HTRequest *request);
 </PRE>
 
 <H2><A NAME="context">Context Swapping</A></H2>

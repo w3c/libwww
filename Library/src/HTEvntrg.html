@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Event Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -26,25 +26,8 @@ Reference Library</A>. <P>
 <PRE>
 #ifndef HTEVNTRG_H
 #define HTEVNTRG_H
-#include "tcp.h"
 #include "HTReq.h"
-</PRE>
-
-<H2>Handler for Timeout on Sockets</H2>
-
-This function sets the timeout for sockets in the
-<CODE>select()</CODE> call and registers a timeout function that is
-called if select times out. This does only works on NON windows
-platforms as we need to poll for the console on windows If <CODE>tv =
-NULL</CODE> then timeout is disabled. Default is no timeout. If
-<EM>always=YES</EM> then the callback is called at all times, if NO
-then only when Library sockets are active. Returns YES if OK else NO.
-
-<PRE>
-typedef int HTEventTimeout (HTRequest *);
-
-extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
-				     HTEventTimeout *tcbf, BOOL always);
+#include "tcp.h"
 </PRE>
 
 <H2>Event Handlers</H2>
@@ -115,6 +98,23 @@ structures: it is up to the application to actually close the socket.
 
 <PRE>
 extern int HTEvent_UnregisterAll (void);
+</PRE>
+
+<H2>Handler for Timeout on Sockets</H2>
+
+This function sets the timeout for sockets in the
+<CODE>select()</CODE> call and registers a timeout function that is
+called if select times out. This does only works on NON windows
+platforms as we need to poll for the console on windows If <CODE>tv =
+NULL</CODE> then timeout is disabled. Default is no timeout. If
+<EM>always=YES</EM> then the callback is called at all times, if NO
+then only when Library sockets are active. Returns YES if OK else NO.
+
+<PRE>
+typedef int HTEventTimeout (HTRequest *);
+
+extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
+				     HTEventTimeout *tcbf, BOOL always);
 </PRE>
 
 <H2>Eventloop</H2>

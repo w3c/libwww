@@ -67,7 +67,7 @@ PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
 		long b_read = HTRequest_bytesRead(request);
 		double pro = (double) b_read/cl*100;
 		char buf[10];
-		HTNumToStr((unsigned long) cl, buf);
+		HTNumToStr((unsigned long) cl, buf, 10);
 		fprintf(TDEST, "Read (%d%% of %s)\n", (int) pro, buf);
 	    } else
 		fprintf(TDEST, "Reading...\n");

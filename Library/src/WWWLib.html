@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Global Include File for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -42,7 +42,8 @@ extern "C" {
 #include "HTUtils.h"			/* Macros and other stuff */
 #include "HTString.h"			/* Generic string utilities */
 #include "HTList.h"			/* Linked lists */
-#include "HTChunk.h"			/* Dynamic arrays */
+#include "HTChunk.h"			/* Dynamic strings */
+#include "HTArray.h"			/* Dynamic arrays */
 #include "HTAtom.h"			/* Pointer referenced strings */
 #include "HTParse.h"			/* Parse URLs */
 </PRE>
@@ -76,7 +77,7 @@ extern "C" {
 
 /* Directory Listings */
 #include "HTIcons.h"
-#include "HTDirBrw.h"
+#include "HTDir.h"
 #include "HTDescpt.h"
 
 /* Application specific modules */

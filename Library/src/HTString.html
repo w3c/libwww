@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>String Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -51,8 +51,8 @@ extern char * HTSACat  PARAMS ((char **dest, CONST char *src));
 The usual routines (comp instead of cmp) had some problem.
 
 <PRE>
-extern int strcasecomp  PARAMS((CONST char *a, CONST char *b));
-extern int strncasecomp PARAMS((CONST char *a, CONST char *b, int n));
+extern int strcasecomp  (CONST char *a, CONST char *b);
+extern int strncasecomp (CONST char *a, CONST char *b, int n);
 </PRE>
 
 <H2>Case-insensitive strstr</H2>
@@ -86,9 +86,14 @@ extern char * HTNextField PARAMS ((char** pstr));
 Returns a pointer to a static area!
 
 <PRE>
-extern CONST char *HTDateTimeStr PARAMS((time_t *calendar, BOOL local));
+extern CONST char *HTDateTimeStr	(time_t *calendar, BOOL local);
 </PRE>
 
+<H2>Date used for directory listings</H2>
+
+<PRE>
+extern BOOL HTDateDirStr		(time_t * time, char * str, int len);
+</PRE>
 
 <H2>Timezone Offset</H2>
 
@@ -125,7 +130,34 @@ it's just a feature.  The conversion is done in "str" which must be
 large enough to contain the result.
 
 <PRE>
-extern void HTNumToStr PARAMS((unsigned long n, char *str));
+extern void HTNumToStr (unsigned long n, char *str, int len);
+</PRE>
+
+<H2>Conversion between URLs and Local File Names</H2>
+
+These are two functions that separate the URL naming syntax from
+platform dependent file naming schemes. If you are porting the code to
+a new platform, you probably have to do some translation here.
+
+<H3>Convert file URLs into a local representation</H3>
+
+The URL has already been translated through the rules in get_physical
+in HTAccess.c and all we need to do now is to map the path to a local
+representation, for example if must translate '/' to the ones that
+turn the wrong way ;-) Returns local file (that must be freed by
+caller) if OK, else NULL.
+
+<PRE>
+extern char * HTWWWToLocal (CONST char * url, CONST char * base);
+</PRE>
+
+<H3>Convert a local file name into a URL</H3>
+
+Generates a WWW URL name from a local file name or NULL if error.
+Returns URL (that must be freed by caller) if OK, else NULL.
+
+<PRE>
+extern char * HTLocalToWWW (CONST char * local);
 </PRE>
 
 End of declaration module

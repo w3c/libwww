@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Style Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -98,54 +98,7 @@ typedef struct _HTParagraphStyle HTParagraphStyle;
 **	-------------------
 */
 
-typedef struct _HTStyle
-#ifdef DEFINE_STRUCT_HTSTYLE		/* Don't */
- {
-
-/*	Style management information
-*/
-    struct _HTStyle	*next;		/* Link for putting into stylesheet */
-    char *		name;		/* Style name */
-    char *		SGMLTag;	/* Tag name to start */
-
-
-/*	Character attributes	(a la NXRun)
-*/
-    HTFont 	    	font;		/* Font id */
-    HTCoord		fontSize;	/* The size of font, not independent */
-    HTColor	    	color;	/* text gray of current run */
-    int   		superscript;	/* superscript (-sub) in points */
-
-    HTAnchor		*anchor;	/* Anchor id if any, else zero */
-
-/*	Paragraph Attribtes	(a la NXTextStyle)
-*/
-    HTCoord		indent1st;	/* how far first line in paragraph is
-				 * indented */
-    HTCoord		leftIndent;	/* how far second line is indented */
-    HTCoord		rightIndent;	/* (Missing from NeXT version */
-    short       	alignment;	/* quad justification */
-    HTCoord		lineHt;		/* line height */
-    HTCoord     	descentLine;	/* descender bottom from baseline */
-    HTTabStop   	*tabs;		/* array of tab stops, 0 terminated */
-
-    BOOL		wordWrap;	/* Yes means wrap at space not char */
-    BOOL		freeFormat;	/* Yes means \n is just white space */
-    HTCoord		spaceBefore;	/* Omissions from NXTextStyle */
-    HTCoord		spaceAfter;
-    int			paraFlags;	/* Paragraph flags, bits as follows: */
-
-#define PARA_KEEP	1	/* Do not break page within this paragraph */
-#define	PARA_WITH_NEXT	2	/* Do not break page after this paragraph */
-
-#define HT_JUSTIFY 0		/* For alignment */
-#define HT_LEFT	1
-#define HT_RIGHT 2
-#define HT_CENTER 3
-  
-}
-#endif
- HTStyle;
+typedef struct _HTStyle HTStyle;
 
 </pre>
 <h2>Style Creation</h2>

@@ -345,7 +345,7 @@ PUBLIC void HTRequest_setOutputStream (HTRequest *request, HTStream *output)
     if (request) request->output_stream = output;
 }
 
-PUBLIC HTStream *HTRequest_OutputStream (HTRequest *request)
+PUBLIC HTStream *HTRequest_outputStream (HTRequest *request)
 {
     return request ? request->output_stream : NULL;
 }
@@ -358,7 +358,7 @@ PUBLIC void HTRequest_setOutputFormat (HTRequest *request, HTFormat format)
     if (request) request->output_format = format;
 }
 
-PUBLIC HTFormat HTRequest_OutputFormat (HTRequest *request)
+PUBLIC HTFormat HTRequest_outputFormat (HTRequest *request)
 {
     return request ? request->output_format : NULL;
 }
@@ -371,7 +371,7 @@ PUBLIC void HTRequest_setDebugStream (HTRequest *request, HTStream *debug)
     if (request) request->debug_stream = debug;
 }
 
-PUBLIC HTStream *HTRequest_DebugStream (HTRequest *request)
+PUBLIC HTStream *HTRequest_debugStream (HTRequest *request)
 {
     return request ? request->debug_stream : NULL;
 }
@@ -384,7 +384,7 @@ PUBLIC void HTRequest_setDebugFormat (HTRequest *request, HTFormat format)
     if (request) request->debug_format = format;
 }
 
-PUBLIC HTFormat HTRequest_DebugFormat (HTRequest *request)
+PUBLIC HTFormat HTRequest_debugFormat (HTRequest *request)
 {
     return request ? request->debug_format : NULL;
 }

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -29,6 +29,7 @@ Reference Library</A>.
 <PRE>
 #ifndef HTNET_H
 #define HTNET_H
+#include "HTEvntrg.h"
 #include "HTReq.h"
 </PRE>
 
@@ -129,8 +130,8 @@ connection. Returns list of HTNet objects or NULL if error
 
 <PRE>
 extern HTList *HTNet_activeQueue (void);
+extern int HTNet_activeCount (void);
 </PRE>
-
 
 <H2>List Pending Queue</H2>
 

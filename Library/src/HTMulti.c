@@ -14,7 +14,7 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTMulti.h"
-#include "HTDirBrw.h"
+#include "HTFile.h"
 #include "HTBind.h"
 #include "HTList.h"
 #include "HTReqMan.h"
@@ -167,7 +167,7 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
 	if (!dirbuf->d_ino) continue;	/* Not in use */
 	if (!strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||
-	    !strcmp(dirbuf->d_name, HT_DIR_ENABLE_FILE))
+	    !strcmp(dirbuf->d_name, DEFAULT_DIR_FILE))
 	    continue;
 
 	/* Use of direct->namlen is only valid in BSD'ish system */
@@ -321,7 +321,7 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
 	if (!dirbuf->d_ino ||
 	    !strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||
-	    !strcmp(dirbuf->d_name, HT_DIR_ENABLE_FILE))
+	    !strcmp(dirbuf->d_name, DEFAULT_DIR_FILE))
 	    continue;
 	else {
 	    int v = welcome_value(dirbuf->d_name);

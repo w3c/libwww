@@ -24,6 +24,7 @@
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
+#include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTDNS.h"
 #include "HTTCP.h"					 /* Implemented here */
@@ -780,7 +781,12 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    net->tcpstate = TCP_CONNECTED;
 		    break;
 		}
-		if (socerrno == EBADF) {	       /* We lost the socket */
+#ifdef _WINSOCKAPI_
+		if (socerrno == WSAEEBADF)  	       /* We lost the socket */
+#else
+		if (socerrno == EBADF)  	       /* We lost the socket */
+#endif
+		{
 		    net->tcpstate = TCP_NEED_SOCKET;
 		    break;
 		}
@@ -789,7 +795,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    /* Added EINVAL `invalid argument' as this is what I 
 		       get back from a non-blocking connect where I should 
 		       get `connection refused' on BSD. SVR4 gives SIG_PIPE */
-#ifdef __srv4__
+#if defined(__srv4__) || defined (_WINSOCKAPI_)
 		    if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
 			socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
 			socerrno==EHOSTDOWN)

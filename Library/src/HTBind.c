@@ -348,14 +348,12 @@ PUBLIC BOOL HTBind_getBindings ARGS1(HTParentAnchor *, anchor)
 **
 **  If more than one suffix is found they are all searched. The last suffix
 **  has highest priority, the first one lowest. See also HTBind_getBindings()
-**
+**  Either of format, encoding, or language can be NULL
 **  Returns the format, encoding, and language found
 */
-PUBLIC BOOL HTBind_getFormat ARGS5(CONST char *,filename,
-				   HTFormat *,	format,
-				   HTEncoding *,encoding,
-				   HTLanguage *,language,
-				   double *, quality)
+PUBLIC BOOL HTBind_getFormat (CONST char * filename, HTFormat * format,
+			      HTEncoding * enc, HTLanguage * lang,
+			      double * quality)
 {
     int sufcnt=0;
     char *file=NULL;
@@ -395,9 +393,9 @@ PUBLIC BOOL HTBind_getFormat ARGS5(CONST char *,filename,
 		    if ((HTCaseSen && !strcmp(suff->suffix, suffix)) ||
 			!strcasecomp(suff->suffix, suffix)) {
 			if (BIND_TRACE) fprintf(TDEST, "Found!\n");
-			if (suff->type) *format = suff->type;
-			if (suff->encoding) *encoding = suff->encoding;
-			if (suff->language) *language = suff->language;
+			if (suff->type && format) *format = suff->type;
+			if (suff->encoding && enc) *enc = suff->encoding;
+			if (suff->language && lang) *lang = suff->language;
 			if (suff->quality > HT_EPSILON)
 			    *quality *= suff->quality;
 			break;
@@ -407,9 +405,9 @@ PUBLIC BOOL HTBind_getFormat ARGS5(CONST char *,filename,
 	    if (!suff) {	/* We don't have this suffix - use default */
 		if (BIND_TRACE)
 		    fprintf(TDEST,"Not found - use default for \'*.*\'\n");
-		*format = unknown_suffix.type;
-		*encoding = unknown_suffix.encoding;
-		*language = unknown_suffix.language;
+		if (format) *format = unknown_suffix.type;
+		if (enc) *enc = unknown_suffix.encoding;
+		if (lang) *lang = unknown_suffix.language;
 		*quality = unknown_suffix.quality;
 	    }
 	} /* while we still have suffixes */
@@ -417,17 +415,17 @@ PUBLIC BOOL HTBind_getFormat ARGS5(CONST char *,filename,
     if (!sufcnt) {		/* No suffix so use default value */
 	if (BIND_TRACE)
 	    fprintf(TDEST, "Get Binding. No suffix found - using default '%s\'\n", filename);
-	*format = no_suffix.type;
-	*encoding = no_suffix.encoding;
-	*language = no_suffix.language;
+	if (format) *format = no_suffix.type;
+	if (enc) *enc = no_suffix.encoding;
+	if (lang) *lang = no_suffix.language;
 	*quality = no_suffix.quality;
     }
     if (BIND_TRACE)
 	fprintf(TDEST, "Get Binding. Result for '%s\' is: type='%s\', encoding='%s\', language='%s\' with quality %.2f\n",
 		filename,
-		*format ? HTAtom_name(*format) : "unknown",
-		*encoding ? HTAtom_name(*encoding) : "unknown",
-		*language ? HTAtom_name(*language) : "unknown",
+		(format && *format) ? HTAtom_name(*format) : "unknown",
+		(enc && *enc) ? HTAtom_name(*enc) : "unknown",
+		(lang && *lang) ? HTAtom_name(*lang) : "unknown",
 		*quality);
     free(file);
     return YES;

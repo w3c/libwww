@@ -188,6 +188,11 @@ PUBLIC BOOL HTDNS_setSocket(HTdns *dns, SOCKFD socket)
     return NO;
 }
 
+PUBLIC int HTDNS_socketCount (void)
+{
+    return PersSock ? HTList_count(PersSock) : 0;
+}
+
 PUBLIC void HTDNS_clearActive (HTdns *dns)
 {
     if (dns) {

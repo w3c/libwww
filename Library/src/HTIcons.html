@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Icon Management</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Sep-1995 -->
 </HEAD>
 <BODY>
 <H1>Icon Management</H1>
@@ -53,16 +54,24 @@ typedef struct _HTHrefNode {
     char *      href_url;
     char *      type_templ;
 } HTHrefNode;
+</PRE>
 
+<H2>File Mode</H2>
 
+This is a simplified file mode enumeration that can is used in
+directory listings.
+
+<PRE>
+typedef  enum _HTFileMode {
+    HT_IS_FILE,				/* Normal file */
+    HT_IS_DIR,				/* Directory */
+    HT_IS_BLANK,			/* Blank Icon */
+    HT_IS_PARENT			/* Parent Directory */
+} HTFileMode;
 </PRE>
 
 <PRE>
 extern BOOL HTDirShowBrackets;
-extern HTIconNode * icon_unknown; 		/* Unknown file type */
-extern HTIconNode * icon_blank;			/* Blank icon in heading */
-extern HTIconNode * icon_parent;	        /* Parent directory icon */
-extern HTIconNode * icon_dir;                   /* Directory icon */
 </PRE>
 
 <H2>Public functions</H2>
@@ -118,7 +127,7 @@ extern void HTAddDirIcon PARAMS((char * url,
 /*								 HTGetIcon()
 ** returns the icon corresponding to content_type or content_encoding.
 */
-extern HTIconNode * HTGetIcon PARAMS((mode_t		mode,
+extern HTIconNode * HTGetIcon PARAMS((HTFileMode	mode,
 				      HTFormat		content_type,
 				      HTEncoding	content_encoding));
 
