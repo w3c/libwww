@@ -14,6 +14,7 @@
 class CWinComApp;
 class CLocation;
 class CEntityInfo;
+class CLinks;
 
 class CRequest : public CObject
 {
@@ -21,6 +22,7 @@ class CRequest : public CObject
         
         // Construction
 public:
+	CLinks * m_pLinks;
 	HTAnchor * m_pHTAnchorSource;
 	HTAnchor * m_pHTAnchorDestination;
 	char * m_cwd;

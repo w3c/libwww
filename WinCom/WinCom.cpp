@@ -10,6 +10,7 @@
 
 #include "Location.h"
 #include "EntityInfo.h"
+#include "Links.h"
 #include "Options.h"
 #include "Password.h"
 
@@ -122,6 +123,9 @@ BOOL CWinComApp::InitInstance()
         /* We do our own local file suffix bindings */
         HTFile_doFileSuffixBinding(NO);
 
+        /* We don't care about case sensitivity when matching local files */
+        HTBind_caseSensitive(NO);
+
         // Create our (currently one and only request */
         m_pRequest = new CRequest( this );
 
@@ -136,7 +140,11 @@ BOOL CWinComApp::InitInstance()
 	CEntityInfo entityPage( m_pRequest );
 	WinCom.AddPage( &entityPage );
 
-	// add and initialize the options page....
+        // add and initialize the location page....
+	CLinks linksPage( m_pRequest );
+	WinCom.AddPage( &linksPage );
+
+        // add and initialize the options page....
 	COptions optionsPage( this );
 	WinCom.AddPage( &optionsPage );
 

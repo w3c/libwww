@@ -169,14 +169,14 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 
 	/* First look in the main link */
 	if (link && (linktype = HTLink_type(link))) {		    
-	    char * src = HTAnchor_address((HTAnchor *) entity);
+	    char * src = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
 	    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
 	    char * dst = HTAnchor_address((HTAnchor *) dest);
-	    char * rel_dst = HTRelative(src, dst);
+	    char * rel_dst = HTRelative(dst, src);
 	    if (rel_dst) {
-		PUTS("Link: <");
+		PUTS("Link: \"");
 		PUTS(rel_dst);
-		PUTS(">");
+		PUTS("\"");
 		sprintf(linebuf, ";rel=\"%s\"", HTAtom_name(linktype));
 		PUTBLOCK(linebuf, (int) strlen(linebuf));
 		HT_FREE(rel_dst);
@@ -190,11 +190,11 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 		    if ((linktype = HTLink_type(pres))) {
 			dest = HTAnchor_parent(HTLink_destination(pres));
 			dst = HTAnchor_address((HTAnchor *) dest);
-			rel_dst = HTRelative(src, dst);
+			rel_dst = HTRelative(dst, src);
 			if (rel_dst) {
-			    PUTS(", <");
+			    PUTS(", \"");
 			    PUTS(rel_dst);
-			    PUTS(">");
+			    PUTS("\"");
 			    sprintf(linebuf, ";rel=\"%s\"", HTAtom_name(linktype));
 			    PUTBLOCK(linebuf, (int) strlen(linebuf));
 			    HT_FREE(rel_dst);

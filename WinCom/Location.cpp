@@ -30,6 +30,7 @@ CLocation::CLocation( CRequest * pRequest) : CPropertyPage(CLocation::IDD)
     m_source = _T("");
     //}}AFX_DATA_INIT
     m_pRequest = pRequest;
+    m_appendSource = TRUE;
     pRequest->m_pLocation = this;
 }
 
@@ -93,15 +94,19 @@ void CLocation::OnBrowse()
     CFileDialog fd(true);
     if (fd.DoModal() == IDOK) {
         char * local = HTLocalToWWW(fd.GetPathName());
-	CString file = fd.GetFileName();
         if (local) {
             SetDlgItemText(IDC_SOURCE_URI, local);
             HT_FREE(local);
         }
-	if (file) {
-	    m_destination += file; 
-	    SetDlgItemText(IDC_DESTINATION_URI, m_destination);
-	}
+
+        if (m_appendSource) {
+            CString file = fd.GetFileName();
+        	if (file) {
+	        m_destination += file; 
+	        SetDlgItemText(IDC_DESTINATION_URI, m_destination);
+	    }
+            m_appendSource = FALSE;
+        }
     }
 }
 

@@ -18,6 +18,7 @@ class CLocation : public CPropertyPage
 
 // Construction
 public:
+	bool m_appendSource;
 	CLocation( CRequest * pRequest );
         CLocation();
         ~CLocation();

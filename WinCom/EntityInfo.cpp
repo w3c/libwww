@@ -60,9 +60,13 @@ void CEntityInfo::DoDataExchange(CDataExchange* pDX)
     DDV_MinMaxInt(pDX, m_age, 0, 60000);
 
     DDX_Text(pDX, IDC_CONTENT_LENGTH, m_contentLength);
-    DDX_Text(pDX, IDC_LAST_MODIFIED, m_lastModified.Format("%a, %d %b %Y %H:%M:%S"));
+
 	//}}AFX_DATA_MAP
 }
+
+#if 0
+    DDX_Text(pDX, IDC_LAST_MODIFIED, m_lastModified.Format("%a, %d %b %Y %H:%M:%S"));
+#endif
 
 Format( DWORD dwFlags = 0, LCID lcid = LANG_USER_DEFAULT );
 
@@ -142,23 +146,23 @@ BOOL CEntityInfo::OnKillActive()
     BOOL bOk = CPropertyPage::OnKillActive();
     if ( bOk ) {
 	HTParentAnchor * src = HTAnchor_parent(m_pRequest->m_pHTAnchorSource);
-	if (m_mediaType && *m_mediaType) {
+	if (m_mediaType && !m_mediaType.IsEmpty()) {
 	    char * mediaType = m_mediaType.GetBuffer(16);
 	    HTAnchor_setFormat(src, HTAtom_for(mediaType));
 	    m_mediaType.ReleaseBuffer();
 	}
-	if (m_contentEncoding && *m_contentEncoding) {
+	if (m_contentEncoding && !m_contentEncoding.IsEmpty()) {
 	    char * encoding = m_contentEncoding.GetBuffer(16);
 	    HTAnchor_deleteEncodingAll(src);
 	    HTAnchor_addEncoding(src, HTAtom_for(encoding));
-	    m_charset.ReleaseBuffer();
+	    m_contentEncoding.ReleaseBuffer();
 	}
-	if (m_charset && *m_charset) {
+	if (m_charset && !m_charset.IsEmpty()) {
 	    char * charset = m_charset.GetBuffer(16);
 	    HTAnchor_setCharset(src, HTAtom_for(charset));
 	    m_charset.ReleaseBuffer();
 	}
-	if (m_language && *m_language) {
+	if (m_language && !m_language.IsEmpty()) {
 	    char * language = m_language.GetBuffer(16);
 	    HTAnchor_deleteLanguageAll(src);
 	    HTAnchor_addLanguage(src, HTAtom_for(language));

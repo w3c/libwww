@@ -39,7 +39,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("aifc",	"audio/x-aiff",			NULL,		"binary",	NULL,	1.0);
     HTBind_add("aiff",	"audio/x-aiff",			NULL,		"binary",	NULL,	1.0);
     HTBind_add("au",	"audio/basic",			NULL,		"binary",	NULL,	1.0);
-    HTBind_add("asf,	"video/x-ms-asf",		NULL,		"binary",	NULL,	1.0);	/* MS Active Streaming	*/
+    HTBind_add("asf",	"video/x-ms-asf",		NULL,		"binary",	NULL,	1.0);	/* MS Active Streaming	*/
     HTBind_add("avi",	"video/x-msvideo",		NULL,		"binary",	NULL,	1.0);	/* MS Video for Windows	*/
     HTBind_add("bat",	"application/octet-stream",	NULL,		"binary",	NULL,	1.0);	/* Uninterpreted binary	*/
     HTBind_add("bcpio",	"application/x-bcpio",		NULL,		"binary",	NULL,	1.0);	/* Old binary CPIO	*/
@@ -47,6 +47,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("bmp",	"image/bmp",			NULL,		"binary",	NULL,	1.0);	/* MS Windows bitmap	*/
     HTBind_add("c",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C source		*/
     HTBind_add("cc",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C++ source		*/
+    HTBind_add("cpp",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C++ source		*/
     HTBind_add("cdf",	"application/x-netcdf",		NULL,		"binary",	NULL,	1.0);
     HTBind_add("cgm",	"image/cgm",			NULL,		"binary",	NULL,	1.0);
     HTBind_add("conf",	"application/x-www-rules",	NULL,		"8bit",		NULL,	1.0);	/* CONFIGURATION FILE	*/

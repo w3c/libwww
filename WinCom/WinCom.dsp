@@ -108,6 +108,10 @@ SOURCE=..\Library\src\HTProfil.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\Links.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Location.cpp
 # End Source File
 # Begin Source File
@@ -234,6 +238,10 @@ SOURCE=..\Bin\wwwzip.lib
 # Begin Source File
 
 SOURCE=.\EntityInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Links.h
 # End Source File
 # Begin Source File
 
