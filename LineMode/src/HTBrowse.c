@@ -163,6 +163,7 @@ struct _LineMode {
     HTView *		pView;
     char *		userList;
     CSUser_t * 		pCSUser;
+    BOOL		noPICSPasswords;
 };
 
 typedef enum _LMState {
@@ -767,11 +768,15 @@ PRIVATE int PICS_userCallback(CSUser_t * pCSUser, void * pVoid)
     LineMode * lm = (LineMode *)pVoid;
     char * userName;
     char * password = NULL;
-    HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
+    HTAlertCallback *cbf;
     int ret;
     HTAlertPar * reply;
 
-    if (!cbf)
+    if (lm->noPICSPasswords) {
+        lm->pCSUser = pCSUser;
+	return 0;
+    }
+    if (!(cbf = HTAlert_find(HT_A_USER_PW)))
         return -1;
     reply = HTAlert_newReply();
     userName = CSUser_name(pCSUser);
@@ -802,11 +807,11 @@ PRIVATE int PICS_userCallback(CSUser_t * pCSUser, void * pVoid)
 PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
 {
     char * password = NULL;
-    HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
+    HTAlertCallback *cbf;
     BOOL ret;
     HTAlertPar * reply;
 
-    if (!cbf)
+    if (!(cbf = HTAlert_find(HT_A_USER_PW)))
         return NO;
     reply = HTAlert_newReply();
     if ((ret = (*cbf)(lm->console, HT_A_USER_PW, 
@@ -1799,6 +1804,8 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-u")) {
 		picsUser = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : "user";
+	    } else if (!strcmp(argv[arg], "-unp")) {
+	        lm->noPICSPasswords = 1;
 #if 0 /* old version of user list file, still works when enabeled here */
 	    /* PICS user list */
 	    } else if (!strcmp(argv[arg], "-ul")) {
