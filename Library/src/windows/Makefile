@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-# Makefile.in generated automatically by automake 0.30 from Makefile.am
+# Makefile.in generated automatically by automake 0.31 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -38,10 +38,19 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL} -m 755
 transform = s,x,x,
 
-SUFFIXES = .files .def .txt
+SUFFIXES = .files .def
 
-DIST_OTHER = \
-	$(DEF) \
+BUILT_SOURCES = \
+	wwwapp.def	wwwapp.def	wwwlist.txt \
+	wwwcore.def	wwwdir.def	wwwdll.def \
+	wwwfile.def	wwwftp.def	wwwgophe.def \
+	wwwguess.def	wwwhtml.def	wwwhttp.def \
+	wwwmime.def	wwwnews.def	wwwrules.def \
+	wwwtelnt.def	wwwutils.def	wwwwais.def
+
+EXTRA_DIST = \
+	wwwdll.def \
+	$(SRC) \
 	$(MAK) \
 	$(PL)
 CONFIG_HEADER = ../../../config.h
@@ -52,9 +61,9 @@ PACKAGE = w3c-libwww
 VERSION = 4.1
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 default: all
 
 
@@ -94,6 +103,8 @@ uninstall:
 
 all: Makefile
 
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
 
 
@@ -122,28 +133,20 @@ maintainer-clean:  maintainer-clean-generic distclean
 	@echo "it deletes files that may require special tools to rebuild."
 
 .PHONY: default tags dist info dvi check installcheck install-exec \
-    install-data install uninstall all installdirs mostlyclean-generic \
-    distclean-generic clean-generic maintainer-clean-generic clean \
-    mostlyclean distclean maintainer-clean
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
-DEF := $(wildcard *.def)
+SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
 PL  := $(wildcard *.pl)
-
-def:
-	for i in *.files; do ./makedefs.pl @ < $$i > `basename $$i files`def; done
-
-list:
-	ls -1 ../*.c | sed -e s=\.\./==1 | ./makedefs.pl @ > wwwlist.txt 
 
 .files.def:
 	./makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
 wwwlist.txt:
 	ls -1 ../*.c | sed -e s=\.\./==1 | ./makedefs.pl @ > wwwlist.txt
-
-windows: def list
 .SUFFIXES:
 .SUFFIXES: $(SUFFIXES)
 

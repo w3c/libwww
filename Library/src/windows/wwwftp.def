@@ -1,7 +1,0 @@
-EXPORTS
-;HTFTP.c		@ 100
-HTLoadFTP		@ 101
-
-;HTFTPDir.c		@ 200
-HTFTPDir_new		@ 201
-

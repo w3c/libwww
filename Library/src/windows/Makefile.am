@@ -7,15 +7,15 @@ MAK := $(wildcard *.mak)
 PL  := $(wildcard *.pl)
 
 BUILT_SOURCES = \
-	wwwapp.def	wwwapp.def	wwwcache.def \
+	wwwapp.def	wwwapp.def	wwwlist.txt \
 	wwwcore.def	wwwdir.def	wwwdll.def \
 	wwwfile.def	wwwftp.def	wwwgophe.def \
 	wwwguess.def	wwwhtml.def	wwwhttp.def \
-	wwmime.def	wwwnews.def	wwwrules.def \
-	wwwtelnt.def	wwwutils.def	wwwwais.def \
-	wwwlist.txt
+	wwwmime.def	wwwnews.def	wwwrules.def \
+	wwwtelnt.def	wwwutils.def	wwwwais.def
 
 EXTRA_DIST = \
+	wwwdll.def \
 	$(SRC) \
 	$(MAK) \
 	$(PL)
