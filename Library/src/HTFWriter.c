@@ -140,7 +140,7 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
         time_t finish_time;
 	time(&finish_time);
 	me->cache->load_delay = finish_time - me->cache->load_time;
-	/* Actually, ought to use darf t ANSII difftime() */
+	/* Actually, ought to use draft ANSI-C difftime() */
 	/* But that I bet is more portable in real life  (@@?) */
     }
     fclose(me->fp);

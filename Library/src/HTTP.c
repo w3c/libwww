@@ -46,6 +46,10 @@ struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */
 };
 
+#ifdef NeXT
+#define S_ISDIR(m) (m & S_IFDIR)
+#define S_ISREG(m) (m & S_IFREG)
+#endif
 
 extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
@@ -572,6 +576,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	** Load results directly to client
 	*/
 	HTCopy(s, request->output_stream);
+	(*request->output_stream->isa->free)(request->output_stream);
 	if (cache_filename) {
 	    struct stat stat_info;
 	    if (stat(cache_filename, &stat_info) != -1) {
