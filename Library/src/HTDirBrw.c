@@ -37,6 +37,8 @@
 #include "HTML.h"
 #include "HTChunk.h"
 #include "HTDirBrw.h"					 /* Implemented here */
+#include "HTDescript.h"
+
 
 /* Macros and other defines */
 #ifdef USE_DIRENT			       /* Set this for Sys V systems */
@@ -51,6 +53,7 @@
 #define END(e) (*target->isa->end_element)(target, e)
 #define FREE_TARGET (*target->isa->free)(target)
 
+
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	/* ... */
@@ -60,16 +63,36 @@ struct _HTStructured {
 PUBLIC int HTDirReadme = HT_DIR_README_TOP;
 PUBLIC int HTDirAccess = HT_DIR_OK;
 PUBLIC unsigned int HTDirShowMask = HT_DIR_SHOW_ICON+HT_DIR_SHOW_SIZE+HT_DIR_KEY_NAME+HT_DIR_SHOW_DATE;
+PUBLIC BOOL HTDirDescriptions = YES;
+PUBLIC BOOL HTDirShowBytes = NO;
+PUBLIC BOOL HTDirShowBrackets = YES;
+PUBLIC int HTDirMinFileLength = 15;
+PUBLIC int HTDirMaxFileLength = 22;
+PUBLIC int HTDirMaxDescrLength = 25;
+
+
+typedef struct _HTIconNode {
+    char *	icon_url;
+    char *	icon_alt;
+    char *	type_templ;
+} HTIconNode;
+
 
 /* Type definitions and global variables etc. local to this module */
 typedef struct _HTDirKey {
     void *key;				     /* Can sort strings or integers */
     char *filename;
+    BOOL is_dir;                                           /* If a directory */
     char *body;			/* Contains all the stuff as date, size etc. */
+#if 0
     int  icon_number;			      /* What icon matches this file */
+#endif
+    HTIconNode *icon;
     char *symlink;
 } HTDirKey;
 
+
+#if OLD_CODE
 typedef enum _HTDirIconEnum {
     HT_ICON_UNKNOWN = 0,
     HT_ICON_BINARY,
@@ -108,24 +131,274 @@ PRIVATE char *HTDirIcons[HT_MAX_ICON][2] = {
     {"/dir-icons/back.xbm",	 	"[UP   ]"},	/* HT_ICON_PARENT */
     {"/dir-icons/blank.xbm", 		"       "}	/* HT_ICON_BLANK */
 };
+#endif /* OLD_CODE */
+
 
 typedef enum _HTShowLength {                        /* Width of each collumn */
     HT_LENGTH_MODE  = 10,
     HT_LENGTH_NLINK = 4,
     HT_LENGTH_OWNER = 8,
     HT_LENGTH_GROUP = 8,
-    HT_LENGTH_SIZE  = 8,
+    HT_LENGTH_SIZE  = 6,
     HT_LENGTH_DATE  = 15,
-    HT_LENGTH_SPACE = 2
+    HT_LENGTH_SPACE = 1
 } HTShowLength;
 
-PRIVATE int HTDirMinFileLength = 20;
-PRIVATE int HTDirMaxFileLength = 40;
+
 PRIVATE int HTDirFileLength;      /* HTMinDirFileName < x < HTMaxDirFileName */
 PRIVATE int HTBodyLength;
 PRIVATE char *HTDirSpace = NULL;
 
+PRIVATE HTList * icons = NULL;
+PRIVATE HTIconNode * icon_unknown = NULL;	/* Unknown file type */
+PRIVATE HTIconNode * icon_blank = NULL;		/* Blank icon in heading */
+PRIVATE HTIconNode * icon_parent = NULL;	/* Parent directory icon */
+PRIVATE HTIconNode * icon_dir = NULL;		/* Directory icon */
+PRIVATE int alt_len = 0;			/* Longest ALT text */
+
+
 /* ------------------------------------------------------------------------- */
+
+PRIVATE void alt_resize ARGS1(char *, alt)
+{
+    if (alt) {
+	int len = strlen(alt);
+	if (len > alt_len) alt_len = len;
+    }
+}
+
+
+PRIVATE char * alt_string ARGS2(char *,	alt,
+				BOOL,	brackets)
+{
+    static char * ret = NULL;
+    char * p = NULL;
+    int len = alt ? strlen(alt) : 0;
+
+    if (ret) free(ret);			/* From previous call */
+    p = ret = (char*)malloc(alt_len + 3);
+    if (!ret) outofmem(__FILE__, "alt_string");
+
+    if (HTDirShowBrackets)
+	*p++ = brackets ? '[' : ' ';
+    if (alt) strcpy(p,alt);
+    p += len;
+    while (len++ < alt_len) *p++=' ';
+    if (HTDirShowBrackets)
+	*p++ = brackets ? ']' : ' ';
+    *p = 0;
+
+    return ret;
+}
+
+
+/*
+**	HTAddIcon(url, alt, type_templ) adds icon:
+**
+**		<IMG SRC="url" ALT="[alt]">
+**
+**	for files for which content-type or content-encoding matches
+**	type_templ.  If type_templ contains a slash, it is taken to be
+**	a content-type template.  Otherwise, it is a content-encoding
+**	template.
+*/
+PUBLIC void HTAddIcon ARGS3(char *,	url,
+			    char *,	alt,
+			    char *,	type_templ)
+{
+    HTIconNode * node;
+
+    if (!url || !type_templ) return;
+
+    node = (HTIconNode*)calloc(1,sizeof(HTIconNode));
+    if (!node) outofmem(__FILE__, "HTAddIcon");
+
+    if (url) StrAllocCopy(node->icon_url, url);
+    if (alt) StrAllocCopy(node->icon_alt, alt);
+    if (type_templ) StrAllocCopy(node->type_templ, type_templ);
+
+    if (!icons) icons = HTList_new();
+    HTList_addObject(icons, (void*)node);
+    alt_resize(alt);
+    CTRACE(stderr,
+	   "AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",type_templ,url,
+	   alt ? alt : "");
+}
+
+
+/*
+**	HTAddUnknownIcon(url,alt) adds the icon used for files for which
+**	no other icon seems appropriate (unknown type).
+*/
+PUBLIC void HTAddUnknownIcon ARGS2(char *, url,
+				   char *, alt)
+{
+    icon_unknown = (HTIconNode*)calloc(1,sizeof(HTIconNode));
+    if (!icon_unknown) outofmem(__FILE__, "HTAddUnknownIcon");
+
+    if (url) StrAllocCopy(icon_unknown->icon_url, url);
+    if (alt) StrAllocCopy(icon_unknown->icon_alt, alt);
+    alt_resize(alt);
+    CTRACE(stderr,"AddIcon..... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
+	   alt ? alt : "");
+
+}
+
+/*
+**	HTAddBlankIcon(url,alt) adds the blank icon used in the
+**	heading of the listing.
+*/
+PUBLIC void HTAddBlankIcon ARGS2(char *, url,
+				 char *, alt)
+{
+    icon_blank = (HTIconNode*)calloc(1,sizeof(HTIconNode));
+    if (!icon_blank) outofmem(__FILE__, "HTAddBlankIcon");
+
+    if (url) StrAllocCopy(icon_blank->icon_url, url);
+    if (alt) StrAllocCopy(icon_blank->icon_alt, alt);
+    alt_resize(alt);
+    CTRACE(stderr,"AddIcon..... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
+	   alt ? alt : "");
+}
+
+
+/*
+**	HTAddParentIcon(url,alt) adds the parent directory icon.
+*/
+PUBLIC void HTAddParentIcon ARGS2(char *, url,
+				  char *, alt)
+{
+    icon_parent = (HTIconNode*)calloc(1,sizeof(HTIconNode));
+    if (!icon_parent) outofmem(__FILE__, "HTAddBlankIcon");
+
+    if (url) StrAllocCopy(icon_parent->icon_url, url);
+    if (alt) StrAllocCopy(icon_parent->icon_alt, alt);
+    alt_resize(alt);
+    CTRACE(stderr,"AddIcon..... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
+	   alt ? alt : "");
+}
+
+
+/*
+**	HTAddDirIcon(url,alt) adds the directory icon.
+*/
+PUBLIC void HTAddDirIcon ARGS2(char *, url,
+			       char *, alt)
+{
+    icon_dir = (HTIconNode*)calloc(1,sizeof(HTIconNode));
+    if (!icon_dir) outofmem(__FILE__, "HTAddBlankIcon");
+
+    if (url) StrAllocCopy(icon_dir->icon_url, url);
+    if (alt) StrAllocCopy(icon_dir->icon_alt, alt);
+    alt_resize(alt);
+    CTRACE(stderr,
+	   "AddIcon..... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
+	   alt ? alt : "");
+}
+
+
+
+PRIVATE BOOL match ARGS2(char *, templ,
+			 char *, actual)
+{
+    static char * c1 = NULL;
+    static char * c2 = NULL;
+    char * slash1;
+    char * slash2;
+
+    StrAllocCopy(c1,templ);
+    StrAllocCopy(c2,actual);
+
+    slash1 = strchr(c1,'/');
+    slash2 = strchr(c2,'/');
+
+    if (slash1 && slash2) {
+	*slash1++ = 0;
+	*slash2++ = 0;
+	return HTAA_templateMatch(c1,c2) && HTAA_templateMatch(slash1,slash2);
+    }
+    else if (!slash1 && !slash2)
+	return HTAA_templateMatch(c1,c2);
+    else
+	return NO;
+}
+
+
+
+PRIVATE char * prefixed ARGS2(char *,	prefix,
+			      char *,	name)
+{
+    static char * ret = NULL;
+    FREE(ret);	/* From previous call */
+
+    ret = (char *)malloc(strlen(prefix) + strlen(name) + 2);
+    if (!ret) outofmem(__FILE__, "prefixed");
+
+    strcpy(ret,prefix);
+    if (*prefix && prefix[strlen(prefix)-1] != '/')
+	strcat(ret,"/");
+    strcat(ret,name);
+    return ret;
+}
+
+
+PUBLIC void HTStdIconInit ARGS1(char *, url_prefix)
+{
+    char * p = url_prefix ? url_prefix : "/internal-icon/";
+
+    HTAddBlankIcon  (prefixed(p,"blank.xbm"),	NULL	);
+    HTAddDirIcon    (prefixed(p,"directory.xbm"),"DIR"	);
+    HTAddParentIcon (prefixed(p,"back.xbm"),	"UP"	);
+    HTAddUnknownIcon(prefixed(p,"unknown.xbm"),	NULL	);
+    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"*/*");
+    HTAddIcon(prefixed(p,"binary.xbm"),		"BIN",	"binary");
+    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"www/unknown");
+    HTAddIcon(prefixed(p,"text.xbm"),		"TXT",	"text/*");
+    HTAddIcon(prefixed(p,"image.xbm"),		"IMG",	"image/*");
+    HTAddIcon(prefixed(p,"movie.xbm"),		"MOV",	"video/*");
+    HTAddIcon(prefixed(p,"sound.xbm"),		"AU",	"audio/*");
+    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-tar");
+    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-gtar");
+    HTAddIcon(prefixed(p,"compressed.xbm"),	"CMP",	"x-compress");
+    HTAddIcon(prefixed(p,"compressed.xbm"),	"GZP",	"x-gzip");
+}
+
+
+
+/*								 HTGetIcon()
+** returns the icon corresponding to content_type or content_encoding.
+*/
+PRIVATE HTIconNode * HTGetIcon ARGS3(mode_t,	mode,
+				     HTFormat,	content_type,
+				     HTFormat,	content_encoding)
+{
+    if (!icon_unknown) icon_unknown = icon_blank;
+
+    if ((mode & S_IFMT) == S_IFREG) {
+	char * ct = content_type ? HTAtom_name(content_type) : NULL;
+	char * ce = content_encoding ? HTAtom_name(content_encoding) : NULL;
+	HTList * cur = icons;
+	HTIconNode * node;
+
+	while ((node = (HTIconNode*)HTList_nextObject(cur))) {
+	    char * slash = strchr(node->type_templ,'/');
+	    if ((ct && slash && match(node->type_templ,ct)) ||
+		(ce && !slash && HTAA_templateMatch(node->type_templ,ce))) {
+		return node;
+	    }
+	}
+    } else if ((mode & S_IFMT) == S_IFDIR) {
+	return icon_dir ? icon_dir : icon_unknown;
+    } else if ((mode & S_IFMT) == S_IFLNK) {
+	return icon_dir ? icon_dir : icon_unknown;	/* @@ */
+    }
+
+    return icon_unknown;
+}
+
+
+
+
 #ifdef GOT_READ_DIR
 
 /* 							     	FilePerm()
@@ -160,6 +433,7 @@ PRIVATE void FilePerm ARGS2(mode_t, mode, char *, strptr)
 }
 
 
+#ifdef OLD_CODE
 /* 							     	IconType()
 **	Finds an appropiate icon for the file, directory etc.
 **     	First mode is checked to see if it is a REG FILE, DIR, LINK or SPECIAL.
@@ -203,8 +477,10 @@ PRIVATE HTDirIconEnum IconType ARGS2(mode_t, mode, char *, filename)
 	return HT_ICON_UNKNOWN;
     }
 }
+#endif /* OLD_CODE */
 
 
+#if 0	/* Not needed currently */
 /* 							     	CenterStr()
 **	Centers str_in into str_out expecting str_out having size length
 **	inclusive the terminating '\0'. The output string MUST be long enough.
@@ -215,8 +491,35 @@ PRIVATE void CenterStr ARGS3(char *, str_out, char *, str_in, int, length)
     char *outptr = str_out + (length-strlen(str_in))/2;
     memset(str_out, ' ', length);
     while ((*outptr++ = *inptr++) != '\0');
-	*--outptr = ' ';
+    *--outptr = ' ';
     *(str_out+length-1) = '\0';
+}
+#endif
+
+
+/*								LeftStr()
+**	Like CenterStr(), but result is left-justified.
+*/
+PRIVATE void LeftStr ARGS3(char *, str_out, char *, str_in, int, length)
+{
+    char *inptr = str_in;
+    char *outptr = str_out;
+    memset(str_out, ' ', length);
+    while ((*outptr++ = *inptr++));
+    *--outptr = ' ';
+    str_out[length-1] = 0;
+}
+
+
+/*								RightStr()
+**	Like CenterStr(), but result is right-justified.
+*/
+PRIVATE void RightStr ARGS3(char *, str_out, char *, str_in, int, length)
+{
+    char *inptr = str_in;
+    char *outptr = str_out + length - strlen(str_in) - 1;
+    memset(str_out, ' ', length);
+    while ((*outptr++ = *inptr++));
 }
 
 
@@ -233,24 +536,71 @@ PRIVATE void ItoA ARGS3(unsigned int, n, char *, start, char, len)
 
 
 /* 							     	HTDirSize()
-**	Converts a long to a string
-*/
+ *	Converts a long (byte count) to a string
+ *
+ *	This function was a PAIN!  In computer-world 1K is 1024 bytes
+ *	and 1M is 1024K -- however, sprintf() still formats in base-10.
+ *	Therefore I output only until 999, and then start using the
+ *	next unit.  This doesn't work wrong, it's just a feature.
+ */
 PRIVATE void HTDirSize ARGS3(unsigned long, n, char *, start, char, len)
 {
-    float size;
+    float size = n/1024.0;
+
+#if 0
+    char sign;
+    if (size < 1000)
+	sign = 'K';
+    else if ((size /= 1024) < 1000)
+	sign = 'M';
+    else {
+	size /= 1024;
+	sign = 'G';
+    }
+#endif
+
+    if (n < 1000) {
+	if (HTDirShowBytes)
+	    ItoA((int) n, start, len);
+	else
+	    sprintf(start+len-6, "%5dK", n>0 ? 1 : 0);
+    }
+    else if (size + 0.999 < 1000)
+	sprintf(start+len-6, "%5dK", (int)(size + 0.5));
+    else if ((size /= 1024) < 9.9)
+	sprintf(start+len-6, "%5.1fM", (size + 0.05));
+    else if (size < 1000)
+	sprintf(start+len-6, "%5dM", (int)(size + 0.5));
+    else if ((size /= 1024) < 9.9)
+	sprintf(start+len-6, "%5.1fG", (size + 0.05));
+    else
+	sprintf(start+len-6, "%5dG", (int)(size + 0.5));
+    *(start+len) = ' ';
+
+#if 0
+    if (n == 0)
+	sprintf(start+len-6, "    0%c", sign);
+    else if (size + 0.05 < 1)
+	sprintf(start+len-6, "   .%d%c", (int)(10 * (size + 0.05)), sign);
+    else
+	sprintf(start+len-6, "%5d%c", (int)(size + 0.5), sign);
+#endif
+
+#ifdef ORIGINAL_CODE
     if (n < 1024)
 	ItoA((int) n, start, len);
-    else if ((size = n/1024) < 1024) {
-	sprintf(start+len-6, "%5.4gK", size);
+    else if ((size = n/1000) < 1000) {
+	sprintf(start+len-6, "%5.3gk", size);
 	*(start+len) = ' ';
-    } else if ((size = size/1024) < 1024) {
-	sprintf(start+len-6, "%5.4gM", size);
+    } else if ((size = size/1000) < 1000) {
+	sprintf(start+len-6, "%5.3gM", size);
 	*(start+len) = ' ';
     } else {
-	size /= 1024;
-	sprintf(start+len-6, "%5.4gG", size);
+	size /= 1000;
+	sprintf(start+len-6, "%5.3gG", size);
 	*(start+len) = ' ';
     }
+#endif
 }
 
 
@@ -321,35 +671,36 @@ PRIVATE char *InitBody NOARGS
     char *topstr = NULL;
     PRIVATE char *header[] = {
 	"Size",
-	"Last Changed",
+	"Last modified",
 	"Permission",
 	"Link",
 	"Owner",
-	"Group"
+	"Group",
+	"Description"
     };
 
     /* Calculate output line string length */
     HTBodyLength = HT_LENGTH_SPACE;
     StrAllocCat(topstr, HTDirSpace);
-    if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
-	char size[HT_LENGTH_SIZE+1];
-	CenterStr(size, *header, HT_LENGTH_SIZE+1);
-	StrAllocCat(topstr, size);
-	HTBodyLength += HT_LENGTH_SIZE;
-	StrAllocCat(topstr, HTDirSpace);
-	HTBodyLength += HT_LENGTH_SPACE;
-    }
     if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 	char date[HT_LENGTH_DATE+1];
-	CenterStr(date, *(header+1), HT_LENGTH_DATE+1);
+	LeftStr(date, *(header+1), HT_LENGTH_DATE+1);
 	StrAllocCat(topstr, date);
 	HTBodyLength += HT_LENGTH_DATE;
 	StrAllocCat(topstr, HTDirSpace);
 	HTBodyLength += HT_LENGTH_SPACE;
     }
+    if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
+	char size[HT_LENGTH_SIZE+1];
+	RightStr(size, *header, HT_LENGTH_SIZE+1);
+	StrAllocCat(topstr, size);
+	HTBodyLength += HT_LENGTH_SIZE;
+	StrAllocCat(topstr, HTDirSpace);
+	HTBodyLength += HT_LENGTH_SPACE;
+    }
     if (HTDirShowMask & HT_DIR_SHOW_MODE) {
 	char mode[HT_LENGTH_MODE+1];
-	CenterStr(mode, *(header+2), HT_LENGTH_MODE+1);
+	LeftStr(mode, *(header+2), HT_LENGTH_MODE+1);
 	StrAllocCat(topstr, mode);
 	HTBodyLength += HT_LENGTH_MODE;
 	StrAllocCat(topstr, HTDirSpace);
@@ -357,7 +708,7 @@ PRIVATE char *InitBody NOARGS
     }
     if (HTDirShowMask & HT_DIR_SHOW_NLINK) {
 	char nlink[HT_LENGTH_NLINK+1];
-	CenterStr(nlink, *(header+3), HT_LENGTH_NLINK+1);
+	LeftStr(nlink, *(header+3), HT_LENGTH_NLINK+1);
 	StrAllocCat(topstr, nlink);
 	HTBodyLength += HT_LENGTH_NLINK;
 	StrAllocCat(topstr, HTDirSpace);
@@ -365,7 +716,7 @@ PRIVATE char *InitBody NOARGS
     }
     if (HTDirShowMask & HT_DIR_SHOW_OWNER) {
 	char owner[HT_LENGTH_OWNER+1];
-	CenterStr(owner, *(header+4), HT_LENGTH_OWNER+1);
+	LeftStr(owner, *(header+4), HT_LENGTH_OWNER+1);
 	StrAllocCat(topstr, owner);
 	HTBodyLength += HT_LENGTH_OWNER;
 	StrAllocCat(topstr, HTDirSpace);
@@ -373,11 +724,28 @@ PRIVATE char *InitBody NOARGS
     }
     if (HTDirShowMask & HT_DIR_SHOW_GROUP) {
 	char group[HT_LENGTH_GROUP+1];
-	CenterStr(group, *(header+5), HT_LENGTH_GROUP+1);
+	LeftStr(group, *(header+5), HT_LENGTH_GROUP+1);
 	StrAllocCat(topstr, group);
 	HTBodyLength += HT_LENGTH_GROUP;
 	StrAllocCat(topstr, HTDirSpace);
 	HTBodyLength += HT_LENGTH_SPACE;
+    }
+    if (HTDirDescriptions) {
+	char * descr = (char*)malloc(HTDirMaxDescrLength+1);
+	if (!descr) outofmem(__FILE__, "InitBody");
+
+	if (HT_LENGTH_SPACE > 1) {
+	    LeftStr(descr, *(header+6), HTDirMaxDescrLength+1);
+	}
+	else {	/* Description simply always needs at least two spaces */
+	    *descr = ' ';
+	    LeftStr(descr+1, *(header+6), HTDirMaxDescrLength);
+	}
+	StrAllocCat(topstr, descr);
+	HTBodyLength += HTDirMaxDescrLength;
+	StrAllocCat(topstr, HTDirSpace);
+	HTBodyLength += HT_LENGTH_SPACE;
+	free(descr);
     }
     return topstr;
 }
@@ -436,8 +804,10 @@ Bug removed thanks to joe@athena.mit.edu */
 **    This gives the TITLE and H1 header, and also a link
 **    to the parent directory if appropriate.
 */
-PRIVATE void HTDirOutTop ARGS3(HTStructured *, target, HTAnchor *, anchor,
-			       char *, top_body)
+PRIVATE void HTDirOutTop ARGS4(HTStructured *, target,
+			       HTAnchor *, anchor,
+			       char *, top_body,
+			       char *, directory)
 {
     char *logical = HTAnchor_address(anchor);
     char *path = HTParse(logical, "", PARSE_PATH + PARSE_PUNCTUATION);
@@ -451,7 +821,7 @@ PRIVATE void HTDirOutTop ARGS3(HTStructured *, target, HTAnchor *, anchor,
 	    *current++ = '\0';
 	    if ((parent = strrchr(path, '/')) != NULL) {
 		HTUnEscape(++parent);
-		if (strlen(parent) > HTDirFileLength)
+		if ((int)strlen(parent) > HTDirFileLength)
 		    *(parent+HTDirFileLength-1) = '\0';
 	    } else {
 		parent = "Welcome Directory";
@@ -467,50 +837,77 @@ PRIVATE void HTDirOutTop ARGS3(HTStructured *, target, HTAnchor *, anchor,
     }
     /* Output title */
     START(HTML_TITLE);
+    PUTS("Index of ");
     PUTS(current);
     END(HTML_TITLE);
     START(HTML_H1);
+    PUTS("Index of ");
     PUTS(current);
     END(HTML_H1);
 
+    if (HTDirReadme == HT_DIR_README_TOP)
+	HTDirOutReadme(target, directory);
+
     /* Output parent directory */
     START(HTML_PRE);
-    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
-	HTMLPutImg(target, *HTDirIcons[HT_ICON_PARENT],
-		   *(HTDirIcons[HT_ICON_PARENT]+1), NULL);
-	PUTS(HTDirSpace);
-    }
-    PUTS("Up to: ");
-    if (hotparent) {
-	char *relative;
-	if ((relative = (char *) malloc(strlen(current) + 4)) == NULL)
-	    outofmem(__FILE__, "HTDirOutTop");
-	sprintf(relative, "%s/..", current);
-	HTStartAnchor(target, "", relative);
-	free(relative);
-	PUTS(parent);
-	END(HTML_A);
-    } else
-	PUTS(parent);
-    PUTS("\n\n");
 
     /* Output the header line of the list */
-    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
-	HTMLPutImg(target, *HTDirIcons[HT_ICON_BLANK],
-		   *(HTDirIcons[HT_ICON_BLANK]+1), NULL);
+    if (!icon_blank) icon_blank = icon_unknown;
+    if (HTDirShowMask & HT_DIR_SHOW_ICON && icon_blank) {
+	HTMLPutImg(target,
+		   icon_blank->icon_url,
+		   alt_string(icon_blank->icon_alt, NO),
+		   NULL);
 	PUTS(HTDirSpace);
     }
     {
 	char *name;
 	if ((name = (char *) malloc(HTDirFileLength+1)) == NULL)
 	    outofmem(__FILE__, "HTDirOutTop");
-	CenterStr(name, "Name", HTDirFileLength+1);
+	LeftStr(name, "Name", HTDirFileLength+1);
 	PUTS(name);
 	free(name);
     }
     PUTS(top_body);
-    END(HTML_PRE);
+    PUTC('\n');
     START(HTML_HR);
+    PUTC('\n');
+
+    if (hotparent) {
+	if (!icon_parent)
+	    icon_parent = icon_dir ? icon_dir :
+		icon_blank ? icon_blank : icon_unknown;
+	if (HTDirShowMask & HT_DIR_SHOW_ICON  &&  icon_parent) {
+	    HTMLPutImg(target,
+		       icon_parent->icon_url,
+		       alt_string(icon_parent->icon_alt, YES),
+		       NULL);
+	    PUTS(HTDirSpace);
+	}
+	{
+	    char *relative;
+	    if ((relative = (char *) malloc(strlen(current) + 4)) == NULL)
+		outofmem(__FILE__, "HTDirOutTop");
+	    sprintf(relative, "%s/..", current);
+	    HTStartAnchor(target, NULL, relative);
+	    free(relative);
+	    PUTS("Parent directory");
+#if 0
+	    PUTS(parent);
+#endif
+	    END(HTML_A);
+	    PUTC('\n');
+	}
+    }
+#if 0
+    } else
+	PUTS(parent);
+#endif
+
+#if 0
+    END(HTML_PRE);
+#endif
+
     free(logical);
     free(path);
 }
@@ -538,16 +935,18 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
     StrAllocCopy(tail, pathtail);
     tailend = strlen(tail);
     
-    START(HTML_PRE);
     do {
 	nkey = (HTDirKey *) next_node->object;
 	escaped = HTEscape(nkey->filename, URL_XPALPHAS);
 	*(tail+tailend) = '\0';
 	StrAllocCat(tail, escaped);
-	if (HTDirShowMask & HT_DIR_ICON_ANCHOR) {          /* Icon as anchor */
+	if (HTDirShowMask & HT_DIR_ICON_ANCHOR  &&
+	    nkey->icon && nkey->icon->icon_url) {	/* Icon as anchor */
 	    HTStartAnchor(target, NULL, tail);
-	    HTMLPutImg(target, *HTDirIcons[nkey->icon_number],
-		       *(HTDirIcons[nkey->icon_number]+1), NULL);
+	    HTMLPutImg(target,
+		       nkey->icon->icon_url,
+		       alt_string(nkey->icon->icon_alt, YES),
+		       NULL);
 	    END(HTML_A);
 	    PUTS(HTDirSpace);
 	    if (HTBodyLength)
@@ -565,21 +964,51 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 		PUTS(nkey->filename);
 	    } 
 	} else { 	      			   /* Use filename as anchor */
-	    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
-		HTMLPutImg(target, *HTDirIcons[nkey->icon_number],
-			   *(HTDirIcons[nkey->icon_number]+1), NULL);
+	    if (HTDirShowMask & HT_DIR_SHOW_ICON  &&
+		nkey->icon && nkey->icon->icon_url) {
+		HTMLPutImg(target,
+			   nkey->icon->icon_url,
+			   alt_string(nkey->icon->icon_alt, YES),
+			   NULL);
 		PUTS(HTDirSpace);
 	    }
 	    if (HTDirShowMask & HT_DIR_SHOW_SLINK && nkey->symlink)
 		START(HTML_I);
 	    HTStartAnchor(target, NULL, tail);
+#if 0
 	    PUTS(nkey->filename);
+#else
+	    {
+		int extra = nkey->is_dir ? 1 : 0;
+		if ((int)strlen(nkey->filename) + extra > HTDirFileLength) {
+		    char * fn = (char*)malloc(HTDirFileLength + 1);
+		    if (!fn) outofmem(__FILE__, "HTDirOutList");
+
+		    strncpy(fn, nkey->filename, HTDirFileLength);
+		    if (extra) {
+			fn[HTDirFileLength-2] = '>';
+			fn[HTDirFileLength-1] = '/';
+		    }
+		    else {
+			fn[HTDirFileLength-1] = '>';
+		    }
+		    fn[HTDirFileLength] = 0;
+		    PUTS(fn);
+		    free(fn);
+		}
+		else {
+		    PUTS(nkey->filename);
+		    if (extra)
+			PUTC('/');
+		}
+	    }
+#endif
 	    END(HTML_A);
 	    if (HTDirShowMask & HT_DIR_SHOW_SLINK && nkey->symlink)
 		END(HTML_I);
 	}
 	if (HTBodyLength) {
-	    filelen = strlen(nkey->filename);
+	    filelen = strlen(nkey->filename) + (nkey->is_dir ? 1 : 0);
 	    while (filelen++ < HTDirFileLength)
 		PUTC(' ');
 	    PUTS(HTDirSpace);
@@ -589,28 +1018,39 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 	KeyFree(nkey);
 	FREE(escaped);
     } while ((next_node = HTBTree_next(bt, next_node)) != NULL);
+#if 0
     END(HTML_PRE);
+#endif
     free(tail);
 }
+
 
 
 /*      							HTDirOutBottom
 **
 **    This function outputs the last part of the directory listings
 */
-PRIVATE void HTDirOutBottom ARGS2(HTStructured *, target, unsigned int, files)
+PRIVATE void HTDirOutBottom ARGS3(HTStructured *, target,
+				  unsigned int, files,
+				  char *, directory)
 {
     char *outstr;
+
     if ((outstr = (char *) malloc(100)) == NULL)
 	outofmem(__FILE__, "HTDirOutBottom");
-    sprintf(outstr, "A total of: %u ", files);
-    if (files == 1)
-	strcat(outstr, "file");
+    if (files == 0)
+	sprintf(outstr, "Empty directory");
+    else if (files == 1)
+	sprintf(outstr, "1 file");
     else
-	strcat(outstr, "files");
+	sprintf(outstr, "%u files", files);
     START(HTML_HR);
     PUTS(outstr);
     free(outstr);
+    END(HTML_PRE);
+
+    if (HTDirReadme == HT_DIR_README_BOTTOM)
+	HTDirOutReadme(target, directory);
 }
 
 
@@ -645,7 +1085,8 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
     HTStructuredClass targetClass;
     DIR *dp;
     struct stat file_info;
-    
+    HTList * descriptions = NULL;
+
     if (TRACE)
 	fprintf(stderr,"HTBrowseDirectory: %s is a directory\n", directory);
         
@@ -696,7 +1137,10 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    "HTBrowseDirectory: Can't open directory: %s. (errno: %d)\n",
 			   directory, errno);
 	return HTLoadError(req, 403, "This directory is not readable.");
-    }    
+    }
+
+    if (HTDirDescriptions)
+	descriptions = HTReadDescriptions(directory);
 
     target = HTML_new(req, NULL, WWW_HTML, req->output_format,
 		      req->output_stream);
@@ -735,6 +1179,10 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	/* Build tree */
 	while ((dirbuf = readdir(dp))) {
 	    HTDirKey *nodekey;
+	    HTAtom *encoding = NULL;
+	    HTAtom *language = NULL;
+	    HTFormat format;
+
 	    if (!dirbuf->d_ino)		 		 /* Skip if not used */
 		continue;
 	    
@@ -746,6 +1194,8 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    }
 	    if (!(HTDirShowMask & HT_DIR_SHOW_HID) && *dirbuf->d_name == '.')
 		continue;
+
+	    format = HTFileFormat(dirbuf->d_name, &encoding, &language);
 
 	    /* First make a lstat() and get a key ready. */
 	    *(pathname+pathend) = '\0';
@@ -804,17 +1254,22 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		nodekey->filename = nodekey->key;
 	    }
 
+
 	    /* Update current max filename length */
 	    {
 		int filestrlen = strlen(nodekey->filename);
+
+		if ((file_info.st_mode & S_IFMT) == S_IFDIR) {
+		    nodekey->is_dir = YES;	/* We need the trailing slash*/
+		    filestrlen++;
+		}
 		if (filestrlen > HTDirFileLength)
 		    HTDirFileLength = filestrlen;
 	    }
 
 	    /* Get Icon type */
 	    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
-		nodekey->icon_number = IconType(file_info.st_mode,
-						dirbuf->d_name);
+		nodekey->icon = HTGetIcon(file_info.st_mode, format, encoding);
 	    }
 
 	    /* Generate body entry in nodekey */
@@ -824,16 +1279,23 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    outofmem(__FILE__, "HTBrowseDirectory");
 		bodyptr = nodekey->body;
 		memset(bodyptr, ' ', HTBodyLength);
-		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
-		    HTDirSize(file_info.st_size, bodyptr, HT_LENGTH_SIZE);
-		    bodyptr += HT_LENGTH_SIZE+HT_LENGTH_SPACE;
-		}
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
+#ifdef OLD_CODE
 		    strftime(bodyptr, HT_LENGTH_DATE+1, "%b %d %y %H:%M",
+			     localtime(&file_info.st_mtime));
+#endif
+		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 			     localtime(&file_info.st_mtime));
 		    bodyptr += HT_LENGTH_DATE;
 		    *bodyptr = ' ';
 		    bodyptr += HT_LENGTH_SPACE;
+		}
+		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
+		    if ((file_info.st_mode & S_IFMT) != S_IFDIR)
+			HTDirSize(file_info.st_size, bodyptr, HT_LENGTH_SIZE);
+		    else
+			bodyptr[HT_LENGTH_SIZE-1] = '-';
+		    bodyptr += HT_LENGTH_SIZE+HT_LENGTH_SPACE;
 		}
 		if (HTDirShowMask & HT_DIR_SHOW_MODE) {
 		    FilePerm(file_info.st_mode, bodyptr);
@@ -874,7 +1336,28 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    bodyptr += HT_LENGTH_GROUP+HT_LENGTH_SPACE;
 		}
 		*bodyptr = '\0';
-	    }	    
+		if (HTDirDescriptions) {
+		    char * d = HTGetDescription(descriptions,
+						directory,
+						dirbuf->d_name,
+						format);
+		    if (d) {
+			int len = strlen(d);
+			if (HT_LENGTH_SPACE > 1) {
+			    if (len > HTDirMaxDescrLength)
+				len = HTDirMaxDescrLength;
+			}
+			else {
+			    /* Description always needs at least two spaces */
+			    if (len > HTDirMaxDescrLength-1)
+				len = HTDirMaxDescrLength-1;
+			    *bodyptr++ = ' ';
+			}
+			strncpy(bodyptr, d, len);
+			bodyptr[len] = '\0';
+		    }
+		}
+	    }
 	    /* Now, update the BTree etc. */
 	    filecnt++;
 	    HTBTree_add(bt, (void *) nodekey);
@@ -886,19 +1369,18 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    HTDirFileLength = HTDirMinFileLength;
    
 	/* Put out the header for the HTML object */
-	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr);
-	if (HTDirReadme == HT_DIR_README_TOP)
-	    HTDirOutReadme(target, directory);
+	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory);
 
 	/* Run through tree printing out in order, hopefully :-) */
 	if (filecnt) {
 	    HTDirOutList(target, bt, tail);
 	}
-	if (HTDirReadme == HT_DIR_README_BOTTOM)
-	    HTDirOutReadme(target, directory);
-	HTDirOutBottom(target, filecnt);
+
+	HTDirOutBottom(target, filecnt, directory);
 
 cleanup:
+	if (descriptions)
+	    HTFreeDescriptions(descriptions);
 	FREE(HTDirSpace);
 	FREE(topstr);
 	free(tail);
@@ -969,6 +1451,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
     
     /* Now, generate the Btree and put it out to the output stream. */
     {
+	BOOL old_descr = HTDirDescriptions;
 	unsigned int old_show_mask = HTDirShowMask;
 	unsigned int filecnt = 0;
 	char *topstr = NULL;
@@ -979,6 +1462,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 
 	/* TEMPORARY */
 	HTDirShowMask = HT_DIR_SHOW_ICON+HT_DIR_KEY_NAME;
+	HTDirDescriptions = NULL;
 
 	/* Set up sort key and initialize BTree */
 	if (HTDirShowMask & HT_DIR_KEY_SIZE) {
@@ -1000,6 +1484,9 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	/* Build tree */
 	while ((status = input(dirbuf)) > 0) {
 	    HTDirKey *nodekey;
+	    HTAtom *encoding;
+	    HTAtom *language;
+	    HTFormat format;
 	    
 	    /* Current and parent directories are never shown in list */
 	    if (dottest &&
@@ -1009,6 +1496,8 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	    }
 	    if (!(HTDirShowMask & HT_DIR_SHOW_HID) && *dirbuf->data == '.')
 		continue;
+
+	    format = HTFileFormat(dirbuf->data, &encoding, &language);
 
 	    /* Get a key ready. */
 	    if ((nodekey = (HTDirKey *) calloc(1, sizeof(HTDirKey))) == NULL)
@@ -1027,8 +1516,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 
 	    /* Get Icon type */
 	    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
-		nodekey->icon_number = IconType(S_IFMT | S_IFREG,
-						dirbuf->data);
+		nodekey->icon = HTGetIcon(S_IFMT | S_IFREG, format, encoding);
 	    }
 
 	    /* Generate body entry in nodekey */
@@ -1075,17 +1563,14 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
             HTDirFileLength = HTDirMinFileLength;
 
 	/* Put out the header for the HTML object */
-	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr);
-	if (HTDirReadme == HT_DIR_README_TOP)
-	    HTDirOutReadme(target, directory);
+	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory);
 
 	/* Run through tree printing out in order, hopefully :-) */
 	if (filecnt) {
 	    HTDirOutList(target, bt, tail);
 	}
-	if (HTDirReadme == HT_DIR_README_BOTTOM)
-	    HTDirOutReadme(target, directory);
-	HTDirOutBottom(target, filecnt);
+
+	HTDirOutBottom(target, filecnt, directory);
 
 cleanup:
 	FREE(HTDirSpace);
@@ -1094,6 +1579,7 @@ cleanup:
 	HTChunkFree(dirbuf);
 	HTBTree_free(bt);
 	HTDirShowMask = old_show_mask;		                /* TEMPORARY */
+	HTDirDescriptions = old_descr;
     } /* End of two big loops */
     FREE_TARGET;
     return HT_LOADED;

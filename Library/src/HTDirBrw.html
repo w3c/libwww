@@ -1,7 +1,6 @@
 <HTML>
 <HEAD>
 <TITLE>Directory Browsing</TITLE>
-<NEXTID N="z4">
 </HEAD>
 <BODY>
 <H1>Directory Browsing</H1>
@@ -50,7 +49,7 @@ typedef enum _HTDirShow {
     HT_DIR_SHOW_CASE  = 0x800,	      /* Sort case sensitive when string key */
     HT_DIR_KEY_SIZE   = 0x1000,	       	       /* Those are the sorting keys */
     HT_DIR_KEY_DATE   = 0x2000,
-    HT_DIR_KEY_NAME   = 0x4000,
+    HT_DIR_KEY_NAME   = 0x4000
     /* HT_DIR_KEY_TYPE   = 0x8000 not implemented yet!!! */
 } HTDirShow;
 </PRE>
@@ -58,15 +57,46 @@ typedef enum _HTDirShow {
 The icon filenames are defined in the module.
 
 <H3>How long can filenames be</H3>
-If filenames are chosen as anchors then too long filenames will not get
-truncated but the coulumns will tilt instead. If icons are chosen as anchors,
-the filename ARE truncated. The filename column varies within the boundaries
-specified as static variables in HTDirBrw.c:
+The filename column varies within the boundaries specified as global
+variables in HTDirBrw.c; filenames greated than
+<CODE>HTDirMaxFileLength</CODE> will be truncated:
+<PRE>
+extern int HTDirMaxFileLength;
+extern int HTDirMinFileLength;
+</PRE>
 
-<UL>
-<LI>HTDirMaxFileLength
-<LI>HTDirMinFileLength
-</UL>
+
+<H3>Show byte count for small files</H3>
+By default the size for files smaller than 1K will be shown as 1K.
+If the global variable <CODE>HTDirShowBytes</CODE> is set to true,
+they will be shown as bytes.
+<PRE>
+extern BOOL HTDirShowBytes;
+</PRE>
+
+
+<H3>Show brackets around alternative text</H3>
+By default alternative text is bracketed by square brackets (the
+<CODE>ALT</CODE> tag to <CODE>IMG</CODE> element).  Setting the global
+<CODE>HTDirShowBrackets</CODE> to false will turn this feature off.
+<PRE>
+extern BOOL HTDirShowBrackets;
+</PRE>
+
+
+<H3>Descriptions</H3>
+
+The <CODE>HTDirDescriptions</CODE> flag, if true, causes
+<CODE>Description</CODE> field to be added as the last column in the
+listing.  File descriptions are queried from the <A
+HREF="HTDescript.html"><CODE>HTDescript</CODE> module</A>.  The
+maximum length of this field is specified by
+<CODE>HTDirMaxDescrLength</CODE>.
+<PRE>
+extern BOOL HTDirDescriptions;
+extern int HTDirMaxDescrLength;
+</PRE>
+
 
 <H3>Rough estimate of max path length</H3>
 <PRE>
@@ -79,10 +109,79 @@ specified as static variables in HTDirBrw.c:
 #endif
 </PRE>
 
+
+<H2>Icons</H2>
+
+Icons are bound to MIME content-types and encoding.  These functions
+bind icon URLs to given content-type or encoding templates.  Templates
+containing a slash are taken to be content-type templates, other are
+encoding templates. <P>
+
+All of these functions take an absolute URL and alternate text to use. <P>
+
+<PRE>
+/*
+ * General icon binding.  Use this icon if content-type or encoding
+ * matches template.
+ */
+PUBLIC void HTAddIcon PARAMS((char *	url,
+			      char *	alt,
+			      char *	type_templ));
+
+/*
+ * Icon for which no other icon can be used.
+ */
+PUBLIC void HTAddUnknownIcon PARAMS((char * url,
+				     char * alt));
+
+/*
+ * Invisible icon for the listing header field to make it aligned
+ * with the rest of the listing (this doesn't have to be blank).
+ */
+PUBLIC void HTAddBlankIcon PARAMS((char * url,
+				   char * alt));
+
+/*
+ * Icon to use for parent directory.
+ */
+PUBLIC void HTAddParentIcon PARAMS((char * url,
+				    char * alt));
+
+/*
+ * Icon to use for a directory.
+ */
+PUBLIC void HTAddDirIcon PARAMS((char * url,
+			         char * alt));
+</PRE>
+
+
+<H4>A Predifined Set of Icons</H4>
+The function <CODE>HTStdIconInit(url_prefix)</CODE> can be used to
+initialize a standard icon set:
+<UL>
+<LI> <CODE>blank.xbm</CODE> for the blank icon
+<LI> <CODE>directory.xbm</CODE> for directory icon
+<LI> <CODE>back.xbm</CODE> for parent directory
+<LI> <CODE>unknown.xbm</CODE> for unknown icon
+<LI> <CODE>binary.xbm</CODE> for binary files
+<LI> <CODE>text.xbm</CODE> for ascii files
+<LI> <CODE>image.xbm</CODE> for image files
+<LI> <CODE>movie.xbm</CODE> for video files
+<LI> <CODE>sound.xbm</CODE> for audio files
+<LI> <CODE>tar.xbm</CODE> for tar and gtar files
+<LI> <CODE>compressed.xbm</CODE> for compressed and gzipped files
+</UL>
+<PRE>
+PUBLIC void HTStdIconInit PARAMS((char * url_prefix));
+</PRE>
+
+
+
 <H2>Where do FTP Directory Listings get input?</H2>
 <PRE>
 typedef int (*HTDirLineInput) PARAMS((void *));
 </PRE>
+
 
 <PRE>
 #endif /* HTDIRBRW */

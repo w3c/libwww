@@ -515,6 +515,8 @@ already defined specifically.
 #include "sys/types.h"
 #include "sys/stat.h"
 
+typedef unsigned short mode_t;
+
 #ifndef S_ISDIR
 #define S_ISDIR(m)     (m &amp; S_IFDIR)
 #define S_ISREG(m)     (m &amp; S_IFREG)
@@ -533,6 +535,15 @@ already defined specifically.
 #define S_IRWXU 0000700
 #define S_IRWXG 0000070
 #define S_IRWXO 0000007
+#define S_IRUSR 0000400
+#define S_IWUSR 0000200
+#define S_IXUSR 0000100
+#define S_IRGRP 0000040
+#define S_IWGRP 0000020
+#define S_IXGRP 0000010
+#define S_IROTH 0000004
+#define S_IWOTH 0000002
+#define S_IXOTH 0000001
 #endif
 
 #endif
@@ -583,10 +594,25 @@ is turned off.
 #define CACHE_FILE_PREFIX  "/usr/wsrc/"
 #endif
 #endif
+</PRE>
+
+
+<H2>SOCKS</H2>
+SOCKS modifications by Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.
+<PRE>
+#if defined(SOCKS) && !defined(RULE_FILE)
+#define connect Rconnect
+#define accept  Raccept
+#define getsockname Rgetsockname
+#define bind Rbind 
+#define listen Rlisten  
+#endif
+</PRE>
+
+
+<PRE>
 
 #endif /* TCP_H */
-
-
 
 </PRE>end of system-specific file</A></BODY>
 </HTML>

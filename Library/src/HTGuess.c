@@ -73,11 +73,14 @@ PRIVATE BOOL header_and_flush ARGS1(HTStream *, me)
 {
     CTRACE(stderr,"GUESSING.... text=%d newlines=%d ctrl=%d high=%d\n",
 	   me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
-    CTRACE(stderr,"Percentages. text=%d%% newlines=%d%% ctrl=%d%% high=%d%%\n",
-	   (int)(100*me->text_cnt/me->cnt + 0.5),
-	   (int)(100*me->lf_cnt  /me->cnt + 0.5),
-	   (int)(100*me->ctrl_cnt/me->cnt + 0.5),
-	   (int)(100*me->high_cnt/me->cnt + 0.5));
+    if (me->cnt) {
+	CTRACE(stderr,
+	       "Percentages. text=%d%% newlines=%d%% ctrl=%d%% high=%d%%\n",
+	       (int)(100*me->text_cnt/me->cnt + 0.5),
+	       (int)(100*me->lf_cnt  /me->cnt + 0.5),
+	       (int)(100*me->ctrl_cnt/me->cnt + 0.5),
+	       (int)(100*me->high_cnt/me->cnt + 0.5));
+    }
 
     if (!me->ctrl_cnt ||
 	me->text_cnt + me->lf_cnt >= 16 * (me->ctrl_cnt + me->high_cnt)) {
@@ -161,6 +164,7 @@ PRIVATE void HTGuess_put_character ARGS2(HTStream *, me, char, c)
 	if      (c == LF) me->lf_cnt++;
 	else if (c == CR) me->cr_cnt++;
 	else if (c == 12) me->pg_cnt++;
+	else if (c =='\t')me->text_cnt++;
 	else if (c < 32)  me->ctrl_cnt++;
 	else if (c < 128) me->text_cnt++;
 	else		  me->high_cnt++;

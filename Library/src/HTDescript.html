@@ -1,0 +1,101 @@
+<HTML>
+<HEAD>
+<TITLE>File descriptions</TITLE>
+</HEAD>
+<BODY>
+
+<H1>File Descriptions</H1>
+
+Descriptions appearing in directory listings are produced by this
+module.  This may be overridden by another module for those who which
+descriptions to come from somewhere else. <P>
+
+<PRE>
+
+#ifndef HTDESCRIPT_H
+#define HTDESCRIPT_H
+
+</PRE>
+
+
+<H2>Description File</H2>
+
+This module gets descriptions from the file defined by global variable
+<CODE>HTHTDesctiptionFile</CODE> in the same directory. The default
+value is <CODE>.www_descript</CODE>:
+<PRE>
+extern char * HTDescriptionFile;
+</PRE>
+
+In the description file lines starting with a word starting with 'D'
+are taken to be descriptions (this looks funny now, but this is to
+make it easy to extend these description files to contain also other
+information.
+<PRE>
+/*
+ * Example:
+ *	DESCRIBE  welcome.html	Our welcome page
+ *	DESCRIBE  map*.gif	Map as a GIF image
+ *	DESCRIBE  map*.ps	Map as a PostScript image
+ */
+</PRE>
+
+
+
+<H2>HTML Titles</H2>
+
+If description is not specified for a file that is of type
+<CODE>text/html</CODE>, this module uses the HTML TITLE as the
+description.  This feature can be turned off by setting the
+<CODE>HTPeekTitles</CODE> variable to false.
+<PRE>
+extern BOOL HTPeekTitles;
+</PRE>
+
+
+<H2>Read Description File</H2>
+
+The description file for a directory is read in only once by
+<CODE>HTReadDescriptions()</CODE>, and the result returned by it is
+given as an argument when finding out a description for a single file.
+<PRE>
+PUBLIC HTList * HTReadDescriptions PARAMS((char * dirname));
+</PRE>
+
+
+<H2>Get Description For a File</H2>
+
+Once description file has been read and the list of descriptions is
+returned by <CODE>HTReadDescriptions()</CODE>, the function
+<CODE>HTGetDescription()</CODE> can be used to get a description for a
+given file:
+<PRE>
+PUBLIC char * HTGetDescription PARAMS((HTList *	descriptions,
+				       char *	dirname,
+				       char *	filename,
+				       HTFormat	format));
+</PRE>
+Directory name has to be present because this function may then take a
+peek at the file itself (to get the HTML TITLE, for example).
+If <CODE>format</CODE> is <CODE>WWW_HTML</CODE> and description is not
+found, this module may be configured to use the HTML TITLE as the
+description. <P>
+
+<STRONG>No string returned by this function should be freed!</STRONG>
+
+
+<H2>Freeing Descriptions</H2>
+
+Once descriptions have been gotten, the description list returned by
+<CODE>HTReadDescriptions()</CODE> must be freed by
+<CODE>HTFreeDescriptions()</CODE>:
+<PRE>
+PUBLIC void HTFreeDescriptions PARAMS((HTList * descriptions));
+</PRE>
+
+<PRE>
+#endif /* !HTDESCRIPT_H */
+</PRE>
+End of <CODE>HTDescript.h</CODE>.
+</BODY>
+</HTML>

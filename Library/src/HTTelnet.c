@@ -202,7 +202,7 @@ PRIVATE int HTLoadTelnet ARGS1(HTRequest *, request)
     CONST char * addr = HTAnchor_physical(request->anchor);
     char * host;
     int status;
-    
+
     if (request->output_stream) {
         HTAlert("Can't output a live session -- it has to be interactive");
 	return HT_NO_ACCESS;
@@ -210,6 +210,23 @@ PRIVATE int HTLoadTelnet ARGS1(HTRequest *, request)
     access =  HTParse(addr, "file:", PARSE_ACCESS);
     
     host = HTParse(addr, "", PARSE_HOST);
+
+    /*
+     * Fix a security hole with telnet: URLs that contain semicolon
+     * after the machine name.  This would cause system commands to
+     * be executed after the telnet session is finished, e.g.
+     *
+     *		telnet://some.host; rm some_important_file
+     *
+     * or even more destructive:
+     *
+     *		telnet://some.host; rm -fr *	(don't try this!!)
+     */
+    {
+	char * semi = strchr(host,';');
+	if (semi) *semi = 0;
+    }
+
     status = remote_session(access, host);
 
     free(host);	

@@ -267,13 +267,15 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
     if (!welcome_names) {
 	HTAddWelcome("Welcome.html");
 	HTAddWelcome("welcome.html");
+#if 0
 	HTAddWelcome("Index.html");
+#endif
 	HTAddWelcome("index.html");
     }
 
-    if (last) *last = 0;
+    if (last && last!=path) *last = 0;
     dp = opendir(path);
-    if (last) *last='/';
+    if (last && last!=path) *last='/';
     if (!dp) {
 	CTRACE(stderr, "Warning..... Can't open directory %s\n",path);
 	return NULL;
@@ -286,6 +288,8 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
 	    continue;
 	else {
 	    int v = welcome_value(dirbuf->d_name);
+	    CTRACE(stderr, " ** DEBUG: Got welcome-value %d for %s\n",
+		   v, dirbuf->d_name);
 	    if (v > best_value) {
 		best_value = v;
 		StrAllocCopy(best_welcome, dirbuf->d_name);
