@@ -2536,13 +2536,91 @@ PUBLIC HTStream * HTRDFToTriples (HTRequest *		request,
     return HTXML_new(request, param, input_format, output_format, me);
 }
 
+/*	
+**	This function initializes the XML parser and RDF parsers
+**      that are used to synchronously parse a file of RDF or a
+**      a buffer of RDF.
+**
+*@param xmlparser MODIFIED the XML parser to create.  The caller is 
+* responsible for free'ing this pointer.
+*@param rdfparser MODIFIED the RDF parser to create.  The caller is 
+* responsible for free'ing this pointer.
+*@param stream MODIFIED the HTStream needed by the RDF parser.  The
+* caller is responsible for free'ing this pointer.
+*@param uri the URI created from name.  It is used by the RDF parser
+* when creating anonymous node names.  The caller is responsible for
+* freeing this pointer.
+*@param new_triple_callback the callback invoked when a new triple
+* is created.  If NULL, the default handler will be invoked.
+*@param name the file name or buffer name to be used when the RDF
+* parser needs a document name
+*@return NULL if the initialization succeeds; otherwise a pointer
+* to a static string is returned.  The caller must NOT free this
+* pointer.
+**/
+
+PRIVATE char * initialize_parsers(XML_Parser *xmlparser, HTRDF **rdfparser, 
+    HTStream **stream, char **uri, HTTripleCallback_new * new_triple_callback, 
+    const char * name)
+{
+    /* Create an XML parser */
+#ifdef USE_NS
+    *xmlparser = XML_ParserCreateNS (NULL, ':');
+#else
+    *xmlparser = XML_ParserCreate (NULL);
+#endif /* USE_NS */
+
+    if (!*xmlparser)
+        return "Could not create an XML parser";
+
+    /* We need also need RDF parser to create the triples */
+    *rdfparser = HTRDF_new();
+    if (!*rdfparser) {
+      XML_ParserFree(*xmlparser);
+      return "Could not allocate memory for RDF parser";
+    }
+
+    /* Must construct a URI from name for the parser */
+    *uri = HTLocalToWWW (name, "file:");
+    HTRDF_setSource(*rdfparser, *uri);
+
+    HTRDF_createBags(*rdfparser, NO); 
+
+    if (new_triple_callback)
+        HTRDF_registerNewTripleCallback(*rdfparser, new_triple_callback, NULL);
+    else
+        HTRDF_registerNewTripleCallback(*rdfparser, triple_newInstance, NULL);
+
+    rdf_setHandlers(*xmlparser);
+    XML_SetUserData(*xmlparser, *rdfparser);
+
+    /* Create a stream to be used to process the triple output */
+    if ((*stream = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL) {
+        HT_FREE(*uri);
+        XML_ParserFree(*xmlparser);
+        HTRDF_delete(*rdfparser);
+        return "Could not allocate memory for HTStream";
+    }
+    (*stream)->isa = &HTRDFTriplesClass;
+    (*stream)->state = HT_OK;
+    (*stream)->request = NULL;    /* Don't have a request */
+    (*stream)->target = NULL;     /* Don't have another stream */
+    (*stream)->rdfparser = *rdfparser;
+
+    return NULL;
+}
+
 /*	HTRDFParseFile
 **	---------------
 **      This function parses a file of RDF in a synchronous, non-blocking
-**      way.  In other words, the file is not asynchronously loaded.  If
-**      the file is successfully parsed, NULL is returned; otherwise a
-**      pointer to an error message is returned.  The caller must NOT 
-**      free the pointer returned by this function.
+**      way.  In other words, the file is not asynchronously loaded.
+**
+*@param file_name the name of the file to parse
+*@param new_triple_callback the callback that is invoked when a triple
+* is created.  If NULL, the default triple handler is invoked.
+*@return NULL if the buffer is successfully parsed; otherwise a 
+* pointer to a static error message is returned.  The caller must NOT
+* free this pointer.
 */
 
 PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_triple_callback)
@@ -2553,13 +2631,13 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
     HTRDF *rdfparser;
     HTStream * stream = NULL;
     char *uri = NULL;
+    char *s;
 
     /* Sanity check */
     if (!file_name) {
 	HTTRACE(XML_TRACE, "RDFParseFile.. file name is NULL\n");
 	return "RDFParseFile: file_name is NULL";
     }
-
 
     /* If the file does not exist, return now */
     fp = fopen (file_name, "r");
@@ -2568,54 +2646,11 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
 	return "RDFParseFile: file open failed";
     }
 
-    /* We need an XML parser */
-#ifdef USE_NS
-    xmlparser = XML_ParserCreateNS (NULL, ':');
-#else
-    xmlparser = XML_ParserCreate (NULL);
-#endif /* USE_NS */
-
-    if (!xmlparser) {
+    s = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, new_triple_callback, file_name);
+    if (s) {
 	fclose (fp);
-	HTTRACE(XML_TRACE, "RDFParseFile.. Could not create an XML parser\n");
-	return "RDFParseFile: Could not create an XML parser";
+        return s;
     }
-
-    /* We need also need RDF parser to create the triples */
-    rdfparser = HTRDF_new();
-    if (!rdfparser) {
-      fclose (fp);
-      XML_ParserFree(xmlparser);
-      return "RDFParseFile: Could not allocate memory for RDF parser";
-    }
-
-    /* Must construct a URI from file_name for the parser */
-    uri = HTLocalToWWW (file_name, "file:");
-
-    HTRDF_setSource(rdfparser, uri);
-    HTRDF_createBags(rdfparser, NO); 
-
-    if (new_triple_callback)
-        HTRDF_registerNewTripleCallback(rdfparser, new_triple_callback, NULL);
-    else
-        HTRDF_registerNewTripleCallback(rdfparser, triple_newInstance, NULL);
-
-    rdf_setHandlers(xmlparser);
-    XML_SetUserData(xmlparser, rdfparser);
-
-    /* Create a stream to be used to process the triple output */
-    if ((stream = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL) {
-        HT_FREE(uri);
-        fclose (fp);
-        XML_ParserFree(xmlparser);
-        HTRDF_delete(rdfparser);
-        return "RDFParseFile: Could not allocate memory for HTStream";
-    }
-    stream->isa = &HTRDFTriplesClass;
-    stream->state = HT_OK;
-    stream->request = NULL;    /* Don't have a request */
-    stream->target = NULL;     /* Don't have another stream */
-    stream->rdfparser = rdfparser;
 
     /* 
      * The parsing occurs on one read buffer at a time instead of 
@@ -2659,6 +2694,65 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
     /* Cleanup */
     HT_FREE(uri);
     fclose (fp);
+    XML_ParserFree(xmlparser);
+    HTRDF_delete(rdfparser);
+    HT_FREE(stream);
+
+    return NULL;
+}
+
+/*	HTRDFParseBuffer
+**	---------------
+**      This function parses a buffer of RDF in a synchronous, non-blocking
+**      way.
+**
+*@param buffer the buffer to parse
+*@param buffer_name the buffer's name.  This is used by the parser
+* when naming "anonymous" subjects
+*@param buffer_len the buffer's length (number of bytes)
+*@param new_triple_callback the callback that is invoked when a triple
+* is created.  If NULL, the default triple handler is invoked.
+*@return NULL if the buffer is successfully parsed; otherwise a 
+* pointer to a static error message is returned.  The caller must NOT
+* free this pointer.
+*/
+
+PUBLIC char * HTRDFParseBuffer (const char *buffer, const char *buffer_name, int buffer_len, HTTripleCallback_new * new_triple_callback)
+{
+    XML_Parser xmlparser;
+    HTRDF *rdfparser;
+    HTStream * stream = NULL;
+    char *uri;
+    char *s;
+
+    /* Sanity checks */
+    if (!buffer)
+        return "RDFParseBuffer: buffer is NULL";
+    if (buffer_len <= 0)
+        return "RDFParseBuffer: buffer_len is <=0";
+    if (!buffer_name)
+        return "RDFParseBuffer: buffer_name is NULL";
+
+    s = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, new_triple_callback, buffer_name);
+    if (s)
+        return s;
+
+    if (! XML_Parse(xmlparser, buffer, buffer_len, 1)) {
+        fprintf(stderr, "Parse error at line %d:\n%s\n",
+                XML_GetCurrentLineNumber(xmlparser),
+                XML_ErrorString(XML_GetErrorCode(xmlparser)));
+        HT_FREE(uri);
+        XML_ParserFree(xmlparser);
+        HTRDF_delete(rdfparser);
+        HT_FREE(stream);
+        return "RDFParseBuffer: parse error";
+    }
+
+    /* The buffer has been parsed, generate the triples */
+    generate_triples(stream);
+
+    /* Cleanup */
+    HT_FREE(uri);
     XML_ParserFree(xmlparser);
     HTRDF_delete(rdfparser);
     HT_FREE(stream);
