@@ -36,7 +36,10 @@ w3c_SOURCES = \
 BUILT_SOURCES = \
 	HTLine.h
 
+DOCS :=	$(wildcard *.html)
+
 EXTRA_DIST = \
+	$(DOCS) \
 	$(BUILT_SOURCES)
 
 inc: $(BUILT_SOURCES)
