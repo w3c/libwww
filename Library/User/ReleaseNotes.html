@@ -102,133 +102,129 @@ These are the things that are upcoming in the next release.
     <A HREF="../src/HTReq.html">HTReq.html</A> and
     <A HREF="../src/HTReqMan.html">HTReqMan.html</A>
   <LI>
-    Changed the
-    <A NAME="bestmatch""
-    HREF="../src/HTFormat.html#encoding"&gt;encoding streamstack
-    builder&lt;/A&gt; to support &lt;EM&gt;best matching&lt;/EM&gt; (wildcard matching)
-    capabilities.  This means that you now can register a default
-    decoder like this: &lt;CODE&gt;HTFormat_addCoding("*", HTIdentityCoding,
-    HTIdentityCoding, 0.3)&lt;/CODE&gt;, for example where
-    &lt;CODE&gt;HTIdentityCoding&lt;/CODE&gt; is a coder provided by libwww.  The
-    quality indicates how much you like it (between 0.0 and 1.0)
-  &lt;LI&gt;
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTProxy.c?r1=2.15&amp;r2=2.16"&gt;Now
+    Changed the <A NAME="bestmatch" HREF="../src/HTFormat.html#encoding">encoding
+    streamstack builder</A> to support <EM>best matching</EM> (wildcard matching)
+    capabilities. This means that you now can register a default decoder like
+    this: <CODE>HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding,
+    0.3)</CODE>, for example where <CODE>HTIdentityCoding</CODE> is a coder provided
+    by libwww. The quality indicates how much you like it (between 0.0 and 1.0)
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTProxy.c?r1=2.15&amp;r2=2.16">Now
     also removes the after authentication filter is all proxies are
-    unregistered&lt;/A&gt;
-  &lt;LI&gt;
+    unregistered</A>
+  <LI>
     Changed the progress notifications in HTAlert to also include
-    &lt;B&gt;Interrupted!&lt;/B&gt; This affects
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTCache.c?r1=2.50&amp;r2=2.51"&gt;HTCache.c&lt;/A&gt;
+    <B>Interrupted!</B> This affects
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTCache.c?r1=2.50&amp;r2=2.51">HTCache.c</A>
     (a little),
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAlert.html?r1=2.51&amp;r2=2.52"&gt;HTAlert.html&lt;/A&gt;
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAlert.html?r1=2.51&amp;r2=2.52">HTAlert.html</A>
     (and .h), and
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTDialog.c?r1=2.27&amp;r2=2.28"&gt;HTDialog.c&lt;/A&gt;
-  &lt;LI&gt;
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTDialog.c?r1=2.27&amp;r2=2.28">HTDialog.c</A>
+  <LI>
     Moved the increment of bytes written (used in PUT) from the
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTBufWrt.c?r1=2.21&amp;r2=2.22"&gt;buffered
-    output steam &lt;/A&gt;to the
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWriter.c?r1=2.50&amp;r2=2.51"&gt;unbuffered
-    output stream&lt;/A&gt; which gives a more accurate reading.
-  &lt;LI&gt;
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTBufWrt.c?r1=2.21&amp;r2=2.22">buffered
+    output steam </A>to the
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWriter.c?r1=2.50&amp;r2=2.51">unbuffered
+    output stream</A> which gives a more accurate reading.
+  <LI>
     Bad typo bug when deleting before filters in
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTNet.c?r1=2.93&amp;r2=2.94"&gt;HTNetCall_addBefore&lt;/A&gt;
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTNet.c?r1=2.93&amp;r2=2.94">HTNetCall_addBefore</A>
     which caused deletion problems in the Filter list
-  &lt;LI&gt;
+  <LI>
     Fixed a problem when PUT'ing to a non-existent host (or invalid portnumber)
     in the
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.142&amp;r2=1.143"&gt;Save
-    Filter&lt;/A&gt;. The cleanup is now made more cleanly.
-  &lt;LI&gt;
-    Moved the &lt;B&gt;Done!&lt;/B&gt; progress notification into
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.87&amp;r2=2.88"&gt;HTMIME.c&lt;/A&gt;
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.142&amp;r2=1.143">Save
+    Filter</A>. The cleanup is now made more cleanly.
+  <LI>
+    Moved the <B>Done!</B> progress notification into
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.87&amp;r2=2.88">HTMIME.c</A>
     instead of in
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTReader.c?r1=2.24&amp;r2=2.25"&gt;HTReader.c&lt;/A&gt;
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTReader.c?r1=2.24&amp;r2=2.25">HTReader.c</A>
     as it no longer has much to do with closing the TCP connection.
-  &lt;LI&gt;
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTChannl.c?r1=2.17&amp;r2=2.18"&gt;Made
-    sure that local files are closed when using ANSI C file descriptors&lt;/A&gt;
-  &lt;LI&gt;
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWWWStr.c?r1=2.26&amp;r2=2.27"&gt;Fixed
-    bug in the conversion from URI to local Windows file in HTWWWToLocal()&lt;/A&gt;
-  &lt;LI&gt;
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47"&gt;Fixed
-    problem in the template generation in the access authentication module&lt;/A&gt;.
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTChannl.c?r1=2.17&amp;r2=2.18">Made
+    sure that local files are closed when using ANSI C file descriptors</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWWWStr.c?r1=2.26&amp;r2=2.27">Fixed
+    bug in the conversion from URI to local Windows file in HTWWWToLocal()</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47">Fixed
+    problem in the template generation in the access authentication module</A>.
     This can cause the authentication module to not find the credentials already
     given.
-  &lt;LI&gt;
-    &lt;A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTHost.c?r1=2.46&amp;r2=2.47"&gt;Fixed
-    strange deletion of semaphore control for non-persistent connections&lt;/A&gt;
-  &lt;LI&gt;
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTHost.c?r1=2.46&amp;r2=2.47">Fixed
+    strange deletion of semaphore control for non-persistent connections</A>
+  <LI>
     A close socket event wasn't registered on Windows. This is now done in
-    &lt;A HREF="../src/HTHost.c"&gt;HTHost.c&lt;/A&gt;.
-  &lt;LI&gt;
+    <A HREF="../src/HTHost.c">HTHost.c</A>.
+  <LI>
     On some platforms, it is not possible to refer to function addresses across
     shared libraries. The result is that the libwww API that uses function addresses
     don't always work. I have added an opcode version of the
-    &lt;A HREF="../src/HTAlert.html"&gt;HTAlert API&lt;/A&gt; to handle this for user messages
+    <A HREF="../src/HTAlert.html">HTAlert API</A> to handle this for user messages
     and progress notifications.
-&lt;/UL&gt;
-&lt;H2&gt;
+</UL>
+<H2>
   Release 5.1m May 21, 1998
-&lt;/H2&gt;
-&lt;H3&gt;
+</H2>
+<H3>
   New Features
-&lt;/H3&gt;
-&lt;UL&gt;
-  &lt;LI&gt;
-    Changed the &lt;A HREF="../src/HTFormat.html#encoding"&gt;encoding
-    streamstack builder&lt;/A&gt; to support &lt;EM&gt;best matching&lt;/EM&gt;
-    capabilities. This means that you now can register a default
-    decoder like this: &lt;CODE&gt;HTFormat_addCoding("*", HTIdentityCoding,
-    HTIdentityCoding, 0.3)&lt;/CODE&gt;, for example where
-    &lt;CODE&gt;HTIdentityCoding&lt;/CODE&gt; is a coder provided by libwww.
-  &lt;LI&gt;
-    Added support for &lt;A HREF="../src/HTMIMERq.html"&gt;writing out &lt;TT&gt;Link:&lt;/TT&gt;
-    header fields&lt;/A&gt; when &lt;A HREF="../src/HTAccess.html"&gt;uploading a document&lt;/A&gt;.
-    The &lt;TT&gt;Link:&lt;/TT&gt; header field is use to represent link relationship between
+</H3>
+<UL>
+  <LI>
+    Changed the <A HREF="../src/HTFormat.html#encoding">encoding streamstack
+    builder</A> to support <EM>best matching</EM> capabilities. This means that
+    you now can register a default decoder like this: <CODE>HTFormat_addCoding("*",
+    HTIdentityCoding, HTIdentityCoding, 0.3)</CODE>, for example where
+    <CODE>HTIdentityCoding</CODE> is a coder provided by libwww.
+  <LI>
+    Added support for <A HREF="../src/HTMIMERq.html">writing out <TT>Link:</TT>
+    header fields</A> when <A HREF="../src/HTAccess.html">uploading a document</A>.
+    The <TT>Link:</TT> header field is use to represent link relationship between
     documents
-  &lt;LI&gt;
-    Changed &lt;A HREF="../src/HTEscape.html"&gt;HTEscape&lt;/A&gt; to deal with silly MSDos
+  <LI>
+    Changed <A HREF="../src/HTEscape.html">HTEscape</A> to deal with silly MSDos
     file type escaping of &nbsp;the drive name (using ":").
-  &lt;LI&gt;
-    Added support for &lt;A HREF="../../ComLine/User/CommandLine.html#auth"&gt;automatic
-    authentication (!)&lt;/A&gt; in the &lt;A HREF="../../ComLine/"&gt;Command Line&lt;/A&gt; Tool
+  <LI>
+    Added support for <A HREF="../../ComLine/User/CommandLine.html#auth">automatic
+    authentication (!)</A> in the <A HREF="../../ComLine/">Command Line</A> Tool
     so that it is now possible to authenticate from scripts etc.
-  &lt;LI&gt;
-    &lt;A HREF="../cvs.html"&gt;Direct access to the CVS repository&lt;/A&gt; - checkout
+  <LI>
+    <A HREF="../cvs.html">Direct access to the CVS repository</A> - checkout
     libwww and work with the latest version!
-  &lt;LI&gt;
+  <LI>
     Made sure that we write more often as we check for expired timers in HTWriter.c
-  &lt;LI&gt;
+  <LI>
     Added a "repetitive" flag to timers so that they can be created to say call
     me every 30ms over and over again
-  &lt;LI&gt;
+  <LI>
     Added support for building libwww as a shared library on Unix (it is already
     using DLLs on Windows). If you have any problems with shared libraries on
-    your platform then &lt;A HREF="../../INSTALL.html"&gt;run configure&lt;/A&gt; with the
-    &lt;CODE&gt;--disable-shared&lt;/CODE&gt; flag and you will only get the static version.
-    If you are using libwww as a shared library but do &lt;EM&gt;not&lt;/EM&gt; use the
-    &lt;A HREF="../src/WWWHTML.html"&gt;libwww HTML parser&lt;/A&gt; then you MUST include
-    this &lt;A HREF="../src/HTextImp.html"&gt;dummy implementation&lt;/A&gt; of the
-    &lt;A HREF="../src/HText.html"&gt;HText interface&lt;/A&gt; somewhere in your code. The
+    your platform then <A HREF="../../INSTALL.html">run configure</A> with the
+    <CODE>--disable-shared</CODE> flag and you will only get the static version.
+    If you are using libwww as a shared library but do <EM>not</EM> use the
+    <A HREF="../src/WWWHTML.html">libwww HTML parser</A> then you MUST include
+    this <A HREF="../src/HTextImp.html">dummy implementation</A> of the
+    <A HREF="../src/HText.html">HText interface</A> somewhere in your code. The
     reason for this is that the HText interface may be called (it depends a bit
     on how your platform supports shared libraries) but an implementation isn't
     provided.
-  &lt;LI&gt;
-    Added support for &lt;A HREF="http://www.tcx.se/"&gt;MySQL&lt;/A&gt; access in
-    &lt;A HREF="../src/HTSQL.html"&gt;this simple SQL interface&lt;/A&gt; which takes care
+  <LI>
+    Added support for <A HREF="http://www.tcx.se/">MySQL</A> access in
+    <A HREF="../src/HTSQL.html">this simple SQL interface</A> which takes care
     of most os the common problems encountered when talking to an SQL server.
-    Currently I use this for &lt;A HREF="../src/HTSQLLog.html"&gt;handling logging&lt;/A&gt;
-    in &lt;A HREF="../../Robot/User/CommandLine.html#Logging"&gt;the webbot &lt;/A&gt;but
+    Currently I use this for <A HREF="../src/HTSQLLog.html">handling logging</A>
+    in <A HREF="../../Robot/User/CommandLine.html#Logging">the webbot </A>but
     many other features like persistent caching, preferences, etc. can use the
-    &lt;A HREF="../src/HTSQL.html"&gt;SQL module&lt;/A&gt; as well. You can also see some
-    &lt;A HREF="../../Robot/www-sql/"&gt;cool examples&lt;/A&gt; of how to use the robot's
-    logs when querying &lt;A HREF="http://www.tcx.se/"&gt;MySQL&lt;/A&gt; through
-    &lt;A HREF="http://www.daa.com.au/~james/www-sql/"&gt;www-sql&lt;/A&gt;.
-  &lt;LI&gt;
-    Changed the name of "&lt;TT>config.h" to "<TT>wwwconf.h</TT>" as the
+    <A HREF="../src/HTSQL.html">SQL module</A> as well. You can also see some
+    <A HREF="../../Robot/www-sql/">cool examples</A> of how to use the robot's
+    logs when querying <A HREF="http://www.tcx.se/">MySQL</A> through
+    <A HREF="http://www.daa.com.au/~james/www-sql/">www-sql</A>.
+  <LI>
+    Changed the name of "<TT>config.h</TT>" to "<TT>wwwconf.h</TT>" as the
     <A HREF="http://lists.w3.org/Archives/Public/www-lib/1998JanMar/0039.html">first
-    name caused conflicts with other packages</A> </A>
+    name caused conflicts with other packages</A>
   <LI>
     Changed the name of "<TT>sysdep.h</TT>" to "<TT>wwwsys.h</TT>" for the same
     reason
