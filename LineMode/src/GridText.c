@@ -14,6 +14,7 @@
 #include "WWWLib.h"
 #include "WWWCache.h"
 #include "WWWApp.h"
+#include "WWWHTML.h"
 #include "HTBrowse.h"
 #include "HTFont.h"
 #include "GridStyle.h"
@@ -129,7 +130,10 @@ PRIVATE HTList * loaded_texts;	/* A list of all those in memory */
 **
 */
 extern LineMode * Context_getLineMode(HTRequest * request);
-PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
+PUBLIC HText *	LMHText_new (
+	HTRequest * request,
+	HTParentAnchor * anchor,
+	HTStream *outstrm)
 {
     HTLine * line;
     HText * self;
@@ -187,11 +191,11 @@ PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
 **	Non-interative  OR interactive if stream is NULL
 **	Stream is assumed open and left open.
 */
-PUBLIC HText *	HText_new2 (HTRequest *		request,
+PUBLIC HText *	LMHText_new2 (HTRequest *		request,
 			    HTParentAnchor * 	anchor,
 			    HTStream * 		stream)
 {
-    HText * me = HText_new(request, anchor);
+    HText * me = LMHText_new(request, anchor, stream);
         
     if (stream) {
         me->target = stream;
@@ -234,12 +238,22 @@ PUBLIC void hyper_free (HText *  self)
 /*	Free Entire Text
 **	----------------
 */
-PUBLIC void 	HText_free (HText * self)
+PUBLIC int 	HText_free (HText * self)
 {
     if (self) {
 	HTAnchor_setDocument(self->node_anchor, NULL);
 	hyper_free(self);
     }
+}
+
+PUBLIC BOOL LMHText_delete (HText * self)
+{
+    if (self) {
+	HTAnchor_setDocument(self->node_anchor, NULL);
+	hyper_free(self);
+	return YES;
+    }
+    return NO;
 }
 
 /*
@@ -742,7 +756,9 @@ PUBLIC void HText_appendCharacter (HText * text, char ch)
 */
 /*	Start an anchor field
 */
-PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anc)
+PUBLIC void LMHText_beginAnchor (HText * text,
+    int elem_num, int attr_num, HTChildAnchor * anc,
+    const BOOL *present, const char **value)
 {
     char marker[100];
     TextAnchor * a;
@@ -764,16 +780,10 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anc)
     } else {
         a->number = 0;
     }
-    
-    if (start_reference && a->number && display_anchors) {
-    	/* If it goes somewhere */
-	sprintf(marker, start_reference, a->number);
-	HText_appendText(text, marker);
-    }
 }
 
 
-PUBLIC void HText_endAnchor (HText * text)
+PUBLIC void LMHText_endAnchor (HText * text)
 {
     TextAnchor * a = text->last_anchor;
     char marker[100];
@@ -797,7 +807,17 @@ PUBLIC void HText_appendImage (
     HText_appendText(text, alt? alt : "[IMAGE]");
 }
 	
-PUBLIC void HText_appendText (HText * text, const char * str)
+/* LMHText_addText() satisfies HText callback requirement.  */
+PUBLIC void LMHText_addText (HText * text, const char * str, int length)
+{
+    const char * p;
+    int i;
+    for (i=0,p=str; i<length; ++i,++p) {
+        HText_appendCharacter(text, *p);
+    }
+}
+
+PUBLIC int HText_appendText (HText * text, const char * str)
 {
     const char * p;
     for(p=str; *p; p++) {
@@ -1057,4 +1077,24 @@ PUBLIC int HText_getLines (HText * text)
 PUBLIC HTAnchor *	HText_linkSelTo (HText * me, HTAnchor * anchor)
 {
     return 0;
+}
+
+/*	HTML callback functions
+*/
+PUBLIC void LMHText_beginElement (HText * text,
+    int elem_num, const BOOL * present, const char ** value)
+{
+    return;
+}
+
+PUBLIC void LMHText_endElement (HText * text, int elem_num)
+{
+    switch (elem_num) {
+    case HTML_A:
+	LMHText_endAnchor (text);
+	break;
+    default:
+	break;
+    }
+    return;   
 }

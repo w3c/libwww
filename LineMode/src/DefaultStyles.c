@@ -8,8 +8,11 @@
 */
 
 #include "WWWLib.h"
-#include "GridStyle.h"
 #include "HTFont.h"
+#include "HTStyle.h"
+#include "GridStyle.h"
+/* try this -- GridText.h */
+#include "GridText.h"
 
 /*	Tab arrays:
 */

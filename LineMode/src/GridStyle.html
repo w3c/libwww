@@ -46,6 +46,7 @@ in this case without problems, as no other moule needs to know it.
 #define GridStyle_H
 #include "HText.h"
 #include "HTFont.h"
+#include "HTStyle.h"
 
 typedef double HTCoord;
 
@@ -126,11 +127,15 @@ extern HTStyle * HTStyleNew (void);
 extern HTStyle * HTStyleNewNamed (const char * name);
 extern HTStyle * HTStyleFree (HTStyle * self);
 
+#endif
+
 /* Style Sheet */
-typedef struct _HTStyleSheet {
+struct _HTStyleSheet {
     char * name;
     HTStyle * styles;
-} HTStyleSheet;
+};
+
+#ifdef NOT_IN_GRIDSTYLE
 
 /* Stylesheet functions: */
 extern HTStyleSheet * HTStyleSheetNew (void);

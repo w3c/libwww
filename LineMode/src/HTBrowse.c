@@ -196,6 +196,13 @@ InputParser_t * PInputParser = &parse_command;
 PRIVATE HTNetBefore MemoryCacheFilter;
 PRIVATE HTNetAfter  terminate_handler;
 
+/* additions for browser update */
+extern HText * HTMainText;
+extern HTParentAnchor * HTMainAnchor;
+extern void LMHText_beginElement (HText * text,
+    int elem_num, const BOOL * present, const char ** value);
+extern void LMHText_endElement (HText * text, int elem_num);
+
 /* ------------------------------------------------------------------------- */
 
 PUBLIC int HTWatch(int id, void * obj, const char * fmt, ...)
@@ -1910,6 +1917,25 @@ int main (int argc, char ** argv)
     SetSignal();
 #endif
 
+    /* Set up HText interface callbacks */
+    if (!HText_registerCDCallback (LMHText_new, LMHText_delete)) {
+	HTPrint("HText new/delete callback registration failed.\n");
+	exit (1);
+    }
+    if (!HText_registerTextCallback (LMHText_addText)) {
+	HTPrint("HText addText callback registration failed.\n");
+	exit (2);
+    }
+    if (!HText_registerLinkCallback (LMHText_beginAnchor)) {
+	HTPrint("HText link callback registration failed.\n");
+	exit (3);
+    }
+    if (!HText_registerElementCallback (
+    	LMHText_beginElement, LMHText_endElement)) {
+	HTPrint("HText element callback registration failed.\n");
+	exit (3);
+    }
+
     /* Make home page address */
     if (!lm->anchor) lm->anchor = HTHomeAnchor();
 
@@ -1962,7 +1988,7 @@ int main (int argc, char ** argv)
 		HTMLGenerator(request, NULL, WWW_HTML,
 			      HTRequest_outputFormat(request),
 			      HTRequest_outputStream(request));
-	    HTRequest_setOutputStream(request, SGML_new(&HTMLP_dtd, html));
+	    HTRequest_setOutputStream(request, SGML_new(HTML_dtd(), html));
 	}
     }
     

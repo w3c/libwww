@@ -1,14 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-all:
-	@echo "**************************************************"
-	@echo "The line mode browser is not currently compiled as"
-	@echo "the changes to the HText interface hasn't been"
-	@echo "integrated into the line mode browser code."
-	@echo "Your help is greatly appreciated!"
-	@echo "**************************************************"
-
-EXTRA_PROGRAMS = www		# Should be www_PROGRAMS
+bin_PROGRAMS = www
 
 www_LDADD = \
 	$(top_builddir)/Library/src/libwwwinit.la \

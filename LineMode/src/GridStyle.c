@@ -14,7 +14,8 @@
 
 #include "WWWLib.h"
 #include "HTUtils.h"
-#include "HTStyle.h"
+#include "GridStyle.h"
+/* #include "HTStyle.h" */
 
 /*	Local definition of style
 **	-------------------------
@@ -23,6 +24,7 @@
 **      -------------------
 */
 
+#if 0	/* DEFINED IN GridStyle.h */
 typedef double HTCoord;
 typedef int HTColor;
 
@@ -30,7 +32,6 @@ typedef struct {
     short               kind;           /* only NX_LEFTTAB implemented*/
     HTCoord             position;       /* x coordinate for stop */
 } HTTabStop;
-
 
 typedef long int HTLMFont;	/* For now */
 
@@ -45,7 +46,6 @@ typedef long int HTLMFont;	/* For now */
 
 #define HT_BLACK	0
 #define HT_WHITE	1
-
 
 struct _HTStyle {
 
@@ -90,6 +90,8 @@ struct _HTStyle {
 #define HT_RIGHT 2
 #define HT_CENTER 3
 };
+
+#endif	/* DEFINED IN GridStyle.h */
 
 
 /*	Create a new style

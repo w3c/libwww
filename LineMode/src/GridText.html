@@ -58,6 +58,23 @@ This is typically called at clean up time just before exiting the application.
 extern BOOL HText_freeAll (void);
 </PRE>
 
+<H2>
+Callbacks
+</H2>
+
+These functions are invoked as callbacks from the HText interface.
+
+<PRE>
+extern HText* LMHText_new (HTRequest * req,
+		HTParentAnchor * anchor,HTStream * output_stream);
+extern BOOL LMHText_delete (HText * self);
+extern void LMHText_addText (HText * text, const char * str, int length);
+extern void LMHText_beginAnchor (HText *text,
+		int elem_num, int attr_num, HTChildAnchor* anc,
+		const BOOL* present, const char** value);
+
+</PRE>
+
 End of declaration
 
 </BODY>
