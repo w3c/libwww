@@ -5,7 +5,10 @@
 **	Please first read the full copyright statement in the file COPYRIGH.
 **	@(#) $Id$
 **
-**	Define a basic set of suffixes and presentations
+**	General initialization functions.
+**
+**      @@@A lot of these should be moved to the various modules instead
+**      of being here
 */
 
 /* Library include files */
