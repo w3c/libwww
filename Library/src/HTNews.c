@@ -43,7 +43,7 @@ struct _HTStructured {
 #define NEWS_PROGRESS(foo) HTProgress(foo)
 
 
-#define NEXT_CHAR HTInputSocket_getChararcter(isoc)
+#define NEXT_CHAR HTInputSocket_getCharacter(isoc)
 #define LINE_LENGTH 512			/* Maximum length of line of ARTICLE etc */
 #define GROUP_NAME_LENGTH	256	/* Maximum length of group name */
 

@@ -142,6 +142,7 @@ append the alternative text or "IMAGE",
 then end the anchor. This would simply
 generate some text linked to the
 image itself as a separate document.
+<H2></H2>
 <PRE>extern void HText_appendImage PARAMS((
 	HText * 	text,
 	HTChildAnchor * anc,
@@ -150,6 +151,18 @@ image itself as a separate document.
 	BOOL		isMap));
 
 </PRE>
+<H3>HText_unimplemented: Warn that object
+is not completely rendered.</H3>If the parser realises that it has
+incompletely parsed an object, then
+it can call this to flag it to the
+object.  This will for example prevent
+editing or writing back.
+<PRE>extern void HText_unimplemented PARAMS((
+	HText *		text));
+
+
+</PRE>
+<H2>Utilities</H2>
 <H3>Dump diagnostics to stderr</H3>
 <PRE>
 extern void HText_dump PARAMS((HText * me));	

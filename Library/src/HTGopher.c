@@ -65,7 +65,7 @@ PRIVATE HTStructuredClass targetClass;		/* Its action routines */
 #define GOPHER_PROGRESS(foo) HTAlert(foo)
 
 
-#define NEXT_CHAR HTInputSocket_getChararcter(isoc) 
+#define NEXT_CHAR HTInputSocket_getCharacter(isoc) 
 
 
 
@@ -160,7 +160,7 @@ PRIVATE void parse_menu ARGS3 (
     char *port;
     char *p = line;
     CONST char *title;
-    HTInputSocket * isoc = HTINputSocket_new(s);
+    HTInputSocket * isoc = HTInputSocket_new(s);
     
 #define TAB 		'\t'
 #define HEX_ESCAPE 	'%'
@@ -500,7 +500,6 @@ PUBLIC int HTLoadGopher ARGS2(
     int status;				/* tcp return */
     char gtype;				/* Gopher Node type */
     char * selector;			/* Selector string */
-    HTInputSocket * isoc;		/* Buffers for reading socket */
     struct sockaddr_in soc_address;	/* Binary network address */
     struct sockaddr_in* sin = &soc_address;
     

@@ -1018,7 +1018,8 @@ open_file:
 */
     {
 	if (strcmp(nodename, HTHostName())!=0)
-	    return HTFTPLoad(addr, request->anchor, request->output_format, request->output_stream);
+	    return HTFTPLoad(request, NULL, addr,
+	    request->anchor, request->output_format, request->output_stream);
     }
 #endif
 
