@@ -48,12 +48,12 @@ typedef struct _HTSuffix {
 #ifdef unix			/* if this is to compile on a UNIX machine */
 #include "HTML.h"		/* For directory object building */
 
-#define PUTC(c) (*targetClass.put_character)(target, c)
-#define PUTS(s) (*targetClass.put_string)(target, s)
-#define START(e) (*targetClass.start_element)(target, e, 0, 0)
-#define END(e) (*targetClass.end_element)(target, e)
-#define END_TARGET (*targetClass.end_document)(target)
-#define FREE_TARGET (*targetClass.free)(target)
+#define PUTC(c) (*target->isa->put_character)(target, c)
+#define PUTS(s) (*target->isa->put_string)(target, s)
+#define START(e) (*target->isa->start_element)(target, e, 0, 0)
+#define END(e) (*target->isa->end_element)(target, e)
+#define END_TARGET (*target->isa->end_document)(target)
+#define FREE_TARGET (*target->isa->free)(target)
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	/* ... */
@@ -523,6 +523,92 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTParentAnchor *, anchor)
     
 }
 
+/*      Output one directory entry
+**
+*/
+PUBLIC void HTDirEntry ARGS3(HTStructured *, target,
+		 CONST char * , tail,
+		 CONST char *,  entry)
+{
+    char * relative;
+    char * escaped = HTEscape(entry, URL_XPALPHAS);
+
+    /* If empty tail, gives absolute ref below */
+    relative = (char*) malloc(
+			      strlen(tail) + strlen(escaped)+2);
+    if (relative == NULL) outofmem(__FILE__, "DirRead");
+    sprintf(relative, "%s/%s", tail, escaped);
+    HTStartAnchor(target, "", relative);
+    free(escaped);
+    free(relative);
+    PUTS(entry);
+    END(HTML_A);
+}
+ 
+/*      Output parent directory entry
+**
+**    This gives the TITLE and H1 header, and also a link
+**    to the parent directory if appropriate.
+*/
+PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
+		 HTAnchor * , anchor)
+
+{
+    char * logical = HTAnchor_address(anchor);
+    char * path = HTParse(logical, "", PARSE_PATH + PARSE_PUNCTUATION);
+    char * current;
+
+    current = strrchr(path, '/');	/* last part or "" */
+    free(logical);
+
+    {
+      char * printable = NULL;
+      StrAllocCopy(printable, (current + 1));
+      HTUnEscape(printable);
+      START(HTML_TITLE);
+      PUTS(*printable ? printable : "Welcome ");
+      PUTS(" directory");
+      END(HTML_TITLE);    
+    
+      START(HTML_H1);
+      PUTS(*printable ? printable : "Welcome");
+      END(HTML_H1);
+      free(printable);
+    }
+
+    /*  Make link back to parent directory
+     */
+
+    if (current && current[1]) {   /* was a slash AND something else too */
+        char * parent;
+	char * relative;
+	*current++ = 0;
+      parent = strrchr(path, '/');  /* penultimate slash */
+
+	relative = (char*) malloc(strlen(current) + 4);
+	if (relative == NULL) outofmem(__FILE__, "DirRead");
+	sprintf(relative, "%s/..", current);
+	HTStartAnchor(target, "", relative);
+	free(relative);
+
+	PUTS("Up to ");
+	if (parent) {
+	  char * printable = NULL;
+	  StrAllocCopy(printable, parent + 1);
+	  HTUnEscape(printable);
+	  PUTS(printable);
+	  free(printable);
+	} else {
+	  PUTS("/");
+	}
+
+	END(HTML_A);
+
+    }
+    free(path);
+}
+		
+
 
 /*	Load a document
 **	---------------
@@ -700,7 +786,6 @@ forget_multi:
 		char * tail;
 		
 		BOOL present[HTML_A_ATTRIBUTES];
-		char * value[HTML_A_ATTRIBUTES];
 		
 		char * tmpfilename = NULL;
 		struct stat file_info;
@@ -754,21 +839,8 @@ forget_multi:
 				present[i] = (i==HTML_A_HREF);
 		}
 		
-		{
-		    char * printable = NULL;
-		    StrAllocCopy(printable, tail);
-		    HTUnEscape(printable);
-		    START(HTML_TITLE);
-		    PUTS(*printable ? printable : "Welcome ");
-		    PUTS(" directory");
-		    END(HTML_TITLE);    
-    
-		    START(HTML_H1);
-		    PUTS(*printable ? printable : "Welcome");
-		    END(HTML_H1);
-		    free(printable);
-		}
-		
+                HTDirTitles(target, (HTAnchor *)anchor);
+
                 if (HTDirReadme == HT_DIR_README_TOP)
 		    do_readme(target, localname);
 		{
@@ -783,21 +855,13 @@ forget_multi:
 				  /* if the entry is not being used, skip it */
 			    continue;
 		    
-		        if (!strcmp(dirbuf->d_name,"."))
-			    continue;   /* skip the entry for this directory */
-			
-			if (strcmp(dirbuf->d_name,"..") != 0) 
-			{
+
 				/* if the current entry is parent directory */
-			    if ((*(dirbuf->d_name)=='.') ||
+			if ((*(dirbuf->d_name)=='.') ||
 				(*(dirbuf->d_name)==','))
 			    continue;    /* skip those files whose name begins
 					    with '.' or ',' */
-			} 
-			else 
-			{
-			    if (!*tail) continue; /* No up from top level */
-		        }
+
 			dirname = malloc(strlen(dirbuf->d_name) + 2);
 			if (dirname == NULL) outofmem(__FILE__,"DirRead");
 			StrAllocCopy(tmpfilename,localname);
@@ -805,11 +869,7 @@ forget_multi:
 
 					/* if filename is not root directory */
 			    StrAllocCat(tmpfilename,"/"); 
-			else
-			    if (!strcmp(dirbuf->d_name,".."))
-			        continue;
-			        /* if root directory and current entry is parent
-				    directory, skip the current entry */
+
 
 			StrAllocCat(tmpfilename,dirbuf->d_name);
 			stat(tmpfilename, &file_info);
@@ -841,12 +901,6 @@ forget_multi:
 
 					/* if filename is not root directory */
 			        StrAllocCat(tmpfilename,"/"); 
-			    else
-			        if (!strcmp(
-				       (char *)HTBTree_object(next_element)+1,".."))
-			            continue;
-			        /* if root directory and current entry is parent
-				    directory, skip the current entry */
 
 			    StrAllocCat(tmpfilename,(char *)HTBTree_object(next_element)+1);
 			    /* append the current entry's filename to the path */
@@ -888,39 +942,9 @@ forget_multi:
 				}
 				START(HTML_LI);
 			    }
-			    {
-			        char * relative;
-				char * escaped = HTEscape(
-					(char *)HTBTree_object(next_element)+1,
-					URL_XPALPHAS);
-				/* If empty tail, gives absolute ref below */
-				relative = (char*) malloc(
-				       strlen(tail) + strlen(escaped)+2);
-				if (relative == NULL) outofmem(__FILE__, "DirRead");
-				sprintf(relative, "%s/%s", tail, escaped);
-				value[HTML_A_HREF] = relative;
-				(*targetClass.start_element)(
-				    target,HTML_A, present, value);
-				free(escaped);
-				free(relative);
-			    }
+			    HTDirEntry(target, tail,
+				       (char*)HTBTree_object(next_element) +1);
 
-	     		    if (strcmp((char *)HTBTree_object(next_element)+1,".."))
-			    {
-
-				  /* if the current entry is not the parent 
-				     directory then use the file name */
-				  PUTS((char *)HTBTree_object(next_element)+1);
-
-			    }		        
-			    else 
-			    {
-			      /* use name of parent directory */
-			        char * endbit = strrchr(tmpfilename, '/');
-				PUTS("Up to ");
-				PUTS(*endbit ? endbit+1:tmpfilename);
-			    }	
-			    END(HTML_A);
 			    next_element = HTBTree_next(bt,next_element);
 			        /* pick up the next element of the list; 
 				 if none, return NULL*/

@@ -74,7 +74,8 @@ BUGS:	@@@  	Limit connection cache size!
 #include "HTTCP.h"
 #include "HTAnchor.h"
 #include "HTFile.h"	/* For HTFileFormat() */
-
+#include "HTBTree.h"
+#include "HTChunk.h"
 #ifndef IPPORT_FTP
 #define IPPORT_FTP	21
 #endif
@@ -648,91 +649,88 @@ ARGS4 (
   HTParentAnchor *,		parent,
   CONST char *,			address,
   HTFormat,			format_out,
-  HTStream *,			sink
-)
+  HTStream *,			sink )
 {
-  HTStructured* target = HTML_new(parent, format_out, sink);
-  HTStructuredClass targetClass;
-  BOOL present[HTML_A_ATTRIBUTES];
-  char * value[HTML_A_ATTRIBUTES];
-  char *filename = HTParse(address, "", PARSE_PATH + PARSE_PUNCTUATION);
+    HTStructured* target = HTML_new(parent, format_out, sink);
+    HTStructuredClass targetClass;
+    char *filename = HTParse(address, "", PARSE_PATH + PARSE_PUNCTUATION);
 
-  char c = 0;
-#define LASTPATH_LENGTH 150  /* @@@@ Horrible limit on the entry size */
-  char lastpath[LASTPATH_LENGTH + 1];
-  char *p, *entry;
+    char c = 0;
 
-  { int i; for(i=0; i<HTML_A_ATTRIBUTES; i++) present[i] = (i==HTML_A_HREF);}
+    char *lastpath;  /* prefix for link, either "" (for root) or xxx  */
+    char *entry;   /* pointer into lastpath to bit after last slash */
 
-  targetClass = *(target->isa);
+    targetClass = *(target->isa);
 
-  START(HTML_TITLE);
-  PUTS("FTP Directory of ");
-  PUTS(address + 5);  /* +5 gets rid of "file:" */
-  END(HTML_TITLE);
+    HTDirTitles(target, (HTAnchor*)parent);
   
-  START(HTML_H1);
-  PUTS(filename);
-  END(HTML_H1);
-  
-  present[HTML_A_HREF] = YES;		/* Attribute list for anchors */
-  data_read_pointer = data_write_pointer = data_buffer;
+    data_read_pointer = data_write_pointer = data_buffer;
 
-  if (*filename == 0)  /* Empty filename : use root */
-    strcpy (lastpath, "/");
-  else {
-    p = filename + strlen (filename) - 2;
-    while (p >= filename && *p != '/')
-      p--;
-    strcpy (lastpath, p + 1);  /* relative path */
-  }
-  free (filename);
-  entry = lastpath + strlen (lastpath);
-  if (*(entry-1) != '/')
-    *entry++ = '/';  /* ready to append entries */
-
-  if (strlen (lastpath) > 1) {  /* Current file is not the FTP root */
-    strcpy (entry, "..");
-    value[HTML_A_HREF] = lastpath;
-    (*targetClass.start_element)(target, HTML_A, present,
-    	(CONST char**) value);	/* typecast for think c */
-    PUTS("Up to Parent Directory");
-    END(HTML_A);
-  }
-
-  START(HTML_DIR);
-  for (;;) {
-    p = entry;
-    while (p - lastpath < LASTPATH_LENGTH) {
-      c = NEXT_DATA_CHAR;
-      if (c == '\r') {
-	c = NEXT_DATA_CHAR;
-	if (c != LF) {
-	  if (TRACE)
-	    printf ("Warning: No newline but %d after carriage return.\n", c);
-	  break;
-	}
-      }
-      if (c == LF || c == (char) EOF)
-	break;
-      *p++ = c;
+    if (*filename == 0)  /* Empty filename : use root */
+        strcpy (lastpath, "/");
+    else 
+    {
+        char * p = strrchr(filename, '/');  /* find lastslash */
+        lastpath = (char*)malloc(strlen(p));
+	if (!lastpath) outofmem(__FILE__, "read_directory");
+        strcpy(lastpath, p+1);    /* take slash off the beginning */
     }
-    if (c == (char) EOF && p == entry)
-      break;
-    *p = 0;
-    START(HTML_LI);
-    value[HTML_A_HREF] = lastpath;
-    (*targetClass.start_element)(target, HTML_A, present,
-    	(CONST char**)value);	/* typecast for think c */
-    PUTS(entry);
-    END(HTML_A);
-  }
+    free (filename);
 
-  END(HTML_DIR);
-  END_TARGET;
-  FREE_TARGET;
+   
+    {
+        HTBTree * bt = HTBTree_new((HTComparer)strcasecmp);
+        char c;
+	HTChunk * chunk = HTChunkCreate(128);
+	START(HTML_DIR);
+	for (c=0; c!=(char)EOF;)   /* For each entry in the directory */
+	{
+	    char * filename = NULL;
+	    char * p = entry;
+	    HTChunkClear(chunk);
+	    /*   read directory entry
+	     */
+	    for(;;) {                 /* Read in one line as filename */
+		c = NEXT_DATA_CHAR;
+		if (c == '\r' || c == LF) {    /* Terminator? */ 
+		    if (chunk->size != 0)   /* got some text */
+		      break;                /* finish getting one entry */
+		  } else if (c == (char)EOF) {
+		    break;             /* End of file */
+		  } else {
+		    HTChunkPutc(chunk, c);
+		  }
+            }
+	    HTChunkTerminate(chunk);
+	    if (c == (char) EOF && chunk->size == 1)  /* 1 means empty: includes terminating 0 */
+	        break;
+            if(TRACE) fprintf(stderr, "HTFTP: file name in %s is %s\n", lastpath, chunk->data);
+	    StrAllocCopy(filename, chunk->data);
+	    HTBTree_add(bt,filename); /* sort filename in the tree bt */
 
-  return response(NIL) == 2 ? HT_LOADED : -1;
+	}  /* next entry */
+        HTChunkFree(chunk);
+
+	/* Run through tree printing out in order 
+	 */
+	{
+	    HTBTElement * ele;
+	    for (ele = HTBTree_next(bt, NULL);
+		 ele != NULL;
+		 ele = HTBTree_next(bt, ele))
+	    {
+	        START(HTML_LI);
+		HTDirEntry(target, lastpath, (char *)HTBTree_object(ele));
+	    }
+	}
+	END(HTML_DIR);
+	END_TARGET;
+	FREE_TARGET;
+	HTBTreeAndObject_free(bt);
+    }
+
+    if (lastpath) free(lastpath);
+    return response(NIL) == 2 ? HT_LOADED : -1;
 }
 
 
@@ -897,13 +895,8 @@ ARGS4 (
 	data_soc = -1;	/* invalidate it */
 	
 	status = response(NIL);		/* Pick up final reply */
-	if (status!=2) return -status;
+	if (status!=2) return HTLoadError(sink, 500, response_text);
 
 	return HT_LOADED;
     }       
 } /* open_file_read */
-
-
-
-
-
