@@ -1,7 +1,8 @@
 HTAABrow.c
 HTAAUtil.c
+HTTChunk.c
+HTTP.c
 HTTPGen.c
 HTTPReq.c
 HTTPRes.c
-HTTP.c
 HTTPServ.c

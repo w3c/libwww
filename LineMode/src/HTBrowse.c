@@ -150,6 +150,7 @@ struct _LineMode {
     HTList *		active;			  /* List of acitve contexts */
     HTList *		converters;
     HTList *		presenters;
+    HTList *		encoders;
     HTHistory *		history;    			     /* History list */
     char *		cwd;				  /* Current dir URL */
     char *		rules;
@@ -310,6 +311,7 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 	Thread_deleteAll(lm);
 	HTConversion_deleteAll(lm->converters);
 	HTPresentation_deleteAll(lm->presenters);
+	HTCoding_deleteAll(lm->encoders);
 	HTHistory_delete(lm->history);
 	HT_FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
@@ -1949,11 +1951,9 @@ int main (int argc, char ** argv)
     HTFormat_setConversion(lm->converters);
 
     /* Set up encoders and decoders */
-#if 0
-    encoders = HTList_new();
-    HTContentCoding_add(encoders, "zip", HTZip_new, HTZip_new, 1.0);
-    HTFormat_setEncoding(encoders);
-#endif
+    lm->encoders = HTList_new();
+    HTEncoderInit(lm->encoders);
+    HTFormat_setTransferCoding(lm->encoders);
 
     /* Initialize bindings between file suffixes and media types */
     HTFileInit();

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww RFC822 PARSER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -57,7 +57,7 @@ right through the stream.
 extern HTConverter HTMIMEConvert;
 </PRE>
 
-<H3>MIME header ONLY parser stream</H3>
+<H3>MIME Header ONLY parser stream</H3>
 
 This stream parses a complete MIME header and then returnes HT_PAUSE.
 It does not set up any streams and resting data stays in the buffer.
@@ -66,6 +66,14 @@ decide what to do next. This is for example the case in a server app.
 
 <PRE>
 extern HTConverter HTMIMEHeader;
+</PRE>
+
+<H3>MIME Footer ONLY parser</H3>
+
+Parse only a footer, for example after a chunked encoding.
+
+<PRE>
+extern HTConverter HTMIMEFooter;
 </PRE>
 
 <PRE>

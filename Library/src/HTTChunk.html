@@ -1,0 +1,44 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library libwww Chunked Decoding</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Chunked Decoding</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module is implemented by <A HREF="HTTChunk.c">HTTChunk.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
+
+<PRE>
+#ifndef HTTCHUNK_H
+#define HTTCHUNK_H
+
+#include "HTFormat.h"
+</PRE>
+
+This is the definition of the chunked decoder
+
+<PRE>
+extern HTCoder HTChunkedDecoder;
+</PRE>
+
+<PRE>
+#endif /* HTTCHUNK_H */
+</PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

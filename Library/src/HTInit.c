@@ -45,6 +45,7 @@ PUBLIC void HTConverterInit (HTList * c)
     ** that is not directly outputting someting to the user on the screen
     */
     HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"message/x-rfc822-foot",	"*/*",		HTMIMEFooter,	1.0, 0.0, 0.0);
     HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
 
@@ -121,6 +122,14 @@ PUBLIC void HTFormatInit (HTList * c)
 
 }
 
+/*	BINDINGS BETWEEN A ENCODING AND CODERS / DECODERS
+**	--------------------------- ---------------------
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTEncoderInit (HTList * c)
+{
+    HTCoding_add(c, "chunked", NULL, HTChunkedDecoder, 1.0);
+}
 
 /*	REGISTER CALLBACKS FOR THE NET MANAGER
 **	--------------------------------------

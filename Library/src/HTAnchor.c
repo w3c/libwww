@@ -879,6 +879,16 @@ PUBLIC void HTAnchor_setLength (HTParentAnchor * me, long int length)
     if (me) me->content_length = length;
 }
 
+PUBLIC void HTAnchor_addLength (HTParentAnchor * me, long int deltalength)
+{
+    if (me) {
+	if (me->content_length < 0)
+	    me->content_length = deltalength;
+	else
+	    me->content_length += deltalength;
+    }
+}
+
 /*
 **	Allowed methods	(Allow)
 */

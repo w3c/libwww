@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww INITIALIZATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -115,6 +115,14 @@ compatibility.
 
 <PRE>
 extern void HTFormatInit	(HTList * conversions);
+</PRE>
+
+<H2>Content and Transfer Encodings</H2>
+
+Content encoders and decoders can handle encodings like <EM>chunked</EM> etc.
+
+<PRE>
+extern void HTEncoderInit	(HTList * encodings);
 </PRE>
 
 <H2>File Suffix Setup</H2>

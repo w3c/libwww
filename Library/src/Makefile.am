@@ -13,7 +13,7 @@ SUFFIXES = .h .html .txt
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign no-dependencies
 
 www_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \
@@ -44,7 +44,7 @@ www_SOURCES = \
 	HTMux.c		HTStream.c	HTTrans.c \
 	HTChannl.c	HTInet.c	HTHost.c \
 	HTLocal.c	HTReader.c	HTANSI.c \
-	HTBufWrt.c	@HTWAIS@
+	HTBufWrt.c	HTTChunk.c	@HTWAIS@
 
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
@@ -84,7 +84,7 @@ BUILT_SOURCES = sysdep.h \
 	HTTPUtil.h	HTMux.h		HTTrans.h \
 	HTIOStream.h	HTChannl.h	HTInet.h \
 	HTHost.h	HTLocal.h	HTReader.h \
-	HTANSI.h	HTBufWrt.h
+	HTANSI.h	HTBufWrt.h	HTTChunk.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h

@@ -41,6 +41,7 @@ typedef enum _MIME_state {
     FIRSTLETTER_A,
     FIRSTLETTER_D,
     FIRSTLETTER_L,
+    FIRSTLETTER_T,
     CONTENTLETTER_L,
     CONTENTLETTER_T,
 
@@ -82,6 +83,7 @@ struct _HTStream {
     BOOL			transparent;
     BOOL			head_only;
     BOOL			nntp;
+    BOOL			footer;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -168,9 +170,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		break;
 
 	      case 't':
-		check_pointer = "itle";
-		ok_state = TITLE;
-		state = CHECK;
+		state = FIRSTLETTER_T;
 		break;
 
 	      case 'u':
@@ -260,6 +260,27 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	      case 'o':
 		check_pointer = "cation";
 		ok_state = LOCATION;
+		state = CHECK;
+		break;
+
+	      default:
+		state = UNKNOWN;
+		break;
+	    }
+	    ptr++;
+	    break;
+
+	  case FIRSTLETTER_T:
+	    switch (TOLOWER(*ptr)) {
+	      case 'i':
+		check_pointer = "tle";
+		ok_state = TITLE;
+		state = CHECK;
+		break;
+
+	      case 'r':
+		check_pointer = "ansfer-encoding";
+		ok_state = CONTENT_TRANSFER_ENCODING;
 		state = CHECK;
 		break;
 
@@ -572,7 +593,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
     if (me->head_only || HTRequest_isSource(request)) return HT_PAUSE;
 
     /* If HEAD method then we just stop here */
-    if (request->method == METHOD_HEAD) return HT_LOADED;
+    if (me->footer || request->method == METHOD_HEAD) return HT_LOADED;
 
     /*
     ** Handle any Content Type
@@ -799,7 +820,7 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
 				HTFormat	output_format,
 				HTStream *	output_stream)
 {
-    HTStream* me;
+    HTStream * me;
     if ((me = (HTStream *) HT_CALLOC(1, sizeof(* me))) == NULL)
         HT_OUTOFMEM("HTMIMEConvert");
     me->isa = &HTMIME;       
@@ -826,17 +847,24 @@ PUBLIC HTStream * HTMIMEHeader (HTRequest *	request,
 				HTFormat	output_format,
 				HTStream *	output_stream)
 {
-    HTStream * me;
-    if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-        HT_OUTOFMEM("HTMIMEConvert");
-    me->isa = &HTMIME;       
-    me->request = request;
-    me->anchor = request->anchor;
-    me->net = request->net;
-    me->target = output_stream;
-    me->target_format = output_format;
-    me->buffer = HTChunk_new(512);
-    me->EOLstate = EOL_BEGIN;
-    me->head_only = YES;		    /* We want to pause after header */
+    HTStream * me = HTMIMEConvert(request, param, input_format,
+				  output_format, output_stream);
+    me->head_only = YES;
+    return me;
+}
+
+/*	MIME footer ONLY parser stream
+**	------------------------------
+**	Parse only a footer, for example after a chunked encoding.
+*/
+PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
+				void *		param,
+				HTFormat	input_format,
+				HTFormat	output_format,
+				HTStream *	output_stream)
+{
+    HTStream * me = HTMIMEConvert(request, param, input_format,
+				  output_format, output_stream);
+    me->footer = YES;
     return me;
 }
