@@ -689,6 +689,8 @@ ARGS6 (
         lastpath = (char*)malloc(strlen(p));
 	if (!lastpath) outofmem(__FILE__, "read_directory");
         strcpy(lastpath, p+1);    /* take slash off the beginning */
+	if (!*lastpath)
+	    StrAllocCopy(lastpath, ".");    /* Fix trailing slash problem */
     }
     free (filename);
 
