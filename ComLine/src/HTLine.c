@@ -53,9 +53,11 @@
 #endif
 
 typedef enum _CLFlags {
-    CL_FILTER	= 0x1,
-    CL_COUNT	= 0x2,
-    CL_QUIET	= 0x4
+    CL_FILTER		= 0x1,
+    CL_COUNT		= 0x2,
+    CL_QUIET		= 0x4,
+    CL_VALIDATE		= 0x8,
+    CL_END_VALIDATE	= 0x10
 } CLFlags;
 
 #define SHOW_MSG		(!(cl->flags & CL_QUIET))
@@ -277,6 +279,9 @@ int main (int argc, char ** argv)
     HTAssocList*formfields = NULL;
     HTMethod	method = METHOD_GET;			    /* Default value */
     ComLine *	cl = ComLine_new();
+    BOOL	cache = NO;			     /* Use persistent cache */
+    BOOL	flush = NO;		       /* flush the persistent cache */
+    char *	cache_root = NULL;
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -408,6 +413,27 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-q")) { 
 		cl->flags |= CL_QUIET;
 
+	    /* Start the persistent cache */
+	    } else if (!strcmp(argv[arg], "-cache")) {
+		cache = YES;
+
+	    /* Determine the cache root */
+	    } else if (!strcmp(argv[arg], "-cacheroot")) { 
+		cache_root = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : NULL;
+
+	    /* Persistent cache flush */
+	    } else if (!strcmp(argv[arg], "-flush")) {
+		flush = YES;
+
+	    /* Do a cache validation */
+	    } else if (!strcmp(argv[arg], "-validate")) {
+		cl->flags |= CL_VALIDATE;
+
+	    /* Do an end-to-end cache-validation */
+	    } else if (!strcmp(argv[arg], "-endvalidate")) {
+		cl->flags |= CL_END_VALIDATE;
+
 #ifdef WWWTRACE
 	    /* trace flags */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
@@ -475,6 +501,26 @@ int main (int argc, char ** argv)
 	VersionInfo(argv[0]);
 	Cleanup(cl, 0);
     }
+
+    /* Should we use persistent cache? */
+    if (cache) {
+	HTCacheInit(cache_root, 20);
+	HTNet_addBefore(HTCacheFilter, "http://*", NULL, HT_FILTER_MIDDLE);
+	HTNet_addAfter(HTCacheUpdateFilter, "http://*", NULL,
+		       HT_NOT_MODIFIED, HT_FILTER_MIDDLE);
+
+	/* Should we start by flushing? */
+	if (flush) HTCache_flushAll();
+    }
+
+    /*
+    ** Check whether we should do some kind of cache validation on
+    ** the load
+    */
+    if (cl->flags & CL_VALIDATE)
+	HTRequest_setReloadMode(cl->request, HT_CACHE_VALIDATE);
+    if (cl->flags & CL_END_VALIDATE)
+	HTRequest_setReloadMode(cl->request, HT_CACHE_END_VALIDATE);
 
     /* Add progress notification */
     if (cl->flags & CL_QUIET) HTAlert_deleteOpcode(HT_A_PROGRESS);
