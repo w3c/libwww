@@ -29,8 +29,7 @@ bound to the DNS records which should be changed. You can set the DNS object
 TTL
 <P>
 This module is implemented by <A HREF="HTDNS.c">HTDNS.c</A>, and it is a
-part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
-Library</A>.
+part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTDNS_H
 #define HTDNS_H
@@ -42,7 +41,12 @@ Library</A>.
   DNS Cache Expiration Time
 </H2>
 <P>
-When to remove an entry in the cache. The default value is 12h.
+When to remove an entry in the DNS cache. We maintain our own DNS cache as
+we keep track of the connect time, pick the fastet host on multi-homed hosts
+etc. However we <STRONG>DO NOT HONOR DNS TTL Records</STRONG> which is the
+reason for why the expiration must be faily short (the default value is 30
+mins), so that it doesn't collide with the DNS mechanism for timing out DNS
+records befoew swapping IP addresses around.
 <PRE>
 extern void HTDNS_setTimeout (time_t timeout);
 extern time_t HTDNS_timeout  (time_t timeout);
@@ -73,9 +77,8 @@ extern BOOL HTDNS_delete (const char * host);
   Delete ALL DNS objects
 </H3>
 <P>
-This function is called from <A HREF="HTLib.html">
-HTLibTerminate</A>. It can be called at any point in time if the DNS cache
-is going to be flushed.
+This function is called from <A HREF="HTLib.html"> HTLibTerminate</A>. It
+can be called at any point in time if the DNS cache is going to be flushed.
 <PRE>
 extern BOOL HTDNS_deleteAll (void);
 </PRE>
