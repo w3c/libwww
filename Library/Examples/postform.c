@@ -1,3 +1,7 @@
+/*
+**  Posts form data to an HTTP server and saves the result in a chunk
+*/
+
 #include "WWWLib.h"
 #include "WWWInit.h"
 
@@ -24,9 +28,6 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     exit(0);
 }
 
-/*
-**	Loads a URI to a local file
-*/
 int main (int argc, char ** argv)
 {
     HTRequest * request = NULL;
