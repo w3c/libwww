@@ -142,15 +142,26 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		**	EINTR	A signal was caught during the  write  opera-
 		**		tion and no data was transferred.
 		*/
-		HTTRACE(STREAM_TRACE, "Write Socket call interruted - try again\n");
+		HTTRACE(STREAM_TRACE, "Write Socket call interrupted - try again\n");
 		continue;
 #endif
 	    } else {
-#ifdef EPIPE
-		if (socerrno == EPIPE)
-		    HTTRACE(STREAM_TRACE, "Write Socket got EPIPE\n");
-#endif /* EPIPE */
 		host->broken_pipe = YES;
+#ifdef EPIPE
+	        if (socerrno == EPIPE) {
+		    /* JK: an experimental bug solution proposed by
+                       Olga and Mikhael */
+		    HTTRACE(STREAM_TRACE, "Write Socket got EPIPE\n");
+		    HTHost_unregister(host, net, HTEvent_WRITE);
+		    HTHost_register(host, net, HTEvent_CLOSE);
+		    /* @@ JK: seems that some functions check the errors 
+		       as part of the flow control */
+                    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
+					     "NETWRITE");
+		    return HT_CLOSED;		    
+		}
+#endif /* EPIPE */
+		/* all errors that aren't EPIPE */
 		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 					 "NETWRITE");
 		return HT_ERROR;
