@@ -476,16 +476,17 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	}
     }
 
-    if (STREAM_TRACE)
-	fprintf(TDEST, "MIMEParser.. Media type %s is converted to %s\n",
-		HTAtom_name(anchor->content_type),
-		HTAtom_name(me->target_format));
-    if ((me->target = HTStreamStack(anchor->content_type,
-				    me->target_format, me->target,
-				    request, YES)) == NULL) {
+    if (anchor->content_type != WWW_UNKNOWN) {
 	if (STREAM_TRACE)
-	    fprintf(TDEST, "MIMEParser.. Can't convert media type\n");
-	me->target = HTBlackHole();
+	    fprintf(TDEST, "MIMEParser.. Media type %s is converted to %s\n",
+		    HTAtom_name(anchor->content_type),
+		    HTAtom_name(me->target_format));
+	if ((me->target=HTStreamStack(anchor->content_type, me->target_format,
+				      me->target, request, YES)) == NULL) {
+	    if (STREAM_TRACE)
+		fprintf(TDEST, "MIMEParser.. Can't convert media type\n");
+	    me->target = HTBlackHole();
+	}
     }
     anchor->header_parsed = YES;
     me->transparent = YES;		  /* Pump rest of data right through */
@@ -554,15 +555,17 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	    HTChunkPutc(me->buffer, *b);
 	b++;
     }
-
-
-   
+#if 0
     if (me->target) {				    /* Is the stream set up? */
 	if (l > 0)					   /* Anything left? */
 	    return (*me->target->isa->put_block)(me->target, b, l);
 	return HT_OK;
     }
     return HT_WOULD_BLOCK;
+#endif
+    if (me->target && l > 0)				   /* Anything left? */
+	return (*me->target->isa->put_block)(me->target, b, l);
+    return HT_OK;
 }
 
 

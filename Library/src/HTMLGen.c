@@ -463,10 +463,11 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     me->write_pointer = me->buffer;
     flush_breaks(me);
     
-    HTMLGen_start_element(me, HTML_HTML, present, value);
-    HTMLGen_start_element(me, HTML_BODY, present, value);
-    HTMLGen_start_element(me, HTML_PRE, present, value);
-
+    if (me->target) {
+	HTMLGen_start_element(me, HTML_HTML, present, value);
+	HTMLGen_start_element(me, HTML_BODY, present, value);
+	HTMLGen_start_element(me, HTML_PRE, present, value);
+    }
     return (HTStream*) me;
 }
 

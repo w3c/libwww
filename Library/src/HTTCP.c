@@ -745,6 +745,8 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    return NULL;		    /* We couldn't get the last time */
     }
     *(name+MAXHOSTNAMELEN) = '\0';
+
+#ifndef NO_GETHOSTNAME
     if (gethostname(name, MAXHOSTNAMELEN)) { 	     /* Maybe without domain */
 	if (PROT_TRACE)
 	    fprintf(TDEST, "HostName.... Can't get host name\n");
@@ -759,7 +761,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    got_it = YES;
     }
 
-#if !(defined(VMS) || defined(WINDOWS))
+#ifndef NO_RESOLV_CONF
     /* Now try the resolver config file */
     if (!got_it && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
 	char buffer[80];
@@ -784,9 +786,10 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	}
 	fclose(fp);
     }
+#endif /* NO_RESOLV_CONF */
 
-    /* If everything else has failed then try getdomainname */
 #ifndef NO_GETDOMAINNAME
+    /* If everything else has failed then try getdomainname */
     if (!got_it) {
 	if (getdomainname(name, MAXHOSTNAMELEN)) {
 	    if (PROT_TRACE)
@@ -805,7 +808,6 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	}
     }
 #endif /* NO_GETDOMAINNAME */
-#endif /* not VMS */
 
     {
 	char *strptr = hostname;
@@ -816,25 +818,11 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	if (*(hostname+strlen(hostname)-1) == '.')    /* Remove trailing dot */
 	    *(hostname+strlen(hostname)-1) = '\0';
     }
+#endif /* NO_GETHOSTNAME */
+
     if (PROT_TRACE)
 	fprintf(TDEST, "HostName.... Full host name is `%s\'\n", hostname);
     return hostname;
-
-#ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
-#ifdef OLD_CODE
-			      /* Now we try to get information on the domain */
-    {
-	struct hostent *hostelement;
-	if ((hostelement = gethostbyname(hostname)) == NULL) {
-	    if (PROT_TRACE)
-		fprintf(TDEST, "HostName.... Can't find host name on DNS\n");
-	    FREE(hostname);
-	    return NULL;
-	}
-	StrAllocCopy(hostname, (char *) hostelement->h_name);
-    }
-#endif /* OLD_CODE */
-#endif /* not Decnet */
 }
 
 

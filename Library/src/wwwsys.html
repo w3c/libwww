@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -321,9 +321,11 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 #define NO_FCNTL
 #define HAS_GETCWD
 #define NO_GETPASSWD
-#define NO_GETDOMAINNAME
-#define BOOLEAN_DEFINED
 
+#define NO_GETDOMAINNAME
+#define NO_RESOLV_CONF
+
+#define BOOLEAN_DEFINED
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
 
@@ -525,7 +527,12 @@ unix file descriptor less than 10.  It works.
 #define NETREAD(s,b,l)	((s)&gt;10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
 #define NETWRITE(s,b,l)	((s)&gt;10 ? send((s),(b),(l),0) : write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)&gt;10 ? socket_close(s) : close(s))
+
+#define NO_GETHOSTNAME			/* Decnet doesn't have a name server */
 #endif /* Decnet */
+
+#define NO_RESOLV_CONF
+#define NO_GETDOMAINNAME
          
 /*	Certainly this works for UCX and Multinet; not tried for Wollongong
 */

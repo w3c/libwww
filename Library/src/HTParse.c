@@ -281,6 +281,7 @@ PRIVATE char *HTCanon ARGS2 (char **, filename, char *, host)
 	    if (!newname) {
 		char *orig=port, *dest=port+3;
 		while((*orig++ = *dest++));
+		path -= 3;   	       /* Update path position, Henry Minsky */
 	    }
 	} else if (newname)
 	    strncat(newname, port, (int) (path-port));
