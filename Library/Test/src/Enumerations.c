@@ -31,7 +31,7 @@ char *HTGnHd_names[] =
   "HT_G_MESSAGE_ID",
   "HT_G_MIME",
   "HT_G_CONNECTION",
-  "HT_G_NO_CACHE",
+  "HT_G_PRAGMA_NO_CACHE",
   NULL
 };
 
@@ -161,8 +161,8 @@ HTGnHd HTGnHd_enum(char *name) {
       return HT_G_MIME;
     else if (!strcasecomp(name, *(HTGnHd_names+4)))
       return HT_G_CONNECTION;
-    else if (!strcasecomp(name, *(HTGnHd_names+5)))
-      return HT_G_NO_CACHE;
+    else if (!strcasecomp(name, *(HTGnHd_names+5))) 
+     return HT_G_PRAGMA_NO_CACHE;
   }
   return HT_G_DATE;
 }

@@ -26,9 +26,9 @@ Tcl_HashTable  HTableStream;
 int HTLibInit_tcl(ClientData clientData, Tcl_Interp *interp, 
 		  int argc, char **argv) {
   if (argc == 3) {
-    const char *Appname = argv[1];
+    const char *AppName = argv[1];
     const char *AppVersion = argv[2];
-    if ( Appname && AppVersion) {
+    if (AppName && AppVersion) {
       BOOL result = HTLibInit (AppName, AppVersion);
       Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
       return TCL_OK;
@@ -125,7 +125,7 @@ int HTLib_appVersion_tcl(ClientData clientData, Tcl_Interp *interp,
 
 
 int HTLib_secure_tcl(ClientData clientData, Tcl_Interp *interp, 
-		  int argc, char **argv) {
+		     int argc, char **argv) {
   if (argc == 1) {
     BOOL result = HTLib_secure();
     Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
@@ -142,7 +142,7 @@ int HTLib_setSecure_tcl(ClientData clientData, Tcl_Interp *interp,
   if (argc == 2) {
     BOOL mode;
     int conversion_success = Tcl_GetBoolean(interp, argv[1], &mode);
-    if(conversion ==TCL_OK) {
+    if(conversion_success == TCL_OK) {
       HTLib_setSecure(mode);
       return TCL_OK;
     }
@@ -159,8 +159,8 @@ int HTLib_setSecure_tcl(ClientData clientData, Tcl_Interp *interp,
 /*default User Profile*/
 
 
-int HTLib_userProfile(Clientdata clientData, Tcl_Interp *interp, 
-		      int argc, char **argv) {
+int HTLib_userProfile_tcl(ClientData clientData, Tcl_Interp *interp, 
+			  int argc, char **argv) {
 
   if(argc == 1) {
     char *keyname;
@@ -226,11 +226,11 @@ int HTLoadAbsolute_tcl(ClientData clientData, Tcl_Interp *interp, int argc,
 	return TCL_OK;
       }
     }
-    Tcl_AppendResult(intper, bad_vars, NULL);
+    Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
   else {
-    Tcl_AppendResult(intper, err_string, NULL);
+    Tcl_AppendResult(interp, err_string, NULL);
     return TCL_ERROR;
   }
 }
@@ -242,7 +242,7 @@ int HTLoadToStream_tcl(ClientData clientData, Tcl_Interp *interp, int argc,
 		       char **argv) {
   if(argc == 4) {
     char *url = argv[1];
-    char filter_string = argv[2];
+    char *filter_string = argv[2];
     char *keyname = argv[3];
     if(url && filter_string && keyname) {
       BOOL filter;
@@ -256,11 +256,11 @@ int HTLoadToStream_tcl(ClientData clientData, Tcl_Interp *interp, int argc,
 	return TCL_OK;
       }
     }
-    Tcl_AppendResult(intper, bad_vars, NULL);
+    Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
   else {
-    Tcl_AppendResult(intper, err_string, NULL);
+    Tcl_AppendResult(interp, err_string, NULL);
     return TCL_ERROR;
   }
 }
@@ -280,7 +280,7 @@ int HTLoadRelative_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, request_key);
       if(base_entry && request_entry){
 	HTParentAnchor *base = Tcl_GetHashValue(base_entry);
-	HTRequest *request = Tcl_GetHashValue(request_key);
+	HTRequest *request = Tcl_GetHashValue(request_entry);
 	
 	BOOL result = HTLoadRelative(relative, base, request);
 	
@@ -363,7 +363,7 @@ int HTLoadAnchorRecursive_tcl (ClientData clientData, Tcl_Interp *interp,
 int HTSearch_tcl(ClientData clientData, Tcl_Interp *interp, 
 		      int argc, char **argv) {
   if (argc == 4) {
-    char keywords = argv[1]
+    char *keywords = argv[1];
     char *anchor_key = argv[2];
     char *request_key = argv[3];
     if(anchor_key && request_key) {
@@ -501,7 +501,7 @@ int HTUpload_callback_tcl (ClientData clientData, Tcl_Interp *interp,
     char *target_key = argv[2];
     if(request_key && target_key) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, request_key);
-      Tcl_HashEntry *target_entry = Tcl_FindHashEntry(&HTableStream, target_entry);
+      Tcl_HashEntry *target_entry = Tcl_FindHashEntry(&HTableStream, target_key);
       if (request_entry && target_entry) {
 	HTRequest * request = Tcl_GetHashValue(request_entry);
 	HTStream * target = Tcl_GetHashValue(target_entry);

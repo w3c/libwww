@@ -937,7 +937,7 @@ set function HTAnchor_setSubLinks
 
 set test "HTAnchor_subLinks"
 
-set list [new_item "HTAnchor_subLinks $Anchor(1)"]
+set list [new_item "HTList_new"]
 set test_anchor $Anchor(1) 
 set expected $list
 set set_args "$test_anchor $list"

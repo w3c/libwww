@@ -139,7 +139,8 @@ int HTAnchor_deleteAll_tcl(ClientData clientData, Tcl_Interp *interp,
 			   int argc, char **argv) {
   if (argc == 2) {
     BOOL   result;
-    char   *keyname, *check;
+    char *keyname = malloc(50);
+    char *check = malloc(50);
     HTList *list;
     char   *listname         = argv[1];
     if (listname) {
