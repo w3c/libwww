@@ -237,7 +237,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     */
     if (transfer_coding) {
 	HTStream * target = HTTransferCodingStack(WWW_CODING_CHUNKED,
-						  me->target, request, NULL, NO);
+						  me->target, request, NULL, YES);
 	if (STREAM_TRACE) HTTrace("Building.... Transfer-Encoding stack\n");
 	if (target == HTBlackHole()) {
 	    if (me->target) (*me->target->isa->abort)(me->target, NULL);
