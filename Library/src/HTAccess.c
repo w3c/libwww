@@ -99,7 +99,7 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
     HTBind_init();				      /* Initialize bindings */
 
 #ifndef HT_DIRECT_WAIS
-    HTProxy_setGateway("wais", HT_DEFAULT_WAIS_GATEWAY);
+    HTGateway_add("wais", HT_DEFAULT_WAIS_GATEWAY);
 #endif
 
     /* Register a call back function for the Net Manager */
@@ -157,9 +157,9 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
     HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
 
-    HTProxy_deleteProxy();	   /* Clean up lists of proxies and gateways */
-    HTProxy_deleteNoProxy();
-    HTProxy_deleteGateway();
+    HTProxy_deleteAll();	   /* Clean up lists of proxies and gateways */
+    HTNoProxy_deleteAll();
+    HTGateway_deleteAll();
 
     HTFreeHostName();			    /* Free up some internal strings */
     HTFreeMailAddress();

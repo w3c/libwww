@@ -68,7 +68,7 @@ PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, 1.0};
 /*	
 **	Set up the list of suffix bindings. Done by HTLibInit
 */
-PUBLIC BOOL HTBind_init NOARGS
+PUBLIC BOOL HTBind_init (void)
 {
     if (!HTBindings) {
 	HTBindings = (HTList**) calloc(HASH_SIZE, sizeof(HTList *));
@@ -84,7 +84,7 @@ PUBLIC BOOL HTBind_init NOARGS
 **	Done by HTLibTerminate().
 **	Written by Eric Sink, eric@spyglass.com, and Henrik
 */
-PUBLIC BOOL HTBind_deleteAll NOARGS
+PUBLIC BOOL HTBind_deleteAll (void)
 {
     int cnt;
     HTList *cur;
@@ -109,7 +109,7 @@ PUBLIC BOOL HTBind_deleteAll NOARGS
 /*	Make suffix bindings case sensitive
 **	-----------------------------------
 */
-PUBLIC void HTBind_setCaseSensitive ARGS1(BOOL, sensitive)
+PUBLIC void HTBind_caseSensitive (BOOL sensitive)
 {
     HTCaseSen = sensitive;
 }
@@ -118,7 +118,7 @@ PUBLIC void HTBind_setCaseSensitive ARGS1(BOOL, sensitive)
 /*	Get set of suffixes
 **	-------------------
 */
-PUBLIC CONST char *HTBind_getDelimiters NOARGS
+PUBLIC CONST char *HTBind_delimiters (void)
 {
     return HTDelimiters;
 }
@@ -127,7 +127,7 @@ PUBLIC CONST char *HTBind_getDelimiters NOARGS
 /*	Change set of suffixes
 **	----------------------
 */
-PUBLIC void HTBind_setDelimiters ARGS1(CONST char *, new_suffixes)
+PUBLIC void HTBind_setDelimiters (CONST char * new_suffixes)
 {
     if (new_suffixes && *new_suffixes)
 	StrAllocCopy(HTDelimiters, new_suffixes);
@@ -145,32 +145,32 @@ PUBLIC void HTBind_setDelimiters ARGS1(CONST char *, new_suffixes)
 **	If filename suffix is already defined its previous
 **	definition is overridden (or modified)
 */
-PUBLIC BOOL HTBind_setType ARGS3(CONST char *,	suffix,
-				 CONST char *,	representation,
-				 double,	value)
+PUBLIC BOOL HTBind_addFormat (CONST char *	suffix,
+			      CONST char *	representation,
+			      double		value)
 {
-    return HTBind_setBinding(suffix, representation, NULL, NULL, value);
+    return HTBind_add(suffix, representation, NULL, NULL, value);
 }
 
-PUBLIC BOOL HTBind_setEncoding ARGS3(CONST char *,	suffix,
-				     CONST char *,	encoding,
-				     double,		value)
+PUBLIC BOOL HTBind_addEncoding (CONST char *	suffix,
+				CONST char *	encoding,
+				double		value)
 {
-    return HTBind_setBinding(suffix, NULL, encoding, NULL, value);
+    return HTBind_add(suffix, NULL, encoding, NULL, value);
 }
 
-PUBLIC BOOL HTBind_setLanguage ARGS3(CONST char *,	suffix,
-				     CONST char *,	language,
-				     double,		value)
+PUBLIC BOOL HTBind_addLanguage (CONST char *	suffix,
+				CONST char *	language,
+				double		value)
 {
-    return HTBind_setBinding(suffix, NULL, NULL, language, value);
+    return HTBind_add(suffix, NULL, NULL, language, value);
 }
 
-PUBLIC BOOL HTBind_setBinding ARGS5(CONST char *,	suffix,
-				    CONST char *,	representation,
-				    CONST char *,	encoding,
-				    CONST char *,	language,
-				    double,		value)
+PUBLIC BOOL HTBind_add (CONST char *	suffix,
+			CONST char *	representation,
+			CONST char *	encoding,
+			CONST char *	language,
+			double		value)
 {
     HTBind * suff;
     if (!suffix)
@@ -203,7 +203,7 @@ PUBLIC BOOL HTBind_setBinding ARGS5(CONST char *,	suffix,
 	/* If not found -- create a new node */
 	if (!suff) {
 	    if ((suff = (HTBind *) calloc(1, sizeof(HTBind))) == NULL)
-		outofmem(__FILE__, "HTHTBind_setBinding");
+		outofmem(__FILE__, "HTBind_add");
 	    HTList_addObject(suflist, (void *) suff);
 	    StrAllocCopy(suff->suffix, suffix);
 	}
@@ -249,7 +249,7 @@ PUBLIC BOOL HTBind_setBinding ARGS5(CONST char *,	suffix,
 **  concatenated using the first delimiter in HTDelimiters.
 **  If no suffix is found, NULL is returned.
 */
-PUBLIC char * HTBind_getSuffix ARGS1(HTParentAnchor *, anchor)
+PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 {
     int cnt;
     HTList *cur;
@@ -291,7 +291,7 @@ PUBLIC char * HTBind_getSuffix ARGS1(HTParentAnchor *, anchor)
 **  Returns a contentdescription object with the representations found. This
 **  must be free by the caller
 */
-PUBLIC HTContentDescription * HTBind_getDescription ARGS1(char *, file)
+PUBLIC HTContentDescription * HTBind_getDescription (char * file)
 {
     HTContentDescription * cd;
     cd = (HTContentDescription *) calloc(1, sizeof(HTContentDescription));
@@ -315,7 +315,7 @@ PUBLIC HTContentDescription * HTBind_getDescription ARGS1(char *, file)
 **
 **  Returns the anchor object with the representations found
 */
-PUBLIC BOOL HTBind_getBindings ARGS1(HTParentAnchor *, anchor)
+PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 {
     BOOL status = NO;
     double quality=1.0;		  /* @@@ Should we add this into the anchor? */

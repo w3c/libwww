@@ -277,31 +277,31 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
         char * encoding = HTNextField(&pointer);
 	if (pointer) status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
-	HTBind_setBinding(word2,				/* suffix */
-			  word3,				/* type */
-			  encoding ? encoding : "binary",	/* encoding */
-			  NULL,					/* language */
-			  status >= 1? quality : 1.0);		/* quality */
+	HTBind_add(word2,				/* suffix */
+		   word3,				/* type */
+		   encoding ? encoding : "binary",	/* encoding */
+		   NULL,					/* language */
+		   status >= 1? quality : 1.0);		/* quality */
 
     } else if (0==strcasecomp(word1, "addencoding")) {
 	if (pointer)
 	    status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
-	HTBind_setBinding(word2,				/* suffix */
-			  NULL,					/* type */
-			  word3,				/* encoding */
-			  NULL,					/* language */
-			  status >= 1 ? quality : 1.0);		/* quality */
+	HTBind_add(word2,				/* suffix */
+		   NULL,					/* type */
+		   word3,				/* encoding */
+		   NULL,					/* language */
+		   status >= 1 ? quality : 1.0);		/* quality */
 
     } else if (0==strcasecomp(word1, "addlanguage")) {
 	if (pointer)
 	    status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
-	HTBind_setBinding(word2,				/* suffix */
-			  NULL,					/* type */
-			  NULL,					/* encoding */
-			  word3,	       			/* language */
-			  status >= 1 ? quality : 1.0);		/* quality */
+	HTBind_add(word2,				/* suffix */
+		   NULL,					/* type */
+		   NULL,					/* encoding */
+		   word3,	       			/* language */
+		   status >= 1 ? quality : 1.0);		/* quality */
 
     } else if (0==strcasecomp(word1, "presentation")) {
 	HTList *converters = HTFormat_conversion();

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Proxy and gateway Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -26,9 +27,8 @@ proxy is <CODE>"http://www.w3.org/test.html"</CODE> and a gateway
 <CODE>"/www.w3.org/test.html"</CODE> <P>
 
 The module is implemented by <A HREF="HTProxy.c">HTProxy.c</A>, and it
-is a part of the <A NAME="z10"
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>. <P>
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTPROXY_H
@@ -46,13 +46,13 @@ domain name is not required. If an entry exists for this access then
 delete it and use the new one.
 
 <PRE>
-extern BOOL HTProxy_setProxy	PARAMS((CONST char *access,CONST char *proxy));
-extern BOOL HTProxy_deleteProxy	NOPARAMS;
+extern BOOL HTProxy_add		(CONST char * access, CONST char * proxy);
+extern BOOL HTProxy_deleteAll	(void);
 </PRE>
 
 The remove function removes all registered proxies. This is
-automatically done in <A
-HREF="HTReq.html#Library">HTLibTerminate()</A>
+automatically done in <A HREF="HTAccess.html#Library">
+HTLibTerminate()</A>
 
 <A NAME="noproxy"><H2>Registering a host or domain with no proxy</H2></A>
 
@@ -66,14 +66,14 @@ then it applies to to all access methods. Examples of host names are
 <CODE>w3.org</CODE> and <CODE>www.close.com</CODE>
 
 <PRE>
-extern BOOL HTProxy_setNoProxy	PARAMS((CONST char *host, CONST char *access,
-					unsigned port));
-extern BOOL HTProxy_deleteNoProxy NOPARAMS;
+extern BOOL HTNoProxy_add	(CONST char * host, CONST char * access,
+				 unsigned port);
+extern BOOL HTNoProxy_deleteAll	(void);
 </PRE>
 
 The remove function removes all entries in the list. This is
-automatically done in <A
-HREF="HTReq.html#Library">HTLibTerminate()</A>
+automatically done in <A HREF="HTAccess.html#Library">
+HTLibTerminate()</A>
 
 <H2>Look for a Proxy server</H2>
 
@@ -83,7 +83,7 @@ in the `noproxy' list, then a URL containing the host to be contacted
 is returned to the caller. This string must be freed be the caller.
 
 <PRE>
-extern char * HTProxy_getProxy		PARAMS((CONST char * url));
+extern char * HTProxy_find	(CONST char * url);
 </PRE>
 
 <A NAME="gateway"><H2>Registering a gateway</H2></A>
@@ -95,13 +95,13 @@ but domain name is not required. If an entry exists for this access
 then delete it and use the new one.
 
 <PRE>
-extern BOOL HTProxy_setGateway	PARAMS((CONST char *access, CONST char *gate));
-extern BOOL HTProxy_deleteGateway NOPARAMS;
+extern BOOL HTGateway_add	(CONST char * access, CONST char * gate);
+extern BOOL HTGateway_deleteAll	(void);
 </PRE>
 
 The remove function removes all registered proxies. This is
-automatically done in <A
-HREF="HTReq.html#Library">HTLibTerminate()</A>
+automatically done in <A HREF="HTAccess.html#Library">
+HTLibTerminate()</A>
 
 <H2>Look for a Gateway</H2>
 
@@ -110,7 +110,7 @@ found for the actual access method then it is returned and must be
 freed by the caller.
 
 <PRE>
-extern char * HTProxy_getGateway	PARAMS((CONST char * url));
+extern char * HTGateway_find	(CONST char * url);
 </PRE>
 
 <H2>Backwards Compability with Environment Variables</H2>
@@ -120,7 +120,7 @@ environment variables and searches for the most common values: http,
 ftp, news, wais, and gopher
 
 <PRE>
-extern void HTProxy_getEnvVar		NOPARAMS;
+extern void HTProxy_getEnvVar	(void);
 </PRE>
 
 <PRE>

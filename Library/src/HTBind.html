@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>File Suffix Bind Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -24,9 +25,8 @@ in a request and uses if for format negotiation. All the binding
 management can all be replace by a database interface. <P>
 
 This module is implemented by <A HREF="HTBind.c">HTBind.c</A>, and it
-is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTBIND_H
@@ -43,8 +43,8 @@ application. This is done automatically by <A
 HREF="HTReq.html#Library">HTLibInit() and HTLibTerminate()</A>.
 
 <PRE>
-extern BOOL HTBind_init		NOPARAMS;
-extern BOOL HTBind_deleteAll	NOPARAMS;
+extern BOOL HTBind_init		(void);
+extern BOOL HTBind_deleteAll	(void);
 </PRE>
 
 <H2>Case Sensitivity</H2>
@@ -53,7 +53,7 @@ Should the search for suffixes be case sensitive or not? The default
 value is <EM>case sensitive</EM>.
 
 <PRE>
-extern void HTBind_setCaseSensitive	PARAMS((BOOL sensitive));
+extern void HTBind_caseSensitive	(BOOL sensitive);
 </PRE>
 
 <H2>Suffix Delimiters</H2>
@@ -62,8 +62,8 @@ Change the set of suffix delimiters. The default is a platform
 dependent set defined in the <A HREF="tcp.html">tcp module</A>.
 
 <PRE>
-extern CONST char *HTBind_getDelimiters	NOPARAMS;
-extern void HTBind_setDelimiters	PARAMS((CONST char * new_suffixes));
+extern CONST char *HTBind_delimiters	(void);
+extern void HTBind_setDelimiters	(CONST char * new_suffixes);
 </PRE>
 
 <H2>Set up Bindings Associated with a File Suffix</H2>
@@ -79,23 +79,23 @@ There are three types of bindings:
 And the associated set of methods is defined as:
 
 <PRE>
-extern BOOL HTBind_setBinding	PARAMS((CONST char *	suffix,
-					CONST char *	representation,
-					CONST char *	encoding,
-					CONST char *	language,
-					double		value));
+extern BOOL HTBind_add		(CONST char *	suffix,
+				 CONST char *	representation,
+				 CONST char *	encoding,
+				 CONST char *	language,
+				 double		value);
 
-extern BOOL HTBind_setType	PARAMS((CONST char *	suffix,
-					CONST char *	encoding,
-					double		value));
+extern BOOL HTBind_addType	(CONST char *	suffix,
+				 CONST char *	encoding,
+				 double		value);
 
-extern BOOL HTBind_setEncoding	PARAMS((CONST char *	suffix,
-					CONST char *	encoding,
-					double		value));
+extern BOOL HTBind_addEncoding	(CONST char *	suffix,
+				 CONST char *	encoding,
+				 double		value);
 
-extern BOOL HTBind_setLanguage	PARAMS((CONST char *	suffix,
-					CONST char *	language,
-					double		value));
+extern BOOL HTBind_addLanguage	(CONST char *	suffix,
+				 CONST char *	language,
+				 double		value);
 </PRE>
 
 The first method is a "super" method for binding information to a file
@@ -121,7 +121,7 @@ by the caller. If more than one suffix is found they are all
 concatenated. If no suffix is found, NULL is returned.
 
 <PRE>
-extern char * HTBind_getSuffix	PARAMS((HTParentAnchor * anchor));
+extern char * HTBind_getSuffix	(HTParentAnchor * anchor);
 </PRE>
 
 
@@ -134,7 +134,7 @@ one lowest. Returns the anchor object with the representations
 found. See also <CODE>HTBind_getFormat</CODE>
 
 <PRE>
-extern BOOL HTBind_getBindings		PARAMS((HTParentAnchor * anchor));
+extern BOOL HTBind_getBindings	(HTParentAnchor * anchor);
 </PRE>
 
 <H2>Determine the content of File</H2>
@@ -146,11 +146,11 @@ one lowest. Returns the format, encoding, and language found. See also
 <CODE>HTBind_getBindings</CODE>.
 
 <PRE>
-extern BOOL HTBind_getFormat	PARAMS((CONST char *	filename,
-					HTFormat *	format,
-					HTEncoding *	encoding,
-					HTLanguage *	language,
-					double *	quality));
+extern BOOL HTBind_getFormat	(CONST char *	filename,
+				 HTFormat *	format,
+				 HTEncoding *	encoding,
+				 HTLanguage *	language,
+				 double *	quality);
 </PRE>
 
 <H2>Multi Format Management</H2>
@@ -165,7 +165,7 @@ one lowest. Returns the format, encoding, and language found. See also
 #define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
 #define MAX_SUFF 15		/* Maximum number of suffixes for a file */
 
-extern HTContentDescription * HTBind_getDescription PARAMS((char * file));
+extern HTContentDescription * HTBind_getDescription (char * file);
 </PRE>
 
 End of declaration module

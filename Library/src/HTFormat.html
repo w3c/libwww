@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -271,9 +271,7 @@ extern void HTEncoding_add (HTList * 		list,
 <H4>Delete a list of Encoders</H4>
 
 <PRE>
-extern void HTEncoding_add (HTList * 		list,
-			    CONST char *	enc,
-			    double		quality);
+extern void HTEncoding_deleteAll (HTList * list);
 </PRE>
 
 <H3><A NAME="charset">Accepted Charsets</A></H3>
@@ -305,7 +303,7 @@ extern void HTLanguage_add (HTList *		list,
 <H4>Delete a list of Languages</H4>
 
 <PRE>
-extern void HTLangusge_deleteAll (HTList * list);
+extern void HTLanguage_deleteAll (HTList * list);
 </PRE>
 
 <A NAME="global"><H2>Global Registrations</H2></A>
@@ -316,7 +314,7 @@ There are two places where these preferences can be registered: in a
 valid for <EM>all</EM> requests. See the <A HREF="HTReq.html">Request
 Manager</A> fro local sets.
 
-<H3>Content Types</H3>
+<H3>Converters and Presenters</H3>
 
 The <EM>global</EM> list of specific conversions which the format
 manager can do in order to fulfill the request.  There is also a <A
@@ -335,14 +333,14 @@ extern void HTFormat_setEncoding	(HTList *list);
 extern HTList * HTFormat_encoding	(void);
 </PRE>
 
-<H3>Content Encodings</H3>
+<H3>Content Languages</H3>
 
 <PRE>
 extern void HTFormat_setLanguage	(HTList *list);
 extern HTList * HTFormat_language	(void);
 </PRE>
 
-<H3>Content Encodings</H3>
+<H3>Content Charsets</H3>
 
 <PRE>
 extern void HTFormat_setCharset		(HTList *list);

@@ -31,7 +31,7 @@ PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
 PRIVATE int HTSplitFilename ARGS2(char *,	s_str,
 				  char **,	s_arr)
 {
-    CONST char *delimiters = HTBind_getDelimiters();
+    CONST char *delimiters = HTBind_delimiters();
     char * start = s_str;
     char * end;
     char save;

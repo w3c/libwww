@@ -743,11 +743,11 @@ PRIVATE int get_physical (HTRequest *req)
 	    } else {			 /* If refresh version in file cache */
 		req->RequestMask |= (HT_IMS + HT_NO_CACHE);
 	    }
-	} else if ((newaddr = HTProxy_getProxy(addr))) {
+	} else if ((newaddr = HTProxy_find(addr))) {
 	    StrAllocCat(newaddr, addr);
 	    req->using_proxy = YES;
 	    HTAnchor_setPhysical(req->anchor, newaddr);
-	} else if ((newaddr = HTProxy_getGateway(addr))) {
+	} else if ((newaddr = HTGateway_find(addr))) {
 	    char * path = HTParse(addr, "",
 				  PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
 		/* Chop leading / off to make host into part of path */

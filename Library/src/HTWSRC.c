@@ -319,7 +319,7 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	    me->par_value[PAR_DATABASE_NAME]) {
 	    char WSRC_address[256];
 	    char *addr = HTAnchor_address((HTAnchor*) me->request->anchor);
-	    char *gate = HTProxy_getGateway(addr);
+	    char *gate = HTGateway_find(addr);
 	    char *www_database = HTEscape(me->par_value[PAR_DATABASE_NAME],
 					  URL_XALPHAS);
 	    if (!gate) {

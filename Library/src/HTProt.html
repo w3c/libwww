@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access Scheme Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -38,10 +38,9 @@ modified to reflect this call back structure. The
 <CODE>HTEventCallBack</CODE> is defined in <A
 HREF="HTEvntrg.html">HTEvntrg module</A>. <P>
 
-By default, all the access schemes supported in the Library are
-initiated automaticly using the function <CODE>HTAccessInit()</CODE>
-in <A HREF="HTInit.html">HTInit module</A>. However, this can be
-changed if defined <CODE>HT_NO_INIT</CODE> <P>
+All the access schemes supported in the Library can be initiated using
+the function <CODE>HTAccessInit()</CODE> in <A
+HREF="HTInit.html">HTInit module</A><P>
 
 An access scheme module takes as a parameter a socket (which is an
 invalid socket the first time the function is called), a <A

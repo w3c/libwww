@@ -50,18 +50,16 @@ PRIVATE HTList * onlyproxy = NULL;  /* Proxy only on these hosts and domains */
 
 /* ------------------------------------------------------------------------- */
 
-/*	Add an entry to a list
-**	----------------------
+/*
 **	Existing entries are replaced with new ones
 */
-PRIVATE BOOL HTProxy_set ARGS3(HTList *, list, CONST char *, access,
-			       CONST char *, url)
+PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
 {
     HTProxy *me;
     if (!list || !access || !url || !*url)
 	return NO;
     if ((me = (HTProxy *) calloc(1, sizeof(HTProxy))) == NULL)
-	outofmem(__FILE__, "HTProxy_set");
+	outofmem(__FILE__, "add_object");
     StrAllocCopy(me->access, access);		     	    /* Access method */
     {
 	char *ptr = me->access;
@@ -97,11 +95,7 @@ PRIVATE BOOL HTProxy_set ARGS3(HTList *, list, CONST char *, access,
     return YES;
 }
 
-
-/*	Remove an entry to a list
-**	-------------------------
-*/
-PRIVATE BOOL HTProxy_remove ARGS1(HTList *, list)
+PRIVATE BOOL remove_allObjects (HTList * list)
 {
     if (list) {
 	HTList *cur = list;
@@ -116,81 +110,18 @@ PRIVATE BOOL HTProxy_remove ARGS1(HTList *, list)
     return NO;
 }
 
-
-/*							HTProxy_setProxy
-**
-**	Registers a proxy as the server to contact for a specific
-**	access method. `proxy' should be a fully valid name, like
-**	"http://proxy.w3.org:8001" but domain name is not required.
-**	If an entry exists for this access then delete it and use the 
-**	ne one. Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTProxy_setProxy ARGS2(CONST char *, access, CONST char *, proxy)
-{
-    if (!proxies)
-	proxies = HTList_new();    
-    return HTProxy_set(proxies, access, proxy);
-}
-
-
-/*							HTProxy_deleteProxy
-**
-**	Removes all registered proxies
-*/
-PUBLIC BOOL HTProxy_deleteProxy NOARGS
-{
-    if (HTProxy_remove(proxies)) {
-	HTList_delete(proxies);
-	proxies = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-
-/*							HTProxy_setGateway
-**
-**	Registers a gateway as the server to contact for a specific
-**	access method. `gateway' should be a fully valid name, like
-**	"http://gateway.w3.org:8001" but domain name is not required.
-**	If an entry exists for this access then delete it and use the 
-**	ne one. Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTProxy_setGateway ARGS2(CONST char *, access, CONST char *, gate)
-{
-    if (!gateways)
-	gateways = HTList_new();
-    return HTProxy_set(gateways, access, gate);
-}
-
-
-/*							HTProxy_deleteGateway
-**
-**	Removes all registered gateways
-*/
-PUBLIC BOOL HTProxy_deleteGateway NOARGS
-{
-    if (HTProxy_remove(gateways)) {
-	HTList_delete(gateways);
-	gateways = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-
 /*	Add an entry to a list of host names
 **	------------------------------------
 **	Existing entries are replaced with new ones
 */
-PRIVATE BOOL HTHostList_set ARGS4(HTList *, list, CONST char *, host,
-				  CONST char *, access, unsigned, port)
+PRIVATE BOOL add_hostname (HTList * list, CONST char * host,
+			   CONST char * access, unsigned port)
 {
     HTHostList *me;
     if (!list || !host || !*host)
 	return NO;
     if ((me = (HTHostList *) calloc(1, sizeof(HTHostList))) == NULL)
-	outofmem(__FILE__, "HTHostList_set");
+	outofmem(__FILE__, "add_hostname");
     if (access) {
 	char *ptr;
 	StrAllocCopy(me->access, access);      	     	    /* Access method */
@@ -209,11 +140,7 @@ PRIVATE BOOL HTHostList_set ARGS4(HTList *, list, CONST char *, host,
     return YES;
 }
 
-
-/*	Remove an entry from a list
-**	---------------------------
-*/
-PRIVATE BOOL HTHostList_remove ARGS1(HTList *, list)
+PRIVATE BOOL remove_AllHostnames (HTList * list)
 {
     if (list) {
 	HTList *cur = list;
@@ -228,8 +155,64 @@ PRIVATE BOOL HTHostList_remove ARGS1(HTList *, list)
     return NO;
 }
 
-/*							HTProxy_setNoProxy
-**
+/*	HTProxy_add
+**	-----------
+**	Registers a proxy as the server to contact for a specific
+**	access method. `proxy' should be a fully valid name, like
+**	"http://proxy.w3.org:8001" but domain name is not required.
+**	If an entry exists for this access then delete it and use the 
+**	ne one. Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTProxy_add (CONST char * access, CONST char * proxy)
+{
+    if (!proxies)
+	proxies = HTList_new();    
+    return add_object(proxies, access, proxy);
+}
+
+/*
+**	Removes all registered proxies
+*/
+PUBLIC BOOL HTProxy_deleteAll (void)
+{
+    if (remove_allObjects(proxies)) {
+	HTList_delete(proxies);
+	proxies = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTGateway_add
+**	-------------
+**	Registers a gateway as the server to contact for a specific
+**	access method. `gateway' should be a fully valid name, like
+**	"http://gateway.w3.org:8001" but domain name is not required.
+**	If an entry exists for this access then delete it and use the 
+**	ne one. Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTGateway_add (CONST char * access, CONST char * gate)
+{
+    if (!gateways)
+	gateways = HTList_new();
+    return add_object(gateways, access, gate);
+}
+
+/*
+**	Removes all registered gateways
+*/
+PUBLIC BOOL HTGateway_deleteAll (void)
+{
+    if (remove_allObjects(gateways)) {
+	HTList_delete(gateways);
+	gateways = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTNoProxy_add
+**	-------------
 **	Registers a host name or a domain as a place where no proxy should
 **	be contacted - for example a very fast link. If `port' is '0' then
 **	it applies to all ports and if `access' is NULL then it applies to
@@ -238,22 +221,21 @@ PRIVATE BOOL HTHostList_remove ARGS1(HTList *, list)
 **	Examples:	w3.org
 **			www.close.com
 */
-PUBLIC BOOL HTProxy_setNoProxy ARGS3(CONST char *, host, CONST char *, access,
-				     unsigned, port)
+PUBLIC BOOL HTNoProxy_add (CONST char * host, CONST char * access,
+			   unsigned port)
 {
     if (!noproxy)
 	noproxy = HTList_new();    
-    return HTHostList_set(noproxy, host, access, port);
+    return add_hostname(noproxy, host, access, port);
 }
 
-
-/*							HTProxy_deleteNoProxy
-**
+/*	HTNoProxy_deleteAll
+**	-------------------
 **	Removes all registered no_proxy directives
 */
-PUBLIC BOOL HTProxy_deleteNoProxy NOARGS
+PUBLIC BOOL HTNoProxy_deleteAll (void)
 {
-    if (HTHostList_remove(noproxy)) {
+    if (remove_AllHostnames(noproxy)) {
 	HTList_delete(noproxy);
 	noproxy = NULL;
 	return YES;
@@ -261,9 +243,8 @@ PUBLIC BOOL HTProxy_deleteNoProxy NOARGS
     return NO;
 }
 
-
-/*							HTProxy_getProxy
-**
+/*	HTProxy_find
+**	------------
 **	This function evaluates the lists of registered proxies and if
 **	one is found for the actual access method and it is not registered
 **	in the `noproxy' list, then a URL containing the host to be contacted
@@ -272,7 +253,7 @@ PUBLIC BOOL HTProxy_deleteNoProxy NOARGS
 **	Returns: proxy	If OK (must be freed by caller)
 **		 NULL	If no proxy is found or error
 */
-PUBLIC char * HTProxy_getProxy ARGS1(CONST char *, url)
+PUBLIC char * HTProxy_find (CONST char * url)
 {
 #ifndef HT_NO_PROXY
     char * access;
@@ -334,15 +315,15 @@ PUBLIC char * HTProxy_getProxy ARGS1(CONST char *, url)
     }
 
 
-/*							HTProxy_getGateway
-**
+/*	HTGateway_find
+**	--------------
 **	This function evaluates the lists of registered gateways and if
 **	one is found for the actual access method then it is returned
 **
 **	Returns: gateway If OK (must be freed by caller)
 **		 NULL	 If no gateway is found or error
 */
-PUBLIC char * HTProxy_getGateway ARGS1(CONST char *, url)
+PUBLIC char * HTGateway_find (CONST char * url)
 {
 #ifndef HT_NO_PROXY
     char * access;
@@ -377,7 +358,7 @@ PUBLIC char * HTProxy_getGateway ARGS1(CONST char *, url)
 **	environment variables and searches for the most common values:
 **	http, ftp, news, wais, and gopher
 */
-PUBLIC void HTProxy_getEnvVar NOARGS
+PUBLIC void HTProxy_getEnvVar (void)
 {
 #ifndef HT_NO_PROXY
     char buf[80];
@@ -398,14 +379,14 @@ PUBLIC void HTProxy_getEnvVar NOARGS
 	strcpy(buf, *access);
 	strcat(buf, "_proxy");
 	if ((proxy = (char *) getenv(buf)) && *proxy)
-	    HTProxy_setProxy(*access, proxy);
+	    HTProxy_add(*access, proxy);
 
 	/* search for gateway servers */
 	strcpy(buf, "WWW_");
 	strcat(buf, *access);
 	strcat(buf, "_GATEWAY");
 	if ((gateway = (char *) getenv(buf)) && *gateway)
-	    HTProxy_setGateway(*access, gateway);
+	    HTGateway_add(*access, gateway);
 	++access;
     }
 
@@ -427,7 +408,7 @@ PUBLIC void HTProxy_getEnvVar NOARGS
 		}
 
 		/* Register it for all access methods */
-		HTProxy_setNoProxy(name, NULL, port);
+		HTNoProxy_add(name, NULL, port);
 	    }
 	    free(str);
 	}

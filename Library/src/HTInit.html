@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Initialization Routines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -70,17 +70,6 @@ extern void HTPresenterInit	(HTList * conversions);
 
 This function is only defined in order to preserve backward
 compatibility.
-
-<PRE>
-extern void HTFormatInit	(HTList * conversions);
-</PRE>
-
-<H3>Set up Default Presenters and Converters</H3>
-
-The <A HREF="HTInit.c">HTInit module</A> defines a default set of
-<CODE>converters</CODE> and <CODE>presenters</CODE>. However, no
-automatic initialization is done in the Library, so this is for the
-application to do!
 
 <PRE>
 extern void HTFormatInit	(HTList * conversions);
