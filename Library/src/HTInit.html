@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Initialization Routines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -34,9 +34,8 @@ To override the default behavior, you can do two things:
 </UL>
 
 This module is implemented by <A HREF="HTInit.c">HTInit.c</A>, and it
-is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTINIT_H
@@ -53,7 +52,7 @@ stack algorithm. The Presenters are also used in the stream stack, but
 are initialized separately.
 
 <PRE>
-extern void HTConverterInit PARAMS((HTList * conversions));
+extern void HTConverterInit	(HTList * conversions);
 </PRE>
 
 <H2>Presenters</H2>
@@ -64,7 +63,7 @@ a part of the stream stack algorithm. The Converters are also used in
 the stream stack, but are initialized separately.
 
 <PRE>
-extern void HTPresenterInit PARAMS((HTList * conversions));
+extern void HTPresenterInit	(HTList * conversions);
 </PRE>
 
 <H2>Converters and Presenters</H2>
@@ -73,7 +72,18 @@ This function is only defined in order to preserve backward
 compatibility.
 
 <PRE>
-extern void HTFormatInit PARAMS((HTList * conversions));
+extern void HTFormatInit	(HTList * conversions);
+</PRE>
+
+<H3>Set up Default Presenters and Converters</H3>
+
+The <A HREF="HTInit.c">HTInit module</A> defines a default set of
+<CODE>converters</CODE> and <CODE>presenters</CODE>. However, no
+automatic initialization is done in the Library, so this is for the
+application to do!
+
+<PRE>
+extern void HTFormatInit	(HTList * conversions);
 </PRE>
 
 <H2>Protocol Modules</H2>
@@ -82,9 +92,7 @@ Set up default bindings between access schemes and the set of protocol
 modules in the Library.
 
 <PRE>
-#ifndef HT_NO_INIT
-extern void HTAccessInit NOPARAMS;
-#endif
+extern void HTAccessInit (void);
 </PRE>
 
 <H2>File Suffix Setup</H2>
@@ -93,9 +101,7 @@ This functions defines a basic set of file suffixes and the
 corresponding media types.
 
 <PRE>
-#ifndef HT_NO_INIT
-extern void HTFileInit NOPARAMS;
-#endif
+extern void HTFileInit (void);
 
 #endif
 </PRE>

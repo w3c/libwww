@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Global Include File for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -15,11 +15,15 @@
 */
 </PRE>
 
-This is the main include file necessary in order to use the W3C
-Reference Library. Currently the file only consists of well-known
-Library include files, but the goal is to define a nice API in this
-file, so that all external functionality can be reached through this
-one.
+This is the basic include files and the core include files necessary
+in order to use the W3C Reference Library. It contains all core
+specific modules which are required to compile and build the
+Library. No converter streams or protocol modules are included in this
+file as they are for teh application to set up. The Library has a
+special include file called <A HREF="WWWApp.html">WWWApp.h</A> which
+contains all converters and protocol modules known to the Library. You
+can include this one if the application is to use all the
+functionality of the Library.
 
 <PRE>
 #ifndef WWWLIB_H
@@ -42,6 +46,8 @@ extern "C" {
 
 <H2>General Utilities</H2>
 
+This is the basic layer of functionality
+
 <PRE>
 #include "HTUtils.h"			/* Macros and other stuff */
 #include "HTString.h"			/* Generic string utilities */
@@ -54,55 +60,62 @@ extern "C" {
 
 <H2>Core Modules</H2>
 
+These are always required to be included
+
 <PRE>
-/* Format Management, and Access functions for loading a URL etc. */
 #include "HTMethod.h"			/* Request methods like PUT, GET */
 #include "HTFormat.h"			/* Stream Stack and content neg. */
 #include "HTReq.h"			/* public part of Request Manager */
+#include "HTAccess.h"			/* Document access network code */
 #include "HTNet.h"			/* public part of Net Manager */
+#include "HTSocket.h"			/* public part of Net Manager */
 #include "HTAnchor.h"			/* Anchor class Definition */
-#include "HTEvntrg.h"
-#include "HTError.h"
-#include "HTProt.h"
+#include "HTEvntrg.h"			/* Event manager */
+#include "HTError.h"			/* Error manager */
+#include "HTProt.h"			/* Protocol Manager */
+#include "HTAAUtil.h"			/* Access Authentication */
+#include "HTUU.h"			/* uuencode/uudecode */
+#include "HTCache.h"			/* Cache Manager */
+#include "HTDNS.h"			/* Host name cache */
+#include "HTTCP.h"			/* GetXbyY functions */
+#include "HTRules.h"			/* Configuration file manager */
+#include "HTProxy.h"			/* Proxies and gateways registration */
+#include "HTBind.h"			/* Binding to file suffixes */
+</PRE>
 
-/* Access Authentication */
-#include "HTAAUtil.h"
-#include "HTUU.h"
+<H3>Generic Streams</H3>
 
-/* Cache manager */
-#include "HTCache.h"
-
-/* Presenters, converters and other streams */
+<PRE>
 #include "HTMLGen.h"			/* Generating HTML */
 #include "HTWriter.h"			/* Write to a unix file descriptor */
 #include "HTFWrite.h"			/* Write to an ANSI file descriptor */
 #include "HTMIME.h"			/* HTTP/MIME parsing */
 #include "HTNetTxt.h"			/* Convert from CRLF to \n */
 #include "HTConLen.h"			/* Content Length Counter */
+</PRE>
 
-/* Directory Listings */
+<H3>Directory Listings</H3>
+
+<PRE>
 #include "HTIcons.h"
 #include "HTDir.h"
 #include "HTDescpt.h"
+</PRE>
 
-/* Application specific modules */
-#include "HTInit.h"			/* Initialization functions */
-#include "HTLog.h"
-#include "HTAccess.h"			/* Document access network code */
-#include "HTHist.h"			/* Navigational aids */
+<H3>Application Specific</H3>
 
-/* For TCP and DNS relevant information (mail address etc.) */
-#include "HTDNS.h"
-#include "HTTCP.h"
+There are a few modules that are required by the Library but contains
+application specific code. Depending on the application it may want to
+override these modules with its own versions providing the same
+interface to the Library.
 
-/* Management of Rule Files for configuring the application */
-#include "HTRules.h"
-#include "HTProxy.h"
-#include "HTBind.h"			/* Binding to file suffixes */
+<PRE>
+#include "HTAlert.h"			/* Messages and User prompts */
+</PRE>
 
-/* Messages and User prompts */
-#include "HTAlert.h"
+End of Core modules
 
+<PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
 #endif

@@ -172,8 +172,8 @@ PUBLIC HTReload HTRequest_reloadMode (HTRequest *request)
 **	Accept Format Types
 **	list can be NULL
 */
-PUBLIC void HTRequest_setFormat (HTRequest *request, HTList *type,
-				 BOOL override)
+PUBLIC void HTRequest_setConversion (HTRequest *request, HTList *type,
+				     BOOL override)
 {
     if (request) {
 	request->conversions = type;
@@ -181,7 +181,7 @@ PUBLIC void HTRequest_setFormat (HTRequest *request, HTList *type,
     }
 }
 
-PUBLIC HTList * HTRequest_format (HTRequest *request)
+PUBLIC HTList * HTRequest_conversion (HTRequest *request)
 {
     return request ? request->conversions : NULL;
 }

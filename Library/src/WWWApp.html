@@ -1,0 +1,92 @@
+<HTML>
+<HEAD>
+<TITLE>Application Specific Include File for W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Application Specific Include File for W3C Reference Library</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+In addition top the basic W3C Reference Library include file called <A
+HREF="WWWLib.html">WWWLib.h</A> you <EM>can</EM> also include this
+file called WWWApp.h depending on the needs of your
+application. However, it is not required and none of the files
+included below are ever used in the core part of the Library
+itself. Only if this file is included, the extra modules will get
+included in the linked object code. It is also possible to include
+only a subset of the files below if the functionality you are after is
+covered by them.
+
+<PRE>
+#ifndef WWWAPP_H
+#define WWWAPP_H
+</PRE>
+
+<H2>Application Specific Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<H2>Initialization</H2>
+
+The core parts of the Library is a framework for adding
+functionailty. It has hooks for adding protocol modules, like for
+example HTTP, FTP, and also for adding streams that can convert from
+one media type to some other type, or presenting the result to the
+user. In the distribution file of the Library you will find a large
+set of porotocol modules and streams already implemented. However, in
+order to use these you need to initialize them. This can be done by
+using the files in the <A HREF="HTInit.html">HTInit</A> module. You
+can modify this module as you like to fit your particular needs.
+
+<PRE>
+#include "HTInit.h"			/* Initialization functions */
+</PRE>
+
+<H2>Logging</H2>
+
+Often it is required to log the requests issued to the Library. This
+can either be the case if the application is a server or it can also
+be useful in a client application. This module provides a simple
+logging mechanism which can be enabled if needed.
+
+<PRE>
+#include "HTLog.h"
+</PRE>
+
+<H2>History Management</H2>
+
+Another type of logging is keeping track of which documents a user has
+visited when browsing along on the Web. The Library history manager
+provides a basic set of functionality to keep track of a linear
+history list.
+
+<PRE>
+#include "HTHist.h"			/* Navigational aids */
+</PRE>
+
+End of application specific modules
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWAPP definition
+
+</BODY>
+</HTML>

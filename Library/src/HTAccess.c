@@ -28,21 +28,38 @@
 
 /* Library include files */
 #include "WWWLib.h"
-#include "HTReqMan.h"	     /* @@@@@@@@@@@@@@@@@@@@@@@@ */
-
-#include "HTInit.h"
+#include "HTReqMan.h"
 #include "HTAccess.h"					 /* Implemented here */
+
+PRIVATE char * HTAppName = NULL;	  /* Application name: please supply */
+PRIVATE char * HTAppVersion = NULL;    /* Application version: please supply */
 
 /* --------------------------------------------------------------------------*/
 /*	           Initialization and Termination of the Library	     */
 /* --------------------------------------------------------------------------*/
+
+/*	HTLib_appName
+**	-------------
+*/
+PUBLIC CONST char * HTLib_appName (void)
+{
+    return HTAppName;
+}
+
+/*	HTLib_appVersion
+**	----------------
+*/
+PUBLIC CONST char * HTLib_appVersion (void)
+{
+    return HTAppVersion;
+}
 
 /*								     HTLibInit
 **
 **	This function initiates the Library and it MUST be called when
 **	starting up an application. See also HTLibTerminate()
 */
-PUBLIC BOOL HTLibInit (void)
+PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 {
 #ifdef NO_STDIO						  /* Open trace file */
     if ((TDEST = fopen(TRACE_FILE, "a")) != NULL) {
@@ -59,23 +76,27 @@ PUBLIC BOOL HTLibInit (void)
     if (WWWTRACE)
 	fprintf(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
-    /* Set up User preferences, but leave initialization to the application */
-    if (!HTConversions)
-	HTConversions = HTList_new();
-    if (!HTEncodings)
-	HTEncodings = HTList_new();
-    if (!HTLanguages)
-	HTLanguages = HTList_new();
-    if (!HTCharsets)
-	HTCharsets = HTList_new();
+    /* Set the application name and version */
+    if (AppName) {
+	char *ptr;
+	StrAllocCopy(HTAppName, AppName);
+	ptr = HTAppName;
+	while (*ptr) {
+	    if (WHITE(*ptr)) *ptr = '_';
+	    ptr++;
+	}
+    }
+    if (AppVersion) {
+	char *ptr;
+	StrAllocCopy(HTAppVersion, AppVersion);
+	ptr = HTAppVersion;
+	while (*ptr) {
+	    if (WHITE(*ptr)) *ptr = '_';
+	    ptr++;
+	}
+    }
 
-    /* Set up bindings to the local file system */
-    HTBind_init();
-
-#ifndef HT_NO_INIT
-    HTAccessInit();		 /* Bind access schemes and protocol modules */
-    HTFileInit();		     /* Bind file extensions and media types */
-#endif
+    HTBind_init();				      /* Initialize bindings */
 
 #ifndef HT_DIRECT_WAIS
     HTProxy_setGateway("wais", HT_DEFAULT_WAIS_GATEWAY);
@@ -134,10 +155,8 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTDisposeConversions();
     HTDNS_deleteAll();
 
-#ifndef HT_NO_INIT
     HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
     HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
-#endif
 
     HTProxy_deleteProxy();	   /* Clean up lists of proxies and gateways */
     HTProxy_deleteNoProxy();

@@ -48,31 +48,31 @@
 **
 **	Not done automaticly - must be done by application!
 */
-PUBLIC void HTConverterInit ARGS1(HTList *, c)
+PUBLIC void HTConverterInit (HTList * c)
 {
     /*
     ** This set of converters uses the HTML/HText interface.
     ** If you do not want this interface then replace them!
     */
-    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
-    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
+    HTConversion_add(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
+    HTConversion_add(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
 
     /*
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */
-    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
+    HTConversion_add(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
 
     /*
     ** This dumps all other formats to local disk without any further
     ** action taken
     */
-    HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+    HTConversion_add(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
 }
 
 /*	BINDINGS BETWEEN MEDIA TYPES AND EXTERNAL VIEWERS/PRESENTERS
@@ -83,23 +83,23 @@ PUBLIC void HTConverterInit ARGS1(HTList *, c)
 **
 **	Not done automaticly - must be done by application!
 */
-PUBLIC void HTPresenterInit ARGS1(HTList *, c)
+PUBLIC void HTPresenterInit (HTList * c)
 {
 #ifdef NeXT
-    HTSetPresentation(c,"application/postscript", "open %s",	NULL, 1.0, 2.0, 0.0);
+    HTPresentation_add(c,"application/postscript", "open %s",	NULL, 1.0, 2.0, 0.0);
     /* The following needs the GIF previewer -- you might not have it. */
 
-    HTSetPresentation(c,"image/gif", 		"open %s", 	NULL, 0.3, 2.0, 0.0);
-    HTSetPresentation(c,"image/x-tiff", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
-    HTSetPresentation(c,"audio/basic", 		"open %s", 	NULL, 1.0, 2.0, 0.0);
-    HTSetPresentation(c,"*/*", 			"open %s", 	NULL, 0.05, 0.0, 0.0); 
+    HTPresentation_add(c,"image/gif", 		"open %s", 	NULL, 0.3, 2.0, 0.0);
+    HTPresentation_add(c,"image/x-tiff", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
+    HTPresentation_add(c,"audio/basic", 		"open %s", 	NULL, 1.0, 2.0, 0.0);
+    HTPresentation_add(c,"*/*", 			"open %s", 	NULL, 0.05, 0.0, 0.0); 
 #else
     if (getenv("DISPLAY")) {	/* Must have X11 */
-	HTSetPresentation(c,"application/postscript", "ghostview %s",	NULL, 1.0, 3.0, 0.0);
-	HTSetPresentation(c,"image/gif", 		"xv %s",	NULL, 1.0, 3.0, 0.0);
-	HTSetPresentation(c,"image/x-tiff", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
-	HTSetPresentation(c,"image/jpeg", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
- 	HTSetPresentation(c,"image/x-png",	"xv %s",	NULL, 1.0, 3.0, 0.0);
+	HTPresentation_add(c,"application/postscript", "ghostview %s",	NULL, 1.0, 3.0, 0.0);
+	HTPresentation_add(c,"image/gif", 		"xv %s",	NULL, 1.0, 3.0, 0.0);
+	HTPresentation_add(c,"image/x-tiff", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
+	HTPresentation_add(c,"image/jpeg", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
+ 	HTPresentation_add(c,"image/x-png",	"xv %s",	NULL, 1.0, 3.0, 0.0);
     }
 #endif
 }
@@ -111,7 +111,7 @@ PUBLIC void HTPresenterInit ARGS1(HTList *, c)
 **	This function is only defined in order to preserve backward
 **	compatibility.
 */
-PUBLIC void HTFormatInit ARGS1(HTList *, c)
+PUBLIC void HTFormatInit (HTList * c)
 {
     HTConverterInit(c);
     HTPresenterInit(c);
@@ -126,7 +126,6 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 **	Compiling with HT_NO_INIT prevents all known protocols from being
 **	force in at link time.
 */
-#ifndef HT_NO_INIT
 PUBLIC void HTAccessInit (void)
 {
 #ifndef DECNET
@@ -145,8 +144,6 @@ PUBLIC void HTAccessInit (void)
     HTProtocol_add("tn3270", YES, HTLoadTelnet);
     HTProtocol_add("rlogin", YES, HTLoadTelnet);
 }
-#endif /* !HT_NO_INIT */
-
 
 /*	BINDINGS BETWEEN FILE EXTENSIONS AND MEDIA TYPES
 **	------------------------------------------------
@@ -158,8 +155,7 @@ PUBLIC void HTAccessInit (void)
 **	with different values. Called from HTLibraryInit().
 */
 
-#ifndef HT_NO_INIT
-PUBLIC void HTFileInit NOARGS
+PUBLIC void HTFileInit (void)
 {
     /*		       Suffix	 Content-Type		        Encoding  Lang	Quality	*/
 
@@ -255,5 +251,4 @@ PUBLIC void HTFileInit NOARGS
     HTBind_setBinding("*.*",     "www/unknown",			"binary", NULL, 0.1);	/* Unknown suffix */
     HTBind_setBinding("*",       "www/unknown",			"7bit",   NULL, 0.5);	/* No suffix */
 }
-#endif /* !HT_NO_INIT */
 

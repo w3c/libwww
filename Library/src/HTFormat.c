@@ -26,19 +26,14 @@
 #include "HTReqMan.h"
 #include "HTFormat.h"					 /* Implemented here */
 
-/* Public variables */
-PUBLIC HTList * HTConversions = NULL;
-PUBLIC HTList * HTCharsets = NULL;
-PUBLIC HTList * HTEncodings = NULL;
-PUBLIC HTList * HTLanguages = NULL;
-
 #define NO_VALUE_FOUND	-1e30		 /* Stream Stack Value if none found */
 
-/* Varlables and typedefs local to this moduel */
+PRIVATE HTList * HTConversions = NULL;
+PRIVATE HTList * HTCharsets = NULL;
+PRIVATE HTList * HTEncodings = NULL;
+PRIVATE HTList * HTLanguages = NULL;
+
 PRIVATE double HTMaxSecs = 1e10;		/* No effective limit */
-#if 0
-PRIVATE double HTMaxLength = 1e10;		/* No effective limit */
-#endif
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
@@ -178,14 +173,13 @@ PUBLIC void HTDisposeConversions NOARGS
 **	maxbytes:	A limit on the length acceptable as input (0 infinite)
 **	maxsecs:	A limit on the time user will wait (0 for infinity)
 */
-PUBLIC void HTSetPresentation ARGS7(
-	HTList *,	conversions,
-	CONST char *, 	representation,
-	CONST char *, 	command,
-	CONST char *, 	test_command,  /* HWL 27/9/94: mailcap functionality */
-	double,		quality,
-	double,		secs, 
-	double,		secs_per_byte)
+PUBLIC void HTPresentation_add (HTList *	conversions,
+				CONST char *	representation,
+				CONST char *	command,
+				CONST char *	test_command,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte)
 {
     HTPresentation * pres = (HTPresentation *)calloc(1,sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
@@ -208,14 +202,13 @@ PUBLIC void HTSetPresentation ARGS7(
 /*	Define a built-in function for a content-type
 **	---------------------------------------------
 */
-PUBLIC void HTSetConversion ARGS7(
-	HTList *,	conversions,
-	CONST char *, 	representation_in,
-	CONST char *, 	representation_out,
-	HTConverter*,	converter,
-	double,		quality,
-	double,		secs, 
-	double,		secs_per_byte)
+PUBLIC void HTConversion_add (HTList *		conversions,
+			      CONST char *	representation_in,
+			      CONST char *	representation_out,
+			      HTConverter *	converter,
+			      double		quality,
+			      double		secs, 
+			      double		secs_per_byte)
 {
     HTPresentation * pres = (HTPresentation *)calloc(1,sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
@@ -231,6 +224,61 @@ PUBLIC void HTSetConversion ARGS7(
     HTList_addObject(conversions, pres);
 }
 
+/*
+**	Global Accept Format Types Conversions
+**	list can be NULL
+*/
+PUBLIC void HTFormat_setConversion (HTList *list)
+{
+    HTConversions = list;
+}
+
+PUBLIC HTList * HTFormat_conversion (void)
+{
+    return HTConversions;
+}
+
+/*
+**	Global Accept Encodings
+**	list can be NULL
+*/
+PUBLIC void HTFormat_setEncoding (HTList *list)
+{
+    HTEncodings = list;
+}
+
+PUBLIC HTList * HTFormat_encoding (void)
+{
+    return HTEncodings;
+}
+
+/*
+**	Global Accept Languages
+**	list can be NULL
+*/
+PUBLIC void HTFormat_setLanguage (HTList *list)
+{
+    HTLanguages = list;
+}
+
+PUBLIC HTList * HTFormat_language (void)
+{
+    return HTLanguages;
+}
+
+/*
+**	Global Accept Charsets
+**	list can be NULL
+*/
+PUBLIC void HTFormat_setCharset (HTList *list)
+{
+    HTCharsets = list;
+}
+
+PUBLIC HTList * HTFormat_charset (void)
+{
+    return HTCharsets;
+}
 
 PUBLIC void HTAcceptEncoding ARGS3(HTList *,	list,
 				   CONST char *,enc,

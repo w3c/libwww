@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -223,7 +223,7 @@ else <EM>both</EM> local and global headers are used.
 
 <H3>Content Types</H3>
 
-Th <EM>local</EM> list of specific conversions which the format
+The <EM>local</EM> list of specific conversions which the format
 manager can do in order to fulfill the request.  It typically points
 to a list set up on initialisation time for example by <A
 HREF="HTInit.html">HTInit()</A>. There is also a <A
@@ -231,8 +231,8 @@ HREF="HTFormat.html#z17"><EM>global</EM></A> list of conversions which
 contains a generic set of possible conversions.
 
 <PRE>
-extern void HTRequest_setFormat	(HTRequest *request, HTList *type, BOOL override);
-extern HTList * HTRequest_format (HTRequest *request);
+extern void HTRequest_setConversion (HTRequest *request, HTList *type, BOOL override);
+extern HTList * HTRequest_conversion (HTRequest *request);
 </PRE>
 
 <H3>Content Encodings</H3>

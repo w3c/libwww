@@ -21,7 +21,7 @@
 **	 1 Nov 93  AL	Added htbin.
 **	30 Nov 93  AL	Added HTTranslateReq().
 **	 4 Feb 94  AL	Took away all the daemon-specific stuff.
-**      28 Sep 94  HWL  Added field to HTSetPresentation call
+**      28 Sep 94  HWL  Added field to HTPresentation_add call
 **
 */
 
@@ -304,10 +304,11 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 			  status >= 1 ? quality : 1.0);		/* quality */
 
     } else if (0==strcasecomp(word1, "presentation")) {
+	HTList *converters = HTFormat_conversion();
         if (pointer) status = sscanf(pointer, "%lf%lf%lf",
 			    &quality, &secs, &secs_per_byte);
         else status = 0;
-	HTSetPresentation(HTConversions, word2, word3, NULL,
+	HTPresentation_add(converters, word2, word3, NULL,
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );

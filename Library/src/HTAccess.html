@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -39,11 +39,21 @@ Reference Library</A>. <P>
 <IMG SRC="http://www.w3.org/pub/WWW/Icons/32x32/warning.gif">
 These two functions initiates memory and settings for the Library and
 cleans up memory kept by the Library when about to exit the
-application. It is highly recommended that they are used!
+application. They <B>must</B> be used!
 
 <PRE>
-extern BOOL HTLibInit (void);
+extern BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion);
 extern BOOL HTLibTerminate (void);
+</PRE>
+
+<H2>Application Name and Version</H2>
+
+Returns the name of the application and the version number that was
+passed to the <CODE>HTLibInit()</CODE> function.
+
+<PRE>
+extern CONST char * HTLib_appName (void);
+extern CONST char * HTLib_appVersion (void);
 </PRE>
 
 <H2>Client Get Started Help</H2>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -24,15 +24,14 @@ this module is:
 
 <UL>
 <LI><A HREF="#converter">Converters</A>
-<LI><A HREF="#user">User Preferences (media type, language, charset etc.)</A>
+<LI><A HREF="#user">Global Preferences (media type, language, charset etc.)</A>
 <LI><A HREF="#Rank">Content Negotiation</A>
 <LI><A HREF="#z3">The Stream Stack</A>
 </UL>
 
 This module is implemented by <A HREF="HTFormat.c">HTFormat.c</A>, and
-it is a part of the <A NAME="z10"
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTFORMAT_H
@@ -83,6 +82,43 @@ are all <A HREF="HTAtom.html">atoms</A> representations. This allows
 faster manipulation (comparison and copying) that if we stayed with
 strings.
 
+<H3>Global Registrations</H3>
+
+These are valid for <EM>all</EM> requests
+
+<H4>Content Types</H4>
+
+The <EM>global</EM> list of specific conversions which the format
+manager can do in order to fulfill the request.  There is also a <A
+HREF="HTReq.html"><EM>local</EM></A> list of conversions which
+contains a generic set of possible conversions.
+
+<PRE>
+extern void HTFormat_setConversion	(HTList *list);
+extern HTList * HTFormat_conversion	(void);
+</PRE>
+
+<H4>Content Encodings</H4>
+
+<PRE>
+extern void HTFormat_setEncoding	(HTList *list);
+extern HTList * HTFormat_encoding	(void);
+</PRE>
+
+<H4>Content Encodings</H4>
+
+<PRE>
+extern void HTFormat_setLanguage	(HTList *list);
+extern HTList * HTFormat_language	(void);
+</PRE>
+
+<H4>Content Encodings</H4>
+
+<PRE>
+extern void HTFormat_setCharset		(HTList *list);
+extern HTList * HTFormat_charset	(void);
+</PRE>
+
 <A NAME="FormatTypes"><H3>Registration of Accepted Content Types</H3></A>
 
 A <CODE>presenter</CODE> is a module (possibly an external program)
@@ -105,8 +141,6 @@ typedef struct _HTPresentation {
     double	secs;
     double	secs_per_byte;
 } HTPresentation;
-
-extern HTList * HTConversions;   /* Global list of converters and presenters */
 </PRE>
 
 <H4>Predefined Content Types</H4>
@@ -188,13 +222,13 @@ We also have some that come from the various protocols
 </DL>
 
 <PRE>
-extern void HTSetPresentation	PARAMS((HTList *	conversions,
-					CONST char * 	representation,
-					CONST char * 	command,
-					CONST char * 	test_command,
-					double		quality,
-					double		secs, 
-					double		secs_per_byte));
+extern void HTPresentation_add (HTList *	conversions,
+				CONST char * 	representation,
+				CONST char * 	command,
+				CONST char * 	test_command,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
 </PRE>
 
 <H4>Register a Converter</H4>
@@ -217,24 +251,13 @@ extern void HTSetPresentation	PARAMS((HTList *	conversions,
 </DL>
 
 <PRE>
-extern void HTSetConversion	PARAMS((HTList *	conversions,
-					CONST char * 	rep_in,
-					CONST char * 	rep_out,
-					HTConverter *	converter,
-					double		quality,
-					double		secs, 
-					double		secs_per_byte));
-</PRE>
-
-<H4>Set up Default Presenters and Converters</H4>
-
-The <A HREF="HTInit.c">HTInit module</A> defines a default set of
-<CODE>converters</CODE> and <CODE>presenters</CODE>. However, no
-automatic initialization is done in the Library, so this is for the
-application to do!
-
-<PRE>
-extern void HTFormatInit	PARAMS((HTList * conversions));
+extern void HTConversion_add   (HTList *	conversions,
+				CONST char * 	rep_in,
+				CONST char * 	rep_out,
+				HTConverter *	converter,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
 </PRE>
 
 <A NAME="Encoding"><H3>Registration of Accepted Content Encodings</H3></A>
@@ -247,8 +270,6 @@ typedef struct _HTAcceptNode {
     HTAtom *	atom;
     double	quality;
 } HTAcceptNode;
-
-extern HTList * HTEncodings;			 /* Global list of encodings */
 </PRE>
 
 <H4>Predefined Encoding Types</H4>
@@ -274,10 +295,6 @@ extern void HTAcceptEncoding	PARAMS((HTList *	list,
 
 We use the same <CODE>HTAcceptNode</CODE> as above.
 
-<PRE>
-extern HTList * HTCharsets;			  /* Global list of charsets */
-</PRE>
-
 <H4>Register a Charset</H4>
 
 <PRE>
@@ -289,10 +306,6 @@ extern void HTAcceptCharset	PARAMS((HTList *	list,
 <A NAME="Language"><H3>Registration of Accepted Content Languages</H3></A>
 
 We use the same <CODE>HTAcceptNode</CODE> as above.
-
-<PRE>
-extern HTList * HTLanguages;			 /* Global list of languages */
-</PRE>
 
 <H4>Register a Language</H4>
 

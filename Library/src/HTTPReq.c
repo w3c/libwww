@@ -17,14 +17,13 @@
 #include "HTNetMan.h"
 #include "HTDNS.h"
 #include "HTTCP.h"
+#include "HTAccess.h"
 #include "HTWriter.h"
 #include "HTReqMan.h"
 #include "HTChunk.h"
 #include "HTMIMERq.h"
 #include "HTTPReq.h"					       /* Implements */
 
-extern char * HTAppName;		  /* Application name: please supply */
-extern char * HTAppVersion;	       /* Application version: please supply */
 PUBLIC char * HTProxyHeaders = NULL;		    /* Headers to pass as-is */
 
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
@@ -97,8 +96,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	int list;
 	HTList *cur;
 	for (list=0; list<2; list++) {
-	    if ((!list && ((cur=HTConversions) != NULL)) ||
-		(list && ((cur=request->conversions) != NULL))) {
+	    if ((!list && ((cur = HTFormat_conversion()) != NULL)) ||
+		(list && ((cur = HTRequest_conversion(request)) != NULL))) {
 		HTPresentation  *pres;
 		while ((pres =(HTPresentation *) HTList_nextObject(cur))) {
 		    if (pres->rep_out == WWW_PRESENT) {
@@ -121,8 +120,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	int list;
 	HTList *cur;
 	for (list=0; list<2; list++) {
-	    if ((!list && ((cur=HTCharsets) != NULL)) ||
-		(list && ((cur=request->charsets) != NULL))) {
+	    if ((!list && ((cur = HTFormat_charset()) != NULL)) ||
+		(list && ((cur = HTRequest_charset(request)) != NULL))) {
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
@@ -144,8 +143,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	int list;
 	HTList *cur;
 	for (list=0; list<2; list++) {
-	    if ((!list && ((cur=HTEncodings) != NULL)) ||
-		(list && ((cur=request->encodings) != NULL))) {
+	    if ((!list && ((cur = HTFormat_encoding()) != NULL)) ||
+		(list && ((cur = HTRequest_encoding(request)) != NULL))) {
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
@@ -167,8 +166,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	int list;
 	HTList *cur;
 	for (list=0; list<2; list++) {
-	    if ((!list && ((cur=HTLanguages) != NULL)) ||
-		(list && ((cur=request->languages) != NULL))) {
+	    if ((!list && ((cur = HTFormat_language()) != NULL)) ||
+		(list && ((cur = HTRequest_language(request)) != NULL))) {
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
@@ -228,9 +227,11 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    free(relative);
     }
     if (request->RequestMask & HT_USER_AGENT) {
+	CONST char *appname = HTLib_appName();
+	CONST char *appversion = HTLib_appVersion();
 	sprintf(linebuf, "User-Agent: %s/%s libwww/%s%c%c",
-		HTAppName ? HTAppName : "unknown",
-		HTAppVersion ? HTAppVersion : "0.0",
+		appname ? appname : "unknown",
+		appversion ? appversion : "0.0",
 		HTLibraryVersion, CR, LF);
 	HTChunkPuts(header, linebuf);
     }
