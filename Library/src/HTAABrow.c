@@ -222,15 +222,15 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 
 	HTList *cur = server->setups;
 
-	if (TRACE) fprintf(TDEST, "%s (%s:%d:%s)\n",
-			   "HTAASetup_lookup: resolving setup for",
-			   hostname, portnumber, docname);
+	if (TRACE)
+	    fprintf(TDEST, "Access Auth. resolving setup for (%s:%d:%s)\n",
+		    hostname, portnumber, docname);
 
 	while (NULL != (setup = (HTAASetup*)HTList_nextObject(cur))) {
 	    if (HTAA_templateMatch(setup->tmplate, docname)) {
-		if (TRACE) fprintf(TDEST, "%s `%s' %s `%s'\n",
-				   "HTAASetup_lookup:", docname,
-				   "matched template", setup->tmplate);
+		if (TRACE)
+		    fprintf(TDEST, "Access Auth. `%s' matched template `%s'\n",
+			    docname, setup->tmplate);
 		return setup;
 	    }
 	    else if (TRACE) fprintf(TDEST, "%s `%s' %s `%s'\n",
@@ -239,12 +239,10 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 	} /* while setups remain */
     } /* if valid parameters and server found */
 
-    if (TRACE) fprintf(TDEST, "%s `%s' %s\n",
-		       "HTAASetup_lookup: No template matched",
-		       (docname ? docname : "(null)"),
-		       "(so probably not protected)");
-
-    return NULL;	/* NULL in parameters, or not found */
+    if (TRACE)
+	fprintf(TDEST, "Access Auth. `%s' (so probably not protected)\n",
+		(docname ? docname : "(null)"));
+    return NULL;			 /* NULL in parameters, or not found */
 }
 
 
@@ -574,9 +572,9 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     }
     else portnumber = 80;
 	
-    if (TRACE) fprintf(TDEST,
-		       "Composing Authorization for %s:%d/%s\n",
-		       hostname, portnumber, docname);
+    if (TRACE)
+	fprintf(TDEST, "Access Auth. composing authorization for %s:%d/%s\n",
+		hostname, portnumber, docname);
 
 #ifdef OLD_CODE
     if (current_portnumber != portnumber ||

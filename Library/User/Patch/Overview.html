@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Known Bugs in W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -24,10 +24,24 @@ HREF="../../../Daemon/Bugs.html">CERN Server</A>, the <A
 HREF="../../../Arena/Status.html">Arena Browser</A>, and the <A
 HREF="../../../LineMode/Defaults/Bugs.html">Line Mode Browser</A>.<P>
 
+<H2>Library 3.1</H2>
+
+<DL>
+<DT>Bug in time stamp on files in FTP directory listings
+<DD>The Library supports "long" directory listings for FTP Unix, VMS
+and Windows NT servers with file type, size, time and date
+etc. However, the time stamp is wrong by one hour for files created
+when dayligt savingtime is enabled. The reason is that the FTP module
+in the Library doesn't know the timezone of the remote FTP server and
+hence doesn't know when DSR is enabled or disabled.
+
+</DL>
+
 <H2><A NAME="z3">From Schulmberger Oct 93</H2>
 
 <UL>
 <LI>Use Gnu configure!
+<LI>Complete dependencies in Makefile
 <LI>Document config options
 <LI>Redundant config changes
 </UL>
@@ -38,27 +52,12 @@ These were brought up at the workshop.
 
 <UL>
 <LI>Nested lists into parser, GridText, Styles.
-<LI>(test dataset for HTML+)
-<LI>Collapse spaces in free (not PRE) text <LI>Problem with CopyNoCR in mac? should map (13,10) onto \n.
+<LI>Collapse spaces in free (not PRE) text
 <LI>FTP: HTProgress() message about transfer size, to allow informed abort.
-<LI>Documentation: More philosophy about how to use the library. More on configuration options.
-<LI>Callback for "loading" mailto: URLs.
-</UL>
-
-<H2>Before that</H2>
-
-<UL>
-<LI>Add rcp access to the "file" access method if it is
-straightforward.  The rcp protocol was originally defined by the UCB
-code, and still is perhaps best defined that way.  More recent
-retrospctive documentation exists (where?) <LI>Add code to save back
-files by HTTP or FTP, and code to REGENERATE HTML from a styled
-hypertext.
-<LI>Makefile -- complete dependencies
 </UL>
 
 <P>
 <HR>
-<ADDRESS>libwww@w3.org, February 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
 </BODY>
 </HTML>

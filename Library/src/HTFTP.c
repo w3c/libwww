@@ -444,12 +444,12 @@ PRIVATE time_t HTStrpTime ARGS1(char *, datestr)
     long tval;
     int cnt;
     time_t curtime = time(NULL);
-    if ((time_info = gmtime(&curtime)) == NULL) {
+    time_info = gmtime(&curtime);
+    if (!time_info) {
 	if (PROT_TRACE)
 	    fprintf(TDEST, "HTStrpTime.. Can't get current time.\n");
 	return (time_t) 0;
     }
-    time_info->tm_isdst = -1;			      /* Disable summer time */
     for (cnt=0; cnt<3; cnt++)
     {					    /* Month */
 	*bcol = TOUPPER(*bcol);
@@ -481,6 +481,8 @@ PRIVATE time_t HTStrpTime ARGS1(char *, datestr)
 	if (mktime(time_info) > curtime)
 	    --time_info->tm_year;
     }
+
+
     return ((tval = mktime(time_info)) == -1 ? (time_t) 0 : tval); 
 }
 
@@ -495,32 +497,32 @@ PRIVATE time_t HTStrpTime ARGS1(char *, datestr)
 */
 PRIVATE time_t HTVMSStrpTime ARGS1(char *, datestr)
 {
-    struct tm *time_info;		    /* Points to static tm structure */
     char *col;
     long tval;
-    time_t curtime = time(NULL);
-    if ((time_info = gmtime(&curtime)) == NULL)
-	return (time_t) 0;
-    time_info->tm_isdst = -1;			      /* Disable summer time */
+    struct tm time_info;
+
+    /* This is wrong as we ignore DST at the origin server. However there
+       is little we can do about it :-( */
+    memset(&time_info, '\0', sizeof(struct tm));
     if ((col = strtok(datestr, "-")) == NULL)
 	return (time_t) 0;
-    time_info->tm_mday = atoi(col);				      /* Day */
-    time_info->tm_wday = 0;
-    time_info->tm_yday = 0;
+    time_info.tm_mday = atoi(col);				      /* Day */
+    time_info.tm_wday = 0;
+    time_info.tm_yday = 0;
     if ((col = strtok(NULL, "-")) == NULL ||
-	(time_info->tm_mon = HTStrpMonth(col)) < 0)
+	(time_info.tm_mon = HTStrpMonth(col)) < 0)
 	return (time_t) 0;
     if ((col = strtok(NULL, " ")) == NULL)			     /* Year */
 	return (time_t) 0;
-    time_info->tm_year = atoi(col)-1900;
+    time_info.tm_year = atoi(col)-1900;
     if ((col = strtok(NULL, ":")) == NULL)			     /* Hour */
 	return (time_t) 0;
-    time_info->tm_hour = atoi(col);
+    time_info.tm_hour = atoi(col);
     if ((col = strtok(NULL, " ")) == NULL)			     /* Mins */
 	return (time_t) 0;
-    time_info->tm_min = atoi(col);
-    time_info->tm_sec = 0;
-    return ((tval = mktime(time_info)) < 0 ? (time_t) 0 : tval);
+    time_info.tm_min = atoi(col);
+    time_info.tm_sec = 0;
+    return ((tval = mktime(&time_info)) < 0 ? (time_t) 0 : tval);
 }
 
 

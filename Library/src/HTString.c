@@ -211,27 +211,36 @@ PUBLIC CONST char *HTDateTimeStr ARGS2(time_t *, calendar, BOOL, local)
 
 #ifndef NO_STRFTIME
     if (local) {
-#ifdef SOLARIS			       /* Thomas Maslen <tmaslen@verity.com> */
+	/*
+	** Solaris 2.3 has a bug so we _must_ use reentrant version
+	** Thomas Maslen <tmaslen@verity.com>
+	*/
+#if defined(HT_REENTRANT) || defined(SOLARIS)
 	struct tm loctime;
 	localtime_r(calendar, &loctime);
 	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", &loctime);
 #else
 	struct tm *loctime = localtime(calendar);
 	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", loctime);
-#endif /* SOLARIS */
+#endif /* SOLARIS || HT_REENTRANT */
     } else {
-#ifdef SOLARIS
+#if defined(HT_REENTRANT) || defined(SOLARIS)
 	struct tm gmt;
 	gmtime_r(calendar, &gmt);
     	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", &gmt);
 #else
 	struct tm *gmt = gmtime(calendar);
     	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", gmt);
-#endif /* SOLARIS */
+#endif /* SOLARIS || HT_REENTRANT */
     }
 #else
     if (local) {
+#if defined(HT_REENTRANT)
+	struct tm loctime;
+	localtime_r(calendar, &loctime);
+#else
 	struct tm *loctime = localtime(calendar);
+#endif /* HT_REENTRANT */
 	sprintf(buf,"%s, %02d %s 19%02d %02d:%02d:%02d",
 		wkday[gmt->tm_wday],
 		gmt->tm_mday,
@@ -241,7 +250,12 @@ PUBLIC CONST char *HTDateTimeStr ARGS2(time_t *, calendar, BOOL, local)
 		gmt->tm_min,
 		gmt->tm_sec);
     } else {
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+	struct tm gmt;
+	gmtime_r(calendar, &gmt);
+#else
 	struct tm *gmt = gmtime(calendar);
+#endif
 	sprintf(buf,"%s, %02d %s 19%02d %02d:%02d:%02d GMT",
 		wkday[gmt->tm_wday],
 		gmt->tm_mday,
@@ -331,7 +345,12 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 #ifndef NO_TIMEZONE
     {
 	time_t cur_t = time(NULL);
-	struct tm * local = localtime(&cur_t);
+#ifdef HT_REENTRANT
+	struct tm loctime;
+	struct tm *local = (struct tm *) localtime_r(&cur_t, &loctime);
+#else
+	struct tm *local = localtime(&cur_t);
+#endif /* HT_REENTRANT */
 	if (daylight && local->tm_isdst>0) {		   /* daylight time? */
 #ifndef NO_ALTZONE
 	    HTTimeZone = altzone;
@@ -351,7 +370,12 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 #ifndef NO_GMTOFF
     {
 	time_t cur_t = time(NULL);
+#ifdef HT_REENTRANT
+	struct tm loctime;
+	localtime_r(&cur_t, &loctime);
+#else
 	struct tm * local = localtime(&cur_t);
+#endif /* HT_REENTRANT */
 	HTTimeZone = local->tm_gmtoff;
 	if (TRACE)
 	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
@@ -418,8 +442,14 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	}
     } else if (isdigit(*str)) {				    /* delta seconds */
 	t = time(NULL) + atol(str);	      /* Current local calendar time */
-	if (TRACE)
+	if (TRACE) {
+#ifdef HT_REENTRANT
+	    char buffer[CTIME_MAX];
+	    fprintf(TDEST, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
+#else
 	    fprintf(TDEST, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
+#endif
+	}
 	return t;
 
     } else {	      /* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using - Global Flags</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1995 -->
 </HEAD>  
 <BODY>
 
@@ -93,6 +94,13 @@ a platform independent basis can change the default behavior of the
 Library.</P>
 
 <DL>
+<DT><CODE>HT_REENTRANT</CODE>
+
+<DD>This boolean define should be enabled if the reentrant versions
+("*_r") of the system calls should be used. The name of these system
+calls are currently "*_r", for example <CODE>strtok_r</CODE>. The
+default value is <EM>OFF</EM>.
+
 <DT><CODE>HT_DIRECT_WAIS</CODE>
 
 <DD>This boolean define is enabled by the <EM>Makefile.include</EM>

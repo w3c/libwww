@@ -1175,7 +1175,9 @@ int main ARGS2(int, argc, char **, argv)
     BOOL       	listrefs_option = NO;	  	  /* -listrefs option used?  */
 
     /* Start up Library of Common Code */
+    WWW_TraceFlag = -1;
     HTLibInit();
+    WWW_TraceFlag = 0;
     HTStdIconInit(NULL);
     HTProxy_getEnvVar();		   /* Read the environment variables */
 
@@ -1605,16 +1607,13 @@ endproc:
 #endif
 }
 
-int NewEventHandler( SOCKET s, HTRequest * rqp, SockOps ops) 
+int NewEventHandler (SOCKET s, HTRequest * rqp, SockOps ops)
 {
-#if 0
-    int eventState ;
-#endif
     HTRequest * newrqp = 0;
     HTEventState theEventState ;
 
     if (THD_TRACE)
-        fprintf(TDEST, "Calling EventHandler...\n");
+        fprintf(TDEST, "EventHandler called with option %d\n", ops);
 
     theEventState = EventHandler( &newrqp);
     if (theEventState == EVENT_TERM)

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTML Generator</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -25,10 +26,8 @@ W3C Reference Library</A>.
 #ifndef HTMLGEN_H
 #define HTMLGEN_H
 
-#include "HTML.h"
-#include "HTStream.h"
+#include "HTStruct.h"
 
-/* Special Creation: */
 extern HTStructured * HTMLGenerator PARAMS((HTStream * output));
 
 #ifndef pyramid
@@ -37,5 +36,8 @@ extern HTConverter HTPlainToHTML;
 
 #endif
 </PRE>
+
+End of declaration
+
 </BODY>
 </HTML>

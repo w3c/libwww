@@ -512,7 +512,15 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
 	pres->hits++;	 	 /* Update total number of hits on this host */
     } else {						/* Go and ask for it */
 	struct hostent *hostelement;			      /* see netdb.h */
+#ifdef HT_REENTRANT
+	int thd_errno;
+	char buffer[HOSTENT_MAX];
+	struct hostent result;			      /* For gethostbyname_r */
+	if ((hostelement = gethostbyname_r(host, &result, buffer,
+					   HOSTENT_MAX, &thd_errno)) == NULL) {
+#else
 	if ((hostelement = gethostbyname(host)) == NULL) {
+#endif
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HostByName.. Can't find internet node name `%s'.\n", host);
 	    return -1;
@@ -542,19 +550,27 @@ PUBLIC char * HTGetHostBySock ARGS1(int, soc)
     struct sockaddr addr;
     int len = sizeof(struct sockaddr);
     struct in_addr *iaddr;
-    struct hostent * phost;		/* Pointer to host -- See netdb.h */
     char *name = NULL;
+    struct hostent * phost;		/* Pointer to host -- See netdb.h */
+#ifdef HT_REENTRANT
+    int thd_errno;
+    char buffer[HOSTENT_MAX];
+    struct hostent result;		      	      /* For gethostbyaddr_r */
+#endif
 
 #ifdef DECNET  /* Decnet ain't got no damn name server 8#OO */
     return NULL;
 #else
     if (getpeername(soc, &addr, &len) < 0)
 	return NULL;
-
     iaddr = &(((struct sockaddr_in *)&addr)->sin_addr);
-    phost=gethostbyaddr((char*)iaddr,
-			sizeof(struct in_addr),
-			AF_INET);
+
+#ifdef HT_REENTRANT
+    phost = gethostbyaddr_r((char *) iaddr, sizeof(struct in_addr), AF_INET,
+			    &result, buffer, HOSTENT_MAX, &thd_errno);
+#else
+    phost = gethostbyaddr((char *) iaddr, sizeof(struct in_addr), AF_INET);
+#endif
     if (!phost) {
 	if (PROT_TRACE)
 	    fprintf(TDEST, "TCP......... Can't find internet node name for peer!!\n");
@@ -562,7 +578,6 @@ PUBLIC char * HTGetHostBySock ARGS1(int, soc)
     }
     StrAllocCopy(name, phost->h_name);
     if (PROT_TRACE) fprintf(TDEST, "TCP......... Peer name is `%s'\n", name);
-
     return name;
 
 #endif	/* not DECNET */
@@ -658,50 +673,6 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
 }
 
 
-#ifdef OLD_CODE
-/*	Derive the name of the host on which we are
-**	-------------------------------------------
-**
-*/
-PRIVATE void get_host_details NOARGS
-
-#ifndef MAXHOSTNAMELEN
-#define MAXHOSTNAMELEN 64		/* Arbitrary limit */
-#endif
-
-{
-    char name[MAXHOSTNAMELEN+1];	/* The name of this host */
-    struct hostent * phost;		/* Pointer to host -- See netdb.h */
-    int namelength = sizeof(name);
-    
-    if (hostname) return;		/* Already done */
-    gethostname(name, namelength);	/* Without domain */
-    if (PROT_TRACE) fprintf(TDEST, "TCP......... Local host name is %s\n", name);
-    StrAllocCopy(hostname, name);
-
-#ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
-    phost=gethostbyname(name);		/* See netdb.h */
-    if (!phost) {
-	if (PROT_TRACE) fprintf(TDEST, 
-		"TCP......... Can't find my own internet node address for `%s'!!\n",
-		name);
-	return;  /* Fail! */
-    }
-    StrAllocCopy(hostname, phost->h_name);
-    if (PROT_TRACE)
-	fprintf(TDEST, "TCP......... Full local host name is %s\n", hostname);
-
-#ifdef NEED_HOST_ADDRESS		/* no -- needs name server! */
-    memcpy(&HTHostAddress, &phost->h_addr, phost->h_length);
-    if (PROT_TRACE) fprintf(TDEST, "     Name server says that I am `%s' = %s\n",
-	    hostname, HTInetString(&HTHostAddress));
-#endif /* NEED_HOST_ADDRESS */
-
-#endif /* not Decnet */
-}
-#endif /* OLD_CODE */
-
-
 /*								HTGetDomainName
 **	Returns the current domain name without the local host name.
 **	The response is pointing to a static area that might be changed
@@ -721,7 +692,6 @@ PUBLIC CONST char *HTGetDomainName NOARGS
     } else
 	return NULL;
 }
-
 
 
 /*								HTSetHostName
@@ -914,6 +884,9 @@ PUBLIC void HTSetMailAddress ARGS1(char *, address)
 */
 PUBLIC CONST char * HTGetMailAddress NOARGS
 {
+#ifdef HT_REENTRANT
+    char name[LOGNAME_MAX+1];				   /* For getlogin_r */
+#endif
     char *login;
     CONST char *domain;
     struct passwd *pw_info;
@@ -936,7 +909,11 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 #ifdef _WINDOWS
     login = "PCUSER";				  /* @@@ COULD BE BETTER @@@ */
 #else /* Unix like... */
+#ifdef HT_REENTRANT
+    if ((login = (char *) getlogin_r(name, LOGNAME_MAX)) == NULL) {
+#else
     if ((login = (char *) getlogin()) == NULL) {
+#endif
 	if (PROT_TRACE)
 	    fprintf(TDEST, "MailAddress. getlogin returns NULL\n");
 	if ((pw_info = getpwuid(getuid())) == NULL) {

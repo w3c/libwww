@@ -132,6 +132,9 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     DIR * dp;
     STRUCT_DIRENT * dirbuf;
     HTList * matches = NULL;
+#ifdef HT_REENTRANT
+    STRUCT_DIRENT result;				    /* For readdir_r */
+#endif
 
     if (!path) return NULL;
 
@@ -156,7 +159,11 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     }
 
     matches = HTList_new();
-    while ((dirbuf = readdir(dp))) {
+#ifdef HT_REENTRANT
+	while ((dirbuf = (STRUCT_DIRENT *) readdir_r(dp, &result))) {
+#else
+	while ((dirbuf = readdir(dp))) {
+#endif /* HT_REENTRANT */
 	if (!dirbuf->d_ino) continue;	/* Not in use */
 	if (!strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||

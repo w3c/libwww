@@ -365,13 +365,24 @@ PUBLIC BOOL HTBind_getFormat ARGS5(CONST char *,filename,
 {
     int sufcnt=0;
     char *file=NULL;
+#ifdef HT_REENTRANT
+    char *lasts;					     /* For strtok_r */
+#endif
     if (*quality < HT_EPSILON)
 	*quality = 1.0;			           /* Set to a neutral value */
     StrAllocCopy(file, filename);
     HTUnEscape(file);				   /* Unescape the file name */
+#ifdef HT_REENTRANT
+    if (strtok_r(file, HTDelimiters, &lasts)) {	 /* Do we have any suffixes? */
+#else
     if (strtok(file, HTDelimiters)) { 		 /* Do we have any suffixes? */
+#endif /* HT_REENTRANT */
 	char *suffix;
-	while ((suffix = strtok(NULL, HTDelimiters)) != NULL) {
+#ifdef HT_REENTRANT
+	while ((suffix=(char*)strtok_r(NULL, HTDelimiters, &lasts)) != NULL) {
+#else
+	while ((suffix=strtok(NULL, HTDelimiters)) != NULL) {
+#endif /* HT_REENTRANT */
 	    HTBind *suff=NULL;
 	    int hash=0;
 	    char *ptr=suffix;

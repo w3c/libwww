@@ -840,6 +840,9 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	struct passwd *pw_info;
 	struct group *gr_info;
 	HTBTree *bt;
+#ifdef HT_REENTRANT
+	STRUCT_DIRENT result;				    /* For readdir_r */
+#endif
 
 	/* Set up sort key and initialize BTree */
 	if (HTDirShowMask & HT_DIR_KEY_SIZE) {
@@ -861,7 +864,11 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	HTDirFileLength = 0;
 
 	/* Build tree */
+#ifdef HT_REENTRANT
+	while ((dirbuf = (STRUCT_DIRENT *) readdir_r(dp, &result))) {
+#else
 	while ((dirbuf = readdir(dp))) {
+#endif /* HT_REENTRANT */
 	    HTDirKey *nodekey;
 	    HTFormat format=NULL;
 	    HTEncoding encoding=NULL;
@@ -982,16 +989,34 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 #ifndef NO_STRFTIME
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+		    struct tm loctime;
+		    localtime_r(&file_info.st_mtime, &loctime);
+		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
+			     &loctime);
+#else
 		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 			     localtime(&file_info.st_mtime));
+#endif  /* HT_REENTRANT || SOLARIS */
 #else
-		    struct tm * t = localtime(&file_info.st_mtime);
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+		    struct tm loctime;
+		    localtime_r(&file_info.st_mtime, &loctime);
 		    sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
-			    t->tm_mday,
-			    months[t->tm_mon],
-			    t->tm_year % 100,
-			    t->tm_hour,
-			    t->tm_min);
+			    loctime.tm_mday,
+			    months[loctime.tm_mon],
+			    loctime.tm_year % 100,
+			    loctime.tm_hour,
+			    loctime.tm_min);
+#else
+		    struct tm *loctime = localtime(&file_info.st_mtime);
+		    sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
+			    loctime->tm_mday,
+			    months[loctime->tm_mon],
+			    loctime->tm_year % 100,
+			    loctime->tm_hour,
+			    loctime->tm_min);
+#endif  /* HT_REENTRANT || SOLARIS */
 #endif /* NO_STRFTIME */
 		    bodyptr += HT_LENGTH_DATE;
 		    *bodyptr = ' ';
@@ -1252,26 +1277,43 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 		    if (file_info.f_mtime) {
-#if defined(Mips) || (defined(VMS) && !defined(DECC))
-			struct tm * t = localtime(&file_info.f_mtime);
-
-			sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
-				t->tm_mday,
-				months[t->tm_mon],
-				t->tm_year % 100,
-				t->tm_hour,
-				t->tm_min);
-#else
+#ifndef NO_STRFTIME
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+			struct tm loctime;
+			localtime_r(&file_info.f_mtime, &loctime);
 			strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
+				 &loctime);
+#else
+		        strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 				 localtime(&file_info.f_mtime));
-#endif /* Mips || (VMS && !DECC) */
+#endif  /* HT_REENTRANT || SOLARIS */
+#else
+#if defined(HT_REENTRANT) || defined(SOLARIS)
+		        struct tm loctime;
+		        localtime_r(&file_info.f_mtime, &loctime);
+		        sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
+				loctime.tm_mday,
+				months[loctime.tm_mon],
+				loctime.tm_year % 100,
+				loctime.tm_hour,
+				loctime.tm_min);
+#else
+		        struct tm *loctime = localtime(&file_info.f_mtime);
+		        sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
+				loctime->tm_mday,
+				months[loctime->tm_mon],
+				loctime->tm_year % 100,
+				loctime->tm_hour,
+				loctime->tm_min);
+#endif  /* HT_REENTRANT || SOLARIS */
+#endif /* NO_STRFTIME */
 		    } else {
 			*bodyptr = '-';
 		    }
-                    bodyptr += HT_LENGTH_DATE;
-                    *bodyptr = ' ';
-                    bodyptr += HT_LENGTH_SPACE;
-		}
+		    bodyptr += HT_LENGTH_DATE;
+		    *bodyptr = ' ';
+		    bodyptr += HT_LENGTH_SPACE;
+	        }
 
 		/* If we are using NLST, then don't show any size */
 		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {

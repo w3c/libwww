@@ -1,30 +1,43 @@
-/*
- * Updated HTEvent module 
- * This new module combines the functions of the old HTEvent module and 
- * the HTThread module. We retain the old HTThread module, but it
- * consists of calls to the HTEvent interfaces
- */
+/*				    				     HTEvntrg.c
+**	EVENT MANAGER
+**
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+**	Updated HTEvent module 
+**	This new module combines the functions of the old HTEvent module and 
+**	the HTThread module. We retain the old HTThread module, but it
+**	consists of calls to the HTEvent interfaces
+**
+** Authors:
+**	HFN	Henrik Frystyk <frystyk@w3.org>
+**	CLB    	Charlie Brooks <cbrooks@osf.org>
+** Bugs
+**
+*/
 
-#include "HTEvntrg.h" 
-#include <assert.h>
+#include <assert.h>			/* @@@ Should be in tcp.h @@@ */
+
+/* Implementation dependent include files */
 #include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTError.h"
+#include "HTEvntrg.h"					 /* Implemented here */
 
-static fd_set read_fds ; /* sockets registered for reading */
-static fd_set write_fds; /* for Writing... */
-static fd_set except_fds; /* for exceptions ... */
+/* Type definitions and global variables etc. local to this module */
+PRIVATE fd_set read_fds ;		   /* sockets registered for reading */
+PRIVATE fd_set write_fds;				   /* for Writing... */
+PRIVATE fd_set except_fds;			       /* for exceptions ... */
+PRIVATE fd_set all_fds ;			    /* any descriptor at all */
+PRIVATE fd_set theNullFDSet ;  				      /* always zero */
 
-static fd_set all_fds ;	/* any descriptor at all */
+PRIVATE void __ResetMaxSock( void ) ;
+PRIVATE int __DoCallBack( SOCKET, SockOps);
+PRIVATE int __DoUserCallBack( SOCKET, SockOps);
+PRIVATE void __DumpFDSet( fd_set *, const char *);
 
-static fd_set theNullFDSet ;  /* always zero */
-
-
-static void __ResetMaxSock( void ) ;
-static int __DoCallBack( SOCKET, SockOps);
-static int __DoUserCallBack( SOCKET, SockOps);
-static void __DumpFDSet( fd_set *, const char *);
-
-typedef unsigned long DWORD ;
+typedef unsigned long DWORD;
 
 enum { false = 0, true = 1 } ;
 
@@ -63,17 +76,17 @@ struct rq_t {
  * our internal table of requests,
  * indexed by socket 
  */
-static RQ * table[ PRIME_TABLE_SIZE  ]; 
-static SOCKET max_sock = 0 ;		/* max socket value in use */
-static int socketsInUse = 0 ;		/* actual sockets in use */
+PRIVATE RQ * table[ PRIME_TABLE_SIZE  ]; 
+PRIVATE SOCKET max_sock = 0 ;		/* max socket value in use */
+PRIVATE int socketsInUse = 0 ;		/* actual sockets in use */
 
-static int console_in_use = 0 ;
+PRIVATE int console_in_use = 0 ;
 
 #ifndef _WINDOWS 
 typedef void * HANDLE ;
 #endif
 
-static HANDLE console_handle = 0 ;
+PRIVATE HANDLE console_handle = 0 ;
 
 
 /*
@@ -84,19 +97,19 @@ static HANDLE console_handle = 0 ;
  * if the  connection has been closed, the socket will appear readable under BSD Unix semantics 
  */
 
-static const SockOps ReadBits = FD_READ | FD_ACCEPT  | FD_CLOSE;
-static const SockOps WriteBits = FD_WRITE | FD_CONNECT ;
-static const SockOps ExceptBits = FD_OOB ;
+PRIVATE const SockOps ReadBits = FD_READ | FD_ACCEPT  | FD_CLOSE;
+PRIVATE const SockOps WriteBits = FD_WRITE | FD_CONNECT ;
+PRIVATE const SockOps ExceptBits = FD_OOB ;
 
 /*
  * Local functions 
  */
 
-static int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority); 
-static void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority);
-static int __ProcessFds( fd_set *, SockOps, const char *);
-static void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority);
-static int __EventUnregister(RQ * , RQ **, SockOps );
+PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority); 
+PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority);
+PRIVATE int __ProcessFds( fd_set *, SockOps, const char *);
+PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority);
+PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 
 
 
@@ -108,8 +121,8 @@ static int __EventUnregister(RQ * , RQ **, SockOps );
  * it as just another socket. Otherwise, take steps depending on the platform
  */
 
-int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
-		HTEventCallBack cbf, Priority p) 
+PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
+			       HTEventCallBack cbf, Priority p) 
 {
     assert(rq != 0);
     console_in_use = 1;
@@ -147,7 +160,7 @@ int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
  * HTEvent_UnRegisterTTY - unregisters TTY i/o channel
  */
 
-int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops) 
+PUBLIC int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops) 
 {
     if (THD_TRACE)
 	fprintf(TDEST, "UnregisterTTY on channel %d\n", s) ;
@@ -172,9 +185,9 @@ int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops)
  *   and the priority field is ignored.
  */
 
-int HTEvent_Register( SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf, Priority p) 
+PUBLIC int HTEvent_Register( SOCKET s, HTRequest * rq, SockOps ops,
+			    HTEventCallBack cbf, Priority p) 
 {
-
     if (THD_TRACE) 
 	fprintf(TDEST, "Register.... socket %d, request %p HTEventCallBack %p SockOps %x at priority %d\n",
 		s, (void *)rq,  (void *)cbf, ops, p) ;
@@ -229,7 +242,7 @@ int HTEvent_Register( SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf
  *  when socket has activity, the registered HTEventCallBack function will invoked  
  *   
  */
-static int __HTEvent_addRequest( SOCKET s, HTRequest * rq, SockOps ops,
+PRIVATE int __HTEvent_addRequest( SOCKET s, HTRequest * rq, SockOps ops,
                 HTEventCallBack cbf, Priority p)
 {
 
@@ -265,7 +278,7 @@ static int __HTEvent_addRequest( SOCKET s, HTRequest * rq, SockOps ops,
  * a set of inputs. N.B. This initializes the entire registration structure 
  */
 
-static void __RequestInit( RQ * rqp, SOCKET s, HTRequest * rq, 
+PRIVATE void __RequestInit( RQ * rqp, SOCKET s, HTRequest * rq, 
                    SockOps ops, HTEventCallBack cbf, Priority p) 
 {
     if( THD_TRACE)
@@ -284,7 +297,7 @@ static void __RequestInit( RQ * rqp, SOCKET s, HTRequest * rq,
  * the next pointer
  */
 
-static void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf, Priority p)
+PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf, Priority p)
 {
     if (THD_TRACE) 
     	fprintf(TDEST, "Req Update.. updating for socket %u\n", s) ;
@@ -303,7 +316,7 @@ static void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq, SockOps ops, HT
  * socket has been registered for notification, the HTEventCallBack will be invoked.  
  * 
  */
-int HTEvent_UnRegister( SOCKET s, SockOps ops) 
+PUBLIC int HTEvent_UnRegister( SOCKET s, SockOps ops) 
 {
     long v = HASH(s) ;
     int rv = 0 ;
@@ -337,7 +350,7 @@ int HTEvent_UnRegister( SOCKET s, SockOps ops)
  * If the socket isn't found, the function returns NULL
  */
 
-HTEventCallBack HTEvent_Retrieve( SOCKET s, SockOps ops, HTRequest **arp) 
+PUBLIC HTEventCallBack HTEvent_Retrieve(SOCKET s, SockOps ops, HTRequest **arp)
 {
     long value = HASH(s);
     register RQ * rqp = 0, **rqpp = 0 ;
@@ -371,7 +384,7 @@ HTEventCallBack HTEvent_Retrieve( SOCKET s, SockOps ops, HTRequest **arp)
  * application to actually close the socket. 
  */
 
-int HTEvent_UnregisterAll( void ) 
+PUBLIC int HTEvent_UnregisterAll( void ) 
 {
     int i ;
     register RQ * rqp, **rqpp ;
@@ -405,7 +418,7 @@ int HTEvent_UnregisterAll( void )
  *
  */
 
-int HTEvent_SocketIsRegistered( SOCKET sockfd) 
+PUBLIC int HTEvent_SocketIsRegistered( SOCKET sockfd) 
 {
     int found = 0 ;
     long v = HASH(sockfd) ;
@@ -437,9 +450,9 @@ int HTEvent_SocketIsRegistered( SOCKET sockfd)
  *   
  */
 
-static const int SecondsToWait = 5 ;
+PRIVATE const int SecondsToWait = 5 ;
 
-int HTEvent_Loop( HTRequest * theRequest ) 
+PUBLIC int HTEvent_Loop( HTRequest * theRequest ) 
 {
     fd_set treadset, twriteset, texceptset ;    
     int active_sockets ; 
@@ -451,12 +464,8 @@ int HTEvent_Loop( HTRequest * theRequest )
     int status = 0 ;
     unsigned ui ;
 
-    /* begin */
-
-
+    /* Don't leave this loop until we the application */
     do { 
-
-
         treadset = read_fds;
         twriteset = write_fds ;
         texceptset = except_fds ;  
@@ -466,8 +475,7 @@ int HTEvent_Loop( HTRequest * theRequest )
 	t.tv_sec = SecondsToWait  ;
 	t.tv_usec = 0 ;
 
-        
-        if (console_in_use) { 
+	if (console_in_use) { 
 
 #ifdef _WIN32
             int result ;   
@@ -512,18 +520,19 @@ int HTEvent_Loop( HTRequest * theRequest )
 	   otherwise, it's a poll
 	 */
 
-	if(THD_TRACE)
-	    fprintf(TDEST,"Event Loop.. calling select: maxfds is %d\n", maxfds) ;
+	if (THD_TRACE)
+	    fprintf(TDEST, "Event Loop.. calling select: maxfds is %d\n",
+		    maxfds);
 
-#ifdef hpux 
-        active_sockets = select( maxfds + 1, (int *)&treadset, (int *)&twriteset, (int *)&texceptset,
-                        (struct timeval *)timep) ;
-
+#ifdef __hpux 
+        active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
+				(int *)&texceptset, (struct timeval *)timep);
 #else
-        active_sockets = select( maxfds + 1, &treadset, &twriteset, &texceptset,
-                        (struct timeval *)timep) ;
-
+        active_sockets = select(maxfds+1, &treadset, &twriteset, &texceptset,
+				(struct timeval *)timep) ;
 #endif
+	if (THD_TRACE)
+	    fprintf(TDEST, "Event Loop.. select returns %d\n", active_sockets);
 
         switch(active_sockets)  {
             case 0:         /* no activity - timeout - allowed */
@@ -545,21 +554,24 @@ int HTEvent_Loop( HTRequest * theRequest )
         } /* switch */
 
 #ifndef _WINDOWS 
-	if (console_in_use) 
-	{
+	if (console_in_use) {
 	    consoleReady = active_sockets && 
-		FD_ISSET( (SOCKET)(console_handle), &treadset);
-	    
+		FD_ISSET((SOCKET) (console_handle), &treadset);
         }
 #endif
 	
 	if (console_in_use && consoleReady) {
 	    if (THD_TRACE) 
-	    	fprintf(TDEST, "Event Loop.. console ready: invoking callback\n") ;
+	    	fprintf(TDEST,"Event Loop.. console ready, invoke callback\n");
+	    status = __DoUserCallBack( (SOCKET)console_handle, FD_READ) ;
+	    if (status != HT_WOULD_BLOCK)
+		return status;
 
-		status = __DoUserCallBack( (SOCKET)console_handle, FD_READ) ;
-		if (status != HT_WOULD_BLOCK)
-		    return status ;
+#ifndef _WINDOWS
+	    /* Remember to take out the console handle from the read set */
+	    FD_CLR((SOCKET) (console_handle), &treadset);
+#endif
+	    
 	} /* if console in use and it's ready */
 
 	if (active_sockets == 0)
@@ -569,8 +581,6 @@ int HTEvent_Loop( HTRequest * theRequest )
 	 * there were active sockets. Determine which fd sets they were in
 	 */
 
-	if (THD_TRACE)
-	    fprintf(TDEST, "Event Loop.. %d sockets active\n", active_sockets);
 #ifdef _WINSOCKAPI_ 
 	for (ui = 0 ; ui < all_fds.fd_count; ui++) { 
             s = all_fds.fd_array[ui]; 
@@ -610,7 +620,7 @@ int HTEvent_Loop( HTRequest * theRequest )
  * preform the associated HTEventCallBack function for each FD in a given set  
  */
 
-static int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str) 
+PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str) 
 {
     unsigned ui ;
     int status =-1;
@@ -641,7 +651,7 @@ static int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str)
 ** with the given socket. 
 **
 */
-static int __DoCallBack( SOCKET s, SockOps ops)
+PRIVATE int __DoCallBack( SOCKET s, SockOps ops)
 {
     int status ; 
     HTRequest * rqp = 0 ;
@@ -663,7 +673,7 @@ static int __DoCallBack( SOCKET s, SockOps ops)
  *
  */
 
-static int __DoUserCallBack( SOCKET s, SockOps ops)
+PRIVATE int __DoUserCallBack( SOCKET s, SockOps ops)
 {
     int status ; 
     HTRequest * rqp = 0 ;
@@ -682,8 +692,8 @@ static int __DoUserCallBack( SOCKET s, SockOps ops)
  * The old version of the event loop  (libWWW 3.1 prerelease)
  * linemode browser still uses this one
  */
-int HTEventLoop( HTRequest * homerequest, HTParentAnchor * homeanchor, 
-                CONST char * homekeywords)
+PUBLIC int HTEventLoop(HTRequest * homerequest, HTParentAnchor * homeanchor, 
+		       CONST char * homekeywords)
 {
     int status ; 
     HTEventState htstate ;
@@ -714,7 +724,7 @@ int HTEventLoop( HTRequest * homerequest, HTParentAnchor * homeanchor,
  */
 
 
-static void __ResetMaxSock( void )
+PRIVATE void __ResetMaxSock( void )
 {
     unsigned  ui;
     SOCKET s ;
@@ -747,7 +757,7 @@ int HTEvent_Count( void )
     return socketsInUse ;
 }
    
-static int __EventUnregister( register RQ *rqp, register RQ ** rqpp, SockOps ops) 
+PRIVATE int __EventUnregister( register RQ *rqp, register RQ ** rqpp, SockOps ops) 
 {
     register struct action_t * ap = &rqp->actions[0];
     SOCKET s = rqp->s ;
@@ -807,8 +817,7 @@ static int __EventUnregister( register RQ *rqp, register RQ ** rqpp, SockOps ops
  * As written, only EVENT_QUIT returns NO (false - zero).
  * All others return YES (true - non-zero)
  */
-
-BOOL HTEventCheckState ARGS2(HTRequest *, request, HTEventState, ret)
+PUBLIC BOOL HTEventCheckState ARGS2(HTRequest *, request, HTEventState, ret)
 {
     switch (ret) {
       case EVENT_TERM:					   /* Ignore it here */
@@ -840,7 +849,7 @@ BOOL HTEventCheckState ARGS2(HTRequest *, request, HTEventState, ret)
     return YES;
 }    
 
-static void __DumpFDSet( fd_set * fdp, const char * str) 
+PRIVATE void __DumpFDSet( fd_set * fdp, const char * str) 
 {
     SOCKET s ;
     unsigned ui ;

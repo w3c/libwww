@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -76,6 +76,15 @@ system-specific sections later on. There is also a bunch of
 #define GOT_SYSTEM		/* Can call shell with string */
 #define GOT_PASSWD		/* Can we use getpass() command */
 #define TTY_IS_SELECTABLE       /* TTY can be passed to select() call */
+</PRE>
+
+If you want to use reentrant functions, for example
+<CODE>gmtime_r</CODE> then enable this flag
+
+<PRE>
+#if 0
+#define HT_REENTRANT
+#endif
 </PRE>
 
 <HR>
@@ -1223,6 +1232,18 @@ is turned off.
 #if defined(unix) || defined(__unix__)
 #define CACHE_FILE_PREFIX  "/usr/wsrc/"
 #endif
+#endif
+</PRE>
+
+<H3>Thread Safe Setup</H3>
+
+These are some constants setting the size of buffers used by thread
+safe versions of some system calls.
+
+<PRE>
+#ifdef HT_REENTRANT
+#define HOSTENT_MAX	128
+#define CTIME_MAX	26
 #endif
 </PRE>
 
