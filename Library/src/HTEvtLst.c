@@ -468,8 +468,10 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
                 if (timer) HTTimer_delete(timer);
                 pres->events[HTEvent_INDEX(type)]->timer = NULL;
 #else
+#if 0
 		HTTimer * timer = pres->timeouts[HTEvent_INDEX(type)];
                 if (timer) HTTimer_delete(timer);
+#endif
                 pres->timeouts[HTEvent_INDEX(type)] = NULL;
 #endif
 		
@@ -861,6 +863,17 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 		continue;
 	    }
 #endif /* EINTR */
+#ifdef EBADF
+	    if (socerrno == EBADF) {
+	        /*
+		** EBADF     One or more of the file descriptor sets  specified
+		**           a  file  descriptor  that is not a valid open file
+		**           descriptor.
+		*/
+		    HTTrace("Event Loop.. One or more sockets were not through their connect phase - try again\n");
+		continue;
+	    }
+#endif
 	    if (THD_TRACE) HTTrace("Event Loop.. select returned error %d\n", socerrno);
 	    EventList_dump();
 	    return HT_ERROR;
