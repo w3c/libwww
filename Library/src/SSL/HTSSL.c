@@ -29,8 +29,8 @@
 #include "wwwsys.h"
 
 /* SSL includes */
-#include <ssl.h>
-#include <rand.h>
+#include <openssl/ssl.h>
+#include <openssl/rand.h>
 
 /* Library include files */
 #include "WWWUtil.h"
