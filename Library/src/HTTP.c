@@ -1019,8 +1019,11 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		{
 		    char * s_class = HTHost_class(host);
 		    if (!s_class) {
-			if (HTRequest_proxy(request) == NULL)
-			    HTRequest_addConnection(request, "Keep-Alive", "");
+			if (HTRequest_proxy(request) == NULL) {
+			    HTAssocList * alist = HTRequest_connection(request);
+			    if (!(alist && HTAssocList_findObject(alist, "close")))
+				HTRequest_addConnection(request, "Keep-Alive", "");
+			}
 			HTHost_setClass(host, "http");
 		    } else if (strcasecomp(s_class, "http")) {
 			HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,

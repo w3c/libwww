@@ -232,11 +232,15 @@ PUBLIC HTStream * HTTPGen_new (HTRequest * request, HTStream * target,
     /*
     **  For backwards compatibility with HTTP applications that understand
     **  Connection: Keep-Alive, we send it along. However, we do NOT send
-    **  it to a proxy as it may confuse HTTP/1.0 proxies
+    **  it to a proxy as it may confuse HTTP/1.0 proxies. Also we do not
+    **  send it if the app has set Connection: close
     */
     me->version = version;
-    if (me->version == HTTP_10 && HTRequest_proxy(request) == NULL)
-	HTRequest_addConnection(request, "Keep-Alive", "");
+    if (me->version == HTTP_10 && HTRequest_proxy(request) == NULL) {
+	HTAssocList * alist = HTRequest_connection(request);
+	if (!(alist && HTAssocList_findObject(alist, "close")))
+	    HTRequest_addConnection(request, "Keep-Alive", "");
+    }
 
     /*
     **  Check for any TE headers that are also hop-by-hop
