@@ -59,7 +59,7 @@ PUBLIC HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
     hd->depth = depth;
     hd->hits = 1;
 
-    hd->code = -1;
+    hd->code = NO_CODE;
     hd->index = ++mr->cindex;
 
     /* Bind the HyperDoc object together with the Anchor Object */
@@ -562,17 +562,107 @@ get_last_parent(HTParentAnchor *anchor)
   return NULL;
 }
 
+PRIVATE HTLink *
+HTLink_find_type(HTAnchor * src, HTAnchor * dest, char *linktype)
+{
+    if(src && dest && linktype)
+    {
+	HTLink * link = HTAnchor_mainLink(src);
+	HTList * sublinks = HTAnchor_subLinks(src);
+	HTLinkType type = (HTLinkType)HTAtom_caseFor(linktype);
+	HTAnchor *sdest = HTLink_destination(link);
+	if (link && sdest == dest && type == HTLink_type(link))
+	    return link;
+	else if (sublinks) {
+	    while ((link = (HTLink *) HTList_nextObject (sublinks))) {
+		sdest = HTLink_destination(link);
+		if (sdest == dest && HTLink_type(link) == type) 
+		    return link;
+
+	    }
+	}
+    }
+    return NULL;
+}
+
+PRIVATE void
+update_incoming_links(HTParentAnchor *anchor, HTParentAnchor *nanchor)
+{
+    if(anchor && nanchor) {
+	HTAnchor *anc;
+	HTList *sources = anchor->sources;
+	while((anc = (HTAnchor *) HTList_nextObject(sources)) != NULL) {
+	    HTParentAnchor *panchor = HTAnchor_parent(anc);
+	    if((HTLink_find((HTAnchor *)panchor,(HTAnchor *)anchor)) &&
+	       (!HTLink_find_type((HTAnchor *)panchor,
+				  (HTAnchor *)nanchor,"redirection"))) {
+		HTLink_add((HTAnchor *)panchor,(HTAnchor *)nanchor, 
+			   (HTLinkType) HTAtom_caseFor("redirection"), 	
+			    METHOD_HEAD);
+	    }
+	}
+    }
+}	
+
+PRIVATE void
+update_hyperdoc(HyperDoc *hd,HTRequest *request)
+{
+    if(hd && request) {
+	HTParentAnchor *anchor = hd->anchor;
+	HTParentAnchor *nanchor = HTRequest_anchor(request);
+	HTParentAnchor *parent = HTRequest_parent(request);
+	HyperDoc *nhd = HTAnchor_document(nanchor);
+
+	char *tit = (char *) HTAnchor_title(nanchor);
+
+	if(nhd && tit)
+	    StrAllocCopy(nhd->title,tit);
+
+	if (anchor != nanchor) {
+	    if(nhd) { 	    /* The redirected anchor has a Hyperdoc */
+		if(nhd != hd) {
+		    hd->code = REDIR_CODE;
+
+		    HTAnchor_setDocument(anchor,(void *)nhd);
+
+		    if(!HTLink_find_type((HTAnchor *)parent,
+					 (HTAnchor *)nanchor,"redirection")) {
+			HTLink_add((HTAnchor *)parent,(HTAnchor *)nanchor, 
+				   (HTLinkType) HTAtom_caseFor("redirection"), 
+				   METHOD_HEAD);
+		    }
+		}
+	    } else { /* The redirected anchor does not have a Hyperdoc */
+		hd->anchor = nanchor;
+		HTAnchor_setDocument(nanchor,(void *) hd);
+
+		if(!HTLink_find_type((HTAnchor *)parent,(HTAnchor *)nanchor,
+				     "redirection")) {
+		    HTLink_add((HTAnchor *)parent,(HTAnchor *)nanchor, 
+			      (HTLinkType) HTAtom_caseFor("redirection") , 
+			       METHOD_HEAD);
+		}
+	    }
+	    update_incoming_links(anchor,nanchor);
+	}
+    }
+}
+
 PRIVATE void
 set_error_state_hyperdoc(HyperDoc * hd, HTRequest *request)
 {
-  HTList * cur = HTRequest_error(request);
-  HTError *pres;
+    HTList * cur = HTRequest_error(request);
+    HTError *pres;
+    Finger * finger = (Finger *) HTRequest_context(request);
+    Robot * mr = finger->robot;
 
-  while((pres = (HTError *) HTList_nextObject(cur)) != NULL)
-    {
-      int code =HTErrors[HTError_index(pres)].code;
+    while((pres = (HTError *) HTList_nextObject(cur)) != NULL) {
+	int code =HTErrors[HTError_index(pres)].code;
 
-      hd->code = code;
+	hd->code = code;
+
+	if((mr->flags & MR_REDIR) && code >= 200 && code < 300 )
+	    update_hyperdoc(hd,request);
     }
 }
 
@@ -922,6 +1012,8 @@ PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
     }
 
     if (!(mr->flags & MR_BFS)) {
+        HyperDoc * hd = HTAnchor_document(finger->dest);
+	if (hd) set_error_state_hyperdoc(hd,request);
 
 	/* Delete this thread */
 	Finger_delete(finger);
@@ -1023,6 +1115,30 @@ PUBLIC void Serving_queue(Robot *mr)
       }
 }
 
+PRIVATE BOOL check_constraints(Robot * mr, char *prefix, char *uri)
+{
+    BOOL match = YES;
+    /* Check for prefix match */
+    if (prefix) {
+	match = HTStrMatch(prefix, uri) ? YES : NO;
+    }
+  
+#ifdef HT_POSIX_REGEX
+    /* Check for any regular expression */
+    if (match && mr->include) {
+	match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
+    }
+    if (match && mr->exc_robot) {
+	match = regexec(mr->exc_robot, uri, 0, NULL, 0) ? YES : NO;
+    }
+    if (match && mr->exclude) {
+	match = regexec(mr->exclude, uri, 0, NULL, 0) ? YES : NO;
+    }
+  
+#endif
+    return match;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				HTEXT INTERFACE				     */
 /* ------------------------------------------------------------------------- */
@@ -1043,7 +1159,7 @@ PRIVATE HText * RHText_new (HTRequest * request, HTParentAnchor * anchor,
     char * robots = NULL;
 
     if ((me = (HText *) HT_CALLOC(1, sizeof(HText))) == NULL)
-	HT_OUTOFMEM("HText_new2");
+	HT_OUTOFMEM("RHText_new");
 
     /* Bind the HText object together with the Request Object */
     me->request = request;
@@ -1122,29 +1238,8 @@ PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 	    return;
 	}
 
-	/* Check for prefix match */
-	if (match && mr->prefix) {
-	    match = HTStrMatch(mr->prefix, uri) ? YES : NO;
-	}
+	match = check_constraints(mr,mr->prefix, uri);
 
-#ifdef HT_POSIX_REGEX
-	/*
-	**  Check for any regular expression. The include may override
-	**  the prefix matching
-	*/
-	if (mr->include) {
-	    match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
-	}
-	if (match && mr->exc_robot) {
-	    match = regexec(mr->exc_robot, uri, 0, NULL, 0) ? YES : NO;
-	}
-	if (match && mr->exclude) {
-	    match = regexec(mr->exclude, uri, 0, NULL, 0) ? YES : NO;
-	}
-	if (match && mr->check) {
-	    check = regexec(mr->check, uri, 0, NULL, 0) ? NO : YES;
-	}
-#endif
 	if(uri && test_for_blank_spaces(uri))
 	  follow = NO;
 	else if (mr->ndoc == 0) /* Number of Documents is reached */
@@ -1167,10 +1262,14 @@ PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 	    } else {
 		Finger * newfinger = Finger_new(mr, dest_parent, METHOD_GET);
 		HTRequest * newreq = newfinger->request;
-		HTRequest_setParent(newreq, referer);
+		HTRequest_setParent(newreq, referer);		
+		nhd->method = METHOD_GET;
+
 		if (check || depth >= mr->depth) {
 		    if (SHOW_QUIET(mr)) HTPrint("loading at depth %d using HEAD\n", depth);
 		    HTRequest_setMethod(newreq, METHOD_HEAD);
+		    nhd->method = METHOD_HEAD;    
+
 		} else {
 		    if (SHOW_QUIET(mr)) HTPrint("loading at depth %d\n", depth);
 		}
@@ -1240,24 +1339,8 @@ PRIVATE void RHText_foundImage (HText * text, HTChildAnchor * anchor,
 		return;
 	    }
 
-	    /* Check for prefix match */
-	    if (mr->img_prefix) match = HTStrMatch(mr->img_prefix, uri) ? YES : NO;
+	    match = check_constraints(mr, mr->img_prefix, uri);
 
-#ifdef HT_POSIX_REGEX
-	/*
-	**  Check for any regular expression. The include may override
-	**  the prefix matching
-	*/
-	if (mr->include) {
-	    match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
-	}
-	if (match && mr->exc_robot) {
-	    match = regexec(mr->exc_robot, uri, 0, NULL, 0) ? YES : NO;
-	}
-	if (match && mr->exclude) {
-	    match = regexec(mr->exclude, uri, 0, NULL, 0) ? YES : NO;
-	}
-#endif
 	    /* Test whether we already have a hyperdoc for this document */
 	    if (match && dest) {
 		Finger * newfinger = Finger_new(mr, dest_parent,
@@ -1327,7 +1410,6 @@ PRIVATE void RHText_foundLink (HText * text,
 	    RHText_foundAnchor(text, anchor);
     }
 }
-
 PUBLIC char * get_robots_txt(char * uri)
 {
   char *str = NULL;
@@ -1342,4 +1424,29 @@ PUBLIC char * get_robots_txt(char * uri)
   HTRequest_delete(request);
   return str;
 }
+
+PUBLIC int check_before (HTRequest * request,void * param, int mode)
+{
+    HTParentAnchor * dest = HTRequest_anchor(request);
+    Finger * finger = (Finger *) HTRequest_context(request);
+    Robot * mr = finger->robot;
+
+    if(dest) {
+	char *uri = HTAnchor_address((HTAnchor *)dest); 
+	/* Check for WRONG redirections */
+	BOOL match = check_constraints(mr,mr->prefix,uri);
+
+	HT_FREE(uri);
+	
+	if(match == YES) 
+	    return HT_OK;	
+	else
+	    return HT_ERROR;  
+
+    } else	
+	return HT_ERROR;
+
+    return HT_OK;  
+}
+
 

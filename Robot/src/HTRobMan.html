@@ -84,7 +84,8 @@ typedef enum _MRFlags {
     MR_DISTRIBUTIONS	= 0x800,
     MR_NOROBOTSTXT	= 0x1000,
     MR_NOMETATAGS	= 0x2000,
-    MR_BFS      	= 0x4000
+    MR_BFS      	= 0x4000,
+    MR_REDIR            = 0x8000
 } MRFlags;
 
 typedef struct _Robot {
@@ -179,6 +180,10 @@ typedef struct _Finger {
 **  The HyperDoc object is bound to the anchor and contains information about
 **  where we are in the search for recursive searches
 */
+
+#define NO_CODE -1
+#define REDIR_CODE -2
+
 typedef struct _HyperDoc {
     HTParentAnchor * 	anchor;
     int			depth;
@@ -217,7 +222,6 @@ PUBLIC Robot * Robot_new (void);
 PUBLIC Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod method);
 PUBLIC BOOL Robot_registerHTMLParser (void);
 PUBLIC void Cleanup (Robot * me, int status);
-PUBLIC void SetSignal (void);
 PUBLIC void VersionInfo (void);
 PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) ;
@@ -229,6 +233,7 @@ PUBLIC void Serving_queue(Robot *mr);
 
 PUBLIC char *get_robots_txt(char *uri);
 
+PUBLIC int check_before (HTRequest * request,void * param, int mode);
 #endif
 </PRE>
 <P>

@@ -55,6 +55,7 @@ int main (int argc, char ** argv)
     Robot *	mr = NULL;
     Finger *	finger = NULL;
     HTParentAnchor * startAnchor = NULL;
+    int redir_code = 0;	
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -274,6 +275,11 @@ int main (int argc, char ** argv)
 		mr->depth = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_DEPTH;
 
+	    /* load fixed number of anchors */
+	    } else if (!strcmp(argv[arg], "-ndoc")) {
+		mr->ndoc = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    atoi(argv[++arg]) : -1 ;
+
 	    /* Output start and end time */
 	    } else if (!strcmp(argv[arg], "-ss")) {
 		mr->flags |= MR_TIME;
@@ -294,6 +300,12 @@ int main (int argc, char ** argv)
 	    /* run in really quiet mode */
 	    } else if (!strcmp(argv[arg], "-Q")) { 
 		mr->flags |= MR_REAL_QUIET;
+
+	    /* run in redirection mode */
+	    } else if (!strcmp(argv[arg], "-redir")) { 
+		mr->flags |= MR_REDIR;
+		redir_code = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    atoi(argv[++arg]) : 0;
 
 #ifdef WWWTRACE
 	    /* trace flags */
@@ -370,7 +382,6 @@ int main (int argc, char ** argv)
 		hd = HyperDoc_new(mr, startAnchor, 0);
 		hd->method = METHOD_GET;
 		keycnt = 1;
-		/*HT_FREE(ref);*/
 	    } else {		   /* Check for successive keyword arguments */
 		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
@@ -386,6 +397,39 @@ int main (int argc, char ** argv)
     if (!keycnt) {
 	VersionInfo();
 	Cleanup(mr, 0);
+    }
+
+    if(mr->flags & MR_REDIR) {
+      BOOL isredir = NO;
+
+      /* Adding redirection Filters */
+
+      if(redir_code == HT_PERM_REDIRECT || redir_code == 0) {
+	HTNet_addAfter(HTRedirectFilter,
+	       "http://*",NULL, HT_PERM_REDIRECT, HT_FILTER_MIDDLE); /* */
+	isredir = YES;
+      }
+      if(redir_code == HT_TEMP_REDIRECT || redir_code == 0) {
+	HTNet_addAfter(HTRedirectFilter, 	
+	       "http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);/* */
+	isredir = YES;
+      }
+      if(redir_code == HT_FOUND || redir_code == 0) {
+	HTNet_addAfter(HTRedirectFilter, 	
+	       "http://*",	NULL, HT_FOUND, HT_FILTER_MIDDLE); /* */
+	isredir = YES;
+      }
+      if(redir_code == HT_SEE_OTHER || redir_code == 0) {
+	HTNet_addAfter(HTRedirectFilter,	
+	       "http://*", NULL, HT_SEE_OTHER,  HT_FILTER_MIDDLE); /* */
+	isredir = YES;
+      }
+      if(!isredir)
+	{
+	  if (SHOW_REAL_QUIET(mr))
+	    HTTrace("%d is not redirection code\n", redir_code);
+	  Cleanup(mr, -1);
+	}
     }
 
     if (mr->depth != DEFAULT_DEPTH && 
@@ -497,6 +541,9 @@ int main (int argc, char ** argv)
 
     /* Add our own HTML HText functions */
     Robot_registerHTMLParser();
+
+    if (mr->flags & MR_REDIR) 
+	HTNet_addBefore(check_before, NULL, NULL, HT_FILTER_FIRST);
 
     /* Register our own terminate filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
