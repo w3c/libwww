@@ -71,7 +71,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	    HTParentAnchor *anchor=HTRequest_anchor(HTRequest_source(request));
 	    long cl = HTAnchor_length(anchor);
 	    if (cl > 0) {
-		long b_write = HTRequest_bytesWritten(request);
+		long b_write = HTRequest_bodyWritten(request);
 		double pro = (double) b_write/cl*100;
 		char buf[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
@@ -82,7 +82,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	break;
 
       case HT_PROG_DONE:
-	HTTrace("Connection closed\n");
+	HTTrace("Done!\n");
 	break;
 
       case HT_PROG_INTERRUPT:
