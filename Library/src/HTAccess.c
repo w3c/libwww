@@ -380,7 +380,9 @@ PUBLIC BOOL HTLibInit NOARGS
     }
 #endif /* _WINDOWS */
 
-    HTGetTimeZoneOffset();			     /* Find offset from GMT */
+#ifndef NO_TIMEGM
+    HTGetTimeZoneOffset();	   /* Find offset from GMT if using mktime() */
+#endif
     HTTmp_setRoot(NULL);		     /* Set up default tmp directory */
     HTThreadInit();			            /* Initialize bit arrays */
     return YES;

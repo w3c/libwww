@@ -209,7 +209,7 @@ PUBLIC CONST char *HTDateTimeStr ARGS2(time_t *, calendar, BOOL, local)
 
 #ifndef NO_STRFTIME
     if (local) {
-#ifdef SOLARIS					/* Due to bug in Solaris 2.3 */
+#ifdef SOLARIS			       /* Thomas Maslen <tmaslen@verity.com> */
 	struct tm loctime;
 	localtime_r(calendar, &loctime);
 	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", &loctime);
@@ -450,15 +450,14 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 
 #ifndef NO_MKTIME
     t = mktime(&tm);
+    t += (HTTimeZone);
 #else
 #ifndef NO_TIMEGM
     t = timegm(&tm);
 #else
-    if (TRACE) fprintf(TDEST,"TimeZone.... undefined\n");
+    if (TRACE) fprintf(TDEST,"Time String. Can not be parsed\n");
 #endif /* !NO_TIMEGM */
 #endif /* !NO_MKTIME */
-
-    t += (HTTimeZone);
 
     if (TRACE)
 	fprintf(TDEST,
