@@ -231,9 +231,17 @@ produced by autoconf</a>:</p>
 <pre>% <strong>aclocal; autoheader; automake; autoconf</strong></pre>
 
 <p>Now you <strong>MUST</strong> run the configure script as described in the
-next section on <a href="#Compiling">installation instructions</a>. If for
-some reason <em>you have trouble</em> running the configure script then try
-and run this command instead</p>
+next section on <a href="#Compiling">installation instructions</a>.</p>
+
+<p>If when you run the above commands, you get one or more error messages
+including one that says:</p>
+<pre>   macro "AM_PROG_LIBTOOL" not found in library</pre>
+<p>it may mean that libtool and automake are not installed under the same
+prefix. You will then have to run aclocal as:</p>
+<pre>   aclocal -I /prefix/of/libtool/share/aclocal</pre>
+
+<p>If for some reason <em>you have trouble</em> running the configure script
+then try and run this command instead</p>
 <pre>% <strong>make distclean; aclocal; autoheader; automake; </strong><strong>autoconf</strong></pre>
 
 <h3><a name="Compiling">3. Configuring and Compiling libwww</a></h3>
