@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Change History for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
 <NEXTID N="z500">
 </HEAD>
 <BODY>
@@ -33,13 +33,13 @@ NT is fully supported!
 <LI>Changed "rs6000" to "AIX" and "decstation" to "ultrix" in
 BUILD script. The previous names were not obvious
 
-<LI>Have created <A HREF="../Implementation/HTProt.html">HTProt
+<LI>Have created <A HREF="../../Implementation/HTProt.html">HTProt
 module</A> which handles protocol module registration. It used to be
-in <A HREF="../Implementation/HTAccess.html">HTAccess module</A>, but
+in <A HREF="../../Implementation/HTAccess.html">HTAccess module</A>, but
 this module is now uniquely for user requests
 
 <LI>Changed the names of the following functions in the <A
-HREF="../Implementation/HTProt.html">HTProt module</A>
+HREF="../../Implementation/HTProt.html">HTProt module</A>
 
 <PRE>
 	HTRegisterProtocol	-> HTProtocol_add
@@ -69,7 +69,7 @@ HTEvntrg.c and HTEvntrg.html.
 	readdir_r
 </PRE>
 
-<EM>except</EM> in <A HREF="../Implementation/HTFTP.html">HTFTP
+<EM>except</EM> in <A HREF="../../Implementation/HTFTP.html">HTFTP
 module</A> as it will be changed later. Some of the function cause
 problems on Solaris...
 
@@ -109,8 +109,7 @@ please do read this and remember that comments are welcome! <P>
 <UL>
 
 <LI>The Post Web model is supported by the following methods to handle
-the <A HREF="../Implementation/HTAccess.html#z1">HTRequest
-structure</A>
+the HTRequest structure
 
 <UL>
 <LI>HTRequest_removeDestination()
@@ -120,9 +119,9 @@ structure</A>
 <LI>HTRequest_killPostWeb()
 </UL>
 
-<LI><A HREF="../Implementation/HTFile.html">HTFile module</A> is
+<LI><A HREF="../../Implementation/HTFile.html">HTFile module</A> is
 completely rewritten as a state machine much like the <A
-HREF="../Implementation/HTTP.html">HTTP module</A>. It is now
+HREF="../../Implementation/HTTP.html">HTTP module</A>. It is now
 possible to have non-blocking, interruptible I/O and to PUT and POTS
 from a local file as well as from a remote HTTP server.
 
@@ -131,17 +130,17 @@ from a local file as well as from a remote HTTP server.
 <LI>The thread model is extended to include a HTThread_kill() function
 so that threads are terminated immediately upon request
 
-<LI><A HREF="../Implementation/HTProxy.html">HTProxy module</A> is
+<LI><A HREF="../../Implementation/HTProxy.html">HTProxy module</A> is
 introduced. This module substitutes the environment variables for
 defining gateways and proxies. It can now be done dynamically at run
 time. For backwards compatibility HTProxy_getEnvVar() can be used to
 read the most used environment variables.
 
 <LI>Taken socket read/write functionality out of HTFormat and created
-<A HREF="../Implementation/HTSocket.html">HTSocket module</A> which
+<A HREF="../../Implementation/HTSocket.html">HTSocket module</A> which
 handles all the basic network access
 
-<LI>Spawned <A HREF="../Implementation/HTMethod.html">HTMethod
+<LI>Spawned <A HREF="../../Implementation/HTMethod.html">HTMethod
 module</A> from HTAccess module
 
 <LI>Better handling of WAIS src files and use of gateway information
@@ -198,7 +197,7 @@ that comments are welcome! <P>
 
 <UL>
 <LI>Windows NT Support (and possibly Windows 3.1 with Win32S) thanks
-to Charlie Brooks, <cbrooks@osf.org>
+to Charlie Brooks, &lt;cbrooks@osf.org&gt;
 
 <LI>A lot easier handling of headers in the HTTP module including
 support for extra headers
@@ -298,7 +297,7 @@ have changed names so that the max length is 8 characters:
 <LI>s?HTEPtoClient?<A HREF="../../Implementation/HTEPtoCl.html">HTEPtoCl</A>?g
 <LI>s?HTDescript?<A HREF="../../Implementation/HTDescpt.html">HTDescpt</A>?g
 <LI>s?HTExtParse?<A HREF="../../Implementation/HTXParse.html">HTXParse</A>?g
-<LI>s?HTErrorMsg?<A HREF="../../Implementation/HTErrMsg.c">HTErrMsg</A>?g
+<LI>s?HTErrorMsg?HTErrMsg?g
 </UL>
 
 <LI>Move EnableFrom to <A
@@ -312,12 +311,11 @@ but uses macros. This should ensure portability to Windows NT.
 <LI>Introduced socerrno and errno so that WinSock can use its own
 definition whereas `local' errno can still use the well-known version.
 
-<LI>Introduced <CODE>error_stream</CODE> as field in <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>. All
-information contained in HTTP responses which don't naturally contain
-a body entity, for example redirection codes (3xx) and client error
-codes (4xx) will be put down this stream so that it can be put into a
-debug window.
+<LI>Introduced <CODE>error_stream</CODE> as field a HTRequest
+structure. All information contained in HTTP responses which don't
+naturally contain a body entity, for example redirection codes (3xx)
+and client error codes (4xx) will be put down this stream so that it
+can be put into a debug window.
 
 <LI>HTNewsHost is now a local variable in the <A
 HREF="../../Implementation/HTNews.html">HTNews module</A>. Use
@@ -635,11 +633,11 @@ for the HTTP client. The module is now reorganized and made more modular.
      number of redirections is set by the variable HTMaxRedirections.
 <DT> Referer Field in HTTP request
 <DD> Clients are provided the possibility of
-     sending a <A HREF="../../Protocols/HTTP/HTRQ_Headers.html#z14">Referer Field</A> in a <A HREF="../../Protocols/HTTP/HTRQ_Headers.html">HTTP Request</A>. This is done by
+     sending a <A HREF="../../../Protocols/">Referer Field</A> in a <A HREF="../../../Protocols/">HTTP Request</A>. This is done by
      filling out the HTRequest-&gt;parentAnchor field.
 <DT> From field in HTTP Request
 <DD> Clients can now send the full email address of the current user in the
-     <A HREF="../../Protocols/HTTP/HTRQ_Headers.html#from">HTTP From field</A>. The feature is turned off by default as it might
+     <A HREF="../../../Protocols/">HTTP From field</A>. The feature is turned off by default as it might
      get a bit tricky through a Proxy.
 <DT> 204 Response
 <DD> Support of return code `204 No Response'
@@ -662,7 +660,7 @@ current state.
 		<LI> if that fails, try PORT
 	</OL>	
 <LI> The URL is now parsed according to the (latest)
-     <A HREF="../../Addressing/URL/4_1_FTP.html">
+     <A HREF="../../../Addressing/">
      specifications</A>:
 <PRE>
 	url	: f t p: / / login / path [  ftptype ]
@@ -757,7 +755,7 @@ the functionality, e.g, sorting, which columns to show etc. is exploited, see <A
 <H4>Icon Management</H4>
 
 Icons in directory listings are bound to MIME content-types and encoding. They
-can be found in the <A HREF="../Implementation/HTIcons.html">HTIcons</A> 
+can be found in the <A HREF="../../Implementation/HTIcons.html">HTIcons</A> 
 module. The default set of icons is set up using HTStdIconInit() and new 
 icons can be added dynamicly using HTAddIcon().
 
@@ -768,8 +766,8 @@ thing is to peek the title of the HTML files.
 
 <H4>Error and Information Message Management</H4>
 
-A new error handling module is introduced in <A HREF="../Implementation/HTError.html"></A>HTError. It uses the error_stack entry in the
-<A HREF="../Implementation/HTAccess.html#z1">HTRequest structure</A>. It
+A new error handling module is introduced in <A HREF="../../Implementation/HTError.html"></A>HTError. It uses the error_stack entry in the
+<A HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>. It
 handles nested error messages so that we can give a reason for the error, e.g.
 <PRE>
     Error in ...
@@ -784,9 +782,9 @@ HTTP redirection with status code `Moved 301'. Now the new URL is parsed back
 to the client via the error_stack so that the client can update the reference
 when possible. <P>
 
-The function that generates and outputs the error messages to the user is put
-into <A HREF="../../Implementation/HTErrorMsg.c">HTErrorMsg Module</A> so that it can be overwritten by a smart client or
-server.
+The function that generates and outputs the error messages to the user
+is put into HTErrorMsg Module so that it can be overwritten by a smart
+client or server.
 
 <H4>Guessing the Content Type of a Stream</H4>
 
@@ -815,7 +813,7 @@ the highest probability from a statistical analysis.
 <DD> Added new parameter to HTLoad: BOOL keep_error_stack. If YES then the 
      error_stack is not cleared. This is used in redirection etc.
 <DT> HTLoadError()
-<DD> Because of the new <A HREF="../Implementation/HTError.html">HTError</A>
+<DD> Because of the new <A HREF="../../Implementation/HTError.html">HTError</A>
      module, this function in HTML.c is not needed anymore.
 </DL>
 
@@ -1321,8 +1319,8 @@ element in a text object.
 
 <UL>
 
-<LI>Added &lt;PRE> tag as in <A NAME="z3"
-HREF="../MarkUp/Connolly/921203/HTML.html">new HTML spec</A>.
+<LI>Added &lt;PRE> tag as in <A HREF="../../../MarkUp/">new HTML
+spec</A>.
 
 <LI>Added numeric character reference handling for future use.
 

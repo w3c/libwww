@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3 Library Internals Guide</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -51,6 +51,12 @@ regardless if they are part of the API described in the User's Guide or
 not. This is also known as the "hacker's view" of the Library.
 
 </UL>
+
+<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
+Each part of the documentation is also available as <A
+HREF="choppy.html"><B>one big HTML file</B></A> intended for
+printout. As a result, the relative links in this document do not
+work!<P>
 
 <H2>Table of Contents</H2> 
 
@@ -144,7 +150,7 @@ according to its impact on the current request, for example "Fatal",
 "Non-Fatal", "Warning" etc. The filtering can be used to decide which
 level of messages will be passed back to the user.
  
-<DT><A HREF="../../Implementation/HTEvent.html">Event Manager</A>
+<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager</A>
 <DD>The event manager is a "session layer" handling which thread
 should be the active thread. A thread can either be an internal libwww
 thread or an external thread, for example a Posix thread, and the
@@ -244,7 +250,7 @@ be overwritten.
 <H2>Internal Event loop</H2>
 
 The internal event loop in the <A
-HREF="../../Implementation/HTEvent.html">HTEvent module</A> is made to
+HREF="../../Implementation/HTEvntrg.html">HTEvent module</A> is made to
 support <A HREF="../Architecture/Threads.html">libwww threads</A> If
 an application wants its own event loop, then this module must be
 overwritten.
@@ -337,7 +343,7 @@ communicating with a lot of weird FTP servers. It uses
 <CODE>PASV</CODE> as the default method for establishing the data
 connection as <CODE>PORT</CODE> does not work if the application is
 run from a firewall machine, as is often the case with <A
-HREF="../../../Daemon/Proxies/Proxies.html">proxy server</A>.
+HREF="../../../Daemon/User/Proxies/Proxies.html">proxy server</A>.
 
 <DT><A NAME="z45" HREF="../../Implementation/HTTP.html">HTTP access</A>
 
@@ -400,9 +406,9 @@ section.
 
 In order to prevent unauthorized access on a Web server, a basic
 authorization scheme has been developed, see <A
-HREF="../../../AccessAuthorization/./"> Access
-Authorization</A> for more details on the scheme. The access
-authorization is implemented in the following modules:
+HREF="../../../Protocols"> Access Authorization</A> for more details
+on the scheme. The access authorization is implemented in the
+following modules:
 
 <DL>
 

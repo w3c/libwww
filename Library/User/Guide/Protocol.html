@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Internals - Protocol Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -26,7 +26,7 @@ extract information using a specific access method. When data arrives
 from the network, it is passed on to the format manager.<P>
 
 Most of the protocol modules are now implemented as state machines in
-order to support <A HREF="../Architecture/Thraeds.html">libwww
+order to support <A HREF="../Architecture/Threads.html">libwww
 Threads</A>.
 
 When the client parses a request to the library a <A
@@ -52,7 +52,7 @@ communicating with a lot of weird FTP servers. It uses
 <CODE>PASV</CODE> as the default method for establishing the data
 connection as <CODE>PORT</CODE> does not work if the application is
 run from a firewall machine, as is often the case with <A
-HREF="../../../Daemon/Proxies/Proxies.html">proxy server</A>.
+HREF="../../../Daemon/User/Proxies/Proxies.html">proxy server</A>.
 
 <DT><A NAME="z45" HREF="../../Implementation/HTTP.html">HTTP access</A>
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Libwww Architecture</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -51,26 +51,37 @@ not. This is also known as the "hacker's view" of the Library.
 
 </UL>
 
+<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
+Each part of the documentation is also available as <A
+HREF="choppy.html"><B>one big HTML file</B></A> intended for
+printout. As a result, the relative links in this document do not
+work!<P>
+
 The current documentation is based on version 3.1 which is to be
 released July 1995.<P>
 
 <H2>Table of Contents</H2>
 
 <DL>
-<LI><A HREF="Introduction.html">Introduction</A> <P>
+<LI><A HREF="Introduction.html">Introduction</A>
+<LI><A HREF="DesignModel.html">Basic Design Model</A>
+<LI><A HREF="ControlFlow.html">Overview of the Core</A>
+<LI><A HREF="DataStructures.html">Core Objects and Managers</A>
+<UL>
+<LI><A HREF="Anchors.html">The Anchor Object</A>
+<LI><A HREF="Protocol.html">The Protocol Manager</A>
+<LI><A HREF="Threads.html">The Net Manager</A>
+<LI><A HREF="Events.html">Internal and External Events</A>
+<LI><A HREF="Cache.html">The Cache Manager</A>
+<LI><A HREF="Streams.html">The Stream Object</A>
+<LI><A HREF="Multiformat.html">The Data Format Manager</A>
+<LI><A HREF="Errors.html">The Error Manager</A>
+<LI><A HREF="Request.html">The Request Manager</A>
+</UL>
 
-<LI><A HREF="DesignModel.html">Design Model</A>
-<LI><A HREF="ControlFlow.html">Control and Data Flow</A>
-
-<LI><A HREF="DataStructures.html">Central Data Structures</A>
-<LI><A HREF="Anchors.html">Anchor Objects</A>
-<LI><A HREF="Streams.html">Stream Objects</A> <P>
-
-<LI><A HREF="Threads.html">Description of libwww Threads</A>
-<LI><A HREF="HTTPFeatures.html">Usage of State machines</A>
-<LI><A HREF="PostWeb.html">Post Webs - a Generic Model for Posting on the Web</A>
+<LI><A HREF="HTTPFeatures.html">Protocol Modules as State machines</A>
+<LI><A HREF="PostWeb.html">Post Web - a Generic Model for Posting on the Web</A>
 <LI><A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>
-<LI><A HREF="Multiformat.html">Format Negotiation</A>
 </UL>
 
 <H1>Introduction</H1>
@@ -118,14 +129,20 @@ Luotonen</A>, <A HREF="../../../People.html#Groff">Jean-Francois
 Groff</A>, <A HREF="../../../People/howcome/">H&aring;kon W. Lie</A>
 and a large number of people on the Internet.
 
-<H1>Design Model</H1>
+<H1>Basic Design Model</H1>
 
-The Library is designed to be easily extended with new functionality
-as new Internet standards evolve for transportation and representation
-of data objects. This means that most of the functionality is placed
-in separate modules that can be hooked onto a basic set of modules
-called the "core entity". This design model is illustrated in the
-figure below:
+The main criteria behind the design of the W3C Reference Library was
+to make it easily extendable as new Internet standards evolve for
+transportation and representation of data objects. The philosofi was
+to make it possible to dynamically "plug-in" new modules without
+touching the inner parts of the Library. On platforms that support
+dynamic linking this can be used to change the functionality of an
+application completely at runtime and eventually the Library can be
+extended to support some of the new concepts of mobile code where new
+modules can be down loaded from the network at runtime as they are
+needed in the application. The result of this concept was a Library
+architecture consisting of 5 main parts as illustrated in the figure
+below:
 
 <P><IMG SRC="Design.gif" ALT="Design"><P>
 
@@ -135,58 +152,58 @@ in the Library where the "layering" is as follows:
 
 <DL>
 
-<DT>Generic tools
+<DT>Generic Tools
 
 <DD>The Library provides a large set of generic utility modules such
-as various container classes, string utilities etc. They have the
-important function to separate the upper layer code from platform
-specific implementations using a large set of macros that makes the
-Library more portable. The modules are used throughout the Library
-itself and can easily be employed in many applications.
+as container classes, string utilities, network utilities etc. They
+have the important function to separate the upper layer code from
+platform specific implementations using a large set of macros that
+makes the Library more portable. The modules are used throughout the
+Library itself and can easily be employed in many applications.
 
-<DT>Core entity
+<DT>Core
 
-<DD>The fundamental part of the Library is actually quite small. The
-core entity is not a closed entity but an open frame construction that
-provides hooks for the dynamic modules. The core entity also contains
-the major access points for applications issuing requests, for example
-to access a data object. Many of the sections in this paper contain
-references to the core entity and explain the interaction between the
-core entity and an application.
+<DD>This part is the fundamental part of the Library. The size of the
+core is deliberately kept small and it is important to note that it
+can do nothing on its own; all the functionality for accessing the
+network, parsing data objects, handling user interaction, logging
+etc. is part of the upper modules in the figure. The core provides a
+standard interface to the application program for requesting a service
+but most often the handling of the request itself takes place outside
+the core.
 
-<DT>Access and stream modules
+<DT>Stream Modules
 
-<DD>These modules are often referred to as "dynamic modules" as they
-can be enabled or disabled dynamically during execution of an
-application (using static linking). There are several ways to
-initialize the dynamic modules:
+<DD>All data is transported back and forth from the application to the
+network and vice verse using streams. Streams are objects that accept
+blocks of characters, pretty much as ANSI C FILE strems accept blocks
+of characters. A block can be as small as one character but large
+blocks are normally preferred for better performance. Often, even
+though not required, a stream has an output to which it directs
+outgoing data. An example of a stream with no output is a stream that
+acts like a black hole - it absorbs data without ever sending it out
+again. However, the typical situation for a stream is to have an
+output and to perform some kind of data conversion on the incoming
+data before it is redirected to the output.
 
-<OL>
+<DT>Access Modules
 
-<LI>Through a configuration file (often called a rule file) which is
-parsed, for example at start up time;
-
-<LI>Using static initialization functions which are set up at compile
-time;
-
-<LI>By initializing the modules during execution as the application
-requires it.
-
-</OL>The Library has a set of default, static initialization functions
-which can be found in the <A HREF="../../Implementation/HTInit.html">
-HTInit module</A>. By default they enable all the dynamic modules in
-the Library, but this can be changed as described later.
+<DD>The Access modules are protocol specific modules that makes the
+application capable of communicating with a wide range of Internet
+services. The Library comes with a wide set of protocol access modules
+such as HTTP, FTP, Gopher, WAIS, NNTP, Telnet, rlogin, TN3270, and the
+local file system, but new ones can easily be added to the list.
 
 <DT>Application Modules
 
 <DD>The application modules are often specific for client applications
 including functions that require user interaction, management of
-history lists etc. The reference implementation of these modules in
-the reference code is mainly intended for character based applications
-like the <A HREF="../../../LineMode/">Line Mode Browser</A>. More
-advanced clients will often have to override them, that is, a module
-with an identical interface is provided by the application, and the
-loading of the default module suppressed.  </DL>
+history lists, call back functions, logging etc. The reference
+implementation of these modules are often intended for character based
+applications like the <A HREF="../../../LineMode/">Line Mode
+Browser</A>. More advanced clients can override them, that is, a
+module with an identical interface is provided by the application, and
+the loading of the default module suppressed. </DL>
 
 When writing an application most of the code interacting with the
 Library will consist of access modules, stream modules, and
@@ -194,9 +211,15 @@ application modules. These modules can either provide additional
 functionality or override existing functionality in the Library in
 order to make use of more platform dependent implementations. The
 latter will typically be the case with the application modules which
-must be adjusted to a given graphic platform.
+must be adjusted to a given graphic platform. <P>
 
-<H1>Control and Data Flow</H1>
+The <A HREF="../Using/">User's Guide</A> explains more on how to set
+up and use the Access modules and the Stream modules in an application
+and how to use the application modules. The rest of this document on
+the architecture of the W3C Reference Library is devoted to describing
+the Core of the Library.
+
+<H1>Overview of the Core</H1>
 
 The main concept in the Library is a "request/response" model where an
 application issues a request for a URI (URL). The Library then tries
@@ -305,10 +328,8 @@ Threads</A>".
 
 <DL>
 
-<DT>Access Manager
-<DD>
-
-The access manager is the main entry point for requesting a data
+<DT><A HREF="../../Implementation/HTAccess.html">Access Manager</A>
+<DD>The access manager is the main entry point for requesting a data
 object pointed to by a URI. It has a set of methods that allows the
 application to request different services, for example to get a URI,
 post a URI, or to search a URI. When the application issues a request,
@@ -326,9 +347,9 @@ verifies that access to local files is allowed. This might not always
 be the case, as is the case when the <A HREF="../../../LineMode/">Line
 Mode Browser</A> is used as a login shell for telnet sessions.
 
-<LI>Then the file cache manager is contacted to see if the object
+<LI>Then the cache manager is contacted to see if the object
 already has been accessed. The application might administer a memory
-cache in which cache this is consulted before the file cache.
+cache in which cache this is consulted before the cache.
 
 <LI>If the data object is not cached then the protocol module is
 called to actually perform the access to the network.
@@ -339,10 +360,10 @@ be reconstructed.
 
 </OL>
 
-<DT>Protocol Manager
+<DT><A HREF="../../Implementation/HTProt.html">Protocol Manager</A>
 
 <DD>The protocol manager is invoked by the access manager in order to
-access a document not found in memory or in file cache. The manager
+access a document not found in memory or in cache. The manager
 consists of a set of protocol modules handling the access schemes
 HTTP, FTP, NNTP, Gopher, WAIS, Telnet, and access to the local file
 system. The protocol modules are registered dynamically (using static
@@ -353,7 +374,7 @@ file-system) and extract information using a specific access
 method. When data arrives from the network, it is passed on to the
 format manager.
 
-<DT>Format Manager
+<DT><A HREF="../../Implementation/HTFormat.html">Format Manager</A>
 
 <DD>The stream format manager takes care of the transportation of
 streams of data from the network to the application and vice versa. It
@@ -363,7 +384,7 @@ selecting the best conversion. As the protocol modules, data format
 converters can be registered dynamically, and the current set of
 streams includes among others: MIME, SGML, HTML, and LaTeX.
 
-<DT>File Cache Manager
+<DT><A HREF="../../Implementation/HTCache.html">Cache Manager</A>
 
 <DD>The cache manager is used to save data objects once they have been
 down loaded from the network. The cache uses the hierarchy indicated
@@ -371,7 +392,7 @@ in the URLs as a way to identify items in the cache but is still under
 construction and requires a lot of work to be a highly efficient cache
 manager!
 
-<DT>Error Manager
+<DT><A HREF="../../Implementation/HTError.html">Error Manager</A>
 
 <DD>This module manages an information stack which contains
 information of all errors occurred during the communication with a
@@ -382,7 +403,12 @@ according to its impact on the current request, for example "Fatal",
 "Non-Fatal", "Warning" etc. The filtering can be used to decide which
 level of messages will be passed back to the user.
 
-<DT>Event Manager 
+<DT><A HREF="../../Implementation/HTNet.html">Net Manager</A>
+
+<DD>The net manager provides an interface for handling asynchronous
+sockets which is an integral part of the Library.
+
+<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager </A>
 
 <DD>The event manager is a "session layer" handling which thread
 should be the active thread. A thread can either be an internal libwww
@@ -399,7 +425,7 @@ HREF="Threads.html">Libwww Threads</A>".
 
 </DL>
 
-<H1>Central Data Structures</H1>
+<H1>Core Objects and Managers</H1>
 
 The central data structures are the structures that are a part of the
 core entity. Each of the core modules as explained in section "<A
@@ -469,9 +495,9 @@ model where a thread is identified by this structure. The libwww
 thread model is explained in "<A HREF="Threads.html">Description of
 libwww Threads</A>".
 
-<DT><IMG ALIGN=BOTTOM SRC="C.gif" ALT="C"> <A NAME="cache" HREF="../../Implementation/HTFWrite.html#cacheitem">HTCacheInfo</A>
+<DT><IMG ALIGN=BOTTOM SRC="C.gif" ALT="C"> <A NAME="cache" HREF="../../Implementation/HTFWrite.html#cacheitem">HTCache</A>
 
-<DD>The <EM>HTCacheInfo</EM> structure contains metainformation about
+<DD>The <EM>HTCache</EM> structure contains metainformation about
 every cached object like the amount of times it has been requested from
 the cache, the content type, the size, and how long it took to obtain
 the data from the network. As the cache manager is yet to be fully
@@ -608,7 +634,7 @@ structure but this is not required.
 
 </OL>
 
-<H1>Anchor Objects</H1>
+<H1>The Anchor Object</H1>
 
 <A HREF="../../../Terms.html#anchor">Anchors</A> represent any
 references to data objects which may be the sources or destinations of
@@ -702,7 +728,425 @@ is removed from the sub-web.
 
 </OL>
 
-<H1>The Stream Concept</H1>
+<H1>Protocol Manager</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>.
+
+<H1>Libwww Threads and Net Objects</H1>
+
+In a single-process, single threaded environment all requests to, for
+example, the I/O interface blocks any further progress in the process.
+Any combination of a multiprocess or multi threaded implementation of
+the Library makes provision for the application to request several
+independent documents at the same time without getting blocked by slow
+I/O operations. As a Web application is expected to use much of the
+time doing I/O such as "connect" and "read", a high degree of
+optimization can be obtained if multiple threads can run at the same
+time.<P>
+
+Library version 3.0 was designed to be thread compatible. It can
+either be used with conventional threads or with the <A
+HREF="../Architecture/Threads.html">"libwww thread" concept</A> which
+allows an application to handle requests in a constrained asynchronous
+manner using non-blocking I/O and an event loop based on a select
+system call. As a result, I/O operations such as establishment of a
+TCP connection to a remote server and reading from the network can be
+handled without letting the user wait until the operation has
+terminated. Instead the user can issue new requests, interrupt ongoing
+requests, scroll a document etc. <P>
+
+Version 3.1 of the Library has an enhanced libwww thread model as it
+supports writing large amount of data from the application to the
+network, also using non-blocking I/O operations. The main purpose of
+Librray 3.1 was to provide a basic support for remote collaborative
+work through the <A HREF="../../../Protocols/">HTTP</A> methods
+<B>PUT</B> and <B>POST</B>. <P>
+
+As libwww threads are not really threads but a notion of using
+non-blocking I/O for accessing data objects from the network (or local
+file system), it can be used on any number of platforms with or
+without native support for threads, and this section describes the
+model behind libwww threads and how it affects applications.</P>
+
+<H2>The Net object</H2>
+
+The <EM>Net object</EM> contains all the state information required to
+stop and start execute a request using asynchronous IO. The use of
+aynchronous IO has an important implication on the implementation of
+the access modules in the Library, for example the HTTP module which
+is explained later: <P>
+
+<UL> 
+<LI>Global variables can be used only if they at all time are
+independent of the current state of the active Net object.
+<LI>Automatic variables can be used only if they are initialized on
+every entry to the function and stay state independent of the current
+request throughout their lifetime.
+<LI>All information necessary for completing a request must be kept in
+an autonomous data object that is passed round the via the stack.
+</UL>
+
+<P><IMG SRC="Thread.gif"><P>
+
+The main reason for keeping the Net object separate from the Request
+object is that some requests require more than one Net object, for
+example FTP which has a Net object for the control TCP connection and a
+Net object for each data TCP connection. In the case of HTTP/1.0 and
+HTTP/1.1, there is a 1:1 correspondance between a Net object and a
+request object. In HTTP/1.2 a Net object can live longer than a single
+request as persistent connections might handle a set of requests over
+the same TCP socket. Net objects can be used in three different ways:
+
+<OL>
+<LI>All requests are preemtive and all I/O is blocking
+<LI>Requests are non-preemtive managed by an <EM>internal</EM> event loop
+<LI>Requests are non-preemtive managed by an <EM>external</EM> event loop
+</OL>
+
+The three modes are described in more detail in the section on <A
+HREF="Events.html">Internal and External Events</A>. In mode 2) the Net
+objects is used to make the binding between the socket based internal
+event loop (using a <CODE>select()</CODE> call) and a request, so that
+a socket ready for an I/O action can make the corresponing libwww
+thread active. In mode 1) and 3) Net objects represents the socket
+interface of a request.
+
+<H2>Families and Groups</H2>
+
+Net objects are often related to other Net objects and hence it is useful to
+introduce a mechanism by which related Net objects can be treated
+together. The Library provides two ways of grouping Net objects:
+
+<DL>
+
+<DT>Family
+
+<DD>A <EM>Family</EM> is a set of Net objects that are logically
+related to eachother, for example a HTML document with a set of
+inlined objects (images, video, audio etc). On a GUI client a family
+can be regarded as a set of objects to be displayed in the same
+widget. Members of a family does not have to come from the same origin
+server even though it in the case of inlined images often is the case
+- what is important is the logical connection between them. There are
+especially two situations that concerns a whole family:
+
+<UL>
+<LI>The user hits the interrupt button in a widget and all the treads
+in the family are to be killed.
+<LI>Each family can be assigned a <EM>priority</EM> that allows
+background families to be loaded with a lower priority than the
+foreground family.
+</UL>
+
+Families are typically created by the application, as the logical
+relation often is known at the application level only. However, the
+Library might add a Net object to a family for example in the case of
+FTP where multiple Net objects are related to the same request.
+
+<DT>Group
+
+<DD>A <EM>Group</EM> is a set of Net objects that all are requesting a
+(possibly different) resource from the same server. The Net objects do
+not have to be logically related - they can belong to different
+families but they have one thing in common: they are all pointing to
+the same remote server. A group is used to support persistent
+connection management which is the case in HTTP/1.2 and HTTP-NG. In
+the case of a proxy server, all requests to that proxy server will
+belong to the same group. <P>
+
+Groups also serve to manage the number of open TCP connections an
+application uses at any one point in time in order not to overload
+either the application or the network. Groups are typically created by
+the Library as the final destination for a request is often known at
+the Library level only.
+
+</DL>
+
+<H2>Creation and Termination of a Net object</H2>
+
+A Net object is created by the Net manager from within the Request
+manager every time a request is passed to the Library. A request can
+either be issued by the application or the Library itself for example
+as a result of redirection, access authentication, or when a new data
+connection is created in a FTP request. All new Net objects are
+automatically associated with a group which might already exist or be
+created together with the new Net object.<P>
+
+When a Net object has been created, the Request manager returns
+immediately to the caller and does not see the request before it has
+terminated either with a success or an error as result. The request
+can either be started immediately by the Net manager or put into a
+queue if the maximum number of open TCP connections is reached. When a
+request is terminated there are typically a set of tasks that the
+application would like to do:
+
+<UL>
+<LI>Update the history list
+<LI>Report the result to the log manager
+<LI>Update the display
+<LI>etc.
+</UL>
+
+Handling the termination of a request is based on call back functions
+that can be registered in the Net manager dynamically at run
+time. Multiple call back functions can be registered in which case
+they are all called from the Net manager in the sequence they were
+registered. As an example, the Request manager registers a call back
+function to handle the status of the request regarding to some
+internal actions. This function is registered at initialization time
+of the Library. The application can add its own call back functions to
+be called on termination of a request.
+
+<H1>Internal and External Events</H1>
+
+This section describes what happens when an event arrives to the
+Library - either from the application or from the network. The Library
+provides three different ways of handling events, and it is necessary
+to be aware of these modes in the design phase of an application as
+they have an impact on the architecture of the application. The
+Library can be used in multiple modes simultaneously and an
+application can change mode as a function of the action requested by
+the user. The three different modes are described in the
+following:</P>
+
+<DL>
+
+<DT><B>Base Mode</B>
+
+<DD>In this mode all requests are handled in a preemtive way that does
+not allow for any events to pause the execution of a thread or kill
+it. This mode is in other words strictly single threaded and the major
+difference between this mode and the next two modes is that all
+sockets are made blocking instead of non-blocking. This mode can
+either be used in forking applications or in threaded applications
+using an external thread model where non-blocking I/O is not a
+requirement.
+
+<DT><B>Active Mode</B>
+
+<DD>In this mode the event loop is placed in the Library in the <A
+HREF="../../Implementation/HTEvent.html" >HTEvent module</A>. The mode
+can either be used by character based applications with a limited
+capability of user interaction, or it can be used by more advanced GUI
+clients where the window widget allows redirection of user events to
+one or more sockets that can be recognized by a select() call. It
+should be noted, that even though all sockets are non-blocking, the
+select() function is blocking if no sockets are pending so if no
+actions are pending, the select call will be put to sleep. <P>
+
+The <A HREF="../../Implementation/HTThread.html" >HTThread module</A>
+contains a thread scheduler which gives highest priority to the events
+on the redirected user events which allows a smooth operation on GUI
+applications with a fast response time. This mode has a major impact
+on the design of the application as much of the application code may
+find itself within call back functions. As an example, this mode is
+currently used by the <A HREF="../../../Arena/">Arena client</A> and
+the <A HREF="../../../LineMode/" >Line Mode Browser</A>.
+
+<DT><B>Passive mode</B>
+
+<DD>This mode is intended for applications where user events can not
+be redirected to a socket or there is already an event loop that can
+not work together with the event loop in the Library. The major
+difference from the <B>Active mode</B> is that instead of using the
+event loop defined in the <A
+HREF="../../Implementation/HTEvent.html">HTEvent module</A>, this
+module is overridden by the application as described in the <A
+HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
+same impact on the application architecture as the <B>Active mode</B>
+except for the event loop, as all library interactions with the
+application are based on call back function.  </DL>
+
+One important limitation in the libwww thread model is that the
+behavior is undefined if an external scheduler is provided using the
+internal threads in the Library with preemptive scheduling mechanism.
+The reason for this is that the Library is "libwww thread safe" when
+using one stack and one set of registers as in <B>Active mode</B> only
+when a change of active thread is done as a result of a blocking I/O
+operation. However, using an external thread model, this problem does
+not exist.</P>
+
+<A NAME="callback"><H3>Providing Call Back Functions</H3></A>
+
+The thread model in the Library is foreseen to work with native thread
+interfaces but can also be used in a non-threaded environment. In the
+latter case, the Library handles the creation and termination of its
+internal threads without any interaction required by the
+application. The thread model is based on call back functions of which
+at least one user event handler and a event terminator must must be
+supplied by the application. However, the application is free to
+register as many additional user event handlers as it wants.
+
+</P><IMG SRC="../Architecture/Internal.gif" ALT="Callback"></P>
+
+The dashed lines from the event loop to some of the access modules
+symbolizes that the access method is not yet implemented using
+non-blocking I/O, but the event loop is still a part of the
+call-stack.  In this situation the Library will automatically use
+blocking sockets which is equivalent to the <B>Base Mode</B>.</P>
+
+<DL>
+
+<DT>User Event Handlers
+
+<DD>An application can register a set of user event handlers to handle
+events on sockets defined by the application to contain actions taken
+by the user. This can for example be interrupting a request, start a
+new request, or scroll a page. However, this requires that the actual
+window manager supports redirection of event on sockets.
+
+<DT>Event Termination
+
+<DD>This function is called from the Library every time a request is
+terminated. It passes the result of the request so that the
+application can update the history list etc. depending on the
+result. From the Library's point of view there is little difference
+between a user event handler and this function, as it in both cases is
+a call back function.
+
+<DT>Timeout Handler
+
+<DD>In <B>Active mode</B>, the select()</CODE> function in the Library
+event loop is blocking even though the sockets are non-blocking. This
+means that if no actions are pending on any of the registered sockets
+then the application will block in the select() call. However, in
+order to avoid sockets hanging around forever, a timeout is provided
+so that hanging threads can be terminated.
+
+</DL>
+
+<H3><A NAME="control">Returning from a Call Back Function</A></H3>
+
+Often an event handler needs to return information about a change of
+state as a result of an action executed by the handler, for example if
+a new request is issued, a ongoing request is interrupted, the
+application is to terminated etc. This information can be handed back
+to the Library using the return values of the call back function.<P>
+
+There are several situations where a thread has to be killed before it
+has terminated normally. This can either be done internally by the
+Library or the application. The application indicates that a thread is
+to be interrupted, for example if the user has requested the operation
+to stop, by using a specific return value from one of the user event
+handlers. The Library then kills the thread immediately and the result
+is returned to the application.
+
+<H1>The Cache Manager</H1>
+
+Caching is a required part of any efficient Internet access
+applications as it saves bandwidth and improves access performance
+significantly in almost all types of accesses. This sections describes
+the architecture behind the cache management in the Library. The cache
+management is intended to be used both as a proxy cache and a client
+cache or simply as a cache relay. It does not include the interaction
+between an application and a proxy server as this is regarded as an
+external access and hence outside the scope of the local cache. The
+basic structure of the cache is illustrated in the figure below.
+
+<P><IMG SRC="Cache.gif" ALT="Cache Organization"><P>
+
+The figure described the cache hierarchy starting from left to right;
+it does not describe the data flow. Any of the three cache handlers
+can be left out in which case a cache request will fall through to the
+next handler in the hierarchy and finally be passed to the protocol
+manager which issues a request to either the origin server, a proxy
+server, or a gateway. Any of the handlers can also be short circuited
+by using a set of cache directives which are explained in the <A
+HREF="../Using/Cache.html">User's Guide</A>. In the following, each
+part will be described in more detail.
+
+<H2><A NAME="memcache">Memory Cache</A></H2>
+
+The memory cache is completely handled by the application and is only
+consulted by the Library when servicing a request. It is considered
+private to a specific instance of an application and is not intended
+to be shared between instances. Handling the memory cache includes the
+following tasks: object storage, garbage collection, and object
+retrieval. The application can initiate a memory cache handler by
+registering a call back function that is called from within the
+Library on each request. The details of this registration is described
+in the <A HREF="../Using/Cache.html">User's Guide</A>. <P>
+
+Traditionally, the memory cache is based on handling the graphic
+objects described by the <CODE>HyperDoc</CODE> structure in memory as
+the user keeps requesting new documents. The <CODE>HyperDoc</CODE>
+structure is only declared in the Library - the real definition is
+left to the application as it is for the application to handle graphic
+objects. For example, the Line Mode Browser has its own definition of
+the <CODE>HyperDoc</CODE> structure called <A
+HREF="../../../LineMode/Implementation/GridText.html"
+><CODE>HText</CODE></A> which describes a fully parsed HTML object
+with enough information to display itself to the user. However, the
+memory cache handler can handle other objects than HTML, for example
+images, audio clips etc. It is important to note that the Library does
+not imply any limitations on the usage of the memory cache. <P>
+
+The memory cache must define its own garbage collection algorithm
+which can be based on available memory etc. Again, the <A
+HREF="../../../LineMode/">Line Mode Browser</A> has a very simple
+memory management of how long objects stay around in memory. It is
+determined by a constant in the <A
+HREF="../../../LineMode/Implementation/GridText.c" >GridText</A>
+module and is by default set to 5 documents. This approach can be much
+more advanced and the memory garbage collection can be determined by
+the size of the graphic objects, when they expire etc. but the API is
+the same no matter how the garbage collector is implemented. </P>
+
+<H2>Private File Cache</H2>
+
+The private file cache is to be regarded as a direct extension of the
+memory cache as intended for intermediate term storage of data
+objects. As the memory cache, it is intended to be private to a single
+instance of an application as long as the instance is
+running. However, as a file cache is persistent, it can be shared
+between several instances of various applications as long as exactly
+one instance owns the private cache at any one time. The single
+ownership of a private cache means that the cache can be accessed via
+the local file system by one instance of an application only.<P>
+
+There are two purposes of the private file cache:
+
+<OL>
+
+<LI>To maintain a persistent cache for applications that do not have a
+shared cache.
+
+<LI>To maintain a private persistent cache for specific groups of
+documents that are not to be shared among other applications. Examples
+of such are documents with a HTTP header <EM>Pragma: Private</EM>
+which will be introduced in HTTP/1.1
+</OL>
+
+Often an important difference between the memory cache and the file
+cache is the format of the data. As mentioned above, in the memory
+cache, the cached objects can be pre-parsed objects ready to be
+displayed to the user. In a file cache the data objects are always
+stored along with their metainformation so that important header
+information like Expires, Last-Modified, Language etc. is a part of
+the stored object together with any unknown metainformation that might
+be a part of the object.</P>
+
+<H2>Shared File Cache</H2>
+
+A shared file cache which can be accessed by several independent
+applications requires its own cache manager in order to ensure a
+consistent cache and to handle garbage collection. A shared file cache
+can in many ways be regarded as similar to a proxy cache as a single
+application do not know when a cached object is either discarded or
+refreshed in the shared cache area. <P>
+
+If a shared cache manager does exist then the only remaining purpose
+of a private file cache is to store explicitly private objects. All
+other objects will be stored in the shared cache. <P>
+
+As for the private file cache, the data objects are always stored
+along with their metainformation so that any metainformation
+associated with an object can be returned to the requesting
+application.
+
+<H1>Data Transportation using Streams</H1>
 
 A <A HREF="../../Implementation/HTStream.html">stream</A> is an object
 which accepts sequences of characters. It is a destination of data
@@ -831,243 +1275,26 @@ from a "401 Unauthorized" HTTP status, code to a separate "debug"
 window where it can be displayed without affecting the current
 document view.
 
-<H1>Libwww Threads</H1>
 
-Library version 3.0 had been designed to be thread compatible. It can
-either be used with conventional threads or with a new "libwww <A
-HREF="../Architecture/Threads.html">thread" concept</A> which allows
-an application to handle requests in a constrained asynchronous manner
-using non-blocking I/O and an event loop based on a select system
-call. As a result, I/O operations such as establishment of a TCP
-connection to a remote server and reading from the network can be
-handled without letting the user wait until the operation has
-terminated. Instead the user can issue new requests, interrupt ongoing
-requests, scroll a document etc. Version 3.1 of the Library has an
-enhanced thread model as it supports writing large amount of data from
-the application to the network, also using non-blocking I/O
-operations. This becomes useful in multi threaded server applications
-and in client applications with support for remote collaborative work
-through the <A HREF="../../../Protocols/">HTTP</A> methods <B>PUT</B>
-and <B>POST</B>. The Library has been designed to support libwww
-threads on a wide set of platforms with or without native support for
-threads, and this section describes the model behind libwww threads
-and how it affects applications.</P>
+<H1>The Data Format Manager</H1>
 
-<H2>Introduction</H2>
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>.
 
-In a single-process, single threaded environment all requests to, for
-example, the I/O interface blocks any further progress in the process.
-Any combination of a multiprocess or multi threaded implementation of
-the Library makes provision for the application to request several
-independent documents at the same time without getting blocked by slow
-I/O operations. As a Web application is expected to use much of the
-time doing I/O such as "connect" and "read", a high degree of
-optimization can be obtained if multiple threads can run at the same
-time.<P>
+<H1>Handling Error Situations</H1>
 
-Threads provide a light-weight technique for obtaining an environment
-with a multiple set of execution points. A thread is a smaller unit
-compared to a process in that it is a single, sequential flow of
-control within a process. When creating a new process much of the
-environment does never change and can therefore be reused. Threads
-takes the full consequence of this and creates an environment with
-multiple execution points within the same process. Hence threads
-provide a more lightweight solution than process forking and this is a
-part of the reason for their implementation in the W3C Reference
-Library.
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>.
 
-<A NAME="platform"><H2>Platform Independent Implementation</H2></A>
+<H1>What is a libwww Request?</H1>
 
-The major concern in the design has been to make an implementation
-that is as platform independent as possible. This means that it has
-not been possible to use traditional thread packages like DECthreads
-which contain a code library with a complete set of thread handling
-routines and a consistent user interface. IEEE has publicized the
-POSIX standard 1003.4 for multi threaded programming but even this
-will eventually limit the portability of the code so that it will not
-be usable on platforms that don't support this thread model. Instead
-the multi threaded functionality has been designed to be used in a
-single-processor, single threaded, environment as illustrated in the
-figure.
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>.
 
-<P><IMG SRC="Thread.gif"><P>
-
-The difference between this technique (called "libwww threads") and
-"traditional" threads as <A HREF="#multistackthread">illustrated
-above</A> is that all information about a thread is stored in a data
-object which represents the thread and contains all the state
-information required to stop and start at various points while
-servicing the thread. This implies that the following rules must be
-kept regarding memory management: <P>
-
-<UL> 
-
-<LI>Global variables can be used only if they at all time are
-independent of the current state of the active thread.
-
-<LI>Automatic variables can be used only if they are initialized on
-every entry to the function and stay state independent of the current
-thread throughout their lifetime.
-
-<LI>All information necessary for completing a thread must be kept in
-an autonomous data object that is passed round the via the stack.
-
-</UL>
-
-<H3>Thread Methods</H3>
-
-The libwww threads are very basic as they are not intended to replace
-existing thread models. As a result, the set of methods is as follows:
-
-<DL>
-<DT>Create thread
-<DD>Create a data object and initialize the state machine to an initial state
-<DT>Remove thread
-<DD>Remove a data object after the state machine has reached a final state 
-<DT>Kill thread
-<DD>Force the state machine into a final state and remove the data object
-</DL>
-
-In section "<A HREF="HTTPFeatures.html">Usage of State machines</A>"
-we describe how state machines are employed as an integral part of the
-libwww thread model.
-
-<H3>Thread Interfaces</H3>
-
-The Library provides three different modes in the thread API and it is
-necessary to be aware of these modes in the design phase of an
-application as they have an impact on the architecture of the
-application. The Library can be used in multiple modes simultaneously
-and an application can change mode as a function of the action
-requested by the user. The three different modes are described in the
-following:</P>
-
-<DL>
-
-<DT><B>Base Mode</B>
-
-<DD>This mode is strictly single threaded and requires no special
-considerations in the design of the application. The difference
-between this mode and the other two is that all sockets are made
-blocking instead of non-blocking. The Library does still expect the
-definition of the set of call back functions as described in the
-section <A HREF="#callback">"Providing Call Back Functions"</A>, but
-they can be defined as dummy functions without any content. The mode
-preserves compatibility with Web applications with a single threaded
-approach, however it does not provide interruptible I/O as this
-requires an active event loop either internally or externally to the
-Library.
-
-<DT><B>Active Mode</B>
-
-<DD>In this mode the event loop is placed in the Library in the <A
-HREF="../../Implementation/HTEvent.html" >HTEvent module</A>. The mode
-can either be used by character based applications with a limited
-capability of user interaction, or it can be used by more advanced GUI
-clients where the window widget allows redirection of user events to
-one or more sockets that can be recognized by a select() call. It
-should be noted, that even though all sockets are non-blocking, the
-select() function is blocking if no sockets are pending so if no
-actions are pending, the select call will be put to sleep. <P>
-
-The <A HREF="../../Implementation/HTThread.html" >HTThread module</A>
-contains a thread scheduler which gives highest priority to the events
-on the redirected user events which allows a smooth operation on GUI
-applications with a fast response time. This mode has a major impact
-on the design of the application as much of the application code may
-find itself within call back functions. As an example, this mode is
-currently used by the <A HREF="../../../Arena/">Arena client</A> and
-the <A HREF="../../../LineMode/" >Line Mode Browser</A>.
-
-<DT><B>Passive mode</B>
-
-<DD>This mode is intended for applications where user events can not
-be redirected to a socket or there is already an event loop that can
-not work together with the event loop in the Library. The major
-difference from the <B>Active mode</B> is that instead of using the
-event loop defined in the <A
-HREF="../../Implementation/HTEvent.html">HTEvent module</A>, this
-module is overridden by the application as described in the <A
-HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
-same impact on the application architecture as the <B>Active mode</B>
-except for the event loop, as all library interactions with the
-application are based on call back function.  </DL>
-
-One important limitation in the libwww thread model is that the
-behavior is undefined if an external scheduler is provided using the
-internal threads in the Library with preemptive scheduling mechanism.
-The reason for this is that the Library is "libwww thread safe" when
-using one stack and one set of registers as in <B>Active mode</B> only
-when a change of active thread is done as a result of a blocking I/O
-operation. However, using an external thread model, this problem does
-not exist.</P>
-
-<A NAME="callback"><H3>Providing Call Back Functions</H3></A>
-
-The thread model in the Library is foreseen to work with native thread
-interfaces but can also be used in a non-threaded environment. In the
-latter case, the Library handles the creation and termination of its
-internal threads without any interaction required by the
-application. The thread model is based on call back functions of which
-at least one user event handler and a event terminator must must be
-supplied by the application. However, the application is free to
-register as many additional user event handlers as it wants.
-
-</P><IMG SRC="../Architecture/Internal.gif" ALT="Callback"></P>
-
-The dashed lines from the event loop to some of the access modules
-symbolizes that the access method is not yet implemented using
-non-blocking I/O, but the event loop is still a part of the
-call-stack.  In this situation the Library will automatically use
-blocking sockets which is equivalent to the <B>Base Mode</B>.</P>
-
-<DL>
-
-<DT>User Event Handlers
-
-<DD>An application can register a set of user event handlers to handle
-events on sockets defined by the application to contain actions taken
-by the user. This can for example be interrupting a request, start a
-new request, or scroll a page. However, this requires that the actual
-window manager supports redirection of event on sockets.
-
-<DT>Event Termination
-
-<DD>This function is called from the Library every time a request is
-terminated. It passes the result of the request so that the
-application can update the history list etc. depending on the
-result. From the Library's point of view there is little difference
-between a user event handler and this function, as it in both cases is
-a call back function.
-
-<DT>Timeout Handler
-
-<DD>In <B>Active mode</B>, the select()</CODE> function in the Library
-event loop is blocking even though the sockets are non-blocking. This
-means that if no actions are pending on any of the registered sockets
-then the application will block in the select() call. However, in
-order to avoid sockets hanging around forever, a timeout is provided
-so that hanging threads can be terminated.
-
-</DL>
-
-<H3><A NAME="control">Returning from a Call Back Function</A></H3>
-
-Often an event handler needs to return information about a change of
-state as a result of an action executed by the handler, for example if
-a new request is issued, a ongoing request is interrupted, the
-application is to terminated etc. This information can be handed back
-to the Library using the return values of the call back function.<P>
-
-There are several situations where a thread has to be killed before it
-has terminated normally. This can either be done internally by the
-Library or the application. The application indicates that a thread is
-to be interrupted, for example if the user has requested the operation
-to stop, by using a specific return value from one of the user event
-handlers. The Library then kills the thread immediately and the result
-is returned to the application.
-
-<H1>Usage of State machines</H1>
+<H1>Protocol Modules as State machines</H1>
 
 A part of the libwww thread model is to keep track of the current
 state in the communication interface to the network. As an example,
@@ -1546,12 +1773,6 @@ libraries. Also these library do not support non-blocking sockets and
 hence delay can not be avoided when resolving a host name. The
 solution is of course to write a resolver library which handles these
 features, and it is under consideration.
-
-<H1>Format Negotiation</H1>
-
-<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
-construction. Any suggestions or ideas are welcome at
-<EM>libwww@w3.org</EM>.
 
 <P>
 <HR>

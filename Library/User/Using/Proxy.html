@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User's Guide - Proxies and Gateways</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -12,17 +13,15 @@
 
 An application can indirectly support an access method by redirecting
 the request to either a proxy or a gateway. The difference between a
-proxy server and a gateway is subtle and is described in <A
-HREF="../Guide/Config.html#proxy">Internals and Programmer's
-Guide</A>, but it does not affect the application using the Library
-and the redirection is normally transparent to the user. The Library
-supports both proxies and gateways through the <A
-HREF="../../Implementation/HTProxy.html" >HTProxy module</A> and all
-requests can be redirected to a proxy or a gateway, even requests on
-the local file system. Of course, the Library can also be used in
-proxy or gateway applications which in terms can use other proxies or
-gateways so that a single request can be passed through a series of
-intermediate agents.<P>
+proxy server and a gateway is not important here as it does not affect
+the application using the Library and the redirection is normally
+transparent to the user. The Library supports both proxies and
+gateways through the <A HREF="../../Implementation/HTProxy.html"
+>HTProxy module</A> and all requests can be redirected to a proxy or a
+gateway, even requests on the local file system. Of course, the
+Library can also be used in proxy or gateway applications which in
+terms can use other proxies or gateways so that a single request can
+be passed through a series of intermediate agents.<P>
 
 The set of public function to registere a gateway or a proxy are as
 follows:

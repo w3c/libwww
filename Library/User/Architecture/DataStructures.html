@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Core Objects and Managers</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -51,17 +51,16 @@ POST Web, an API for PUT and POST</A>".
 
 <DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> 
 
-<DD><A HREF="../Terms.html#anchor">Anchors</A> represent any data
-objects which may be the sources or destinations of hypertext
-links. The HTAnchor structure contains all information about the
-object, whether it has been loaded, metainformation like language,
-media type etc., and any relations to other objects. The Library
-defines two anchor classes: a parent anchor and a child anchor. The
-former contains information about whole data objects and the latter
-contains about subparts of a data object. The HTAnchor structure is a
-generic superclass of both parent anchors and child anchors. Section
-"<A HREF="Anchors.html">Anchor Objects</A>" describes anchors and
-their relations in more detail.
+<DD>Anchors represent any data objects which may be the sources or
+destinations of hypertext links. The HTAnchor structure contains all
+information about the object, whether it has been loaded,
+metainformation like language, media type etc., and any relations to
+other objects. The Library defines two anchor classes: a parent anchor
+and a child anchor. The former contains information about whole data
+objects and the latter contains about subparts of a data object. The
+HTAnchor structure is a generic superclass of both parent anchors and
+child anchors. Section "<A HREF="Anchors.html">Anchor Objects</A>"
+describes anchors and their relations in more detail.
 
 <DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../Implementation/HTAccess.html#HTNetInfo">HTNetInfo</A>
 
@@ -209,7 +208,7 @@ the latter where the stream flow is divided into two.
 
 <LI>The application receives the data arriving from the network via
 the "HText" object (or any of the other stream interfaces as explained
-in section <A HREF="../Using/HTMLParser.html">The HTML Parser</A> in
+in section <A HREF="../Using/HTML.html">The HTML Parser</A> in
 the User's Guide).
 
 <LI>The HyperDoc object <EM>must</EM> have a link to the HTAnchor

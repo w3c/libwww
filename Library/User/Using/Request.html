@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -41,7 +41,7 @@ extern HTNetCallBack HTLoad_terminate;
 The request object is intended to live as long as the request is still
 active, but can be deleted as soon as it has terminatedk, for example
 in one of the request termination callback functions as described in
-the <A HREF="HTNet.html">Net Manager</A>. Only the anchor object stays
+the <A HREF="../../Implementation/HTNet.html">Net Manager</A>. Only the anchor object stays
 around after the request itself is terminated.
 
 <H3>Create new Object</H3>
@@ -85,7 +85,7 @@ protocol implementation to try and carry this operation out. However,
 not all operations can be implemented (or make sense) in all
 protocols. <P>
 
-Methods are handled by the <A HREF="HTMethod.html">Method Module</A>,
+Methods are handled by the <A HREF="../../Implementation/HTMethod.html">Method Module</A>,
 and the default value is "GET".
 
 <PRE>
@@ -154,7 +154,7 @@ The Accept family of headers is an important part of HTTP handling the
 format negotiation. The Library supports both a global set of accept
 headers that are used in <EM>all</EM> HTTP requests and a local set of
 accept headers that are used in specific requests only. The global
-ones are defined in the <A HREF="HTFormat.html">Format
+ones are defined in the <A HREF="../../Implementation/HTFormat.html">Format
 Manager</A>.  <P>
 
 Each request can have its local set of accept headers that either are
@@ -169,8 +169,8 @@ else <EM>both</EM> local and global headers are used.
 Th <EM>local</EM> list of specific conversions which the format
 manager can do in order to fulfill the request.  It typically points
 to a list set up on initialisation time for example by <A
-HREF="HTInit.html">HTInit()</A>. There is also a <A
-HREF="HTFormat.html#z17"><EM>global</EM></A> list of conversions which
+HREF="../../Implementation/HTInit.html">HTInit()</A>. There is also a <A
+HREF="../../Implementation/HTFormat.html#z17"><EM>global</EM></A> list of conversions which
 contains a generic set of possible conversions.
 
 <PRE>
@@ -270,7 +270,7 @@ extern HTRqHd HTRequest_rqHd (HTRequest *request);
 <H3><A NAME="enhd">Entity Header Mask</A></H3>
 
 The entity headers contain information about the object sent in the
-HTTP transaction. See the <A HREF="HTAnchor.html">Anchor module</A>,
+HTTP transaction. See the <A HREF="../../Implementation/HTAnchor.html">Anchor module</A>,
 for the storage of entity headers. This flag defines which headers are
 to be sent in a request together with an entity body. All headers are
 optional but the default value is <EM>ALL ENTITY HEADERS IF
@@ -304,8 +304,7 @@ extern HTEnHd HTRequest_enHd (HTRequest *request);
 
 If this parameter is set then a `Referer: &lt;parent address&gt; can
 be generated in the request to the server, see <A
-HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">
-Referer field in a HTTP Request</A>
+HREF="../../../Protocols/"> HTTP Protocol</A>
 
 <PRE>
 extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
@@ -341,7 +340,7 @@ extern HTStream *HTRequest_OutputStream (HTRequest *request);
 
 The desired format of the output stream. This can be used to get
 unconverted data etc. from the library. If <CODE>NULL</CODE>, then <A
-HREF="HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
+HREF="../../Implementation/HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
 
 <PRE>
 extern void HTRequest_setOutputFormat (HTRequest *request, HTFormat format);
@@ -439,7 +438,7 @@ extern HTList *HTRequest_errorStack (HTRequest *request);
 This function returns the bytes read in the current request. For a
 deeper description of what the current request is, please read the
 user's guide. This function can be used in for example the <A
-HREF="HTAlert.html">HTAlert module</A> to give the number of bytes
+HREF="../../Implementation/HTAlert.html">HTAlert module</A> to give the number of bytes
 read in a progress message.
 
 <PRE>
