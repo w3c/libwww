@@ -1,13 +1,12 @@
 <HTML>
 <HEAD>
 <TITLE>Installation Guide for Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Jul-1995 -->
 </HEAD>
 <BODY>
 
-<A HREF="../../"><IMG ALT="WWW"
-SRC="../../Icons/WWW/WWW48x.gif"></A> <A HREF="../"><IMG
-ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
 
 <H1>Installation Guide</H1>
 
@@ -25,46 +24,71 @@ name resolution doesn't work), you should get the source code and
 compile it yourself. There are <A HREF="Installation_VMS.html">special
 instructions for VMS</A> if you are <A
 HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">
-installing under VMS</A>.  <P>
+installing under VMS</A>. <P>
+
+There is a lot of <A HREF="../../../Dist/bin">precompiled binary
+versions</A> available in the subdirectory corresponding to your
+machine architecture. <P>
+
+If you prefer the source code, the the latest source code is available
+in the following formats:
 
 <UL>
-
-<LI>There is a lot of <A HREF="../../../Dist/bin">precompiled versions</A>
-available in the subdirectory corresponding to your machine
-architecture. <P>
-
-<LI>The browser is also available as <A
-HREF="../../../Dist/src/WWWLineMode.tar.Z">WWWLineMode.tar.Z</A> from
-our <A HREF="../../../Dist/src">source archive</A>. Please note that you also
-need the <A HREF="../../../Library/">W3C Reference Library</A> in
-order to compile the browser. The Library is available from <A
-HREF="../../../Dist/src/WWWLibrary.tar.Z">WWWLibrary.tar.Z</A><P>
-
+<LI><A HREF="../../../Dist/src/WWWLineMode.tar.Z">compressed tar file</A>
+<LI><A HREF="../../../Dist/src/WWWLineMode.tar.gz">gzip'ed tar file</A>
+<LI><A HREF="../../../Dist/src/WWWLineMode.zip">zip file</A>
 </UL>
 
-<H2>Compilation</H2>
+from our <A HREF="../../../Dist">Destribution archives</A>. <P>
 
-<OL>
-<LI> Uncompress and untar the distribution tar files:
+<IMG ALT="NOTE" SRC="../../Icons/32x32/warning.gif"> Please note that
+you also need the <A HREF="../../Library/">W3C Reference Library</A>
+in order to compile the browser.
+
+<H2>Unpacking</H2>
+
+Unpacking the destributions file depends on which source destribution
+file you got (compressed tar file, gzip'ed tar file, or a zip
+file). However, in any case you need to unpack both the <A
+HREF="../../Library/">W3C Reference Library</A> and the Line Mode
+Browser.
+
+<H3>compressed tar file</H3>
 
 <PRE>
         uncompress WWWLineMode.tar.Z
         tar xvf WWWLineMode.tar
-</PRE>
 
-and
-
-<PRE>
         uncompress WWWLibrary.tar.Z
         tar xvf WWWLibrary.tar
 </PRE>
 
-<LI><LI>The compilation and linking of the server is done using the <A
-HREF="../../Library/User/Platform/Porting.html">BUILD script</A>
-which figures out what platform you are using. If you have build
-earlier versions of the CERN software and you already have a
-<CODE>WWW</CODE> directory then it is <EM>very</EM> important that you
-do the following:
+<H3>gzip'ed tar file</H3>
+
+<PRE>
+        gunzip WWWLineMode.tar.gz
+        tar xvf WWWLineMode.tar
+
+        gunzip WWWLibrary.tar.gz
+        tar xvf WWWLibrary.tar
+</PRE>
+
+<H3>zip file</H3>
+
+<PRE>
+        unzip WWWLineMode.zip
+
+        unzip WWWLibrary.zip
+</PRE>
+
+<H2>Compilation</H2>
+
+The compilation and linking of the browser is done using the <A
+HREF="../../Library/User/Platform/Porting.html">BUILD script</A> which
+figures out what platform you are using. If you have build earlier
+versions of the W3C software and you already have a <CODE>WWW</CODE>
+directory then it is <EM>very</EM> important that you do the
+following:
 
 <PRE>
 	cd WWW
@@ -73,32 +97,34 @@ do the following:
 </PRE>
 
 in order to make sure that all new code is built. If not then go to
-newly-created <CODE>WWW</CODE> directory, and give command the
-<CODE>./BUILD linemode</CODE>:
+newly-created <CODE>WWW</CODE> directory, and type:
 
 <PRE>
-        cd WWW
         ./BUILD linemode
 </PRE>
 
-<LI>If you encounter problems during compilation or your don't have
+If you encounter problems during compilation or your don't have
 the compiler which the <EM>BUILD</EM> script uses then then please
 read the section on <A
 HREF="../../Library/User/Platform/Porting.html">how to modify the
-<EM>BUILD</EM> script</A>.
+<EM>BUILD</EM> script</A>. <P>
 
-<LI> Executable <CODE>www</CODE> appears in directory
-<CODE>../WWW/LineMode/sun4</CODE> (if you have a Sun4 machine), or in
-another subdirectory corresponding to your machine architecture.
+The executable browser, "www" appears in the directory
 
-</OL>
+<PRE>
+	../WWW/LineMode/&lt;your.platform&gt;
+</PRE>
+
+As an example, in case your platform is SunOs, the directory is
+"sun4".
 
 <H2>Customization</H2>
 
-Copy www into an appropriate directory which appears in your path. If
-you can be superuser, this can be /usr/local/bin/www (typically) so
-that everyone can use "www". If you type "rehash", you will be able to
-use www. It will start at a default home page which is at CERN. <P>
+Copy "www" into an appropriate directory which appears in your
+path. If you can be superuser, this can be /usr/local/bin/www
+(typically) so that everyone can use "www". If you type "rehash", you
+will be able to use "www". It will start at a default home page which
+is at W3C. <P>
 
 You must now check that the default homepage works, and <A
 HREF="Customisation.html">customize it</A> if it is not what you
