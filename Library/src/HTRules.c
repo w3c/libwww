@@ -317,7 +317,7 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
     if (!req  ||  !req->simplified)
 	return NO;
 
-    current = strdup(req->simplified);
+    StrAllocCopy(current, req->simplified);
 
 #ifdef OLD_CODE
     if (0 == strncmp(current, "/htbin/", 7)) {
@@ -334,7 +334,7 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 	    strcat(req->script, current + 6);
 	    if (end) {
 		*end = '/';	/* Reconstruct */
-		req->script_pathinfo = strdup(end);	/* @@@@ This should */
+		StrAllocCopy(req->script_pathinfo, end);/* @@@@ This should */
 		                                        /* be translated !! */
 	    }
 	    free(current);

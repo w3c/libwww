@@ -181,7 +181,7 @@ PUBLIC BOOL HTAA_authenticate ARGS1(HTRequest *, req)
 {
     if (HTAA_UNKNOWN == req->scheme || !req->prot ||
 	-1 == HTList_indexOf(req->prot->valid_schemes, (void*)req->scheme))
-	return NULL;
+	return NO;
 
     switch (req->scheme) {
       case HTAA_BASIC:
