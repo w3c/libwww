@@ -283,8 +283,8 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     
     if (0==strcmp(access, "file")) {
         free(access);	
-	if ((0==strcasecmp(host, HTHostName())) ||
-	    (0==strcasecmp(host, "localhost")) || !*host) {
+	if ((0==strcasecomp(host, HTHostName())) ||
+	    (0==strcasecomp(host, "localhost")) || !*host) {
 	    free(host);
 	    if (TRACE) fprintf(stderr, "Node `%s' means path `%s'\n", name, path);
 	    return(path);
@@ -772,7 +772,7 @@ forget_multi:
                 if (HTDirReadme == HT_DIR_README_TOP)
 		    do_readme(target, localname);
 		{
-		    HTBTree * bt = HTBTree_new((HTComparer)strcasecmp);
+		    HTBTree * bt = HTBTree_new((HTComparer)strcasecomp);
 
 		    while (dirbuf = readdir(dp))
 		    {

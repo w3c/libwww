@@ -5,7 +5,7 @@
 array. It is a general utility module.
 A chunk is a structure which may
 be extended.  These routines create
- and append data to chunks, automatically
+and append data to chunks, automatically
 reallocating them as necessary.
 <PRE>typedef struct {
 	int	size;		/* In bytes			*/
@@ -30,7 +30,7 @@ reallocating them as necessary.
 <H3>On entry,</H3>
 <DL>
 <DT>growby
-<DD>The number of bytes to allocate
+<DD> The number of bytes to allocate
 at a time when the chunk is later
 extended. Arbitrary but normally
 a trade-off time vs. memory
@@ -39,7 +39,7 @@ a trade-off time vs. memory
 <H3>On exit,</H3>
 <DL>
 <DT>returns
-<DD>A chunk pointer to the new
+<DD> A chunk pointer to the new
 chunk,
 </DL>
 
@@ -52,13 +52,14 @@ extern HTChunk * HTChunkCreate PARAMS((int growby));
 <H3>On entry,</H3>
 <DL>
 <DT>ch
-<DD>A valid chunk pointer made by HTChunkCreate()
+<DD> A valid chunk pointer made by
+HTChunkCreate()
 </DL>
 
 <H3>On exit,</H3>
 <DL>
 <DT>ch
-<DD>is invalid and may not be used.
+<DD> is invalid and may not be used.
 </DL>
 
 <PRE>
@@ -70,13 +71,14 @@ extern void HTChunkFree PARAMS((HTChunk * ch));
 <H3>On entry,</H3>
 <DL>
 <DT>ch
-<DD>A valid chunk pointer made by HTChunkCreate()
+<DD> A valid chunk pointer made by
+HTChunkCreate()
 </DL>
 
 <H3>On exit,</H3>
 <DL>
 <DT>*ch
-<DD>The size of the chunk is zero.
+<DD> The size of the chunk is zero.
 </DL>
 
 <PRE>
@@ -89,15 +91,16 @@ in</H2>
 <H3>On entry,</H3>
 <DL>
 <DT>ch
-<DD>A valid chunk pointer made by HTChunkCreate()
+<DD> A valid chunk pointer made by
+HTChunkCreate()
 <DT>s
-<DD>The size required
+<DD> The size required
 </DL>
 
 <H3>On exit,</H3>
 <DL>
 <DT>*ch
-<DD>Has size at least s
+<DD> Has size at least s
 </DL>
 
 <PRE>
@@ -109,36 +112,41 @@ extern void HTChunkEnsure PARAMS((HTChunk * ch, int s));
 <H3>On entry,</H3>
 <DL>
 <DT>ch
-<DD>A valid chunk pointer made by HTChunkCreate()
+<DD> A valid chunk pointer made by
+HTChunkCreate()
+<DT>c
+<DD>The character to be appended
 </DL>
 
-<PRE>**	c	The character to be appended
-** On exit,
-**	*ch	Is one character bigger
-*/
+<H3>On exit,</H3>
+<DL>
+<DT>*ch
+<DD>Is one character bigger
+</DL>
 
-extern void HTChunkPutc PARAMS((HTChunk * ch, char c));
+<PRE>extern void HTChunkPutc PARAMS((HTChunk * ch, char c));
 
 </PRE>
 <H2>Append a string to a  chunk</H2>
 <H3>On entry,</H3>
 <DL>
 <DT>ch
-<DD>A valid chunk pointer made by HTChunkCreate()
-<DT>s
-<DD>Tpoints to a zero-terminated string
-to be appended
+<DD> A valid chunk pointer made by
+HTChunkCreate()
+<DT>str
+<DD> Tpoints to a zero-terminated
+string to be appended
 </DL>
 
 <H3>On exit,</H3>
 <DL>
 <DT>*ch
-<DD>Is bigger by strlen(s)
+<DD> Is bigger by strlen(str)
 </DL>
 
 <PRE>
 
-extern void HTChunkPuts PARAMS((HTChunk * ch, const char *s));
+extern void HTChunkPuts PARAMS((HTChunk * ch, const char *str));
 
 
 </PRE>
@@ -148,17 +156,18 @@ extern void HTChunkPuts PARAMS((HTChunk * ch, const char *s));
 <H3>On entry,</H3>
 <DL>
 <DT>ch
-<DD>A valid chunk pointer made by HTChunkCreate()
+<DD> A valid chunk pointer made by
+HTChunkCreate()
 </DL>
 
 <H3>On exit,</H3>
 <DL>
 <DT>*ch
-<DD>Is one character bigger
+<DD> Is one character bigger
 </DL>
 
 <PRE>
 
 extern void HTChunkTerminate PARAMS((HTChunk * ch));
 
-</PRE>end</A></BODY>
+</PRE>end</BODY>
