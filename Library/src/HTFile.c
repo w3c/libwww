@@ -1035,7 +1035,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		** Fix AL 26.1.94: make dir.indexing work also if
 		** there is a trailing slash:
 		*/
-		if (!*tail) tail = ".";
+		if (!tail || !*tail) tail = ".";
 		tail = HTEscape(tail, URL_XALPHAS);
 
 		target = HTML_new(request, NULL, WWW_HTML, 
@@ -1197,9 +1197,20 @@ open_file:
 /*	Now, as transparently mounted access has failed, we try FTP.
 */
     {
+#ifdef OLD_CODE
 	if (nodename && strcmp(nodename, HTHostName())!=0)
 	    return HTFTPLoad(request, NULL, addr,
 	    request->anchor, request->output_format, request->output_stream);
+#endif
+	char * newname = NULL;
+	StrAllocCopy(newname, "ftp:");
+	if (!strncmp(addr, "file:", 5))
+	    StrAllocCat(newname, addr+5);
+	else
+	    StrAllocCat(newname, addr);
+	HTAnchor_setPhysical(request->anchor, newname);
+	free(newname);
+	return HTLoad(request);
     }
 #endif
 
@@ -1216,6 +1227,6 @@ open_file:
 
 /*		Protocol descriptors
 */
-GLOBALDEF PUBLIC HTProtocol HTFTP  = { "ftp", HTLoadFile, 0 , 0 };
+GLOBALDEF PUBLIC HTProtocol HTFTP  = { "ftp", HTFTPLoad, 0 , 0 };
 GLOBALDEF PUBLIC HTProtocol HTFile = { "file", HTLoadFile,
 					HTFileSaveStream, 0 };

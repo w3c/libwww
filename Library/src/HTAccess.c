@@ -318,6 +318,16 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     char * access=0;	/* Name of access method */
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
 
+    /*
+    ** This HACK is here until we have redirection implemented.
+    ** This is used when we are recursively calling HTLoad().
+    ** We then take the physical address, because currently the
+    ** virtual address is kept in a hash table so it can't be
+    ** changed -- otherwise it wouldn't be found anymore.
+    */
+    if (HTAnchor_physical((HTAnchor*)req->anchor))
+	StrAllocCopy(addr, HTAnchor_physical((HTAnchor*)req->anchor));
+
 #ifndef NO_RULES
     if (HTImServer)	/* cern_httpd has already done its own translations */
 	HTAnchor_setPhysical(req->anchor, addr);
@@ -437,9 +447,9 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 **	anchor.  (The public routines are called with one OR the other.)
 **
 ** On entry,
-**	addr		must point to the fully qualified hypertext reference.
 **	request->
-**	    anchor		a parent anchor with whose address is addr
+**	    anchor		a parent anchor with fully qualified
+**				hypertext reference as its address set
 **	    output_format	valid
 **	    output_stream	valid on NULL
 **
@@ -450,9 +460,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 **					(telnet sesssion started etc)
 **
 */
-PRIVATE int HTLoad ARGS2(
-	CONST char *,		addr,	/* not used */
-	HTRequest *,		request)
+PUBLIC int HTLoad ARGS1(HTRequest *, request)
 {
     char	*arg = NULL;
     HTProtocol	*p;
@@ -582,7 +590,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	} /* next cache item */
     } /* if cache available for this anchor */
     
-    status = HTLoad(full_address, request);
+    status = HTLoad(request);
 
     
 /*	Log the access if necessary

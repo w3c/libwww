@@ -445,6 +445,36 @@ yet.
 
 
 </PRE>
+
+<H2>Load a Document</H2>
+This is an internal routine, which has an address AND a matching
+anchor.  (The public routines are called with one OR the other.)
+This is, however, recursively called from file load module to
+try ftp.
+
+<H3>On entry,</H3>
+request->
+<DL>
+	<DT> anchor		<DD> a parent anchor with fully qualified
+				     hypertext reference as its address set
+	<DT> output_format	<DD> valid
+	<DT> output_stream	<DD> valid on NULL
+</DL>
+
+<H3>On exit,</H3>
+returns
+<DL>
+	<DT> <0		<DD> Error has occured.
+	<DT> HT_LOADED	<DD> Success
+	<DT> HT_NO_DATA	<DD> Success, but no document loaded.
+					(telnet sesssion started etc)
+</DL>
+
+<PRE>
+PUBLIC int HTLoad PARAMS((HTRequest * request));
+</PRE>
+
+
 <H2>Bind an anchor to a request structure
 without loading</H2>The anchor parameter may be a child
 anchor. The anchor in the request

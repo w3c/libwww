@@ -26,7 +26,8 @@ Please mail changes to timbl@info.cern.ch
 good.&lt;0 if bad.
 </DL>
 
-<PRE>extern int HTFTPLoad PARAMS
+<PRE>extern int HTFTPLoad PARAMS((HTRequest * request));
+#ifdef OLD_PARAMS
 ((
   HTRequest *		request,
   void *		param,
@@ -35,7 +36,7 @@ good.&lt;0 if bad.
   HTFormat		format_out,
   HTStream*		sink
 ));
-
+#endif
 
 </PRE>
 <H2>Return Host Name</H2>

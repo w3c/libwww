@@ -656,7 +656,8 @@ PRIVATE int get_listen_socket()
 **	returns		HT_LOADED if OK
 **			<0 if error.
 */
-PRIVATE int read_directory
+PRIVATE int read_directory ARGS1(HTRequest *, request)
+#if OLD_PARAMS
 ARGS6 (
   HTRequest *,			request,
   void *,			param,
@@ -664,15 +665,17 @@ ARGS6 (
   CONST char *,			address,
   HTFormat,			format_out,
   HTStream *,			sink )
+#endif
 {
-    HTStructured* target = HTML_new(request, NULL, WWW_HTML, format_out, sink);
+    HTStructured* target = HTML_new(request, NULL, WWW_HTML, request->output_format, request->output_stream);
     HTStructuredClass targetClass;
+    char *address = HTAnchor_physical(request->anchor);
     char *filename = HTParse(address, "", PARSE_PATH + PARSE_PUNCTUATION);
     char *lastpath;  /* prefix for link, either "" (for root) or xxx  */
 
     targetClass = *(target->isa);
 
-    HTDirTitles(target, (HTAnchor*)parent);
+    HTDirTitles(target, (HTAnchor*)request->anchor);
   
     data_read_pointer = data_write_pointer = data_buffer;
 
@@ -753,7 +756,8 @@ ARGS6 (
 **	returns		Socket number for file if good.
 **			<0 if bad.
 */
-PUBLIC int HTFTPLoad
+PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
+#ifdef OLD_PARAMS
 ARGS6 (
   HTRequest *,			request,
   void *,			param,
@@ -762,7 +766,9 @@ ARGS6 (
   HTFormat,			format_out,
   HTStream *,			sink
 )
+#endif
 {
+    char * name = HTAnchor_physical(request->anchor);
     BOOL isDirectory = NO;
     int status;
     int retry;			/* How many times tried? */
@@ -904,10 +910,10 @@ ARGS6 (
 	data_soc = status;
     }
 #else
-/* @@ */
+    /* @@ */
 #endif
     if (isDirectory) {
-	return read_directory(request, NULL, anchor, name, format_out, sink);
+	return read_directory(request);
       /* returns HT_LOADED or error */
     } else {
 	HTParseSocket(format, data_soc, request);
