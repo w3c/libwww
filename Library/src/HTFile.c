@@ -436,10 +436,12 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		HTHost * host = NULL;
 		if ((host = HTHost_new("localhost", 0)) == NULL) return HT_ERROR;
 		HTNet_setHost(net, host);
-		if (HTHost_addNet(host, net) == HT_PENDING)
+		file->state = FS_DO_CN;
+		if (HTHost_addNet(host, net) == HT_PENDING) {
 		    HTTRACE(PROT_TRACE, "HTLoadFile.. Pending...\n");
+		    return HT_PENDING;
+		}
 	    }
-	    file->state = FS_DO_CN;
 	    break;
 
 	case FS_DO_CN:
@@ -648,3 +650,5 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	}
     } /* End of while(1) */
 }
+
+
