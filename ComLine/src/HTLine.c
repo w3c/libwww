@@ -82,6 +82,8 @@ typedef struct _ComLine {
 
     CLFlags		flags;
 } ComLine;
+
+HTChunk * post_result = NULL;
 	
 /* ------------------------------------------------------------------------- */
 
@@ -457,8 +459,8 @@ int main (int argc, char ** argv)
 		char * value = HTNextField(&string);
 		if (tokencount++ <= 1) formfields = HTAssocList_new();
 		if (name && value) {
-		    char * escaped_name = HTEscape(name, URL_XALPHAS);
-		    char * escaped_value = HTEscape(value, URL_XALPHAS);
+		    char * escaped_name = HTEscape(name, URL_XPALPHAS);
+		    char * escaped_value = HTEscape(value, URL_XPALPHAS);
 		    HTAssocList_addObject(formfields,
 					  escaped_name, escaped_value);
 		    HT_FREE(escaped_name);
@@ -578,9 +580,16 @@ int main (int argc, char ** argv)
     case METHOD_POST:
 	if (formdata) {
 	    HTParentAnchor * posted = NULL;
+#if 1
 	    posted = HTPostFormAnchor(formfields, (HTAnchor *) cl->anchor,
 				      cl->request);
 	    status = posted ? YES : NO;
+#else
+	    /* If we want output to a chunk instead */
+	    post_result = HTPostFormAnchorToChunk(formfields, (HTAnchor *) cl->anchor,
+						  cl->request);
+	    status = post_result ? YES : NO;
+#endif
 	} else {
 
 	    /* MORE */
