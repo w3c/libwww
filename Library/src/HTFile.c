@@ -588,10 +588,17 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		return HT_OK;
 
 #ifndef NO_UNIX_IO
-	    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
-	    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
-			     net->cbf, net->priority);
-	    return HT_WOULD_BLOCK;
+	    /* If we are _not_ using preemptive mode and we are Unix file descriptors
+	    ** then return here to get the same effect as when we are connecting
+	    ** to a socket. That way, HTFile acts just like any other protocol
+	    ** module.
+	    */
+	    if (!net->preemptive) {
+	      if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
+	      HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+			       net->cbf, net->priority);
+	      return HT_WOULD_BLOCK;
+	    }
 #endif
 	    break;
 

@@ -751,12 +751,16 @@ PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
     if (!cbf)
         return NO;
     reply = HTAlert_newReply();
-    if (((*cbf)(lm->console, HT_A_USER_PW, 
-		HT_MSG_NULL, userName, NULL, reply))) {
+    if ((ret = (*cbf)(lm->console, HT_A_USER_PW, 
+		      HT_MSG_NULL, userName, NULL, reply))) {
         userName = HTAlert_replyMessage(reply);
         password = HTAlert_replySecret(reply);
     }
     HTAlert_deleteReply(reply);
+    if (!ret) {
+        HTTrace("PICS set user *canceled*.\n");
+	return NO;
+    }
     if (!userName)
 	HTTrace("Canceled.\n");
     else if ((ret = CSApp_registerDefaultUserByName(userName, password)) == NO) {

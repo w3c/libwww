@@ -188,7 +188,7 @@ PUBLIC int HTNetCall_execute (HTList * list, HTRequest * request, int status)
 */
 PUBLIC BOOL HTNet_setBefore (HTList *list)
 {
-    if (HTBefore) HTNetCall_deleteAll(HTBefore);
+/*    if (HTBefore) HTNetCall_deleteAll(HTBefore); */
     HTBefore = list;
     return YES;
 }
@@ -215,7 +215,7 @@ PUBLIC BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status)
 */
 PUBLIC BOOL HTNet_setAfter (HTList *list)
 {
-    if (HTAfter) HTNetCall_deleteAll(HTAfter);
+/*    if (HTAfter) HTNetCall_deleteAll(HTAfter); */
     HTAfter = list;
     return YES;
 }
