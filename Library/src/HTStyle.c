@@ -212,14 +212,14 @@ HTStyle * HTStyleDump (HTStyle * style)
 {
     int tab;
     NXTextStyle *p = style->paragraph;
-    TTYPrint(TDEST, "Style %d `%s' SGML:%s. Font %s %.1f point.\n",
+    HTTrace("Style %d `%s' SGML:%s. Font %s %.1f point.\n",
     	style,
 	style->name,
 	style->SGMLTag,
 	[style->font name],
 	style->fontSize);
     if (p) {
-        TTYPrint(TDEST, 
+        HTTrace(
     	"\tIndents: first=%.0f others=%.0f, Height=%.1f Desc=%.1f\n"
 	"\tAlign=%d, %d tabs. (%.0f before, %.0f after)\n",
 	    p->indent1st,
@@ -232,11 +232,11 @@ HTStyle * HTStyleDump (HTStyle * style)
 	    style->spaceAfter);
 	    
 	for (tab=0; tab < p->numTabs; tab++) {
-	    TTYPrint(TDEST, "\t\tTab kind=%d at %.0f\n",
+	    HTTrace("\t\tTab kind=%d at %.0f\n",
 		    p->tabs[tab].kind,
 		    p->tabs[tab].x);
     	}
-	TTYPrint(TDEST, "\n");
+	HTTrace("\n");
     } /* if paragraph */
     return style;
 }
@@ -256,7 +256,7 @@ HTStyle * HTStyleNamed  (HTStyleSheet *self, CONST char *name)
 	for (scan=self->styles; scan; scan=scan->next)
 	    if (!strcmp(scan->name, name)) return scan;
 	if (SGML_TRACE)
-	    TTYPrint(TDEST, "StyleSheet.. No style named `%s'\n", name);
+	    HTTrace("StyleSheet.. No style named `%s'\n", name);
     }
     return NULL;
 }
@@ -308,7 +308,7 @@ HTStyle * HTStyleForRun (HTStyleSheet *self, NXRun *run)
 	    }
 	}
     }
-    if (WWWTRACE) TTYPrint(TDEST, "HTStyleForRun: Best match for style is %d out of 18\n",
+    if (WWWTRACE) HTTrace("HTStyleForRun: Best match for style is %d out of 18\n",
     			 bestMatch);
     return best;
 }
@@ -394,7 +394,7 @@ HTStyleSheet * HTStyleSheetRead(HTStyleSheet * self, NXStream * stream)
     HTStyle * style;
     char styleName[80];
     NXScanf(stream, " %d ", &numStyles);
-    if (WWWTRACE) TTYPrint(TDEST, "Stylesheet: Reading %d styles\n", numStyles);
+    if (WWWTRACE) HTTrace("Stylesheet: Reading %d styles\n", numStyles);
     for (i=0; i<numStyles; i++) {
         NXScanf(stream, "%s", styleName);
         style = HTStyleNamed(self, styleName);
@@ -422,7 +422,7 @@ HTStyleSheet * HTStyleSheetWrite(HTStyleSheet * self, NXStream * stream)
     for(style=self->styles; style; style=style->next) numStyles++;
     NXPrintf(stream, "%d\n", numStyles);
     
-    if (WWWTRACE) TTYPrint(TDEST, "StyleSheet: Writing %d styles\n", numStyles);
+    if (WWWTRACE) HTTrace("StyleSheet: Writing %d styles\n", numStyles);
     for (style=self->styles; style; style=style->next) {
         NXPrintf(stream, "%s ", style->name);
 	(void) HTStyleWrite(style, stream);

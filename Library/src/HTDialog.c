@@ -106,20 +106,20 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 			HTAlertPar * reply)
 {
     if (!request) {
-	if (WWWTRACE) TTYPrint(TDEST, "HTProgress.. Bad argument\n");
+	if (WWWTRACE) HTTrace("HTProgress.. Bad argument\n");
 	return NO;
     }
     switch (op) {
       case HT_PROG_DNS:
-	TTYPrint(TDEST, "Looking up %s\n", (char *) input);
+	HTTrace("Looking up %s\n", (char *) input);
 	break;
 
       case HT_PROG_CONNECT:
-	TTYPrint(TDEST, "Contacting host...\n");
+	HTTrace("Contacting host...\n");
 	break;
 
       case HT_PROG_ACCEPT:
-	TTYPrint(TDEST, "Waiting for connection...\n");
+	HTTrace("Waiting for connection...\n");
 	break;
 
       case HT_PROG_READ:
@@ -130,9 +130,9 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 		double pro = (double) b_read/cl*100;
 		char buf[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
-		TTYPrint(TDEST, "Read (%d%% of %s)\n", (int) pro, buf);
+		HTTrace("Read (%d%% of %s)\n", (int) pro, buf);
 	    } else
-		TTYPrint(TDEST, "Reading...\n");
+		HTTrace("Reading...\n");
 	}
 	break;
 
@@ -145,22 +145,22 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 		double pro = (double) b_write/cl*100;
 		char buf[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
-		TTYPrint(TDEST, "Written (%d%% of %s)\n", (int) pro, buf);
+		HTTrace("Written (%d%% of %s)\n", (int) pro, buf);
 	    } else
-		TTYPrint(TDEST, "Writing...\n");
+		HTTrace("Writing...\n");
 	}
 	break;
 
       case HT_PROG_DONE:
-	TTYPrint(TDEST, "Finished\n");
+	HTTrace("Finished\n");
 	break;
 
       case HT_PROG_WAIT:
-	TTYPrint(TDEST, "Waiting for free socket...\n");
+	HTTrace("Waiting for free socket...\n");
 	break;
 
       default:
-	TTYPrint(TDEST, "UNKNOWN PROGRESS STATE\n");
+	HTTrace("UNKNOWN PROGRESS STATE\n");
 	break;
     }
     return YES;
@@ -171,9 +171,9 @@ PUBLIC BOOL HTConfirm (HTRequest * request, HTAlertOpcode op,
 		       HTAlertPar * reply)
 {
     char response[4];	/* One more for terminating NULL -- AL */
-    TTYPrint(TDEST, "%s", HTDialogs[msgnum]);
-    if (input) TTYPrint(TDEST, " (%s)", (char *) input);
-    TTYPrint(TDEST, " (y/n) ");
+    HTTrace("%s", HTDialogs[msgnum]);
+    if (input) HTTrace(" (%s)", (char *) input);
+    HTTrace(" (y/n) ");
 #ifndef NO_STDIO
     if (fgets(response, 4, stdin)) 		   /* get reply, max 3 chars */
 #endif
@@ -199,9 +199,9 @@ PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
 		      int msgnum, CONST char * dfault, void * input,
 		      HTAlertPar * reply)
 {
-    TTYPrint(TDEST, "%s ", HTDialogs[msgnum]);
-    if (input) TTYPrint(TDEST, " (%s) ", (char *) input);
-    if (dfault) TTYPrint(TDEST, "(RETURN for [%s]) ", (char *) dfault);
+    HTTrace("%s ", HTDialogs[msgnum]);
+    if (input) HTTrace(" (%s) ", (char *) input);
+    if (dfault) HTTrace("(RETURN for [%s]) ", (char *) dfault);
     if (reply && msgnum>=0) {
 #ifndef NO_STDIO
         char buffer[200];
@@ -265,7 +265,7 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
     HTErrorShow showmask = HTError_show();
     HTChunk *msg = NULL;
     int code;
-    if (WWWTRACE) TTYPrint(TDEST, "HTError..... Generating message\n");
+    if (WWWTRACE) HTTrace("HTError..... Generating message\n");
     if (!request || !cur) return NO;
     while ((pres = (HTError *) HTList_nextObject(cur))) {
 	int index = HTError_index(pres);
@@ -283,7 +283,7 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
 		    HTChunk_puts(msg, "Information: ");
 		else {
 		    if (WWWTRACE)
-			TTYPrint(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", severity);
+			HTTrace("HTError..... Unknown Classification of Error (%d)...\n", severity);
 		    HTChunk_delete(msg);
 		    return NO;
 		}
@@ -334,7 +334,7 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
     }
     if (msg) {
 	HTChunk_putc(msg, '\n');
-	TTYPrint(TDEST, "WARNING: %s\n", HTChunk_data(msg));
+	HTTrace("WARNING: %s\n", HTChunk_data(msg));
 	HTChunk_delete(msg);
     }
     return YES;
@@ -356,7 +356,7 @@ PUBLIC BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
     HTErrorShow showmask = HTError_show();
     HTChunk * msg = NULL;
     int code;
-    if (WWWTRACE) TTYPrint(TDEST, "HTError..... Generating HTTP response\n");
+    if (WWWTRACE) HTTrace("HTError..... Generating HTTP response\n");
     if (!request || !cur || !reply) return NO;
     while ((pres = (HTError *) HTList_nextObject(cur))) {
 	int index = HTError_index(pres);
@@ -413,7 +413,7 @@ PUBLIC BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
     if (msg) {
 	HTChunk_putc(msg, '\n');
 #if 0
-	TTYPrint(TDEST, "WARNING: %s\n", HTChunk_data(msg));
+	HTTrace("WARNING: %s\n", HTChunk_data(msg));
 #endif
 	HTChunk_delete(msg);
     }

@@ -104,7 +104,7 @@ PUBLIC char * HTUnEscape (char * str)
 
     if (!str) {					      /* Just for safety ;-) */
 	if (URI_TRACE)
-	    TTYPrint(TDEST, "HTUnEscape.. Called with NULL argument.\n");
+	    HTTrace("HTUnEscape.. Called with NULL argument.\n");
 	return "";
     }
     while(*p) {

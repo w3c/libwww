@@ -626,7 +626,7 @@ PRIVATE void HTML_start_element (
     if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
         if (me->sp == me->stack) {
 	    if (SGML_TRACE)
-		TTYPrint(TDEST, "HTML........ Maximum nesting of %d exceded!\n",
+		HTTrace("HTML........ Maximum nesting of %d exceded!\n",
 			MAX_NESTING); 
 	    me->overflow++;
 	    return;
@@ -657,7 +657,7 @@ PRIVATE void HTML_end_element (HTStructured * me, int element_number)
 {
 #ifdef CAREFUL			/* parser assumed to produce good nesting */
     if (element_number != me->sp[0].tag_number) {
-        TTYPrint(TDEST, "HTMLText: end of element %s when expecting end of %s\n",
+        HTTrace("HTMLText: end of element %s when expecting end of %s\n",
 		me->dtd->tags[element_number].name,
 		me->dtd->tags[me->sp->tag_number].name);
 		/* panic */
@@ -832,7 +832,7 @@ PRIVATE HTStructured* HTML_new (HTRequest *	request,
 						output_stream, request, NO);
 	if (intermediate) return HTMLGenerator(intermediate);
 	if (SGML_TRACE)
-	    TTYPrint(TDEST, "HTML........ Can't parse HTML to %s\n",
+	    HTTrace("HTML........ Can't parse HTML to %s\n",
 		    HTAtom_name(output_format));
 	exit (-99);
     }

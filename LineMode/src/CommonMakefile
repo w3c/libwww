@@ -36,6 +36,9 @@ SHELL = /bin/sh
 	www -w90 -na -p -to text/x-c $*.html > $*.h
 
 #	Directories
+PICC = -DWWW_PICS -I$(WWW)/Pics/Implementation/
+PICL = -L$(WWW)/Pics/$(WWW_MACH) -lpics
+PICSLIB = $(WWW)/Pics/$(WWW_MACH)/libpics.a
 OBJ = $(WTMP)/LineMode/$(WWW_MACH)
 LIB = $(WTMP)/Library/$(WWW_MACH)
 CMN = $(WWW)/Library/Implementation/
@@ -60,12 +63,14 @@ PURIFY_CACHE = /home2/frystyk/purify-cache
 #	MODULES
 OBJS =	$(OBJ)/HTBrowse.o \
 	$(OBJ)/GridText.o \
+	$(OBJ)/ConView.o \
 	$(OBJ)/DefaultStyles.o
 
 OBJS-CYR = $(OBJ)/HTBrowse-cyr.o $(OBJ)/GridText-cyr.o $(OBJ)/DefaultStyles-cyr.o $(OBJ)/a_stdio.o 
 
 CFILES =$(LM)HTBrowse.c \
 	$(LM)GridText.c \
+	$(LM)ConView.c \
 	$(LM)GridStyle.c \
 	$(LM)DefaultStyles.c
 
@@ -130,8 +135,8 @@ TOTAL =	$(LEGAL) \
 
 all : inc $(BIN)/$(PROD)
 
-$(BIN)/$(PROD) : $(OBJS) $(LIBWWW)
-	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS2)
+$(BIN)/$(PROD) : $(OBJS) $(LIBWWW) $(PICSLIB)
+	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS2) $(PICL)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
@@ -269,13 +274,16 @@ $(OE) :
 		then mkdir $(WTMP)/LineMode/$(WWW_MACH); else echo OK ; fi
 	touch $@
 
-$(OBJ)/HTBrowse.o : $(OE) $(LM)HTBrowse.c $(LM)GridText.h $(LM)Version.make \
-		$(CMN)HTUtils.h $(CMN)HTAccess.h
-	$(CC) -c -o $@ $(CFLAGS2) -DVL=\"$(VL)\" $(LM)HTBrowse.c  
+$(OBJ)/HTBrowse.o : $(OE) $(LM)HTBrowse.c $(LM)HTBrowse.h $(LM)GridText.h \
+	$(LM)Version.make $(CMN)HTUtils.h $(CMN)HTAccess.h
+	$(CC) -c -o $@ $(CFLAGS2) -DVL=\"$(VL)\" $(PICC) $(LM)HTBrowse.c  
 
-$(OBJ)/GridText.o : $(OE) $(LM)GridText.c $(LM)GridText.h $(LM)GridStyle.h\
-	 $(CMN)HTAnchor.h $(CMN)HTStyle.h
+$(OBJ)/GridText.o : $(OE) $(LM)GridText.c $(LM)HTBrowse.h $(LM)GridText.h \
+	$(LM)GridStyle.h $(CMN)HTAnchor.h $(CMN)HTStyle.h
 	$(CC) -c -o $@ $(CFLAGS2) $(LM)GridText.c
+
+$(OBJ)/ConView.o : $(OE) $(LM)HTBrowse.h $(CMN)WWWLib.h
+	$(CC) -c -o $@ $(CFLAGS2) $(LM)ConView.c
 
 $(OBJ)/DefaultStyles.o : $(OE) $(LM)DefaultStyles.c $(CMN)HTStyle.h
 	$(CC) -c -o $@ $(CFLAGS2) $(LM)DefaultStyles.c  

@@ -292,7 +292,7 @@ PUBLIC BOOL HTNewsDir_free (HTNewsDir * dir)
 	else if (dir->key == HT_NDK_GROUP)	  /* Sort as group hierarchi */
 	    comp = NDirGroupSort;
 	else {
-	    if (STREAM_TRACE) TTYPrint(TDEST,"NewsListing. Invalid sortkey\n");
+	    if (STREAM_TRACE) HTTrace("NewsListing. Invalid sortkey\n");
 	    return NO;
 	}
 	HTArray_sort(array, comp);

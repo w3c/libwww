@@ -138,7 +138,7 @@ PUBLIC void HTEncoding_add (HTList * 		list,
     HTAcceptNode * node;
     if (!list || !enc || !*enc) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Encodings... Bad argument\n");
+	    HTTrace("Encodings... Bad argument\n");
 	return;
     }
     if ((node = (HTAcceptNode *) HT_CALLOC(1, sizeof(HTAcceptNode))) == NULL)
@@ -168,7 +168,7 @@ PUBLIC void HTLanguage_add (HTList *		list,
     HTAcceptNode * node;
     if (!list || !lang || !*lang)  {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Languages... Bad argument\n");
+	    HTTrace("Languages... Bad argument\n");
 	return;
     }
     if ((node = (HTAcceptNode *) HT_CALLOC(1, sizeof(HTAcceptNode))) == NULL)
@@ -191,7 +191,7 @@ PUBLIC void HTCharset_add (HTList *		list,
     HTAcceptNode * node;
     if (!list || !charset || !*charset)  {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Charset..... Bad argument\n");
+	    HTTrace("Charset..... Bad argument\n");
 	return;
     }
     if ((node = (HTAcceptNode *) HT_CALLOC(1, sizeof(HTAcceptNode))) == NULL)
@@ -480,8 +480,8 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 	}
     }
 
-    if (PROT_TRACE) TTYPrint(TDEST, "Ranking.....\n");
-    if (PROT_TRACE) TTYPrint(TDEST,
+    if (PROT_TRACE) HTTrace("Ranking.....\n");
+    if (PROT_TRACE) HTTrace(
 	   "\nRANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING    FILE\n");
 
     sorted = HTList_new();
@@ -494,7 +494,7 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 	}
 	if (worst) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
+		HTTrace("%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
 			accepted_cnt+1,
 			worst->quality,
 			(worst->content_type
@@ -509,7 +509,7 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 	    HTList_addObject(sorted, (void*)worst);
 	}
     }
-    if (PROT_TRACE) TTYPrint(TDEST, "\n");
+    if (PROT_TRACE) HTTrace("\n");
     HTList_delete(accepted);
     HTList_delete(possibilities->next);
     possibilities->next = sorted->next;
@@ -544,20 +544,20 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
     double best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *best_match=NULL;
     if (rep_out == WWW_RAW) {
-	if (STREAM_TRACE) TTYPrint(TDEST,"StreamStack. Raw output...\n");
+	if (STREAM_TRACE) HTTrace("StreamStack. Raw output...\n");
 	return output_stream ? output_stream : HTErrorStream();
     }
 
     if (rep_out == rep_in) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"StreamStack. Identical input/output format (%s)\n",
+	    HTTrace("StreamStack. Identical input/output format (%s)\n",
 		     HTAtom_name(rep_out));
 	return output_stream ? output_stream : HTErrorStream();
     }
     if (STREAM_TRACE) {
 	char *p = HTAtom_name(rep_in);
 	char *q = HTAtom_name(rep_out); 
-	TTYPrint(TDEST,"StreamStack. Constructing stream stack for %s to %s\n",
+	HTTrace("StreamStack. Constructing stream stack for %s to %s\n",
 		 p ? p : "<NULL>", q ? q : "<NULL>");
     }
 
@@ -577,7 +577,7 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 		    if (pres->test_command) {
 			result = system(pres->test_command);
 			if (STREAM_TRACE) 
-			    TTYPrint(TDEST, "StreamStack. system(%s) returns %d\n", pres->test_command, result);
+			    HTTrace("StreamStack. system(%s) returns %d\n", pres->test_command, result);
 		    }
 		    if (!result) {
 			best_match = pres;
@@ -594,19 +594,19 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 
     if (best_match) {
  	if (rep_out == WWW_SOURCE && best_match->rep_out != WWW_SOURCE) {
-	    if (STREAM_TRACE) TTYPrint(TDEST,"StreamStack. Source output\n");
+	    if (STREAM_TRACE) HTTrace("StreamStack. Source output\n");
 	    return output_stream ? output_stream : HTErrorStream();
 	}
 	return (*best_match->converter)(request, best_match->command,
 					rep_in, rep_out, output_stream);
     }
     if (rep_out == WWW_SOURCE) {
-	if (STREAM_TRACE) TTYPrint(TDEST,"StreamStack. Source output\n");
+	if (STREAM_TRACE) HTTrace("StreamStack. Source output\n");
 	return output_stream ? output_stream : HTErrorStream();
     }
 
     if (STREAM_TRACE)
-	TTYPrint(TDEST,"StreamStack. No match found, dumping to local file\n");
+	HTTrace("StreamStack. No match found, dumping to local file\n");
     return HTSaveLocally(request, NULL, rep_in, rep_out, output_stream);
 }
 	
@@ -629,7 +629,7 @@ PUBLIC double HTStackValue (HTList *	theseConversions,
     HTList* conversion[2];
     
     if (STREAM_TRACE) {
-	TTYPrint(TDEST, "StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
+	HTTrace("StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
 		HTAtom_name(rep_in),	initial_value,
 		HTAtom_name(rep_out));
     }

@@ -447,7 +447,7 @@ PRIVATE int HTTPStatus_abort (HTStream * me, HTList * e)
 	ABORT_TARGET;
     HT_FREE(me);
     if (PROT_TRACE)
-	TTYPrint(TDEST, "HTTPStatus.. ABORTING...\n");
+	HTTrace("HTTPStatus.. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -516,7 +516,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     ** machine as we need the structure first.
     */
     if (ops == FD_NONE) {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Looking for `%s\'\n",
+	if (PROT_TRACE) HTTrace("HTTP........ Looking for `%s\'\n",
 				HTAnchor_physical(anchor));
 	if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
 	    HT_OUTOFMEM("HTLoadHTTP");
@@ -544,10 +544,10 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    HTAA_composeAuth(request);
 	    if (PROT_TRACE) {
 		if (request->authorization)
-		    TTYPrint(TDEST, "HTTP........ Sending Authorization: %s\n",
+		    HTTrace("HTTP........ Sending Authorization: %s\n",
 			    request->authorization);
 		else
-		    TTYPrint(TDEST,
+		    HTTrace(
 			    "HTTP........ Not sending authorization (yet)\n");
 	    }
 	    http->state = HTTP_NEED_CONNECTION;
@@ -569,7 +569,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		HTDNS_setServerClass(net->dns, "http");
 
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "HTTP........ Connected, socket %d\n",
+		    HTTrace("HTTP........ Connected, socket %d\n",
 			    net->sockfd);
 
 		/* Set up stream TO network. If we include a data object in

@@ -79,13 +79,13 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	if ((list = HTRequest_generator(request, &override))) {
 	    HTList *local = list;
 	    HTPostCallback *pres;
-	    if (STREAM_TRACE) TTYPrint(TDEST,"HTTPGen..... Extra local\n");
+	    if (STREAM_TRACE) HTTrace("HTTPGen..... Extra local\n");
 	    while ((pres = (HTPostCallback *) HTList_nextObject(local)))
 		(*pres)(request, me->target);
 	} else if (!override && (list = HTHeader_generator())) {
 	    HTList *global = list;
 	    HTPostCallback *pres;
-	    if (STREAM_TRACE) TTYPrint(TDEST,"HTTPGen..... Extra global\n");
+	    if (STREAM_TRACE) HTTrace("HTTPGen..... Extra global\n");
 	    while ((pres = (HTPostCallback *) HTList_nextObject(global)))
 		(*pres)(request, me->target);
 	}
@@ -94,7 +94,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	sprintf(linebuf, "%c%c", CR, LF);	   /* Blank line means "end" */
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (PROT_TRACE)TTYPrint(TDEST,"HTTP........ Generating General Headers\n");
+    if (PROT_TRACE)HTTrace("HTTP........ Generating General Headers\n");
     return HT_OK;
 }
 
@@ -146,7 +146,7 @@ PRIVATE int HTTPGen_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HT_FREE(me);
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTPGen..... ABORTING...\n");
+    if (PROT_TRACE) HTTrace("HTTPGen..... ABORTING...\n");
     return HT_ERROR;
 }
 

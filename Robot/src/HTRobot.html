@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>W3C Mini Robot</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  5-Dec-1995 -->
+<!-- Changed by: Eric Prud'hommeaux, 13-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -32,13 +33,8 @@ Mini Robot</A>. <P>
 <H2>Handling of output</H2>
 
 <PRE>
-#if WWWTRACE_MODE == WWWTRACE_TTY
-#define STDOUT 1
-#define OUTPUT 2	/* used in TTYPrint's switch for output multiplexing */
-#else
 #define STDOUT stdout
 #define OUTPUT stdout
-#endif
 </PRE>
 
 <PRE>

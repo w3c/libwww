@@ -125,7 +125,7 @@ PRIVATE void handle_attribute_name (HTStream * context, CONST char * s)
     } /* if */
 	
     if (SGML_TRACE)
-	TTYPrint(TDEST, "SGML: Unknown attribute %s for tag %s\n",
+	HTTrace("SGML: Unknown attribute %s for tag %s\n",
 	    s, context->current_tag->name);
     context->current_attribute_number = INVALID;	/* Invalid */
 }
@@ -139,7 +139,7 @@ PRIVATE void handle_attribute_value (HTStream * context, CONST char * s)
     if (context->current_attribute_number != INVALID) {
 	StrAllocCopy(context->value[context->current_attribute_number], s);
     } else {
-        if (SGML_TRACE) TTYPrint(TDEST, "SGML: Attribute value %s ignored\n", s);
+        if (SGML_TRACE) HTTrace("SGML: Attribute value %s ignored\n", s);
     }
     context->current_attribute_number = INVALID; /* can't have two assignments! */
 }
@@ -173,7 +173,7 @@ PRIVATE void handle_entity (HTStream * context, char term)
     }
     /* If entity string not found, display as text */
     if (SGML_TRACE)
-	TTYPrint(TDEST, "SGML: Unknown entity %s\n", s); 
+	HTTrace("SGML: Unknown entity %s\n", s); 
     PUTC('&');
     {
 	CONST char *p;
@@ -202,9 +202,9 @@ PRIVATE BOOL lookup_element_stack (HTElement* stack, HTTag *tag)
 */
 PRIVATE void end_element (HTStream * context, HTTag * old_tag)
 {
-    if (SGML_TRACE) TTYPrint(TDEST, "SGML: End   </%s>\n", old_tag->name);
+    if (SGML_TRACE) HTTrace("SGML: End   </%s>\n", old_tag->name);
     if (old_tag->contents == SGML_EMPTY) {
-        if (SGML_TRACE) TTYPrint(TDEST,"SGML: Illegal end tag </%s> found.\n",
+        if (SGML_TRACE) HTTrace("SGML: Illegal end tag </%s> found.\n",
 		old_tag->name);
 	return;
     }
@@ -219,11 +219,11 @@ PRIVATE void end_element (HTStream * context, HTTag * old_tag)
 	    */
             if (context->element_stack->next   /* This is not the last level */
 		&& lookup_element_stack(context->element_stack, old_tag)) {
-		if (SGML_TRACE) TTYPrint(TDEST,
+		if (SGML_TRACE) HTTrace(
 	    	"SGML: Found </%s> when expecting </%s>. </%s> assumed.\n",
 		    old_tag->name, t->name, t->name);
 	    } else {			/* last level */
-		if (SGML_TRACE) TTYPrint(TDEST,
+		if (SGML_TRACE) HTTrace(
 	            "SGML: Found </%s> when expecting </%s>. </%s> Ignored.\n",
 		    old_tag->name, t->name, old_tag->name);
 	        return;			/* Ignore */
@@ -239,7 +239,7 @@ PRIVATE void end_element (HTStream * context, HTTag * old_tag)
 	/* Syntax error path only */
 	
     }
-    if (SGML_TRACE) TTYPrint(TDEST,
+    if (SGML_TRACE) HTTrace(
 	"SGML: Extra end tag </%s> found and ignored.\n", old_tag->name);
 }
 
@@ -251,7 +251,7 @@ PRIVATE void start_element (HTStream * context)
 {
     HTTag * new_tag = context->current_tag;
     
-    if (SGML_TRACE) TTYPrint(TDEST, "SGML: Start <%s>\n", new_tag->name);
+    if (SGML_TRACE) HTTrace("SGML: Start <%s>\n", new_tag->name);
     (*context->actions->start_element)(
     	context->target,
 	new_tag - context->dtd->tags,
@@ -306,7 +306,7 @@ PUBLIC int SGML_flush  (HTStream * context)
     while (context->element_stack) {
 	HTElement *ptr = context->element_stack;
 	if (SGML_TRACE)
-	    TTYPrint(TDEST, "SGML........ Non-matched tag found: <%s>\n",
+	    HTTrace("SGML........ Non-matched tag found: <%s>\n",
 		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
 	HT_FREE(ptr);
@@ -322,7 +322,7 @@ PUBLIC int SGML_free  (HTStream * context)
 	HTElement *ptr = context->element_stack;
 
 	if (SGML_TRACE)
-	    TTYPrint(TDEST, "SGML........ Non-matched tag found: <%s>\n",
+	    HTTrace("SGML........ Non-matched tag found: <%s>\n",
 		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
 	HT_FREE(ptr);
@@ -343,7 +343,7 @@ PUBLIC int SGML_abort  (HTStream * context, HTList * e)
     while (context->element_stack) {    /* Make sure, that all tags are gone */
 	HTElement *ptr = context->element_stack;
 	if (SGML_TRACE)
-	    TTYPrint(TDEST, "SGML........ Non-matched tag found: <%s>\n",
+	    HTTrace("SGML........ Non-matched tag found: <%s>\n",
 		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
 	HT_FREE(ptr);
@@ -560,7 +560,7 @@ handle_S_tag:
 	    HTTag * t;
 	    if (c=='/') {
 		if (SGML_TRACE) if (string->size!=0)
-		    TTYPrint(TDEST,"SGML:  `<%s/' found!\n", string->data);
+		    HTTrace("SGML:  `<%s/' found!\n", string->data);
 		context->state = S_end;
 		break;
 	    }
@@ -568,7 +568,7 @@ handle_S_tag:
 
 	    t = SGMLFindTag(dtd, string->data);
 	    if (!t) {
-		if(SGML_TRACE) TTYPrint(TDEST, "SGML: *** Unknown element %s\n",
+		if(SGML_TRACE) HTTrace("SGML: *** Unknown element %s\n",
 			string->data);
 		context->state = (c=='>') ? S_text : S_junk_tag;
 		break;
@@ -641,7 +641,7 @@ handle_S_tag:
     case S_equals:			/* After attr = */ 
 	if (WHITE(c)) break;	/* Before attribute value */
 	if (c=='>') {		/* End of tag */
-	    if (SGML_TRACE) TTYPrint(TDEST, "SGML: found = but no value\n");
+	    if (SGML_TRACE) HTTrace("SGML: found = but no value\n");
 	    if (context->current_tag->name) start_element(context);
 	    context->state = S_after_open;
 	    break;
@@ -708,7 +708,7 @@ handle_S_tag:
 		t = SGMLFindTag(dtd, string->data);
 	    }
 	    if (!t) {
-		if(SGML_TRACE) TTYPrint(TDEST,
+		if(SGML_TRACE) HTTrace(
 		    "Unknown end tag </%s>\n", string->data); 
 	    } else {
 	        context->current_tag = t;
@@ -719,7 +719,7 @@ handle_S_tag:
 	    context->current_attribute_number = INVALID;
 	    if (c!='>') {
 		if (SGML_TRACE && !WHITE(c))
-		    TTYPrint(TDEST,"SGML:  `</%s%c' found!\n",
+		    HTTrace("SGML:  `</%s%c' found!\n",
 		    	string->data, c);
 		context->state = S_junk_tag;
 	    } else {

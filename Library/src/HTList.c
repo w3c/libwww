@@ -49,7 +49,7 @@ PUBLIC BOOL HTList_addObject (HTList * me, void * newObject)
 	return YES;
     } else {
 	if (WWWTRACE)
-	    TTYPrint(TDEST,
+	    HTTrace(
 		    "HTList...... Can not add object %p to nonexisting list\n",
 		    newObject);
     }

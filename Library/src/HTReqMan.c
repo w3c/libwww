@@ -702,7 +702,7 @@ PUBLIC BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest)
 	    src->mainDestination = dest;
 	    src->destRequests = 1;
 	    if (WWWTRACE)
-		TTYPrint(TDEST,"POSTWeb..... Adding dest %p to src %p\n",
+		HTTrace("POSTWeb..... Adding dest %p to src %p\n",
 			 dest, src);
 	    return YES;
 	} else {
@@ -710,7 +710,7 @@ PUBLIC BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest)
 	    if (HTList_addObject(src->destinations, (void *) dest)==YES) {
 		src->destRequests++;
 		if (WWWTRACE)
-		    TTYPrint(TDEST,"POSTWeb..... Adding dest %p to src %p\n",
+		    HTTrace("POSTWeb..... Adding dest %p to src %p\n",
 			     dest, src);
 		return YES;
 	    }
@@ -744,12 +744,12 @@ PUBLIC BOOL HTRequest_removeDestination (HTRequest * dest)
 	if (found) {
 	    if (dest->internal) HTRequest_delete(dest);
 	    if (WWWTRACE)
-	    	TTYPrint(TDEST, "POSTWeb..... Deleting dest %p from src %p\n",
+	    	HTTrace("POSTWeb..... Deleting dest %p from src %p\n",
 			 dest, src);
 	}
 	if (src->destRequests <= 0) {
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "POSTWeb..... terminated\n");
+		HTTrace("POSTWeb..... terminated\n");
 	    if (src->internal) HTRequest_delete(src);
 	}
     }
@@ -768,7 +768,7 @@ PUBLIC BOOL HTRequest_destinationsReady (HTRequest * me)
 	if (source->destStreams == source->destRequests) {
 	    HTNet * net = source->net;
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "POSTWeb..... All destinations are ready!\n");
+		HTTrace("POSTWeb..... All destinations are ready!\n");
 	    if (net)			      /* Might already have finished */
 		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
 				 net->cbf, net->priority);
@@ -802,12 +802,12 @@ PUBLIC BOOL HTRequest_linkDestination (HTRequest *dest)
 	source->output_stream = pipe ? pipe : dest->input_stream;
 
 	if (WWWTRACE)
-	    TTYPrint(TDEST,"POSTWeb..... Linking dest %p to src %p\n",
+	    HTTrace("POSTWeb..... Linking dest %p to src %p\n",
 		     dest, source);
 	if (++source->destStreams == source->destRequests) {
 	    HTNet *net = source->net;
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "POSTWeb..... All destinations ready!\n");
+		HTTrace("POSTWeb..... All destinations ready!\n");
 	    if (net)			      /* Might already have finished */
 		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
 				 net->cbf, net->priority);
@@ -841,7 +841,7 @@ PUBLIC BOOL HTRequest_unlinkDestination (HTRequest *dest)
 	if (found) {
 	    src->destStreams--;
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "POSTWeb..... Unlinking dest %p from src %p\n",
+		HTTrace("POSTWeb..... Unlinking dest %p from src %p\n",
 			 dest, src);
 	    return YES;
 	}
@@ -887,7 +887,7 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 {
     if (me && me->source) {
 	HTRequest *source = me->source;
-	if (WWWTRACE) TTYPrint(TDEST, "POSTWeb..... Killing\n");
+	if (WWWTRACE) HTTrace("POSTWeb..... Killing\n");
 
 	/*
 	** Kill source. The stream tree is now freed so we have to build
@@ -994,7 +994,7 @@ PRIVATE int get_physical (HTRequest *req)
 PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
 {
     if (!request || !request->anchor) {
-        if (PROT_TRACE) TTYPrint(TDEST, "Load Start.. Bad argument\n");
+        if (PROT_TRACE) HTTrace("Load Start.. Bad argument\n");
         return NO;
     }
     if (request->method == METHOD_INVALID) request->method = METHOD_GET;

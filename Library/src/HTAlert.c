@@ -61,7 +61,7 @@ PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
 			     HTAlertOpcode opcode)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST, "Alert Add... HTAlertCallback %p\n", (void *) cbf);
+	HTTrace("Alert Add... HTAlertCallback %p\n", (void *) cbf);
     if (list && cbf) {
 	HTAlert *me;
 	if ((me = (HTAlert  *) HT_CALLOC(1, sizeof(HTAlert))) == NULL)
@@ -80,7 +80,7 @@ PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
 PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST, "Call delete HTAlertCallback %p\n", (void *) cbf);
+	HTTrace("Call delete HTAlertCallback %p\n", (void *) cbf);
     if (list && cbf) {
 	HTList *cur = list;
 	HTAlert *pres;
@@ -102,7 +102,7 @@ PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
 PUBLIC BOOL HTAlertCall_deleteAll (HTList * list)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST, "Call delete All callback functions\n");
+	HTTrace("Call delete All callback functions\n");
     if (list) {
 	HTList *cur = list;
 	HTAlert *pres;
@@ -130,7 +130,7 @@ PUBLIC HTAlertCallback * HTAlertCall_find (HTList * list, HTAlertOpcode opcode)
 		return pres->cbf;
 	}
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Alert Find.. No entry found for opcode %d\n",opcode);
+	    HTTrace("Alert Find.. No entry found for opcode %d\n",opcode);
     }
     return NULL;
 }

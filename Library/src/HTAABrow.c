@@ -169,24 +169,24 @@ PRIVATE HTAASetup *HTAASetup_lookup (CONST char * hostname,
 	HTList *cur = server->setups;
 
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Access Auth. resolving setup for (%s:%d:%s)\n",
+	    HTTrace("Access Auth. resolving setup for (%s:%d:%s)\n",
 		    hostname, portnumber, docname);
 
 	while (NULL != (setup = (HTAASetup*)HTList_nextObject(cur))) {
 	    if (HTAA_templateMatch(setup->tmplate, docname)) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Access Auth. `%s' matched template `%s'\n",
+		    HTTrace("Access Auth. `%s' matched template `%s'\n",
 			    docname, setup->tmplate);
 		return setup;
 	    }
 	    else if (PROT_TRACE)
-		TTYPrint(TDEST,"%s `%s' %s `%s'\n","HTAASetup_lookup:", docname,
+		HTTrace("%s `%s' %s `%s'\n","HTAASetup_lookup:", docname,
 			"did NOT match template", setup->tmplate);
 	} /* while setups remain */
     } /* if valid parameters and server found */
 
     if (PROT_TRACE)
-	TTYPrint(TDEST, "Access Auth. `%s' (so probably not protected)\n",
+	HTTrace("Access Auth. `%s' (so probably not protected)\n",
 		(docname ? docname : "(null)"));
     return NULL;			 /* NULL in parameters, or not found */
 }
@@ -519,7 +519,7 @@ PUBLIC BOOL HTAA_composeAuth (HTRequest * req)
     else portnumber = 80;
 	
     if (PROT_TRACE)
-	TTYPrint(TDEST, "Access Auth. composing authorization for %s:%d/%s\n",
+	HTTrace("Access Auth. composing authorization for %s:%d/%s\n",
 		hostname, portnumber, docname);
 
 #ifdef OLD_CODE
@@ -616,7 +616,7 @@ PUBLIC BOOL HTPasswordDialog (HTRequest * req)
     HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
     if (!req || !req->setup || !req->realm || !req->dialog_msg) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Access...... called with an illegal parameter");
+	    HTTrace("Access...... called with an illegal parameter");
 	return NO;
     }
     if (cbf) {
@@ -713,7 +713,7 @@ PUBLIC BOOL HTAA_retryWithAuth (HTRequest * req)
 	else portnumber = 80;
 	
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "HTAA_retryWithAuth: first retry of %s:%d/%s\n",
+	    HTTrace("HTAA_retryWithAuth: first retry of %s:%d/%s\n",
 		    hostname, portnumber, docname);
 
 	if (!(server = HTAAServer_lookup(hostname, portnumber))) {
@@ -797,7 +797,7 @@ PUBLIC BOOL HTAA_authentication (HTRequest * request)
     }
     if (request->WWWprotection) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Protection template set to `%s'\n",
+	    HTTrace("Protection template set to `%s'\n",
 		    request->WWWprotection);
 	StrAllocCopy(tmplate, request->WWWprotection);
     }

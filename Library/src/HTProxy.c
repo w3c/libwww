@@ -81,7 +81,7 @@ PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
 	}
 	if (pres) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HTProxy..... replacing for `%s\' access %s\n",
+		HTTrace("HTProxy..... replacing for `%s\' access %s\n",
 			me->url, me->access);
 	    HT_FREE(pres->access);
 	    HT_FREE(pres->url);
@@ -89,7 +89,7 @@ PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
 	    HT_FREE(pres);
 	}
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "HTProxy..... adding for `%s\' access %s\n",
+	    HTTrace("HTProxy..... adding for `%s\' access %s\n",
 		    me->url, me->access);
 	HTList_addObject(list, (void *) me);
     }
@@ -136,7 +136,7 @@ PRIVATE BOOL add_hostname (HTList * list, CONST char * host,
     }
     me->port = port;					      /* Port number */
     if (PROT_TRACE)
-	TTYPrint(TDEST, "HTHostList.. adding `%s\' to list\n", me->host);
+	HTTrace("HTHostList.. adding `%s\' to list\n", me->host);
     HTList_addObject(list, (void *) me);
     return YES;
 }
@@ -284,7 +284,7 @@ PUBLIC char * HTProxy_find (CONST char * url)
 			while (np>=pres->host && hp>=host && (*np--==*hp--));
 			if (np==pres->host-1 && (hp==host-1 || *hp=='.')) {
 			    if (PROT_TRACE)
-				TTYPrint(TDEST, "GetProxy.... No proxy directive found: `%s\'\n", pres->host);
+				HTTrace("GetProxy.... No proxy directive found: `%s\'\n", pres->host);
 			    HT_FREE(access);
 			    return NULL;
 			}
@@ -303,7 +303,7 @@ PUBLIC char * HTProxy_find (CONST char * url)
 	    if (!strcmp(pres->access, access)) {
 		StrAllocCopy(proxy, pres->url);
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "GetProxy.... Found: `%s\'\n", pres->url);
+		    HTTrace("GetProxy.... Found: `%s\'\n", pres->url);
 		break;
 	    }
 	}
@@ -341,7 +341,7 @@ PUBLIC char * HTGateway_find (CONST char * url)
 	    if (!strcmp(pres->access, access)) {
 		StrAllocCopy(gateway, pres->url);
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "GetGateway.. Found: `%s\'\n", pres->url);
+		    HTTrace("GetGateway.. Found: `%s\'\n", pres->url);
 		break;
 	    }
 	}

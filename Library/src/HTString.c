@@ -168,3 +168,29 @@ PUBLIC char * HTStrip (char * s)
     }
     return s;
 }
+
+PRIVATE HTTraceCallback * PHTTraceCallback;
+
+PUBLIC void HTTrace_setCallback(HTTraceCallback * pCall)
+{
+    PHTTraceCallback = pCall;
+}
+
+PUBLIC HTTraceCallback * HTTrace_getCallback(void)
+{
+    return PHTTraceCallback;
+}
+
+PUBLIC int HTTrace(const char * fmt, ...)
+{
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    if (PHTTraceCallback)
+	(*PHTTraceCallback)(fmt, pArgs);
+#ifdef WWW_MSWINDOWS
+    return (0);
+#else
+    return (vfprintf(stderr, fmt, pArgs));
+#endif
+}
+

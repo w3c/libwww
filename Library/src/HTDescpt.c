@@ -47,12 +47,12 @@ PUBLIC HTList * HTReadDescriptions (char * dirname)
     fp = fopen(name, "r");
     if (!fp) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "DirBrowse... No description file %s\n", name);
+	    HTTrace("DirBrowse... No description file %s\n", name);
 	HT_FREE(name);
 	return NULL;
     } else {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "DirBrowse... Description file found %s\n", name);
+	    HTTrace("DirBrowse... Description file found %s\n", name);
     }
 
     list = HTList_new();
@@ -89,7 +89,7 @@ PUBLIC HTList * HTReadDescriptions (char * dirname)
 	    sprintf(stuff, "%s %s", t, d);
 	    HTList_addObject(list, (void*)stuff);
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "Description. %s\n", stuff);
+		HTTrace("Description. %s\n", stuff);
 	}
     }
     fclose(fp);
@@ -128,7 +128,7 @@ PRIVATE char * HTPeekTitle (char * dirname,
     HT_FREE(ret);	/* from previous call */
 
     if (PROT_TRACE)
-	TTYPrint(TDEST, "HTPeekTitle. called, dirname=%s filename=%s\n",
+	HTTrace("HTPeekTitle. called, dirname=%s filename=%s\n",
 		dirname ? dirname : "-null-",
 		filename ? filename : "-null-");
 
@@ -141,7 +141,7 @@ PRIVATE char * HTPeekTitle (char * dirname,
     fp = fopen(name, "r");
     if (!fp) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "HTPeekTitle. fopen failed\n");
+	    HTTrace("HTPeekTitle. fopen failed\n");
 	goto cleanup;
     }
 
@@ -181,7 +181,7 @@ PRIVATE char * HTPeekTitle (char * dirname,
 
   cleanup:
     if (PROT_TRACE)
-	TTYPrint(TDEST, "HTPeekTitle. returning %c%s%c\n",
+	HTTrace("HTPeekTitle. returning %c%s%c\n",
 		ret ? '"' : '-',  ret ? ret : "null",  ret ? '"' : '-');
     HT_FREE(name);
     return ret;

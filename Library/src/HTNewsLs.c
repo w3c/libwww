@@ -147,7 +147,7 @@ PRIVATE int HTNewsList_put_block (HTStream * me, CONST char * b, int l)
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_NEWS_LINE) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "News Dir.... Line too long - chopped\n");
+		    HTTrace("News Dir.... Line too long - chopped\n");
 		*(me->buffer+me->buflen) = '\0';
 		me->group ? ParseGroup(me->dir, me->buffer) :
 		    ParseList(me->dir, me->buffer);
@@ -184,7 +184,7 @@ PRIVATE int HTNewsList_free (HTStream * me)
 
 PRIVATE int HTNewsList_abort (HTStream * me, HTList * e)
 {
-    if (PROT_TRACE) TTYPrint(TDEST, "News Dir.... ABORTING...\n");
+    if (PROT_TRACE) HTTrace("News Dir.... ABORTING...\n");
     HTNewsList_free(me);
     return HT_ERROR;
 }

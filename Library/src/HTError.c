@@ -70,7 +70,7 @@ PUBLIC BOOL HTError_add (HTList * 	list,
     }
     newError->where = where;
     if (WWWTRACE) {
-	TTYPrint(TDEST, "Error Add... number: %3d\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	HTTrace("Error Add... number: %3d\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		 element,
 		newError->severity,
 		newError->par ? (char *) newError->par : "Unspecified",
@@ -136,7 +136,7 @@ PUBLIC BOOL HTError_deleteLast (HTList * list)
     if (list) {
 	HTError *old = HTList_removeLastObject(list);
 	if (old) {
-	    if (WWWTRACE) TTYPrint(TDEST, "Error.Delete %p\n", old);
+	    if (WWWTRACE) HTTrace("Error.Delete %p\n", old);
 	    HT_FREE(old->par);
 	    HT_FREE(old);
 	    return YES;
@@ -155,7 +155,7 @@ PUBLIC BOOL HTError_ignoreLast (HTList * list)
     if (list) {
 	HTError *last = HTList_lastObject(list);
 	if (last) {
-	    if (WWWTRACE) TTYPrint(TDEST, "Error.Ignore %p\n", last);
+	    if (WWWTRACE) HTTrace("Error.Ignore %p\n", last);
 	    last->ignore = YES;
 	    return YES;
 	}

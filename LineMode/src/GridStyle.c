@@ -160,7 +160,7 @@ HTStyle * HTStyleNamed (HTStyleSheet * self, CONST char * name)
     for (scan=self->styles; scan; scan=scan->next)
         if (0==strcmp(scan->name, name)) return scan;
     if (SGML_TRACE)
-	TTYPrint(TDEST, "StyleSheet: No style named `%s'\n", name);
+	HTTrace("StyleSheet: No style named `%s'\n", name);
     return 0;
 }
 
@@ -244,7 +244,7 @@ HTStyleSheet * HTStyleSheetRead(HTStyleSheet * self, NXStream * stream)
     char styleName[80];
     NXScanf(stream, " %d ", &numStyles);
     if (SGML_TRACE)
-	TTYPrint(TDEST, "Stylesheet: Reading %d styles\n", numStyles);
+	HTTrace("Stylesheet: Reading %d styles\n", numStyles);
     for (i=0; i<numStyles; i++) {
         NXScanf(stream, "%s", styleName);
         style = HTStyleNamed(self, styleName);
@@ -274,7 +274,7 @@ HTStyleSheet * HTStyleSheetWrite(HTStyleSheet * self, NXStream * stream)
     NXPrintf(stream, "%d\n", numStyles);
     
     if (SGML_TRACE)
-	TTYPrint(TDEST, "StyleSheet: Writing %d styles\n", numStyles);
+	HTTrace("StyleSheet: Writing %d styles\n", numStyles);
     for (style=self->styles; style; style=style->next) {
         NXPrintf(stream, "%s ", style->name);
 	(void) HTStyleWrite(style, stream);

@@ -150,7 +150,7 @@ PRIVATE HTList * dir_matches (char * path)
     dp = opendir(dirname);
     if (!dp) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST,"Warning..... Can't open directory %s\n", dirname);
+	    HTTrace("Warning..... Can't open directory %s\n", dirname);
 	goto dir_match_failed;
     }
 
@@ -220,26 +220,26 @@ PRIVATE char * HTGetBest (HTRequest * req, char * path)
     matches = dir_matches(path);
     if (!matches) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "No matches.. for \"%s\"\n", path);
+	    HTTrace("No matches.. for \"%s\"\n", path);
 	return NULL;
     }
 
     /* BEGIN DEBUG */
     cur = matches;
     if (PROT_TRACE)
-	TTYPrint(TDEST, "Multi....... Possibilities for \"%s\"\n", path);
+	HTTrace("Multi....... Possibilities for \"%s\"\n", path);
     if (PROT_TRACE)
-	TTYPrint(TDEST, "\nCONTENT-TYPE  LANGUAGE  ENCODING  QUALITY  FILE\n");
+	HTTrace("\nCONTENT-TYPE  LANGUAGE  ENCODING  QUALITY  FILE\n");
     while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
 	if (PROT_TRACE)
-	   TTYPrint(TDEST, "%s\t%s\t%s\t  %.5f  %s\n",
+	   HTTrace("%s\t%s\t%s\t  %.5f  %s\n",
 		   cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
 		   cd->content_language?HTAtom_name(cd->content_language):"-",
 		   cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
 		   cd->quality,
 		   cd->filename        ?cd->filename                     :"-");
     }
-    if (PROT_TRACE) TTYPrint(TDEST, "\n");
+    if (PROT_TRACE) HTTrace("\n");
     /* END DEBUG */
 
     /*
@@ -253,7 +253,7 @@ PRIVATE char * HTGetBest (HTRequest * req, char * path)
 		    StrAllocCopy(best_path, best->filename);
 		    break;
 		} else if (PROT_TRACE)
-		    TTYPrint(TDEST, "Bad News.... \"%s\" is not readable\n",
+		    HTTrace("Bad News.... \"%s\" is not readable\n",
 			    best->filename);
 	    }
 	}
@@ -308,7 +308,7 @@ PRIVATE char * get_best_welcome (char * path)
     if (last && last!=path) *last='/';
     if (!dp) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Warning..... Can't open directory %s\n",path);
+	    HTTrace("Warning..... Can't open directory %s\n",path);
 	return NULL;
     }
     while ((dirbuf = readdir(dp))) {
@@ -334,7 +334,7 @@ PRIVATE char * get_best_welcome (char * path)
 	sprintf(welcome, "%s%s%s", path, last ? "" : "/", best_welcome);
 	HT_FREE(best_welcome);
 	if (PROT_TRACE)
-	    TTYPrint(TDEST,"Welcome..... \"%s\"\n",welcome);
+	    HTTrace("Welcome..... \"%s\"\n",welcome);
 	return welcome;
     }
     return NULL;
@@ -379,10 +379,10 @@ PUBLIC char * HTMulti (HTRequest *	req,
 	char * multi = strrchr(path, MULTI_SUFFIX[0]);
 	if (multi && !strcasecomp(multi, MULTI_SUFFIX)) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "Multi....... by %s suffix\n", MULTI_SUFFIX);
+		HTTrace("Multi....... by %s suffix\n", MULTI_SUFFIX);
 	    if (!(new_path = HTGetBest(req, path))) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Multi....... failed -- giving up\n");
+		    HTTrace("Multi....... failed -- giving up\n");
 		return NULL;
 	    }
 	    path = new_path;
@@ -391,12 +391,12 @@ PUBLIC char * HTMulti (HTRequest *	req,
 	    stat_status = HT_STAT(path, stat_info);
 	    if (stat_status == -1) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST,
+		    HTTrace(
 			    "AutoMulti... can't stat \"%s\"(errno %d)\n",
 			    path, errno);
 		if (!(new_path = HTGetBest(req, path))) {
 		    if (PROT_TRACE)
-			TTYPrint(TDEST, "AutoMulti... failed -- giving up\n");
+			HTTrace("AutoMulti... failed -- giving up\n");
 		    return NULL;
 		}
 		path = new_path;
@@ -409,7 +409,7 @@ PUBLIC char * HTMulti (HTRequest *	req,
 	stat_status = HT_STAT(path, stat_info);
     if (stat_status == -1) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Stat fails.. on \"%s\" -- giving up (errno %d)\n",
+	    HTTrace("Stat fails.. on \"%s\" -- giving up (errno %d)\n",
 		    path, errno);
 	return NULL;
     }

@@ -94,7 +94,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
     int b_read = isoc->read - isoc->buffer;
     int status;
     if (!isoc || isoc->sockfd==INVSOC) {
-	if (PROT_TRACE) TTYPrint(TDEST, "Read Socket. Bad argument\n");
+	if (PROT_TRACE) HTTrace("Read Socket. Bad argument\n");
 	return HT_ERROR;
     }
 
@@ -110,7 +110,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 #endif	
 		{
 		    if (PROT_TRACE)
-			TTYPrint(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
+			HTTrace("Read Socket. WOULD BLOCK soc %d\n",
 				isoc->sockfd);
 		    HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
 				     net->cbf, net->priority);
@@ -133,7 +133,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 	    } else if (!b_read) {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
 		if (PROT_TRACE)
-		    TTYPrint(TDEST,"Read Socket. Finished loading socket %d\n",
+		    HTTrace("Read Socket. Finished loading socket %d\n",
 			     isoc->sockfd);
 		if(cbf)(*cbf)(request,HT_PROG_DONE,HT_MSG_NULL,NULL,NULL,NULL);
 	        HTEvent_UnRegister(isoc->sockfd, FD_READ);
@@ -154,7 +154,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 	    }
 #endif
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "Read Socket. %d bytes read from socket %d\n",
+		HTTrace("Read Socket. %d bytes read from socket %d\n",
 			b_read, isoc->sockfd);
 	    net->bytes_read += b_read;
 
@@ -170,21 +170,21 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 						b_read)) != HT_OK) {
 	    if (status==HT_WOULD_BLOCK) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Read Socket. Target WOULD BLOCK\n");
+		    HTTrace("Read Socket. Target WOULD BLOCK\n");
 		HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
-		if (PROT_TRACE) TTYPrint(TDEST,"Read Socket. Target PAUSED\n");
+		if (PROT_TRACE) HTTrace("Read Socket. Target PAUSED\n");
 		HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_PAUSE;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Read Socket. Target returns %d\n",status);
+		    HTTrace("Read Socket. Target returns %d\n",status);
 		isoc->write = isoc->buffer + b_read;
 		return status;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Read Socket. Target ERROR\n");
+		    HTTrace("Read Socket. Target ERROR\n");
 		return status;
 	    }
 	}
@@ -225,7 +225,7 @@ PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
     int b_read;
     int status;
     if (!fp) {
-	if (PROT_TRACE) TTYPrint(TDEST, "Read File... Bad argument\n");
+	if (PROT_TRACE) HTTrace("Read File... Bad argument\n");
 	return HT_ERROR;
     }
 
@@ -233,21 +233,21 @@ PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
 	if ((b_read = fread(isoc->buffer, 1, INPUT_BUFFER_SIZE, fp))==0){
 	    if (ferror(fp)) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Read File... READ ERROR\n");
+		    HTTrace("Read File... READ ERROR\n");
 	    } else
 		return HT_LOADED;
 	}
 	isoc->write = isoc->buffer;
 	isoc->read = isoc->buffer + b_read;
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Read File... %d bytes read from file %p\n",
+	    HTTrace("Read File... %d bytes read from file %p\n",
 		    b_read, fp);
 
 	/* Now push the data down the stream (we use blocking I/O) */
 	if ((status = (*target->isa->put_block)(target, isoc->buffer,
 						b_read)) != HT_OK) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "Read File... Target ERROR\n");
+		HTTrace("Read File... Target ERROR\n");
 	    return status;
 	}
 	isoc->write = isoc->buffer + b_read;
@@ -271,10 +271,10 @@ PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
     if (ops == FD_NONE) {
 	HTNet * me;
 	if (soc==INVSOC) {
-	    if (PROT_TRACE) TTYPrint(TDEST, "Load Socket. invalid socket\n");
+	    if (PROT_TRACE) HTTrace("Load Socket. invalid socket\n");
 	    return HT_ERROR;
 	}
-	if (PROT_TRACE) TTYPrint(TDEST,"Load Socket. Loading socket %d\n",soc);
+	if (PROT_TRACE) HTTrace("Load Socket. Loading socket %d\n",soc);
 	me = HTNet_new(request, soc);
 	me->sockfd = soc;
 	me->target = request->output_stream;
@@ -286,7 +286,7 @@ PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
     } else
 	net = request->net;
     if (!net) {
-	if (PROT_TRACE) TTYPrint(TDEST, "Load Socket. invalid argument\n");
+	if (PROT_TRACE) HTTrace("Load Socket. invalid argument\n");
 	return HT_ERROR;
     }
 

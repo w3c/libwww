@@ -25,21 +25,21 @@ extern char *   end_reference;                             /* for end anchor */
 extern char *   reference_mark;                       /* for reference lists */
 extern char *   end_mark;                         /* Format string for [End] */
 
-/* TTYPrint - EGP */
-#if WWWTRACE_MODE == WWWTRACE_TTY
-#define STDOUT 1
-#define OUTPUT 2 /* used in TTYPrint's switch for output multiplexing */
-#else
-#define STDOUT stdout
-#define OUTPUT output /* output is a global target for output redirection */
-#endif /* WWWTRACE_TTY */
+typedef struct _LineMode LineMode;
+typedef struct _HTView HTView;
 
+extern int OutputData(HTView * pView, const char  * fmt, ...);
 #endif /* HTBROWSE_H */
 
 /* for access to windows app's windows procedures */
 typedef int InputParser_t (char* buf, SOCKET s, HTRequest * req, SockOps ops);
 extern InputParser_t * PInputParser;
 PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps ops);
+extern LineMode * Context_getLineMode(HTRequest * request);
+extern HTRequest * LineMode_getConsole(LineMode * pLm);
+extern HTView * LineMode_getView(LineMode * pLm);
+extern HTView * HTView_create(char* name, int rows, int cols, LineMode * pLm);
+extern BOOL HTView_destroy(HTView * pView);
 /*
 
    End of HTBrowse Declaration */

@@ -34,7 +34,7 @@ SHELL = /bin/sh
 #	self-documenting hypertext files.
 .SUFFIXES: .h .html
 .html.h:
-	www -w90 -na -p -to text/x-c $*.html > $*.h
+	/afs/w3.org/www-name/WWW-frystyk/WWW/LineMode/sun4-sol2/www -w90 -na -p -to text/x-c $*.html > $*.h
 
 #	If this is actually run in a subdirectory,
 # WWW = ../../..

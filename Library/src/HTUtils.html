@@ -1,7 +1,8 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 10-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 13-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -103,59 +104,6 @@ the same time.
 #define ANCH_TRACE	(WWWTRACE & SHOW_ANCHOR_TRACE)
 </PRE>
 
-<H3>Destination for Trace Messages</H3>
-
-You can send trace messages to various destinations depending on the
-type of your application. By default, on Unix the messages are sent to
-stderr using fprintf() and if we are on Windows and have a windows
-applications then use the TTYPrint function.
-
-<PRE>
-#define WWWTRACE_FILE	1		/* Output to file */
-#define WWWTRACE_STDERR	2		/* Output to stderr */
-#define WWWTRACE_TTY	3		/* Output to TTY */
-
-#ifndef WWWTRACE_MODE
-#ifdef WWW_WIN_WINDOW
-#define WWWTRACE_MODE WWWTRACE_TTY
-#else
-#define WWWTRACE_MODE WWWTRACE_STDERR
-#endif
-#endif
-
-#if WWWTRACE_MODE == WWWTRACE_FILE
-extern FILE *WWWTrace;
-#ifndef HT_TRACE_FILE
-#define HT_TRACE_FILE	"WWWTRACE.TXT"
-#endif
-#define TTYPrint fprintf
-#define TDEST	 WWWTrace
-#endif
-
-#if WWWTRACE_MODE == WWWTRACE_STDERR
-#define TTYPrint fprintf
-#define TDEST	 stderr
-#endif
-
-#if WWWTRACE_MODE == WWWTRACE_TTY
-#ifdef WWW_WIN_WINDOW
-/* standard windows 3.x and non-console WIN32 programs */
-#define TDEST    0
-#ifdef WWW_WIN_DLL
-typedef int TTYPrint_t(unsigned int target, const char* fmt, ...);
-extern TTYPrint_t** PTTYPrint;
-#define TTYPrint (**PTTYPrint)
-#else
-int TTYPrint(unsigned int target, const char* fmt, ...);
-#endif
-#else
-/* if there is a real console, us it */
-#define TDEST    stderr
-int TTYPrint(FILE* target, const char* fmt, ...);
-#endif
-#endif
-</PRE>
-
 <H2>Standard C library for malloc() etc</H2>
 
 Replace memory allocation and free C RTL functions with VAXC$xxx_OPT
@@ -243,6 +191,24 @@ very often doesn't work. If you are going to use it then watch out!
 #else
 #include &lt;varargs.h&gt;
 #endif
+</PRE>
+
+<H3>Destination for Trace Messages</H3>
+
+You can send trace messages to various destinations depending on the
+type of your application. By default, on Unix the messages are sent to
+stderr using fprintf() and if we are on Windows and have a windows
+applications then register a HTTraceCallback function. This is done with
+HTTrace_setCallback. It tells HTTrace to call a HTTraceCallback. If your 
+compiler has problems with va_list, then you may forget about registering 
+the callback and instead macro HTTrace as follows:
+#define HTTrace MyAppSpecificTrace
+
+<PRE>
+typedef int HTTraceCallback(const char * fmt, va_list pArgs);
+extern void HTTrace_setCallback(HTTraceCallback * pCall);
+extern HTTraceCallback * HTTrace_getCallback(void);
+extern int HTTrace(const char * fmt, ...);
 </PRE>
 
 <H2>Booleans</H2>

@@ -328,7 +328,7 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 	    *end = '\0';
 	if ((file = strrchr(path, '/'))) {
  	    if (BIND_TRACE)
-		TTYPrint(TDEST,"Get Binding. for file: `%s\'\n", path);
+		HTTrace("Get Binding. for file: `%s\'\n", path);
 	    status = HTBind_getFormat(file, &anchor->content_type,
 				      &anchor->content_encoding,
 				      &anchor->content_language,
@@ -378,7 +378,7 @@ PUBLIC BOOL HTBind_getFormat (CONST char * filename, HTFormat * format,
 	    int hash=0;
 	    char *ptr=suffix;
 	    if (BIND_TRACE)
-		TTYPrint(TDEST, "Get Binding. Look for '%s\' ", suffix);
+		HTTrace("Get Binding. Look for '%s\' ", suffix);
 	    sufcnt++;
 
 	    /* Select list from hash table */
@@ -391,7 +391,7 @@ PUBLIC BOOL HTBind_getFormat (CONST char * filename, HTFormat * format,
 		while ((suff = (HTBind *) HTList_nextObject(cur))) {
 		    if ((HTCaseSen && !strcmp(suff->suffix, suffix)) ||
 			!strcasecomp(suff->suffix, suffix)) {
-			if (BIND_TRACE) TTYPrint(TDEST, "Found!\n");
+			if (BIND_TRACE) HTTrace("Found!\n");
 			if (suff->type && format) *format = suff->type;
 			if (suff->encoding && enc) *enc = suff->encoding;
 			if (suff->language && lang) *lang = suff->language;
@@ -403,7 +403,7 @@ PUBLIC BOOL HTBind_getFormat (CONST char * filename, HTFormat * format,
 	    }
 	    if (!suff) {	/* We don't have this suffix - use default */
 		if (BIND_TRACE)
-		    TTYPrint(TDEST,"Not found - use default for \'*.*\'\n");
+		    HTTrace("Not found - use default for \'*.*\'\n");
 		if (format) *format = unknown_suffix.type;
 		if (enc) *enc = unknown_suffix.encoding;
 		if (lang) *lang = unknown_suffix.language;
@@ -413,14 +413,14 @@ PUBLIC BOOL HTBind_getFormat (CONST char * filename, HTFormat * format,
     }
     if (!sufcnt) {		/* No suffix so use default value */
 	if (BIND_TRACE)
-	    TTYPrint(TDEST, "Get Binding. No suffix found - using default '%s\'\n", filename);
+	    HTTrace("Get Binding. No suffix found - using default '%s\'\n", filename);
 	if (format) *format = no_suffix.type;
 	if (enc) *enc = no_suffix.encoding;
 	if (lang) *lang = no_suffix.language;
 	*quality = no_suffix.quality;
     }
     if (BIND_TRACE)
-	TTYPrint(TDEST, "Get Binding. Result for '%s\' is: type='%s\', encoding='%s\', language='%s\' with quality %.2f\n",
+	HTTrace("Get Binding. Result for '%s\' is: type='%s\', encoding='%s\', language='%s\' with quality %.2f\n",
 		filename,
 		(format && *format) ? HTAtom_name(*format) : "unknown",
 		(enc && *enc) ? HTAtom_name(*enc) : "unknown",

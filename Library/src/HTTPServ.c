@@ -117,7 +117,7 @@ PRIVATE int MakeReplyPipe (HTStream *me, HTRequest *server, HTRequest *client)
 	int version = HTDNS_serverVersion(cdns);
 	/* We are not using the version info for the moment */
 	if (s_class && !strcasecomp(s_class, "http")) {
-	    if (STREAM_TRACE) TTYPrint(TDEST, "HTTP Reply.. Direct output\n");
+	    if (STREAM_TRACE) HTTrace("HTTP Reply.. Direct output\n");
 	    return HT_OK;
 	}
     }
@@ -190,7 +190,7 @@ PRIVATE int HTTPReply_flush (HTStream * me)
 PRIVATE int HTTPReply_free (HTStream * me)
 {
     int status = HTTPReply_flush(me);
-    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPReply... Freeing server stream\n");
+    if (STREAM_TRACE) HTTrace("HTTPReply... Freeing server stream\n");
     if (status != HT_WOULD_BLOCK) {
 	HTNet * snet = me->request->net;
 	if ((status = FREE_TARGET) == HT_WOULD_BLOCK) return HT_WOULD_BLOCK;
@@ -198,7 +198,7 @@ PRIVATE int HTTPReply_free (HTStream * me)
 	/* We can't do this until we get a better event loop */
 	if (snet->persistent) {
 	    if (STREAM_TRACE)
-		TTYPrint(TDEST, "HTTPReply... Persistent conenction\n");
+		HTTrace("HTTPReply... Persistent conenction\n");
 	    HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
 			     snet->cbf, snet->priority);
 	    HTRequest_clear(me->request);
@@ -224,13 +224,13 @@ PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
 			   NULL, 0, "HTTPReply_abort");
 	MakeReplyPipe(me, me->request, me->client);
     }
-    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPReply... ABORTING\n");
+    if (STREAM_TRACE) HTTrace("HTTPReply... ABORTING\n");
     if (me->target) ABORT_TARGET;
 #if 0
     /* We can't do this until we get a better event loop */
     if (snet->persistent) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST, "HTTPReply... Persistent conenction\n");
+	    HTTrace("HTTPReply... Persistent conenction\n");
 	HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
 			 snet->cbf, snet->priority);
 	HTRequest_clear(me->request);
@@ -317,7 +317,7 @@ PRIVATE int ParseRequest (HTStream * me)
 	StrAllocCopy(me->http->version, version_str);
 	return HT_OK;
     } else {
-	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is formatted as 0.9\n");
+	if (PROT_TRACE) HTTrace("Request Line is formatted as 0.9\n");
 	return HT_LOADED;
     }
 }
@@ -379,7 +379,7 @@ PRIVATE int HTTPReceive_abort (HTStream * me, HTList * e)
     if (me->target) ABORT_TARGET;
     HTChunk_delete(me->buffer);
     HT_FREE(me);
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTPReceive. ABORTING...\n");
+    if (PROT_TRACE) HTTrace("HTTPReceive. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -430,7 +430,7 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     */
     if (ops == FD_NONE) {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST,"HTTP Serve.. request %p on socket %d\n",
+	    HTTrace("HTTP Serve.. request %p on socket %d\n",
 		     request, soc);
 	if ((http = (https_info *) HT_CALLOC(1, sizeof(https_info))) == NULL)
 	    HT_OUTOFMEM("HTServHTTP");

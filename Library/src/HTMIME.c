@@ -391,7 +391,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		    anchor->methods += new_method;
 	    }
 	    if (STREAM_TRACE)
-		TTYPrint(TDEST, "MIMEParser.. Methods allowed: %d\n",
+		HTTrace("MIMEParser.. Methods allowed: %d\n",
 			anchor->methods);
 	    state = JUNK_LINE;
 	    break;
@@ -410,7 +410,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
  	    if ((value = HTNextField(&ptr)) != NULL) {
 		if (!strcasecomp(value, "keep-alive")) {
 		    if (STREAM_TRACE)
-			TTYPrint(TDEST,"MIMEParser.. Persistent Connection\n");
+			HTTrace("MIMEParser.. Persistent Connection\n");
 		    me->net->persistent = YES;
 		    HTDNS_setSocket(me->net->dns, me->net->sockfd);
 		}
@@ -541,7 +541,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		int status;
 		BOOL override;
 		if (STREAM_TRACE)
-		    TTYPrint(TDEST,"MIMEParser.. Unknown `%s\'\n", header);
+		    HTTrace("MIMEParser.. Unknown `%s\'\n", header);
 		if ((list = HTRequest_parser(request, &override)) &&
 		    (cbf = HTParser_find(list, header)) &&
 		    (status = (*cbf)(request, header) != HT_OK)) {
@@ -573,7 +573,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 
     /* News server almost never send content type or content length */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
-	if (STREAM_TRACE) TTYPrint(TDEST, "MIMEParser.. Convert %s to %s\n",
+	if (STREAM_TRACE) HTTrace("MIMEParser.. Convert %s to %s\n",
 				   HTAtom_name(anchor->content_type),
 				   HTAtom_name(me->target_format));
 	me->target = HTStreamStack(anchor->content_type, me->target_format,
@@ -718,7 +718,7 @@ PRIVATE int HTMIME_free (HTStream * me)
 	    return HT_WOULD_BLOCK;
     }
     if (PROT_TRACE)
-	TTYPrint(TDEST, "MIME........ FREEING....\n");
+	HTTrace("MIME........ FREEING....\n");
     HTChunk_delete(me->buffer);
     HT_FREE(me);
     return status;
@@ -731,7 +731,7 @@ PRIVATE int HTMIME_abort (HTStream * me, HTList * e)
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE)
-	TTYPrint(TDEST, "MIME........ ABORTING...\n");
+	HTTrace("MIME........ ABORTING...\n");
     HTChunk_delete(me->buffer);
     HT_FREE(me);
     return status;

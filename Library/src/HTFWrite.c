@@ -114,7 +114,7 @@ PRIVATE CONST HTStreamClass HTBlackHoleClass =
 
 PUBLIC HTStream * HTBlackHole (void)
 {
-    if (STREAM_TRACE) TTYPrint(TDEST, "BlackHole... Created\n");
+    if (STREAM_TRACE) HTTrace("BlackHole... Created\n");
     HTBaseStreamInstance.isa = &HTBlackHoleClass;      /* The rest is random */
     return &HTBaseStreamInstance;
 }
@@ -177,7 +177,7 @@ PRIVATE CONST HTStreamClass HTErrorStreamClass =
 
 PUBLIC HTStream * HTErrorStream (void)
 {
-    if (STREAM_TRACE) TTYPrint(TDEST, "ErrorStream. Created\n");
+    if (STREAM_TRACE) HTTrace("ErrorStream. Created\n");
     HTBaseStreamInstance.isa = &HTErrorStreamClass;    /* The rest is random */
     return &HTBaseStreamInstance;
 }
@@ -244,7 +244,7 @@ PRIVATE int HTFWriter_free (HTStream * me)
 
 PRIVATE int HTFWriter_abort (HTStream * me, HTList * e)
 {
-    if (STREAM_TRACE) TTYPrint(TDEST, "FileWriter.. ABORTING...\n");
+    if (STREAM_TRACE) HTTrace("FileWriter.. ABORTING...\n");
     if (me) {
 	if (me->leave_open != YES) fclose(me->fp);
 	if (me->remove_on_close) REMOVE(me->filename);
@@ -271,7 +271,7 @@ PUBLIC HTStream * HTFWriter_new (HTRequest * request, FILE * fp,
 {
     HTStream * me = NULL;
     if (!fp) {
-	if (STREAM_TRACE)TTYPrint(TDEST, "FileWriter.. Bad file descriptor\n");
+	if (STREAM_TRACE)HTTrace("FileWriter.. Bad file descriptor\n");
 	return HTErrorStream();
     }
     if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
@@ -297,7 +297,7 @@ PUBLIC BOOL HTTmp_setRoot (CONST char * tmp_root)
     if (*(HTTmpRoot+strlen(HTTmpRoot)-1) != '/')
 	StrAllocCat(HTTmpRoot, "/");
     if (STREAM_TRACE)
-	TTYPrint(TDEST, "Tmp Root.... Root set to `%s\'\n", HTTmpRoot);
+	HTTrace("Tmp Root.... Root set to `%s\'\n", HTTmpRoot);
     return YES;
 }
 
@@ -379,7 +379,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	return HTErrorStream();
     }
     if (!HTTmpRoot) {
-	if (STREAM_TRACE) TTYPrint(TDEST, "Save File... turned off");
+	if (STREAM_TRACE) HTTrace("Save File... turned off");
 	return HTErrorStream();
     }
 	
@@ -405,7 +405,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 		return HTErrorStream();
 	    }
 	} else {
-	    if (STREAM_TRACE) TTYPrint(TDEST, "Save File... No file name\n");
+	    if (STREAM_TRACE) HTTrace("Save File... No file name\n");
 	    return HTErrorStream();
 	}
     }
@@ -443,7 +443,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 	return HTErrorStream();
     }
     if (!HTTmpRoot) {
-	if (STREAM_TRACE) TTYPrint(TDEST, "Save File... turned off");
+	if (STREAM_TRACE) HTTrace("Save File... turned off");
 	return HTErrorStream();
     }
 	
@@ -461,7 +461,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 		return HTErrorStream();
 	    }
 	} else {
-	    if (STREAM_TRACE) TTYPrint(TDEST, "Save File... No file name\n");
+	    if (STREAM_TRACE) HTTrace("Save File... No file name\n");
 	    return HTErrorStream();
 	}
     }

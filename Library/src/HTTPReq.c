@@ -242,7 +242,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTS(HTLib_version());
 	PUTBLOCK(crlf, 2);
     }
-    if (PROT_TRACE)TTYPrint(TDEST,"HTTP........ Generating Request Headers\n");
+    if (PROT_TRACE)HTTrace("HTTP........ Generating Request Headers\n");
 }
 
 PRIVATE int HTTPRequest_put_block (HTStream * me, CONST char * b, int l)
@@ -301,7 +301,7 @@ PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HT_FREE(me);
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTPRequest. ABORTING...\n");
+    if (PROT_TRACE) HTTrace("HTTPRequest. ABORTING...\n");
     return HT_ERROR;
 }
 

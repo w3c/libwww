@@ -101,6 +101,21 @@ PUBLIC HTStyleSheet * styleSheet = NULL;
 
 /* ------------------------------------------------------------------------- */
 
+/*	Standard (non-error) Output
+**	---------------------------
+*/
+PUBLIC int OutputData(const char  * fmt, ...)
+{
+    int ret;
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    ret = vfprintf(stdout, fmt, pArgs);
+    va_end(pArgs);
+    return ret;
+}
+
+/* ------------------------------------------------------------------------- */
+
 /*	Create a "HyperDoc" object
 **	--------------------------
 **	A HyperDoc object contains information about whether we have already
@@ -185,7 +200,7 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	if (me->flags & MR_TIME) {
 	    time_t local = time(NULL);
-	    TTYPrint(TDEST, "Robot terminated %s\n",HTDateTimeStr(&local,YES));
+	    HTTrace("Robot terminated %s\n",HTDateTimeStr(&local,YES));
 	}
 	HT_FREE(me->cwd);
 	HT_FREE(me->tv);
@@ -246,20 +261,20 @@ PRIVATE void SetSignal (void)
     ** get `connection refused' back
     */
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTSignal.... Can't catch SIGPIPE\n");
+	if (PROT_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
     } else {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTSignal.... Ignoring SIGPIPE\n");
+	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
 }
 #endif /* CATCH_SIG */
 
 PRIVATE void VersionInfo (void)
 {
-    TTYPrint(OUTPUT,"\n\nW3C Reference Software\n\n");
-    TTYPrint(OUTPUT,"\tW3C Mini Robot (%s) version %s.\n",
+    OutputData("\n\nW3C Reference Software\n\n");
+    OutputData("\tW3C Mini Robot (%s) version %s.\n",
 	     APP_NAME, APP_VERSION);
-    TTYPrint(OUTPUT,"\tW3C Reference Library version %s.\n\n",HTLib_version());
-    TTYPrint(OUTPUT,"Please send feedback to <libwww@w3.org>\n");
+    OutputData("\tW3C Reference Library version %s.\n\n",HTLib_version());
+    OutputData("Please send feedback to <libwww@w3.org>\n");
 }
 
 /*	terminate_handler
@@ -286,7 +301,7 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 PRIVATE int timeout_handler (HTRequest * request)
 {
     Robot * mr = (Robot *) HTRequest_context(request);
-    if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Request timeout...\n");
+    if (SHOW_MSG) HTTrace("Robot....... Request timeout...\n");
 #if 0
     HTRequest_kill(request);
     Thread_delete(mr, request);
@@ -361,7 +376,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
 	HyperDoc * hd = HTAnchor_document(dest_parent);
 
-	if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Found `%s\' - ", uri ? uri : "NULL");
+	if (SHOW_MSG) HTTrace("Robot....... Found `%s\' - ", uri ? uri : "NULL");
 	
 	/* Test whether we already have a hyperdoc for this document */
 	if (mr->flags & MR_LINK && dest_parent && !hd) {
@@ -373,18 +388,18 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    HTRequest_setParent(newreq, HTRequest_anchor(text->request));
 	    if (depth >= mr->depth) {
 		if (SHOW_MSG)
-		    TTYPrint(TDEST, "loading at depth %d using HEAD\n", depth);
+		    HTTrace("loading at depth %d using HEAD\n", depth);
 		HTRequest_setMethod(newreq, METHOD_HEAD);
 		HTRequest_setOutputFormat(newreq, WWW_MIME);
 	    } else {
-		if (SHOW_MSG) TTYPrint(TDEST, "loading at depth %d\n", depth);
+		if (SHOW_MSG) HTTrace("loading at depth %d\n", depth);
 	    }
 	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
-		if (SHOW_MSG) TTYPrint(TDEST, "not tested!\n");
+		if (SHOW_MSG) HTTrace("not tested!\n");
 		Thread_delete(mr, newreq);
 	    }
 	} else {
-	    if (SHOW_MSG) TTYPrint(TDEST, "duplicate\n");
+	    if (SHOW_MSG) HTTrace("duplicate\n");
 	}
 	HT_FREE(uri);
     }
@@ -408,12 +423,12 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    HyperDoc_new(mr, dest, depth);
 	    if (SHOW_MSG) {
 		char * uri = HTAnchor_address((HTAnchor *) dest);
-		TTYPrint(TDEST, "Robot....... Checking Image `%s\'\n", uri);
+		HTTrace("Robot....... Checking Image `%s\'\n", uri);
 		HT_FREE(uri);
 	    }
 	    if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
 		if (SHOW_MSG)
-		    TTYPrint(TDEST, "Robot....... Image not tested!\n");
+		    HTTrace("Robot....... Image not tested!\n");
 		Thread_delete(mr, newreq);
 	    }
 	}
@@ -534,7 +549,7 @@ int main (int argc, char ** argv)
 	    /* Output start and end time */
 	    } else if (!strcmp(argv[arg], "-ss")) {
 		time_t local = time(NULL);
-		TTYPrint(TDEST, "Robot started on %s\n",
+		HTTrace("Robot started on %s\n",
 			 HTDateTimeStr(&local, YES));
 		mr->flags |= MR_TIME;
 
@@ -560,7 +575,7 @@ int main (int argc, char ** argv)
 		      case 'u': WWWTRACE |= SHOW_URI_TRACE; break;
 		      default:
 			if (SHOW_MSG)
-			    TTYPrint(TDEST,"Bad parameter (%s) in -v option\n",
+			    HTTrace("Bad parameter (%s) in -v option\n",
 				     argv[arg]);
 		    }
 		}
@@ -568,7 +583,7 @@ int main (int argc, char ** argv)
 #endif
 
 	    } else {
-		if (SHOW_MSG) TTYPrint(TDEST,"Bad Argument (%s)\n", argv[arg]);
+		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
 	    }
 	} else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!keycnt) {
@@ -594,7 +609,7 @@ int main (int argc, char ** argv)
 #endif
 
     if (!keycnt) {
-	if (SHOW_MSG) TTYPrint(TDEST, "Please specify URL to check.\n");
+	if (SHOW_MSG) HTTrace("Please specify URL to check.\n");
 	Cleanup(mr, -1);
     }
 
@@ -610,7 +625,7 @@ int main (int argc, char ** argv)
 	HTRequest_setConversion(rr, list, YES);
 	HTAlert_add(HTConfirm, HT_A_CONFIRM);
 	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
-	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
+	    if (SHOW_MSG) HTTrace("Can't access rules\n");
 	HTConversion_deleteAll(list);
 	HTRequest_delete(rr);
 	HTAlert_delete(HTConfirm);
@@ -620,7 +635,7 @@ int main (int argc, char ** argv)
     /* Output file specified? */
     if (mr->outputfile) {
 	if ((mr->output = fopen(mr->outputfile, "wb")) == NULL) {
-	    if (SHOW_MSG) TTYPrint(TDEST, "Can't open `%s'\n", mr->outputfile);
+	    if (SHOW_MSG) HTTrace("Can't open `%s'\n", mr->outputfile);
 	    mr->output = OUTPUT;
 	}
     }
@@ -652,7 +667,7 @@ int main (int argc, char ** argv)
 
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
-	if (SHOW_MSG) TTYPrint(TDEST, "Can't access resource\n");
+	if (SHOW_MSG) HTTrace("Can't access resource\n");
 	Cleanup(mr, -1);
     }
 

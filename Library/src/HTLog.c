@@ -33,20 +33,20 @@ PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
 PUBLIC BOOL HTLog_open (CONST char * filename, BOOL local, BOOL append)
 {
     if (!filename || !*filename) {
-	if (WWWTRACE) TTYPrint(TDEST, "Log......... No log file given\n");
+	if (WWWTRACE) HTTrace("Log......... No log file given\n");
 	return NO;
     }
     if (WWWTRACE)
-	TTYPrint(TDEST, "Log......... Open log file `%s\'\n", filename);
+	HTTrace("Log......... Open log file `%s\'\n", filename);
     if (HTLogFile) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Log......... Already open\n");
+	    HTTrace("Log......... Already open\n");
 	return NO;
     }
     HTLogFile = fopen(filename, append ? "a" : "w");
     if (!HTLogFile) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Log......... Can't open log file `%s\'\n",
+	    HTTrace("Log......... Can't open log file `%s\'\n",
 		    filename);
 	return NO;
     }
@@ -62,7 +62,7 @@ PUBLIC BOOL HTLog_open (CONST char * filename, BOOL local, BOOL append)
 PUBLIC BOOL HTLog_close (void)
 {
     if (WWWTRACE)
-	TTYPrint(TDEST, "Log......... Closing log file\n");
+	HTTrace("Log......... Closing log file\n");
     if (HTLogFile) {
 	int status = fclose(HTLogFile);
 	HTLogFile = NULL;
@@ -92,7 +92,7 @@ PUBLIC BOOL HTLog_add (HTRequest * request, int status)
 	time_t now = time(NULL);	
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * uri = HTAnchor_address((HTAnchor *) anchor);
-	if (WWWTRACE) TTYPrint(TDEST, "Log......... Writing log\n");
+	if (WWWTRACE) HTTrace("Log......... Writing log\n");
 	fprintf(HTLogFile, "localhost - - [%s] %s %s %d %ld\n",
 		HTDateTimeStr(&now, HTloglocal),
 		HTMethod_name(HTRequest_method(request)),

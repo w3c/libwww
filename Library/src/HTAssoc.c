@@ -59,7 +59,7 @@ PUBLIC BOOL HTAssocList_add (HTAssocList * alist,
 	return HTList_addObject(alist, (void *) assoc);
     } else {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "HTAssoc_add: ERROR: assoc list NULL!!\n");
+	    HTTrace("HTAssoc_add: ERROR: assoc list NULL!!\n");
     }
     return NO;
 }

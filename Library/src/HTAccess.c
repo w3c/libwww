@@ -129,20 +129,8 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
 #endif /* WWW_WIN_ASYNC */
 
-#if WWWTRACE_MODE == WWWTRACE_FILE			  /* Open trace file */
-    if ((TDEST = fopen(HT_TRACE_FILE, "a")) != NULL) {
-	if (setvbuf(TDEST, NULL, _IOLBF, 0) < 0) {  /* Change to line buffer */
-	    TTYPrint(TDEST, "WWWLibInit.. Can't initialize TRACE buffer - no TRACE\n");
-	    fclose(TDEST);
-	    TDEST = NULL;
-	    WWW_TraceFlag = 0;
-	}
-    } else
-	WWW_TraceFlag = 0;
-#endif /* WWWTRACE_FILE */
-
     if (WWWTRACE)
-	TTYPrint(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
+	HTTrace("WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
     /* Set the application name and version */
     if (AppName) {
@@ -176,15 +164,15 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 
 #ifdef WWW_WIN_ASYNC
     if (!RegisterClass(&wc)) {
-    	TTYPrint(TDEST, "HTEvent_Loop.. Can't RegisterClass \"%s\"\n", className);
+    	HTTrace("HTEvent_Loop.. Can't RegisterClass \"%s\"\n", className);
 	    return NO;
     }
     if (!(htSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
                                      CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
 	char space[50];
-       	TTYPrint(TDEST, "HTEvent_Loop.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
+       	HTTrace("HTEvent_Loop.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
 	sprintf(space, "%ld\n", GetLastError());
-	TTYPrint(TDEST, space);
+	HTTrace(space);
     	return NO;
     }
     HTEvent_setWinHandle (htSocketWin, WM_USER);     /* use first available message since app uses none */
@@ -198,13 +186,13 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
         WSADATA            wsadata;
 	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "WWWLibInit.. Can't initialize WinSoc\n");
+		HTTrace("WWWLibInit.. Can't initialize WinSoc\n");
             WSACleanup();
             return NO;
         }
         if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
             if (WWWTRACE)
-		TTYPrint(TDEST, "WWWLibInit.. Bad version of WinSoc\n");
+		HTTrace("WWWLibInit.. Bad version of WinSoc\n");
             WSACleanup();
             return NO;
         }
@@ -227,7 +215,7 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 PUBLIC BOOL HTLibTerminate (void)
 {
     if (WWWTRACE)
-	TTYPrint(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+	HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
     HTAtom_deleteAll();					 /* Remove the atoms */
     HTDNS_deleteAll();				/* Remove the DNS host cache */
     HTAnchor_deleteAll(NULL);		/* Delete anchors and drop hyperdocs */
@@ -247,13 +235,6 @@ PUBLIC BOOL HTLibTerminate (void)
     DestroyWindow(HTEvent_getWinHandle(0));
 #endif
 
-#if WWWTRACE_MODE == WWWTRACE_FILE			 /* Close trace file */
-    if (TDEST) {
-	fclose(TDEST);
-	TDEST = NULL;
-	WWW_TraceFlag = 0;
-    }
-#endif /* WWWTRACE_FILE */
     return YES;
 }
 
@@ -271,7 +252,7 @@ PRIVATE BOOL HTLoadDocument (HTRequest * request, BOOL recursive)
     if (PROT_TRACE) {
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * full_address = HTAnchor_address((HTAnchor *) anchor);
-	TTYPrint(TDEST, "HTAccess.... Accessing document %s\n", full_address);
+	HTTrace("HTAccess.... Accessing document %s\n", full_address);
 	HT_FREE(full_address);
     }
     return HTLoad(request, recursive);
@@ -441,7 +422,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
     HTRequest * src_req;
     HTList * cur;
     if (!src_anchor || !main_dest) {
-	if (WWWTRACE) TTYPrint(TDEST, "Copy........ BAD ARGUMENT\n");
+	if (WWWTRACE) HTTrace("Copy........ BAD ARGUMENT\n");
 	return NO;
     }
 
@@ -464,7 +445,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 	    HTMethod method = HTLink_method(main_link);
 	    if (!main_link || method==METHOD_INVALID) {
 		if (WWWTRACE)
-		    TTYPrint(TDEST, "Copy Anchor. No destination found or unspecified method\n");
+		    HTTrace("Copy Anchor. No destination found or unspecified method\n");
 		HTRequest_delete(src_req);
 		return NO;
 	    }
@@ -486,7 +467,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 		HTRequest *dest_req;
 		if (!dest || method==METHOD_INVALID) {
 		    if (WWWTRACE)
-			TTYPrint(TDEST, "Copy Anchor. Bad anchor setup %p\n",
+			HTTrace("Copy Anchor. Bad anchor setup %p\n",
 				dest);
 		    return NO;
 		}
@@ -549,7 +530,7 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
     HTMethod method = HTLink_method(link);
     if (!link || method==METHOD_INVALID || !callback) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Upload...... No destination found or unspecified method\n");
+	    HTTrace("Upload...... No destination found or unspecified method\n");
 	return NO;
     }
     request->GenMask |= HT_G_DATE;			 /* Send date header */
@@ -571,7 +552,7 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
 */
 PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
 {
-    if (WWWTRACE) TTYPrint(TDEST, "Uploading... from callback function\n");
+    if (WWWTRACE) HTTrace("Uploading... from callback function\n");
     if (!request || !request->source_anchor || !target) return HT_ERROR;
     {
 	int status;
@@ -586,17 +567,17 @@ PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
 	if (status == HT_OK)
 	    return (*target->isa->flush)(target);
 	if (status == HT_WOULD_BLOCK) {
-	    if (PROT_TRACE)TTYPrint(TDEST,"POST Anchor. Target WOULD BLOCK\n");
+	    if (PROT_TRACE)HTTrace("POST Anchor. Target WOULD BLOCK\n");
 	    return HT_WOULD_BLOCK;
 	} else if (status == HT_PAUSE) {
-	    if (PROT_TRACE) TTYPrint(TDEST,"POST Anchor. Target PAUSED\n");
+	    if (PROT_TRACE) HTTrace("POST Anchor. Target PAUSED\n");
 	    return HT_PAUSE;
 	} else if (status > 0) {	      /* Stream specific return code */
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "POST Anchor. Target returns %d\n", status);
+		HTTrace("POST Anchor. Target returns %d\n", status);
 	    return status;
 	} else {				     /* We have a real error */
-	    if (PROT_TRACE) TTYPrint(TDEST, "POST Anchor. Target ERROR\n");
+	    if (PROT_TRACE) HTTrace("POST Anchor. Target ERROR\n");
 	    return status;
 	}
     }

@@ -42,7 +42,7 @@ PRIVATE int HTXParse_put_string (HTStream * me, CONST char * s)
 {
     int l = strlen(s);
 
-    if (WWWTRACE) TTYPrint(TDEST, "HTXParse_put_string, %s\n",s);
+    if (WWWTRACE) HTTrace("HTXParse_put_string, %s\n",s);
 
     while ((me->eps->used + l) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -67,20 +67,20 @@ PRIVATE int HTXParse_write (HTStream * me, CONST char * s, int l)
     me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
     (*(me->eps->call_client))(me->eps);       /* client can give status info */
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTXParse_write, l=%d, used = %d\n",l,me->eps->used);
+	HTTrace("HTXParse_write, l=%d, used = %d\n",l,me->eps->used);
     return HT_OK;
 }
 
 
 PRIVATE int HTXParse_flush (HTStream * me)
 {
-    if (WWWTRACE) TTYPrint(TDEST, "HTXParse_flush\n");
+    if (WWWTRACE) HTTrace("HTXParse_flush\n");
     return HT_OK;
 }
 
 PRIVATE int HTXParse_free (HTStream * me)
 {
-    if (WWWTRACE) TTYPrint(TDEST, "HTXParse_free\n");
+    if (WWWTRACE) HTTrace("HTXParse_free\n");
     me->eps->finished = YES;
     (*(me->eps->call_client))(me->eps);           /* client will free buffer */
     HT_FREE(me->eps);
@@ -91,7 +91,7 @@ PRIVATE int HTXParse_free (HTStream * me)
 PRIVATE int HTXParse_abort (HTStream * me, HTList * e)
 {
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTXParse_abort\n");
+	HTTrace("HTXParse_abort\n");
     HTXParse_free(me);				  /* Henrik Nov 2 94 */
     return HT_ERROR;
 }
@@ -122,12 +122,12 @@ PUBLIC HTStream* HTXParse (HTRequest *	request,
     HTStream* me;
   
     if (WWWTRACE) {
-	TTYPrint(TDEST, "HTXConvert..");
+	HTTrace("HTXConvert..");
 	if (input_format && input_format->name)
-            TTYPrint(TDEST, ".. input format is %s",input_format->name);
+            HTTrace(".. input format is %s",input_format->name);
 	if (output_format && output_format->name)
-            TTYPrint(TDEST, ".. output format is %s",output_format->name);
-	TTYPrint(TDEST, "\n");
+            HTTrace(".. output format is %s",output_format->name);
+	HTTrace("\n");
     }
 
     if ((me = (HTStream *) HT_CALLOC(1, sizeof(*me))) == NULL)

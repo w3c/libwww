@@ -96,7 +96,7 @@ PUBLIC int HTNet_maxSocket (void)
 PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf, int status)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST, "Call Add.... HTNetCallback %p\n", (void *) cbf);
+	HTTrace("Call Add.... HTNetCallback %p\n", (void *) cbf);
     if (list && cbf) {
 	NetCall *me;
 	if ((me = (NetCall  *) HT_CALLOC(1, sizeof(NetCall))) == NULL)
@@ -115,7 +115,7 @@ PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf, int status)
 PUBLIC BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST, "Call delete HTNetCallback %p\n", (void *) cbf);
+	HTTrace("Call delete HTNetCallback %p\n", (void *) cbf);
     if (list && cbf) {
 	HTList *cur = list;
 	NetCall *pres;
@@ -137,7 +137,7 @@ PUBLIC BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf)
 PUBLIC BOOL HTNetCall_deleteAll (HTList * list)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST, "Call delete All callback functions\n");
+	HTTrace("Call delete All callback functions\n");
     if (list) {
 	HTList *cur = list;
 	NetCall *pres;
@@ -170,7 +170,7 @@ PUBLIC int HTNetCall_execute (HTList * list, HTRequest * request, int status)
 	    NetCall *pres = (NetCall *) HTList_objectAt(list, cnt);
 	    if (pres && (pres->status == status || pres->status == HT_ALL)) {
 		if (WWWTRACE)
-		    TTYPrint(TDEST,"Net callback %p (request=%p, status=%d)\n",
+		    HTTrace("Net callback %p (request=%p, status=%d)\n",
 			    (void *) pres->cbf, request, status);
 		if ((ret = (*(pres->cbf))(request, status)) != HT_OK) break;
 	    }
@@ -347,7 +347,7 @@ PRIVATE HTNet * create_object (HTRequest * request)
 PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
 {
     HTNet * me;
-    if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... Create empty Net object\n");
+    if (WWWTRACE) HTTrace("HTNet_new... Create empty Net object\n");
     if (!request || sockfd==INVSOC) return NULL;
     if ((me = create_object(request)) == NULL) return NULL;
     me->preemptive = request->preemptive;
@@ -370,7 +370,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
 
     /* Check if we can start the request, else return immediately */
     if (HTList_count(HTNetActive) > HTMaxActive) {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTNet new... NO SOCKET AVAILABLE\n");
+	if (PROT_TRACE) HTTrace("HTNet new... NO SOCKET AVAILABLE\n");
 	HTNetCall_execute(HTAfter, request, HT_RETRY);
 	return YES;
     }
@@ -384,7 +384,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
     me->priority = request->priority;
     me->sockfd = sockfd;
     if (!(me->cbf = HTProtocol_server(protocol))) {
-	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
+	if (WWWTRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
 	HT_FREE(me);
 	return NO;
     }
@@ -393,7 +393,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
     /* Start the server request */
     HTList_addObject(HTNetActive, (void *) me);
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTNet_new... starting SERVER request %p with net object %p\n", request, me);
+	HTTrace("HTNet_new... starting SERVER request %p with net object %p\n", request, me);
     (*(me->cbf))(me->sockfd, request, FD_NONE);
     return YES;
 }
@@ -429,7 +429,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     */
     if (!(physical = HTAnchor_physical(request->anchor)) || !*physical) {
 	char * addr = HTAnchor_address((HTAnchor *) request->anchor);
-	if (WWWTRACE) TTYPrint(TDEST, "HTNet New... Using default address\n");
+	if (WWWTRACE) HTTrace("HTNet New... Using default address\n");
 	HTAnchor_setPhysical(request->anchor, addr);
 	physical = HTAnchor_physical(request->anchor);
 	HT_FREE(addr);
@@ -439,7 +439,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     {
 	char * access = HTParse(physical, "", PARSE_ACCESS);
 	if ((protocol = HTProtocol_find(request, access)) == NULL) {
-	    if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO PROTOCOL OBJECT\n");
+	    if (WWWTRACE) HTTrace("HTNet_new... NO PROTOCOL OBJECT\n");
 	    HT_FREE(access);
 	    return NO;
 	}
@@ -452,7 +452,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     me->priority = request->priority;
     me->sockfd = INVSOC;
     if (!(me->cbf = HTProtocol_client(protocol))) {
-	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
+	if (WWWTRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
 	HT_FREE(me);
 	return NO;
     }
@@ -466,14 +466,14 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     if (HTList_count(HTNetActive) < HTMaxActive) {
 	HTList_addObject(HTNetActive, (void *) me);
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "HTNet_new... starting request %p (retry=%d) with net object %p\n",
+	    HTTrace("HTNet_new... starting request %p (retry=%d) with net object %p\n",
 		    request, request->retrys, me);
 	(*(me->cbf))(me->sockfd, request, FD_NONE);
     } else {
 	HTAlertCallback *cbf = HTAlert_find(HT_PROG_WAIT);
 	if (!HTNetPending) HTNetPending = HTList_new();
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "HTNet_new... request %p registered as pending\n",
+	    HTTrace("HTNet_new... request %p registered as pending\n",
 		    request);
 	if (cbf) (*cbf)(request, HT_PROG_WAIT, HT_MSG_NULL, NULL, NULL, NULL);
 	HTList_addObject(HTNetPending, (void *) me);	
@@ -489,7 +489,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 PRIVATE BOOL delete_object (HTNet *net, int status)
 {
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTNet_delete Remove net object %p\n", net);
+	HTTrace("HTNet_delete Remove net object %p\n", net);
     if (net) {
 	int status = 0;
 
@@ -510,10 +510,10 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 		    HTRequest_addSystemError(net->request, ERR_FATAL,
 					     socerrno, NO, "NETCLOSE");
 		if (WWWTRACE)
-		    TTYPrint(TDEST, "HTNet_delete closing %d\n", net->sockfd);
+		    HTTrace("HTNet_delete closing %d\n", net->sockfd);
 	    } else {
 		if (WWWTRACE)
-		    TTYPrint(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
+		    HTTrace("HTNet_delete keeping %d\n", net->sockfd);
 		HTDNS_clearActive(net->dns);
 		/* Here we should probably use a low priority */
 		HTEvent_Register(net->sockfd, net->request, (SockOps) FD_READ,
@@ -544,7 +544,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST,"HTNetDelete. Object and call callback functions\n");
+	HTTrace("HTNetDelete. Object and call callback functions\n");
     if (HTNetActive && net) {
 	SOCKET cs = net->sockfd;			   /* Current sockfd */
 
@@ -552,7 +552,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	HTRequest *request = net->request;
 	if (HTList_removeObject(HTNetActive, (void *) net) != YES)
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "HTNetDelete. %p not registered!\n", net);
+		HTTrace("HTNetDelete. %p not registered!\n", net);
  	delete_object(net, status);
 	HTNetCall_execute(HTAfter, request, status);
 
@@ -566,7 +566,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    while ((next = (HTNet *) HTList_nextObject(cur))) {
 		if (next->sockfd == cs) {
 		    if (WWWTRACE)
-			TTYPrint(TDEST, "HTNet delete Launch request %p on WARM socket %d (net object %p)\n",
+			HTTrace("HTNet delete Launch request %p on WARM socket %d (net object %p)\n",
 				 next->request, next->sockfd, next);
 		    HTList_addObject(HTNetActive, (void *) next);
 		    HTList_removeObject(HTNetPersistent, (void *) next);
@@ -580,7 +580,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    if (next) {
 		HTList_addObject(HTNetActive, (void *) next);
 		if (WWWTRACE)
-		    TTYPrint(TDEST,"HTNet delete launch PENDING request %p\n",
+		    HTTrace("HTNet delete launch PENDING request %p\n",
 			    next->request);
 		(*(next->cbf))(INVSOC, next->request, FD_NONE);
 	    }
@@ -598,7 +598,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 PUBLIC BOOL HTNet_deleteAll (void)
 {
     if (WWWTRACE) 
-	TTYPrint(TDEST, "HTNetDelete. Remove all Net objects, NO callback\n"); 
+	HTTrace("HTNetDelete. Remove all Net objects, NO callback\n"); 
     if (HTNetPersistent) {
 	HTList *cur = HTNetPersistent;
 	HTNet *pres;
@@ -638,12 +638,12 @@ PUBLIC BOOL HTNet_wait (HTNet *net)
 {
     if (net) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST,"HTNet_wait.. request %p is waiting for presistent socket %d\n",
+	    HTTrace("HTNet_wait.. request %p is waiting for presistent socket %d\n",
 		     net->request, net->sockfd);
 
 	/* Take it out of the active queue and add it to persistent queue */
 	if (HTList_removeObject(HTNetActive, (void *) net) != YES) {
-	    if (WWWTRACE) TTYPrint(TDEST, "HTNet_wait.. not registered!\n");
+	    if (WWWTRACE) HTTrace("HTNet_wait.. not registered!\n");
 	    return NO;
 	}
 	if (!HTNetPersistent) HTNetPersistent = HTList_new();
@@ -676,7 +676,7 @@ PUBLIC BOOL HTNet_kill (HTNet * me)
 	}
     }
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTNet_kill.. object %p is not registered\n", me);
+	HTTrace("HTNet_kill.. object %p is not registered\n", me);
     return NO;
 }
 
@@ -691,7 +691,7 @@ PUBLIC BOOL HTNet_killAll (void)
 {
     HTNet *pres;
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTNet_kill.. ALL registered requests!!!\n");
+	HTTrace("HTNet_kill.. ALL registered requests!!!\n");
 
     /* We start off in persistent queue so we avoid racing */
     if (HTNetPersistent) {

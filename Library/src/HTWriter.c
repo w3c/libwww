@@ -105,7 +105,7 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 #endif
 	    {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST,"Write Socket WOULD BLOCK %d\n",me->sockfd);
+		    HTTrace("Write Socket WOULD BLOCK %d\n",me->sockfd);
 		HTEvent_Register(me->sockfd, request, (SockOps) FD_WRITE,
 				 net->cbf, net->priority);
 		return HT_WOULD_BLOCK;
@@ -119,7 +119,7 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 	me->wptr += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Write Socket %d bytes written to socket %d\n",
+	    HTTrace("Write Socket %d bytes written to socket %d\n",
 		    b_write, me->sockfd);
 	net->bytes_written += b_write;
 	{

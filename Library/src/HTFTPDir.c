@@ -226,7 +226,7 @@ PRIVATE int FTPDir_put_block (HTStream * me, CONST char * b, int l)
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_FTP_LINE) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "FTP Dir..... Line too long - ignored\n");
+		    HTTrace("FTP Dir..... Line too long - ignored\n");
 		me->buflen = 0;
 		me->junk = YES;
 	    }
@@ -260,7 +260,7 @@ PRIVATE int FTPDir_free (HTStream * me)
 
 PRIVATE int FTPDir_abort (HTStream * me, HTList * e)
 {
-    if (PROT_TRACE) TTYPrint(TDEST, "FTPDir...... ABORTING...\n");
+    if (PROT_TRACE) HTTrace("FTPDir...... ABORTING...\n");
     FTPDir_free(me);
     return HT_ERROR;
 }

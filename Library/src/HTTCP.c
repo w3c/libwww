@@ -90,21 +90,21 @@ PUBLIC int HTInetStatus (int errnum, char * where)
 #if ! (defined(VMS) || defined(WINDOWS))
 
     if (PROT_TRACE)
-	TTYPrint(TDEST, "TCP errno... %d after call to %s() failed.\n............ %s\n", errno, where, HTErrnoString(errnum));
+	HTTrace("TCP errno... %d after call to %s() failed.\n............ %s\n", errno, where, HTErrnoString(errnum));
 
 #else /* VMS */
 #ifdef VMS 
-    if (PROT_TRACE) TTYPrint(TDEST, "         Unix error number          = %ld dec\n", errno);
-    if (PROT_TRACE) TTYPrint(TDEST, "         VMS error                  = %lx hex\n", vaxc$errno);
+    if (PROT_TRACE) HTTrace("         Unix error number          = %ld dec\n", errno);
+    if (PROT_TRACE) HTTrace("         VMS error                  = %lx hex\n", vaxc$errno);
 #endif
 #ifdef WINDOWS 
-    if (PROT_TRACE) TTYPrint(TDEST, "         Unix error number          = %ld dec\n", errno);
-    if (PROT_TRACE) TTYPrint(TDEST, "         NT error                  = %lx hex\n", WSAGetLastError());
+    if (PROT_TRACE) HTTrace("         Unix error number          = %ld dec\n", errno);
+    if (PROT_TRACE) HTTrace("         NT error                  = %lx hex\n", WSAGetLastError());
 #endif 
 
 #ifdef MULTINET
-    if (PROT_TRACE) TTYPrint(TDEST, "         Multinet error             = %lx hex\n", socket_errno); 
-    if (PROT_TRACE) TTYPrint(TDEST, "         Error String               = %s\n", vms_errno_string());
+    if (PROT_TRACE) HTTrace("         Multinet error             = %lx hex\n", socket_errno); 
+    if (PROT_TRACE) HTTrace("         Error String               = %s\n", vms_errno_string());
 #endif /* MULTINET */
 
 #endif /* VMS */
@@ -168,9 +168,9 @@ PUBLIC void HTSetSignal (void)
     ** get `connection refused' back
     */
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTSignal.... Can't catch SIGPIPE\n");
+	if (PROT_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
     } else {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTSignal.... Ignoring SIGPIPE\n");
+	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
 }
 #else
@@ -234,7 +234,7 @@ PRIVATE int HTParseInet (HTNet * net, char * host)
     sin->sdn_nam.n_len = min(DN_MAXNAML, strlen(host));  /* <=6 in phase 4 */
     strncpy (sin->sdn_nam.n_name, host, sin->sdn_nam.n_len + 1);
 
-    if (PROT_TRACE) TTYPrint(TDEST,  
+    if (PROT_TRACE) HTTrace( 
 	"DECnet: Parsed address as object number %d on host %.6s...\n",
 		      sin->sdn_objnum, host);
 #else /* Internet */
@@ -260,7 +260,7 @@ PRIVATE int HTParseInet (HTNet * net, char * host)
 
 	if (PROT_TRACE) {
 	    if (status > 0)
-		TTYPrint(TDEST, "ParseInet... as port %d on %s with %d homes\n",
+		HTTrace("ParseInet... as port %d on %s with %d homes\n",
 			(int) ntohs(sin->sin_port), HTInetString(sin), status);
 	}
     }
@@ -308,7 +308,7 @@ PUBLIC void HTSetHostName (char * host)
 	if (*(hostname+strlen(hostname)-1) == '.')    /* Remove trailing dot */
 	    *(hostname+strlen(hostname)-1) = '\0';
     } else {
-	if (PROT_TRACE) TTYPrint(TDEST, "SetHostName. Bad argument ignored\n");
+	if (PROT_TRACE) HTTrace("SetHostName. Bad argument ignored\n");
     }
 }
 
@@ -346,11 +346,11 @@ PUBLIC CONST char * HTGetHostName (void)
 #ifndef NO_GETHOSTNAME
     if (gethostname(name, MAXHOSTNAMELEN)) { 	     /* Maybe without domain */
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "HostName.... Can't get host name\n");
+	    HTTrace("HostName.... Can't get host name\n");
 	return NULL;
     }
     if (PROT_TRACE)
-	TTYPrint(TDEST, "HostName.... Local host name is  `%s\'\n", name);
+	HTTrace("HostName.... Local host name is  `%s\'\n", name);
     StrAllocCopy(hostname, name);
     {
 	char *strptr = strchr(hostname, '.');
@@ -390,7 +390,7 @@ PUBLIC CONST char * HTGetHostName (void)
     if (!got_it) {
 	if (getdomainname(name, MAXHOSTNAMELEN)) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HostName.... Can't get domain name\n");
+		HTTrace("HostName.... Can't get domain name\n");
 	    StrAllocCopy(hostname, "");
 	    return NULL;
 	}
@@ -418,7 +418,7 @@ PUBLIC CONST char * HTGetHostName (void)
 #endif /* NO_GETHOSTNAME */
 
     if (PROT_TRACE)
-	TTYPrint(TDEST, "HostName.... Full host name is `%s\'\n", hostname);
+	HTTrace("HostName.... Full host name is `%s\'\n", hostname);
     return hostname;
 }
 
@@ -445,7 +445,7 @@ PUBLIC void HTSetMailAddress (char * address)
     else
 	StrAllocCopy(mailaddress, address);
     if (WWWTRACE)
-	TTYPrint(TDEST, "SetMailAdr.. Set mail address to `%s\'\n",
+	HTTrace("SetMailAdr.. Set mail address to `%s\'\n",
 		mailaddress);
 }
 
@@ -484,7 +484,7 @@ PUBLIC CONST char * HTGetMailAddress (void)
 
 #ifdef VMS
     if ((login = (char *) cuserid(NULL)) == NULL) {
-        if (PROT_TRACE) TTYPrint(TDEST, "MailAddress. cuserid returns NULL\n");
+        if (PROT_TRACE) HTTrace("MailAddress. cuserid returns NULL\n");
     }
 #else
 #ifdef WIN32 
@@ -503,16 +503,16 @@ PUBLIC CONST char * HTGetMailAddress (void)
     if ((login = (char *) getlogin()) == NULL) {
 #endif
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "MailAddress. getlogin returns NULL\n");
+	    HTTrace("MailAddress. getlogin returns NULL\n");
 	if ((pw_info = getpwuid(getuid())) == NULL) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "MailAddress. getpwid returns NULL\n");
+		HTTrace("MailAddress. getpwid returns NULL\n");
 	    if ((login = getenv("LOGNAME")) == NULL) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "MailAddress. LOGNAME not found\n");
+		    HTTrace("MailAddress. LOGNAME not found\n");
 		if ((login = getenv("USER")) == NULL) {
 		    if (PROT_TRACE)
-			TTYPrint(TDEST,"MailAddress. USER not found\n");
+			HTTrace("MailAddress. USER not found\n");
 		    return NULL;		/* I GIVE UP */
 		}
 	    }
@@ -608,14 +608,14 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		}
 	    }
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
+		HTTrace("HTDoConnect. Looking up `%s\'\n", host);
 	    net->tcpstate = TCP_DNS;
 	    break;
 
 	  case TCP_DNS:
 	    if ((status = HTParseInet(net, host)) < 0) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "HTDoConnect. Can't locate `%s\'\n", host);
+		    HTTrace("HTDoConnect. Can't locate `%s\'\n", host);
 		HTRequest_addError(request, ERR_FATAL, NO,HTERR_NO_REMOTE_HOST,
 			   (void *) host, strlen(host), "HTDoConnect");
 		net->tcpstate = TCP_ERROR;
@@ -637,7 +637,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		net->retry = status;
 	    if (net->sockfd != INVSOC) {		   /* Reusing socket */
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "HTDoConnect. REUSING SOCKET %d\n",
+		    HTTrace("HTDoConnect. REUSING SOCKET %d\n",
 			    net->sockfd);
 		net->tcpstate = TCP_CONNECTED;
 	    } else
@@ -656,7 +656,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		break;
 	    }
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HTDoConnect. Created socket %d\n",net->sockfd);
+		HTTrace("HTDoConnect. Created socket %d\n",net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
 	    ** I use FCNTL so that I can ask the status before I set it.
@@ -680,7 +680,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    if (rv == SOCKET_ERROR) {
 			status = -1 ;
 			if (PROT_TRACE) 
-			    TTYPrint(TDEST, "HTDoConnect. WSAAsyncSelect() fails: %d\n", 
+			    HTTrace("HTDoConnect. WSAAsyncSelect() fails: %d\n", 
 				     WSAGetLastError());
 		    } /* error returns */
 #else
@@ -703,12 +703,12 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #endif /* WINDOW */
 		if (PROT_TRACE) {
 		    if (status == -1)
-			TTYPrint(TDEST, "HTDoConnect. Only blocking works\n");
+			HTTrace("HTDoConnect. Only blocking works\n");
 		    else
-			TTYPrint(TDEST, "HTDoConnect. Non-blocking socket\n");
+			HTTrace("HTDoConnect. Non-blocking socket\n");
 		}
 	    } else if (PROT_TRACE)
-		TTYPrint(TDEST, "HTDoConnect. Blocking socket\n");
+		HTTrace("HTDoConnect. Blocking socket\n");
 
 	    /* If multi-homed host then start timer on connection */
 	    if (net->retry) net->connecttime = time(NULL);
@@ -760,7 +760,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #endif /* EAGAIN */
 		{
 		    if (PROT_TRACE)
-			TTYPrint(TDEST,"HTDoConnect. WOULD BLOCK `%s'\n",host);
+			HTTrace("HTDoConnect. WOULD BLOCK `%s'\n",host);
 		    HTEvent_Register(net->sockfd, request, (SockOps)FD_CONNECT,
 				     net->cbf, net->priority);
 		    HT_FREE(fullhost);
@@ -818,7 +818,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_NEED_BIND:
 	  case TCP_NEED_LISTEN:
 	  case TCP_ERROR:
-	    if (PROT_TRACE) TTYPrint(TDEST, "HTDoConnect. Connect failed\n");
+	    if (PROT_TRACE) HTTrace("HTDoConnect. Connect failed\n");
 	    if (net->sockfd != INVSOC) {
 	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 		NETCLOSE(net->sockfd);
@@ -863,7 +863,7 @@ PUBLIC int HTDoAccept (HTNet * net)
     int size = sizeof(net->sock_addr);
     HTRequest *request = net->request;
     if (net->sockfd==INVSOC) {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTDoAccept.. Invalid socket\n");
+	if (PROT_TRACE) HTTrace("HTDoAccept.. Invalid socket\n");
 	return HT_ERROR;
     }
 
@@ -890,13 +890,13 @@ PUBLIC int HTDoAccept (HTNet * net)
 #endif /* EAGAIN */
 	{
 	    if (PROT_TRACE)
-		TTYPrint(TDEST,"HTDoAccept.. WOULD BLOCK %d\n", net->sockfd);
+		HTTrace("HTDoAccept.. WOULD BLOCK %d\n", net->sockfd);
 	    HTEvent_Register(net->sockfd, request, (SockOps) FD_ACCEPT,
 			     net->cbf, net->priority);
 	    return HT_WOULD_BLOCK;
 	}
 	HTRequest_addSystemError(request, ERR_WARN, socerrno, YES, "accept");
-	if (PROT_TRACE) TTYPrint(TDEST, "HTDoAccept.. Accept failed\n");
+	if (PROT_TRACE) HTTrace("HTDoAccept.. Accept failed\n");
 	if (HTDNS_socket(net->dns) != INVSOC) {	 	 /* Inherited socket */
 	    HTDNS_setSocket(net->dns, INVSOC);
 	}
@@ -906,7 +906,7 @@ PUBLIC int HTDoAccept (HTNet * net)
     /* Swap to new socket */
     HTEvent_UnRegister(net->sockfd, (SockOps) FD_ACCEPT);
     net->sockfd = status;
-    if (PROT_TRACE) TTYPrint(TDEST, "Accepted.... socket %d\n", status);
+    if (PROT_TRACE) HTTrace("Accepted.... socket %d\n", status);
     return HT_OK;
 }
 
@@ -949,7 +949,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 #endif
 	    }
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HTDoListen.. Listen on port %d\n", port);
+		HTTrace("HTDoListen.. Listen on port %d\n", port);
 	    net->tcpstate = TCP_NEED_SOCKET;
 	    break;
 
@@ -966,7 +966,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 		break;
 	    }
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HTDoListen.. Created socket %d\n",net->sockfd);
+		HTTrace("HTDoListen.. Created socket %d\n",net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
 	    ** I use FCNTL so that I can ask the status before I set it.
@@ -989,7 +989,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 		    if (rv == SOCKET_ERROR) {
 			status = -1 ;
 			if (PROT_TRACE) 
-			    TTYPrint(TDEST, "HTDoListen.. WSAAsyncSelect() fails: %d\n", 
+			    HTTrace("HTDoListen.. WSAAsyncSelect() fails: %d\n", 
 				     WSAGetLastError());
 			} /* error returns */
 #else
@@ -1012,9 +1012,9 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 #endif /* WINDOW */
 		if (PROT_TRACE) {
 		    if (status == -1)
-			TTYPrint(TDEST, "HTDoListen.. Blocking socket\n");
+			HTTrace("HTDoListen.. Blocking socket\n");
 		    else
-			TTYPrint(TDEST, "HTDoListen.. Non-blocking socket\n");
+			HTTrace("HTDoListen.. Non-blocking socket\n");
 		}
 	    }
 	    net->tcpstate = TCP_NEED_BIND;
@@ -1030,7 +1030,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 #endif
 	    {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Bind........ failed %d\n", socerrno);
+		    HTTrace("Bind........ failed %d\n", socerrno);
 		net->tcpstate = TCP_ERROR;		
 	    } else
 		net->tcpstate = TCP_NEED_LISTEN;
@@ -1051,7 +1051,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	  case TCP_CONNECTED:
 	    net->tcpstate = TCP_BEGIN;
 	    if (PROT_TRACE)
-		TTYPrint(TDEST,"HTDoListen.. Bind and listen on port %d %s\n",
+		HTTrace("HTDoListen.. Bind and listen on port %d %s\n",
 			(int) ntohs(net->sock_addr.sin_port),
 			HTInetString(&net->sock_addr));
 	    return HT_OK;
@@ -1060,7 +1060,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	  case TCP_NEED_CONNECT:
 	  case TCP_DNS:
 	  case TCP_ERROR:
-	    if (PROT_TRACE) TTYPrint(TDEST, "HTDoListen.. Listen failed\n");
+	    if (PROT_TRACE) HTTrace("HTDoListen.. Listen failed\n");
 	    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "HTDoListen");
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_ERROR;

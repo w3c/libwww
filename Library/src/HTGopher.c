@@ -241,7 +241,7 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
     HTStructured *target = me->target;
     HTGopherType gtype = (HTGopherType) *line++;
     if (PROT_TRACE)
-	TTYPrint(TDEST, "HTGopher.... Menu line: `%s\'\n", line);
+	HTTrace("HTGopher.... Menu line: `%s\'\n", line);
     if (gtype == GT_INFO) {
 	char *stop = strchr(line, '\t');
 	if (stop) *stop = '\0';
@@ -335,7 +335,7 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
 	    PUTC('\n');
 	} else {					   /* If parse error */
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HTGopher.... Bad menu item, `%s\'\n", line);
+		HTTrace("HTGopher.... Bad menu item, `%s\'\n", line);
 	}
     }
     return YES;
@@ -452,7 +452,7 @@ PRIVATE int GopherMenu_put_block (HTStream * me, CONST char * b, int l)
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_GOPHER_LINE) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Gopher...... Line too long - ignored\n");
+		    HTTrace("Gopher...... Line too long - ignored\n");
 		me->buflen = 0;
 		me->junk = YES;
 	    }
@@ -492,7 +492,7 @@ PRIVATE int GopherMenu_abort (HTStream * me, HTList * e)
     (*me->target->isa->abort)(me->target, e);
     HT_FREE(me);
     if (PROT_TRACE)
-	TTYPrint(TDEST, "Gopher...... ABORTING...\n");
+	HTTrace("Gopher...... ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -648,7 +648,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
     ** machine as we need the structure first.
     */
     if (ops == FD_NONE) {
-	if (PROT_TRACE) TTYPrint(TDEST, "Gopher...... Looking for `%s\'\n",url);
+	if (PROT_TRACE) HTTrace("Gopher...... Looking for `%s\'\n",url);
 	if ((gopher = (gopher_info *) HT_CALLOC(1, sizeof(gopher_info))) == NULL)
 	    HT_OUTOFMEM("HTLoadGopher");
 	gopher->type = GT_MENU;
@@ -729,7 +729,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    status = HTDoConnect(net, url, GOPHER_PORT);
 	    if (status == HT_OK) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Gopher...... Connected, socket %d\n",
+		    HTTrace("Gopher...... Connected, socket %d\n",
 			    net->sockfd);
 
 		/* Set up stream TO network */
@@ -754,7 +754,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case GOPHER_NEED_REQUEST:
-	    if (PROT_TRACE) TTYPrint(TDEST, "Gopher Tx... `%s\'", gopher->cmd);
+	    if (PROT_TRACE) HTTrace("Gopher Tx... `%s\'", gopher->cmd);
 	    status = (*request->input_stream->isa->put_block)
 		(request->input_stream, gopher->cmd, strlen(gopher->cmd));
 	    if (status == HT_WOULD_BLOCK)

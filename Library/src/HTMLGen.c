@@ -405,7 +405,7 @@ PUBLIC HTStructured* HTMLGenerator (HTRequest *	request,
     if ((me->target = HTStreamStack(WWW_HTML, output_format, output_stream,
 				    request, YES)) == NULL) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST, "HTMLGen..... Can't convert to media type\n");
+	    HTTrace("HTMLGen..... Can't convert to media type\n");
 	HT_FREE(me);
 	me->target = HTErrorStream();
     }

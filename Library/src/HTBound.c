@@ -62,7 +62,7 @@ PRIVATE int HTBoundary_put_block (HTStream * me, CONST char * b, int l)
 		while (l>0 && *me->bpos && *me->bpos==*b) l--, me->bpos++, b++;
 		if (!*me->bpos) {
 		    if (STREAM_TRACE && !*me->bpos)
-			TTYPrint(TDEST, "Boundary.... `%s\' found\n", me->boundary);
+			HTTrace("Boundary.... `%s\' found\n", me->boundary);
 		    me->bpos = me->boundary;
 		    me->body = YES;
 		    me->state = EOL_DOT;
@@ -84,7 +84,7 @@ PRIVATE int HTBoundary_put_block (HTStream * me, CONST char * b, int l)
 		    int status = PUTBLOCK(start, end-start);
 		    if (status != HT_OK) return status;
 		}
-		if (STREAM_TRACE) TTYPrint(TDEST, "Boundary.... Ending\n");
+		if (STREAM_TRACE) HTTrace("Boundary.... Ending\n");
 		start = b;
 		me->dash = 0;
 		me->state = EOL_BEGIN;
@@ -148,7 +148,7 @@ PRIVATE int HTBoundary_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    if (PROT_TRACE) TTYPrint(TDEST, "Boundary.... FREEING....\n");
+    if (PROT_TRACE) HTTrace("Boundary.... FREEING....\n");
     HT_FREE(me->boundary);
     HT_FREE(me);
     return status;
@@ -158,7 +158,7 @@ PRIVATE int HTBoundary_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (PROT_TRACE) TTYPrint(TDEST, "Boundary.... ABORTING...\n");
+    if (PROT_TRACE) HTTrace("Boundary.... ABORTING...\n");
     HT_FREE(me->boundary);
     HT_FREE(me);
     return status;
@@ -194,10 +194,10 @@ PUBLIC HTStream * HTBoundary   (HTRequest *	request,
 	StrAllocCopy(me->boundary, request->boundary);	       /* Local copy */
 	me->bpos = me->boundary;
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"Boundary.... Stream created with boundary '%s\'\n", me->boundary);
+	    HTTrace("Boundary.... Stream created with boundary '%s\'\n", me->boundary);
 	return me;
     } else {
-	if (STREAM_TRACE) TTYPrint(TDEST, "Boundary.... <UNKNOWN>\n");
+	if (STREAM_TRACE) HTTrace("Boundary.... <UNKNOWN>\n");
 	HT_FREE(me);
 	return HTErrorStream();
     }

@@ -104,7 +104,7 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
 {
     if (me->conlen >= me->max_size) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"StreamBuffer size %d reached, going transparent\n",
+	    HTTrace("StreamBuffer size %d reached, going transparent\n",
 		    me->max_size);
 	return NO;
     } else if (size) {
@@ -113,7 +113,7 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
 	if ((me->tmp_buf = (char  *) HT_MALLOC(size)) == NULL)
 	    HT_OUTOFMEM("buf_put_char");
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST, "StreamBuffer created with len %d\n", size);
+	    HTTrace("StreamBuffer created with len %d\n", size);
 	return YES;
     }
     return NO;
@@ -178,7 +178,7 @@ PRIVATE int buf_free (HTStream * me)
     if (!me->ignore) {
 	HTParentAnchor *anchor = HTRequest_anchor(me->request);
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"\nCalculated.. content-length: %d\n", me->conlen);
+	    HTTrace("\nCalculated.. content-length: %d\n", me->conlen);
 	HTAnchor_setLength(anchor, me->conlen);
     }
     if (!me->give_up && (status = buf_flush(me)) != HT_OK)
@@ -194,7 +194,7 @@ PRIVATE int buf_abort (HTStream * me, HTList * e)
     if (me->target) (*me->target->isa->abort)(me->target,e);
     free_buf_all(me);
     HT_FREE(me);
-    if (PROT_TRACE) TTYPrint(TDEST, "Length...... ABORTING...\n");
+    if (PROT_TRACE) HTTrace("Length...... ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -220,7 +220,7 @@ PUBLIC HTStream * HTContentCounter (HTStream *	target,
     me->request = request;
     me->max_size = (max_size > 0) ? max_size : HT_MAX_SIZE;
     if (STREAM_TRACE)
-	TTYPrint(TDEST, "Buffer...... Created with size %d\n", me->max_size);
+	HTTrace("Buffer...... Created with size %d\n", me->max_size);
     return me;
 }
 

@@ -122,7 +122,7 @@ PRIVATE int ScanResponse (HTStream * me)
     if (isdigit(*(me->buffer))) sscanf(me->buffer, "%d", &news->repcode);
     me->buflen = 0;
     news->reply = me->buffer+4;
-    if (PROT_TRACE) TTYPrint(TDEST, "News Rx..... `%s\'\n", news->reply);
+    if (PROT_TRACE) HTTrace("News Rx..... `%s\'\n", news->reply);
 
     /* If 2xx code and we expect data then go into semi-transparent mode */
     if (me->news->format && news->repcode/100 == 2) {
@@ -159,7 +159,7 @@ PRIVATE int HTNewsStatus_put_block (HTStream * me, CONST char * b, int l)
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_NEWS_LINE) {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "News Status. Line too long - chopped\n");
+		    HTTrace("News Status. Line too long - chopped\n");
 		me->junk = YES;
 		if ((status = ScanResponse(me)) != HT_LOADED) return status;
 	    }
@@ -227,7 +227,7 @@ PRIVATE int HTNewsStatus_abort (HTStream * me, HTList * e)
     if (me->target)
         ABORT_TARGET;
     HT_FREE(me);
-    if (PROT_TRACE) TTYPrint(TDEST, "NewsStatus.. ABORTING...\n");
+    if (PROT_TRACE) HTTrace("NewsStatus.. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -306,11 +306,11 @@ PUBLIC BOOL HTNews_setHost (CONST char * newshost)
 	    }		
 	}
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "SetNewsHost. Host name is `%s\'\n", HTNewsHost);
+	    HTTrace("SetNewsHost. Host name is `%s\'\n", HTNewsHost);
 	return YES;
     } else {
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "SetNewsHost. Bad argument ignored\n");
+	    HTTrace("SetNewsHost. Bad argument ignored\n");
 	return NO;
     }
 }
@@ -335,7 +335,7 @@ PUBLIC CONST char *HTNews_host (void)
     if (HTNewsHost) {
 	if (*HTNewsHost) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "GetNewsHost. found as `%s\'\n", HTNewsHost);
+		HTTrace("GetNewsHost. found as `%s\'\n", HTNewsHost);
 	    return HTNewsHost;
 	} else
 	    return NULL;		 /* We couldn't get it the last time */
@@ -423,7 +423,7 @@ PRIVATE int SendCommand (HTRequest *request, news_info *news,
 	sprintf(HTChunk_data(news->cmd), "%s %s%c%c", token, pars, CR, LF);
     else
 	sprintf(HTChunk_data(news->cmd), "%s%c%c", token, CR, LF);
-    if (PROT_TRACE) TTYPrint(TDEST, "News Tx..... %s", HTChunk_data(news->cmd));
+    if (PROT_TRACE) HTTrace("News Tx..... %s", HTChunk_data(news->cmd));
     return (*request->input_stream->isa->put_block)
 	(request->input_stream, HTChunk_data(news->cmd), len);
 }
@@ -457,7 +457,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
     */
     if (ops == FD_NONE) {
 	if (PROT_TRACE) 
-	    TTYPrint(TDEST, "NNTP........ Looking for `%s\'\n", url);
+	    HTTrace("NNTP........ Looking for `%s\'\n", url);
 	if ((news = (news_info *) HT_CALLOC(1, sizeof(news_info))) == NULL)
 	    HT_OUTOFMEM("HTLoadNews");
 	news->cmd = HTChunk_new(128);
@@ -500,7 +500,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->name = HTParse(url, "", PARSE_PATH);
 		status = HTDoConnect(net, url, NEWS_PORT);
 	    } else {
-		if (PROT_TRACE) TTYPrint(TDEST, "News........ Huh?");
+		if (PROT_TRACE) HTTrace("News........ Huh?");
 		news->state = NEWS_ERROR;
             }
             if (status == HT_OK) {
@@ -518,7 +518,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    greeting = YES;
 		}
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "News........ Connected, socket %d\n",
+		    HTTrace("News........ Connected, socket %d\n",
 			    net->sockfd);
 
 		/* Set up stream TO network */

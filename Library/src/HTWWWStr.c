@@ -107,7 +107,7 @@ PUBLIC CONST char *HTMessageIdStr (void)
     if (!address) address = tmpnam(NULL);
     if ((!address || !*address) && sectime < 0) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "MessageID...  Can't make a unique MessageID\n");
+	    HTTrace("MessageID...  Can't make a unique MessageID\n");
 	return "";
     }
 #ifndef NO_GETPID
@@ -169,7 +169,7 @@ PUBLIC long HTGetTimeZoneOffset (void)
 	}
 	HTTimeZone = -HTTimeZone;
 	if (WWWTRACE)
-	    TTYPrint(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
+	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
 		    (int) HTTimeZone/3600);
     }
 #else
@@ -184,11 +184,11 @@ PUBLIC long HTGetTimeZoneOffset (void)
 #endif /* HT_REENTRANT */
 	HTTimeZone = local->tm_gmtoff;
 	if (WWWTRACE)
-	    TTYPrint(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
+	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
 		    (int)local->tm_gmtoff / 3600);
     }
 #else
-    if (WWWTRACE) TTYPrint(TDEST,"TimeZone.... Not defined\n");
+    if (WWWTRACE) HTTrace("TimeZone.... Not defined\n");
 #endif /* !NO_TIMEZONE */
 #endif /* !NO_GMTOFF */
     return HTTimeZone;
@@ -216,10 +216,10 @@ PUBLIC time_t HTParseTime (CONST char *  str)
 	while (*s && *s==' ') s++;
 	if (strchr(s,'-')) {				     /* First format */
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "Format...... Weekday, 00-Mon-00 00:00:00 GMT\n");
+		HTTrace("Format...... Weekday, 00-Mon-00 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 18) {
 		if (WWWTRACE)
-		    TTYPrint(TDEST,
+		    HTTrace(
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
 	    }
@@ -231,10 +231,10 @@ PUBLIC time_t HTParseTime (CONST char *  str)
 	    tm.tm_sec = make_num(s+16);
 	} else {					    /* Second format */
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "Format...... Wkd, 00 Mon 0000 00:00:00 GMT\n");
+		HTTrace("Format...... Wkd, 00 Mon 0000 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 20) {
 		if (WWWTRACE)
-		    TTYPrint(TDEST,
+		    HTTrace(
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
 	    }
@@ -251,23 +251,23 @@ PUBLIC time_t HTParseTime (CONST char *  str)
 	if (WWWTRACE) {
 #ifdef HT_REENTRANT
 	    char buffer[CTIME_MAX];
-	    TTYPrint(TDEST, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
+	    HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
 #else
-	    TTYPrint(TDEST, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
+	    HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
 #endif
 	}
 	return t;
 
     } else {	      /* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
+	    HTTrace("Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
 	s = str;
 	while (*s && *s==' ') s++;
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "Trying...... The Wrong time format: %s\n", s);
+	    HTTrace("Trying...... The Wrong time format: %s\n", s);
 	if ((int)strlen(s) < 24) {
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "ERROR....... Not a valid time format \"%s\"\n",s);
+		HTTrace("ERROR....... Not a valid time format \"%s\"\n",s);
 	    return 0;
 	}
 	tm.tm_mday = make_num(s+8);
@@ -283,7 +283,7 @@ PUBLIC time_t HTParseTime (CONST char *  str)
 	tm.tm_mday < 1  ||  tm.tm_mday > 31  ||
 	tm.tm_mon  < 0  ||  tm.tm_mon  > 11  ||
 	tm.tm_year <70  ||  tm.tm_year >120) {
-	if (WWWTRACE) TTYPrint(TDEST,
+	if (WWWTRACE) HTTrace(
 	"ERROR....... Parsed illegal time: %02d.%02d.%02d %02d:%02d:%02d\n",
 	       tm.tm_mday, tm.tm_mon+1, tm.tm_year,
 	       tm.tm_hour, tm.tm_min, tm.tm_sec);
@@ -303,12 +303,12 @@ PUBLIC time_t HTParseTime (CONST char *  str)
 #ifndef NO_TIMEGM
     t = timegm(&tm);
 #else
-    if (WWWTRACE) TTYPrint(TDEST,"Time String. Can not be parsed\n");
+    if (WWWTRACE) HTTrace("Time String. Can not be parsed\n");
 #endif /* !NO_TIMEGM */
 #endif /* !NO_MKTIME */
 
     if (WWWTRACE)
-	TTYPrint(TDEST,
+	HTTrace(
 		"Time string. %s parsed to %ld seconds, or in local time: %s",
 		str, (long) t, ctime(&t));
     return t;
@@ -470,7 +470,7 @@ PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
 	    (*host && strcasecomp(host, "localhost") &&
 	     myhost && strcmp(host, myhost))) {
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "LocalName... Not on local file system\n");
+		HTTrace("LocalName... Not on local file system\n");
 	    HT_FREE(access);
 	    HT_FREE(host);
 	    HT_FREE(path);
@@ -496,7 +496,7 @@ PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
 	    
 	    HTUnEscape(path);		  /* Take out the escaped characters */
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "Node........ `%s' means path `%s'\n",url,path);
+		HTTrace("Node........ `%s' means path `%s'\n",url,path);
 	    HT_FREE(access);
 	    HT_FREE(host);
 	    return path;

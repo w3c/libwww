@@ -98,6 +98,7 @@ struct _HText {
 	
 	HTStream*		target;			/* Output stream */
 	HTStreamClass		targetClass;		/* Output routines */
+	LineMode *		pLm;
 };
 
 
@@ -128,6 +129,7 @@ PRIVATE HTList * loaded_texts;	/* A list of all those in memory */
 **	Interactive version
 **
 */
+extern LineMode * Context_getLineMode(HTRequest * request);
 PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
 {
     HTLine * line;
@@ -136,11 +138,12 @@ PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
 /*        HT_OUTOFMEM("HText"); */
 	return self;
     
+    self->pLm = Context_getLineMode(request);
     if (!loaded_texts) loaded_texts = HTList_new();
     HTList_addObject(loaded_texts, self);
     if (HTList_count(loaded_texts) >= LOADED_LIMIT) {
         if (CACHE_TRACE)
-	    TTYPrint(TDEST, "MemoryCache. Freeing off cached doc.\n"); 
+	    HTTrace("MemoryCache. Freeing off cached doc.\n"); 
         HText_free((HText *)HTList_removeFirstObject(loaded_texts));
     }
     
@@ -285,7 +288,7 @@ PRIVATE void display_line (HText * text, HTLine * line)
        a_print(line->data,H,stdout);
        fputc('\n',stdout);
 #else
-       TTYPrint(STDOUT, "%s%s\n", SPACES(line->offset), line->data);
+       OutputData(LineMode_getView(text->pLm), "%s%s\n", SPACES(line->offset), line->data);
 #endif
    }
    else {
@@ -328,7 +331,7 @@ PRIVATE void display_title (HText * text)
     mvwprintw(w_top, 0, 0, format, title, percent);
     wrefresh(w_top);
 #else
-    if (!text->target) TTYPrint(STDOUT, format, title, percent);
+    if (!text->target) OutputData(LineMode_getView(text->pLm), format, title, percent);
     else {
     	char * line;
     	if ((line = (char *) HT_MALLOC(HTScreenWidth+10)) == NULL)
@@ -354,12 +357,12 @@ PRIVATE void fill_screen (HText *  text, int n)
     wrefresh(w_text);
 #else
 #ifndef VIOLA    
-    if (!text->target) TTYPrint(STDOUT, "%s\n", end_mark);
+    if (!text->target) OutputData(LineMode_getView(text->pLm), "%s\n", end_mark);
     else { PUTS(end_mark); PUTC('\n'); }
     n--;
     
     for (; n; n--) {
-        if (!text->target) TTYPrint(STDOUT, "\n");
+        if (!text->target) OutputData(LineMode_getView(text->pLm), "\n");
 	else PUTC('\n');
     }
 #endif
@@ -626,7 +629,7 @@ PUBLIC void HText_setStyle (HText * text, HTStyle * style)
     after = (int) text->style->spaceAfter;
     before = (int) style->spaceBefore;
     if (SGML_TRACE)
-	TTYPrint(TDEST, "HTML: Change to style %s\n", style->name);
+	HTTrace("HTML: Change to style %s\n", style->name);
     blank_lines (text, after>before ? after : before);
     text->style = style;
 }
@@ -817,7 +820,7 @@ PUBLIC void HText_endAppend (HText * text)
 */
 PUBLIC void HText_dump (HText * text)
 {
-    TTYPrint(TDEST, "HText: Dump called\n");
+    HTTrace("HText: Dump called\n");
 }
 	
 
@@ -925,7 +928,7 @@ PUBLIC BOOL HText_select (HText * text)
 	return YES;
     }
     if (SGML_TRACE)
-	TTYPrint(TDEST, "HText: Nothing to select!\n");
+	HTTrace("HText: Nothing to select!\n");
     return NO;
 }
 
@@ -938,7 +941,7 @@ PUBLIC BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor)
     }
     if (!a) {
         if (SGML_TRACE)
-	    TTYPrint(TDEST, "HText: No such anchor in this text!\n");
+	    HTTrace("HText: No such anchor in this text!\n");
         return NO;
     }
 
@@ -950,7 +953,7 @@ PUBLIC BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor)
     {
 	int l = line_for_char(text, a->start);
 	if (SGML_TRACE)
-	    TTYPrint(TDEST,"HText: Selecting anchor [%d] at char %d, line %d\n",
+	    HTTrace("HText: Selecting anchor [%d] at char %d, line %d\n",
 		    a->number, a->start, l);
 
 	if ( !text->stale &&
@@ -1061,7 +1064,7 @@ PUBLIC HTAnchor *	HText_linkSelTo (HText * me, HTAnchor * anchor)
 PUBLIC BOOL HTHeaderParser (HTRequest *request, char *header)
 {
     if (STREAM_TRACE)
-	TTYPrint(TDEST, "MIMEExtra... we are now in callback\n");
+	HTTrace("MIMEExtra... we are now in callback\n");
     return YES;
 }
 
@@ -1080,14 +1083,14 @@ PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
     if ((text = (HText *) HTAnchor_document(anchor))) {
 	if (HTRequest_reloadMode(request) != HT_MEM_REFRESH) {
 	    if (CACHE_TRACE)
-		TTYPrint(TDEST,"HTMemCache.. Document already in memory\n");
+		HTTrace("HTMemCache.. Document already in memory\n");
 	    if (mode != HT_EXPIRES_IGNORE) {
 		if (!HTCache_isValid(anchor)) {
 		    if (mode == HT_EXPIRES_NOTIFY) {
-			if (WWWTRACE) TTYPrint(TDEST, "%s\n", notification);
+			if (WWWTRACE) HTTrace("%s\n", notification);
 		    } else {
 			if (CACHE_TRACE)
-			    TTYPrint(TDEST,
+			    HTTrace(
 				    "HTMemCache.. Expired - autoreload\n");
 			HTRequest_addRqHd(request, HT_C_IMS);
 #ifndef HT_SHARED_DISK_CACHE

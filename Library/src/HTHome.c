@@ -167,7 +167,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 	    fclose(fp);
 	} else {
 	    if (WWWTRACE)
-		TTYPrint(TDEST,
+		HTTrace(
 			"HTBrowse: No local home document ~/%s or %s\n",
 			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
 	    HT_FREE(my_home_document);
@@ -180,7 +180,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 		  PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST,
+	    HTTrace(
 		   "HTAccess.... `%s\' used for custom home page as\n`%s\'\n",
 		    my_home_document, ref);
 	HT_FREE(my_home_document);
@@ -288,22 +288,22 @@ PUBLIC int HTLoadTerminate (HTRequest * request, int status)
     switch (status) {
       case HT_LOADED:
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... OK: `%s\' has been accessed\n", uri);
+	    HTTrace("Load End.... OK: `%s\' has been accessed\n", uri);
 	break;
 
       case HT_NO_DATA:
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... OK BUT NO DATA: `%s\'\n", uri);
+	    HTTrace("Load End.... OK BUT NO DATA: `%s\'\n", uri);
 	break;
 
       case HT_INTERRUPTED:
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... INTERRUPTED: `%s\'\n", uri);
+	    HTTrace("Load End.... INTERRUPTED: `%s\'\n", uri);
 	break;
 
       case HT_RETRY:
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... NOT AVAILABLE, RETRY AT %ld\n",
+	    HTTrace("Load End.... NOT AVAILABLE, RETRY AT %ld\n",
 		     HTRequest_retryTime(request));
 	break;
 
@@ -314,13 +314,13 @@ PUBLIC int HTLoadTerminate (HTRequest * request, int status)
 			    request->error_stack, NULL);
 	}
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n",
+	    HTTrace("Load End.... ERROR: Can't access `%s\'\n",
 		     uri ? uri : "<UNKNOWN>");
 	break;
 
       default:
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... UNKNOWN RETURN CODE %d\n", status);
+	    HTTrace("Load End.... UNKNOWN RETURN CODE %d\n", status);
 	break;
     }
 

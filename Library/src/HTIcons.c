@@ -104,7 +104,7 @@ PUBLIC void HTAddIcon (char *	url,
     HTList_addObject(icons, (void*)node);
     alt_resize(alt);
     if (PROT_TRACE)
-	TTYPrint(TDEST, "AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",
+	HTTrace("AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",
 		type_templ,url, alt ? alt : "");
 }
 
@@ -129,7 +129,7 @@ PUBLIC void HTAddHref (char *     url,
     if (!hrefs) hrefs = HTList_new();
     HTList_addObject(hrefs, (void*)node);
     if (PROT_TRACE)
-	TTYPrint(TDEST, "AddHref..... %s => URL=\"%s\" \n",type_templ,url);
+	HTTrace("AddHref..... %s => URL=\"%s\" \n",type_templ,url);
 }
 
 
@@ -148,7 +148,7 @@ PUBLIC void HTAddUnknownIcon (char * url,
     if (alt) StrAllocCopy(icon_unknown->icon_alt, alt);
     alt_resize(alt);
     if (PROT_TRACE)
-	TTYPrint(TDEST,"AddIcon..... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
+	HTTrace("AddIcon..... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
 		alt ? alt : "");
 }
 
@@ -167,7 +167,7 @@ PUBLIC void HTAddBlankIcon (char * url,
     if (alt) StrAllocCopy(icon_blank->icon_alt, alt);
     alt_resize(alt);
     if (PROT_TRACE)
-	TTYPrint(TDEST,"AddIcon..... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
+	HTTrace("AddIcon..... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
 		alt ? alt : "");
 }
 
@@ -185,7 +185,7 @@ PUBLIC void HTAddParentIcon (char * url,
     if (alt) StrAllocCopy(icon_parent->icon_alt, alt);
     alt_resize(alt);
     if (PROT_TRACE)
-	TTYPrint(TDEST,"AddIcon..... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
+	HTTrace("AddIcon..... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
 		alt ? alt : "");
 }
 
@@ -203,7 +203,7 @@ PUBLIC void HTAddDirIcon (char * url,
     if (alt) StrAllocCopy(icon_dir->icon_alt, alt);
     alt_resize(alt);
     if (PROT_TRACE)
-	TTYPrint(TDEST,"AddIcon..... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
+	HTTrace("AddIcon..... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
 		alt ? alt : "");
 }
 

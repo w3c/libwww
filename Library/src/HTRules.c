@@ -96,10 +96,10 @@ PUBLIC BOOL HTRule_add (HTList * list, HTRuleOp op,
 	    StrAllocCopy(me->replace, replace);
 	    me->insert = ptr ? ptr-replace : -1;
 	    if (APP_TRACE)
-		TTYPrint(TDEST, "Rule Add.... For `%s\' op %d `%s\'\n",
+		HTTrace("Rule Add.... For `%s\' op %d `%s\'\n",
 			 pattern, op, replace);
 	} else
-	    TTYPrint(TDEST, "Rule Add.... For `%s\' op %d\n", pattern, op);
+	    HTTrace("Rule Add.... For `%s\' op %d\n", pattern, op);
 	return HTList_appendObject(rules, (void *) me);
     }
     return NO;
@@ -139,7 +139,7 @@ PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
     HTRule * pres;
     char * replace = NULL;
     if (!token || !list) return NULL;
-    if (APP_TRACE) TTYPrint(TDEST, "Check rules. for `%s\'\n", token);
+    if (APP_TRACE) HTTrace("Check rules. for `%s\'\n", token);
     while ((pres = (HTRule *) HTList_nextObject(list))) {
 	char * rest = ignore_case ? HTStrCaseMatch(pres->pattern, token) :
 	    HTStrMatch(pres->pattern, token);
@@ -165,7 +165,7 @@ PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
 
 	    if (pres->op == HT_Pass) {
 		if (APP_TRACE)
-		    TTYPrint(TDEST, "............ map into `%s'\n", replace);
+		    HTTrace("............ map into `%s'\n", replace);
 		return replace;
 	    }
 	    break;
@@ -173,7 +173,7 @@ PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
 	  case HT_Fail:
 
 	  default:
-	    if (APP_TRACE) TTYPrint(TDEST,"............ FAIL `%s'\n", token);
+	    if (APP_TRACE) HTTrace("............ FAIL `%s'\n", token);
 	    return NULL;
 	}
     }
@@ -202,7 +202,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, CONST char * config)
     }
     if ((word2 = HTNextField(&ptr)) == NULL) {
 	if (APP_TRACE)
-	    TTYPrint(TDEST,"Rule Parse.. Insufficient operands: `%s\'\n",line);
+	    HTTrace("Rule Parse.. Insufficient operands: `%s\'\n",line);
 	HT_FREE(line);
 	return NO;
     }
@@ -256,7 +256,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, CONST char * config)
 	    :					HT_Invalid;
 	if (op == HT_Invalid) {
 	    if (APP_TRACE)
-		TTYPrint(TDEST, "Rule Parse.. Bad or unknown: `%s'\n", config);
+		HTTrace("Rule Parse.. Bad or unknown: `%s'\n", config);
 	} else
 	    HTRule_add(list, op, word2, word3);
     }
@@ -334,7 +334,7 @@ PRIVATE int HTRule_free (HTStream * me)
 	    return HT_WOULD_BLOCK;
     }
     if (APP_TRACE)
-	TTYPrint(TDEST, "Rules....... FREEING....\n");
+	HTTrace("Rules....... FREEING....\n");
     HTChunk_delete(me->buffer);
     HT_FREE(me);
     return status;
@@ -344,7 +344,7 @@ PRIVATE int HTRule_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (APP_TRACE) TTYPrint(TDEST, "Rules....... ABORTING...\n");
+    if (APP_TRACE) HTTrace("Rules....... ABORTING...\n");
     HTChunk_delete(me->buffer);
     HT_FREE(me);
     return status;
@@ -374,7 +374,7 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
     HTStream * me;
     if (!cbf ||
 	(cbf && (*cbf)(request,HT_A_CONFIRM,HT_MSG_RULES,NULL,NULL,NULL))) {
-	if (WWWTRACE) TTYPrint(TDEST, "Rule file... Parser object created\n");
+	if (WWWTRACE) HTTrace("Rule file... Parser object created\n");
 	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
 	    HT_OUTOFMEM("HTRules");
 	me->isa = &HTRuleClass;

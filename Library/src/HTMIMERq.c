@@ -130,7 +130,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	sprintf(linebuf, "%c%c", CR, LF);	   /* Blank line means "end" */
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (PROT_TRACE) TTYPrint(TDEST,"MIME........ Generating Entity Headers\n");
+    if (PROT_TRACE) HTTrace("MIME........ Generating Entity Headers\n");
     return HT_OK;
 }
 
@@ -186,7 +186,7 @@ PRIVATE int MIMERequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HT_FREE(me);
-    if (PROT_TRACE) TTYPrint(TDEST, "MIMERequest. ABORTING...\n");
+    if (PROT_TRACE) HTTrace("MIMERequest. ABORTING...\n");
     return HT_ERROR;
 }
 
