@@ -656,7 +656,7 @@ PUBLIC BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit)
     if (host && unit) {
 #if 0
 	if (host->range_units) {
-	    char * start = strcasestr(host->range_units, "none");
+	    char * start = HTStrCaseStr(host->range_units, "none");
 
 	    /*
 	    **  Check that "none" is infact a token. It could be part of some

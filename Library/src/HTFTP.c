@@ -258,7 +258,7 @@ PRIVATE int ScanResponse (HTStream * me)
 	StrAllocCopy(me->ctrl->reply, ptr);
 /* begin _GM_ */
 /* Note: libwww bug ID: GM3 */
-	if ( (reply == 530) && (strcasestr(me->buffer, "already") != NULL) ) {
+	if ( (reply == 530) && (HTStrCaseStr(me->buffer, "already") != NULL) ) {
 	    me->ctrl->alreadyLoggedIn = YES;
 	} else {
 	    me->ctrl->alreadyLoggedIn = NO;

@@ -59,7 +59,7 @@ PUBLIC int strncasecomp (const char * a, const char * b, int n)
 /*
 ** strcasestr(s1,s2) -- like strstr(s1,s2) but case-insensitive.
 */
-PUBLIC char * strcasestr (char * s1, char * s2)
+PUBLIC char * HTStrCaseStr (char * s1, char * s2)
 {
     char * ptr = s1;
 
