@@ -7,6 +7,7 @@
 **	JFG: Jean-Francois Groff, Cooperant CERN 1991-92 (jfg@info.cern.ch)
 **	DR:  Dudu Rashty +972-2-584848 <RASHTY@hujivms.bitnet>
 **	MD:  Mark Donszelmann, DELPHI CERN, (duns@vxdeop.cern.ch)
+**	HFN: Henrik Frystyk Nielsen, CERN, (frystyk@dxcern.cern.ch)
 **
 **  Copyright CERN 1990-1992   See Copyright.html 
 **
@@ -1534,10 +1535,12 @@ stop:   free(the_choice);
    ------------------------------------------------------------------------- */
 PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
 {
-    if (Str)
-	fprintf(stderr, "Line Mode Browser: %s (%s)\n", Msg, Str);
-    else
-	fprintf(stderr, "Line Mode Browser: %s\n", Msg);
+    if (TRACE) {
+	if (Str)	
+	    fprintf(stderr, "Line Mode Browser: %s (%s)\n", Msg, Str);
+	else
+	    fprintf(stderr, "Line Mode Browser: %s\n", Msg);
+    }
 }
 
 
