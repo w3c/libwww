@@ -101,6 +101,10 @@ int main (int argc, char ** argv)
     HTPrint_setCallback(printer);
     HTTrace_setCallback(tracer);
 
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
+
     /* Add our own filter to terminate the application */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
