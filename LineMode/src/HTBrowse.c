@@ -1121,7 +1121,9 @@ PRIVATE void Selection_Prompt()
 #ifdef NEWLINE_PROMPT
 	printf("\n");  	            /* For use on VM to flush out the prompt */
 #endif
-	fgets(choice, RESPONSE_LENGTH, stdin);	          /* Read User Input */
+	if (!fgets(choice, RESPONSE_LENGTH, stdin))	/* Read User Input */
+	    exit(0);	/* Exit if EOF */
+
 	StrAllocCopy (the_choice, choice);             /* Remember it as is, */
 	if (the_choice[strlen(the_choice)-1] == '\n')        /* The final \n */
 	    the_choice[strlen(the_choice)-1] = '\0';
