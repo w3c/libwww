@@ -1975,6 +1975,7 @@ int main (int argc, char ** argv)
     /* Initialize set of converters */
     lm->converters = HTList_new();
     HTConverterInit(lm->converters);
+    HTMLInit(lm->converters);
     HTFormat_setConversion(lm->converters);
 
     /* Set up encoders and decoders */

@@ -45,7 +45,8 @@ www_SOURCES = \
 	HTMux.c		HTStream.c	HTTrans.c \
 	HTChannl.c	HTInet.c	HTHost.c \
 	HTLocal.c	HTReader.c	HTANSI.c \
-	HTBufWrt.c	HTTChunk.c	@HTWAIS@
+	HTBufWrt.c	HTTChunk.c	HTHInit.c \
+	@HTWAIS@
 
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \

@@ -71,20 +71,23 @@ extern void HTAccessInit (void);
 </H2>
 <P>
 The core doesn't have any built in MIME parsers, but many of the protocols
-need them. For instance, many elements of the library rely on the Content-Length
-being correctly set. HTMIMEInit provides the minimal functionality needed
-for library reliablilty.
-<PRE>
-extern void HTMIMEInit (void);
+need them. For instance, many elements of the library rely on the
+<CODE>Content-Length</CODE> being correctly set. HTMIMEInit provides the
+minimal functionality needed for library reliablilty.
+<PRE>extern void HTMIMEInit (void);
 </PRE>
 <H2>
   Default Event Manager
 </H2>
 <P>
-The event loop is used if you are using non-blocking sockets or want to use
-real threads.
+libwww core does not have any default event loop - it has to be added by
+the application. However, it does come with an example implementation thta
+may be used. This implementation is based on a <CODE>select</CODE> system
+call using non-blocking and interleaved sockets.
 <PRE>
-#include "HTEvntrg.h"
+#include "WWWApp.h"
+
+extern void HTEventInit (void);
 </PRE>
 <H2>
   Default Media Type Conversions

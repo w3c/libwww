@@ -11,8 +11,7 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTFormat.h"
-#include "HTList.h"
+#include "WWWCore.h"
 #include "HTHInit.h"				         /* Implemented here */
 
 /* ------------------------------------------------------------------------- */

@@ -1,5 +1,6 @@
 <HTML>
 <HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 14-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Default HTML Parser Initialization</TITLE>
 </HEAD>
 <BODY>
@@ -31,8 +32,8 @@ a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
 Library</A>. You can also have a look at the other
 <A HREF="WWWInit.html">Initialization modules</A>.
 <PRE>
-#ifndef HTINIT_H
-#define HTINIT_H
+#ifndef HTHINIT_H
+#define HTHINIT_H
 #include "WWWLib.h"
 </PRE>
 <H2>
@@ -45,6 +46,9 @@ The Presenters are also used in the stream stack, but are initialized separately
 <PRE>
 #include "HTML.h"			/* Uses HTML/HText interface */
 #include "HTPlain.h"			/* Uses HTML/HText interface */
+
+#include "HTTeXGen.h"
+#include "HTMLGen.h"
 
 extern void HTMLInit		(HTList * conversions);
 

@@ -489,6 +489,7 @@ int main (int argc, char ** argv)
     /* Initialize set of converters */
     mr->converters = HTList_new();
     HTConverterInit(mr->converters);
+    HTMLInit(mr->converters);
     HTFormat_setConversion(mr->converters);
 
     /* Initialize bindings between file suffixes and media types */
