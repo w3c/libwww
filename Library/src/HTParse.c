@@ -5,11 +5,9 @@
 **	May 12 94	TAB added as legal char in HTCleanTelnetString
 **
 */
-#if 0
-#include "HTUtils.h"
-#endif
-#include "HTParse.h"
 #include "tcp.h"
+#include "HTUtils.h"
+#include "HTParse.h"
 
 #define HEX_ESCAPE '%'
 
@@ -21,7 +19,6 @@ struct struct_parts {
 /*	char * search;		no - treated as part of path */
 	char * anchor;
 };
-
 
 /*	Strip white space off a string
 **	------------------------------
@@ -320,6 +317,7 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 //
 //		/fred/..		becomes /fred/..
 //		/fred/././..		becomes /fred/..
+//		/fred/.././junk/.././	becomes /fred/..
 //
 */
 PUBLIC void HTSimplify ARGS1(char *, filename)
@@ -327,19 +325,34 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
     int tokcnt = 0;
     char *strptr;
     char *urlptr;
+    BOOL prefix = NO;	 /* If prefix == YES then we can delete all segments */
     if (!filename || !*filename)                         /* Just to be sure! */
 	return;
 
+    if (TRACE)
+	fprintf(stderr, "HTSimplify.. `%s\' ", filename);
+
     /* Skip prefix, starting ./ and starting ///<etc> */
-    urlptr = strstr(filename, "://");                         /* Find prefix */
-    urlptr = urlptr ? urlptr+3 : filename;
-    if (*urlptr == '.' && *(urlptr+1) == '/')            /* Starting ./<etc> */
+    if ((urlptr = strstr(filename, "://")) != NULL) {	      /* Find prefix */
+	urlptr += 3;
+	prefix = YES;
+    } else if ((urlptr = strstr(filename, ":/")) != NULL) {
 	urlptr += 2;
-    else if (*urlptr == '/') {		         /* Some URLs start //<file> */
+	prefix = YES;
+    } else
+	urlptr = filename;
+    if (*urlptr == '.' && *(urlptr+1) == '/') {          /* Starting ./<etc> */
+	urlptr += 2;
+	prefix = YES;
+    } else if (*urlptr == '/') {	         /* Some URLs start //<file> */
 	while (*++urlptr == '/');
+	prefix = YES;
     }
-    if (!*urlptr)
+    if (!*urlptr) {					  /* If nothing left */
+	if (TRACE)
+	    fprintf(stderr, "No simplification possible\n");
 	return;
+    }
 
     /* Now we have the string we want to work with */
     strptr = urlptr;
@@ -349,15 +362,12 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
     }
     {
 	BOOL slashtail = NO;
+	int segcnt = 0;	     /* Number of 'real segments' (not '.' and '..') */
 	char *empty = "";
 	char *url = NULL;
 	char **tokptr;
 	char **tokstart;
-	char *first;	    /* Points to the first `real' segment in the URL */
 	StrAllocCopy(url, urlptr);
-	first = url;
-	while (*first && (*first == '/' ||  *first == '.'))
-	    first++;
 
 	/* Does the URL end with a slash? */
 	if(*(filename+strlen(filename)-1) == '/')
@@ -367,12 +377,31 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 	if ((tokstart = (char **) calloc(tokcnt+2, sizeof(char *))) == NULL)
 	    outofmem(__FILE__, "HTSimplify");
 
-	/* Read the tokens forwards */
+	/* Read the tokens forwards and count `real' segments */
 	tokptr = tokstart;
-	*tokptr++ = strtok(url, "/");
-	while ((strptr = strtok(NULL, "/")) != NULL)
+	*tokptr = strtok(url, "/");
+	if (strcmp(*tokptr, ".") && strcmp(*tokptr, ".."))
+	    segcnt++;
+	tokptr++;
+	while ((strptr = strtok(NULL, "/")) != NULL) {
+	    if (strcmp(strptr, ".") && strcmp(strptr, ".."))
+		segcnt++;
+	    else if (!strcmp(strptr, "..") && !segcnt)
+		prefix = YES;
 	    *tokptr++ = strptr;
-	
+	}
+
+#if 0
+	{
+	    char **test = tokstart;
+	    fprintf(stderr, "--- start ---\n");
+	    fprintf(stderr, "Filename:\t`%s\'\n", filename);
+	    while (*test)
+		fprintf(stderr, "Token:\t\t`%s\'\n", *test++);
+	    fprintf(stderr, "Segments:\t%d\n", segcnt);
+	}
+#endif
+
 	/* Scan backwards for '.' and '..' */
 	tokptr--;
 	while(tokptr >= tokstart) {
@@ -382,9 +411,10 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 		char **pptr = tokptr-1;
 		while (pptr >= tokstart) {
 		    if (**pptr && strcmp(*pptr, "..") && strcmp(*pptr, ".") &&
-			strcmp(*pptr, first)) {
+			(segcnt > 1 || prefix)) {
 			*pptr = empty;
 			*tokptr = empty;
+			segcnt--;
 			break;
 		    }
 		    pptr--;
@@ -395,20 +425,31 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 
 	/* Write the rest out forwards */
 	*urlptr = '\0';
-	strcat(urlptr, *++tokptr);
 	while (*++tokptr) {
 	    if (**tokptr) {
-		strcat(urlptr, "/");
+		if (*urlptr)		  /* Don't want two in the beginning */
+		    strcat(urlptr, "/");
 		strcat(urlptr, *tokptr);
 	    }
 	}
-	if (slashtail == YES)
+
+	if (slashtail == YES && *(urlptr+(int)strlen(urlptr)-1) != '/')
 	    strcat(urlptr, "/");
+#if 0
+	{
+	    char **test = tokstart;
+	    while (*test)
+		fprintf(stderr, "Token:\t\t`%s\'\n", *test++);
+	    fprintf(stderr, "Segments:\t%d\n", segcnt);
+	    fprintf(stderr, "Filename:\t`%s\'\n", filename);
+	    fprintf(stderr, "---  end  ---\n\n");
+	}
+#endif
 	free(url);
 	free(tokstart);
     }
     if (TRACE)
-	fprintf(stderr, "HTSimplify.. `%s\'\n", filename);
+	fprintf(stderr, "into\n............ `%s'\n", filename);
 }
 #ifdef OLD_CODE
     char * p = filename;

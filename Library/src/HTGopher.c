@@ -549,7 +549,7 @@ PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
 			    END(HTML_DL);
 			    START(HTML_H3);
 			    PUTS("Record ");
-			    sprintf(recstr, "%d", records);
+			    sprintf(recstr, "%u", records);
 			    PUTS(recstr);
 			    END(HTML_H3);
 			    START(HTML_DL);

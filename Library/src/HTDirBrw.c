@@ -1051,7 +1051,9 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    FREE_TARGET;
 	}
 
+#if 0 /* Not used for the moment */
 cleanup:
+#endif
 	if (descriptions)
 	    HTFreeDescriptions(descriptions);
 	FREE(HTDirSpace);

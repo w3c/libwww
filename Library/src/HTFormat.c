@@ -45,6 +45,7 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 #include "SGML.h"
 #include "HTML.h"
 #include "HTMLGen.h"
+#include "HTTCP.h"
 #include "HTGuess.h"
 
 
