@@ -1,0 +1,121 @@
+<HTML>
+<HEAD>
+<TITLE>Directory Browsing</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
+</HEAD>
+<BODY>
+
+<H1>Directory Browsing</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The directory manager generates directory listings for FTP and HTTP
+requests. This module contains the protocol independent code and it
+produces the HTML object. It is only included if either the <A
+HREF="HTFTP.html">FTP</A> or the <A HREF="HTFile.html">File</A> module
+is included. <P>
+
+This module is implemented by <A HREF="HTDir.c">HTDir.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTDIR_H
+#define HTDIR_H
+#include "HTReq.h"
+#include "HTIcons.h"
+</PRE>
+
+<H2>What Should the Listings Look Like?</H2>
+
+If the <CODE>HT_DS_DES</CODE> is set then the <EM>Description</EM>
+field is added as the last column in the listing.  File descriptions
+are queried from the <A HREF="HTDescpt.html">HTDescript
+module</A>. Make a full mask by adding/oring the following flags:
+
+<PRE>
+typedef enum _HTDirShow {
+    HT_DS_SIZE  = 0x1,			/* Show file size using K, M and G? */
+    HT_DS_DATE  = 0x2,			/* Show last modified date? */
+    HT_DS_HID   = 0x4,			/* Show hidden files? */
+    HT_DS_DES	= 0x8,			/* Show descriptions? */
+    HT_DS_ICON  = 0x10,			/* Show icons? */
+    HT_DS_HOTI  = 0x20			/* Are Icons hot or cold? */
+} HTDirShow;
+
+typedef enum _HTDirKey {
+    HT_DK_NONE	= 0,			/* No sorting */
+    HT_DK_CSEN	= 1,			/* Case sensitive */
+    HT_DK_CINS  = 2			/* Case insensitive */
+} HTDirKey;
+</PRE>
+
+<H3>Length of Filenames and Descriptions</H3>
+
+The module automatically ajusts the width of the directory listing as
+a function of the file name. The width can flows dynamically between
+an upper and a lower limit.  The maximum length of
+this field is specified by
+
+<PRE>
+extern BOOL HTDir_setWidth (int minfile, int maxfile);
+</PRE>
+
+<H2>The Directory Object</H2>
+
+The directory object handles the generation of a directory listing. It
+is a bit like a stream in that it accept data, but it must be
+formatted in a special way which makes the normal stream architecture
+inadequate.
+
+<H3>Width of File Names</H3>
+
+The module automatically ajusts the width of the directory listing as
+a function of the file name. The width can flows dynamically between
+an upper and a lower limit.
+
+<PRE>
+extern BOOL HTDir_setWidth (int minfile, int maxfile);
+</PRE>
+
+<H3>Create a Directory Object</H3>
+
+Creates a structured stream object and sets up the initial HTML stuff
+Returns the dir object if OK, else NULL
+
+<PRE>
+typedef struct _HTDir HTDir;
+
+extern HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key);
+</PRE>
+
+<H3>Add a Line to the List</H3>
+
+This function accepts a directory line. "data" and "size", and
+"description" can all be NULL. Returns YES if OK, else NO
+
+<PRE>
+extern BOOL HTDir_addElement	(HTDir *dir, char *name, char *date,
+				 char *size, HTFileMode mode);
+</PRE>
+
+<H3>Free a Directory Obejct</H3>
+
+If we are sorting then do the sorting and put out the list,
+else just append the end of the list.
+
+<PRE>
+extern BOOL HTDir_free (HTDir * dir);
+</PRE>
+
+<PRE>
+#endif /* HTDIR */
+</PRE>
+End of declaration
+</BODY>
+</HTML>
