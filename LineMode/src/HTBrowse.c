@@ -464,13 +464,13 @@ PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req, char *,This, char *,Next)
     
     /* Checks if file exists. Can be overruled by using '>!' */
     if (*(This+1) == '>') {	 		   	   /* Append to file */
-	fmode = "a";
+	fmode = "ab";
 	fname = *(This+2) ? (This+2) : Next;
     } else if (*(This+1) == '!') {
-	fmode = "w";				           /* Overwrite file */
+	fmode = "wb";				           /* Overwrite file */
 	fname = *(This+2) ? (This+2) : Next;
     } else {						/* File name follows */
-	fmode = "w";
+	fmode = "wb";
 	fname = *(This+1) ? (This+1) : Next;
 	if (fname) {				       /* See if file exists */
 	    if ((fp = fopen(fname, "r")) != NULL) {
@@ -1291,7 +1291,7 @@ int main ARGS2(int, argc, char **, argv)
     /* Open output file */
     if (!HTPrompt_interactive()) {
     	if (outputfile) {	    
-	    if ((output = fopen(outputfile, "w")) == NULL) {
+	    if ((output = fopen(outputfile, "wb")) == NULL) {
 	        if (SHOW_MSG)
 		    fprintf(stdout, "Can't open file for writing (%s)\n",
 			    outputfile);
