@@ -157,7 +157,7 @@ PUBLIC CONST HTStreamClass HTWriter = /* As opposed to print etc */
 
 PUBLIC HTStream* HTWriter_new ARGS1(int, soc)
 {
-    HTStream* me = malloc(sizeof(*me));
+    HTStream* me = (HTStream*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTWriter;       
     
@@ -175,7 +175,7 @@ PUBLIC HTStream* HTWriter_new ARGS1(int, soc)
 
 PUBLIC HTStream* HTASCIIWriter ARGS1(int, soc)
 {
-    HTStream* me = malloc(sizeof(*me));
+    HTStream* me = (HTStream*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTWriter;       
 

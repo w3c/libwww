@@ -12,7 +12,9 @@
                          
   MA                      Marc Andreesen NCSA
                          
-  AT                      Aleksandar Totic (atotic@ncsa.uiuc.edu)
+  AT                      Aleksandar Totic <atotic@ncsa.uiuc.edu>
+                         
+  SCW                    Susan C. Weber <sweber@kyle.eitech.com>
                          
   HISTORY:
   
@@ -21,6 +23,8 @@
   16 Jan 92               PC code from EvA
                          
   22 Apr 93               Merged diffs bits from xmosaic release
+                         
+  29 Apr 93              NT code from SCW
                          
  */
 
@@ -187,13 +191,10 @@ IBM RS600
 
 IBM VM-CMS, VM-XA Mainframes
 
+   MVS is compiled as for VM. MVS has no unix-style I/O.  The command line compile options
+   seem to come across in lower case.
+   
  */
-/*      MVS is compiled as for VM. MVS has no unix-style I/O
-**      The command line compile options seem to come across in
-**      lower case.
-**
-**      See also lots of VM stuff lower down.
-*/
 #ifdef mvs
 #define MVS
 #endif
@@ -268,27 +269,59 @@ IBM-PC running MS-DOS with SunNFS for TCP/IP
 #define FD_ISSET(fd,pmask) (*(unsigned*)(pmask) & (1<<(fd)))
 #endif  /* PCNFS */
 
+/*
+
+IBM-PC running Windows NT
+
+   These parameters providede by  Susan C. Weber &lt;sweber@kyle.eitech.com>.
+   
+ */
+#ifdef _WINDOWS
+#include "fcntl.h"                      /* For HTFile.c */
+#include "sys\types.h"                  /* For HTFile.c */
+#include "sys\stat.h"                   /* For HTFile.c */
+
+#undef NETREAD
+#undef NETWRITE
+#undef NETCLOSE
+#define NETREAD(s,b,l)  ((s)>10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
+#define NETWRITE(s,b,l) ((s)>10 ? send((s),(b),(l),0) : write((s),(b),(l)))
+#define NETCLOSE(s)     ((s)>10 ? closesocket(s) : close(s))
+#include <io.h>
+#include <string.h>
+#include <process.h>
+#include <time.h>
+#include <direct.h>
+#include <stdio.h>
+#include <winsock.h>
+typedef struct sockaddr_in SockA;  /* See netinet/in.h */
+#define INCLUDES_DONE
+#define TCP_INCLUDES_DONE
+#endif  /* WINDOWS */
+
 
 
 /*
 
 VAX/VMS
 
+   Under VMS, there are many versions of TCP-IP. Define one if you do not use Digital's
+   UCX product:
+   
+  UCX                    DEC's "Ultrix connection" (default)
+                         
+  WIN_TCP                From Wollongong, now GEC software.
+                         
+  MULTINET               From SRI, now from TGV Inv.
+                         
+  DECNET                 Cern's TCP socket emulation over DECnet
+                         
+   The last three do not interfere with the unix i/o library, and so they need special
+   calls to read, write and close sockets. In these cases the socket number is a VMS
+   channel number, so we make the @@@ HORRIBLE @@@ assumption that a channel number will
+   be greater than 10 but a unix file descriptor less than 10.  It works.
+   
  */
-/*      Under VMS, there are many versions of TCP-IP. Define one if you
-**      do not use Digital's UCX product:
-**
-**              UCX             DEC's "Ultrix connection" (default)
-**              WIN_TCP         From Wollongong, now GEC software.
-**              MULTINET        From SRI, now from TGV Inv.
-**              DECNET          Cern's TCP socket emulation over DECnet
-**
-**      The last three do not interfere with the unix i/o library, and so they
-**      need special calls to read, write and close sockets. In these cases the
-**      socket number is a VMS channel number, so we make the @@@ HORRIBLE @@@
-**      assumption that a channel number will be greater than 10 but a
-**      unix file descriptor less than 10.  It works.
-*/
 #ifdef vms
 #ifdef WIN_TCP
 #undef NETREAD
@@ -471,7 +504,7 @@ typedef unsigned int fd_set;
 
 /*
 
-  M ACROS FOR CONVERTING CHARACTERS
+  MACROS FOR CONVERTING CHARACTERS
   
  */
 #ifndef TOASCII

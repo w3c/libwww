@@ -1,6 +1,6 @@
 <HEADER>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="48">
+<NEXTID N="49">
 </HEADER>
 <BODY>
 <H1>Library Internals</H1>The <A
@@ -32,7 +32,7 @@ It asks the <A
 NAME=19 HREF="#8">navigation</A> module to
 load the default page. 
 <DT><A
-NAME=8 HREF="HTAccess.h">Navigation</A>
+NAME=8 HREF="HTAccess.html">Access Manager</A>
 <DD> The module which acually
 loads documents is based in HTAccess.c.
 This uses all the <A
@@ -226,9 +226,15 @@ of HText.h
 <DL>
 <DT><A
 NAME=z47 HREF="tcp.html">System specifics</A>
-<DD>The tcp.h file includes
+<DD> The tcp.h file includes
 system-specific include files and
 flags for I/O to network and disk.
+<DT><A
+NAME=z48 HREF="HTUtils.html">Utilities</A>
+<DD> The HTUtil.h file includes
+things we need everywhere, generally
+macros for declarations, booleans,
+etc.
 </DL>
 
 <ADDRESS><A
