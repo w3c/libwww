@@ -1,31 +1,29 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww CONFIGURATION MANAGER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww Rule File Configuration manager</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Configuration File Manager</H1>
-
+<H1>
+  Rule File Configuration Manager
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The W3C Library provides this module for handling configuration files
-(a.k.a.  rule files). Rule files can be used to initialize as much as
-the application desires including setting up new protocol modules
-etc. Also the rules file do not have to be a fil - it can be a
-database or any other way of storage information. This implementation
-is not used by the Library at all and is part of the <A
-HREF="WWWApp.html">WWWApp.h</A> interface. <P>
-
-This module is implemented by <A HREF="HTRules.c">HTRules.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+The W3C Library provides this module for handling configuration files (a.k.a.
+rule files). Rule files can be used to initialize as much as the application
+desires including setting up new protocol modules etc. Also the rules file
+do not have to be a fil - it can be a database or any other way of storage
+information. This implementation is not used by the Library at all and is
+part of the <A HREF="WWWRules.html">WWWRules</A> interface.
+<P>
+This module is implemented by <A HREF="HTRules.c">HTRules.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTRULE_H
 #define HTRULE_H
@@ -34,36 +32,35 @@ Reference Library</A>.
 #include "HTReq.h"
 #include "HTFormat.h"
 </PRE>
-
-<H2>Parse a Whole Rule File</H2>
-
-Parsing a whole rule file is done using a converter stream. This means
-that a rule file can come from anywhere, even accross the network. We
-have defined a special content type for rule files called
-<CODE>WWW_RULES</CODE> in <A HREF="HTFormat.html">HTFormat</A>.
-
+<H2>
+  Parse a Whole Rule File
+</H2>
+<P>
+Parsing a whole rule file is done using a converter stream. This means that
+a rule file can come from anywhere, even accross the network. We have defined
+a special content type for rule files called <CODE>WWW_RULES</CODE> in
+<A HREF="HTFormat.html">HTFormat</A>.
 <PRE>
 extern HTConverter HTRules;
 </PRE>
-
-<H2>Parse a single line from a Rules File</H2>
-
-This routine may be used for loading configuration information from
-sources other than the rule file, for example INI files for X
-resources. <CODE>config</CODE> is a string in the syntax of a rule
-file line.
-
+<H2>
+  Parse a single line from a Rules File
+</H2>
+<P>
+This routine may be used for loading configuration information from sources
+other than the rule file, for example INI files for X resources.
+<CODE>config</CODE> is a string in the syntax of a rule file line.
 <PRE>
 extern BOOL HTRule_parseLine (HTList * list, const char * config);
 </PRE>
-
-<H2>Add a Rule to the List</H2>
-
-This function adds a rule to the list of rules. The
-<CODE>pattern</CODE> is a 0-terminated string containing a single
-"*". <CODE>equiv</CODE> points to the equivalent string with * for the
-place where the text matched by * goes.
-
+<H2>
+  Add a Rule to the List
+</H2>
+<P>
+This function adds a rule to the list of rules. The <CODE>pattern</CODE>
+is a 0-terminated string containing a single "*". <CODE>equiv</CODE> points
+to the equivalent string with * for the place where the text matched by *
+goes.
 <PRE>
 typedef struct _HTRule HTRule;
 
@@ -82,46 +79,43 @@ typedef enum _HTRuleOp {
 extern BOOL HTRule_add (HTList * list, HTRuleOp op,
 			const char * pattern, const char * replace);
 </PRE>
-
-<H2>Delete all Registered Rules</H2>
-
+<H2>
+  Delete all Registered Rules
+</H2>
+<P>
 This function clears all rules registered
-
 <PRE>
 extern BOOL HTRule_deleteAll (HTList *list);
 </PRE>
-
-<H2>Global Rules</H2>
-
-Rules are handled as list as everything else that has to do with
-preferences. We provide two functions for getting and setting the
-global rules:
-
+<H2>
+  Global Rules
+</H2>
+<P>
+Rules are handled as list as everything else that has to do with preferences.
+We provide two functions for getting and setting the global rules:
 <PRE>
 extern HTList * HTRule_global	(void);
 extern BOOL HTRule_setGlobal	(HTList * list);
 </PRE>
-
-<H2>Translate by rules</H2>
-
-This function walks through the list of rules and translates the
-reference when matches are found. The list is traversed in order
-starting from the head of the list. It returns the address of the
-equivalent string allocated from the heap which the CALLER MUST
-FREE. If no translation occured, then it is a copy of the original.
-
+<H2>
+  Translate by rules
+</H2>
+<P>
+This function walks through the list of rules and translates the reference
+when matches are found. The list is traversed in order starting from the
+head of the list. It returns the address of the equivalent string allocated
+from the heap which the CALLER MUST FREE. If no translation occured, then
+it is a copy of the original.
 <PRE>
 extern char * HTRule_translate (HTList * list, const char * token,
 				BOOL ignore_case);
 </PRE>
-
 <PRE>
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

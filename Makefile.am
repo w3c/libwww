@@ -52,6 +52,7 @@ cvs-export-member:
 	for subdir in $(CVSDIRS); do \
 	  target=`echo $@ | sed s/-recursive//`; \
 	  echo making $$target in $$subdir;	\
+	  rm -rf $$subdir/member;	\
 	  cvs export -d $$subdir/member \
 		-r `echo "Release-$(VERSION)" | sed 's/\./-/g'` $$subdir; \
 	done && test -z "$$fail"
@@ -60,6 +61,7 @@ cvs-export-pub:
 	for subdir in $(CVSDIRS); do \
 	  target=`echo $@ | sed s/-recursive//`; \
 	  echo making $$target in $$subdir;	\
+	  rm -rf $$subdir/pub;	\
 	  cvs export -d $$subdir/pub \
 		-r `echo "Release-$(VERSION)" | sed 's/\./-/g'` $$subdir; \
 	done && test -z "$$fail"
