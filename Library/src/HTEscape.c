@@ -63,6 +63,7 @@ PUBLIC char * HTEscape (const char * str, HTURIEncoding mask)
     char * q;
     char * result;
     int unacceptable = 0;
+    if (!str) return NULL;
     for(p=str; *p; p++)
         if (!ACCEPTABLE((unsigned char)TOASCII(*p)))
 		unacceptable++;
@@ -105,7 +106,7 @@ PUBLIC char * HTUnEscape (char * str)
     if (!str) {					      /* Just for safety ;-) */
 	if (URI_TRACE)
 	    HTTrace("HTUnEscape.. Called with NULL argument.\n");
-	return "";
+	return NULL;
     }
     while(*p) {
         if (*p == HEX_ESCAPE) {

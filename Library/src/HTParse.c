@@ -126,6 +126,7 @@ PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
     char * access;
     HTURI given, related;
     
+    if (!aName) return NULL;
     if (!relatedName)        /* HWL 23/8/94: dont dump due to NULL */
         relatedName = "";
     
