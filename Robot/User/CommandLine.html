@@ -91,13 +91,16 @@ expressions</A>.
     Allows you to define a
     <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</A>
     of which URIs should be excluded from the traversal. The rejected URIs can
-    be <A HREF="#Logging">logged to a separate file</A>.
+    be <A HREF="#Logging">logged to a separate file</A>. This can be used to
+    exclude specific parts of the URI space, for example all URIs containing
+    "/old/": <CODE>-exclude "/old/"</CODE>
   <DT>
     <B>-check [ regex ]</B>
   <DD>
     Check all URIs that match this regular expression with a <TT>HEAD</TT> method
     instead of a <TT>GET</TT> method. This can be used to verify links but avoiding
-    downloading large distribution files, for example.
+    downloading large distribution files like this: <CODE>-check
+    "\.gz$|\.Z$|\.zip$|</CODE>, for example.
   <DT>
     <B>-include [ regex ]</B>
   <DD>
@@ -106,7 +109,7 @@ expressions</A>.
     of which URIs should be included in the traversal
 </DL>
 <H3>
-  Checking Inlined Images
+  <A NAME="Inlined">Checking Inlined Images</A>
 </H3>
 <DL>
   <DT>
@@ -118,6 +121,13 @@ expressions</A>.
   <DD>
     Saving the inlined images on local disk or pump them to a black hole. This
     is primarily to emulate a GUI client's behavior using the robot
+  <DT>
+    <B>-alt [ file ]</B>
+  <DD>
+    Specifies a
+    <A HREF="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
+    Format</A> style log file of all inlined images <EM>without or with an
+    empty</EM> an <STRONG>ALT</STRONG> tag.
   <DT>
     <B>-prefix [ URI ]</B>
   <DD>
@@ -140,6 +150,11 @@ expressions</A>.
     <B>-format [ file ]</B>
   <DD>
     Specifies a log file of which media types (content types) were encountered
+    in the run and their distribution
+  <DT>
+    <B>-charset [ file ]</B>
+  <DD>
+    Specifies a log file of which charsets (content type parameter) were encountered
     in the run and their distribution
   <DT>
     <B>-hitcount [ file]</B>
