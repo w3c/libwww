@@ -3,25 +3,24 @@
 <TITLE>SGML parse and stream definition for libwww</TITLE></HEAD>
 <BODY>
 <H1>SGML and Structured streams</H1>The SGML parser is a state machine.
-It is called for every character<P>
-of the input stream. The DTD data
-structure contains pointers<P>
-to functions which are called to
-implement the actual effect of the<P>
-text read. When these functions are
-called, the attribute structures
-pointed to by the DTD are valid,
-and the function is passed a pointer
-to the curent tag structure, and
-an "element stack" which represents
-the state of nesting within SGML
+It is called for every character of the input stream. The DTD data
+structure contains pointers to functions which are called to
+implement the actual effect of the text read. When these functions are
+called, the attribute structures pointed to by the DTD are valid,
+and the function is parsed a pointer to the curent tag structure, and
+an "element stack" which represents the state of nesting within SGML
 elements.<P>
+
 The following aspects are from Dan
 Connolly's suggestions:  Binary search,
 Strcutured object scheme basically,
 SGML content enum type.<P>
+
+The module is a part of the <A HREF="Overview">CERN Common WWW Library</A>
 (c) Copyright CERN 1991 - See Copyright.html
-<PRE>#ifndef SGML_H
+
+<PRE>
+#ifndef SGML_H
 #define SGML_H
 
 #include "HTUtils.h"

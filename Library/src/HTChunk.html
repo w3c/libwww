@@ -2,13 +2,18 @@
 <HEAD>
 <TITLE>HTChunk: Flexible array handling for libwww</TITLE></HEAD>
 <BODY>
-<H1>Chunk handling:	Flexible arrays</H1>This module implements a flexible
-array. It is a general utility module.
-A chunk is a structure which may
-be extended.  These routines create
-and append data to chunks, automatically
-reallocating them as necessary.
-<PRE>#ifndef HTCHUNK_H
+<H1>Chunk handling: Flexible arrays</H1>
+
+This module implements a flexible array. It is a general utility module.
+A chunk is a structure which may be extended.  These routines create
+and append data to chunks, automatically reallocating them as necessary.
+It is garanteed that the array is '\0' terminated at all times, so the
+terminating function, <A HREF="HTChunk.html#Terminate">HTChunkTerminate</A>
+is only necessary to get the right size in the chunk structure.
+
+
+<PRE>
+#ifndef HTCHUNK_H
 #define HTCHUNK_H
 </PRE>
 
@@ -155,7 +160,7 @@ extern void HTChunkPuts PARAMS((HTChunk * ch, const char *str));
 
 
 </PRE>
-<H2>Append a zero character to a  chunk</H2>
+<A NAME="Terminate"><H2>Append a zero character to a  chunk</H2></A>
 <PRE>
 </PRE>
 <H3>On entry,</H3>

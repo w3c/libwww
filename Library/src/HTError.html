@@ -4,12 +4,13 @@
 <NEXTID N="z1">
 </HEAD>
 <BODY>
-<H1>Error reporting functions</H1>
+<H1>Reporting Errors and Messages to the Client</H1>
 
-This module maintaines a list of error messages that might occur during load of a requested URL. The error list is put out to standard output by a simple function that easily can be overwritten by a smart server or client.  <P>
+This module maintaines a list of error messages that might occur during load of a requested URL. The error list is put out to standard output by a simple function that easily can be overwritten by a smart server or client. The module is
+a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.<P>
 
 <NOTE><B>Note: </B></NOTE>
-At the moment, HTErrorMsg() is called, if the flag HTRequest-&gt;error_block is set to YES, then a stream has been put up or taken down in the library and therefore it is <B>VERY</B> unsafe to put anything more to the stream.
+At the moment, <A HREF="HTErrorMsg.c">HTErrorMsg()</A> is called, if the flag HTRequest-&gt;error_block is set to YES, then a stream has been put up or taken down in the library and therefore it is <B>VERY</B> unsafe to put anything more to the stream.
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
@@ -77,15 +78,15 @@ typedef struct _HTErrorInfo {
 
 <H2>Controling Globals</H2>
 
-This variable dictates which errors should be put out. The first four
+This variable dictates which errors should be put out when generating the
+message to the user. The first four
 enumerations make it possible to see `everything as bad or worse than' this
 level, e.g. HT_ERR_SHOW_NON_FATAL shows messages of type HT_ERR_SHOW_NON_FATAL
 and HT_ERR_SHOW_FATAL. <P>
 
-<NOTE>Note:</NOTE> The default value is made so that it only puts a message to
-stderr if a `real' error has occurred. If a separate widget is available for
-information and error messages then probably HT_ERR_SHOW_DETAILED would be more
-appropriate.
+<B>Note:</B> The default value is made so that it only puts a message to
+<EM>stderr</EM> if a `real' error has occurred. If a separate widget is available for information and error messages then probably HT_ERR_SHOW_DETAILED would
+be more appropriate.
 
 <PRE>
 typedef enum _HTErrorShow {

@@ -9,6 +9,8 @@
 
 #include "HTFTP.h"
 </PRE>
+
+This module is a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.
  
 <H2>Controlling globals</H2>
 These flags control how directories and files are represented as hypertext,
@@ -122,12 +124,12 @@ typedef struct _dir_file_info {
 </PRE>
 
 <H2>Where do FTP Directory Listings get input?</H2>
-This function fills out the EntryInfo fil structure and should return 
+This function fills out the EntryInfo file structure and should return:
 
 <UL>
-<LI>If Interrupted: HTINTERRUPT
-<LI>If EOF: 0
-<LI>If succes and more to read: 1
+<LI>HT_INTERRUPTED if Interrupted
+<LI>0 if EOF
+<LI>1 if succes and more to read
 </UL>
 
 <PRE>

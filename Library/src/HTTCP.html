@@ -1,8 +1,12 @@
 <HEADER>
 <TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/src/HTTCP.html</TITLE></HEADER>
 <BODY>
-<H1>Generic TCP/IP Communication</H1>This module has the common code for
-handling TCP/IP connections etc.
+<H1>Generic Network Communication</H1>
+
+This module has the common code for handling TCP/IP and DECnet connections
+etc. The module is a part of the <A HREF="Overview.html">CERN Common WWW
+Library</A>.
+
 <PRE>
 #ifndef HTTCP_H
 #define HTTCP_H
@@ -21,13 +25,13 @@ handling TCP/IP connections etc.
 
 <H2>Connection Management</H2>
 
-Theese functions handle access to the net.
+All connections are established through theese two functions.
 
 <H3>Active Connection Establishment</H3>
 
-This makes an active connect to the specified host. The request structure is
+This makes an active connect to the specified host. The <A HREF="HTAccess.html#HTNetInfo">HTNetInfo structure</A> is
 parsed in order to handle errors. Default port might be overwritten by any
-port indication in the URL specified as &lt;host&gt;:&lt;port&gt; If it is
+port indication in the <A HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/Overview.html">URL</A> specified as &lt;host&gt;:&lt;port&gt; If it is
 a multihomed host then HTDoConnect measures the time to do the connection and
 updates the calculated weights in the cache of visited hosts. 
 
@@ -42,7 +46,7 @@ extern int HTDoConnect PARAMS((	HTNetInfo  	*net,
 <H3>Passive Connection Establishment</H3>
 
 This function makes a non-blocking accept on a port and polls every second
-until MAX_ACCEPT_POLL or interrupted by user.
+until MAX_ACCEPT_POLL is reached.
 
 <PRE>
 extern int HTDoAccept PARAMS((HTNetInfo *net));
@@ -50,13 +54,23 @@ extern int HTDoAccept PARAMS((HTNetInfo *net));
 
 <H2>Caching Hosts Names</H2>
 
-This is mainly an internal matter to the HTTCP.c module but it keeps a
-cache of all visited hosts so that we don't have to consult the DNS every
-time. One public function is HTTCPAddrWeights(). It updates the calculated
-weights on the time it takes to sestablish a connection. <P>
+This part of the HTTCP module maintains a cache of all visited hosts so that
+subsequent connects to the same host doesn't imply a new request to the DNS
+every time. <P>
 
-The cache also supports multihomed hosts in that it measures the time to do
-a connection on the chosen IP-address and then next time chooses the one with the lowest connect time.
+Multihomed hosts are treated specially in that the time spend on every connect
+is measured and kept in the cache. On the next request to the same host, the
+IP-address with the lowest average connect time is chosen. If one IP-address
+fails completely, e.g. <EM>connection refused</EM> then it disabled and
+HTDoConnect tries one of the other IP-addresses to the same host.<P>
+
+If the connect fails in the case of at single-homed host then the entry is
+removed from the cache and HTDoConnect tries again asking the DNS.
+
+<H3>Recalculating the Time-Weights on Multihomed Hosts</H3>
+
+On every connect to a multihomed host, the average connect time is updated
+exponentially for all the entries.
 
 <PRE>
 extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
@@ -64,9 +78,8 @@ extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
 
 <H3>Control Variables</H3>
 
-This parameter determines the maximum number of hosts in the cache. If a 
-connect call fails, the entry is automaticly removed from the cache so that 
-next time we ask the DNS. 
+This parameter determines the maximum number of hosts in the cache. The
+default number is 500.
 
 <PRE>
 extern unsigned int	HTConCacheSize;
@@ -96,6 +109,8 @@ to the user. The function returns a negative status in the unix way.
 <PRE>
 extern int HTInetStatus PARAMS((char * where));
 </PRE>
+
+<H3>Parse a Cardinal Value</H3>
 
 <PRE>
 /*	Parse a cardinal value				       parse_cardinal()
@@ -195,10 +210,12 @@ extern void HTSetHostName PARAMS((char * host));
 </PRE>
 
 
-<H3>Get User Mail Address</H3>
+<A NAME="Mailaddress"><H3>Get User Mail Address</H3></A>
 
-This functions a char pointer to a static location containing the mail address
-of the current user.
+This functions returns a char pointer to a static location containing the
+mail address of the current user. The static location is different from the
+one of the current host name so different values can be assigned. The default
+value is &lt;USER&gt;@hostname where hostname is as returned by HTGetHostName().
 
 <PRE>
 extern CONST char * HTGetMailAddress NOPARAMS;

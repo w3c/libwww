@@ -6,12 +6,24 @@
 <BODY>
 <H1>File Access</H1>These are routines for local file
 access used by WWW browsers and servers.
-Implemented by HTFile.c. <P>
+Implemented by <A HREF="HTFile.c">HTFile.c</A>. This module is a part of the
+<A HREF="Overview.html">CERN Common WWW Library</A>.<P>
+
 If the file is not a local file,
 then we pass it on to <A
 NAME="z3" HREF="HTFTP.html">HTFTP</A> in case
-it can be reached by FTP.
-<PRE>#ifndef HTFILE_H
+it can be reached by FTP. However, as this is very time consuming when
+requesting a local file that actually doesn't exist, this redirection will
+be disabled in the next major release, <EM>www-bug@info.cern.ch</EM>
+June 1994.<P>
+
+<B>Note:</B> All functions that deal with directory listings etc. have been
+moved to <A HREF="HTDirBrw.html">HTDirBrw Module</A>.
+
+
+
+<PRE>
+#ifndef HTFILE_H
 #define HTFILE_H
 
 #include "HTFormat.h"
@@ -23,13 +35,7 @@ it can be reached by FTP.
 #define HTGetCoD	HTGetContentDescription
 #define HTSplFiN	HTSplitFilename
 #endif /*SHORT_NAMES*/
- 
 </PRE>
-<H2>Controlling globals</H2>
-These flags control how directories and files are represented as hypertext.<P>
-
-<B>This has been moved to HTDirBrw.html</B>
-
 <H2>Multiformat Handling</H2>
 
 <H3>Split Filename to suffixes</H3>

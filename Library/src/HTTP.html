@@ -4,7 +4,8 @@
 <BODY>
 <H1>HyperText Tranfer Protocol Module</H1>
 
-This is the module that handles all communication with HTTP servers.
+This is the module that handles all communication with HTTP servers. The module
+is a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.
 
 <PRE>
 #ifndef HTTP_H
@@ -29,7 +30,7 @@ The following variables can change the behaviour of the module.
 <H3>Cache control flag</H3>
 
 <EM>Note: This variable is now replaced by the (char *) HTCacheDir in 
-<A HREF="HTAccess.html">HTAccess Module</A>, Henrik 09/03-94</EM> <P>
+<A HREF="HTAccess.html">HTAccess Module</A></EM> <P>
 
 Turn this off if you don't want HTTP protocol fetches to leave cache files.
 	extern	BOOL  HTCacheHTTP;
@@ -41,6 +42,18 @@ This prevents the library from going into an infinite loop.
 
 <PRE>
 extern int HTMaxRedirections;
+</PRE>
+
+<H3>Disable/Enable User Identification in HTTP Request</H3>
+
+If a client want the user's email address to be send in the HTTP request
+as a <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A>
+then turn this flag on. The default is off because it might cause security
+problems from within a firewall. When enabled, the format used is
+<EM>user@host.domain</EM>. The value can be changed, see <A HREF="HTTCP.html#Mailaddress">HTTCP Module</A>.
+
+<PRE>
+extern BOOL HTEnableFrom;
 </PRE>
 
 <PRE>

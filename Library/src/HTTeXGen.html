@@ -1,28 +1,40 @@
 <HTML>
 <HEAD>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTTeXGen.html</TITLE></HEAD>
+<TITLE>Latex Generation</TITLE>
+</HEAD>
 <BODY>
-<H1>TeX generator</H1>This module converts structed stream
-into stream.  That is, given a stream
-to write to, it will give you a structured
-stream to 
-<PRE>#ifndef HTTEXGEN_H
+<H1>LaTeX generator</H1>
+
+This module converts a structured stream from HTML into LaTeX format. The
+conversion is mostly a 1:1 translation, but as the LaTeX compiler is much
+more strict than a typical HTML converter some typographical constraints
+are put on the translation. Only text is translated for the moment. The
+module is a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.
+
+<PRE>
+#ifndef HTTEXGEN_H
 #define HTTEXGEN_H
 
 #include "HTML.h"
 #include "HTStream.h"
+</PRE>
 
-/* Subclass:
-*/
-/* extern CONST HTStructuredClass HTTeXGeneration; */
+<H2>Conversion Module</H2>
 
-/* Special Creation:
-*/
+The conversion module is defined as
+
+<PRE>
 extern HTStructured * HTTeXGenerator PARAMS((HTStream * output));
+</PRE>
 
+
+<PRE>
 #endif
+</PRE>
 
-</PRE></BODY>
+End of module HTTeXGen
+
+</BODY>
 </HTML>
 
 

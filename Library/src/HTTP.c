@@ -44,7 +44,8 @@ struct _HTStream {
 /* Globals */
 extern char * HTAppName;		  /* Application name: please supply */
 extern char * HTAppVersion;	       /* Application version: please supply */
-PUBLIC int HTMaxRedirections = 10;	       /* Max number of redirections */
+PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
+PUBLIC BOOL HTEnableFrom = NO;			      /* Enable From header? */
 
 #ifdef OLD_CODE
 PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
@@ -261,8 +262,8 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 	    free(relative);
 	}
 
-	/* Put out from field */
-	{
+	/* Put out from field if enabled by client */
+	if (HTEnableFrom) {
 	    CONST char *mailaddress = HTGetMailAddress();
 	    if (mailaddress != NULL) {
 		sprintf(line, "From: %s%c%c", mailaddress, CR, LF);
@@ -301,7 +302,7 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 #endif
     
     /* Now, we are ready for sending the request */
-    if ((status = NETWRITE(http->sockfd, command->data, command->size)) < 0) {
+    if ((status = NETWRITE(http->sockfd, command->data, command->size-1))<0) {
 	if (TRACE) fprintf(stderr, "HTTP Tx..... Error sending command\n");
 	HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
 	if (status != HT_INTERRUPTED) {
@@ -484,7 +485,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    fprintf(stderr, "HTTP........ Not sending authorization (yet)\n");
     }
 
-    /* Now let's set up a connection */
+    /* Now let's set up a connection and input buffer */
     if ((status = HTDoConnect((HTNetInfo *) http, url, TCP_PORT, NULL)) < 0) {
 	if (TRACE)
 	    fprintf(stderr, "HTTP........ Connection not established\n");
@@ -500,9 +501,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	HTTPCleanup(http);
 	return status;
     }
-
     http->isoc = HTInputSocket_new(http->sockfd);
-
     if (TRACE) fprintf(stderr, "HTTP........ Connected, socket %d\n",
 		       http->sockfd);
 

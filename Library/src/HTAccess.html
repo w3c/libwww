@@ -24,10 +24,13 @@ HTAcces.c</A>
 #ifndef HTACCESS_H
 #define HTACCESS_H
 
-/* Definition uses: */
+/* Definition uses */
 #include "tcp.h"
 #include "HTList.h"
+</PRE>
 
+<B>Short Names</B>
+<PRE>
 #ifdef SHORT_NAMES
 #define HTClientHost 		HTClHost
 #define HTSearchAbsolute	HTSeAbso
@@ -36,7 +39,7 @@ HTAcces.c</A>
 #endif
 </PRE>
 
-<H2>Methods</H2>
+<H2>Method Management</H2>
 
 Thesse are the valid methods, see <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP Methods</A>
 
@@ -84,6 +87,9 @@ PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 				    HTList *	list));
 </PRE>
 
+<HR>
+<EM>This section might be move to the Access Authentication Module</EM>
+
 <H2>Match Template Against Filename</H2>
 <PRE>
 /* PUBLIC						HTAA_templateMatch()
@@ -110,9 +116,11 @@ PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 */
 PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * template, 
 				       CONST char * filename));
+</PRE>
 
+<HR>
 
-</PRE>The following have to be defined
+The following have to be defined
 in advance of the other include files
 because of circular references.
 <PRE>
@@ -132,7 +140,7 @@ NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
 #include "HTAABrow.h"		/* HTAASetup */
 </PRE>
 
-<H2>Default Addresses</H2>
+<H2>Default WWW Addresses</H2>
 
 These control the home page selection. To mess with these for normal browses
 is asking for user confusion.
@@ -183,7 +191,7 @@ is asking for user confusion.
 This structure contains information about socket number, input buffer for
 reading from the network etc. The structure is used through out the protocol
 modules and is the refenrence point for introducing multi threaded execution
-into the library. 
+into the library, see specifications on <A HREF="http://info.cern.ch/hypertext/WWW/Library/User/Multithread/multithread.html">Multiple Threads</A>.
 
 <PRE>
 typedef struct _HTNetInfo {
@@ -199,8 +207,8 @@ of things about it need to be passed
 along.  These are all put into a
 HTRequest structure. <P>
 
-<NOTE>Note 1:</NOTE> There is also a <A NAME="z4" HREF="HTFormat.html#z17">global list of converters</A> <P>
-<NOTE>Note 2:</NOTE> If you reuse the request structure for more than one
+<B>Note 1:</B> There is also a <A NAME="z4" HREF="HTFormat.html#z17">global list of converters</A> <P>
+<B>Note 2:</B> If you reuse the request structure for more than one
 request then make sure that the request is re-initialized, so that no `old'
 data is reused, see <A HREF="#z100">functions to manipulate HTRequest
 Structure</A>. The library handles its own internal information from request
@@ -259,8 +267,11 @@ generic format such as www/present
 (present to user). 
 <H4>Information about the requester</H4>
 <PRE>	char *		from;
+</PRE>
 
-</PRE>Email format address of person responible for request
+Email format address of person responible for request, see <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field in
+HTTP Protocol</A>. The default address used is the current location, but that
+can be changed, see <A HREF="HTTCP.html#HTGetHostName">HTTCP module</A>.
 
 <H4>The URI from which this request was obtained</H4>
 <PRE>	HTParentAnchor *parentAnchor;

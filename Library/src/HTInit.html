@@ -1,29 +1,53 @@
 <HTML>
 <HEAD>
-<TITLE>Initialisation routines in libwww</TITLE>
+<TITLE>Initialization routines in libwww</TITLE>
 <NEXTID N="z1">
 </HEAD>
 <BODY>
-<H1>Initialisation module</H1>This module resisters all the plug
-&amp; play software modules which will
-be used in the program.  This is
-for a browser.<P>
-To override this, just copy it and
-link in your version befoe you link
+<H1>Initialization Module</H1>
+
+This module resisters all the plug &amp; play software modules which will
+be used in the program on client side (The server has it's own initialization
+module). The module is a part of the <A HREF="Overview.html">CERN Common WWW
+Library</A>. <P>
+
+The initialization consists of two phases: Setting up the MIME type conversions
+and defining the relation between a basic set of file suffixes and MIME types. 
+To override this, just copy it and link in your version before you link
 with the library.<P>
-Implemented by <A
-NAME="z0" HREF="HTInit.c">HTInit.c</A> by default.
-<PRE>#include "HTUtils.h"
+
+Implemented by <A NAME="z0" HREF="HTInit.c">HTInit.c</A> by default.
+
+<PRE>
+#include "HTUtils.h"
 #include "HTList.h"
+</PRE>
 
-extern void HTFormatInit PARAMS((HTList * conversions));
-extern void HTFormatInitNIM PARAMS((HTList * conversions));
-extern void HTFileInit NOPARAMS;
+<H2>MIME Type Conversions</H2>
 
+Two default functions can be used to do the MIME type initialization. The
+first contains all MIME types the client can handle <B>plus</B> the types
+that can be handled using save and execute calls, e.g. to start a PostScript
+viewer. The second function only contains MIME type conversions that can
+be handled internally in the client. As an example, the latter is used
+when <A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">
+Line Mode Browser</A> is started in Non-Interactive mode.
 
+<PRE>
+PUBLIC void HTFormatInit PARAMS((HTList * conversions));
+PUBLIC void HTFormatInitNIM PARAMS((HTList * conversions));
+</PRE>
 
+<H2>File Suffix Setup</H2>
 
+This functions defines a basic set of file suffixes and the corresponding
+MIME types.
 
-</A></BODY>
+<PRE>
+PUBLIC void HTFileInit NOPARAMS;
+</PRE>
+
+End of HTInit Module.
+</BODY>
 </HTML>
 
