@@ -16,17 +16,14 @@
 #include "HTAtom.h"
 
 #include <stdio.h>				/* joe@athena, TBL 921019 */
+#include <string.h>
+
 #include "HTUtils.h"
 
 PRIVATE HTAtom * hash_table[HASH_SIZE];
 PRIVATE BOOL initialised = NO;
 
-#ifdef __STDC__
-PUBLIC HTAtom * HTAtom_for(const char * string)
-#else
-PUBLIC HTAtom * HTAtom_for(string)
-    char * string;
-#endif
+PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
 {
     int hash;
     CONST char * p;
@@ -70,4 +67,48 @@ PUBLIC HTAtom * HTAtom_for(string)
     return a;
 }
 
+
+PRIVATE BOOL mime_match ARGS2(CONST char *, name,
+			      CONST char *, templ)
+{
+    if (name && templ) {
+	static char *n1 = NULL;
+	static char *t1 = NULL;
+	char *n2;
+	char *t2;
+
+	StrAllocCopy(n1, name);		/* These also free the ones	*/
+	StrAllocCopy(t1, templ);	/* from previous call.		*/
+
+	if (!(n2 = strchr(n1, '/'))  ||  !(t2 = strchr(t1, '/')))
+	    return NO;
+
+	*(n2++) = (char)0;
+	*(t2++) = (char)0;
+
+	if ((0==strcmp(t1, "*") || 0==strcmp(t1, n1)) &&
+	    (0==strcmp(t2, "*") || 0==strcmp(t2, n2)))
+	    return YES;
+    }
+    return NO;
+}
+	
+
+PUBLIC HTList *HTAtom_templateMatches ARGS1(CONST char *, templ)
+{
+    HTList *matches = HTList_new();
+
+    if (initialised && templ) {
+	int i;
+	HTAtom *cur;
+
+	for (i=0; i<HASH_SIZE; i++) {
+	    for (cur = hash_table[i];  cur;  cur=cur->next) {
+		if (mime_match(cur->name, templ))
+		    HTList_addObject(matches, (void*)cur);
+	    }
+	}
+    }
+    return matches;
+}
 

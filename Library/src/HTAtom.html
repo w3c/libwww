@@ -20,6 +20,14 @@
 #ifndef HTATOM_H
 #define HTATOM_H
 
+#include "HTUtils.h"
+#include "HTList.h"
+
+#ifdef SHORT_NAMES
+#define HTAt_for	HTAtom_for
+#define HTAt_tMa	HTAtom_templateMatches
+#endif /*SHORT_NAMES*/
+
 typedef struct _HTAtom HTAtom;
 struct _HTAtom {
 	HTAtom *	next;
@@ -27,11 +35,8 @@ struct _HTAtom {
 }; /* struct _HTAtom */
 
 
-#ifdef __STDC__
-extern HTAtom * HTAtom_for(const char * string);
-#else
-extern HTAtom * HTAtom_for();
-#endif
+PUBLIC HTAtom * HTAtom_for PARAMS((CONST char * string));
+PUBLIC HTList * HTAtom_templateMatches PARAMS((CONST char * templ));
 
 #define HTAtom_name(a) ((a)->name)
 

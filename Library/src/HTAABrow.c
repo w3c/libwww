@@ -622,7 +622,7 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
 	    outofmem(__FILE__, "compose_auth_string");
 #ifdef PUBKEY
 	HTPK_encrypt(cleartext, ciphertext, server->public_key);
-	HTUU_encode(ciphertext, strlen(ciphertext), result);
+	HTUU_encode((unsigned char *)ciphertext, strlen(ciphertext), result);
 #endif
 	free(cleartext);
 	free(ciphertext);
@@ -630,7 +630,7 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
     else { /* scheme == HTAA_BASIC */
 	if (!(result = (char*)malloc(4 * ((len+2)/3) + 1)))
 	    outofmem(__FILE__, "compose_auth_string");
-	HTUU_encode(cleartext, strlen(cleartext), result);
+	HTUU_encode((unsigned char *)cleartext, strlen(cleartext), result);
 	free(cleartext);
     }
     return result;
