@@ -14,5 +14,5 @@ MDEF= ./makedefs.pl @
 all :
 	for i in *.files; do $(MDEF) < $$i > `basename $$i files`def; done
 
-
-
+list :
+	ls -1 ../*.c | sed -e s=\.\./==1 | $(MDEF) > list

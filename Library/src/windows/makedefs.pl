@@ -85,14 +85,14 @@ if (@ARGV[0] =~ /@(.*)/) {
 	    &GrepPublic($_);
 	    print "\n";
 	}
-	die "fini";
+	exit 0;
     }
     while (<STDIN>) {
 	chop;
 	&GrepPublic($_);
 	print "\n";
     }
-    die "fini";
+    exit 0;
 }
 foreach $source (@ARGV) {
     &GrepPublic($source);
