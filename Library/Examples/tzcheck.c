@@ -21,8 +21,10 @@
 
 int main (int argc, char ** argv)
 {
-    HTSetTraceMessageMask("o");
-    HTGetTimeZoneOffset();
-
+    time_t t = 0;
+    HTLibInit("test","1.0");
+    t = HTGetTimeZoneOffset();
+    fprintf(stderr, "Timezone offset is %ld secunds or %ld hours\n", t, t/3600);
+    HTLibTerminate();
     return 0;
 }

@@ -546,10 +546,18 @@ PUBLIC time_t HTGetTimeZoneOffset (void)
 	    HTTimeZone = altzone;
 #else
  	    /* Assumes a fixed DST offset of 1 hour, which is probably wrong */
+#ifdef __CYGWIN__
+ 	    HTTimeZone = _timezone - 3600;
+#else
  	    HTTimeZone = timezone - 3600;
+#endif
 #endif /* HAVE_ALTZONE */
 	} else {						       /* no */
+#ifdef __CYGWIN__
+	    HTTimeZone = _timezone;
+#else
 	    HTTimeZone = timezone;
+#endif
 	}
 	HTTimeZone = -HTTimeZone;
 	if (CORE_TRACE)

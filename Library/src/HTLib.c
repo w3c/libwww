@@ -153,6 +153,11 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
     HTLib_setAppName(AppName);
     HTLib_setAppVersion(AppVersion);
 
+    /* Initialize the timezone */
+#ifdef HAVE_TZSET
+    tzset();
+#endif
+
     /* Create a default user profile and initialize it */
     UserProfile = HTUserProfile_new(HT_DEFAULT_USER, NULL);
     HTUserProfile_localize(UserProfile);
