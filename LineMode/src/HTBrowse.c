@@ -1919,7 +1919,7 @@ int main (int argc, char ** argv)
 	/*
 	** Add default content decoder. We insert a through line as it doesn't
 	** matter that we get an encoding that we don't know when not in
-	** interactive mode.
+	** interactive mode. In interactive mode, we ask the user.
 	*/
 	HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding, 0.3);
     }
