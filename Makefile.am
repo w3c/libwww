@@ -22,6 +22,7 @@ legal : $(BUILT_SOURCES)
 	@echo Generated built sources
 
 EXTRA_DIST = \
+	$(BUILT_SOURCES) \
 	INSTALL.html \
 	README.html
 
