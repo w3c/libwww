@@ -1,307 +1,336 @@
-<HTML>
-<HEAD>
-  <TITLE>Command Line Syntax for the W3C Command Line Tool</TITLE>
-  <LINK rel=STYLESHEET href="../../StyleSheets/Area/Overview.css" type="text/css">
-</HEAD>
-<BODY BGCOLOR="#ffffff">
-<P>
-<A HREF="../../"><IMG BORDER="0" ALT="W3C" SRC="../../Icons/WWW/w3c_home.gif"></A>
-<A HREF="../"><IMG BORDER="0" ALT="ComLine" SRC="../../Icons/WWW/lines48x.gif"></A>
-<IMG BORDER="0" ALT="MANUAL" SRC="../../Icons/WWW/doc48x.gif">
-<H1>
-  Command Line Syntax
-</H1>
-<P>
-<DIV class="intro">
-  The generic syntax is:
-  <PRE>	w3c [ <A HREF="#z19">options</A> ]  [ <A HREF="#z16">URI</A> [ <A HREF="#z17">keywords</A> ]]
-</PRE>
-  <P>
-  Check here the following options
-  <UL>
-    <LI>
-      <A HREF="#Help">Getting Help</A>
-    <LI>
-      <A HREF="#Modes">Main Modes of execution</A>
-    <LI>
-      <A HREF="#Methods">Using Different HTTP Methods</A>
-    <LI>
-      <A HREF="#Format">Data Format Conversions</A>
-    <LI>
-      <A HREF="#Destination">Destination Address for PUT and POST</A>
-    <LI>
-      <A HREF="#Other">Other Options</A>
-    <LI>
-      <A HREF="#z17">Form Submission and Searching</A>
-  </UL>
-  <P>
-  Henrik Frystyk Nielsen
-</DIV>
-<P>
-  <HR>
-<H2>
-  <A NAME="z19">Options</A>
-</H2>
-<P>
-The order of the options is not important and options can in fact be specified
-on either side of any <A HREF="#z16"NAME="z14">docaddress</A>. Currently
-available options are:-
-<H3>
-  <A NAME="Help">Getting Help</A>
-</H3>
-<DL>
-  <DT>
-    <B>-help</B> or <B>-?</B>
-  <DD>
-    Load this file from directly into the browser
-  <DT>
-    <B>-v [ a | b | c | g | p | s | t | u ] </B>
-  <DD>
-    Verbose mode: Gives a running commentary on the program's attempts to read
-    data in various ways. As the amount of verbose output is substantial, the
-    <CODE>-v</CODE> option can now be followed by zero, one or more of the following
-    flags (without space) in order to differentiate the verbose output generated:
-    <UL>
-      <LI>
-	<B>a</B>: Anchor relevant information
-      <LI>
-	<B>b</B>: Bindings to local file system
-      <LI>
-	<B>c</B>: Cache trace
-      <LI>
-	<B>g</B>: SGML trace
-      <LI>
-	<B>p</B>: Protocol module information
-      <LI>
-	<B>s</B>: SGML/HTML relevant information
-      <LI>
-	<B>t</B>: Thread trace
-      <LI>
-	<B>u</B>: URI relevant information
-    </UL>
-    <P>
-    The <CODE>-v</CODE> option without any appended options shows all trace messages.
-    An example is
-    <PRE>
-	-vpt
-</PRE>
-    <P>
-    showing <EM>thread</EM> and <EM>protocol</EM> trace messages
-  <DT>
-    <B>-version</B>
-  <DD>
-    Prints out the version number of the software, and the version number of
-    the WWW library, and exits.
-</DL>
-<H3>
-  <A NAME="Modes">Main Modes of execution</A>
-</H3>
-<DL>
-  <DT>
-    <B>-</B>
-  <DD>
-    A minus sign with no trailing characters indicates that the program will
-    accept <A HREF="../../MarkUp/MarkUp.html">HTML format</A> input from the
-    standard input. This allows www to be used as a filter from html to plain
-    text for example. Relative links in the input are parsed as though the address
-    of the document was that of the home page (or docaddress if specified). Implies
-    non-interactive mode.
-  <DT>
-    <B>-cl</B>
-  <DD>
-    Counting content length of the output. This flag appends the Content-Length
-    counter stream to the output stream so that everything is counted. This works
-    exactly like piping the output into <EM>wc</EM>.
-  <DT>
-    <B>-n</B>
-  <DD>
-    Non-interactive mode. Outputs the formatted document to the standard output
-    without ever asking for anything. Pages are delimited with form feed (FF)
-    characters.
-  <DT>
-    <B>-o</B> [ file ]
-  <DD>
-    Redirects output to specified file. The default value is
-    "<CODE>w3c.out</CODE>". This mode forced non-interactive mode
-  <DT>
-    <A NAME="single"><B>-single</B></A>
-  <DD>
-    Singlethreaded mode. If this flag is set then the browser uses blocking,
-    non interruptible I/O in interactive mode. Non-interactive mode always uses
-    blocking I/O.
-</DL>
-<H3>
-  <A NAME="Methods">Using Different HTTP Methods</A>
-</H3>
-<P>
-The Command Line Tool supports several <A HREF="../../Protocols/">HTTP
-methods</A>. The default value is "GET". These options imply non-interactive
-execution.
-<DL>
-  <DT>
-    <B>-get</B>
-  <DD>
-    Gets a document. This is the default operation! See <A HREF="#z17">Form
-    Submission and Searching</A> for how to submit HTML forms and to issue queries.
-  <DT>
-    <B>-head</B>
-  <DD>
-    Returns the header information (if any) but not the document
-  <DT>
-    <B>-delete</B>
-  <DD>
-    Deletes a resource (or makes it unavailable) for future references.
-  <DT>
-    <B>-put</B>
-  <DD>
-    Uploads a document from either the local file system or a remote HTTP server
-    to a remote HTTP server (destination) using <B>PUT</B> method. You must indicate
-    the destination using the <A HREF="#dest"><B>-dest</B></A> command line option.
-  <DT>
-    <B>-post</B>
-  <DD>
-    Uploads a document from either the local file system or a remote HTTP server
-    to a remote HTTP server (destination) using <B>POST</B> method. You must
-    indicate the destination using the <A HREF="#dest"><B>-dest</B></A> command
-    line option. See <A HREF="#z17">Form Submission and Searching</A> for how
-    to submit HTML forms and to issue queries.
-  <DT>
-    <B>-options</B>
-  <DD>
-    Ask for the available options for this URL
-  <DT>
-    <B>-trace</B>
-  <DD>
-    Ask for trace messages for this URL. You can supply the number of hop counts
-    with the additional <A HREF="#mf"><B>-maxforwards</B></A> command line option
-</DL>
-<H3>
-  <A NAME="auth">Automatic Authentication</A>
-</H3>
-<P>
-<DL>
-  <DT>
-    <B>-auth</B>
-  <DD>
-    If you are willing to try this then you can include your username, password,
-    and the realm for where to apply it using the <B>-auth</B> command line option.
-    I don't want to hear anything about security, OK? The format is
-    <CODE>user:password@realm</CODE>
-</DL>
-<H3>
-  <A NAME="Format">Data Format Conversions</A>
-</H3>
-<P>
-You can convert the outcome of a request to some other format by using the
-following flags:
-<DL>
-  <DT>
-    <B>-from</B> [ format ]
-  <DD>
-    Only if the Line mode Browser is executed as a filter (using the "-" option),
-    this option indicates the desired input format. The default value is "text/html".
-  <DT>
-    <B>-to</B> [ format ]
-  <DD>
-    Format is the output format for www. Default value is "www/present" but may
-    be changed according to the HTTP-specifications. Two common output formats
-    are "www/source" that is the source without MIME-headers and "www/mime" that
-    is the source with the MIME-header if any. Though also "text/latex" is possible
-    which generates a LaTeX version of the (HTML) document. This can then be
-    compiled using latex and put out as Postscript. Default value is presenting
-    the output to the user.
-  <DT>
-    <B>-source</B>
-  <DD>
-    Display the original source (without any MIME-headers) of a document instead
-    of parsing it.
-</DL>
-<H3>
-  <A NAME="Destination">Destination Address for PUT and POST</A>
-</H3>
-<DL>
-  <DT>
-    <B><A NAME="dest">-dest</A></B>
-  <DD>
-    You can specify a (relative) destination URL, for example for the operations
-    <CODE>PUT</CODE> and <CODE>POST</CODE> using this flag. For example:
-    <PRE>
-	-dest http://myserver/newfiles/foo.html
-</PRE>
-</DL>
-<H3>
-  <A NAME="Other">Other Options</A>
-</H3>
-<DL>
-  <DT>
-    <B>-l</B> [ file ]
-  <DD>
-    Specifies a log file with a list of visited documents. The default value
-    is "<CODE>w3c.log</CODE>"
-  <DT>
-    <A NAME="mf"><B>-maxforwards</B></A> &lt;n&gt;
-  <DD>
-    Max forwards to be used with the TRACE method
-  <DT>
-    <B>-r &lt;address&gt;</B>
-  <DD>
-    Rule file, a.k.a. <A
-    HREF="../../Library/User/Using/RuleSyntax.html">configuration
-    file</A> is a set of rules and configuration options that can be
-    used to map URLs, and to set up other aspects of the behavior of
-    the command line tool. Note that the address must be specified as
-    a URI - and in fact it can be located on HTTP servers etc. as need
-    be. File URIs are parsed relative to the current folder, so a rule
-    file address of "<TT>rules.conf</TT>" will point to a file in the
-    location where this tool it started. If a local file then the file
-    suffix must be "<TT>.conf</TT>" - otherwise the media type must be
-    <TT>application/x-www-rules</TT>.
-  <DT>
-    <B>-timeout</B> &lt;n&gt;
-  <DD>
-    Timeout in seconds on open connections. If we don't get a reply within n
-    secs then about the request. Default timeout is 20 secs
-</DL>
-<H2>
-  <A NAME="z16">URI</A>
-</H2>
-<P>
-If present, the next argument (docaddress) is the
-<A HREF="../../Addressing/Addressing.html"> hypertext address</A> , of the
-document at which you want to start browsing. You may want to define an alias
-for www followed by name of your favorite index.
-<H2>
-  <A NAME="z17">Form Submission and Searching</A>
-</H2>
-<P>
-Any further command line arguments are taken as keywords. Keywords can be
-used for two purposes:
-<OL>
-  <LI>
-    As search tokens in an HTTP request-URI encoded so that all spaces are replaced
-    with "<TT>+</TT>" and unsafe characters are encoded using the URI
-    "<TT>%xx</TT>" escape mechanism. This is the default use of keywords.
-  <LI>
-    As form data in an HTTP POST request. Use the <TT>-form</TT> command line
-    option to treat all keywords as form data. If the
-    <A HREF="#Methods">method</A> is GET then the data is encoded as for search
-    data, that is as part of the URI. If it is a <A HREF="#Methods">POST
-    request</A> then the data is encoded as
-    <A HREF="/TR/REC-html40/interact/forms.html#h-17.13.4">application/x-www-form-urlencoded</A>
-    and sent in the body of the request.
-</OL>
-<P>
-An example of a search query is
-<PRE>	w3c http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"
-</PRE>
-<P>
-and of a POST form submission
-<PRE>	w3c -post http://... -form "RECORD=ID" "COL1=a" "COL2=b" "COL3=c" "COL4=d"
-</PRE>
-<P>
-  <HR>
-<ADDRESS>
-  <A HREF="../../People/Frystyk/">Henrik Frystyk Nielsen</A><BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Command Line Syntax for the W3C Command Line Tool</title>
+<link rel="STYLESHEET" href="../../StyleSheets/Area/Overview.css"
+type="text/css">
+</head>
+<body bgcolor="#ffffff">
+
+<p><a href="../../"><img border="0" alt="W3C"
+src="../../Icons/WWW/w3c_home.gif"></a> <a href="../"><img border="0"
+alt="ComLine" src="../../Icons/WWW/lines48x.gif"></a> <img border="0"
+alt="MANUAL" src="../../Icons/WWW/doc48x.gif"></p>
+
+<h1>Command Line Syntax</h1>
+
+<p></p>
+
+<div class="intro">
+
+The generic syntax is:
+<pre>        w3c [ <a href="#z19">options</a> ] [ <a href="#z16">URI</a> [ <a href="#z17">keywords</a> ] ]</pre>
+
+<p>Check here the following options</p>
+<ul>
+<li>
+<a href="#Help">Getting Help</a>
+</li>
+<li>
+<a href="#User">User Interactions - how much or how little</a>
+</li>
+<li>
+<a href="#Configurat">Configuration File</a>
+</li>
+<li>
+<a href="#Methods">Selecting the HTTP Method</a>
+</li>
+<li>
+<a href="#Destination">Destination for PUT and POST requests</a>
+</li>
+<li>
+<a href="#Format">Data Format Conversions</a>
+</li>
+<li>
+<a href="#Sett">Setting Input and Output Files</a>
+</li>
+<li>
+<a href="#Logging">Logging of Requests</a>
+</li>
+<li>
+<a href="#Other">Other Options</a>
+</li>
+<li>
+<a href="#z17">Form Submission and Searching</a>
+</li>
+</ul>
+</div>
+
+<p></p>
+<hr>
+
+
+<h2><a name="z19">Options</a></h2>
+
+<p>The order of the options is not important and options can in fact be
+specified on either side of any <a href="#z16" name="z14">URIs</a>. Currently
+available options are:-</p>
+
+<h3><a name="Help">Getting Help</a></h3>
+<dl>
+<dt><b>-help</b> or <b>-?</b></dt>
+<dd>
+Load this file from directly into the browser
+</dd>
+<dt><b>-v [ a | b | c | g | p | s | t | u ] </b></dt>
+<dd>
+Verbose mode: Gives a running commentary on the program's attempts to read
+data in various ways. As the amount of verbose output is substantial, the
+<code>-v</code> option can now be followed by zero, one or more of the
+following flags (without space) in order to differentiate the verbose output
+generated:
+<ul>
+<li>
+<b>a</b>: Anchor relevant information
+</li>
+<li>
+<b>b</b>: Bindings to local file system
+</li>
+<li>
+<b>c</b>: Cache trace
+</li>
+<li>
+<b>g</b>: SGML trace
+</li>
+<li>
+<b>p</b>: Protocol module information
+</li>
+<li>
+<b>s</b>: SGML/HTML relevant information
+</li>
+<li>
+<b>t</b>: Thread trace
+</li>
+<li>
+<b>u</b>: URI relevant information
+</li>
+</ul>
+
+<p>The <code>-v</code> option without any appended options shows all trace
+messages. An example is</p>
+<pre>        -vpt</pre>
+
+<p>showing <em>thread</em> and <em>protocol</em> trace messages</p>
+</dd>
+<dt><b>-version</b></dt>
+<dd>
+Prints out the version number of the software, and the version number of the
+WWW library, and exits.
+</dd>
+</dl>
+
+<h3><a name="User">User Interactions</a></h3>
+<dl>
+<dt><b>-n</b></dt>
+<dd>
+Non-interactive mode. Outputs the formatted document to the standard output
+without ever asking for anything. Pages are delimited with form feed (FF)
+characters.
+</dd>
+</dl>
+
+<h3><a name="Configurat">Configuration File</a></h3>
+<dl>
+<dt><strong>-r &lt;address></strong></dt>
+<dd><dl>
+<dt>Rule file, a.k.a. <a
+href="http://jigedit.w3.org/frystyk/WWW/Library/User/Using/RuleSyntax.html">configuration
+file</a> is a set of rules and configuration options that can be used to map
+URLs, and to set up other aspects of the behavior of the command line tool.
+Note that the address must be specified as a URI - and in fact it can be
+located on HTTP servers etc. as need be. File URIs are parsed relative to the
+current folder, so a rule file address of "<tt>rules.conf</tt>" will point to
+a file in the location where this tool it started. If a local file then the
+file suffix must be "<tt>.conf</tt>" - otherwise the media type must be
+<tt>application/x-www-rules</tt></dt>
+</dl>
+</dd>
+</dl>
+
+<h3><a name="Methods">Selecting the HTTP Method</a></h3>
+
+<p>The Command Line Tool supports several <a href="../../Protocols/">HTTP
+methods</a>. The default value is "GET". These options imply non-interactive
+execution.</p>
+<dl>
+<dt><b>-get</b></dt>
+<dd>
+Gets a document. This is the default operation! See <a href="#z17">Form
+Submission and Searching</a> for how to submit HTML forms and to issue
+queries.
+</dd>
+<dt><b>-head</b></dt>
+<dd>
+Returns the header information (if any) but not the document
+</dd>
+<dt><b>-delete</b></dt>
+<dd>
+Deletes a resource (or makes it unavailable) for future references.
+</dd>
+<dt><b>-put</b></dt>
+<dd>
+Uploads a document from either the local file system or a remote HTTP server
+to a remote HTTP server (destination) using <b>PUT</b> method. You must
+indicate the destination using the <a href="#dest"><b>-dest</b></a> command
+line option.
+</dd>
+<dt><b>-post</b></dt>
+<dd>
+Uploads a document from either the local file system or a remote HTTP server
+to a remote HTTP server (destination) using <b>POST</b> method. You must
+indicate the destination using the <a href="#dest"><b>-dest</b></a> command
+line option. See <a href="#z17">Form Submission and Searching</a> for how to
+submit HTML forms and to issue queries.
+</dd>
+<dt><b>-options</b></dt>
+<dd>
+Ask for the available options for this URL
+</dd>
+<dt><b>-trace</b></dt>
+<dd>
+Ask for trace messages for this URL. You can supply the number of hop counts
+with the additional <a href="#mf"><b>-maxforwards</b></a> command line option
+</dd>
+</dl>
+
+<h3><a name="Destination">Destination for PUT and POST Request</a></h3>
+<dl>
+<dt><b><a name="dest">-dest</a></b></dt>
+<dd>
+You can specify a (relative) destination URL, for example for the operations
+<code>PUT</code> and <code>POST</code> using this flag. For example:
+<pre>        -dest http://myserver/newfiles/foo.html</pre>
+</dd>
+</dl>
+
+<h3><a name="auth">Automatic Authentication</a></h3>
+<dl>
+<dt><b>-auth</b></dt>
+<dd>
+If you are willing to try this then you can include your username, password,
+and the realm for where to apply it using the <b>-auth</b> command line
+option. I don't want to hear anything about security, OK? The format is
+<code>user:password@realm</code>
+</dd>
+</dl>
+
+<h3><a name="Format">Data Format Conversions</a></h3>
+
+<p>You can convert the outcome of a request to some other format by using the
+following flags:</p>
+<dl>
+<dt><b>-from</b> [ format ]</dt>
+<dd>
+Only if the Line mode Browser is executed as a filter (using the "-" option),
+this option indicates the desired input format. The default value is
+"text/html".
+</dd>
+<dt><b>-to</b> [ format ]</dt>
+<dd>
+Format is the output format for www. Default value is "www/present" but may be
+changed according to the HTTP-specifications. Two common output formats are
+"www/source" that is the source without MIME-headers and "www/mime" that is
+the source with the MIME-header if any. Though also "text/latex" is possible
+which generates a LaTeX version of the (HTML) document. This can then be
+compiled using latex and put out as Postscript. Default value is presenting
+the output to the user.
+</dd>
+<dt><b>-source</b></dt>
+<dd>
+Display the original source (without any MIME-headers) of a document instead
+of parsing it.
+</dd>
+<dt><b>-cl</b></dt>
+<dd>
+Counting content length of the output. This flag appends the Content-Length
+counter stream to the output stream so that everything is counted. This works
+exactly like piping the output into <em>wc</em>.
+</dd>
+</dl>
+
+<h3><a name="Sett">Sett</a>ing Input and Ourput Files</h3>
+<dl>
+<dt><b><strong>-</strong></b></dt>
+<dd>
+A minus sign with no trailing characters indicates that the program will
+accept <a href="../../MarkUp/MarkUp.html">HTML format</a> input from the
+standard input. This allows www to be used as a filter from html to plain text
+for example.
+</dd>
+<dt><b>-o</b> [ file ]</dt>
+<dd>
+Redirects output to specified file. The default value is
+"<code>w3c.out</code>".
+</dd>
+</dl>
+
+<h3><a name="Logging">Logging of Requests</a></h3>
+<dl>
+<dt><b>-l</b> [ file ]</dt>
+<dd>
+Specifies a log file with a list of visited documents. The default value is
+"<code>w3c.log</code>"
+</dd>
+</dl>
+
+<h3><a name="Other">Other Options</a></h3>
+<dl>
+<dt><a name="mf"><b>-maxforwards</b></a> &lt;n></dt>
+<dd>
+Max forwards to be used with the TRACE method
+</dd>
+<dt><a name="single"><b>-single</b></a></dt>
+<dd>
+Singlethreaded mode. If this flag is set then the browser uses blocking, non
+interruptible I/O in interactive mode. Non-interactive mode always uses
+blocking I/O.
+</dd>
+<dt><b>-timeout</b> &lt;n></dt>
+<dd>
+Timeout in seconds on open connections. If we don't get a reply within n secs
+then about the request. Default timeout is 20 secs
+</dd>
+</dl>
+
+<h2><a name="z16">URI</a></h2>
+
+<p>If present, the next argument (URI) is the <a
+href="../../Addressing/Addressing.html"> hypertext address</a>, of the
+document at which you want to start browsing.</p>
+
+<h2><a name="z17">Form Submission and Searching</a></h2>
+
+<p>Any further command line arguments are taken as keywords. Keywords can be
+used for two purposes:</p>
+<ol>
+<li>
+As search tokens in an HTTP request-URI encoded so that all spaces are
+replaced with "<tt>+</tt>" and unsafe characters are encoded using the URI
+"<tt>%xx</tt>" escape mechanism. This is the default use of keywords.
+</li>
+<li>
+As form data in an HTTP POST request. Use the <tt>-form</tt> command line
+option to treat all keywords as form data. If the <a
+href="#Methods">method</a> is GET then the data is encoded as for search data,
+that is as part of the URI. If it is a <a href="#Methods">POST request</a>
+then the data is encoded as <a
+href="/TR/REC-html40/interact/forms.html#h-17.13.4">application/x-www-form-urlencoded</a>
+and sent in the body of the request.
+</li>
+</ol>
+
+<p>An example of a search query is</p>
+<pre>        w3c http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"</pre>
+
+<p>and of a POST form submission</p>
+<pre>        w3c -post http://... -form "RECORD=ID" "COL1=a" "COL2=b" "COL3=c" "COL4=d"</pre>
+
+<p></p>
+<hr>
+
+<address>
+<a href="../../People/Frystyk/">Henrik Frystyk Nielsen</a><br>
+@(#) $Id$ </address>
+</body>
+</html>
