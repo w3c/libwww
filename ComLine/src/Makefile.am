@@ -65,8 +65,25 @@ purify: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \
 	$(CC) $(LDFLAGS) -o purify $(w3c_OBJECTS) \
 	-lm \
-	../../Library/src/.libs/libwww.a \
-	../../Library/src/SSL/.libs/libwwwssl.a \
+	../../Library/src/.libs/libwwwinit.a \
+	../../Library/src/.libs/libwwwapp.a \
+	../../Library/src/.libs/libwwwxml.a \
+	../../Library/src/.libs/libwwwhtml.a \
+	../../Library/src/.libs/libwwwtelnet.a \
+	../../Library/src/.libs/libwwwnews.a \
+	../../Library/src/.libs/libwwwhttp.a \
+	../../Library/src/.libs/libwwwmime.a \
+	../../Library/src/.libs/libwwwgopher.a \
+	../../Library/src/.libs/libwwwftp.a \
+	../../Library/src/.libs/libwwwdir.a \
+	../../Library/src/.libs/libwwwcache.a \
+	../../Library/src/.libs/libwwwstream.a \
+	../../Library/src/.libs/libwwwfile.a \
+	../../Library/src/.libs/libwwwmux.a \
+	../../Library/src/.libs/libwwwtrans.a \
+	../../Library/src/.libs/libwwwcore.a \
+	../../Library/src/.libs/libwwwutils.a \
+	../../Library/src/.libs/libwwwzip.a \
 	../../modules/md5/.libs/libmd5.a \
 	../../modules/expat/xmlparse/.libs/libxmlparse.a \
 	../../modules/expat/xmltok/.libs/libxmltok.a \
