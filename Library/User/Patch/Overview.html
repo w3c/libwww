@@ -6,8 +6,8 @@
 <BODY BGCOLOR="#ffffff">
 <P>
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_home" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x" BORDER="0"></A><IMG
-    SRC="../../../Icons/WWW/Bug48x" ALT="Bugs">
+<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x"
+    BORDER="0"></A><IMG SRC="../../../Icons/WWW/Bug48x" ALT="Bugs">
 <H1>
   Known Bugs and Patches
 </H1>
@@ -36,6 +36,19 @@ distribution tree. In order to apply a patch, do the following in the
 </OL>
 <P>
   <HR>
+<H2>
+  Version 5.0a
+</H2>
+<P>
+Bulding on <B>SunOS</B>: Sun uses the symbol "<CODE>__STDC__</CODE>" in their
+headers, not "<CODE>STDC_HEADERS</CODE>" which the configure script is looking
+for. This causes a problem compiling
+<A HREF="../../src/HTString.c">HTString.c</A> which uses the ANSI definition
+of variable arguments. The fix is to define <CODE>STDC_HEADERS</CODE> when
+running configure. Depending on your shell, this may look like this
+<PRE>	BASH&gt; CFLAGS='-g -Wall -DSTDC_HEADERS' ./configure
+	CSH&gt; env CFLAGS='-g -Wall -DSTDC_HEADERS' ./configure
+</PRE>
 <H2>
   Version 5.0
 </H2>
