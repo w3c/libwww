@@ -111,6 +111,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("sv4crc","application/x-sv4crc",		NULL,		"binary",	NULL,	1.0);	/* SVR4 CPIO with CRC	*/
     HTBind_add("t",	"application/x-troff",		NULL,		"7bit",		NULL,	0.5);	/* Troff		*/
     HTBind_add("tar",	"application/tar",		NULL,		"binary",	NULL,	1.0);	/* 4.3BSD tar		*/
+    HTBind_add("tar",	"application/x-tar",		NULL,		"binary",	NULL,	1.0);	/* 4.3BSD tar		*/
     HTBind_add("tcl",	"application/x-tcl",		NULL,		"7bit",		NULL,	0.5);	/* TCL-script		*/
     HTBind_add("tex",	"text/tex",			NULL,		"8bit",		NULL,	1.0);	/* TeX source		*/
     HTBind_add("texi",	"application/x-texinfo",	NULL,		"7bit",		NULL,	1.0);	/* Texinfo		*/
@@ -128,6 +129,7 @@ PUBLIC void HTFileInit (void)
 
     HTBind_add("zip",	"application/zip",		NULL,		"binary",	NULL,	1.0);	/* PKZIP		*/
     HTBind_add("Z",	 NULL,				"compress", 	"binary",	NULL,	1.0);	/* Compressed data	*/
+    HTBind_add("Z",	 NULL,				"x-compress", 	"binary",	NULL,	1.0);	/* Compressed data	*/
     HTBind_add("gz",	 NULL,				"gzip",		"binary",	NULL,	1.0);	/* Gnu Compressed data	*/
 
     HTBind_add("*.*",	"www/unknown",			NULL,		"binary",	NULL,	0.1);	/* Unknown suffix */

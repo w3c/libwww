@@ -278,7 +278,7 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
     HTList * cur;
     HTChunk * suffix = HTChunk_new(48);
     char delimiter = *HTDelimiters;
-    BOOL ct=NO, ce=NO, cl=NO;
+    char * ct=NULL, * ce=NULL, * cl=NULL;
     HTFormat format = HTAnchor_format(anchor);
     HTList * encoding = HTAnchor_encoding(anchor);
     HTList * language = HTAnchor_language(anchor);
@@ -288,22 +288,42 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 		HTBind *pres;
 		while ((pres = (HTBind *) HTList_nextObject(cur))) {
 		    if (!ct && (pres->type && pres->type == format)){
-			HTChunk_putc(suffix, delimiter);
-			HTChunk_puts(suffix, pres->suffix);
-			ct = YES;
+			ct = pres->suffix;
 		    } else if (!ce && pres->encoding && encoding) {
-
-			/* @@@ Search list @@@ */
-			ce = YES;
-
+			HTList * cur_enc = encoding;
+			HTEncoding pres_enc;
+			while ((pres_enc = (HTEncoding) HTList_nextObject(cur_enc))) {
+			    if (pres_enc == pres->encoding) {
+				ce = pres->suffix;
+				break;
+			    }
+			}
 		    } else if (!cl && pres->language && language) {
-
-			/* @@@ Search list @@@ */
-
-			cl = YES;
+			HTList * cur_lang = language;
+			HTLanguage pres_lang;
+			while ((pres_lang = (HTLanguage) HTList_nextObject(cur_lang))) {
+			    if (pres_lang == pres->language) {
+				cl = pres->suffix;
+				break;
+			    }
+			}
 		    }
 		}
 	    }
+	}
+
+	/* Put the found suffixes together */
+	if (ct) {
+	    HTChunk_putc(suffix, delimiter);
+	    HTChunk_puts(suffix, ct);
+	}
+	if (ce) {
+	    HTChunk_putc(suffix, delimiter);
+	    HTChunk_puts(suffix, ce);
+	}
+	if (cl) {
+	    HTChunk_putc(suffix, delimiter);
+	    HTChunk_puts(suffix, cl);
 	}
     }
     return HTChunk_toCString(suffix);

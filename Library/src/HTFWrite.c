@@ -26,6 +26,7 @@
 #include "HTError.h"
 #include "HTAlert.h"
 #include "HTLib.h"
+#include "HTInet.h"
 #include "HTBind.h"
 #include "HTParse.h"
 #include "HTReq.h"
@@ -44,6 +45,8 @@ struct _HTStream {
     HTRequest *		request;		       /* saved for callback */
     HTRequestCallback *	callback;
 };
+
+#define DEFAULT_LAST_SEGMENT	"index"
 
 /* ------------------------------------------------------------------------- */
 
@@ -139,46 +142,40 @@ PUBLIC HTStream * HTFWriter_new (HTRequest * request, FILE * fp,
 /*
 **   This function tries really hard to find a non-existent filename relative
 **   to the path given. Returns a string that must be freed by the caller or
-**   NULL on error. The base must be '/' terminated which!
+**   NULL on error.
 */
-PRIVATE char *get_filename (char * base, const char * url, const char * suffix)
+PRIVATE char * get_filename (char * base, const char * uri,
+			     const char * suffix, BOOL use_last_segment)
 {
-    char *path=NULL;
-    char filename[40];
-    int hash=0;
-
-    /* Do this until we find a name that doesn't exist */
-    while (1)
-    {
-	const char *ptr=url;
-	for( ; *ptr; ptr++)
-	    hash = (int) ((hash * 31 + (* (unsigned char *) ptr)) % HASH_SIZE);
-
-#ifdef HAVE_GETPID
-	sprintf(filename, "%d-%d", hash, (int) getpid());
-#else
-	sprintf(filename, "%d-%d", hash, time(NULL));
-#endif
-	StrAllocCopy(path, base);
-	StrAllocCat(path, filename);
-	if (suffix) StrAllocCat(path, suffix);
-
-	{
-	    FILE *fp = fopen(path, "r");
-	    if (fp)			     /* This file does already exist */
-		fclose(fp);
-	    else
-		break;					/* Got the file name */
+    char * path = NULL;
+    if (use_last_segment) {
+	char * uri_path = NULL;
+	if (uri && (uri_path = HTParse(uri, "", PARSE_PATH|PARSE_PUNCTUATION))) {
+	    char * last_segment = strrchr(uri_path, '/');
+	    BOOL slash = (base && *(base+strlen(base)-1)=='/'); 
+	    if (last_segment && *(last_segment+1)) {
+		StrAllocMCopy(&path, base ? base : "",
+			      slash ? "" : "/", ++last_segment, NULL);
+	    } else {
+		StrAllocMCopy(&path, base ? base : "",
+			      slash ? "" : "/", DEFAULT_LAST_SEGMENT,
+			      suffix ? suffix : "", NULL);
+	    }
 	}
+    } else {
+	path = HTGetTmpFileName(base);
+        if (path && suffix) StrAllocCat(path, suffix);
     }
-    if (STREAM_TRACE) HTTrace("Save file... Temporaray file `%s\'\n", path);
+
+    if (STREAM_TRACE)
+	HTTrace("Save file... Temporaray file `%s\'\n", path ? path : "<null>");
     return path;
 }
 
 /*	Save Locally
 **	------------
 **	Saves a file to local disk. This can for example be used to dump
-**	date objects of unknown media types to local disk. The stream prompts
+**	data objects of unknown media types to local disk. The stream prompts
 **	for a file name for the temporary file.
 */
 PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
@@ -215,7 +212,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	if (cbf) {
 	    HTAlertPar * reply = HTAlert_newReply();
 	    char * suffix = HTBind_getSuffix(anchor);
-	    char * deflt = get_filename(tmproot, HTAnchor_physical(anchor), suffix);
+	    char * deflt = get_filename(tmproot, HTAnchor_physical(anchor), suffix, YES);
 	    if ((*cbf)(request, HT_A_PROMPT, HT_MSG_FILENAME,deflt,NULL,reply))
 		filename = HTAlert_replyMessage(reply);
 	    HTAlert_deleteReply(reply);
@@ -281,7 +278,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     {
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
 	char *suffix = HTBind_getSuffix(anchor);
-	filename = get_filename(tmproot, HTAnchor_physical(anchor), suffix);
+	filename = get_filename(tmproot, HTAnchor_physical(anchor), suffix, NO);
 	HT_FREE(suffix);
 	if (filename) {
 	    if ((fp = fopen(filename, "wb")) == NULL) {
