@@ -107,6 +107,13 @@ Find the anchor object between a destination and a source ancher. Return
 link object if any, else NULL
 <PRE>extern HTLink * HTLink_find (HTAnchor * source, HTAnchor * destination);
 </PRE>
+<H3>
+  Find a Link with a given link type
+</H3>
+<P>
+Returns a link with a given link type or NULL if nothing found
+<PRE>extern HTLink * HTLink_findType (HTAnchor * me, HTLinkType type);
+</PRE>
 <H2>
   Link Information
 </H2>
