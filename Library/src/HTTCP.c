@@ -357,7 +357,6 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	      return HT_OK;
 
 	  case TCP_DNS_ERROR:
-	    HTTrace("HTDoConnect. DNS failed %d\n", socerrno);
 	    HTHost_setRetry(me, 0);
 	    me->tcpstate = TCP_BEGIN;
 	    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_BEGIN.\n", me);
@@ -367,7 +366,6 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_NEED_BIND:
 	  case TCP_NEED_LISTEN:
 	  case TCP_ERROR:
-	    HTTrace("HTDoConnect. Connect failed %d\n", socerrno);
 	    if (HTChannel_socket(me->channel) != INVSOC) {
 	      /*	        HTEvent_unregister(HTChannel_socket(me->channel), (SockOps) FD_ALL); */
 		NETCLOSE(HTChannel_socket(me->channel));
@@ -543,7 +541,9 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 
 	  case TCP_CHANNEL:
 	  case TCP_NEED_CONNECT:
+	  case TCP_IN_USE:
 	  case TCP_DNS:
+	  case TCP_DNS_ERROR:
 	  case TCP_ERROR:
 	    if (PROT_TRACE) HTTrace("Socket...... Listen failed\n");
 	    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "HTDoListen");
