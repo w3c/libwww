@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>Function Body Layout</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -9,11 +9,10 @@
 
 <H1>Function Body Layout</H1>
 
-With the body of functions, this is the way we aim to do it. We are
-not religious about it, but consistency helps. As noted earlier, if
-you think your way is smarter, you may be right but this is the way we
-do it ;-). The format is pretty close to the one you find in <EM>The C
-Programming Language</EM> by Kernighan and Ritchie.<P>
+With the body of functions, this is the way we aim to do it. We are not religious about it, but
+consistency helps. We use an indentation form that is known as the <EM>BSD c style</EM>. If you
+think your way is smarter, you may be right but this is the way we do it ;-). The format is pretty
+close to the one you find in <EM>The C Programming Language</EM> by Kernighan and Ritchie.<P>
 
 Whatever you do, <B>NEVER</B> make global changes to the indentation
 etc. in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE</B>
@@ -27,7 +26,7 @@ etc. in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE</B>
 
 <LI>Align the closing brace with the <EM>START</EM> of that opening line
 
-<LI>Indent everything between { and }  by an extra 4 (FOUR) spaces, like
+<LI>Indent everything between { and }  by an extra 4 (FOUR) spaces, like the following example:
 
 <PRE>
         for (i=0; i<2; i++) {
@@ -47,6 +46,21 @@ etc. in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE</B>
                 }
             }
         }
+</PRE>
+
+You can get your emacs to do automatic indentation acording to those rules by adding the following
+to your local <CODE>.emacs</CODE> file:
+
+<PRE>
+;; C style indentation
+;; =====================
+(defun w3c-c-mode-common-hook ()
+  ;; use BSD for all C, C++, and Objective-C code
+  (c-set-style "BSD")
+  ;; other customizations can go here
+  (setq c-tab-always-indent nil)
+  )
+(add-hook 'c-mode-common-hook 'w3c-c-mode-common-hook)
 </PRE>
 
 <LI>Do not make lines wider than 80 characters. Otherwise it gets very
@@ -80,6 +94,8 @@ comments in the source code - it makes life easier for everybody
 <P>
 <HR>
 <ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and <A
-HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>
