@@ -52,7 +52,12 @@ purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
 	$(CC) $(LDFLAGS) -o purify $(webbot_OBJECTS) \
-	../../Library/src/.libs/libwww.a -lm $(LIBS)
+	-lm \
+	../../Library/src/.libs/libwww.a \
+	../../modules/md5/.libs/libmd5.a \
+	../../modules/expat/xmlparse/.libs/libxmlparse.a \
+	../../modules/expat/xmltok/.libs/libxmltok.a \
+	$(LIBS)
 
 
 
