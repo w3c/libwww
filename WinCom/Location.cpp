@@ -46,7 +46,9 @@ BEGIN_MESSAGE_MAP(CLocation, CPropertyPage)
 	ON_CBN_EDITCHANGE(IDC_SOURCE_URI, OnEditSourceLocation)
 	ON_CBN_EDITCHANGE(IDC_DESTINATION_URI, OnEditDestinationLocation)
 	ON_BN_CLICKED(ID_SUBMIT, OnSubmit)
+	ON_CBN_KILLFOCUS(IDC_SOURCE_URI, OnKillfocusSourceUri)
 	ON_BN_CLICKED(ID_CANCEL, OnCancel)
+	ON_CBN_KILLFOCUS(IDC_DESTINATION_URI, OnKillfocusDestinationUri)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -55,26 +57,45 @@ END_MESSAGE_MAP()
 
 void CLocation::CheckSubmit (void)
 {
-    // If both source and destination then allow "submit"
-    if (m_sourceList.GetWindowTextLength()>0 && m_destinationList.GetWindowTextLength()>0) {
+#if 0
+    // If both source and destination are available then allow "submit"
+    int slen = m_sourceList.GetWindowTextLength();
+    int dlen = m_destinationList.GetWindowTextLength(); 
+    if (slen > 0 && dlen > 0) {
         m_submit.EnableWindow(TRUE);
     } else
         m_submit.EnableWindow(FALSE);
+#else
+        m_submit.EnableWindow(TRUE);
+#endif
 }
 
 void CLocation::OnBrowse()
 {
-    CFileDialog fd(true);
+    CWinComApp * pApp = (CWinComApp *) AfxGetApp();
+    ASSERT(pApp != NULL); 
+
+    CFileDialog fd(TRUE);
+    fd.m_ofn.lpstrInitialDir = pApp->GetIniCWD();
     UpdateData();
     if (fd.DoModal() == IDOK) {
-        char * local = HTLocalToWWW(fd.GetPathName());
-        if (local) {
-            m_source = local;
-	    m_sourceList.SetWindowText(local);
-            HT_FREE(local);
-        }
+	
+	// Make the source an absolute URI
+	CString path = fd.GetPathName();
+	char * fileaddr = HTLocalToWWW(path);
+	if (fileaddr) {
+	    m_source = fileaddr;
+	    m_sourceList.SetWindowText(fileaddr);
+	    
+	    // Set the initial dir for next time
+	    int idx = path.ReverseFind('\\');
+	    if (idx != -1) path.GetBufferSetLength(idx+1);
+	    pApp->SetIniCWD(path);
 
-	/* Make the destination relative */
+	    HT_FREE(fileaddr);
+	}
+
+	/* Update the destination */
 	CString file = fd.GetFileName();
 	if (!file.IsEmpty()) {
             CString base = "";
@@ -127,35 +148,41 @@ void CLocation::OnEditDestinationLocation()
 
 void CLocation::OnSubmit() 
 {
-    // Get the source
-    m_sourceList.GetWindowText(m_source);
-    
-    // Update the source combo box
-    m_sourceList.InsertString(0, m_source);
-    int srcLength = m_sourceList.GetCount();
-    if (srcLength >= MAX_LIST_LENGTH) {
-	int cnt;
-	for (cnt=MAX_LIST_LENGTH; cnt < srcLength; cnt++)
-	    m_sourceList.DeleteString(cnt);
-    }
-    
-    // Get the destination
-    m_destinationList.GetWindowText(m_destination);
-    
-    // Update the destination combo box
-    m_destinationList.InsertString(0, m_destination);
-    int dstLength = m_destinationList.GetCount();
-    if (dstLength >= MAX_LIST_LENGTH) {
-	int cnt;
-	for (cnt=MAX_LIST_LENGTH; cnt < dstLength; cnt++)
-	    m_destinationList.DeleteString(cnt);
-    }
-    
-    // Write into INI file
     CWinComApp * pApp = (CWinComApp *) AfxGetApp();
     ASSERT(pApp != NULL); 
-    pApp->AddSourceToIniFile(m_source);
-    pApp->AddDestinationToIniFile(m_destination);
+
+    // Check source and destination
+    m_sourceList.GetWindowText(m_source);
+    m_destinationList.GetWindowText(m_destination);
+    if (m_source.IsEmpty() || m_destination.IsEmpty()) return;
+    
+    // Update the source combo box
+    if (m_sourceList.FindStringExact(-1, m_source) == CB_ERR) {
+	m_sourceList.InsertString(0, m_source);
+	int srcLength = m_sourceList.GetCount();
+	if (srcLength >= MAX_LIST_LENGTH) {
+	    int cnt;
+	    for (cnt=MAX_LIST_LENGTH; cnt < srcLength; cnt++)
+		m_sourceList.DeleteString(cnt);
+	}
+
+        // Write into INI file
+        pApp->AddSourceToIniFile(m_source);
+    }
+    
+    // Update the destination combo box
+    if (m_destinationList.FindStringExact(-1, m_destination) == CB_ERR) {
+	m_destinationList.InsertString(0, m_destination);
+	int dstLength = m_destinationList.GetCount();
+	if (dstLength >= MAX_LIST_LENGTH) {
+	    int cnt;
+	    for (cnt=MAX_LIST_LENGTH; cnt < dstLength; cnt++)
+		m_destinationList.DeleteString(cnt);
+	}
+
+        // Write into INI file
+        pApp->AddDestinationToIniFile(m_destination);
+    }
 
     // Turn off the submit button
     m_submit.EnableWindow(FALSE);
@@ -178,8 +205,7 @@ void CLocation::OnSubmit()
 
 void CLocation::OnCancel() 
 {
-    // Turn off the submit button
-    m_submit.EnableWindow(FALSE);
+    CheckSubmit();
 
     // Turn off the cancel button
     m_cancel.EnableWindow(FALSE);
@@ -196,8 +222,8 @@ void CLocation::OnCancel()
 
 void CLocation::OnFinish()
 {
-    // Turn off the submit button
-    m_submit.EnableWindow(FALSE);
+    // Turn on the submit button
+    m_submit.EnableWindow(TRUE);
 
     // Turn off the cancel button
     m_cancel.EnableWindow(FALSE);
@@ -222,4 +248,14 @@ BOOL CLocation::OnKillActive()
     m_sourceList.GetWindowText(m_source);
     m_destinationList.GetWindowText(m_destination);
     return CPropertyPage::OnKillActive();
+}
+
+void CLocation::OnKillfocusSourceUri() 
+{
+    CheckSubmit();
+}
+
+void CLocation::OnKillfocusDestinationUri() 
+{
+    CheckSubmit();
 }

@@ -123,6 +123,7 @@ BEGIN
     POPUP "Options"
     BEGIN
         MENUITEM "&Proxy Setup",                ID_OPTIONS_PROXIES
+        MENUITEM "&Detect Conflicts",           ID_VERSION_CONFLICT
     END
     POPUP "&Help"
     BEGIN
@@ -170,7 +171,7 @@ CAPTION "About WinCom"
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
-    LTEXT           "WebCommandor Version 1.0",IDC_STATIC,41,10,119,8,
+    LTEXT           "WebCommander Version 1.0",IDC_STATIC,41,10,119,8,
                     SS_NOPREFIX
     LTEXT           "Henrik Frystyk Nielsen",IDC_STATIC,41,22,154,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,32,14,WS_GROUP
@@ -180,7 +181,7 @@ END
 IDD_LOCATION DIALOGEX 0, 0, 267, 98
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "Save Document"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     COMBOBOX        IDC_SOURCE_URI,42,9,165,58,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP,
@@ -191,7 +192,7 @@ BEGIN
     LTEXT           "Source",IDC_STATIC,5,11,24,8
     LTEXT           "Destination",IDC_STATIC,5,27,36,8
     DEFPUSHBUTTON   "Browse",ID_BROWSE,209,8,50,14
-    PUSHBUTTON      "Submit",ID_SUBMIT,157,81,50,14,WS_DISABLED
+    PUSHBUTTON      "Submit",ID_SUBMIT,157,81,50,14
     PUSHBUTTON      "Cancel",ID_CANCEL,210,81,50,14,WS_DISABLED
 END
 
@@ -232,14 +233,14 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "User Name and Password"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_UID,58,26,105,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_PASSWORD,58,43,105,14,ES_PASSWORD | ES_AUTOHSCROLL
+    EDITTEXT        IDC_UID,58,26,121,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD,58,43,121,14,ES_PASSWORD | ES_AUTOHSCROLL
     LTEXT           "Password",IDC_STATIC,16,45,32,8
     LTEXT           "User Name",IDC_STATIC,16,29,36,8
     DEFPUSHBUTTON   "OK",IDOK,77,61,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,129,61,50,14
     LTEXT           "Realm",IDC_STATIC,16,13,21,8
-    EDITTEXT        IDC_REALM,58,9,105,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_REALM,58,9,121,14,ES_AUTOHSCROLL | ES_READONLY
 END
 
 IDD_LINKS DIALOGEX 0, 0, 267, 98
@@ -287,6 +288,23 @@ BEGIN
     CONTROL         "Tab1",IDC_TABSMENU,"SysTabControl32",0x0,6,7,227,96
 END
 
+IDD_VERSION_CONFLICT DIALOG DISCARDABLE  0, 0, 204, 90
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Version Conflict"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,94,69,50,14,WS_GROUP
+    PUSHBUTTON      "Abort",IDCANCEL,147,69,50,14,WS_GROUP
+    LTEXT           "The version you are trying to save differs from the current version on the server. How do you want to proceed?",
+                    IDC_STATIC,14,10,176,27
+    CONTROL         "Replace the current version on the server",
+                    IDC_RESOLVE_CONFLICT1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,26,40,147,10
+    CONTROL         "Download the current version from the server",
+                    IDC_RESOLVE_CONFLICT2,"Button",BS_AUTORADIOBUTTON,26,52,
+                    157,10
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -314,11 +332,11 @@ BEGIN
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "WinCom MFC Application\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "WebCommandor\0"
+            VALUE "InternalName", "WebCommander\0"
             VALUE "LegalCopyright", "Copyright (C) 1998\0"
             VALUE "LegalTrademarks", "W3C\0"
             VALUE "OriginalFilename", "WinCom.exe\0"
-            VALUE "ProductName", "WebCommandor Application\0"
+            VALUE "ProductName", "WebCommander Application\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
         END
     END
@@ -393,6 +411,14 @@ BEGIN
         RIGHTMARGIN, 291
         TOPMARGIN, 7
         BOTTOMMARGIN, 103
+    END
+
+    IDD_VERSION_CONFLICT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 197
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 82
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -488,13 +514,13 @@ END
 
 STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
-    IDR_MAINFRAME           "WebCommandor\n\nWebCommandor\n\n\nWebCommandor.Document\nWebCommandor Document"
+    IDR_MAINFRAME           "WebCommander\n\nWebCommander\n\n\nWebCommander.Document\nWebCommander Document"
 END
 
 STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
-    AFX_IDS_APP_TITLE       "WebCommandor"
-    AFX_IDS_IDLEMESSAGE     "For Help, press F1"
+    AFX_IDS_APP_TITLE       "WebCommander"
+    AFX_IDS_IDLEMESSAGE     "Ready"
     AFX_IDS_HELPMODEMESSAGE "Select an object on which to get Help"
 END
 
@@ -604,7 +630,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     AFX_IDS_PREVIEW_CLOSE   "Close print preview mode\nCancel Preview"
-    IDS_WINCOM              "WebCommandor"
     IDS_SOURCE              "Source:"
     IDS_CANNOT_OPEN_FILE    "Can't open source file"
     IDS_CANNOT_WRITE_TO_DESTINATION 
@@ -613,12 +638,19 @@ BEGIN
     IDS_SUBMIT              "Submit"
     IDS_RETRY_PROXY_AUTH    "Proxy Authentication failed - retry?"
     IDS_RETRY_AUTH          "Authentication failed - retry?"
+    IDS_VERSION_CONFLICT    "The version of the document that you are trying to save seems to be older than the existing version. Do you want to replace the existing version, download "
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_PROXY_SETUP          "Access the Internet through one or more proxy servers"
     ID_OPTIONS_PROXIES      "Define Proxies\nProxy Setup"
+    ID_VERSION_CONFLICT     "Detect Version Conflicts\nDetect Version Conflicts"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_APP_VERSION         "1.01a"
 END
 
 #endif    // English (U.S.) resources

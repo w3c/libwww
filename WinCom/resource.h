@@ -19,6 +19,7 @@
 #define IDB_LARGEICONS                  146
 #define IDB_SMALLICONS                  150
 #define IDB_STATEICONS                  151
+#define IDD_VERSION_CONFLICT            153
 #define IDC_SOURCE_URI                  1001
 #define IDC_DESTINATION_URI             1002
 #define IDC_MEDIA_TYPE                  1002
@@ -53,8 +54,11 @@
 #define IDC_LINK_REV                    1025
 #define IDC_LINK_RELS                   1027
 #define ID_LINK_ADD                     1028
+#define IDC_RESOLVE_CONFLICT1           1030
+#define IDC_RESOLVE_CONFLICT2           1031
 #define ID_PROXY_SETUP                  32771
 #define ID_OPTIONS_PROXIES              32772
+#define ID_VERSION_CONFLICT             32777
 #define IDS_WINCOM                      61446
 #define IDS_SOURCE                      61447
 #define IDS_CANNOT_OPEN_FILE            61448
@@ -64,15 +68,17 @@
 #define IDS_SUBMIT                      61452
 #define IDS_RETRY_PROXY_AUTH            61453
 #define IDS_RETRY_AUTH                  61454
+#define IDS_VERSION_CONFLICT            61455
+#define IDS_APP_VERSION                 61456
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        153
-#define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1029
+#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_COMMAND_VALUE         32778
+#define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

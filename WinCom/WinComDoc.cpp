@@ -24,8 +24,8 @@ IMPLEMENT_DYNCREATE(CWinComDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CWinComDoc, CDocument)
 	//{{AFX_MSG_MAP(CWinComDoc)
-		// NOTE - the ClassWizard will add and remove mapping macros here.
-		//    DO NOT EDIT what you see in these blocks of generated code!
+	ON_COMMAND(ID_VERSION_CONFLICT, OnVersionConflict)
+	ON_UPDATE_COMMAND_UI(ID_VERSION_CONFLICT, OnUpdateVersionConflict)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -34,14 +34,22 @@ END_MESSAGE_MAP()
 
 CWinComDoc::CWinComDoc()
 {
-	// TODO: add one-time construction code here
-	m_pRequest = new CRequest(this);
-
+    CWinComApp * pApp = (CWinComApp *) AfxGetApp();
+    ASSERT(pApp != NULL); 
+    
+    // TODO: add one-time construction code here
+    m_pRequest = new CRequest(this);
+    m_cwd = HTGetCurrentDirectoryURL();
+    m_detectVersionConflict = pApp->GetIniDetectVersionConflict();
 }
 
 CWinComDoc::~CWinComDoc()
 {
-        delete m_pRequest;
+    CWinComApp * pApp = (CWinComApp *) AfxGetApp();
+    ASSERT(pApp != NULL); 
+    delete m_pRequest;
+    HT_FREE(m_cwd);
+    pApp->SetIniDetectVersionConflict(m_detectVersionConflict);
 }
 
 BOOL CWinComDoc::OnNewDocument()
@@ -95,7 +103,7 @@ BOOL CWinComDoc::SubmitRequest()
     ASSERT(m_pRequest != NULL);
 
     // Create the anchors
-    char * src = HTParse(m_Location.m_source, m_pRequest->m_cwd, PARSE_ALL);
+    char * src = HTParse(m_Location.m_source, m_cwd, PARSE_ALL);
     m_pRequest->m_pHTAnchorSource = HTAnchor_findAddress(src);
     HT_FREE(src);
     
@@ -109,7 +117,7 @@ BOOL CWinComDoc::SubmitRequest()
 	    HT_FREE(access);
 	    return FALSE;
 	} else {
-	    char * dest = HTParse(m_Location.m_destination, m_pRequest->m_cwd, PARSE_ALL);
+	    char * dest = HTParse(m_Location.m_destination, m_cwd, PARSE_ALL);
 	    m_pRequest->m_pHTAnchorDestination = HTAnchor_findAddress(dest);
             HT_FREE(dest);
 	    HT_FREE(access);
@@ -144,10 +152,42 @@ BOOL CWinComDoc::SubmitRequest()
     BeginWaitCursor();
     
     /* Start the request */
-    if (m_pRequest->PutDocument())
+    if (m_pRequest->PutDocument(m_detectVersionConflict))
 	EndWaitCursor();
 
     return TRUE;
+}
+
+BOOL CWinComDoc::LoadRequest()
+{
+    CWinComApp * pApp = (CWinComApp *) AfxGetApp();
+    ASSERT(pApp != NULL); 
+    
+    ASSERT(m_pRequest != NULL);
+    
+    // Find the file name where we should save the document
+    CFileDialog fd(FALSE);
+    fd.m_ofn.lpstrInitialDir = pApp->GetIniCWD();
+    if (fd.DoModal() == IDOK) {
+	
+	m_pRequest->m_saveAs = fd.GetPathName();
+	
+	// Set the initial dir for next time
+	CString path = m_pRequest->m_saveAs;    
+	int idx = path.ReverseFind('\\');
+	if (idx != -1) path.GetBufferSetLength(idx+1);
+	pApp->SetIniCWD(path);
+	
+	/* Set the cursor */
+	BeginWaitCursor();
+	
+	/* Start the request */
+	if (m_pRequest->GetDocument(FALSE))
+	    EndWaitCursor();
+
+        return TRUE;
+    }
+    return FALSE;
 }
 
 BOOL CWinComDoc::CancelRequest()
@@ -161,4 +201,14 @@ BOOL CWinComDoc::CancelRequest()
     EndWaitCursor();
 
     return TRUE;
+}
+
+void CWinComDoc::OnVersionConflict() 
+{
+    m_detectVersionConflict = !m_detectVersionConflict;
+}
+
+void CWinComDoc::OnUpdateVersionConflict(CCmdUI* pCmdUI) 
+{
+    pCmdUI->SetCheck(m_detectVersionConflict);
 }

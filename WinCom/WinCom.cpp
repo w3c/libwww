@@ -13,6 +13,7 @@
 #include "Links.h"
 #include "ProxySetup.h"
 #include "Password.h"
+#include "VersionConflict.h"
 
 // From libwww
 #include "WWWLib.h"			      /* Global Library Include file */
@@ -38,11 +39,10 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
-// Libwww event handlers
+// Libwww filters
 
-/*	terminate_handler
-**	-----------------
-**	This function is registered to handle the result of the request
+/*
+**  Request termination handler
 */
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
@@ -54,6 +54,22 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     if (pDoc && pDoc->m_pRequest) {
         HTRequest_delete(pDoc->m_pRequest->m_pHTRequest);
         req->m_pDoc->m_pRequest->m_pHTRequest = NULL;
+
+	if (req->m_file) {
+	    fclose(req->m_file);
+	    req->m_file = NULL;
+	}
+    }
+
+    /*
+    ** If succesful PUT then copy last modified and etag
+    ** from destination to source anchor
+    */
+    if (status == HT_CREATED || status == HT_NO_DATA) {
+        time_t dst_time = HTAnchor_lastModified(HTAnchor_parent(req->m_pHTAnchorDestination));
+        char * dst_etag = HTAnchor_etag(HTAnchor_parent(req->m_pHTAnchorDestination));
+	HTAnchor_setLastModified(HTAnchor_parent(req->m_pHTAnchorSource), dst_time);
+        HTAnchor_setEtag(HTAnchor_parent(req->m_pHTAnchorSource), dst_etag);
     }
 
     // Turn off the cancel button
@@ -63,14 +79,52 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     return HT_OK;
 }
 
+/*
+**  412 "Precondition failed" handler
+*/
+PRIVATE int precondition_handler (HTRequest * request, HTResponse * response,
+			          void * param, int status) 
+{
+    CRequest * req = (CRequest *) HTRequest_context(request);
+    CWinComDoc * pDoc = req ? req->m_pDoc : NULL;
+    CVersionConflict conflict;
+    if (conflict.DoModal() == IDOK) {
+
+	/* Clean up this request */
+	if (pDoc && pDoc->m_pRequest) {
+	    HTRequest_delete(pDoc->m_pRequest->m_pHTRequest);
+	    req->m_pDoc->m_pRequest->m_pHTRequest = NULL;
+	}
+
+	if (conflict.m_versionResolution == 0) {
+	    
+	    /* Start a new PUT request without preconditions */
+	    if (pDoc->m_pRequest->PutDocument(FALSE))
+		pDoc->EndWaitCursor();
+	    
+	} else if (conflict.m_versionResolution == 1) {
+	    
+	    /* Start a new GET request without preconditions */
+	    if (pDoc->LoadRequest())
+		pDoc->EndWaitCursor();
+
+	} else
+	    return HT_OK;   /* Just finish the request */
+	
+	/* Don't call the other after filters */
+	return HT_ERROR;
+    }
+    return HT_OK;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CWinComApp
 
 BEGIN_MESSAGE_MAP(CWinComApp, CWinApp)
 	//{{AFX_MSG_MAP(CWinComApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
-	ON_COMMAND(ID_HELP, OnHelp)
 	ON_COMMAND(ID_OPTIONS_PROXIES, OnOptionsProxies)
+	ON_COMMAND(ID_HELP, OnHelp)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -82,6 +136,7 @@ CWinComApp::CWinComApp()
 	// TODO: add construction code here,
 	m_pSourceList = NULL;
 	m_pDestinationList = NULL;
+        m_detectVersionConflict = TRUE;
     
 	// Place all significant initialization in InitInstance
 }
@@ -126,7 +181,10 @@ BOOL CWinComApp::InitInstance()
         /* Get all the warnings we can */
         HTError_setShow((HTErrorShow) (HT_ERR_SHOW_INFO | HT_ERR_SHOW_PARS));
 
-        /* Add our own filter to update the history list */
+	/* Add our own after filter to handle 412 precondition failed */
+        HTNet_addAfter(precondition_handler, NULL, NULL, HT_PRECONDITION_FAILED, HT_FILTER_MIDDLE);
+
+        /* Add our own after filter to clecn up */
         HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
         /* We don't care about case sensitivity when matching local files */
@@ -238,6 +296,38 @@ int CWinComApp::FillSourceComboBox (CComboBox * pBox)
 int CWinComApp::FillDestinationComboBox (CComboBox * pBox)
 {
     return FillComboBox(m_pDestinationList, pBox);
+}
+
+BOOL CWinComApp::SetIniCWD (CString cwd)
+{
+    CString strSection		= "Application";
+    CString strCWD  		= "Current Directory";
+    m_currentDir = cwd;
+    return WriteProfileString(strSection, strCWD, m_currentDir);
+}
+
+CString CWinComApp::GetIniCWD (void)
+{
+    CString strSection		= "Application";
+    CString strCWD		= "Current Directory";
+    m_currentDir = GetProfileString(strSection, strCWD);
+    return m_currentDir;
+}
+
+BOOL CWinComApp::SetIniDetectVersionConflict (BOOL detect)
+{
+    CString strSection		= "Application";
+    CString strCWD  		= "Detect Conflicts";
+    m_detectVersionConflict = detect;
+    return WriteProfileInt(strSection, strCWD, m_detectVersionConflict);
+}
+
+BOOL CWinComApp::GetIniDetectVersionConflict (void)
+{
+    CString strSection		= "Application";
+    CString strCWD		= "Detect Conflicts";
+    m_detectVersionConflict = GetProfileInt(strSection, strCWD, FALSE);
+    return m_detectVersionConflict;
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -23,6 +23,7 @@ public:
 
 	CString	    m_source;
 	CString	    m_destination;
+	CString	    m_saveAs;
 
 // Operations       
         void OnFinish (void);
@@ -58,6 +59,8 @@ protected:
 	afx_msg void OnEditDestinationLocation();
 	afx_msg void OnSubmit();
 	afx_msg void OnCancel();
+	afx_msg void OnKillfocusSourceUri();
+	afx_msg void OnKillfocusDestinationUri();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

@@ -81,7 +81,7 @@ void CEntityInfo::OnGetInfo()
     CTabsView * view = (CTabsView *) GetParentFrame()->GetActiveView();
     CWinComDoc * doc = view->GetDocument();
     CRequest * request = doc->m_pRequest;        
-    char * srcstr = HTParse(doc->m_Location.m_source, request->m_cwd, PARSE_ALL);
+    char * srcstr = HTParse(doc->m_Location.m_source, doc->m_cwd, PARSE_ALL);
     request->m_pHTAnchorSource = HTAnchor_findAddress(srcstr);
     HTParentAnchor * src = HTAnchor_parent(request->m_pHTAnchorSource);
     if (src) {

@@ -153,6 +153,10 @@ SOURCE=.\UserParameters.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VersionConflict.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\WinCom.cpp
 # End Source File
 # Begin Source File
@@ -294,6 +298,10 @@ SOURCE=.\TabsView.h
 # Begin Source File
 
 SOURCE=.\UserParameters.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VersionConflict.h
 # End Source File
 # Begin Source File
 

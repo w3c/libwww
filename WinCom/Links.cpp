@@ -35,10 +35,10 @@ void CLinks::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CLinks)
 	DDX_Control(pDX, IDC_LINK, m_linkDestination);
 	DDX_Control(pDX, ID_LINK_REMOVE, m_linkRemove);
-	DDX_Control(pDX, ID_LINK_ADD, m_linkAdd);
-	DDX_Control(pDX, IDC_LINK_RELS, *m_pLinkList);
-	DDX_CBString(pDX, IDC_LINK_TYPE, m_linkType);
-	DDX_Radio(pDX, IDC_LINK_REL, m_direction);
+        DDX_Control(pDX, ID_LINK_ADD, m_linkAdd);
+        DDX_Control(pDX, IDC_LINK_RELS, * m_pLinkList);
+        DDX_CBString(pDX, IDC_LINK_TYPE, m_linkType);
+        DDX_Radio(pDX, IDC_LINK_REL, m_direction);
 	//}}AFX_DATA_MAP
 }
 
@@ -142,15 +142,17 @@ void CLinks::OnLinkAdd()
 
 
 	// Update the combo box
-	m_linkDestination.InsertString(0, LinkCaption);
-	int length = m_linkDestination.GetCount();
-	if (length >= MAX_LIST_LENGTH) {
-	    int cnt;
-	    for (cnt=MAX_LIST_LENGTH; cnt < length; cnt++)
-		m_linkDestination.DeleteString(cnt);
+	if (m_linkDestination.FindStringExact(-1, LinkCaption) == CB_ERR) {
+	    m_linkDestination.InsertString(0, LinkCaption);
+	    int length = m_linkDestination.GetCount();
+	    if (length >= MAX_LIST_LENGTH) {
+		int cnt;
+		for (cnt=MAX_LIST_LENGTH; cnt < length; cnt++)
+		    m_linkDestination.DeleteString(cnt);
+	    }
 	}
 
-        // Write into INI file
+	// Write into INI file
 	CWinComApp * pApp = (CWinComApp *) AfxGetApp();
 	ASSERT(pApp != NULL); 
 	pApp->AddLinkToIniFile(LinkCaption);

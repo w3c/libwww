@@ -22,14 +22,17 @@ public:
     CRequest();
     ~CRequest();
     
-    char *	m_cwd;
-    int		PutDocument();
+    int		PutDocument (BOOL UsePreconditions);
+    int		GetDocument (BOOL UsePreconditions);
     int		Cancel();
+
     HTAnchor *	m_pHTAnchorSource;
     HTAnchor *	m_pHTAnchorDestination;
     HTRequest * m_pHTRequest;
+    CString	m_saveAs;
 
     CWinComDoc *m_pDoc;	
+    FILE *	m_file;
 
 protected:
 };

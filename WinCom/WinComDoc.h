@@ -39,13 +39,16 @@ public:
 // Implementation
 public:
 	BOOL            SubmitRequest();
+	BOOL            LoadRequest();
 	BOOL            CancelRequest();
+
+	char *		m_cwd;
 	CRequest *	m_pRequest;
 	CEntityInfo     m_EntityInfo;
 	CLinks		m_Links;
 	CLocation	m_Location;
 	CProxySetup     m_ProxySetup;
-	
+
 	virtual ~CWinComDoc();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -53,12 +56,13 @@ public:
 #endif
 
 protected:
+	BOOL            m_detectVersionConflict;
 
 // Generated message map functions
 protected:
 	//{{AFX_MSG(CWinComDoc)
-		// NOTE - the ClassWizard will add and remove member functions here.
-		//    DO NOT EDIT what you see in these blocks of generated code !
+	afx_msg void OnVersionConflict();
+	afx_msg void OnUpdateVersionConflict(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
