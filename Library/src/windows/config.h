@@ -100,7 +100,7 @@
 #define W3C_PACKAGE "w3c-libwww"
 
 /* Define to be the version. */
-#define W3C_VERSION "5.1n"
+#define W3C_VERSION "5.2.1"
 
 /* Define to be the location of the W3C Icons */
 #define W3C_ICONS "/usr/local/share/w3c-icons"
