@@ -75,6 +75,9 @@ IDR_WINCOMTYPE          ICON    DISCARDABLE     "res\\WinComDoc.ico"
 //
 
 IDR_MAINFRAME           BITMAP  MOVEABLE PURE   "res\\Toolbar.bmp"
+IDB_LARGEICONS          BITMAP  DISCARDABLE     "res\\Largeico.bmp"
+IDB_SMALLICONS          BITMAP  DISCARDABLE     "res\\Smallico.bmp"
+IDB_STATEICONS          BITMAP  DISCARDABLE     "res\\Stateico.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -106,16 +109,6 @@ IDR_MAINFRAME MENU PRELOAD DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
-        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
-        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
-        MENUITEM SEPARATOR
-        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
-        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
-        MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
-        MENUITEM SEPARATOR
-        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
     END
@@ -127,16 +120,15 @@ BEGIN
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
     END
-    POPUP "&View"
+    POPUP "Options"
     BEGIN
-        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
-        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        MENUITEM "&Proxy Setup",                ID_OPTIONS_PROXIES
     END
     POPUP "&Help"
     BEGIN
         MENUITEM "&Help Topics",                ID_HELP_FINDER
         MENUITEM SEPARATOR
-        MENUITEM "&About WinCom...",            ID_APP_ABOUT
+        MENUITEM "&About WebCommandor...",      ID_APP_ABOUT
     END
 END
 
@@ -178,106 +170,121 @@ CAPTION "About WinCom"
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
-    LTEXT           "WinCom Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 1998",IDC_STATIC,40,25,119,8
+    LTEXT           "WebCommandor Version 1.0",IDC_STATIC,41,10,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Henrik Frystyk Nielsen",IDC_STATIC,41,22,154,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,32,14,WS_GROUP
+    LTEXT           "W3C Copyright (C) 1998",IDC_STATIC,41,34,154,8
 END
 
-IDD_OPTIONS DIALOG DISCARDABLE  0, 0, 267, 95
+IDD_LOCATION DIALOGEX 0, 0, 267, 98
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "Options"
-FONT 8, "MS Sans Serif"
+CAPTION "Save Document"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_PROXY,112,13,148,13,CBS_SIMPLE | CBS_SORT | 
-                    WS_TABSTOP
-    LTEXT           "Proxy",IDC_STATIC,90,15,18,8
-    COMBOBOX        IDC_PROXY_PREFIX,48,13,36,13,CBS_SIMPLE | CBS_SORT | 
-                    WS_TABSTOP
-    LTEXT           "Access",IDC_STATIC,9,15,24,8
-END
-
-IDD_LOCATION DIALOGEX 0, 0, 267, 95
-STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "Source && Destination"
-FONT 8, "MS Sans Serif"
-BEGIN
-    COMBOBOX        IDC_SOURCE_URI,47,12,160,58,CBS_DROPDOWN | 
-                    CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP,
+    COMBOBOX        IDC_SOURCE_URI,42,9,165,58,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP,
                     WS_EX_RTLREADING
-    COMBOBOX        IDC_DESTINATION_URI,47,33,213,55,CBS_DROPDOWN | 
-                    CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP,
+    COMBOBOX        IDC_DESTINATION_URI,42,25,218,55,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP,
                     WS_EX_RTLREADING
-    LTEXT           "Source",IDC_STATIC,7,14,24,8
-    LTEXT           "Destination",IDC_STATIC,7,35,36,8
-    PUSHBUTTON      "Browse",ID_BROWSE,209,11,50,14
+    LTEXT           "Source",IDC_STATIC,5,11,24,8
+    LTEXT           "Destination",IDC_STATIC,5,27,36,8
+    DEFPUSHBUTTON   "Browse",ID_BROWSE,209,8,50,14
+    PUSHBUTTON      "Submit",ID_SUBMIT,157,81,50,14,WS_DISABLED
+    PUSHBUTTON      "Cancel",ID_CANCEL,210,81,50,14,WS_DISABLED
 END
 
-IDD_ENTITY_INFO DIALOG DISCARDABLE  0, 0, 267, 95
+IDD_ENTITY_INFO DIALOG DISCARDABLE  0, 0, 267, 98
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "Entity Information"
+CAPTION "Source Information"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_MEDIA_TYPE,45,9,84,13,ES_AUTOHSCROLL
-    LTEXT           "Media type",IDC_STATIC,8,12,36,8
-    EDITTEXT        IDC_CONTENT_ENCODING,45,29,84,13,ES_AUTOHSCROLL
-    LTEXT           "Encoding",IDC_STATIC,8,31,31,8
-    EDITTEXT        IDC_MEDIA_CHARSET,45,69,84,13,ES_AUTOHSCROLL
-    LTEXT           "Charset",IDC_STATIC,8,71,25,8
-    EDITTEXT        IDC_MEDIA_LANGUAGE,45,49,84,13,ES_AUTOHSCROLL
-    LTEXT           "Language",IDC_STATIC,8,51,33,8
-    EDITTEXT        IDC_CONTENT_LENGTH,176,9,84,13,ES_AUTOHSCROLL | 
+    LTEXT           "Media type",IDC_STATIC,5,12,36,8
+    LTEXT           "Encoding",IDC_STATIC,5,27,31,8
+    LTEXT           "Charset",IDC_STATIC,5,60,25,8
+    LTEXT           "Language",IDC_STATIC,5,44,33,8
+    EDITTEXT        IDC_CONTENT_LENGTH,174,9,86,13,ES_AUTOHSCROLL | 
                     ES_READONLY | ES_NUMBER
-    LTEXT           "Length",IDC_STATIC,131,12,23,8
-    EDITTEXT        IDC_LAST_MODIFIED,176,29,84,13,ES_AUTOHSCROLL | 
+    LTEXT           "Length",IDC_STATIC,129,12,23,8
+    EDITTEXT        IDC_LAST_MODIFIED,174,25,86,13,ES_AUTOHSCROLL | 
                     ES_READONLY
-    LTEXT           "Last Modified",IDC_STATIC,131,31,43,8
-    EDITTEXT        IDC_ETAG,176,49,84,13,ES_AUTOHSCROLL | ES_READONLY | 
+    LTEXT           "Last Modified",IDC_STATIC,129,27,43,8
+    EDITTEXT        IDC_ETAG,174,58,86,13,ES_AUTOHSCROLL | ES_READONLY | 
                     ES_NUMBER
-    LTEXT           "Entity Tag",IDC_STATIC,131,51,33,8
-    EDITTEXT        IDC_MAX_AGE,176,69,84,13,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Max Age",IDC_STATIC,131,71,29,8
+    LTEXT           "Entity Tag",IDC_STATIC,129,60,33,8
+    EDITTEXT        IDC_EXPIRES,174,42,86,13,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    LTEXT           "Expires",IDC_STATIC,129,44,24,8
+    PUSHBUTTON      "Guess",ID_GET_INFO,210,81,50,14
+    COMBOBOX        IDC_CONTENT_ENCODING,42,25,84,56,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
+    COMBOBOX        IDC_CONTENT_LANGUAGE,42,42,84,56,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
+    COMBOBOX        IDC_CONTENT_CHARSET,42,57,84,56,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
+    COMBOBOX        IDC_CONTENT_TYPE,42,9,84,56,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
 END
 
-IDD_PROMPT DIALOG DISCARDABLE  0, 0, 186, 95
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Prompt the User"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
-END
-
-IDD_CONFIRM DIALOG DISCARDABLE  0, 0, 186, 95
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Confirm This"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
-END
-
-IDD_PASSWORD DIALOG DISCARDABLE  0, 0, 186, 68
+IDD_PASSWORD DIALOG DISCARDABLE  0, 0, 186, 82
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "User Name and Password"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_UID,58,15,105,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_PASSWORD,58,32,105,14,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "Password",IDC_STATIC,16,34,32,8
-    LTEXT           "User Name",IDC_STATIC,16,17,36,8
+    EDITTEXT        IDC_UID,58,26,105,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD,58,43,105,14,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "Password",IDC_STATIC,16,45,32,8
+    LTEXT           "User Name",IDC_STATIC,16,29,36,8
+    DEFPUSHBUTTON   "OK",IDOK,77,61,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,61,50,14
+    LTEXT           "Realm",IDC_STATIC,16,13,21,8
+    EDITTEXT        IDC_REALM,58,9,105,14,ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_LINKS DIALOGEX 0, 0, 267, 95
+IDD_LINKS DIALOGEX 0, 0, 267, 98
 STYLE WS_CHILD | WS_CAPTION
-CAPTION "Links"
+CAPTION "Link Relationships"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Link Destination",IDC_STATIC,9,26,52,8
-    COMBOBOX        IDC_LINK_TYPE,65,10,84,56,CBS_DROPDOWNLIST | CBS_SORT | 
-                    CBS_LOWERCASE | WS_TABSTOP
-    LTEXT           "Link Type",IDC_STATIC,9,12,32,8
-    COMBOBOX        IDC_LINK,65,25,195,55,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
-                    CBS_SORT | WS_VSCROLL | WS_TABSTOP,WS_EX_RTLREADING
+    LTEXT           "Destination",IDC_STATIC,5,27,36,8
+    COMBOBOX        IDC_LINK_TYPE,42,9,84,56,CBS_DROPDOWN | CBS_SORT | 
+                    WS_GROUP | WS_TABSTOP
+    LTEXT           "Link Type",IDC_STATIC,5,12,32,8
+    COMBOBOX        IDC_LINK,42,25,218,55,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_GROUP,WS_EX_RTLREADING
+    CONTROL         "Forward",IDC_LINK_REL,"Button",BS_AUTORADIOBUTTON | 
+                    BS_NOTIFY | WS_GROUP,160,12,41,10
+    CONTROL         "Reverse",IDC_LINK_REV,"Button",BS_AUTORADIOBUTTON | 
+                    BS_NOTIFY,212,12,43,10
+    CONTROL         "List2",IDC_LINK_RELS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SORTDESCENDING | WS_BORDER | 
+                    WS_GROUP | WS_TABSTOP,6,40,254,39
+    PUSHBUTTON      "Add",ID_LINK_ADD,157,81,50,14
+    PUSHBUTTON      "Remove",ID_LINK_REMOVE,210,81,50,14,WS_DISABLED
+    GROUPBOX        "Direction",IDC_STATIC,147,3,113,21
+END
+
+IDD_PROXIES DIALOG DISCARDABLE  0, 0, 237, 79
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Proxy Setup"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,127,58,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,180,58,50,14
+    LTEXT           "Use this proxy",IDC_STATIC,7,15,45,8
+    COMBOBOX        IDC_PROXY_SERVER,78,14,152,13,CBS_SIMPLE | CBS_SORT | 
+                    WS_TABSTOP
+    LTEXT           "For this address prefix",IDC_STATIC,7,33,69,8
+    COMBOBOX        IDC_USE_PROXY,78,32,152,13,CBS_DROPDOWNLIST | WS_TABSTOP
+END
+
+IDD_TABS DIALOG DISCARDABLE  0, 0, 298, 110
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Submit",IDOK,238,12,50,14
+    CONTROL         "Tab1",IDC_TABSMENU,"SysTabControl32",0x0,6,7,227,96
 END
 
 
@@ -302,16 +309,16 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904B0"
+        BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "WinCom MFC Application\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "WinCom\0"
+            VALUE "InternalName", "WebCommandor\0"
             VALUE "LegalCopyright", "Copyright (C) 1998\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "WinCom.EXE\0"
-            VALUE "ProductName", "WinCom Application\0"
+            VALUE "LegalTrademarks", "W3C\0"
+            VALUE "OriginalFilename", "WinCom.exe\0"
+            VALUE "ProductName", "WebCommandor Application\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
         END
     END
@@ -340,20 +347,12 @@ BEGIN
         BOTTOMMARGIN, 48
     END
 
-    IDD_OPTIONS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 260
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 88
-    END
-
     IDD_LOCATION, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 260
         TOPMARGIN, 7
-        BOTTOMMARGIN, 88
+        BOTTOMMARGIN, 91
     END
 
     IDD_ENTITY_INFO, DIALOG
@@ -361,23 +360,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 260
         TOPMARGIN, 7
-        BOTTOMMARGIN, 88
-    END
-
-    IDD_PROMPT, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 179
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 88
-    END
-
-    IDD_CONFIRM, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 179
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 88
+        BOTTOMMARGIN, 91
     END
 
     IDD_PASSWORD, DIALOG
@@ -385,7 +368,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 179
         TOPMARGIN, 7
-        BOTTOMMARGIN, 61
+        BOTTOMMARGIN, 75
     END
 
     IDD_LINKS, DIALOG
@@ -393,7 +376,23 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 260
         TOPMARGIN, 7
-        BOTTOMMARGIN, 88
+        BOTTOMMARGIN, 91
+    END
+
+    IDD_PROXIES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 72
+    END
+
+    IDD_TABS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 291
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 103
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -406,8 +405,6 @@ END
 
 IDD_LINKS DLGINIT
 BEGIN
-    IDC_LINK_TYPE, 0x403, 1, 0
-"\000" 
     IDC_LINK_TYPE, 0x403, 11, 0
 0x7473, 0x6c79, 0x7365, 0x6568, 0x7465, "\000" 
     IDC_LINK_TYPE, 0x403, 6, 0
@@ -425,6 +422,64 @@ BEGIN
     0
 END
 
+IDD_ENTITY_INFO DLGINIT
+BEGIN
+    IDC_CONTENT_ENCODING, 0x403, 9, 0
+0x6f63, 0x706d, 0x6572, 0x7373, "\000" 
+    IDC_CONTENT_ENCODING, 0x403, 9, 0
+0x6469, 0x6e65, 0x6974, 0x7974, "\000" 
+    IDC_CONTENT_ENCODING, 0x403, 8, 0
+0x6564, 0x6c66, 0x7461, 0x0065, 
+    IDC_CONTENT_ENCODING, 0x403, 5, 0
+0x7a67, 0x7069, "\000" 
+    IDC_CONTENT_LANGUAGE, 0x403, 3, 0
+0x6e65, "\000" 
+    IDC_CONTENT_LANGUAGE, 0x403, 3, 0
+0x7266, "\000" 
+    IDC_CONTENT_LANGUAGE, 0x403, 3, 0
+0x706a, "\000" 
+    IDC_CONTENT_LANGUAGE, 0x403, 3, 0
+0x6164, "\000" 
+    IDC_CONTENT_LANGUAGE, 0x403, 3, 0
+0x6567, "\000" 
+    IDC_CONTENT_LANGUAGE, 0x403, 3, 0
+0x6573, "\000" 
+    IDC_CONTENT_LANGUAGE, 0x403, 3, 0
+0x6f6e, "\000" 
+    IDC_CONTENT_CHARSET, 0x403, 12, 0
+0x7369, 0x2d6f, 0x3032, 0x3232, 0x6a2d, 0x0070, 
+    IDC_CONTENT_CHARSET, 0x403, 11, 0
+0x7369, 0x2d6f, 0x3838, 0x3935, 0x312d, "\000" 
+    IDC_CONTENT_CHARSET, 0x403, 11, 0
+0x7369, 0x2d6f, 0x3838, 0x3935, 0x322d, "\000" 
+    IDC_CONTENT_CHARSET, 0x403, 11, 0
+0x7369, 0x2d6f, 0x3838, 0x3935, 0x332d, "\000" 
+    IDC_CONTENT_CHARSET, 0x403, 11, 0
+0x7369, 0x2d6f, 0x3838, 0x3935, 0x342d, "\000" 
+    IDC_CONTENT_CHARSET, 0x403, 12, 0
+0x6e75, 0x6369, 0x646f, 0x2d65, 0x2d31, 0x0031, 
+    IDC_CONTENT_CHARSET, 0x403, 6, 0
+0x7475, 0x2d66, 0x0037, 
+    IDC_CONTENT_CHARSET, 0x403, 6, 0
+0x7475, 0x2d66, 0x0038, 
+    IDC_CONTENT_TYPE, 0x403, 10, 0
+0x6574, 0x7478, 0x682f, 0x6d74, 0x006c, 
+    IDC_CONTENT_TYPE, 0x403, 11, 0
+0x6574, 0x7478, 0x702f, 0x616c, 0x6e69, "\000" 
+    IDC_CONTENT_TYPE, 0x403, 10, 0
+0x6d69, 0x6761, 0x2f65, 0x6967, 0x0066, 
+    IDC_CONTENT_TYPE, 0x403, 10, 0
+0x6d69, 0x6761, 0x2f65, 0x6e70, 0x0067, 
+    0
+END
+
+IDD_PROXIES DLGINIT
+BEGIN
+    IDC_USE_PROXY, 0x403, 5, 0
+0x7468, 0x7074, "\000" 
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -433,12 +488,12 @@ END
 
 STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
-    IDR_MAINFRAME           "WinCom\n\nWinCom\n\n\nWinCom.Document\nWinCom Document"
+    IDR_MAINFRAME           "WebCommandor\n\nWebCommandor\n\n\nWebCommandor.Document\nWebCommandor Document"
 END
 
 STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
-    AFX_IDS_APP_TITLE       "WinCom"
+    AFX_IDS_APP_TITLE       "WebCommandor"
     AFX_IDS_IDLEMESSAGE     "For Help, press F1"
     AFX_IDS_HELPMODEMESSAGE "Select an object on which to get Help"
 END
@@ -549,12 +604,21 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     AFX_IDS_PREVIEW_CLOSE   "Close print preview mode\nCancel Preview"
-    IDS_WINCOM              "Web Commandor"
+    IDS_WINCOM              "WebCommandor"
     IDS_SOURCE              "Source:"
     IDS_CANNOT_OPEN_FILE    "Can't open source file"
-    IDS_CANNOT_WRITE_TO_FILE "Can't write to local file"
+    IDS_CANNOT_WRITE_TO_DESTINATION 
+                            "Destination address must be of type ""http"""
     IDS_CANNOT_READ_FILE    "Can't read local file"
     IDS_SUBMIT              "Submit"
+    IDS_RETRY_PROXY_AUTH    "Proxy Authentication failed - retry?"
+    IDS_RETRY_AUTH          "Authentication failed - retry?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_PROXY_SETUP          "Access the Internet through one or more proxy servers"
+    ID_OPTIONS_PROXIES      "Define Proxies\nProxy Setup"
 END
 
 #endif    // English (U.S.) resources

@@ -24,6 +24,7 @@ public:
 	enum { IDD = IDD_PASSWORD };
 	CString	m_password;
 	CString	m_username;
+	CString	m_realm;
 	//}}AFX_DATA
 
 

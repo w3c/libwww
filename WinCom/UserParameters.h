@@ -20,22 +20,27 @@ extern HTAlertCallback UserPrint;
 
 class CUserParameters : public CObject  
 {
+    DECLARE_DYNCREATE(CUserParameters)
+	
+// Construction
 public:
-	CUserParameters(HTRequest * request, HTAlertOpcode op,
-                        int msgnum, const char * dfault, void * input,
-                        HTAlertPar * reply);
-	virtual ~CUserParameters();
+    CUserParameters(HTRequest * request, HTAlertOpcode op,
+    	int msgnum, const char * dfault, void * input,
+	HTAlertPar * reply);
+    CUserParameters();
+    ~CUserParameters();
 
-    HTRequest * request;
-    HTAlertOpcode op;
-    int msgnum;
-    const char * dfault;
-    void * input;
-    HTAlertPar * reply;
-    int type;
-    char * buf;
-    size_t bufLen;
-    WPARAM * pWParam;
+
+    HTRequest *	    m_request;
+    HTAlertOpcode   m_op;
+    int		    m_msgnum;
+    const char *    m_default;
+    void *	    m_input;
+    HTAlertPar *    m_reply;
+    int		    m_type;
+    char *	    m_buf;
+    size_t	    m_bufLen;
+    WPARAM *	    m_pWParam;
 };
 
 #endif // !defined(AFX_UserParameters_H__B7CDBADF_C4DC_11D1_93E1_080009DCA30B__INCLUDED_)

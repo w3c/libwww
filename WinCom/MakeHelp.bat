@@ -37,3 +37,4 @@ echo hlp\WinCom.hpj(1) : error: Problem encountered creating help file
 
 :done
 echo.
+

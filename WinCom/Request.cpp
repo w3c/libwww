@@ -26,18 +26,23 @@ CRequest::CRequest() : CObject()
 {
 }
 
-CRequest::CRequest( CWinComApp * pApp ) : CObject()
+CRequest::CRequest(CWinComDoc * doc)
 {
-    m_pApp = pApp;
-    pApp->m_pRequest = this;
     m_cwd = HTGetCurrentDirectoryURL();
     m_pHTRequest = NULL;
+    m_pHTAnchorSource = NULL;
+    m_pHTAnchorDestination = NULL;
+    m_cwd = NULL;
+    m_pDoc = doc;
 }
 
 CRequest::~CRequest()
 {
-
+    HT_FREE(m_cwd);
 }
+
+/////////////////////////////////////////////////////////////////////////////
+// CWinComDoc commands
 
 int CRequest::PutDocument()
 {
@@ -57,4 +62,10 @@ int CRequest::PutDocument()
 	return 0;
     }
     return -1;
+}
+
+int CRequest::Cancel()
+{
+    BOOL status = HTRequest_kill(m_pHTRequest);
+    return status==HT_OK ? 0 : -1;
 }

@@ -9,6 +9,12 @@
 #pragma once
 #endif // _MSC_VER >= 1000
 
+#include "Links.h"
+#include "EntityInfo.h"
+#include "Location.h"
+#include "ProxySetup.h"
+
+class CRequest;
 
 class CWinComDoc : public CDocument
 {
@@ -32,6 +38,14 @@ public:
 
 // Implementation
 public:
+	BOOL            SubmitRequest();
+	BOOL            CancelRequest();
+	CRequest *	m_pRequest;
+	CEntityInfo     m_EntityInfo;
+	CLinks		m_Links;
+	CLocation	m_Location;
+	CProxySetup     m_ProxySetup;
+	
 	virtual ~CWinComDoc();
 #ifdef _DEBUG
 	virtual void AssertValid() const;

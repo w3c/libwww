@@ -1,6 +1,10 @@
 #if !defined(AFX_CLinks_H__4DEC1954_F40B_11D1_93EC_080009DCA30B__INCLUDED_)
 #define AFX_CLinks_H__4DEC1954_F40B_11D1_93EC_080009DCA30B__INCLUDED_
 
+#include "resource.h"       // main symbols
+#include "LinkView.h"
+#include "WWWCore.h"
+
 #if _MSC_VER >= 1000
 #pragma once
 #endif // _MSC_VER >= 1000
@@ -16,35 +20,53 @@ class CLinks : public CPropertyPage
 
 // Construction
 public:
-	bool m_addLink;
-	int m_linkTypeIndex;
-	CLinks( CRequest *pRequest );
         CLinks();
 	~CLinks();
+
+// Operations
+        BOOL AddLinkRelationships (HTAnchor * source);
+	void Clear(void);
 
 // Dialog Data
 	//{{AFX_DATA(CLinks)
 	enum { IDD = IDD_LINKS };
-	CString	m_link;
+	CComboBox	m_linkDestination;
+	CButton	m_linkRemove;
+	CButton	m_linkAdd;
+	CLinkView * 	m_pLinkList;
 	CString	m_linkType;
+	int		m_direction;
 	//}}AFX_DATA
 
 
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CLinks)
+	public:
+	virtual BOOL OnInitDialog();
 	protected:
-	    virtual BOOL OnKillActive();
-            virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+        virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
-
-       	CRequest * m_pRequest;
 
 // Implementation
 protected:
+	CImageList m_LargeImageList;
+	CImageList m_SmallImageList;
+	CImageList m_StateImageList;
+
+// flags and states
+protected:
+	BOOL m_bStateIcons;
+	int m_nCheckedItem;
+	HICON m_hSmallIcon;
+	HICON m_hLargeIcon;
+
+	void CheckItem(int nNewCheckedItem);
 	// Generated message map functions
 	//{{AFX_MSG(CLinks)
-		// NOTE: the ClassWizard will add member functions here
+	afx_msg void OnLinkAdd();
+	afx_msg void OnLinkRemove();
+	afx_msg void OnItemclickLinkRels(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

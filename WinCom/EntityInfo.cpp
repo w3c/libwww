@@ -3,6 +3,8 @@
 #include "stdafx.h"
 #include "WinCom.h"
 #include "EntityInfo.h"
+#include "WinComDoc.h"
+#include "TabsView.h"
 
 // From libwww
 #include "WWWLib.h"
@@ -20,21 +22,16 @@ static char THIS_FILE[] = __FILE__;
 IMPLEMENT_DYNCREATE(CEntityInfo, CPropertyPage)
 CEntityInfo::CEntityInfo() : CPropertyPage(CEntityInfo::IDD)
 {
-}
-
-CEntityInfo::CEntityInfo( CRequest * pRequest) : CPropertyPage(CEntityInfo::IDD)
-{
     //{{AFX_DATA_INIT(CEntityInfo)
-    m_charset = _T("");
-    m_contentEncoding = _T("");
-    m_contentLength = 0;
-    m_language = _T("");
-    m_mediaType = _T("");
-    m_age = 0;
+	m_charset = _T("");
+	m_contentEncoding = _T("");
+	m_contentLength = 0;
+	m_language = _T("");
+	m_mediaType = _T("");
+	m_expires = 0;
+	m_etag = _T("");
+	m_lmDate = _T("");
 	//}}AFX_DATA_INIT
-    m_pRequest = pRequest;
-    m_statFile = FALSE;
-    pRequest->m_pEntityInfo = this;
 }
 
 CEntityInfo::~CEntityInfo()
@@ -45,24 +42,17 @@ void CEntityInfo::DoDataExchange(CDataExchange* pDX)
 {
     CPropertyPage::DoDataExchange(pDX);
     //{{AFX_DATA_MAP(CEntityInfo)
-    DDX_Text(pDX, IDC_MEDIA_CHARSET, m_charset);
-    DDV_MaxChars(pDX, m_charset, 64);
-
-    DDX_Text(pDX, IDC_CONTENT_ENCODING, m_contentEncoding);
-    DDV_MaxChars(pDX, m_contentEncoding, 64);
-
-    DDX_Text(pDX, IDC_MEDIA_LANGUAGE, m_language);
-    DDV_MaxChars(pDX, m_language, 64);
-
-    DDX_Text(pDX, IDC_MEDIA_TYPE, m_mediaType);
-    DDV_MaxChars(pDX, m_mediaType, 64);
-
-    DDX_Text(pDX, IDC_MAX_AGE, m_age);
-    DDV_MinMaxInt(pDX, m_age, 0, 60000);
-
-    DDX_Text(pDX, IDC_CONTENT_LENGTH, m_contentLength);
-    DDX_Text(pDX, IDC_LAST_MODIFIED, m_lastModified.Format("%a, %d %b %Y %H:%M:%S"));
-
+	DDX_Control(pDX, ID_GET_INFO, m_guess);
+        DDX_Text(pDX, IDC_CONTENT_CHARSET, m_charset);
+        DDX_Text(pDX, IDC_CONTENT_ENCODING, m_contentEncoding);
+        DDX_Text(pDX, IDC_CONTENT_LENGTH, m_contentLength);
+	DDV_MinMaxLong(pDX, m_contentLength, 0, 2147483647);
+        DDX_Text(pDX, IDC_CONTENT_LANGUAGE, m_language);
+        DDX_Text(pDX, IDC_CONTENT_TYPE, m_mediaType);
+        DDX_Text(pDX, IDC_EXPIRES, m_expires);
+        DDV_MinMaxInt(pDX, m_expires, 0, 60000);
+	DDX_Text(pDX, IDC_ETAG, m_etag);
+	DDX_Text(pDX, IDC_LAST_MODIFIED, m_lmDate);
 	//}}AFX_DATA_MAP
 }
 
@@ -70,110 +60,119 @@ Format( DWORD dwFlags = 0, LCID lcid = LANG_USER_DEFAULT );
 
 BEGIN_MESSAGE_MAP(CEntityInfo, CPropertyPage)
     //{{AFX_MSG_MAP(CEntityInfo)
-    // NOTE: the ClassWizard will add message map macros here
-    //}}AFX_MSG_MAP
+	ON_BN_CLICKED(ID_GET_INFO, OnGetInfo)
+	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CEntityInfo message handlers
 
-BOOL CEntityInfo::OnSetActive()
+BOOL CEntityInfo::OnKillActive() 
 {
-    BOOL bOk = CPropertyPage::OnSetActive();
-    if (bOk) {
-	HTParentAnchor * src = HTAnchor_parent(m_pRequest->m_pHTAnchorSource);
-	char * uri = HTAnchor_address((HTAnchor *) src);
-	char * access = HTParse(uri, "", PARSE_ACCESS);
+	// TODO: Add your specialized code here and/or call the base class
+	UpdateData();
+    
+	return CPropertyPage::OnKillActive();
+}
 
+void CEntityInfo::OnGetInfo() 
+{
+    ASSERT(GetParentFrame()->GetActiveView()->IsKindOf(RUNTIME_CLASS(CTabsView)));
+    CTabsView * view = (CTabsView *) GetParentFrame()->GetActiveView();
+    CWinComDoc * doc = view->GetDocument();
+    CRequest * request = doc->m_pRequest;        
+    char * srcstr = HTParse(doc->m_Location.m_source, request->m_cwd, PARSE_ALL);
+    request->m_pHTAnchorSource = HTAnchor_findAddress(srcstr);
+    HTParentAnchor * src = HTAnchor_parent(request->m_pHTAnchorSource);
+    if (src) {
+	char * uri = HTAnchor_address((HTAnchor *) src);
+	char * local = HTWWWToLocal (uri, "", NULL);
+	
 	/* Check what we can find out about the file */
-	if (m_statFile == FALSE) {
-	    if (!strcasecomp(access, "file")) {
-		char * filename = HTParse(uri, "", PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-		if (filename && *filename) {
-		    if (*filename == '/' && filename[2] == ':') {
-			char *orig=filename, *dest=filename+3;
-			while((*orig++ = *dest++));
-		    }
-		    HTUnEscape(filename);
-		    
-		    CFile src_file;
-		    CString fname(filename);
-		    if (src_file.Open(fname, CFile::modeRead) == FALSE) {
-			CString strMessage;
-			AfxFormatString1(strMessage, IDS_CANNOT_READ_FILE, filename);
-			AfxMessageBox(strMessage);
-			HT_FREE(uri);
-			HT_FREE(access);
-			HT_FREE(filename);
-			return FALSE;
-		    }
-		    
-		    /* Get the size and last modified date */
-		    CFileStatus status;
-		    if(src_file.GetStatus(status)) {
-			m_contentLength = status.m_size;
-			HTAnchor_setLength(src, m_contentLength);
-			SetDlgItemInt(IDC_CONTENT_LENGTH, m_contentLength);
-			m_lastModified = status.m_mtime;
-			HTAnchor_setLastModified(src, m_lastModified.GetTime());
-			SetDlgItemText(IDC_LAST_MODIFIED, m_lastModified.Format("%a, %d %b %Y %H:%M:%S"));
-		    }
-		    src_file.Close();
-		    
-		    /* Get file suffix bindings */
-		    if (HTBind_getAnchorBindings(src)) {
-			char * mt = HTAtom_name(HTAnchor_format(src));
-			char * charset = HTAtom_name(HTAnchor_charset(src));
-			long length = HTAnchor_length(src);
+	if (local) {
+	    CWaitCursor wait;
+	    if (local && *local) {
+		CFile src_file;
+		if (src_file.Open(local, CFile::modeRead) == FALSE) {
+		    CString strMessage;
+		    AfxFormatString1(strMessage, IDS_CANNOT_READ_FILE, local);
+		    AfxMessageBox(strMessage);
+		    HT_FREE(uri);
+		    HT_FREE(local);
+		    return;
+		}
+		
+		/* Get the size and last modified date */
+		CFileStatus status;
+		if(src_file.GetStatus(status)) {
+		    m_contentLength = status.m_size;
+		    HTAnchor_setLength(src, m_contentLength);
+		    SetDlgItemInt(IDC_CONTENT_LENGTH, m_contentLength);
+		    m_lastModified = status.m_mtime;
+		    HTAnchor_setLastModified(src, m_lastModified.GetTime());
+		    m_lmDate = m_lastModified.Format("%a, %d %b %Y %H:%M:%S");
+		    SetDlgItemText(IDC_LAST_MODIFIED, m_lmDate);
+		}
+		src_file.Close();
+		
+		/* Get file suffix bindings */
+		if (HTBind_getAnchorBindings(src)) {
+		    char * mt = HTAtom_name(HTAnchor_format(src));
+		    char * charset = HTAtom_name(HTAnchor_charset(src));
+		    long length = HTAnchor_length(src);
+		    if (mt) {
+			m_mediaType = mt;
 			SetDlgItemText(IDC_MEDIA_TYPE, mt);
+		    }
+		    if (charset) {
+			m_charset = charset;
 			SetDlgItemText(IDC_MEDIA_CHARSET, charset);
 		    }
 		}
 	    }
-	    m_statFile = TRUE;
-
-           /* Now don't use the qutomatic file suffix bindings */
-            HTFile_doFileSuffixBinding(NO);
-
-            HT_FREE(uri);
-	    HT_FREE(access);
 	}
+	
+	/* Now don't use the automatic file suffix bindings */
+	HTFile_doFileSuffixBinding(NO);
+	
+	/* Update the data */
+	UpdateData(FALSE);
+	
+	HT_FREE(uri);
+	HT_FREE(local);
     }
-    return bOk;
- }
+}
 
-BOOL CEntityInfo::OnKillActive()
+void CEntityInfo::Clear()
 {
-    BOOL bOk = CPropertyPage::OnKillActive();
-    if ( bOk ) {
-	HTParentAnchor * src = HTAnchor_parent(m_pRequest->m_pHTAnchorSource);
-	if (m_mediaType && !m_mediaType.IsEmpty()) {
-	    char * mediaType = m_mediaType.GetBuffer(16);
-	    HTAnchor_setFormat(src, HTAtom_for(mediaType));
-	    m_mediaType.ReleaseBuffer();
-	}
-	if (m_contentEncoding && !m_contentEncoding.IsEmpty()) {
-	    char * encoding = m_contentEncoding.GetBuffer(16);
-	    HTAnchor_deleteEncodingAll(src);
-	    HTAnchor_addEncoding(src, HTAtom_for(encoding));
-	    m_contentEncoding.ReleaseBuffer();
-	}
-	if (m_charset && !m_charset.IsEmpty()) {
-	    char * charset = m_charset.GetBuffer(16);
-	    HTAnchor_setCharset(src, HTAtom_for(charset));
-	    m_charset.ReleaseBuffer();
-	}
-	if (m_language && !m_language.IsEmpty()) {
-	    char * language = m_language.GetBuffer(16);
-	    HTAnchor_deleteLanguageAll(src);
-	    HTAnchor_addLanguage(src, HTAtom_for(language));
-	    m_language.ReleaseBuffer();
-	}
-	if (m_age > 0) {
-	    char age[20];
-	    HTRequest_addCacheControl(m_pRequest->m_pHTRequest,
-	    "max_age", ltoa(m_age, age, 10));
-	}
+    if (m_hWnd) {
+	m_charset = _T("");
+	m_contentEncoding = _T("");
+	m_contentLength = 0;
+	m_language = _T("");
+	m_mediaType = _T("");
+	m_expires = 0;
+	m_etag = _T("");
+	m_lmDate = _T("");
+	UpdateData(FALSE);
+	
+	/* Do use the automatic file suffix bindings */
+	HTFile_doFileSuffixBinding(YES);
     }
-    return bOk;
+}
+
+BOOL CEntityInfo::OnSetActive() 
+{
+    ASSERT(GetParentFrame()->GetActiveView()->IsKindOf(RUNTIME_CLASS(CTabsView)));
+    CTabsView * view = (CTabsView *) GetParentFrame()->GetActiveView();
+    CWinComDoc * pDoc = view->GetDocument();
+    ASSERT(pDoc != NULL); 
+    
+    // See if Guess button should be active or not
+    if (!pDoc->m_Location.m_source.IsEmpty())
+	m_guess.EnableWindow(TRUE);
+    else
+        m_guess.EnableWindow(FALSE);
+
+    return CPropertyPage::OnSetActive();
 }

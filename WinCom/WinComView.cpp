@@ -7,6 +7,15 @@
 #include "WinComDoc.h"
 #include "WinComView.h"
 
+#include "Location.h"
+#include "EntityInfo.h"
+#include "Links.h"
+#include "Password.h"
+
+// From libwww
+#include "WWWLib.h"			      /* Global Library Include file */
+#include "WWWApp.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -16,26 +25,26 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CWinComView
 
-IMPLEMENT_DYNCREATE(CWinComView, CView)
+IMPLEMENT_DYNCREATE(CWinComView, CFormView)
 
-BEGIN_MESSAGE_MAP(CWinComView, CView)
+BEGIN_MESSAGE_MAP(CWinComView, CFormView)
 	//{{AFX_MSG_MAP(CWinComView)
-		// NOTE - the ClassWizard will add and remove mapping macros here.
-		//    DO NOT EDIT what you see in these blocks of generated code!
+	ON_BN_CLICKED(IDOK, OnSubmit)
 	//}}AFX_MSG_MAP
 	// Standard printing commands
-	ON_COMMAND(ID_FILE_PRINT, CView::OnFilePrint)
-	ON_COMMAND(ID_FILE_PRINT_DIRECT, CView::OnFilePrint)
-	ON_COMMAND(ID_FILE_PRINT_PREVIEW, CView::OnFilePrintPreview)
+	ON_COMMAND(ID_FILE_PRINT, CFormView::OnFilePrint)
+	ON_COMMAND(ID_FILE_PRINT_DIRECT, CFormView::OnFilePrint)
+	ON_COMMAND(ID_FILE_PRINT_PREVIEW, CFormView::OnFilePrintPreview)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CWinComView construction/destruction
 
 CWinComView::CWinComView()
+    : CFormView(CWinComView::IDD)
 {
-	// TODO: add construction code here
-
+	//{{AFX_DATA_INIT(CWinComView)
+	//}}AFX_DATA_INIT
 }
 
 CWinComView::~CWinComView()
@@ -47,7 +56,12 @@ BOOL CWinComView::PreCreateWindow(CREATESTRUCT& cs)
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
 
-	return CView::PreCreateWindow(cs);
+	return CFormView::PreCreateWindow(cs);
+}
+
+void CWinComView::OnInitialUpdate()
+{
+        CFormView::OnInitialUpdate();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -55,10 +69,23 @@ BOOL CWinComView::PreCreateWindow(CREATESTRUCT& cs)
 
 void CWinComView::OnDraw(CDC* pDC)
 {
-	CWinComDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
-
-	// TODO: add draw code for native data here
+	CWinComDoc * doc = GetDocument();
+	ASSERT_VALID(doc);
+	
+    GetParentFrame()->RecalcLayout();
+	ResizeParentToFit();
+	
+	// Create the tab pages
+	TC_ITEM TabCtrlItem;
+	TabCtrlItem.mask = TCIF_TEXT;
+    TabCtrlItem.pszText = "Location";
+	m_Tabs.InsertItem( 0, &TabCtrlItem );
+#if 0
+    TabCtrlItem.pszText = "Natural Gas";
+	m_Tabs.InsertItem( 1, &TabCtrlItem );
+    TabCtrlItem.pszText = "Kryptonite";
+	m_Tabs.InsertItem( 2, &TabCtrlItem );
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -86,12 +113,12 @@ void CWinComView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 #ifdef _DEBUG
 void CWinComView::AssertValid() const
 {
-	CView::AssertValid();
+	CFormView::AssertValid();
 }
 
 void CWinComView::Dump(CDumpContext& dc) const
 {
-	CView::Dump(dc);
+	CFormView::Dump(dc);
 }
 
 CWinComDoc* CWinComView::GetDocument() // non-debug version is inline
@@ -103,3 +130,4 @@ CWinComDoc* CWinComView::GetDocument() // non-debug version is inline
 
 /////////////////////////////////////////////////////////////////////////////
 // CWinComView message handlers
+

@@ -18,17 +18,22 @@ class CLocation : public CPropertyPage
 
 // Construction
 public:
-	bool m_submitRequest;
-	bool m_appendSource;
-	CLocation( CRequest * pRequest );
         CLocation();
         ~CLocation();
+
+	CString	    m_source;
+	CString	    m_destination;
+
+// Operations       
+        void OnFinish (void);
 
 // Dialog Data
 	//{{AFX_DATA(CLocation)
 	enum { IDD = IDD_LOCATION };
-	CString	m_destination;
-	CString m_source;
+	CComboBox	m_destinationList;
+	CComboBox	m_sourceList;
+	CButton	m_submit;
+	CButton	m_cancel;
 	//}}AFX_DATA
 
 
@@ -36,20 +41,23 @@ public:
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CLocation)
 	public:
-	virtual BOOL OnApply();
+	virtual BOOL OnInitDialog();
+	virtual BOOL OnKillActive();
 	protected:
-            virtual BOOL OnKillActive();
             virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
-        CRequest * m_pRequest;
-
 // Implementation
 protected:
-	// Generated message map functions
+	void CheckSubmit (void);
+
+// Generated message map functions
 	//{{AFX_MSG(CLocation)
 	afx_msg void OnBrowse();
-	afx_msg void OnEditchangeLocation();
+	afx_msg void OnEditSourceLocation();
+	afx_msg void OnEditDestinationLocation();
+	afx_msg void OnSubmit();
+	afx_msg void OnCancel();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

@@ -17,9 +17,16 @@ static char THIS_FILE[] = __FILE__;
 
 CPassword::CPassword( CUserParameters * UserParameters ) : CDialog(CPassword::IDD)
 {
-	//{{AFX_DATA_INIT(CPassword)
+    char * realm = UserParameters && UserParameters->m_input ?
+        (char *) UserParameters->m_input : "";
+    if (!realm) realm = "";
+    char * uid = UserParameters && UserParameters->m_default ?
+        (char *) UserParameters->m_default : "";
+    if (!uid) uid = "";
+    //{{AFX_DATA_INIT(CPassword)
 	m_password = _T("");
-	m_username = _T("");
+	m_username = _T(uid);
+	m_realm = _T(realm);
 	//}}AFX_DATA_INIT
 }
 
@@ -29,9 +36,8 @@ void CPassword::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CPassword)
 	DDX_Text(pDX, IDC_PASSWORD, m_password);
-	DDV_MaxChars(pDX, m_password, 16);
 	DDX_Text(pDX, IDC_UID, m_username);
-	DDV_MaxChars(pDX, m_username, 16);
+	DDX_Text(pDX, IDC_REALM, m_realm);
 	//}}AFX_DATA_MAP
 }
 

@@ -17,17 +17,12 @@ static char THIS_FILE[] = __FILE__;
 IMPLEMENT_DYNCREATE(CLinks, CPropertyPage)
 CLinks::CLinks() : CPropertyPage(CLinks::IDD)
 {
-}
-
-CLinks::CLinks( CRequest * pRequest) : CPropertyPage(CLinks::IDD)
-{
 	//{{AFX_DATA_INIT(CLinks)
-	m_link = _T("");
 	m_linkType = _T("");
+	m_direction = 0;
 	//}}AFX_DATA_INIT
-    m_pRequest = pRequest;
-    m_addLink = TRUE;
-    pRequest->m_pLinks = this;
+    m_pLinkList = new CLinkView();
+    
 }
 
 CLinks::~CLinks()
@@ -38,46 +33,221 @@ void CLinks::DoDataExchange(CDataExchange* pDX)
 {
 	CPropertyPage::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CLinks)
-	DDX_CBString(pDX, IDC_LINK, m_link);
-	DDV_MaxChars(pDX, m_link, 2048);
+	DDX_Control(pDX, IDC_LINK, m_linkDestination);
+	DDX_Control(pDX, ID_LINK_REMOVE, m_linkRemove);
+	DDX_Control(pDX, ID_LINK_ADD, m_linkAdd);
+	DDX_Control(pDX, IDC_LINK_RELS, *m_pLinkList);
 	DDX_CBString(pDX, IDC_LINK_TYPE, m_linkType);
-	DDV_MaxChars(pDX, m_linkType, 64);
+	DDX_Radio(pDX, IDC_LINK_REL, m_direction);
 	//}}AFX_DATA_MAP
 }
 
-
 BEGIN_MESSAGE_MAP(CLinks, CPropertyPage)
 	//{{AFX_MSG_MAP(CLinks)
-		// NOTE: the ClassWizard will add message map macros here
+	ON_BN_CLICKED(ID_LINK_ADD, OnLinkAdd)
+	ON_BN_CLICKED(ID_LINK_REMOVE, OnLinkRemove)
+	ON_NOTIFY(HDN_ITEMCLICK, IDC_LINK_RELS, OnItemclickLinkRels)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
-
+    
 /////////////////////////////////////////////////////////////////////////////
-// CLinks message handlers
+// CListView initialization
 
-BOOL CLinks::OnKillActive()
+#define NUM_COLUMNS	3
+#define NUM_ROWS	3
+
+static _TCHAR *_gszColumnLabel[NUM_COLUMNS] =
 {
-    BOOL bOk = CPropertyPage::OnKillActive();
-    if ( bOk && m_addLink == TRUE) {
-	HTParentAnchor * src = HTAnchor_parent(m_pRequest->m_pHTAnchorSource);
-        if (m_linkType && !m_linkType.IsEmpty() && m_link && !m_link.IsEmpty()) {
-            char * linktype = m_linkType.GetBuffer(16);
-            char * link = m_link.GetBuffer(64);
-            if (link && linktype) {
-                char * link_addr = HTParse(link, "", PARSE_ALL);
-                HTParentAnchor * dest = HTAnchor_parent(HTAnchor_findAddress(link_addr));
+	_T("Type"), _T("Direction"), _T("Destination")
+};
 
-                /* Now add the new relation */
+static int _gnColumnFmt[NUM_COLUMNS] = 
+{
+	LVCFMT_LEFT, LVCFMT_CENTER, LVCFMT_LEFT
+};
+
+static int _gnColumnWidth[NUM_COLUMNS] = 
+{
+	0, 0, 0
+};
+
+BOOL CLinks::OnInitDialog() 
+{
+    CPropertyPage::OnInitDialog();
+
+    // Setup the combo box
+    CWinComApp * pApp = (CWinComApp *) AfxGetApp();
+    ASSERT(pApp != NULL); 
+    pApp->FillLinkComboBox(&m_linkDestination);
+
+    // Setup the link list
+    m_pLinkList->SetLink(this);
+    CListCtrl &ListCtrl = m_pLinkList->GetListCtrl();
+    
+    // set image lists
+    m_LargeImageList.Create(IDB_LARGEICONS, 32, 1, RGB(255, 255, 255));
+    m_SmallImageList.Create(IDB_SMALLICONS, 16, 1, RGB(255, 255, 255));
+    m_StateImageList.Create(IDB_STATEICONS, 16, 1, RGB(255, 0, 0));
+    
+    // m_LargeImageList.SetOverlayImage(NUM_ITEMS, 1);
+    // m_SmallImageList.SetOverlayImage(NUM_ITEMS, 1);
+    
+    ListCtrl.SetImageList(&m_LargeImageList, LVSIL_NORMAL);
+    // ListCtrl.SetImageList(&m_SmallImageList, LVSIL_SMALL);
+    ListCtrl.SetImageList(NULL, LVSIL_SMALL);
+    ListCtrl.SetImageList(NULL, LVSIL_STATE);
+
+    // Find column widths
+    CRect size;
+    m_pLinkList->GetWindowRect(size);
+    int width = size.Width();
+    _gnColumnWidth[0] = (int) (width*0.20-1);
+    _gnColumnWidth[1] = (int) (width*0.15-1);
+    _gnColumnWidth[2] = (int) (width*0.65-1);
+
+    // insert columns
+    int i;
+    LV_COLUMN lvc;
+    lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+    for (i = 0; i<NUM_COLUMNS; i++) {
+	lvc.iSubItem = i;
+	lvc.pszText = _gszColumnLabel[i];
+	lvc.cx = _gnColumnWidth[i];
+	lvc.fmt = _gnColumnFmt[i];
+	ListCtrl.InsertColumn(i,&lvc);
+    }
+    
+    // Select full row mode
+    m_pLinkList->SetFullRowSel(TRUE);
+    return TRUE;
+}
+
+void CLinks::OnLinkAdd() 
+{
+    UpdateData();
+    
+    // Get the edit text
+    if (!m_linkType.IsEmpty() && m_linkDestination.GetWindowTextLength()) {
+        CString LinkCaption;
+	m_linkDestination.GetWindowText(LinkCaption);
+
+	// Get the base address (if any)
+        CString base;
+        m_linkDestination.GetLBText(0, base);
+        char * link = HTParse(LinkCaption, base.IsEmpty() ? "" : base, PARSE_ALL);
+        link = HTSimplify(&link);
+        LinkCaption = link;
+        m_linkDestination.SetWindowText(LinkCaption);
+        HT_FREE(link);
+
+
+	// Update the combo box
+	m_linkDestination.InsertString(0, LinkCaption);
+	int length = m_linkDestination.GetCount();
+	if (length >= MAX_LIST_LENGTH) {
+	    int cnt;
+	    for (cnt=MAX_LIST_LENGTH; cnt < length; cnt++)
+		m_linkDestination.DeleteString(cnt);
+	}
+
+        // Write into INI file
+	CWinComApp * pApp = (CWinComApp *) AfxGetApp();
+	ASSERT(pApp != NULL); 
+	pApp->AddLinkToIniFile(LinkCaption);
+
+	// Update the list control with three columns
+        CListCtrl &ListCtrl = m_pLinkList->GetListCtrl();
+
+	// Insert item
+	LV_ITEM lvi;
+	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
+	lvi.iItem = 0;
+	lvi.iSubItem = 0;
+	lvi.pszText = (char *) LPCTSTR(m_linkType);
+	lvi.iImage = 0;
+	lvi.stateMask = LVIS_STATEIMAGEMASK;
+	lvi.state = INDEXTOSTATEIMAGEMASK(1);
+	int iItem = ListCtrl.InsertItem(&lvi);
+	ASSERT(iItem != -1);
+
+	// Set item text for additional columns
+	ListCtrl.SetItemText(iItem,1, m_direction==0 ? _T("forward") : _T("reverse"));
+	ListCtrl.SetItemText(iItem,2, (char *) LPCTSTR(LinkCaption));
+
+	// Update changes 
+	m_pLinkList->UpdateWindow();    
+    }
+}
+
+void CLinks::OnLinkRemove() 
+{
+	// Update the list control with three columns
+        CListCtrl &ListCtrl = m_pLinkList->GetListCtrl();
+
+	// Find the selected item
+	int nItem = ListCtrl.GetNextItem(-1, LVNI_FOCUSED);
+	if(nItem != -1) ListCtrl.DeleteItem(nItem);
+
+	// Update changes 
+	m_pLinkList->UpdateWindow();
+
+	UpdateData();
+}
+
+// Operations
+BOOL CLinks::AddLinkRelationships (HTAnchor * source)
+{
+    ASSERT(source != NULL);
+    if (!m_hWnd) return FALSE;
+    HTParentAnchor * src = HTAnchor_parent(source);
+
+    // Update the list control with three columns
+    CListCtrl &ListCtrl = m_pLinkList->GetListCtrl();
+    int iItem = ListCtrl.GetItemCount();
+    int cnt;
+    for (cnt=0; cnt<iItem; cnt++) {
+        CString l_type = ListCtrl.GetItemText(cnt, 0);
+        CString l_dir = ListCtrl.GetItemText(cnt, 1);
+        CString l_dest = ListCtrl.GetItemText(cnt, 2);
+        
+        if (!l_type.IsEmpty() && !l_dir.IsEmpty() && !l_dest.IsEmpty()) {
+            char * link_addr = HTParse(l_dest, "", PARSE_ALL);
+            HTParentAnchor * dest = HTAnchor_parent(HTAnchor_findAddress(link_addr));
+            
+            /* Now add the new relation */
+            if (l_dir == "forward") {
                 HTLink_add((HTAnchor *) src, (HTAnchor *) dest,
-                    (HTLinkType) HTAtom_caseFor(linktype),
+                    (HTLinkType) HTAtom_caseFor(l_type),
                     METHOD_INVALID);
-                
-                /* Clean up */
-                m_linkType.ReleaseBuffer();
-                m_link.ReleaseBuffer();
-                m_addLink = FALSE;
-            }
+            } else if (l_dir == "reverse") {
+                HTLink_add((HTAnchor *) dest, (HTAnchor *) src,
+                    (HTLinkType) HTAtom_caseFor(l_type),
+                    METHOD_INVALID);
+            } else
+                ASSERT(1);
         }
     }
-    return bOk;
+    return TRUE;
+}
+
+void CLinks::Clear()
+{
+    if (m_hWnd) {
+
+	// Delete all items
+        CListCtrl &ListCtrl = m_pLinkList->GetListCtrl();
+	ListCtrl.DeleteAllItems();
+
+	// Update changes
+	UpdateData();
+    }
+}
+
+void CLinks::OnItemclickLinkRels(NMHDR* pNMHDR, LRESULT* pResult) 
+{
+    HD_NOTIFY *phdn = (HD_NOTIFY *) pNMHDR;
+    
+    m_linkRemove.EnableWindow(FALSE);
+    
+    *pResult = 0;
 }

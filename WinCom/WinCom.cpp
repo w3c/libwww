@@ -6,12 +6,12 @@
 
 #include "MainFrm.h"
 #include "WinComDoc.h"
-#include "WinComView.h"
+#include "TabsView.h"
 
 #include "Location.h"
 #include "EntityInfo.h"
 #include "Links.h"
-#include "Options.h"
+#include "ProxySetup.h"
 #include "Password.h"
 
 // From libwww
@@ -28,7 +28,7 @@
 #include "WWWTrans.h"
 #include "WWWInit.h"
 
-// Glue code between MFC and libwww
+// Glue code between MFC and libwww UI interactions
 #include "UserParameters.h"
 
 #ifdef _DEBUG
@@ -47,16 +47,19 @@ static char THIS_FILE[] = __FILE__;
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
-    CRequest * Request = (CRequest *) HTRequest_context(request);
-    if (Request->m_pLocation->m_submitRequest == TRUE) {
-        Request->m_pLocation->m_submitRequest = FALSE;
-        Request->m_pLocation->SetModified(FALSE);
-    }
+    CRequest * req = (CRequest *) HTRequest_context(request);
+    CWinComDoc * pDoc = req ? req->m_pDoc : NULL;
 
     /* Clean up this request */
-    HTRequest_delete(Request->m_pHTRequest);
-    Request->m_pHTRequest = NULL;
+    if (pDoc && pDoc->m_pRequest) {
+        HTRequest_delete(pDoc->m_pRequest->m_pHTRequest);
+        req->m_pDoc->m_pRequest->m_pHTRequest = NULL;
+    }
 
+    // Turn off the cancel button
+    pDoc->m_Location.OnFinish();
+
+    req->m_pDoc->EndWaitCursor();
     return HT_OK;
 }
 
@@ -66,8 +69,8 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 BEGIN_MESSAGE_MAP(CWinComApp, CWinApp)
 	//{{AFX_MSG_MAP(CWinComApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
-		// NOTE - the ClassWizard will add and remove mapping macros here.
-		//    DO NOT EDIT what you see in these blocks of generated code!
+	ON_COMMAND(ID_HELP, OnHelp)
+	ON_COMMAND(ID_OPTIONS_PROXIES, OnOptionsProxies)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -75,8 +78,11 @@ END_MESSAGE_MAP()
 // CWinComApp construction
 
 CWinComApp::CWinComApp()
-{
+{	
 	// TODO: add construction code here,
+	m_pSourceList = NULL;
+	m_pDestinationList = NULL;
+    
 	// Place all significant initialization in InitInstance
 }
 
@@ -95,18 +101,13 @@ BOOL CWinComApp::InitInstance()
 	//  of your final executable, you should remove from the following
 	//  the specific initialization routines you do not need.
 
-	// Change the registry key under which our settings are stored.
-	// You should modify this string to be something appropriate
-	// such as the name of your company or organization.
-	SetRegistryKey(_T("W3C"));
-
 #ifdef _AFXDLL
 	Enable3dControls();			// Call this when using MFC in a shared DLL
 #else
 	Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
 
-	LoadStdProfileSettings();  // Load standard INI file options (including MRU)
+	LoadStdProfileSettings(0);  // Load standard INI file options (including MRU)
 
         /* Initialize libwww */
         HTProfile_newNoCacheClient("WebCommander", "1.0");
@@ -131,34 +132,112 @@ BOOL CWinComApp::InitInstance()
         /* We don't care about case sensitivity when matching local files */
         HTBind_caseSensitive(NO);
 
-        // Create our (currently one and only request */
-        m_pRequest = new CRequest( this );
+        CSingleDocTemplate * pDocTemplate;
+	pDocTemplate = new CSingleDocTemplate(
+		IDR_MAINFRAME,
+		RUNTIME_CLASS(CWinComDoc),
+		RUNTIME_CLASS(CMainFrame),       // main SDI frame window
+		RUNTIME_CLASS(CTabsView));
+	AddDocTemplate(pDocTemplate);
 
-        // add and initialize the general page....
-	CPropertySheet WinCom( IDS_WINCOM );
+	// Set up the MRU file lists
+	static TCHAR BASED_CODE srcIniFileSection[] = _T("Most Recent Source Address");
+	static TCHAR BASED_CODE dstIniFileSection[] = _T("Most Recent Destination Address");
+	static TCHAR BASED_CODE lnkIniFileSection[] = _T("Most Recent Link Address");
+	static TCHAR BASED_CODE szIniFileEntry[] = _T("URI%d");
 
-        // add and initialize the location page....
-	CLocation locationPage( m_pRequest );
-	WinCom.AddPage( &locationPage );
+	m_pSourceList = new CRecentFileList(1, srcIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
+	m_pDestinationList = new CRecentFileList(1, dstIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
+	m_pLinkList = new CRecentFileList(1, lnkIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
 
-	// add and initialize the entiy information dir page....
-	CEntityInfo entityPage( m_pRequest );
-	WinCom.AddPage( &entityPage );
+	ASSERT(m_pDestinationList != NULL);
+        m_pDestinationList->ReadList();
 
-        // add and initialize the location page....
-	CLinks linksPage( m_pRequest );
-	WinCom.AddPage( &linksPage );
+	ASSERT(m_pSourceList != NULL);
+	m_pSourceList->ReadList();
 
-        // add and initialize the options page....
-	COptions optionsPage( this );
-	WinCom.AddPage( &optionsPage );
+	ASSERT(m_pSourceList != NULL);
+	m_pLinkList->ReadList();
 
-       	// Parse command line for standard shell commands, DDE, file open
-	CCommandLineInfo cmdInfo;
-	ParseCommandLine(cmdInfo);
+	// Setup proxies
+	if (ProxySetup.GetProxyOptions() == TRUE)
+	    ProxySetup.RegisterProxies();
+	
+	/* Create a new (empty) document */
+	OnFileNew();
 
-        WinCom.DoModal();
-	return TRUE;
+        return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// INI implementation
+
+void CWinComApp::AddSourceToIniFile (LPCTSTR lpszPathName)
+{
+    ASSERT(m_pSourceList != NULL);
+    m_pSourceList->Add(lpszPathName);
+}
+
+int CWinComApp::GetSourceIniListSize (void)
+{
+    ASSERT(m_pSourceList != NULL);
+    return m_pSourceList->GetSize();
+}
+
+void CWinComApp::AddDestinationToIniFile (LPCTSTR lpszPathName)
+{
+    ASSERT(m_pDestinationList != NULL);
+    m_pDestinationList->Add(lpszPathName);
+}
+
+int CWinComApp::GetDestinationIniListSize (void)
+{
+    ASSERT(m_pDestinationList != NULL);
+    return m_pDestinationList->GetSize();
+}
+
+void CWinComApp::AddLinkToIniFile (LPCTSTR lpszPathName)
+{
+    ASSERT(m_pLinkList != NULL);
+    m_pLinkList->Add(lpszPathName);
+}
+
+int CWinComApp::GetLinkIniListSize(void)
+{
+    ASSERT(m_pLinkList != NULL);
+    return m_pLinkList->GetSize();
+}
+
+static int FillComboBox (CRecentFileList * pList, CComboBox *pBox)
+{
+    ASSERT(pList != NULL);
+    ASSERT(pBox != NULL);
+    int size = pList->GetSize();
+    int cnt;
+    int index = 0;
+    int status = 0;
+    for (cnt=0; cnt<size; cnt++) {
+	if ((* pList)[cnt]) {
+	    status = pBox->InsertString(index++, (* pList)[cnt]);
+	    if (status == CB_ERRSPACE || status == CB_ERR) break;
+	}
+    }
+    return status;
+}
+
+int CWinComApp::FillLinkComboBox (CComboBox * pBox)
+{
+    return FillComboBox(m_pLinkList, pBox);
+}
+
+int CWinComApp::FillSourceComboBox (CComboBox * pBox)
+{
+    return FillComboBox(m_pSourceList, pBox);
+}
+
+int CWinComApp::FillDestinationComboBox (CComboBox * pBox)
+{
+    return FillComboBox(m_pDestinationList, pBox);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -228,6 +307,27 @@ int CWinComApp::ExitInstance()
 {
     /* Terminate libwww */
     HTProfile_delete();
-	
+
+    ASSERT(m_pDestinationList != NULL);
+    m_pDestinationList->WriteList();
+
+    ASSERT(m_pSourceList != NULL);
+    m_pSourceList->WriteList();
+    
+    ASSERT(m_pLinkList != NULL);
+    m_pLinkList->WriteList();
+
+    delete m_pSourceList;
+    delete m_pDestinationList;
+    delete m_pLinkList;
+
     return CWinApp::ExitInstance();
+}
+
+void CWinComApp::OnOptionsProxies() 
+{
+    if (ProxySetup.DoModal() == IDOK) {
+	ProxySetup.AddProxyOptionsToIni();
+	ProxySetup.RegisterProxies();
+    }
 }

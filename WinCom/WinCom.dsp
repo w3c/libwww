@@ -112,6 +112,14 @@ SOURCE=.\Links.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\LinkView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Listvwex.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Location.cpp
 # End Source File
 # Begin Source File
@@ -120,11 +128,11 @@ SOURCE=.\MainFrm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\Options.cpp
+SOURCE=.\Password.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\Password.cpp
+SOURCE=.\ProxySetup.cpp
 # End Source File
 # Begin Source File
 
@@ -134,6 +142,10 @@ SOURCE=.\Request.cpp
 
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
+# End Source File
+# Begin Source File
+
+SOURCE=.\TabsView.cpp
 # End Source File
 # Begin Source File
 
@@ -162,10 +174,6 @@ SOURCE=.\WinCom.rc
 # Begin Source File
 
 SOURCE=.\WinComDoc.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\WinComView.cpp
 # End Source File
 # Begin Source File
 
@@ -245,6 +253,14 @@ SOURCE=.\Links.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\LinkView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Listvwex.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Location.h
 # End Source File
 # Begin Source File
@@ -253,11 +269,11 @@ SOURCE=.\MainFrm.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Options.h
+SOURCE=.\Password.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Password.h
+SOURCE=.\ProxySetup.h
 # End Source File
 # Begin Source File
 
@@ -273,6 +289,10 @@ SOURCE=.\StdAfx.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\TabsView.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\UserParameters.h
 # End Source File
 # Begin Source File
@@ -282,10 +302,6 @@ SOURCE=.\WinCom.h
 # Begin Source File
 
 SOURCE=.\WinComDoc.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\WinComView.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

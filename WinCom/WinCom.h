@@ -8,15 +8,19 @@
 #pragma once
 #endif // _MSC_VER >= 1000
 
+#include <afxadv.h>
+
 #ifndef __AFXWIN_H__
 	#error include 'stdafx.h' before including this file for PCH
 #endif
 
 #include "resource.h"       // main symbols
 #include "Request.h"	// Added by ClassView
-#include "Options.h"	// Added by ClassView
+#include "ProxySetup.h"	// Added by ClassView
 #include "EntityInfo.h"	// Added by ClassView
 #include "Location.h"	// Added by ClassView
+
+#define MAX_LIST_LENGTH	8
 
 /////////////////////////////////////////////////////////////////////////////
 // CWinComApp:
@@ -26,8 +30,6 @@
 class CWinComApp : public CWinApp
 {
 public:
-	CRequest * m_pRequest;
-	COptions * m_pOptions;
 	CWinComApp();
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -38,18 +40,32 @@ public:
 	virtual int ExitInstance();
 	//}}AFX_VIRTUAL
 
+// Operations
+	void AddSourceToIniFile(LPCTSTR lpszPathName);
+	int  GetSourceIniListSize(void);
+	int  FillSourceComboBox (CComboBox * pBox);
+
+	void AddDestinationToIniFile(LPCTSTR lpszPathName);
+	int  GetDestinationIniListSize(void);
+	int  FillDestinationComboBox (CComboBox * pBox);
+
+	void AddLinkToIniFile(LPCTSTR lpszPathName);
+	int  GetLinkIniListSize(void);
+	int  FillLinkComboBox (CComboBox * pBox);
 // Implementation
 
 	//{{AFX_MSG(CWinComApp)
 	afx_msg void OnAppAbout();
-		// NOTE - the ClassWizard will add and remove member functions here.
-		//    DO NOT EDIT what you see in these blocks of generated code !
+	afx_msg void OnOptionsProxies();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+
 protected:
-
+	CProxySetup	ProxySetup;
+	CRecentFileList	* m_pSourceList;
+	CRecentFileList * m_pDestinationList;
+	CRecentFileList * m_pLinkList;
 };
-
 
 /////////////////////////////////////////////////////////////////////////////
 

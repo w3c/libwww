@@ -18,39 +18,40 @@ class CEntityInfo : public CPropertyPage
         
 // Construction
 public:
-	bool m_statFile;
-	CEntityInfo( CRequest *pRequest );
+	void Clear(void);
 	CEntityInfo();
 	~CEntityInfo();
-    
+	
 // Dialog Data
 	//{{AFX_DATA(CEntityInfo)
 	enum { IDD = IDD_ENTITY_INFO };
+	CButton	m_guess;
 	CString	m_charset;
 	CString m_contentEncoding;
 	long    m_contentLength;
 	CString m_language;
 	CString m_mediaType;
 	CTime   m_lastModified;
-	long	m_age;
+	long	m_expires;
+	CString	m_etag;
+	CString	m_lmDate;
 	//}}AFX_DATA
 
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CEntityInfo)
+	public:
+	virtual BOOL OnKillActive();
+	virtual BOOL OnSetActive();
 	protected:
-	    virtual BOOL OnSetActive();
-	    virtual BOOL OnKillActive();
 	    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
-
-    	CRequest * m_pRequest;
 
 // Implementation
 protected:
 	// Generated message map functions
 	//{{AFX_MSG(CEntityInfo)
-	// NOTE: the ClassWizard will add member functions here
+	afx_msg void OnGetInfo();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
         
