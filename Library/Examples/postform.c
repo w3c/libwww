@@ -15,7 +15,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
     if (status == HT_LOADED && result && HTChunk_data(result)) {
-	fprintf(stderr, HTChunk_data(result));
+	fprintf(stderr, "%s", HTChunk_data(result));
 	HTChunk_delete(result);
     }
 
