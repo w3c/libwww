@@ -64,7 +64,7 @@ typedef enum _HTTPState {
     HTTP_INTERRUPTED,
     HTTP_CONNECTED,
     HTTP_SEND_REQUEST,
-    HTTP_GOT_RESPONSE,
+    HTTP_GOT_RESPONSE
 } HTTPState;
 
 typedef struct _http_info {

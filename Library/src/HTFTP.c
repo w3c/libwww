@@ -1908,7 +1908,7 @@ PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data_info *, data,
 {
     enum _state {
 	ERROR = -2,
-	SUCCESS = 0,
+	SUCCESS = 0
     } state = ERROR;
     int status;
     ftp_ctrl_info *ctrl = data->ctrl;
