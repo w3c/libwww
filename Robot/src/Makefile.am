@@ -20,12 +20,14 @@ webbot_LDADD = \
 	$(top_builddir)/Library/src/libwwwtrans.la \
 	$(top_builddir)/Library/src/libwwwcore.la \
 	$(top_builddir)/Library/src/libwwwutils.la \
+	$(top_builddir)/Library/src/libwwwssl.la \
 	-lm @LIBWWWXML@ @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@
 
 SUBDIRS = windows
 
 INCLUDES = \
 	-I$(srcdir)/../../Library/src \
+	-I$(srcdir)/../../Library/src/SSL \
 	-I$(top_srcdir)/modules/expat/lib
 
 #	.h files are distributed but originally are made from the
