@@ -5,12 +5,12 @@
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C" WIDTH="72"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C"
+    WIDTH="72" HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww"
+    WIDTH="48" HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using"
+    WIDTH="48" HEIGHT="48" BORDER="0"></A>
 <H1>
   The Anchor Class
 </H1>
@@ -23,15 +23,27 @@ represent the part of the Web, the application has been in touch, it is often
 useful to maintain the anchors throughout the lifetime of the application.
 It would actually be most useful if we had persistent anchors so that an
 application could build up a higher knowledge about the Web topology.
+<H2>
+  <A NAME="Escape">When to Escape and Unescape Addresses</A>
+</H2>
 <P>
-<A HREF="../../src/HTAnchor.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
-    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors
-and Methods</A>
+The <EM>URI escape policy</EM> in libwww is that <B>all</B> URIs created
+as <A HREF="../../src/HTAnchor.html">anchors</A> <B>must already have been
+escaped</B>. The reason for this is that if URIs are not escaped then the
+URI parser is not guaranteed to work as expected. Imagine, for example, that
+you have a <TT>":"</TT> in a host name, then you could get something like
+this: <TT>http://my:host:8000/</TT> instead of
+<TT>http://my%3Ahost:8000/</TT>. &nbsp;Libwww provides
+<A HREF="../../src/HTEscape.html">support for escaping and unescaping URIs
+using this set of APIs</A>.
+<P>
+<A HREF="../../src/HTAnchor.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors,
+Destructors and Methods</A>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
