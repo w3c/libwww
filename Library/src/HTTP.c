@@ -152,7 +152,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     SockA * sin = &soc_address;
     BOOL extensions = YES;		/* Assume good HTTP server 
     char * cache_file_name = NULL;
-    BOOL HTCacheHTTP_old = HTCacheHTTP;	/* Save initial cache conditions */
 
     if (HTImProxy) HTProxyBytes = 0;
 
@@ -392,6 +391,7 @@ fprintf(stderr, " ** DEBUG: arg=\"%s\" p1=\"%s\" command=\"%s\"\n",
 	HTFormat format_in;		/* Format arriving in the message */
 	HTInputSocket *isoc = HTInputSocket_new(s);
 	char * status_line = HTInputSocket_getStatusLine(isoc);
+	BOOL HTCache_old = HTCacheHTTP;	/* Save initial cache conditions */
 
 /* Kludge to trap binary responses from illegal HTTP0.9 servers.
 ** First time we have enough, look at the stub in ASCII
@@ -571,7 +571,7 @@ clean_up:
 	(void) NETCLOSE(s);
 	if(status_line)
 	    free(status_line);		/* Leak fix Henrik 18/02-94 */
-	HTCacheHTTP = HTCacheHTTP_old;	/* Reestablish cache conditions */
+	HTCacheHTTP = HTCache_old;	/* Reestablish cache conditions */
 	return status;			/* Good return  */
     
     } /* read response */
