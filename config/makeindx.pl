@@ -138,29 +138,36 @@ sub printHeader
     print <<"EndOfHeader";
 <HTML>
 <HEAD>
-  <TITLE>W3C Reference Library libwww external symbol list</TITLE>
+  <TITLE>Libwww Exported Functions</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  External Symbols
+  Libwww Exported Functions
 </H1>
-<PRE>
-/*
-**      (c) COPYRIGHT MIT 1996.
-**      Please first read the full copyright statement in the file COPYRIGH.
-*/
-</PRE>
-Here is a list of all the external symbols in the 
-libwww API documentation. For more comprehensive descriptions, see the 
-<A HREF="../User/Overview.html">user documentation</A>
-<P>
-The functions are sorted by 
+Here is a list of all exported functions in the libwww API
+sorted by interface module. For more comprehensive
+descriptions, see the <A HREF="../User/">user
+documentation</A>
 <UL>
-<LI><A HREF="#byDLL">Interface collection</A>,
-<LI><A HREF="#byModule">Individual module</A>
-<LI><A HREF="#byFunction">Function name</A>, 
+<LI><A HREF=#WWWApp>Application Utilities and access functions</A>
+<LI><A HREF=#WWWCache>Persistent HTTP/1.1 cache</A>
+<LI><A HREF=#WWWCore>Libwww core functions</A>
+<LI><A HREF=#WWWDir>Directory listings etc.</A>
+<LI><A HREF=#WWWFTP>FTP access</A>
+<LI><A HREF=#WWWFile>Local file access</A>
+<LI><A HREF=#WWWGophe>Gopher access</A>
+<LI><A HREF=#WWWHTML>HTML parser</A>
+<LI><A HREF=#WWWHTTP>HTTP access</A>
+<LI><A HREF=#WWWMIME>MIME parser</A>
+<LI><A HREF=#WWWMux>Mux Protocol (experimental)</A>
+<LI><A HREF=#WWWNews>News access</A>
+<LI><A HREF=#WWWSQL>SQL logging facilities</A>
+<LI><A HREF=#WWWTelnt>Telnet access</A>
+<LI><A HREF=#WWWUtil>Basic Utilities</A>
+<LI><A HREF=#WWWWAIS>WAIS access</A>
+<LI><A HREF=#WWWZip>Zlib deflate/inflate streams</A>
+</UL>
 EndOfHeader
-#<PRE>
 }
 
 sub printByFunction
@@ -222,11 +229,17 @@ EndOfModuleName
 
 sub printFooter
 {
+    $date = `date`;
     print <<"EndOfFooter";
 </UL>
 This list was generated automatily and may be regenerated at any time. 
 Please see <A HREF="../../config/makeindx.pl">makeindx.pl script</A> 
 for instructions.
+<P>
+<HR>
+<ADDRESS>
+Last Updated $date
+</ADDRESS>
 </BODY>
 </HTML>
 EndOfFooter
@@ -306,25 +319,25 @@ foreach $checkDll (@DLLList) {
 }
 
 # 5. output sorted by module name
-&printByModule;
-foreach $module (@ModuleList) {
-    local($dll) = $DLLS{$module};
-    printModuleName($module, $dll);
-    foreach $func (@FunctionList) {
-	local($source, $nameTag) = split('#', $Functions{$func});
-	undef($nameTag) if ($nameTag eq '');
-	next if($source ne $module);
-	&numberEach($source, $func, $nameTag);
-    }
-}
+#&printByModule;
+#foreach $module (@ModuleList) {
+#    local($dll) = $DLLS{$module};
+#    printModuleName($module, $dll);
+#    foreach $func (@FunctionList) {
+#	local($source, $nameTag) = split('#', $Functions{$func});
+#	undef($nameTag) if ($nameTag eq '');
+#	next if($source ne $module);
+#	&numberEach($source, $func, $nameTag);
+#    }
+#}
 
 # 6. output sorted by function name
-&printByFunction;
-foreach $func (@FunctionList) {
-    local($source, $nameTag) = split('#', $Functions{$func});
-    undef($nameTag) if ($nameTag eq '');
-    local($dll) = $DLLS{$source};
-    &numberEach($source, $func, $nameTag, $dll);
-}
+#&printByFunction;
+#foreach $func (@FunctionList) {
+#    local($source, $nameTag) = split('#', $Functions{$func});
+#    undef($nameTag) if ($nameTag eq '');
+#    local($dll) = $DLLS{$source};
+#    &numberEach($source, $func, $nameTag, $dll);
+#}
 
 &printFooter;
