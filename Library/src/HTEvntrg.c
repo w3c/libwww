@@ -52,8 +52,7 @@ PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 PRIVATE const int SecondsToWait = 5 ;
 
 PRIVATE void __ResetMaxSock( void ) ;
-PRIVATE int __DoCallback( SOCKET, SockOps);
-PRIVATE int __DoUserCallback( SOCKET, SockOps);
+PUBLIC int HTEventrg_dispatch( SOCKET, SockOps);
 PRIVATE void __DumpFDSet( fd_set *, const char *);
 
 typedef unsigned long DWORD;
@@ -579,17 +578,17 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     event = LOWORD(lParam);
     sock = (SOCKET)wParam;
     if (event & (FD_READ | FD_ACCEPT | FD_CLOSE))
-    	if (__DoCallback((int)sock, FD_READ) != HT_OK) {
+    	if (HTEventrg_dispatch((int)sock, FD_READ) != HT_OK) {
 	    HTEndLoop = -1;
 	    return 0;
 	}
     if (event & (FD_WRITE | FD_CONNECT))
-    	if (__DoCallback((int)sock, FD_WRITE) != HT_OK) {
+    	if (HTEventrg_dispatch((int)sock, FD_WRITE) != HT_OK) {
 	    HTEndLoop = -1;
 	    return 0;
 	}
     if (event & FD_OOB)
-    	if (__DoCallback((int)sock, FD_OOB) != HT_OK) {
+    	if (HTEventrg_dispatch((int)sock, FD_OOB) != HT_OK) {
 	    HTEndLoop = -1;
 	    return 0;
 	}
@@ -610,7 +609,7 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
     	    if (toRead) {
     		if (THD_TRACE) 
 		    HTTrace("Event Loop.. console ready, invoke callback\n");
-		status = __DoUserCallback((SOCKET) console_handle, FD_READ);
+		status = HTEventrg_dispatch((SOCKET) console_handle, FD_READ);
 		if (status != HT_OK)
 		    return status;
 	    }
@@ -762,7 +761,7 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 	if (console_in_use && consoleReady) {
 	    if (THD_TRACE) 
 	    	HTTrace("Event Loop.. console ready, do callback\n");
-	    status = __DoUserCallback((SOCKET) console_handle, FD_READ);
+	    status = HTEventrg_dispatch((SOCKET) console_handle, FD_READ);
 	    if (status != HT_OK)
 		return status;
 
@@ -846,42 +845,27 @@ PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str)
     for (s = 0 ; s <= max_sock; s++) {
         if (FD_ISSET( s, fdsp)) 
 #endif 
-	return __DoCallback( s, ops);
+	return HTEventrg_dispatch( s, ops);
     }
     return HT_OK;
 }
 #endif /* else WWW_WIN_ASYNC */
 
 /*
-** __DoCallback( SOCKET, SockOps ) 
+** HTEventrg_dispatch( SOCKET, SockOps ) 
 **
 ** a  little function that just invokes the HTEventCallback routine associated
 ** with the given socket. 
 **
 */
-PRIVATE int __DoCallback( SOCKET s, SockOps ops)
+PUBLIC int HTEventrg_dispatch( SOCKET s, SockOps ops)
 {
     HTRequest * rqp = NULL;
     HTEventCallback *cbf = __RetrieveCBF( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null */
+    /* was if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) - EGP */
     if (!cbf || (rqp && rqp->priority == HT_PRIORITY_OFF)) {
 	if (THD_TRACE) HTTrace("Callback.... No callback found\n");
-        return (0);
-    }
-    return (*cbf)(s, rqp, ops);
-}
-
-/*
-** __DoUserCallback - invoke the callback function that the user requested. 
-**
-*/
-PRIVATE int __DoUserCallback( SOCKET s, SockOps ops)
-{
-    HTRequest * rqp = NULL;
-    HTEventCallback *cbf = __RetrieveCBF( s, ops, &rqp);
-    /* although it makes no sense, callbacks can be null*/
-    if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) {
-	if (THD_TRACE) HTTrace("UserCallback No callback found\n");
         return (0);
     }
     return (*cbf)(s, rqp, ops);

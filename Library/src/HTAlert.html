@@ -113,6 +113,28 @@ typedef enum _HTAlertMsg {
     HT_MSG_REDIRECTION,
     HT_MSG_ELEMENTS		            /* This MUST be the last element */
 } HTAlertMsg;
+
+#define HT_MSG_ENGLISH_INITIALIZER \
+    "Please enter username:", \
+    "Please enter username for proxy authentication:", \
+    "Please enter username for this FTP server:", \
+    "Password:", \
+    "Please give name of file to save in:", \
+    "Plase enter account:", \
+    "You might not be allowed to use this method here, continue?", \
+    "Location has moved, continue?", \
+    "A new set of rules is to be added to your setup - continue?", \
+    "This file already exists - replace existing file?", \
+    "Authentication failed - retry?", \
+    "Proxy authentication failed - retry?", \
+    "This method has already been performed - repeat operation?", \
+    "This document is very big - continue operation?", \
+    "The source document for this operation has moved - continue operation \
+with new location?", \
+    "The destination document for this operation has moved - continue \
+operation with new location?", \
+    "A redirection may change the behavior of this method - proceed anyway?"
+
 </PRE>
 <H2>
   Enable or Disable Messages

@@ -509,81 +509,14 @@ PUBLIC BOOL HTView_destroy(HTView * pView)
 /*
 ** Dialog Messages
 */
-PRIVATE char *HTDialogs[HT_MSG_ELEMENTS] = {
-    "Please enter username:",
-    "Password:",
-    "Please give name of file to save in:",
-    "Plase enter account:",
-    "It might not be allowed to use this method, continue?",
-    "Location has moved, continue?",
-    "A new set of rules is to be added to your setup - continue?"
-};
+PRIVATE char *HTDialogs[HT_MSG_ELEMENTS] = {HT_MSG_ENGLISH_INITIALIZER};
 
 /*
 ** All errors that are not strictly HTTP errors but originates from, e.g., 
 ** the FTP protocol all have element numbers > HTERR_HTTP_CODES_END, i.e.,
 ** they should be placed after the blank line
 */
-typedef struct _HTErrorMessage {
-    int  	code;           	/* Error number */
-    char *	msg;          		/* Short explanation */
-    char *	url;			/* Explaning URL */
-} HTErrorMessage;
-
-PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {
-
-/*    CODE  ERROR MESSAGE				ERROR URL */
-
-    { 200, "OK", 					"ok" },
-    { 201, "Created", 					"created" },
-    { 202, "Accepted", 					"accepted" },
-    { 203, "Provisional Information", 			"partial" },
-    { 204, "No Content",				"no_response" },
-    { 301, "Moved Permanently",				"moved" },
-    { 302, "Moved Temporarily", 			"moved" },
-    { 303, "Method", 					"method" },
-    { 304, "Not Modified",       			"not_modified" },
-    { 400, "Bad Request", 				"bad_request" },
-    { 401, "Unauthorized",				"unauthorized" },
-    { 402, "Payment Required", 				"payment" },
-    { 403, "Forbidden", 				"forbidden" },
-    { 404, "Not Found",		       			"not_found" },
-    { 405, "Method Not Allowed",	 		"method" },
-    { 406, "None Acceptable",		 		"none" },
-    { 407, "Proxy Authentication Required", 		"proxy" },
-    { 408, "Request Timeout",		 		"timeout" },
-    { 500, "Internal Server Error",			"internal" },
-    { 501, "Not Implemented", 				"not_made" },
-    { 502, "Bad Gateway", 				"bad_gate" },
-    { 503, "Service Unavailable",			"unavailable" },
-    { 504, "Gateway Timeout", 				"timeout" },
-    { 0,   "-------------------------", "----------------------------------" },
-    { 0,   "Can't locate remote host", 			"host" },
-    { 0,   "No host name found", 			"host" },
-    { 0,   "No file name found or file not accessible", "file" },
-    { 0,   "FTP-server replies", 			"ftp" },
-    { 0,   "FTP-server doesn't reply", 			"no_server" },
-    { 0,   "Server timed out", 				"time_out" },
-    { 0,   "Gopher-server replies", 			"gopher" },
-    { 0,   "Data transfer interrupted", 		"interrupt" },
-    { 0,   "Connection establishment interrupted", 	"interrupt" },
-    { 0,   "CSO-server replies", 			"cso" },
-    { 0,   "This is probably a HTTP server 0.9 or less","http_version" },
-    { 0,   "Bad, Incomplete, or Unknown Response",	"bad_reply" },
-    { 0,   "Unknown access authentication scheme",	"control" },
-    { 0,   "News-server replies",			"news" },
-    { 0,   "Trying `ftp://' instead of `file://'",	"ftpfile" },
-    { 0,   "Too many redirections",			"redirections" },
-    { 0,   "Premature End Of File",			"EOF" },
-    { 0,   "Response from WAIS Server too Large - Extra lines ignored",
-	                                                "wais" },
-    { 0,   "WAIS-server doesn't return any data", 	"wais" },
-    { 0,   "Can't connect to WAIS-server",		"wais" },
-    { 0,   "System replies",				"system" },
-    { 0,   "Wrong or unknown access scheme",		"class" },
-    { 0,   "Access scheme not allowed in this context",	"class" },
-    { 0,   "When you are connected, you can log in",	"telnet" }
-};
+PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {HTERR_ENGLISH_INITIALIZER};
 
 /* ------------------------------------------------------------------------- */
 

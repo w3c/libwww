@@ -288,6 +288,9 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if (status < 0) 
 #endif
 	    {
+#ifdef _WINSOCKAPI_
+		if (socerrno==WSAEWOULDBLOCK)
+#else
 #if defined(EAGAIN) && defined(EALREADY)
 		if (socerrno==EINPROGRESS ||
 		    socerrno==EALREADY || socerrno==EAGAIN)
@@ -298,14 +301,11 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #ifdef EAGAIN
 		if (socerrno==EINPROGRESS || socerrno==EAGAIN)
 #else
-#ifdef _WINSOCKAPI_
-		if (socerrno==WSAEWOULDBLOCK)
-#else
 		if (socerrno==EINPROGRESS)
-#endif /* _WINSOCKAPI_ */
 #endif /* EAGAIN */
 #endif /* EALREADY */
 #endif /* EAGAIN && EALREADY */
+#endif /* _WINSOCKAPI_ */
 		{
 		    if (PROT_TRACE)
 			HTTrace("HTDoConnect. WOULD BLOCK `%s'\n", hostname);

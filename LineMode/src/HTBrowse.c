@@ -1426,7 +1426,7 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
         return HT_OK;
     lm = context->lm;
     if (context->state == LM_IGNORE) return HT_OK;
-    if (CSApp_unregisterReq(request) == NO)
+    if (CSApp_unregisterReq(request) == NO && lm->pCSUser)
         HTTrace("PICS request not found\n");
     is_index = HTAnchor_isIndex(HTMainAnchor);
     if (status == HT_LOADED) {
