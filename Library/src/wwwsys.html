@@ -811,6 +811,18 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 #endif /* UTS2 */
 </PRE>
 
+<H2>NetBSD</H2>
+
+NetBSD looks like most other BSD systems...
+
+<PRE>
+#ifdef NetBSD
+#define HAVE_STRERROR
+#define NO_TIMEZONE
+#endif
+</PRE>
+
+
 <H2>OSF/1</H2>
 
 <PRE>
