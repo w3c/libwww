@@ -230,6 +230,23 @@ PUBLIC BOOL HTRequest_internal (HTRequest * me)
 }
 
 /*
+**  Should we flush immediately?
+*/
+PUBLIC BOOL HTRequest_setFlush (HTRequest * me, BOOL mode)
+{
+    if (me) {
+	me->flush = mode;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_flush (HTRequest * me)
+{
+    return (me ? me->flush : NO);
+}
+
+/*
 **	Date/time stamp when then request was issued
 **	This is normally set when generating the request headers.
 */

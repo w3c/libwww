@@ -731,6 +731,15 @@ Their existance is discovered by <CODE>configure</CODE>.
 #endif
 #endif
 
+/* tcp.h */
+#ifdef HAVE_NETINET_TCP_H
+#include &lt;netinet/tcp.h&gt;
+#else
+#ifdef HAVE_TCP_H
+#include &lt;tcp.h&gt;
+#endif
+#endif
+
 /* file.h */
 #ifdef HAVE_SYS_FILE_H
 #include &lt;sys/file.h&gt;

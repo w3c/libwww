@@ -19,6 +19,8 @@ AC_ARG_PROGRAM
 dnl Variables for Automake.
 PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
+AC_DEFINE_UNQUOTED(W3C_PACKAGE, "$PACKAGE")
+
 VERSION=5.0a
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
@@ -32,22 +34,6 @@ AC_ISC_POSIX
 AC_PATH_X
 dnl AC_PATH_XTRA 	Causes problems...
 
-dnl Various compiler directives
-case "$target" in
-    alpha-dec*)
-	if test "$CC" = "cc"; then
-	  CFLAGS="$CFLAGS -std1"
-	  AC_MSG_WARN(Adding extra compiler directives for Digital Unix)
-	fi
-	;;
-    hp*)
-	if test "$CC" = "cc"; then
-	  CFLAGS="$CFLAGS -Aa -D_HPUX_SOURCE"
-	  AC_MSG_WARN(Adding extra compiler directives for HT-UX)
-	fi
-	;;
-esac
-
 dnl Default location of icons
 icondir="/usr/local/share/w3c-icons"
 AC_SUBST(icondir)
@@ -55,12 +41,32 @@ AC_DEFINE_UNQUOTED(W3C_ICONS, "$icondir")
 
 dnl Default location of TcL library and include files
 tclinclude="/usr/local/include"
+AC_SUBST(tclinclude)
 libtcl="/usr/local/lib/libtcl7.5.a"
 AC_SUBST(libtcl)
-AC_SUBST(tclinclude)
 AC_DEFINE_UNQUOTED(W3C_TCL, "$libtcl")
 
-dnl Checks for configuration arguments
+dnl Various compiler directives
+AC_MSG_CHECKING(whether to define additional compiler specific flags)
+case "$target" in
+    alpha-dec*)
+	if test "$CC" = "cc"; then
+	  CFLAGS="$CFLAGS -std1"
+	  AC_MSG_RESULT(Digital Unix's cc)
+	fi
+	;;
+    hp*)
+	if test "$CC" = "cc"; then
+	  CFLAGS="$CFLAGS -Aa -D_HPUX_SOURCE"
+	  AC_MSG_RESULT(HT-UX's cc)
+	fi
+	;;
+    *)
+	AC_MSG_RESULT(no)
+	;;
+esac
+
+dnl Checks for configuration arguments - a bit rusty!!!
 AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
   AC_PATH_WAIS(
 	[AC_DEFINE(HT_DIRECT_WAIS)
@@ -156,14 +162,62 @@ if test "x$socks" = "x5"; then
     AC_DEFINE(SOCKS5)
 fi
 
-AC_ARG_ENABLE(signals, [  --enable-signals        use internal libwww signal handler],
-  AC_DEFINE(WWWLIB_SIG),)
+AC_MSG_CHECKING(whether to use internal signal handlers)
+AC_ARG_ENABLE(signals, [  --enable-signals        use internal libwww signal handler.],
+[ case "${enableval}" in
+  no)
+    AC_MSG_RESULT(no)
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(WWWLIB_SIG)
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+)
 
+AC_MSG_CHECKING(whether to disable Nagle's algorithm)
+AC_ARG_ENABLE(nagle,
+[  --disable-nagle         Turning of Nagle's algorithm.],
+[ case "${enableval}" in
+  no)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_NO_NAGLE)
+    ;;
+  *) 
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+)
+
+AC_MSG_CHECKING(whether to define _REENTRANT)
 AC_ARG_ENABLE(reentrant, [  --enable-reentrant      define _REENTRANT to enable reentrant system calls],
-  AC_DEFINE(HT_REENTRANT) [CFLAGS="$CFLAGS -D_REENTRANT"],)
+[ case "${enableval}" in
+  no)
+    AC_MSG_RESULT(no)
+    ;;
+  *) 
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_REENTRANT) [CFLAGS="$CFLAGS -D_REENTRANT"]
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+)
 
+AC_MSG_CHECKING(whether to define _POSIX_SOURCE)
 AC_ARG_ENABLE(posix, [  --enable-posix          define _POSIX_SOURCE],
-  AC_DEFINE(_POSIX_SOURCE) [CFLAGS="$CFLAGS -D_POSIX_SOURCE"],)
+[ case "${enableval}" in
+  no)
+    AC_MSG_RESULT(no)
+    ;;
+  *) 
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(_POSIX_SOURCE) [CFLAGS="$CFLAGS -D_POSIX_SOURCE"]
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+)
 
 AC_ARG_ENABLE(cyrillic, [  --enable-cyrillic       include support for Cyrillic in line mode browser],
   AC_DEFINE(CYRILLIC)
@@ -237,6 +291,7 @@ AC_CHECK_HEADERS(string.h strings.h)
 AC_CHECK_HEADERS(syslog.h)
 AC_CHECK_HEADERS(sys/socket.h socket.h)
 AC_CHECK_HEADERS(appkit/appkit.h appkit.h)
+AC_CHECK_HEADERS(netinet/tcp.h tcp.h)
 AC_CHECK_HEADERS(netinet/in.h in.h)
 AC_CHECK_HEADERS(dn.h)
 AC_CHECK_HEADERS(sys/ipc.h)

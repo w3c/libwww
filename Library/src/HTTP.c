@@ -951,10 +951,27 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			    }
 			}
 		    } else {
+#if 0
 			HTTransportMode mode = HTHost_mode(net->host, NO);
+
+			/*
+			**  We only flush the request if we are the last in the queue or
+			**  we are in single mode. At the same time we check whether
+			**  we can start a new request.
+			*/
 			if (mode == HT_TP_SINGLE ||
-			    (mode == HT_TP_PIPELINE && !HTHost_launchPending(net->host)))
+			    (mode == HT_TP_PIPELINE && !HTHost_launchPending(net->host))) {
 			    status = (*input->isa->flush)(input);
+			}
+#else
+			/*
+			**  Check to see if we can start a new request
+			**  pending in the host object.
+			*/
+			HTHost_launchPending(net->host);
+			status = HTRequest_flush(request) ?
+			    HTHost_forceFlush(net->host) : (*input->isa->flush)(input);
+#endif
 			type = HTEvent_READ;
 		    }
 		    if (status == HT_WOULD_BLOCK) return HT_OK;

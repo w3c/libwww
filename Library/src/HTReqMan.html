@@ -51,6 +51,8 @@ struct _HTRequest {
 
     HTMethod		method;
 
+    BOOL                flush;                /* Should we flush immediately */
+
     HTPriority		priority;		/* Priority for this request */
 </PRE>
 <H3>

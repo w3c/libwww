@@ -429,8 +429,8 @@ int main (int argc, char ** argv)
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
     Robot *	mr = NULL;
-    Finger *	finger;
-    HTParentAnchor *	startAnchor;
+    Finger *	finger = NULL;
+    HTParentAnchor * startAnchor = NULL;
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -585,6 +585,16 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     finger = Finger_new(mr, startAnchor, METHOD_GET);
+
+    /*
+    ** Make sure that the first request is flushed immediately and not
+    ** buffered in the output buffer
+    */
+    HTRequest_setFlush(finger->request, YES);
+
+    /*
+    **  Now do the load
+    */
     if (mr->flags & MR_PREEMPTIVE)
 	HTRequest_setPreemptive(finger->request, YES);
 

@@ -28,6 +28,20 @@
 #define HT_CACHE_INDEX	".index"
 #define HT_CACHE_META	".meta"
 
+/* Default heuristics cache expirations - thanks to Jeff Mogul for good comments! */
+#define NO_LM_EXPIRATION	24*3600		/* 24 hours */
+#define MAX_LM_EXPIRATION	48*3600		/* Max expiration from LM */
+
+/*
+**  If using LM to find the expiration then take 10% and no more than
+**  MAX_LM_EXPIRATION.
+*/
+#ifndef LM_EXPIRATION
+#define LM_EXPIRATION(t)	(HTMIN((MAX_LM_EXPIRATION), (t) / 10))
+#endif
+
+#define WARN_HEURISTICS		24*3600		/* When to issue a warning */
+
 #define HASH_SIZE 	67
 #define DUMP_FREQUENCY	10			/* Dump index after 10 loads */
 
@@ -99,6 +113,9 @@ PRIVATE BOOL		HTCacheEnable = NO;	      /* Disabled by default */
 PRIVATE char *		HTCacheRoot = NULL;  	    /* Destination for cache */
 PRIVATE HTExpiresMode	HTExpMode = HT_EXPIRES_IGNORE;
 PRIVATE HTDisconnectedMode DisconnectedMode = HT_DISCONNECT_NONE;
+
+/* Heuristic expiration parameters */
+PRIVATE int DefaultExpiration = NO_LM_EXPIRATION;
 
 /* List of cache entries */
 PRIVATE HTList ** 	CacheTable = NULL;
@@ -795,17 +812,22 @@ PRIVATE BOOL calculate_time (HTCache * me, HTRequest * request,
 	/*
 	**  Estimate an expires time using the max-age and expires time. If we
 	**  don't have an explicit expires time then set it to 10% of the LM
-	**  date. If no LM date is available then use 24 hours.
+	**  date (although max 24 h). If no LM date is available then use 24 hours.
 	*/
 	{
 	    time_t freshness_lifetime = HTResponse_maxAge(response);
 	    if (freshness_lifetime < 0) {
 		if (me->expires < 0) {
 		    time_t lm = HTAnchor_lastModified(anchor);
-		    if (lm < 0)
-			freshness_lifetime = 24*3600;		/* 24 hours */
-		    else 
-			freshness_lifetime = (date - lm) / 10;
+		    if (lm < 0) {
+			freshness_lifetime = DefaultExpiration;
+		    } else {
+			freshness_lifetime = LM_EXPIRATION(date - lm);
+			if (freshness_lifetime > WARN_HEURISTICS)
+			    HTRequest_addError(request, ERR_WARN, NO,
+					       HTERR_HEURISTIC_EXPIRATION, NULL, 0,
+					       "calculate_time");
+		    }
 		} else
 		    freshness_lifetime = me->expires - date;
 	    }

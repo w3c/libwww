@@ -86,7 +86,7 @@
 #undef HT_REENTRANT
 
 /* Define to be the package name. */
-#undef PACKAGE
+#undef W3C_PACKAGE
 
 /* Define to be the version. */
 #undef W3C_VERSION
@@ -102,6 +102,9 @@
 
 /* Define this if we can select on stdin. */
 #undef TTY_IS_SELECTABLE
+
+/* Define to disable Nagle's algorithm */
+#undef HT_NO_NAGLE
 
 /* Define this if it's not typedef'd automatically. */
 #undef BOOLEAN
@@ -301,6 +304,9 @@
 /* Define if you have the <netinet/in.h> header file.  */
 #undef HAVE_NETINET_IN_H
 
+/* Define if you have the <netinet/tcp.h> header file.  */
+#undef HAVE_NETINET_TCP_H
+
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
 
@@ -381,6 +387,9 @@
 
 /* Define if you have the <syslog.h> header file.  */
 #undef HAVE_SYSLOG_H
+
+/* Define if you have the <tcp.h> header file.  */
+#undef HAVE_TCP_H
 
 /* Define if you have the <time.h> header file.  */
 #undef HAVE_TIME_H

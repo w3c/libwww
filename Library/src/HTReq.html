@@ -195,6 +195,20 @@ extern HTPriority HTRequest_priority (HTRequest * request);
 extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
 </PRE>
 <H2>
+  Pipelining Managament
+</H2>
+<P>
+Libwww supports HTTP/1.1 pipelining which greatly optimizes HTTP's behavior
+over TCP. libwww also tries very hard to minimize the number of TCP packets
+sent over the network. This is done by buffering outgoing requests until
+either a minimum amount of data has been collected or a timeout causes a
+flush to happen. The application can override the output buffering by explicit
+request a request object to be flushed.
+<PRE>
+extern BOOL HTRequest_setFlush (HTRequest * me, BOOL mode);
+extern BOOL HTRequest_flush (HTRequest * me);
+</PRE>
+<H2>
   Binding to a User Profile
 </H2>
 <P>

@@ -98,6 +98,24 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
     /* Increase the number of sockets by one */
     HTNet_increaseSocket();
 
+    /*
+    **  If we have compiled without Nagle's algorithm then try and turn
+    **  it off now
+    */
+#ifdef HT_NO_NAGLE
+    {
+	int disable = 1;
+	status = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &disable, sizeof(int));
+	if (status == -1) {
+	    if (PROT_TRACE)
+		HTTrace("Socket...... Could not disable Nagle's algorithm - error %d\n",
+			sockfd);
+	} else {
+	    if (PROT_TRACE) HTTrace("Socket...... Turned off Nagle's algorithm\n");
+	}
+    }
+#endif
+
     /* If non-blocking protocol then change socket status
     ** I use fcntl() so that I can ask the status before I set it.
     ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)

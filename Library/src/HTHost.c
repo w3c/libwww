@@ -231,8 +231,8 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
 	pres->u_port = u_port;
 	pres->ntime = time(NULL);
 	pres->mode = HT_TP_SINGLE;
-	pres->events[HTEvent_INDEX(HTEvent_READ)] = HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, -1);
-	pres->events[HTEvent_INDEX(HTEvent_WRITE)]= HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, -1);
+	pres->events[HTEvent_INDEX(HTEvent_READ)] = HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, EventTimeout);
+	pres->events[HTEvent_INDEX(HTEvent_WRITE)]= HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, EventTimeout);
 	if (CORE_TRACE) 
 	    HTTrace("Host info... added `%s\' to list %p\n", host, list);
 	HTList_addObject(list, (void *) pres);

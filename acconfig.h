@@ -19,7 +19,7 @@
 #undef HT_REENTRANT
 
 /* Define to be the package name. */
-#undef PACKAGE
+#undef W3C_PACKAGE
 
 /* Define to be the version. */
 #undef W3C_VERSION
@@ -38,6 +38,9 @@
 
 /* Define this if the platform uses EBCDIC instead of ASCII. */
 #undef NOT_ASCII
+
+/* Define to disable Nagle's algorithm */
+#undef HT_NO_NAGLE
 
 /* Define this if a typedef'd function definition may not be preceeded by 
 its ``extern'' declaration. */
