@@ -339,7 +339,7 @@ int main
 #endif /* VMS */
 	
     StrAllocCopy(default_default, "file://");
-    StrAllocCat(default_default, HTHostName()); /* eg file://cernvax.cern.ch */
+    StrAllocCat(default_default, HTGetHostName()); /*eg file://dxcern.cern.ch*/
 
 #ifdef GET_SCREEN_SIZE
     scrsize(&scr_height, &scr_width);
@@ -732,7 +732,7 @@ int main
 	    goto endproc;
         }
     }
-  
+
     if (!HTMainText)
 	goto endproc;			/* Hypertext object was not created */
     
