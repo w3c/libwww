@@ -462,7 +462,6 @@ int main (int argc, char ** argv)
     /* Register our User Prompts etc in the Alert Manager */
     if (HTAlert_interactive()) {
 	HTAlert_add(HTError_print, HT_A_MESSAGE);
-	HTAlert_add(HTPrompt, HT_A_PROMPT);
 	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
     }
 
