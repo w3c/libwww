@@ -481,7 +481,7 @@ int main (int argc, char ** argv)
     else if (keywords)						   /* Search */
 	status = HTSearch(HTChunkData(keywords), cl->anchor, cl->request);
     else						   /* GET, HEAD etc. */
-	HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
+	status = HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
 
     if (keywords) HTChunkFree(keywords);
     if (status != YES) {
