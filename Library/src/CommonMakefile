@@ -209,11 +209,11 @@ $(FTP)/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
 #	---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -n -p -na http://www.w3.org/hypertext/README.html \
+	www -n -p -na http://www.w3.org/hypertext/WWW/README.html \
 		> $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-	www -n -p -na http://www.w3.org/hypertext/COPYRIGHT.html \
+	www -n -p -na http://www.w3.org/hypertext/WWW/COPYRIGHT.html \
 		> $(WWW)/COPYRIGH
 
 # 			Common code

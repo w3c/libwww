@@ -32,38 +32,39 @@ void HTList_delete ARGS1(HTList *,me)
   }
 }
 
-void HTList_addObject ARGS2(HTList *,me, void *,newObject)
+BOOL HTList_addObject ARGS2(HTList *,me, void *,newObject)
 {
-  if (me) {
-    HTList *newNode = (HTList *)malloc (sizeof (HTList));
-    if (newNode == NULL) outofmem(__FILE__, "HTList_addObject");
-    newNode->object = newObject;
-    newNode->next = me->next;
-    me->next = newNode;
-  }
-  else {
-    if (TRACE) fprintf(TDEST,
-        "HTList: Trying to add object %p to a nonexisting list\n",
-		       newObject);
-    abort();
-  }
+    if (me) {
+	HTList *newNode = (HTList *)malloc (sizeof (HTList));
+	if (newNode == NULL) outofmem(__FILE__, "HTList_addObject");
+	newNode->object = newObject;
+	newNode->next = me->next;
+	me->next = newNode;
+	return YES;
+    } else {
+	if (TRACE)
+	    fprintf(TDEST,
+		    "HTList...... Can not add object %p to nonexisting list\n",
+		    newObject);
+    }
+    return NO;
 }
 
-BOOL HTList_removeObject ARGS2(HTList *,me, void *,oldObject)
+BOOL HTList_removeObject ARGS2(HTList *, me, void *, oldObject)
 {
-  if (me) {
-    HTList *previous;
-    while (me->next) {
-      previous = me;
-      me = me->next;
-      if (me->object == oldObject) {   /* HWL: sigbus error */
-	previous->next = me->next;
-	free (me);
-	return YES;  /* Success */
-      }
+    if (me) {
+	HTList *previous;
+	while (me->next) {
+	    previous = me;
+	    me = me->next;
+	    if (me->object == oldObject) { /* HWL: sigbus error */
+		previous->next = me->next;
+		free (me);
+		return YES;	/* Success */
+	    }
+	}
     }
-  }
-  return NO;  /* object not found or NULL list */
+    return NO;			/* object not found or NULL list */
 }
 
 void * HTList_removeLastObject ARGS1 (HTList *,me)

@@ -281,10 +281,10 @@ $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 #		---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -p -na http://www.w3.org/hypertext/README.html -o $(WWW)/README
+	www -p -na http://www.w3.org/hypertext/WWW/README.html -o $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-	www -p -na http://www.w3.org/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
+	www -p -na http://www.w3.org/hypertext/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
 #	Line Mode Manual
 #

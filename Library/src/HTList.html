@@ -43,7 +43,7 @@ extern void	HTList_delete PARAMS((HTList *me));
 </PRE>
 <H3>Add object to START of list</H3>
 <PRE>
-extern void	HTList_addObject PARAMS((HTList *me, void *newObject));
+extern BOOL	HTList_addObject PARAMS((HTList *me, void *newObject));
 
 
 extern BOOL	HTList_removeObject PARAMS((HTList *me, void *oldObject));

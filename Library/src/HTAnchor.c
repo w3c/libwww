@@ -84,7 +84,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild ARGS2 (HTParentAnchor *, parent,
     if ((kids = parent->children)) {
 	if (tag && *tag) {	/* TBL */
 	    while ((child = (HTChildAnchor *) HTList_nextObject(kids))) {
-		if (!(child->tag && strcasecomp(child->tag, tag))) {
+		if (child->tag && !strcasecomp(child->tag, tag)) {
 		    if (ANCH_TRACE)
 			fprintf (TDEST,
 				 "Find Child.. %p of parent %p with name `%s' already exists.\n",
@@ -123,7 +123,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
     
     StrAllocCopy(newaddr, address);		         /* Get our own copy */
     if (!HTImProxy)
-	newaddr = HTSimplify(newaddr);	     /* Proxy has already simplified */
+	newaddr = HTSimplify(&newaddr);	     /* Proxy has already simplified */
 
     /* If the address represents a sub-anchor, we recursively load its parent,
        then we create a child anchor within that document. */
@@ -135,6 +135,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
 	HTChildAnchor * foundAnchor = HTAnchor_findChild (foundParent, tag);
 	free (docAddress);
 	free (tag);
+	free (newaddr);
 	return (HTAnchor *) foundAnchor;
     } else {		       	     /* Else check whether we have this node */
 	int hash;
@@ -159,6 +160,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
 		if (ANCH_TRACE)
 		    fprintf(TDEST, "Find Parent. %p with address `%s' already exists.\n",
 			    (void*) foundAnchor, newaddr);
+		free(newaddr);			       /* We already have it */
 		return (HTAnchor *) foundAnchor;
 	    }
 	}
@@ -313,6 +315,95 @@ PUBLIC void HTAnchor_makeLastChild
 **	If this anchor's source list is empty, we delete it and its children.
 */
 
+/*	Deletes all the memory allocated in a parent anchor and returns the
+**	hyperdoc
+*/
+PRIVATE HyperDoc * delete_parent ARGS1(HTParentAnchor *, me)
+{
+    HyperDoc *doc = me->document;
+
+    /* Remove link and address information */
+    HTList_delete (me->links);
+    HTList_delete (me->children);
+    HTList_delete (me->sources);
+    FREE(me->physical);
+    FREE(me->address);
+
+    /* Then remove entity header information (metainformation) */
+    FREE(me->title);
+    FREE(me->derived_from);
+    FREE(me->version);
+    if (me->extra_headers) {
+	HTList *cur = me->extra_headers;
+	char *pres;
+	while ((pres = (char *) HTList_nextObject(cur)))
+	    free(pres);
+	HTList_delete(me->extra_headers);
+    }
+
+    /* @@@ TEMPORARY SOLUTION FOR CACHE - SHOULD BE PERSISTENT */
+    if (me->cacheItems) {
+	HTCacheClear(me->cacheItems);
+    }
+    free(me);
+    return doc;
+}
+
+
+/*	Delete a parent anchor and all its children. If a HyperDoc is found
+**	then it's returned
+*/
+PRIVATE HyperDoc *delete_family ARGS1(HTAnchor *, me)
+{
+    HTParentAnchor *parent = me->parent;
+    if (ANCH_TRACE)
+	fprintf(TDEST, "AnchorDelete Remove parent %p and children\n", parent);
+    if (!me) {
+	if (ANCH_TRACE)
+	    fprintf(TDEST, "AnchorDelete No anchor found\n");
+	return NULL;
+    }
+
+    /* Delete children */
+    if (parent->children) {
+	HTChildAnchor *child;
+	while ((child = (HTChildAnchor *)
+		HTList_removeLastObject(parent->children))) {
+	    FREE(child->tag);
+	    free(child);
+	}
+    }
+    return delete_parent(parent);
+}
+
+
+/*	DELETE ALL ANCHORS
+**	------------------
+**	Deletes all anchors and return a list of all the HyperDocs found.
+**	It is for the application to delete any HyperDocs.
+**	Return YES if OK, else NO
+*/
+PUBLIC BOOL HTAnchor_deleteAll ARGS1(HTList *, documents)
+{
+    int cnt;
+    HTList *cur;
+    if (!documents)
+	return NO;
+    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	if ((cur = adult_table[cnt])) { 
+	    HTParentAnchor *pres;
+	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur)) != NULL){
+		HyperDoc *doc = delete_family((HTAnchor *) pres);
+		if (doc) HTList_addObject(documents, (void *) doc);
+	    }
+	}
+	HTList_delete(adult_table[cnt]);
+	adult_table[cnt] = NULL;
+    }
+    return YES;
+}
+
+
 PRIVATE void deleteLinks
   ARGS1 (HTAnchor *,me)
 {
@@ -366,14 +457,7 @@ PUBLIC BOOL HTAnchor_delete
   }
 
   /* Now kill myself */
-  HTList_delete (me->children);
-  HTList_delete (me->sources);
-  free (me->address);
-  /* Devise a way to clean out the HTFormat if no longer needed (ref count?) */
-  free (me);
-  if (me->cacheItems) {
-      HTCacheClear(me->cacheItems);
-  }
+  delete_parent(me);
   return YES;  /* Parent deleted */
 }
 

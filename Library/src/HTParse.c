@@ -229,7 +229,7 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
 		for (; *p!='/'; p--);	/* last / */
 		p[1]=0;					/* Remove filename */
 		strcat(result, given.relative);		/* Add given one */
-		result = HTSimplify (result);
+		result = HTSimplify (&result);
 	    }
 	} else if(given.relative) {
 	    strcat(result, given.relative);		/* what we've got */
@@ -306,29 +306,29 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 //
 // Returns: A string which might be the old one or a new one.
 */
-PUBLIC char *HTSimplify ARGS1(char *, filename)
+PUBLIC char *HTSimplify ARGS1(char **, filename)
 {
     char *path;
     char *p;
 
-    if (!filename) {
+    if (!*filename) {
 	if (URI_TRACE)
 	    fprintf(TDEST, "HTSimplify.. Bad argument\n");
-	return filename;
+	return *filename;
     }
     if (URI_TRACE)
-	fprintf(TDEST, "HTSimplify.. `%s\' ", filename);
+	fprintf(TDEST, "HTSimplify.. `%s\' ", *filename);
 
-    if ((path = strstr(filename, "://")) != NULL) {	   /* Find host name */
+    if ((path = strstr(*filename, "://")) != NULL) {	   /* Find host name */
 	char *newptr;
 	path += 3;
 	while ((newptr = strstr(path, "://")) != NULL)
 	    path = newptr+3;
-	path = HTCanon(&filename, path);       	      /* We have a host name */
-    } else if ((path = strstr(filename, ":/")) != NULL) {
+	path = HTCanon(filename, path);       	      /* We have a host name */
+    } else if ((path = strstr(*filename, ":/")) != NULL) {
 	path += 2;
     } else
-	path = filename;
+	path = *filename;
     if (*path == '/' && *(path+1)=='/') {	  /* Some URLs start //<foo> */
 	path += 1;
     } else if (!strncmp(path, "news:", 5)) {
@@ -339,8 +339,8 @@ PUBLIC char *HTSimplify ARGS1(char *, filename)
 	    ptr++;
 	}
 	if (URI_TRACE)
-	    fprintf(TDEST, "into\n............ `%s'\n", filename);
-	return filename;		      /* Doesn't need to do any more */
+	    fprintf(TDEST, "into\n............ `%s'\n", *filename);
+	return *filename;		      /* Doesn't need to do any more */
     }
     if ((p = path)) {
 	int segments = 0;
@@ -388,8 +388,8 @@ PUBLIC char *HTSimplify ARGS1(char *, filename)
 	}  /* end while (*p) */
     }
     if (URI_TRACE)
-	fprintf(TDEST, "into\n............ `%s'\n", filename);
-    return filename;
+	fprintf(TDEST, "into\n............ `%s'\n", *filename);
+    return *filename;
 }
 
 #ifdef OLD_CODE

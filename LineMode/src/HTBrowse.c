@@ -1518,6 +1518,10 @@ endproc:
 	free(default_default);
     if (logfilename)
 	HTLog_disable();
+    {
+	HTList *hyperdocs = HTList_new();
+	HTAnchor_deleteAll(hyperdocs);
+    }
     HTLibTerminate();
     printf("\n");
     if (!return_status) {			/* Everything is working :-) */

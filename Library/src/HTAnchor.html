@@ -214,15 +214,30 @@ extern HTChildAnchor * HTAnchor_findChildAndLink
 
 <H3>Delete an Anchor</H3>
 
-Also possibly delete related things (auto garbage collection). The
-anchor is only deleted if the corresponding document is not loaded.
-All outgoing links from parent and children are deleted, and this
-anchor is removed from the sources list of all its targets. We also
-try to delete the targets whose documents are not loaded. If this
-anchor's source list is empty, we delete it and its children.
+Also possibly delete related things (auto garbage collection). If
+<CODE>objects</CODE> is a valid list != NULL, then all existing
+<CODE>HyperDoc</CODE>s are put into this list. If <CODE>objects</CODE>
+is NULL then don't delete anchors with a <CODE>HyperDoc</CODE> hanging
+of. It is for the application to delete any
+<CODE>HyperDoc</CODE>s. All outgoing links from parent and children
+are deleted, and this anchor is removed from the sources list of all
+its targets. We also delete the targets. If this anchor's source list
+is empty, we delete it and its children.
 
 <PRE>
-extern BOOL HTAnchor_delete			PARAMS((HTParentAnchor *me));
+extern BOOL HTAnchor_delete	PARAMS((HTParentAnchor *me));
+</PRE>
+
+<H3>Delete all Anchors</H3>
+
+Delete <EM>all</EM> anchors registered in the Library. This functions
+walks through the whole web of anchors and deletes them all. Any
+<CODE>HyperDoc</CODE>s are put into the <CODE>obejts</CODE> list as it
+is for the application to delete them. Note, that this function is
+different from cleaning up the history list!
+
+<PRE>
+extern BOOL HTAnchor_deleteAll	PARAMS((HTList * objects));
 </PRE>
 
 

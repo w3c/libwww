@@ -9,6 +9,9 @@
 **
 ** History:
 **  	01 May 95	Henrik Frystyk, frystyk@w3.org
+** Bugs:
+**	ANSI file handling is not capable of handling simultanous writing
+**	from several processes at the same time in a multi-process environment
 */
 
 /* Library include files */
@@ -69,7 +72,8 @@ PUBLIC BOOL HTLog_disable NOARGS
 /*	Log the result of a request
 **	---------------------------
 **	Format: <HOST> - - <DATE> <METHOD> <URI> <RESULT> <CONTENT_LENTGH>
-**	which is almost equivalent to Common Logformat
+**	which is almost equivalent to Common Logformat. Permissions on UNIX
+**	are modified by umask.
 **
 **	Returns YES if OK, NO on error
 **
@@ -86,7 +90,7 @@ PUBLIC BOOL HTLog_request ARGS1(HTRequest *, request)
 		HTMethod_name(request->method),
 		uri,
 		request->anchor->content_length);
-	return (fflush(HTlogfile)!=EOF);	       /* Actually update it on disk */
+	return (fflush(HTlogfile)!=EOF);       /* Actually update it on disk */
     }
     return NO;
 }
