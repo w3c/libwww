@@ -201,6 +201,7 @@ dnl ******************
 dnl Create output files
 AC_OUTPUT([Makefile
 Library/Makefile Library/src/Makefile
+PICS/Makefile PICS/src/Makefile
 LineMode/Makefile LineMode/src/Makefile
 Robot/Makefile Robot/src/Makefile
 MiniServ/Makefile MiniServ/src/Makefile

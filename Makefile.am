@@ -30,6 +30,7 @@ all-local : inc legal
 
 LEGAL =	$(top_srcdir)/../WELCOME \
 	$(top_srcdir)/README \
+	$(top_srcdir)/INSTALL \
 	$(top_srcdir)/COPYRIGH \
 	$(top_srcdir)/PATCHES \
 	$(top_srcdir)/CERN
@@ -52,5 +53,31 @@ DIST_OTHER = \
 	$(LEGAL) \
 	$(ICONS)
 
-SUBDIRS = Library LineMode Robot ComLine MiniServ Listen
+SUBDIRS = Library PICS LineMode Robot ComLine MiniServ Listen
 
+#
+#	Hypertext supplied in text format
+#
+$(top_srcdir)/../WELCOME : /afs/w3.org/devel/WELCOME.html
+	www -p -na http://www.w3.org/devel/WELCOME.html \
+		-o $(top_srcdir)/../WELCOME
+
+$(top_srcdir)/README : /afs/w3.org/devel/WWW/README.html
+	www -p -na http://www.w3.org/devel/WWW/README.html \
+		-o $(top_srcdir)/README
+
+$(top_srcdir)/INSTALL : /afs/w3.org/devel/WWW/INSTALL.html
+	www -p -na http://www.w3.org/devel/WWW/INSTALL.html \
+		-o $(top_srcdir)/INSTALL
+
+$(top_srcdir)/COPYRIGH : /afs/w3.org/devel/WWW/COPYRIGHT.html
+	www -p -na http://www.w3.org/devel/WWW/COPYRIGHT.html \
+		-o $(top_srcdir)/COPYRIGH
+
+$(top_srcdir)/PATCHES : /afs/w3.org/devel/WWW/PATCHES.html
+	www -p -na http://www.w3.org/devel/WWW/PATCHES.html \
+		-o $(top_srcdir)/PATCHES
+
+$(top_srcdir)/CERN : /afs/w3.org/devel/WWW/CERN.html
+	www -p -na http://www.w3.org/devel/WWW/CERN.html \
+		-o $(top_srcdir)/CERN
