@@ -94,13 +94,18 @@ PUBLIC BOOL HTError_addSystem (HTList *		list,
 			       char *		syscall)
 {
     BOOL status = NO;
-    if (list && syscall) {
-	char *errmsg = NULL;
-	StrAllocCopy(errmsg, syscall);
-	StrAllocCat(errmsg, ": ");
-	StrAllocCat(errmsg, HTErrnoString(errornumber));
+    if (list) {
+	char * errsysmsg = HTErrnoString(errornumber);
+	char * errmsg = NULL;
+	StrAllocMCopy(&errmsg,
+		      syscall ? syscall : "unknown call",
+		      " operation failed ",
+		      errsysmsg ? errsysmsg : "no system message",
+		      NULL);
 	status = HTError_add(list, severity, ignore, HTERR_SYSTEM,
-			     errmsg, (int) strlen(errmsg), syscall);
+			     errmsg, (int) strlen(errmsg),
+			     syscall ? syscall : "unknown");
+	HT_FREE(errsysmsg);
 	HT_FREE(errmsg);
     }
     return status;

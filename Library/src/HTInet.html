@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Generic Network Communication</TITLE>
 </HEAD>
 <BODY>
@@ -20,8 +19,7 @@ of user, parsing error codes returned in <CODE>errno</CODE> or equivalent
 etc.
 <P>
 This module is implemented by <A HREF="HTInet.c">HTInet.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
-Library</A>.
+a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTINET_H
 #define HTINET_H
@@ -36,8 +34,8 @@ Return error message corresponding to errno number given. We need to pass
 the error number as a parameter as we on some platforms get different codes
 from sockets and local file access.
 <PRE>
-extern const char * HTErrnoString	(int errnum);
-extern int HTInetStatus			(int errnum, char * where);
+extern char * HTErrnoString	(int errnum);
+extern int HTInetStatus		(int errnum, char * where);
 </PRE>
 <H3>
   Parse a Cardinal Value
@@ -124,11 +122,9 @@ The default news host is "news" but you can get ans set the value here.
   Get a Temporary File Name
 </H3>
 <P>
-HTGetTmpFileName() allows the user to control the choice of a
-directory. The argument dir points to the name of the directory in
-which the file is to be created. This is equivalent to tempnam()
-function.
-
+HTGetTmpFileName() allows the user to control the choice of a directory.
+The argument dir points to the name of the directory in which the file is
+to be created. This is equivalent to tempnam() function.
 <PRE>
 extern char * HTGetTmpFileName (const char * dir);
 </PRE>

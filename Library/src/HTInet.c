@@ -33,37 +33,43 @@
 /*
 **	Returns the string equivalent to the errno passed in the argument.
 **	We can't use errno directly as we have both errno and socerrno. The
-**	result is a static buffer.
+**	result is a dynamic string that must be freed by the caller.
 */
-PUBLIC const char * HTErrnoString (int errornumber)
+PUBLIC char * HTErrnoString (int errornumber)
 {
+    char * msg = NULL;
+#ifdef _WINSOCKAPI_
+    if ((msg = (char *) HT_MALLOC(64)) == NULL)
+	HT_OUTOFMEM("HTErrnoString");
+    *msg = '\0';
+    sprintf(msg, "WinSock reported error=%ld", WSAGetLastError());
+#else
 #ifdef HAVE_STRERROR
-    return strerror(errornumber);
+    StrAllocCopy(msg, strerror(errornumber));
 #else
 #ifdef HAVE_SYS_ERRLIST
 #ifdef HAVE_SYS_NERR
-    return (errno < sys_nerr ? sys_errlist[errno] : "Unknown error");
+    if (errno < sys_nerr)
+	StrAllocCopy(msg, sys_errlist[errno]);
+    else 
+        StrAllocCopy(msg, "Unknown error");
 #else
-    return sys_errlist[errno];
+    StrAllocCopy(msg, sys_errlist[errno]);
 #endif /* HAVE_SYS_NERR */
 #else
 #ifdef VMS
-    static char buf[60];
-    sprintf(buf, "Unix errno=%ld dec, VMS error=%lx hex", errornumber,
+    if ((msg = (char *) HT_MALLOC(64)) == NULL)
+	HT_OUTOFMEM("HTErrnoString");
+    *msg = '\0';
+    sprintf(msg, "Unix errno=%ld dec, VMS error=%lx hex", errornumber,
 	    vaxc$errno);
-    return buf;
 #else
-#ifdef _WINSOCKAPI_
-    static char buf[60];
-    sprintf(buf, "Unix errno=%ld dec, WinSock error=%ld", errornumber,
-	    WSAGetLastError());
-    return buf;
-#else
-    return "(Error number not translated)";
+    StrAllocCopy(msg, "Error number not translated!");
 #endif /* _WINSOCKAPI_ */
 #endif /* VMS */
 #endif /* HAVE_SYS_ERRLIST */
 #endif /* HAVE_STRERROR */
+    return msg;
 }
 
 
@@ -82,9 +88,12 @@ PUBLIC int HTInetStatus (int errnum, char * where)
 			    WSAGetLastError());
     return (-errnum);
 #else
-    if (PROT_TRACE)
+    if (PROT_TRACE) {
+	char * errmsg = HTErrnoString(errnum);
 	HTTrace("System Error %d after call to %s() failed\n............ %s\n",
-		errno, where, HTErrnoString(errnum));
+		errno, where, errmsg);
+	HT_FREE(errmsg);
+    }
     return (-errnum);
 #endif /* _WINSOCKAPI_ */
 #endif /* VMS */
