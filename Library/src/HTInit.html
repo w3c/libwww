@@ -34,8 +34,8 @@ when <A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">
 Line Mode Browser</A> is started in Non-Interactive mode.
 
 <PRE>
-PUBLIC void HTFormatInit PARAMS((HTList * conversions));
-PUBLIC void HTFormatInitNIM PARAMS((HTList * conversions));
+extern void HTFormatInit PARAMS((HTList * conversions));
+extern void HTFormatInitNIM PARAMS((HTList * conversions));
 </PRE>
 
 <H2>File Suffix Setup</H2>
@@ -44,7 +44,7 @@ This functions defines a basic set of file suffixes and the corresponding
 MIME types.
 
 <PRE>
-PUBLIC void HTFileInit NOPARAMS;
+extern void HTFileInit NOPARAMS;
 </PRE>
 
 End of HTInit Module.

@@ -139,7 +139,7 @@ password was misspelled).
 **
 **		   "Basic AkRDIhEF8sdEgs72F73bfaS=="
 */
-PUBLIC BOOL HTAA_composeAuth PARAMS((HTRequest * req));
+extern BOOL HTAA_composeAuth PARAMS((HTRequest * req));
 
 
 /* BROWSER PUBLIC					HTAA_retryWithAuth()
@@ -171,7 +171,7 @@ PUBLIC BOOL HTAA_composeAuth PARAMS((HTRequest * req));
 **	returns		YES, if dialog box was popped up.
 **			NO, on failure.
 */
-PUBLIC BOOL HTAA_retryWithAuth PARAMS((HTRequest *	req));
+extern BOOL HTAA_retryWithAuth PARAMS((HTRequest *	req));
 
 
 /* PUPLIC						HTAA_cleanup()
@@ -186,7 +186,7 @@ PUBLIC BOOL HTAA_retryWithAuth PARAMS((HTRequest *	req));
 ** ON EXIT:
 **	returns		nothing.
 */
-PUBLIC void HTAACleanup PARAMS((HTRequest *req));
+extern void HTAACleanup PARAMS((HTRequest *req));
 </PRE>
 
 <H2>Enabling Gateway httpds to Forward Authorization</H2>
@@ -196,9 +196,9 @@ request is handled to make sure that authorization string
 isn't cached in daemon so that other people can access private
 files using somebody elses previous authorization information.
 <PRE>
-PUBLIC void HTAAForwardAuth_set PARAMS((CONST char * scheme_name,
+extern void HTAAForwardAuth_set PARAMS((CONST char * scheme_name,
 					CONST char * scheme_specifics));
-PUBLIC void HTAAForwardAuth_reset NOPARAMS;
+extern void HTAAForwardAuth_reset NOPARAMS;
 </PRE>
 
 <PRE>

@@ -40,14 +40,14 @@ moved to <A HREF="HTDirBrw.html">HTDirBrw Module</A>.
 
 <H3>Split Filename to suffixes</H3>
 <PRE>
-PUBLIC int HTSplitFilename PARAMS((char *	s_str,
+extern int HTSplitFilename PARAMS((char *	s_str,
 				   char **	s_arr));
 
 </PRE>
 
 <H3>Get Content Description According to Suffixes</H3>
 <PRE>
-PUBLIC HTContentDescription * HTGetContentDescription PARAMS((char ** actual,
+extern HTContentDescription * HTGetContentDescription PARAMS((char ** actual,
 							      int	  n));
 
 #define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
@@ -98,22 +98,22 @@ the quality of such files (0.0..1.0)
 ** Example:  HTSetSuffix(".ps", "application/postscript", "8bit", NULL, 1.0);
 */
 
-PUBLIC void HTSetSuffix PARAMS((CONST char *	suffix,
+extern void HTSetSuffix PARAMS((CONST char *	suffix,
 			       CONST char *	representation,
 			       CONST char *	encoding,
 			       CONST char *	language,
 			       float		quality));
 
-PUBLIC void HTAddType PARAMS((CONST char *	suffix,
+extern void HTAddType PARAMS((CONST char *	suffix,
 			      CONST char *	representation,
 			      CONST char *	encoding,
 			      float		quality));
 
-PUBLIC void HTAddEncoding PARAMS((CONST char *	suffix,
+extern void HTAddEncoding PARAMS((CONST char *	suffix,
 				  CONST char *	encoding,
 				  float		quality));
 
-PUBLIC void HTAddLanguage PARAMS((CONST char *	suffix,
+extern void HTAddLanguage PARAMS((CONST char *	suffix,
 				  CONST char *	language,
 				  float		quality));
 

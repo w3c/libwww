@@ -19,11 +19,11 @@ mapping to printable characters as uuencode.
 
 #include "HTUtils.h"
 
-PUBLIC int HTUU_encode PARAMS((unsigned char *bufin,
+extern int HTUU_encode PARAMS((unsigned char *bufin,
 			       unsigned int nbytes,
 			       char *bufcoded));
 
-PUBLIC int HTUU_decode PARAMS((char *bufcoded,
+extern int HTUU_decode PARAMS((char *bufcoded,
 			       unsigned char *bufplain,
 			       int outbufsize));
 

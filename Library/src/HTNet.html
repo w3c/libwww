@@ -23,7 +23,6 @@ of Common Code</A>.
 <PRE>
 #ifndef HTTHREAD_H
 #define HTTHREAD_H
-#include "HTAccess.h"
 </PRE>
 
 <A NAME="Init"><H2>Initiation</H2></A>
@@ -33,7 +32,7 @@ Library. It is currently done in the private <A
 HREF="HTAccess.html#ProtReg">HTAccessInit</A> function. <P>
 
 <PRE>
-PUBLIC BOOL HTThreadInit	NOPARAMS;
+extern BOOL HTThreadInit	NOPARAMS;
 </PRE>
 
 <IMG ALT="NOTE"
@@ -49,8 +48,8 @@ respectively. A normal place to call these functions would be on
 creation and deletion of the <CODE>HTNetInfo</CODE> data structure.
 
 <PRE>
-PUBLIC void HTThread_new	PARAMS((HTNetInfo * new_net));
-PUBLIC int  HTThread_clear	PARAMS((HTNetInfo * old_net));
+extern void HTThread_new	PARAMS((HTNetInfo * new_net));
+extern int  HTThread_clear	PARAMS((HTNetInfo * old_net));
 </PRE>
 
 <H2>Get Bit-arrays for Select()</H2>
@@ -60,7 +59,7 @@ active sockets registered for <CODE>READ</CODE> and
 <CODE>WRITE</CODE>.
 
 <PRE>
-PUBLIC int HTThreadGetFDInfo 	PARAMS((fd_set * read, fd_set * write));
+extern int HTThreadGetFDInfo 	PARAMS((fd_set * read, fd_set * write));
 </PRE>
 
 <H2>Registration of the State of a Socket</H2>
@@ -86,14 +85,14 @@ typedef enum _HTThreadAction {
 </PRE>
 
 <PRE>
-PUBLIC void HTThreadState PARAMS((int sockfd, HTThreadAction action));
+extern void HTThreadState PARAMS((int sockfd, HTThreadAction action));
 </PRE>
 
 This function makes life easier if you want to mark all sockets as
 interrupted.
 
 <PRE>
-PUBLIC void HTThreadMarkIntrAll		NOPARAMS;
+extern void HTThreadMarkIntrAll		NOPARAMS;
 </PRE>
 
 <H2>Is a Thread Interrupted?</H2>
@@ -101,7 +100,7 @@ PUBLIC void HTThreadMarkIntrAll		NOPARAMS;
 This function returns YES if the socket is registered as interrupted
 
 <PRE>
-PUBLIC BOOL HTThreadIntr PARAMS((int sockfd));
+extern BOOL HTThreadIntr PARAMS((int sockfd));
 </PRE>
 
 <H2>Any Threads Registered?</H2>
@@ -110,7 +109,7 @@ This function returns YES if any HTTP sockets are still registered in the
 set of active sockets. Otherwise it returns NO.
 
 <PRE>
-PUBLIC BOOL HTThreadActive NOPARAMS;
+extern BOOL HTThreadActive NOPARAMS;
 </PRE>
 
 <H2>Select an Active Thread</H2>
@@ -120,7 +119,7 @@ sockets this functions selects one of them and finds the
 correseponding request structure.
 
 <PRE>
-PUBLIC HTRequest *HTThread_getRequest	PARAMS((CONST fd_set * fd_read,
+extern HTRequest *HTThread_getRequest	PARAMS((CONST fd_set * fd_read,
 						CONST fd_set * fd_write));
 
 #endif

@@ -108,7 +108,7 @@ extern int HTAddRule PARAMS((	HTRuleOp op, const char * pattern,
 </DL>
 
 <PRE>
-PUBLIC int HTClearRules NOPARAMS;
+extern int HTClearRules NOPARAMS;
 </PRE>
 
 <H2><A NAME=z4>HTTranslate: Translate by rules</A></H2>
@@ -131,7 +131,7 @@ original.
 </DL>
 
 <PRE>
-PUBLIC char * HTTranslate PARAMS((CONST char * required));
+extern char * HTTranslate PARAMS((CONST char * required));
 
 </PRE>
 <H2><A
@@ -172,7 +172,7 @@ be tried first.
 </DL>
 
 <PRE>
-PUBLIC int HTLoadRules PARAMS((const char * filename));
+extern int HTLoadRules PARAMS((const char * filename));
 </PRE>
 
 <PRE>

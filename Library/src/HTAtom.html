@@ -52,7 +52,7 @@ such that it will always (within one run of the program) return the
 same value for the same given string.
 
 <PRE>
-PUBLIC HTAtom * HTAtom_for PARAMS((CONST char * string));
+extern HTAtom * HTAtom_for PARAMS((CONST char * string));
 </PRE>
 
 <H3>Get Content of an Atom</H3>
@@ -71,7 +71,7 @@ template like <CODE>text&lt;slash&gt;&lt;star&gt;</CODE> returns a
 list of all MIME-types of type <CODE>text</CODE>.
 
 <PRE>
-PUBLIC HTList * HTAtom_templateMatches PARAMS((CONST char * templ));
+extern HTList * HTAtom_templateMatches PARAMS((CONST char * templ));
 
 #endif
 </PRE>

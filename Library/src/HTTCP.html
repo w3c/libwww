@@ -44,7 +44,7 @@ HTDoConnect measures the time to do the connection and updates the
 calculated weights in the cache of visited hosts.
 
 <PRE>
-PUBLIC int HTDoConnect PARAMS((	HTNetInfo  	*net,
+extern int HTDoConnect PARAMS((	HTNetInfo  	*net,
 				char		*url,
 			     	u_short		default_port,
 			    	u_long 		*addr,
@@ -57,7 +57,7 @@ This function makes a non-blocking accept on a port and polls every second
 until MAX_ACCEPT_POLL is reached.
 
 <PRE>
-PUBLIC int HTDoAccept PARAMS((HTNetInfo *net));
+extern int HTDoAccept PARAMS((HTNetInfo *net));
 </PRE>
 
 <A NAME="hostcache"><H2>Caching Hosts Names</H2></A>
@@ -81,7 +81,7 @@ On every connect to a multihomed host, the average connect time is updated
 exponentially for all the entries.
 
 <PRE>
-PUBLIC void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
+extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
 </PRE>
 
 <H3>Control Variables</H3>
@@ -102,7 +102,7 @@ Theese functions return an explanation if an error has occured.
 Return error message corresponding to current errno, just like strerror().
 
 <PRE>
-PUBLIC CONST char * HTErrnoString NOPARAMS;
+extern CONST char * HTErrnoString NOPARAMS;
 </PRE>
 
 <H3>Description of what Caused the Error</H3>
@@ -115,7 +115,7 @@ function HTErrorAdd() should be used as then the error is parsed all the way
 to the user. The function returns a negative status in the unix way.
 
 <PRE>
-PUBLIC int HTInetStatus PARAMS((char * where));
+extern int HTInetStatus PARAMS((char * where));
 </PRE>
 
 <H3>Parse a Cardinal Value</H3>
@@ -135,7 +135,7 @@ PUBLIC int HTInetStatus PARAMS((char * where));
 ** 	*pstatus points to status updated iff bad
 */
 
-PUBLIC unsigned int HTCardinal PARAMS((int *		pstatus,
+extern unsigned int HTCardinal PARAMS((int *		pstatus,
 				       char **		pp,
 				       unsigned int	max_value));
 </PRE>
@@ -153,7 +153,7 @@ pointer returned points to static memory which must be copied if it is to be
 kept.
 
 <PRE>
-PUBLIC CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
+extern CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
 </PRE>
 
 <H3>Parse an internet node address and port</H3>
@@ -166,7 +166,7 @@ address field. <P>
 On exit *sin is filled in. If no port is specified in str, that field is left
 unchanged in *sin. On success, the number of homes on the host is returned.
 <PRE>
-PUBLIC int HTParseInet PARAMS((	struct sockaddr_in *	sin,
+extern int HTParseInet PARAMS((	struct sockaddr_in *	sin,
 			       	CONST char *		str,
 				BOOL			use_cur));
 </PRE>
@@ -180,7 +180,7 @@ reasons this is not the case. <P>
 this is now used to find you own host name, see <A HREF="HTTCP.html#HTGetHostName">HTGetHostName()</A></EM>
 
 <PRE>
-PUBLIC char * HTGetHostBySock PARAMS((int soc));
+extern char * HTGetHostBySock PARAMS((int soc));
 </PRE>
 
 <H3>Host address retuned for specified host name</H3>
@@ -191,7 +191,7 @@ to the Domain Name Server is minimized. If OK and single homed host then
 it returns 0 but if it is a multi-homed host then 1 is returned.
 
 <PRE>
-PUBLIC int HTGetHostByName PARAMS((char *host, SockA *sin, BOOL use_cur));
+extern int HTGetHostByName PARAMS((char *host, SockA *sin, BOOL use_cur));
 </PRE>
 
 
@@ -201,7 +201,7 @@ This function returns a CONET char pointer to a static location containing
 the name of this host or NULL if not available.
 
 <PRE>
-PUBLIC CONST char * HTGetHostName NOPARAMS;
+extern CONST char * HTGetHostName NOPARAMS;
 </PRE>
 
 
@@ -214,7 +214,7 @@ the change is done before the first call to HTGetMailAddress() then this
 function will use the new host and domain name.
 
 <PRE>
-PUBLIC void HTSetHostName PARAMS((char * host));
+extern void HTSetHostName PARAMS((char * host));
 </PRE>
 
 
@@ -225,7 +225,7 @@ HTGetHostName() function. Changing the domain name requires a call to
 HTSetHostname().
 
 <PRE>
-PUBLIC CONST char *HTGetDomainName NOPARAMS;
+extern CONST char *HTGetDomainName NOPARAMS;
 </PRE>
 
 
@@ -237,7 +237,7 @@ one of the current host name so different values can be assigned. The default
 value is &lt;USER&gt;@hostname where hostname is as returned by HTGetHostName().
 
 <PRE>
-PUBLIC CONST char * HTGetMailAddress NOPARAMS;
+extern CONST char * HTGetMailAddress NOPARAMS;
 </PRE>
 
 
@@ -247,7 +247,7 @@ This function overwrites any other value of current mail address. This might
 be set by the user to change the value in the  <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A> in the <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTTP2.html">HTTP Protocol</A>.
 
 <PRE>
-PUBLIC void HTSetMailAddress PARAMS((char * address));
+extern void HTSetMailAddress PARAMS((char * address));
 </PRE>
 
 <H2>Signal Handling</H2>
@@ -257,7 +257,7 @@ application does not have its own signal handling.
 
 <PRE>
 #ifdef LIB_SIG
-PUBLIC void HTSetSignal NOPARAMS
+extern void HTSetSignal NOPARAMS
 #endif
 
 #endif   /* HTTCP_H */

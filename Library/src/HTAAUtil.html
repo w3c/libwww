@@ -139,7 +139,7 @@ typedef enum {
 ** ON EXIT:
 **	returns		the enumerated constant for that scheme.
 */
-PUBLIC HTAAScheme HTAAScheme_enum PARAMS((CONST char* name));
+extern HTAAScheme HTAAScheme_enum PARAMS((CONST char* name));
 
 
 /* PUBLIC						HTAAScheme_name()
@@ -152,7 +152,7 @@ PUBLIC HTAAScheme HTAAScheme_enum PARAMS((CONST char* name));
 **	returns		the name of the scheme, i.e.
 **			"none", "basic", "pubkey", ...
 */
-PUBLIC char *HTAAScheme_name PARAMS((HTAAScheme scheme));
+extern char *HTAAScheme_name PARAMS((HTAAScheme scheme));
 
 
 /* PUBLIC					    HTAA_templateCaseMatch()
@@ -177,7 +177,7 @@ PUBLIC char *HTAAScheme_name PARAMS((HTAAScheme scheme));
 **	returns		YES, if filename matches the template.
 **			NO, otherwise.
 */
-PUBLIC BOOL HTAA_templateCaseMatch PARAMS((CONST char * tmplate, 
+extern BOOL HTAA_templateCaseMatch PARAMS((CONST char * tmplate, 
 					   CONST char * filename));
 
 
@@ -200,7 +200,7 @@ PUBLIC BOOL HTAA_templateCaseMatch PARAMS((CONST char * tmplate,
 **				being a comment marker here,
 **				there really isn't any space.
 */
-PUBLIC char *HTAA_makeProtectionTemplate PARAMS((CONST char * docname));
+extern char *HTAA_makeProtectionTemplate PARAMS((CONST char * docname));
 </PRE>
 <H2>MIME Argument List Parser</H2>
 <PRE>
@@ -231,7 +231,7 @@ PUBLIC char *HTAA_makeProtectionTemplate PARAMS((CONST char * docname));
 **		the number of order number of that item. E.g.
 **		"1" for the first, etc.
 */
-PUBLIC HTList *HTAA_parseArgList PARAMS((char * str));
+extern HTList *HTAA_parseArgList PARAMS((char * str));
 
 </PRE>
 

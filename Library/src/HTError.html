@@ -187,8 +187,8 @@ Two functions handle the URL prefix of the links inside the error
 message. They are quite obvious:
 
 <PRE>
-PUBLIC void HTErrorSetPrefix PARAMS((char *path));
-PUBLIC CONST char *HTErrorGetPrefix NOPARAMS;
+extern void HTErrorSetPrefix PARAMS((char *path));
+extern CONST char *HTErrorGetPrefix NOPARAMS;
 </PRE>
 
 <H3>Generating an Error Message (default to standard error)</H3>
@@ -205,7 +205,7 @@ If a stream <EM>has</EM> been put up (and maybe taken down again) inside the
 Library, then request-&gt;error_block has been set to YES. This indicates that
 it is NOT possible any more to use the stream as output for the message.
 <PRE>
-PUBLIC void HTErrorMsg    PARAMS((HTRequest * request));
+extern void HTErrorMsg    PARAMS((HTRequest * request));
 </PRE>
 
 <H3>Freeing an Error List</H3>
@@ -213,7 +213,7 @@ PUBLIC void HTErrorMsg    PARAMS((HTRequest * request));
 This is normally done when the HTRequest structure is freed but it might be 
 done at any other time in order to ignore a whole series of errors.
 <PRE>
-PUBLIC void HTErrorFree   PARAMS((HTRequest * request));
+extern void HTErrorFree   PARAMS((HTRequest * request));
 </PRE>
 
 <PRE>

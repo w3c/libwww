@@ -99,7 +99,7 @@ typedef enum _HTSocketEOL {
     EOL_SLF
 } HTSocketEOL;
 
-PUBLIC int HTInputSocket_read	PARAMS((HTInputSocket * isoc,
+extern int HTInputSocket_read	PARAMS((HTInputSocket * isoc,
 					HTStream * target));
 </PRE>
 
@@ -226,7 +226,7 @@ typedef struct _HTContentDescription {
     float	quality;
 } HTContentDescription;
 
-PUBLIC void HTAcceptEncoding PARAMS((HTList *	list,
+extern void HTAcceptEncoding PARAMS((HTList *	list,
 				     char *	enc,
 				     float	quality));
 </PRE>
@@ -236,7 +236,7 @@ PUBLIC void HTAcceptEncoding PARAMS((HTList *	list,
 This function is not currently used.
 
 <PRE>
-PUBLIC void HTAcceptLanguage PARAMS((HTList *	list,
+extern void HTAcceptLanguage PARAMS((HTList *	list,
 				     char *	lang,
 				     float	quality));
 </PRE>
@@ -393,7 +393,7 @@ extern void HTFormatDelete	PARAMS((HTRequest * request));
 This function is not currently used.
 
 <PRE>
-PUBLIC BOOL HTRank PARAMS((HTList * possibilities,
+extern BOOL HTRank PARAMS((HTList * possibilities,
 			   HTList * accepted_content_types,
 			   HTList * accepted_content_languages,
 			   HTList * accepted_content_encodings));
@@ -413,7 +413,7 @@ If <CODE>guess</CODE> is true and input format is
 first few bytes of the stream. <P>
 
 <PRE>
-PUBLIC HTStream * HTStreamStack PARAMS((HTFormat	rep_in,
+extern HTStream * HTStreamStack PARAMS((HTFormat	rep_in,
 					HTFormat	rep_out,
 					HTStream *	output_stream,
 					HTRequest *	request,
@@ -520,10 +520,10 @@ Buffer is not NULL-terminated.
 <PRE>extern char * HTInputSocket_getBlock PARAMS((HTInputSocket * isoc,
 						  int *           len));
 
-PUBLIC char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
-PUBLIC char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
-PUBLIC char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
-PUBLIC BOOL   HTInputSocket_seemsBinary PARAMS((HTInputSocket * isoc));
+extern char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
+extern char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
+extern char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
+extern BOOL   HTInputSocket_seemsBinary PARAMS((HTInputSocket * isoc));
 
 #endif
 

@@ -14,12 +14,12 @@
 /*
 **	Set default file name for welcome page on each directory.
 */
-PUBLIC void HTAddWelcome PARAMS((char * welcome_name));
+extern void HTAddWelcome PARAMS((char * welcome_name));
 
 /*
 **	Perform multiformat handling
 */
-PUBLIC char * HTMulti PARAMS((HTRequest *	req,
+extern char * HTMulti PARAMS((HTRequest *	req,
 			      char *		path,
 			      struct stat *	stat_info));
 

@@ -15,7 +15,6 @@ such as:
 <LI> Remove redundant data from the URI (HTSimplify and HTCanon)
 <LI> Expand a local host name into a full domain name (HTExpand)
 <LI> Search a URI for illigal characters in order to prevent security holes
-<LI> Escape and Unescape a URI for <A HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/4_URI_Recommentations.html">reserved characters in URLs</A>
 </UL>
 
 Implemented by <A NAME=z0 HREF="HTParse.c">HTParse.c</A>.
@@ -24,6 +23,7 @@ Implemented by <A NAME=z0 HREF="HTParse.c">HTParse.c</A>.
 #ifndef HTPARSE_H
 #define HTPARSE_H
 #include "HTUtils.h"
+#include "HTEscape.h"
 </PRE>
 
 <H2>HTParse:  Parse a URI relative to another URI</H2>
@@ -65,7 +65,7 @@ which MUST BE FREED
 </DL>
 
 <PRE>
-PUBLIC char * HTParse  PARAMS((	const char * aName,
+extern char * HTParse  PARAMS((	const char * aName,
 				const char * relatedName,
 				int wanted));
 </PRE>
@@ -78,7 +78,7 @@ All trailing white space is OVERWRITTEN
 with zero.
 
 <PRE>
-PUBLIC char * HTStrip PARAMS((char * s));
+extern char * HTStrip PARAMS((char * s));
 </PRE>
 
 <H2>HTSimplify: Simplify a UTL</H2>
@@ -118,7 +118,7 @@ If more than one set of `://' is found (several proxies in cascade) then
 only the part after the last `://' is simplified.
 
 <PRE>
-PUBLIC char *HTSimplify PARAMS((char *filename));
+extern char *HTSimplify PARAMS((char *filename));
 </PRE>
 
 
@@ -138,7 +138,7 @@ will yield aName. The caller is responsible
 for freeing the resulting name later.
 
 <PRE>
-PUBLIC char * HTRelative PARAMS((const char * aName, const char *relatedName));
+extern char * HTRelative PARAMS((const char * aName, const char *relatedName));
 </PRE>
 
 <H2>HTExpand: Expand a Local Host Name Into a Full Domain Name</H2>
@@ -149,43 +149,9 @@ advantage by doing this is that we only have one entry in the host
 case and one entry in the document cache.
 
 <PRE>
-PUBLIC char *HTCanon PARAMS ((	char **	filename,
+extern char *HTCanon PARAMS ((	char **	filename,
 				char *	host));
 </PRE>
-
-<H2>HTEscape: Encode unacceptable characters in string</H2>
-
-This funtion takes a string containing
-any sequence of ASCII characters,
-and returns a malloced string containing
-the same infromation but with all
-"unacceptable" characters represented
-in the form %xy where X and Y are
-two hex digits.
-
-<PRE>
-PUBLIC char * HTEscape PARAMS((CONST char * str, unsigned char mask));
-</PRE>
-
-The following are valid mask values. The terms are the BNF names in the
-URI document.
-
-<PRE>
-#define URL_XALPHAS	(unsigned char) 1
-#define URL_XPALPHAS	(unsigned char) 2
-#define URL_PATH	(unsigned char) 4
-</PRE>
-
-<H2>HTUnEscape: Decode %xx escaped characters</H2>
-
-This function takes a pointer to a string in which character smay
-have been encoded in %xy form, where xy is the acsii hex code for character
-16x+y. The string is converted in place, as it will never grow.
-
-<PRE>
-extern char * HTUnEscape PARAMS(( char * str));
-</PRE>
-
 
 <H2>Prevent Security Holes</H2>
 
@@ -204,7 +170,7 @@ inclusive.
 </DL>
 
 <PRE>
-PUBLIC BOOL HTCleanTelnetString PARAMS((char * str));
+extern BOOL HTCleanTelnetString PARAMS((char * str));
 </PRE>
 
 <PRE>

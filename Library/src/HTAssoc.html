@@ -26,14 +26,14 @@ typedef struct {
 } HTAssoc;
 
 
-PUBLIC HTAssocList *HTAssocList_new NOPARAMS;
-PUBLIC void HTAssocList_delete PARAMS((HTAssocList * alist));
+extern HTAssocList *HTAssocList_new NOPARAMS;
+extern void HTAssocList_delete PARAMS((HTAssocList * alist));
 
-PUBLIC void HTAssocList_add PARAMS((HTAssocList *	alist,
+extern void HTAssocList_add PARAMS((HTAssocList *	alist,
 				    CONST char *	name,
 				    CONST char *	value));
 
-PUBLIC char *HTAssocList_lookup PARAMS((HTAssocList *	alist,
+extern char *HTAssocList_lookup PARAMS((HTAssocList *	alist,
 				        CONST char *	name));
 
 #endif /* not HTASSOC_H */

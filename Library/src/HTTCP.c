@@ -24,7 +24,11 @@
 #include "HTParse.h"
 #include "HTAccess.h"
 #include "HTError.h"
+
+#ifdef EVENT_LOOP
 #include "HTThread.h"
+#endif /* EVENT_LOOP */
+
 #include "HTTCP.h"					 /* Implemented here */
 
 #ifdef VMS 
@@ -1080,7 +1084,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	if (HTThreadIntr(net->sockfd)) {
 	    if (NETCLOSE(net->sockfd) < 0)
 		HTErrorSysAdd(net->request, ERR_FATAL, NO, "NETCLOSE");
+#ifdef EVENT_LOOP
 	    HTThreadState(net->sockfd, THD_CLOSE);
+#endif /* EVENT_LOOP */
 	    net->sockfd = -1;
 	    free(p1);
 	    return HT_INTERRUPTED;
@@ -1115,7 +1121,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	{
 	    if (PROT_TRACE)
 		fprintf(stderr, "HTDoConnect. WOULD BLOCK `%s'\n", host);
+#ifdef EVENT_LOOP
 	    HTThreadState(net->sockfd, THD_SET_WRITE);
+#endif /* EVENT_LOOP */
 	    free(p1);
 	    return HT_WOULD_BLOCK;
 	}
@@ -1123,7 +1131,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    net->connecttime = time(NULL) - net->connecttime;
 	    if (status < 0) {
 		if (errno == EISCONN) {	  /* connect multi after would block */
+#ifdef EVENT_LOOP
 		    HTThreadState(net->sockfd, THD_CLR_WRITE);
+#endif /* EVENT_LOOP */
 		    HTTCPAddrWeights(host, net->connecttime);
 		    free(p1);
 		    net->addressCount = 0;
@@ -1142,7 +1152,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		    net->connecttime += TCP_PENALTY;
 		if (NETCLOSE(net->sockfd) < 0)
 		    HTErrorSysAdd(net->request, ERR_FATAL, NO, "NETCLOSE");
+#ifdef EVENT_LOOP
 		HTThreadState(net->sockfd, THD_CLOSE);
+#endif /* EVENT_LOOP */
 		net->sockfd = -1;
 		HTTCPAddrWeights(host, net->connecttime);
 	    } else {				   /* Connect on multi-homed */
@@ -1153,7 +1165,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    }
 	} else if (status < 0) {
 	    if (errno == EISCONN) {      /* Connect single after would block */
+#ifdef EVENT_LOOP
 		HTThreadState(net->sockfd, THD_CLR_WRITE);
+#endif /* EVENT_LOOP */
 		net->addressCount = 0;
 		free(p1);
 		return 0;
@@ -1162,7 +1176,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		HTTCPCacheRemoveHost(host);
 		if (NETCLOSE(net->sockfd) < 0)
 		    HTErrorSysAdd(net->request, ERR_FATAL, NO, "NETCLOSE");
+#ifdef EVENT_LOOP
 		HTThreadState(net->sockfd, THD_CLOSE);
+#endif /* EVENT_LOOP */
 		break;
 	    }
 	} else {				  /* Connect on single homed */

@@ -92,7 +92,7 @@ typedef enum {
 Gives the enumeration value of the method as a function of the (char *) name.
 
 <PRE>
-PUBLIC HTMethod HTMethod_enum PARAMS((char * name));
+extern HTMethod HTMethod_enum PARAMS((char * name));
 </PRE>
 
 <H3>Get Method String</H3>
@@ -100,7 +100,7 @@ PUBLIC HTMethod HTMethod_enum PARAMS((char * name));
 The reverse of <I>HTMethod_enum()</I>
 
 <PRE>
-PUBLIC char * HTMethod_name PARAMS((HTMethod method));
+extern char * HTMethod_name PARAMS((HTMethod method));
 </PRE>
 
 <H3>Valid Methods</H3>
@@ -110,7 +110,7 @@ This functions searches the list of valid methods for a given anchor, see
 YES else NO.
 
 <PRE>
-PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
+extern BOOL HTMethod_inList PARAMS((HTMethod	method,
 				    HTList *	list));
 </PRE>
 
@@ -119,7 +119,7 @@ PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 
 <H4>Match Template Against Filename</H4>
 <PRE>
-/* PUBLIC						HTAA_templateMatch()
+/* extern						HTAA_templateMatch()
 **		STRING COMPARISON FUNCTION FOR FILE NAMES
 **		   WITH ONE WILDCARD * IN THE TEMPLATE
 ** NOTE:
@@ -141,7 +141,7 @@ PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 **	returns		YES, if filename matches the template.
 **			NO, otherwise.
 */
-PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * tmplate, 
+extern BOOL HTAA_templateMatch PARAMS((CONST char * tmplate, 
 				       CONST char * filename));
 </PRE>
 
@@ -406,13 +406,13 @@ added before being passed to HTAccess,
 but it will work as is for a simple
 request.
 <PRE>
-PUBLIC HTRequest * HTRequest_new NOPARAMS;
+extern HTRequest * HTRequest_new NOPARAMS;
 </PRE>
 
 <H3>Delete request structure</H3>Frees also conversion list hanging
 from req->conversions.
 <PRE>
-PUBLIC void HTRequest_delete PARAMS((HTRequest * req));
+extern void HTRequest_delete PARAMS((HTRequest * req));
 </PRE>
 
 <H3>Clear a request structure</H3>
@@ -510,7 +510,7 @@ If <CODE>keep_error_stack</CODE> is YES then the error (or info) stack
 is not cleared from the previous call.
 
 <PRE>
-PUBLIC int HTLoad PARAMS((HTRequest * request, BOOL keep_error_stack));
+extern int HTLoad PARAMS((HTRequest * request, BOOL keep_error_stack));
 </PRE>
 
 <A NAME="RelSearch"><H3>Search Using Relative URI</H3></A>
@@ -531,7 +531,7 @@ to the end of the current address and attempts to open the new
 address.
 
 <PRE>
-PUBLIC int HTSearchAbsolute	PARAMS((CONST char *	keywords,
+extern int HTSearchAbsolute	PARAMS((CONST char *	keywords,
 					CONST char * 	indexname,
 					HTRequest *	request));
 </PRE>
@@ -556,7 +556,7 @@ program first runs. This is a default algorithm using the
 <CODE>WWW_HOME</CODE> environment variable.
 
 <PRE>
-PUBLIC HTParentAnchor * HTHomeAnchor NOPARAMS;
+extern HTParentAnchor * HTHomeAnchor NOPARAMS;
 </PRE>
 
 <H3>Find Related Name</H3>
@@ -594,7 +594,7 @@ to save the object to.
 </DL>
 
 <PRE>
-PUBLIC HTStream * HTSaveStream PARAMS((HTRequest * request));
+extern HTStream * HTSaveStream PARAMS((HTRequest * request));
 </PRE>
 
 
@@ -628,7 +628,7 @@ typedef struct _HTProtocol {
 					HTParentAnchor* postTo));
 } HTProtocol;
 
-PUBLIC BOOL HTRegisterProtocol PARAMS((HTProtocol * protocol));
+extern BOOL HTRegisterProtocol PARAMS((HTProtocol * protocol));
 </PRE>
 
 <H3>Uses Protocol Blocking IO</H3>
@@ -637,7 +637,7 @@ A small function to make life easier. Returns <CODE>YES</CODE> or
 <CODE>NO</CODE>.
 
 <PRE>
-PUBLIC BOOL HTProtocolBlocking	PARAMS((HTRequest *	request));
+extern BOOL HTProtocolBlocking	PARAMS((HTRequest *	request));
 </PRE>
 
 end
