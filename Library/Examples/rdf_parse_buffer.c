@@ -13,7 +13,7 @@
 **	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
 **	details.
 **
-**      Test case for the HTRDFParseBuffer API.  One or more files
+**      Test case for the HTRDF_parseBuffer API.  One or more files
 **      are given via the command line and for each file, it is opened,
 **      its contents are stored in a buffer and then the API is
 **      called.  Each buffer's triples are output to stdout.
@@ -123,7 +123,7 @@ int main (int argc, char ** argv)
     for (i=1; i < argc; i++) {
         s = parse_buffer(argv[i], &buffer, &buff_len);
         if (!s) {
-            s = HTRDFParseBuffer(buffer, argv[i], buff_len, new_triple_handler);
+            s = HTRDF_parseBuffer(buffer, argv[i], buff_len, new_triple_handler);
             if (s)
                 (void) fprintf (stderr, "ERROR parsing the buffer: '%s'\n", s);
         }

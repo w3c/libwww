@@ -388,8 +388,8 @@ Returns NULL if the file is successfully parsed; otherwise a
 pointer to a static error message is returned.  The caller must NOT 
 free the pointer returned by this function.
 <PRE>
-extern char * HTRDFParseFile (const char *file_name, 
-                              HTTripleCallback_new * new_triple_callback);
+extern char * HTRDF_parseFile (const char *file_name, 
+                               HTTripleCallback_new * new_triple_callback);
 </PRE>
 <H3>
   Parse a buffer of RDF
@@ -404,10 +404,10 @@ Returns NULL if the buffer is successfully parsed; otherwise a
 pointer to a static error message is returned.  The caller must NOT
 free the pointer returned by this function.
 <PRE>
-PUBLIC char * HTRDFParseBuffer (const char *buffer, 
-                                const char *buffer_name, 
-                                int buffer_len, 
-                                HTTripleCallback_new * new_triple_callback);
+PUBLIC char * HTRDF_parseBuffer (const char *buffer, 
+		                 const char *buffer_name, 
+                                 int buffer_len, 
+                                 HTTripleCallback_new * new_triple_callback);
 </PRE>
 
 <PRE>
@@ -419,3 +419,8 @@ PUBLIC char * HTRDFParseBuffer (const char *buffer,
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
+
+
+
+
+

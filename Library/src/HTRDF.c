@@ -2610,20 +2610,23 @@ PRIVATE char * initialize_parsers(XML_Parser *xmlparser, HTRDF **rdfparser,
     return NULL;
 }
 
-/*	HTRDFParseFile
+/*	HTRDF_parseFile
 **	---------------
 **      This function parses a file of RDF in a synchronous, non-blocking
 **      way.  In other words, the file is not asynchronously loaded.
 **
-*@param file_name the name of the file to parse
-*@param new_triple_callback the callback that is invoked when a triple
-* is created.  If NULL, the default triple handler is invoked.
-*@return NULL if the buffer is successfully parsed; otherwise a 
-* pointer to a static error message is returned.  The caller must NOT
-* free this pointer.
+**      Parameters:
+**        file_name      the name of the file to parse
+**        new_triple_callback the callback that is invoked when a triple
+**                       is created. If NULL, the default triple handler is
+**                        invoked.
+**      Returns:
+**        NULL if the buffer is successfully parsed; otherwise a pointer to a
+**        static error message is returned.  The caller must NOT  free this
+**        pointer.
 */
 
-PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_triple_callback)
+PUBLIC char * HTRDF_parseFile (const char *file_name, HTTripleCallback_new * new_triple_callback)
 {
     char buff[512]; /* the file input buffer */
     FILE *fp;
@@ -2635,18 +2638,19 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
 
     /* Sanity check */
     if (!file_name) {
-	HTTRACE(XML_TRACE, "RDFParseFile.. file name is NULL\n");
-	return "RDFParseFile: file_name is NULL";
+	HTTRACE(XML_TRACE, "RDF_ParseFile.. file name is NULL\n");
+	return "RDF_ParseFile: file_name is NULL";
     }
 
     /* If the file does not exist, return now */
     fp = fopen (file_name, "r");
     if (!fp)  { /* annotation index file doesn't exist */
-	HTTRACE(XML_TRACE, "RDFParseFile.. file open failed\n");
-	return "RDFParseFile: file open failed";
+	HTTRACE(XML_TRACE, "RDF_ParseFile.. file open failed\n");
+	return "RDF_ParseFile: file open failed";
     }
 
-    s = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, new_triple_callback, file_name);
+    s = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, 
+			   new_triple_callback, file_name);
     if (s) {
 	fclose (fp);
         return s;
@@ -2666,7 +2670,7 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
             XML_ParserFree(xmlparser);
             HTRDF_delete(rdfparser);
             HT_FREE(stream);
-            return "RDFParseFile: error reading file";
+            return "RDF_ParseFile: error reading file";
         }
         done = feof(fp);
         if (done)
@@ -2682,7 +2686,7 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
             XML_ParserFree(xmlparser);
             HTRDF_delete(rdfparser);
             HT_FREE(stream);
-            return "RDFParseFile: parse error";
+            return "RDF_ParseFile: parse error";
         }
         if (done)
             break;
@@ -2701,23 +2705,26 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
     return NULL;
 }
 
-/*	HTRDFParseBuffer
+/*	HTRDF_parseBuffer
 **	---------------
 **      This function parses a buffer of RDF in a synchronous, non-blocking
 **      way.
 **
-*@param buffer the buffer to parse
-*@param buffer_name the buffer's name.  This is used by the parser
-* when naming "anonymous" subjects
-*@param buffer_len the buffer's length (number of bytes)
-*@param new_triple_callback the callback that is invoked when a triple
-* is created.  If NULL, the default triple handler is invoked.
-*@return NULL if the buffer is successfully parsed; otherwise a 
-* pointer to a static error message is returned.  The caller must NOT
-* free this pointer.
+**      Parameters:
+**       buffer       the buffer to parse
+**       buffer_name  the buffer's name.  This is used by the parser
+**                    when naming "anonymous" subjects
+**       buffer_len   the buffer's length (number of bytes)
+**       new_triple_callback the callback that is invoked when a triple
+**                    is created. If NULL, the default triple handler is
+**                     invoked.
+**      Returns:
+**       NULL if the buffer is successfully parsed; otherwise a 
+**       pointer to a static error message is returned.  The caller must NOT
+*        free this pointer.
 */
 
-PUBLIC char * HTRDFParseBuffer (const char *buffer, const char *buffer_name, int buffer_len, HTTripleCallback_new * new_triple_callback)
+PUBLIC char * HTRDF_parseBuffer (const char *buffer, const char *buffer_name, int buffer_len, HTTripleCallback_new * new_triple_callback)
 {
     XML_Parser xmlparser;
     HTRDF *rdfparser;
@@ -2727,13 +2734,14 @@ PUBLIC char * HTRDFParseBuffer (const char *buffer, const char *buffer_name, int
 
     /* Sanity checks */
     if (!buffer)
-        return "RDFParseBuffer: buffer is NULL";
+        return "RDF_ParseBuffer: buffer is NULL";
     if (buffer_len <= 0)
-        return "RDFParseBuffer: buffer_len is <=0";
+        return "RDF_ParseBuffer: buffer_len is <=0";
     if (!buffer_name)
-        return "RDFParseBuffer: buffer_name is NULL";
+        return "RDF_ParseBuffer: buffer_name is NULL";
 
-    s = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, new_triple_callback, buffer_name);
+    s = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, 
+			   new_triple_callback, buffer_name);
     if (s)
         return s;
 
@@ -2745,7 +2753,7 @@ PUBLIC char * HTRDFParseBuffer (const char *buffer, const char *buffer_name, int
         XML_ParserFree(xmlparser);
         HTRDF_delete(rdfparser);
         HT_FREE(stream);
-        return "RDFParseBuffer: parse error";
+        return "RDF_ParseBuffer: parse error";
     }
 
     /* The buffer has been parsed, generate the triples */
@@ -2759,3 +2767,8 @@ PUBLIC char * HTRDFParseBuffer (const char *buffer, const char *buffer_name, int
 
     return NULL;
 }
+
+
+
+
+

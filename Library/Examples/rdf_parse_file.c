@@ -50,7 +50,7 @@ int main (int argc, char ** argv)
     }
 
     for (i=1; i < argc; i++) {
-        s = HTRDFParseFile(argv[i], new_triple_handler);
+        s = HTRDF_parseFile(argv[i], new_triple_handler);
         if (s) 
             (void) fprintf (stderr, "Parse ERROR: '%s'\n", s);
     }
