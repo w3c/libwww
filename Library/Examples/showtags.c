@@ -54,36 +54,36 @@ PRIVATE void beginElement (HText * 		text,
 	int maxcnt = HTTag_attributes(tag);
 	BOOL found = NO;
 	int cnt;
-	HTTrace("Begin element: <%s> with attributes:",
+	HTPrint("Begin element: <%s> with attributes:",
 		tagname ? tagname : "<unknown>");
 	for (cnt=0; cnt<maxcnt; cnt++) {
 	    if (present[cnt]) {
 		char * attrname = HTTag_attributeName(tag, cnt);
 		found = YES;
-		HTTrace(" %s", attrname ? attrname : "<unknown>");
-		if (value[cnt]) HTTrace("=\"%s\"", value[cnt]);
+		HTPrint(" %s", attrname ? attrname : "<unknown>");
+		if (value[cnt]) HTPrint("=\"%s\"", value[cnt]);
 	    }
 	}
-	if (!found) HTTrace(" none");
+	if (!found) HTPrint(" none");
     }
-    HTTrace("\n");
+    HTPrint("\n");
 }
 
 PRIVATE void endElement (HText * text, int element_number)
 {
     SGML_dtd * dtd = HTML_dtd();
     char * tagname = SGML_findTagName(dtd, element_number);
-    HTTrace("End element:   </%s>\n", tagname ? tagname : "<unknown>");
+    HTPrint("End element:   </%s>\n", tagname ? tagname : "<unknown>");
 }
 
 PRIVATE void unparsedBeginElement (HText * text, const char * buf, int len)
 {
-    if (buf) HTTrace("Unknown begin: <%s>\n", buf);
+    if (buf) HTPrint("Unknown begin: <%s>\n", buf);
 }
 
 PRIVATE void unparsedEndElement (HText * text, const char * buf, int len)
 {
-    if (buf) HTTrace("Unknown end:   </%s>\n", buf);
+    if (buf) HTPrint("Unknown end:   </%s>\n", buf);
 }
 
 int main (int argc, char ** argv)
