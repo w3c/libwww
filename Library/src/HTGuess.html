@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Guessing Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -14,9 +14,11 @@
 */
 </PRE>
 
-This stream is a one that reads first a chunk of stuff, tries to
-figure out the format, and calls <CODE>HTStreamStack()</CODE>. This is
-a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. <P>
+This interface provides functionality for guessing unknown media types
+from magic words. The stream is a one that reads first a chunk of
+stuff, tries to figure out the format, and calls
+<CODE>HTStreamStack()</CODE>. This is a kind of lazy-evaluation of
+<CODE>HTStreamStack()</CODE>. <P>
 
 This could be extended arbitrarily to recognize all the possible
 file formats in the world, if someone only had time to do it. <P>

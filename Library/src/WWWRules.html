@@ -1,0 +1,85 @@
+<HTML>
+<HEAD>
+<TITLE>Rule Files and Proxies</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Rule Files and Proxies</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+In addition top the basic W3C Reference Library include file called <A
+HREF="WWWLib.html">WWWLib.h</A> you <EM>can</EM> also include this
+file depending on the needs of your application. However, it is not
+required and none of the files included below are ever used in the
+core part of the Library itself. Only if this file is included, the
+extra modules will get included in the linked object code. It is also
+possible to include only a subset of the files below if the
+functionality you are after is covered by them.
+
+<PRE>
+#ifndef WWWRULES_H
+#define WWWRULES_H
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<H3>Rule File Management</H3>
+
+Another way to initialize applications is to use a rule file, also
+known as a configuration file. This is for example the case with the
+W3C httpd and the W3C Line Mode Browser. This module provides basic
+support for configuration file management and the application can use
+this is desired. The module is not referred to by the Library. Reading
+a rule file is implemented as a stream converter so that a rule file
+can come from anywhere, even across the network!
+
+<PRE>
+#include "<A HREF="HTRules.html">HTRules.h</A>"
+</PRE>
+
+<H3>Proxies and Gateways</H3>
+
+Applications do not have to provide native support for all protocols,
+they can in many situations rely on the support of proxies and
+gateways to help doing the job. Proxy servers are often used to carry
+client requests through a firewall where they can provide services
+like corporate caching and other network optimizations. Both Proxy
+servers and gateways can serve as "protocol translators" which can
+convert a request in the main Web protocol, HTTP, to an equivalent
+request in another protocol, for example NNTP, FTP, or Gopher. In case
+a proxy server or a gateway is available to the application, it can
+therefore by use of HTTP forward all requests to for example a proxy
+server which then handle the communications with the remote server,
+for example using FTP about the document and return it to the
+application (proxy client) using HTTP.
+
+<PRE>
+#include "<A HREF="HTProxy.html">HTProxy.h</A>"
+</PRE>
+
+End of application specific modules
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWRules declaration
+
+</BODY>
+</HTML>

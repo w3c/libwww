@@ -1,0 +1,56 @@
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference Content Guess MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference CONTENT GUESS MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This interface provides functionality for guessing unknown media types
+from magic words. The stream is a one that reads first a chunk of
+stuff, tries to figure out the format, and calls
+<CODE>HTStreamStack()</CODE>. This is a kind of lazy-evaluation of
+<CODE>HTStreamStack()</CODE>. This could be extended arbitrarily to
+recognize all the possible file formats in the world, if someone only
+had time to do it. <P>
+
+<PRE>
+#ifndef WWWGUESS_H
+#define WWWGUESS_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTGuess.h"
+</PRE>
+
+End of GUESS module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWGUESS API definition
+
+</BODY>
+</HTML>

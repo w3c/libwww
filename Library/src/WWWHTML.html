@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Declaration of W3C Reference HTML MODULE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -15,10 +15,14 @@
 */
 </PRE>
 
-This is the include file for the basic HTML module that can be
-used together with the core of the W3C Reference Library. It contains
-all HTML specific modules which are required to compile and
-build the HTML DLL.<P>
+This is the include file for the basic HTML module that can be used
+together with the core of the W3C Reference Library. It contains all
+HTML specific modules which are required to compile and build the HTML
+DLL.  Please note that as the HText is <B>not</B> included in this
+interface. The reason is that the HText interface only is declared by
+the Library but must be defined by the application. Therefore it can
+not be part of a DLL but must be included directly in the
+application.<P>
 
 <PRE>
 #ifndef WWWHTML_H

@@ -1,0 +1,44 @@
+<HTML>
+<HEAD>
+<TITLE>HTTP General Header Stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
+</HEAD>
+<BODY>
+
+<H1>HTTP General Header Stream</H1>
+
+The HTTP General Header stream generates the general headers of a HTTP
+request or response and writes it to the target which is normally
+either a HTTP response stream or a HTTP request stream.<P>
+
+This module is implemented by <A HREF="HTTPGen.c">HTTPGen.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTTPGEN_H
+#define HTTPGEN_H
+
+#include "HTStream.h"
+#include "HTReq.h"
+</PRE>
+
+<H3>Streams Definition</H3>
+
+This stream makes a general HTTP header before it goes into
+transparent mode. If <CODE>endHeader</CODE> is YES then we send an
+empty <CODE>CRLF</CODE> in order to end the header.
+
+<PRE>
+extern HTStream * HTTPGen_new  (HTRequest * request, HTStream * target,
+				BOOL endHeader);
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+End of HTTPGen declaration
+</BODY>
+</HTML>
+
