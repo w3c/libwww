@@ -1226,9 +1226,14 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	return HT_ERROR;
 
     } else {
-	HTAnchor_setDocument(me->source, me->placeholder);
-	HTChunk_delete(me->document);
-	HT_FREE(me);
+#if 0
+        /* @@ JK 28/03/2000: invalidated this code as we're doing this exact
+           treatment later on. In addition, it was a source of
+           dangling pointer error  */
+        HTAnchor_setDocument(me->source, me->placeholder);
+        HTChunk_delete(me->document);
+        HT_FREE(me);
+#endif
     }
     return HT_OK;
 }
