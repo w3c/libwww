@@ -109,20 +109,20 @@ extern void HTSetSuffix PARAMS((CONST char *	suffix,
 			       CONST char *	representation,
 			       CONST char *	encoding,
 			       CONST char *	language,
-			       float		quality));
+			       double		quality));
 
 extern void HTAddType PARAMS((CONST char *	suffix,
 			      CONST char *	representation,
 			      CONST char *	encoding,
-			      float		quality));
+			      double		quality));
 
 extern void HTAddEncoding PARAMS((CONST char *	suffix,
 				  CONST char *	encoding,
-				  float		quality));
+				  double		quality));
 
 extern void HTAddLanguage PARAMS((CONST char *	suffix,
 				  CONST char *	language,
-				  float		quality));
+				  double		quality));
 
 
 extern void HTFile_deleteSuffixes NOPARAMS;
@@ -153,7 +153,7 @@ NAME="z2" HREF="#z1">HTSetSuffix</A> .
 <H2>Determine file value from file name</H2>
 <PRE>
 
-extern float HTFileValue PARAMS((
+extern double HTFileValue PARAMS((
 		CONST char * filename));
 
 

@@ -26,8 +26,8 @@
 #include "HTFormat.h"					 /* Implemented here */
 
 /* Public variables */
-PUBLIC float HTMaxSecs = 1e10;		/* No effective limit */
-PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
+PUBLIC double HTMaxSecs = 1e10;		/* No effective limit */
+PUBLIC double HTMaxLength = 1e10;	/* No effective limit */
 PUBLIC HTList * HTConversions = NULL;
 
 /* Typedefs and global variable local to thid module */
@@ -40,7 +40,7 @@ struct _HTStream {
 /* Accept-Encoding and Accept-Language */
 typedef struct _HTAcceptNode {
     HTAtom *	atom;
-    float	quality;
+    double	quality;
 } HTAcceptNode;
 
 /* ------------------------------------------------------------------------- */
@@ -80,9 +80,9 @@ PUBLIC void HTSetPresentation ARGS7(
 	CONST char *, 	representation,
 	CONST char *, 	command,
 	CONST char *, 	test_command,  /* HWL 27/9/94: mailcap functionality */
-	float,		quality,
-	float,		secs, 
-	float,		secs_per_byte)
+	double,		quality,
+	double,		secs, 
+	double,		secs_per_byte)
 {
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
@@ -110,9 +110,9 @@ PUBLIC void HTSetConversion ARGS7(
 	CONST char *, 	representation_in,
 	CONST char *, 	representation_out,
 	HTConverter*,	converter,
-	float,		quality,
-	float,		secs, 
-	float,		secs_per_byte)
+	double,		quality,
+	double,		secs, 
+	double,		secs_per_byte)
 {
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
@@ -145,7 +145,7 @@ PUBLIC void HTDisposeConversions NOARGS
 
 PUBLIC void HTAcceptEncoding ARGS3(HTList *,	list,
 				   char *,	enc,
-				   float,	quality)
+				   double,	quality)
 {
     HTAcceptNode * node;
     char * cur;
@@ -165,7 +165,7 @@ PUBLIC void HTAcceptEncoding ARGS3(HTList *,	list,
 
 PUBLIC void HTAcceptLanguage ARGS3(HTList *,	list,
 				   char *,	lang,
-				   float,	quality)
+				   double,	quality)
 {
     HTAcceptNode * node;
 
@@ -245,7 +245,7 @@ PRIVATE BOOL lang_match ARGS2(HTAtom *,	tmplate,
 
 
 
-PRIVATE float type_value ARGS2(HTAtom *,	content_type,
+PRIVATE double type_value ARGS2(HTAtom *,	content_type,
 			       HTList *,	accepted)
 {
     HTList * cur = accepted;
@@ -265,7 +265,7 @@ PRIVATE float type_value ARGS2(HTAtom *,	content_type,
 }
 
 
-PRIVATE float lang_value ARGS2(HTAtom *,	language,
+PRIVATE double lang_value ARGS2(HTAtom *,	language,
 			       HTList *,	accepted)
 {
     HTList * cur = accepted;
@@ -300,7 +300,7 @@ PRIVATE float lang_value ARGS2(HTAtom *,	language,
 }
 
 
-PRIVATE float encoding_value ARGS2(HTAtom *,	encoding,
+PRIVATE double encoding_value ARGS2(HTAtom *,	encoding,
 				   HTList *,	accepted)
 {
     HTList * cur = accepted;
@@ -342,9 +342,9 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
     accepted = HTList_new();
     cur = possibilities;
     while ((d = (HTContentDescription*)HTList_nextObject(cur))) {
-	float tv = type_value(d->content_type, accepted_content_types);
-	float lv = lang_value(d->content_language, accepted_languages);
-	float ev = encoding_value(d->content_encoding, accepted_encodings);
+	double tv = type_value(d->content_type, accepted_content_types);
+	double lv = lang_value(d->content_language, accepted_languages);
+	double ev = encoding_value(d->content_encoding, accepted_encodings);
 
 	if (tv > 0) {
 	    d->quality *= tv * lv * ev;
@@ -661,7 +661,7 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 {
     HTList * conversion[2];
     int which_list;
-    float best_quality = -1e30;		/* Pretty bad! */
+    double best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *match, *best_match=0;
     
     request->error_block = YES;		   /* No more error output to stream */
@@ -738,11 +738,11 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 ** On entry,
 **	length	The size of the data to be converted
 */
-PUBLIC float HTStackValue ARGS5(
+PUBLIC double HTStackValue ARGS5(
 	HTList *,		theseConversions,
 	HTFormat,		rep_in,
 	HTFormat,		rep_out,
-	float,			initial_value,
+	double,			initial_value,
 	long int,		length)
 {
     int which_list;
@@ -766,7 +766,7 @@ PUBLIC float HTStackValue ARGS5(
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
 	    if (pres->rep == rep_in &&
 		(pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))) {
-	        float value = initial_value * pres->quality;
+	        double value = initial_value * pres->quality;
 		if (HTMaxSecs != 0.0)
 		    value = value - (length*pres->secs_per_byte + pres->secs)
 			                 /HTMaxSecs;

@@ -89,7 +89,7 @@ struct _HTStream {
     int				cnt;
     HTSocketEOL			state;
     BOOL			transparent;
-    float			version;
+    double			version;		 /* @@@ DOESN'T WORK */
     int				status;
     char 			buffer[MAX_STATUS_LEN+1];
     char *			bufptr;
@@ -485,7 +485,7 @@ PRIVATE void flush ARGS1(HTStream *, me)
     me->transparent = YES;				/* Only do this once */
     if (me->state == EOL_FLF) {
 	if (strncasecomp(me->buffer, "http/", 5) ||
-	    sscanf(me->buffer+5, "%f %d", &me->version, &me->status) < 2) {
+	    sscanf(me->buffer+5, "%lf %d", &me->version, &me->status) < 2) {
 	    HTErrorAdd(req, ERR_INFO, NO, HTERR_HTTP09,
 		       (void *) me->buffer, me->cnt, "HTTPStatusStream");
 	    me->target = HTGuess_new(req, NULL, WWW_UNKNOWN,

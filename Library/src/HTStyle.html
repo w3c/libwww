@@ -83,12 +83,12 @@ typedef NXCoord HTCoord;
 #define HTParagraphStyle NXTextStyle
 #define HTCoord NXCoord
 typedef struct _color {
-	float	grey;
+	double	grey;
 	int	RGBColor;
 } HTColor;
 #else
 
-typedef float HTCoord;
+typedef double HTCoord;
 
 typedef struct _HTParagraphStyle {
     HTCoord	left_indent;		/* @@@@ junk! etc etc*/

@@ -234,7 +234,7 @@ PRIVATE void ItoA ARGS3(unsigned int, n, char *, start, char, len)
  */
 PRIVATE void HTDirSize ARGS3(unsigned long, n, char *, start, char, len)
 {
-    float size = n/1024.0;
+    double size = n/1024.0;
     if (n < 1000) {
 	if (HTDirShowBytes)
 	    ItoA((int) n, start, len);

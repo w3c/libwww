@@ -667,7 +667,7 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
 **	returns	YES or NO
 **
 */
-PUBLIC int HTPasswordDialog ARGS1(HTRequest *,	req)
+PUBLIC BOOL HTPasswordDialog ARGS1(HTRequest *,	req)
 {
     if (!req || !req->setup || !req->realm || !req->dialog_msg) {
 	HTAlert("HTPasswordDialog() called with an illegal parameter");

@@ -60,9 +60,6 @@ xmosaic release
 #define TCP_H
 </PRE>
 
-<B>NOTE:</B> All system include files must be in &lt; &gt; as Windows
-compilers otherwise get confused.
-
 <H2>Default values</H2>These values may be reset and altered by
 system-specific sections later on. There is also a bunch of
 <A NAME="z5" HREF="#z2">defaults</A> at the end and a section for
@@ -263,7 +260,7 @@ This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
 #endif  /* PCNFS */
 </PRE>
 
-<H2>PC running Windows</H2>
+<H2>PC running Windows (16-bit)</H2>
 
 Help provided by Susan C. Weber &lt;sweber@kyle.eitech.com&gt;, Paul
 Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
@@ -416,9 +413,28 @@ Return code for socket functions. We can't use -1 as return value
 #endif  /* WINDOWS */
 </PRE>
 
+<H2>Windows NT (32 bit)</H2>
+
+Some special things for the 32 bit version...
+
+<PRE>
+#ifdef WIN32
+#define EWOULDBLOCK	WSAEWOULDBLOCK
+#define EINPROGRESS	WSAEINPROGRESS
+#define ECONNREFUSED	WSAECONNREFUSED
+#define ETIMEDOUT	WSAETIMEDOUT
+#define ENETUNREACH	WSAENETUNREACH
+#define EHOSTUNREACH	WSAEHOSTUNREACH
+#define EHOSTDOWN	WSAEHOSTDOWN
+#define EISCONN		WSAEISCONN
+#endif
+</PRE>
+
 <H2>VAX/VMS</H2>
+
 Under VMS, there are many versions of TCP-IP. Define one if you do not
 use Digital's UCX product:
+
 <DL>
 <DT>UCX
 <DD> DEC's "Ultrix connection" (default)
@@ -862,7 +878,7 @@ These are a default unix where not already defined specifically.
 #define FNDELAY		O_NDELAY
 #endif
 
-#if !defined(NeXT) &amp;&amp; !defined(BSD4_4)
+#if !defined(NeXT) &amp;&amp; !defined(BSD4_4) &amp;&amp; !defined(NetBSD)
 extern char *sys_errlist[];
 extern int sys_nerr;
 #endif

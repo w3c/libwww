@@ -229,12 +229,12 @@ typedef struct _HTContentDescription {
     HTAtom *	content_language;
     HTAtom *	content_encoding;
     int		content_length;
-    float	quality;
+    double	quality;
 } HTContentDescription;
 
 extern void HTAcceptEncoding PARAMS((HTList *	list,
 				     char *	enc,
-				     float	quality));
+				     double	quality));
 </PRE>
 
 <A NAME="Language"><H2>Registration of Accepted Content Languages</H2></A>
@@ -244,7 +244,7 @@ This function is not currently used.
 <PRE>
 extern void HTAcceptLanguage PARAMS((HTList *	list,
 				     char *	lang,
-				     float	quality));
+				     double	quality));
 </PRE>
 
 <A NAME="Type"><H2>Registration of Accepted Converters and
@@ -287,9 +287,9 @@ typedef struct _HTPresentation {
 	HTConverter *converter;	      /* The routine to gen the stream stack */
 	char *  command;			       /* MIME-format string */
 	char *  test_command;			       /* MIME-format string */
-	float	quality;		     /* Between 0 (bad) and 1 (good) */
-	float   secs;
-	float   secs_per_byte;
+	double	quality;		     /* Between 0 (bad) and 1 (good) */
+	double   secs;
+	double   secs_per_byte;
 } HTPresentation;
 </PRE>
 
@@ -328,9 +328,9 @@ extern void HTSetPresentation	PARAMS((HTList *	conversions,
 					CONST char * 	representation,
 					CONST char * 	command,
 					CONST char * 	test_command,
-					float		quality,
-					float		secs, 
-					float		secs_per_byte));
+					double		quality,
+					double		secs, 
+					double		secs_per_byte));
 </PRE>
 
 <H3>Register a Converter</H3>
@@ -357,9 +357,9 @@ extern void HTSetConversion	PARAMS((HTList *	conversions,
 					CONST char * 	rep_in,
 					CONST char * 	rep_out,
 					HTConverter *	converter,
-					float		quality,
-					float		secs, 
-					float		secs_per_byte));
+					double		quality,
+					double		secs, 
+					double		secs_per_byte));
 </PRE>
 
 <H3>Set up Default Presenters and Converters</H3>
@@ -444,10 +444,10 @@ up.
 <PRE>
 #define NO_VALUE_FOUND	-1e20		/* returned if none found */
 
-extern float HTStackValue	PARAMS((HTList *	conversions,
+extern double HTStackValue	PARAMS((HTList *	conversions,
 					HTFormat	format_in,
 					HTFormat	format_out,
-					float		initial_value,
+					double		initial_value,
 					long int	length));
 </PRE>
 

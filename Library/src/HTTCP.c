@@ -79,7 +79,7 @@ typedef struct _host_info {
     int			homes;	       /* Number of IP addresses on the host */
     int			offset;         /* Offset value of active IP address */
     char **		addrlist;      /* List of addresses from name server */
-    float *		weight;			   /* Weight on each address */
+    double *		weight;			   /* Weight on each address */
 } host_info;
 
 PRIVATE char *hostname = NULL;			    /* The name of this host */
@@ -91,7 +91,7 @@ PRIVATE unsigned int HTCacheSize = 0;		    /* Current size of cache */
 
 /*
 **	Returns the string equivalent to the errno passed in the argument.
-**	We can't use errno directly as we haev both errno and socerrno. The
+**	We can't use errno directly as we have both errno and socerrno. The
 **	result is a static buffer.
 */
 PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
@@ -340,8 +340,8 @@ PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
 	       element->h_length);
     }
     newhost->homes = cnt;
-    if ((newhost->weight = (float *) calloc(newhost->homes,
-					    sizeof(float))) == NULL)
+    if ((newhost->weight = (double *) calloc(newhost->homes,
+					    sizeof(double))) == NULL)
 	outofmem(__FILE__, "HTTCPCacheAddElement");
 
     newhost->addrlength = element->h_length;
@@ -404,12 +404,12 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
     }
     if (pres) {
 	int cnt;
-	CONST float passive = 0.9; 	  /* Factor for all passive IP_addrs */
+	CONST double passive = 0.9; 	  /* Factor for all passive IP_addrs */
 #if 0
 	CONST int Neff = 3;
-	CONST float alpha = exp(-1.0/Neff);
+	CONST double alpha = exp(-1.0/Neff);
 #else
-	CONST float alpha = 0.716531310574;	/* Doesn't need the math lib */
+	CONST double alpha = 0.716531310574;	/* Doesn't need the math lib */
 #endif
 	for (cnt=0; cnt<pres->homes; cnt++) {
 	    if (cnt == pres->offset) {
@@ -491,7 +491,7 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
     if (pres) {
 	if (pres->homes > 1 && !use_cur) {
 	    int cnt;
-	    float best_weight = 1e30;		    /* Should be FLT_MAX :-( */
+	    double best_weight = 1e30;		    /* Should be FLT_MAX :-( */
 	    for (cnt=0; cnt<pres->homes; cnt++) {
 		if (*(pres->weight+cnt) < best_weight) {
 		    best_weight = *(pres->weight+cnt);

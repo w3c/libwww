@@ -53,7 +53,7 @@ typedef struct _HTSuffix {
 	HTAtom *	rep;		/* Content-Type */
 	HTAtom *	encoding;	/* Content-Encoding */
 	HTAtom *	language;	/* Content-Language */
-	float		quality;
+	double		quality;
 } HTSuffix;
 
 
@@ -94,7 +94,7 @@ PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, NULL, 1.0};
 PUBLIC void HTAddType ARGS4(CONST char *,	suffix,
 			    CONST char *,	representation,
 			    CONST char *,	encoding,
-			    float,		value)
+			    double,		value)
 {
     HTSetSuffix(suffix, representation, encoding, NULL, value);
 }
@@ -102,7 +102,7 @@ PUBLIC void HTAddType ARGS4(CONST char *,	suffix,
 
 PUBLIC void HTAddEncoding ARGS3(CONST char *,	suffix,
 				CONST char *,	encoding,
-				float,		value)
+				double,		value)
 {
     HTSetSuffix(suffix, NULL, encoding, NULL, value);
 }
@@ -110,7 +110,7 @@ PUBLIC void HTAddEncoding ARGS3(CONST char *,	suffix,
 
 PUBLIC void HTAddLanguage ARGS3(CONST char *,	suffix,
 				CONST char *,	language,
-				float,		value)
+				double,		value)
 {
     HTSetSuffix(suffix, NULL, NULL, language, value);
 }
@@ -120,7 +120,7 @@ PUBLIC void HTSetSuffix ARGS5(CONST char *,	suffix,
 			      CONST char *,	representation,
 			      CONST char *,	encoding,
 			      CONST char *,	language,
-			      float,		value)
+			      double,		value)
 {
     HTSuffix * suff;
 
@@ -513,7 +513,7 @@ PUBLIC HTFormat HTFileFormat ARGS3(CONST char *,	filename,
 **
 */
 
-PUBLIC float HTFileValue ARGS1 (CONST char *,filename)
+PUBLIC double HTFileValue ARGS1 (CONST char *,filename)
 
 {
     HTSuffix * suff;

@@ -253,7 +253,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
     char * line = NULL;
     char * pointer = line;
     char *word1, *word2, *word3;
-    float quality, secs, secs_per_byte;
+    double quality, secs, secs_per_byte;
     int status;
     
     StrAllocCopy(line, config);
@@ -280,7 +280,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
     if (0==strcasecomp(word1, "suffix") ||
 	0==strcasecomp(word1, "addtype")) {
         char * encoding = HTNextField(&pointer);
-	if (pointer) status = sscanf(pointer, "%f", &quality);
+	if (pointer) status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
 	HTAddType(word2,	word3,
 				encoding ? encoding : "binary",
@@ -288,20 +288,20 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 
     } else if (0==strcasecomp(word1, "addencoding")) {
 	if (pointer)
-	    status = sscanf(pointer, "%f", &quality);
+	    status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
 	HTAddEncoding(word2, word3,
 		      status >= 1 ? quality : 1.0);
 
     } else if (0==strcasecomp(word1, "addlanguage")) {
 	if (pointer)
-	    status = sscanf(pointer, "%f", &quality);
+	    status = sscanf(pointer, "%lf", &quality);
 	else status = 0;
 	HTAddLanguage(word2, word3,
 		      status >= 1 ? quality : 1.0);
 
     } else if (0==strcasecomp(word1, "presentation")) {
-        if (pointer) status = sscanf(pointer, "%f%f%f",
+        if (pointer) status = sscanf(pointer, "%lf%lf%lf",
 			    &quality, &secs, &secs_per_byte);
         else status = 0;
 	if (!HTConversions) HTConversions = HTList_new();
