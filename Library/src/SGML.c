@@ -358,7 +358,12 @@ PUBLIC void SGML_setCallerData (HTStream * context, void* data)
 {
     context->callerData = data;
 }
-#endif
+#else
+#ifdef WWW_WIN_DLL
+PUBLIC void * SGML_callerData (HTStream * context) {return NULL;}
+PUBLIC void SGML_setCallerData (HTStream * context, void* data) {}
+#endif /* WWW_WIN_DLL */
+#endif /* CALLERDATA */
 
 PUBLIC int SGML_character (HTStream * context, char c)
 

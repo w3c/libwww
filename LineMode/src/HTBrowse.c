@@ -260,11 +260,6 @@ HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
 /*	Create a Line Mode Object
 **	-------------------------
 */
-#ifdef _WINDOWS
-HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
-                           it gets key events so save it in a global here */
-#endif
-
 PRIVATE LineMode * LineMode_new (void)
 {
     LineMode * me;

@@ -252,7 +252,7 @@ SOURCE=.\wwwhtml.def
 ################################################################################
 # Begin Source File
 
-SOURCE=..\Implementation\SGML.c
+SOURCE=..\SGML.c
 
 !IF  "$(CFG)" == "Win32 Release"
 
@@ -270,7 +270,7 @@ SOURCE=..\Implementation\SGML.c
 ################################################################################
 # Begin Source File
 
-SOURCE=..\Implementation\HTTeXGen.c
+SOURCE=..\HTTeXGen.c
 
 !IF  "$(CFG)" == "Win32 Release"
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -299,7 +299,7 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #define WWW_WIN_CONSOLE
 #endif
 
-#ifdef _WWW_MSWINDOWS
+#ifdef WWW_MSWINDOWS
 #include &lt;windows.h&gt;
 #include &lt;fcntl.h&gt;
 #include &lt;sys\types.h&gt;
@@ -361,14 +361,14 @@ BC4 (Paul Hounslow <P.M.Hounslow@reading.ac.uk>
 
 typedef unsigned long mode_t;
 
-#define		_IFMT	0170000	/* type of file */
-#define		_IFDIR	0040000	/* directory */
-#define		_IFCHR	0020000	/* character special */
-#define		_IFBLK	0060000	/* block special */
-#define		_IFREG	0100000	/* regular */
-#define		_IFLNK	0120000	/* symbolic link */
-#define		_IFSOCK	0140000	/* socket */
-#define		_IFIFO	0010000	/* fifo */
+#define	_IFMT		0170000	/* type of file */
+#define	_IFDIR		0040000	/* directory */
+#define	_IFCHR		0020000	/* character special */
+#define	_IFBLK		0060000	/* block special */
+#define	_IFREG		0100000	/* regular */
+#define	_IFLNK		0120000	/* symbolic link */
+#define	_IFSOCK		0140000	/* socket */
+#define	_IFIFO		0010000	/* fifo */
 
 #define	S_ISUID		0004000	/* set user id on execution */
 #define	S_ISGID		0002000	/* set group id on execution */
@@ -467,15 +467,6 @@ WSA definitions moved from _WIN32 ifdef by EGP
 #define EHOSTDOWN       WSAEHOSTDOWN
 #define EISCONN         WSAEISCONN
 
-#if 0
-#undef NETREAD
-#undef NETWRITE
-
-#define NETREAD(s,b,l)  ((s) >= 10) ? recv((s),(b),(l),0) : read((s), (b), (l))
-#define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s), (b), (l))
-#endif
-/* #undef NO_UNIX_IO */ /* CLB NT has some Unix IO - must be more specific */
-
 /* Some compilers do only define WIN32 and NOT _WINDOWS */
 #define NO_GROUPS
 #define NO_ALTZONE
@@ -486,7 +477,8 @@ WSA definitions moved from _WIN32 ifdef by EGP
 #else
 #define MKDIR(a,b) _mkdir((a))  /* CLB NT has mkdir, but only one arg */
 #endif /* WIN32 */
-#endif  /* WINDOWS */
+
+#endif /* WWW_MSWINDOWS */
 </PRE>
 
 <H2>VAX/VMS</H2>

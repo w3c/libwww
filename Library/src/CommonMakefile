@@ -160,7 +160,6 @@ ICONS = $(ICON)/WWW/Bug48x.gif \
 	$(ICON)/WWW/internals48x.gif \
 	$(ICON)/WWW/install48x.gif \
 	$(ICON)/WWW/relnotes48x.gif \
-	$(ICON)/WWW/relnotes48x.gif \
 	$(ICON)/WWW/bullet.gif \
 	$(ICON)/32x32/smiley.gif \
 	$(ICON)/32x32/caution.gif
