@@ -5,7 +5,6 @@ CSLLOut.c
 CSLLURLs.c
 CSLabel.c
 CSMacRed.c
-CSMem.c
 CSParse.c
 CSStream.c
 CSUser.c

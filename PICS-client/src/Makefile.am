@@ -4,6 +4,8 @@ AUTOMAKE_OPTIONS = foreign
 
 lib_LIBRARIES = pics
 
+SUBDIRS = windows
+
 INCLUDES = -I$(srcdir)/../../Library/src
 
 #	.h files are distributed but originally are made from the

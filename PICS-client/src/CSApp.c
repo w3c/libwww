@@ -552,6 +552,7 @@ PRIVATE int CSApp_headerParser (HTRequest * pReq, const char * token)
 
     pReqParms->pCSLabel = CSParse_getLabel(pCSParse);
     CSParse_delete(pCSParse);
+    if (PICS_TRACE) HTTrace("PICS: PICS mime header \"%s\" got %d.\n", value, pReqParms->disposition);
     return ReqParms_checkDisposition(pReqParms);
 }
 
