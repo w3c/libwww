@@ -145,6 +145,34 @@ PRIVATE void EventList_dump (void)
 	}
     }
 }
+
+PRIVATE void fd_dump (SOCKET maxfs, fd_set * rset, fd_set * wset, fd_set * oset, 
+		      struct timeval * wt)
+{
+    SOCKET cnt;
+
+    /* Check read set */
+    HTTRACE(THD_TRACE, "............ READ :");
+    for (cnt=0; cnt<=maxfs; cnt++)
+	if (FD_ISSET(cnt, rset)) HTTRACE(THD_TRACE, " %d" _ cnt);
+    HTTRACE(THD_TRACE, "\n");
+
+    /* Check write set */
+    HTTRACE(THD_TRACE, "............ WRITE:");
+    for (cnt=0; cnt<=maxfs; cnt++)
+	if (FD_ISSET(cnt, wset)) HTTRACE(THD_TRACE, " %d" _ cnt);
+    HTTRACE(THD_TRACE, "\n");
+
+    /* Check oob set */
+    HTTRACE(THD_TRACE, "............ OOB  :");
+    for (cnt=0; cnt<=maxfs; cnt++)
+	if (FD_ISSET(cnt, oset)) HTTRACE(THD_TRACE, " %d" _ cnt);
+    HTTRACE(THD_TRACE, "\n");
+
+    if (wt)
+	HTTRACE(THD_TRACE, "............ Timeout is %ld s, %ld ms\n" _
+		wt->tv_sec _ wt->tv_usec);
+}
 #endif /* HTDEBUG */
 
 /* ------------------------------------------------------------------------- */
@@ -628,13 +656,10 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 
         maxfds = MaxSock; 
 
-	HTTRACEDATA((char*)&treadset, HT_FS_BYTES(maxfds),
-		    "HTEventList_loop pre treadset: (maxfd:%d)" _ maxfds);
-	HTTRACEDATA((char*)&twriteset, HT_FS_BYTES(maxfds),
-		    "HTEventList_loop pre twriteset:");
-	HTTRACEDATA((char*)&texceptset, HT_FS_BYTES(maxfds),
-		    "HTEventList_loop pre texceptset:");
 	HTTRACE(THD_TRACE, "Event Loop.. calling select: maxfds is %d\n" _ maxfds);
+#ifdef HTDEBUG
+	fd_dump(maxfds, &treadset, &twriteset, &texceptset, wt);
+#endif
 
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
@@ -645,13 +670,10 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 
 	now = HTGetTimeInMillis();
 
-	HTTRACEDATA((char*)&treadset, HT_FS_BYTES(maxfds),
-		    "HTEventList_loop post treadset: (active_sockets:%d)" _ active_sockets);
-	HTTRACEDATA((char*)&twriteset, HT_FS_BYTES(maxfds),
-		    "HTEventList_loop post twriteset: (errno:%d)" _ errno);
-	HTTRACEDATA((char*)&texceptset, HT_FS_BYTES(maxfds),
-		    "HTEventList_loop post texceptset:");
 	HTTRACE(THD_TRACE, "Event Loop.. select returns %d\n" _ active_sockets);
+#ifdef HTDEBUG
+	fd_dump(maxfds, &treadset, &twriteset, &texceptset, wt);
+#endif
 
         if (active_sockets == -1) {
 #ifdef EINTR
