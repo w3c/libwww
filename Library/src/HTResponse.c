@@ -65,9 +65,6 @@ PUBLIC BOOL HTResponse_delete (HTResponse * me)
 	/* Byte ranges */
 	if (me->byte_ranges) HTAssocList_delete(me->byte_ranges);
 
-	/* Content Encodings */
-	if (me->content_encoding) HTList_delete(me->content_encoding);
-
 	/* Transfer Encodings */
 	if (me->transfer_encoding) HTList_delete(me->transfer_encoding);
 
@@ -83,7 +80,14 @@ PUBLIC BOOL HTResponse_delete (HTResponse * me)
 	** object.
 	*/
 	if (!me->cached) {
+
+	    /* Content type parameters */
 	    if (me->type_parameters) HTAssocList_delete(me->type_parameters);
+
+	    /* Content Encodings */
+	    if (me->content_encoding) HTList_delete(me->content_encoding);
+
+	    /* List of all headers */
 	    if (me->headers) HTAssocList_delete(me->headers);
 	}
 

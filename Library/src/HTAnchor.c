@@ -685,6 +685,7 @@ PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 	    me->content_length = HTResponse_length(response);
 	    me->content_type = HTResponse_format(response);
 	    me->type_parameters = HTResponse_formatParam(response);
+	    me->content_encoding = HTResponse_encoding(response);
 	
 	    /*
 	    **  Inherit all the unparsed headers - we may need them later!
