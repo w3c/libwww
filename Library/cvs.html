@@ -28,9 +28,11 @@
     <LI>
       <A HREF="#Anonymous">How to check out libwww from CVS</A>
     <LI>
-      <A HREF="#Write">CVS Write access and policy</A>
+      <A HREF="#SSH">SSK Based CVS Checkout</A>
     <LI>
-      <A HREF="#SSH">CVS and SSH</A>
+      <A HREF="#update">How to get the latest edits from CVS</A>
+    <LI>
+      <A HREF="#Write">CVS Write access and policy</A>
     <LI>
       <A HREF="#Boot">How to get bootstrapped after checking out</A>
     <LI>
@@ -90,15 +92,6 @@ using CVS tags then you need to add a <CODE>-r</CODE> option, for example
 Check the <A HREF="http://dev.w3.org/cgi-bin/cvsweb/">CVS log walker</A>
 for the current set of release tags.
 <H2>
-  <A NAME="Write">CVS Write Access</A>
-</H2>
-<P>
-<A HREF="BeforeCommitting.html">CVS Write access</A> is currently reserved
-to the <A HREF="/People/W3Cpeople.html">W3C team</A>. Before writing anything
-to the repository make sure that you have read the <A HREF="User/Style/">libwww
-style guide</A> as well as <A HREF="BeforeCommitting.html"><B>the list of
-things to do</B></A> before doing a CVS commit.
-<H2>
   <A NAME="SSH">SSH Based CVS Checkout</A>
 </H2>
 <P>
@@ -123,6 +116,26 @@ revision then use something like this
 The <A HREF="http://www.apache.org">Apache Group</A> has some
 <A HREF="http://dev.apache.org/nt-cvs-ssh.txt">special notes on how to use
 SSH for Windows</A>.
+<H2>
+  <A NAME="update">How to get the latest edits from CVS</A>
+</H2>
+<P>
+Once you have checked out the libwww CVS tree, you can get any updates committed
+to the tree by using the
+<A HREF="http://www.loria.fr/~molli/cvs/doc/cvs_16.html#SEC148">cvs update
+command</A> like this
+<PRE>% <B>cd libwww</B>
+% <B>cvs update</B>
+</PRE>
+<H2>
+  <A NAME="Write">CVS Write Access</A>
+</H2>
+<P>
+<A HREF="BeforeCommitting.html">CVS Write access</A> is currently reserved
+to the <A HREF="/People/W3Cpeople.html">W3C team</A>. Before writing anything
+to the repository make sure that you have read the <A HREF="User/Style/">libwww
+style guide</A> as well as <A HREF="BeforeCommitting.html"><B>the list of
+things to do</B></A> before doing a CVS commit.
 <H2>
   <A NAME="Boot">Getting Bootstrapped</A>
 </H2>
