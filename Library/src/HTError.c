@@ -31,7 +31,7 @@ struct _HTError {
     char *       	where;          /* Which function */
 };
 
-PRIVATE unsigned int HTShowMask = HT_ERR_SHOW_DEFAULT;
+PRIVATE HTErrorShow HTShowMask = HT_ERR_SHOW_DEFAULT;
 
 /* ------------------------------------------------------------------------- */
 
@@ -134,7 +134,7 @@ PUBLIC BOOL HTError_deleteAll (HTList * list)
 PUBLIC BOOL HTError_deleteLast (HTList * list)
 {
     if (list) {
-	HTError *old = HTList_removeLastObject(list);
+	HTError * old = (HTError *) HTList_removeLastObject(list);
 	if (old) {
 	    if (WWWTRACE) HTTrace("Error.Delete %p\n", old);
 	    HT_FREE(old->par);
@@ -153,7 +153,7 @@ PUBLIC BOOL HTError_deleteLast (HTList * list)
 PUBLIC BOOL HTError_ignoreLast (HTList * list)
 {
     if (list) {
-	HTError *last = HTList_lastObject(list);
+	HTError * last = (HTError *) HTList_lastObject(list);
 	if (last) {
 	    if (WWWTRACE) HTTrace("Error.Ignore %p\n", last);
 	    last->ignore = YES;
@@ -203,12 +203,12 @@ PUBLIC BOOL HTError_doShow (HTError *info)
 */
 PUBLIC HTSeverity HTError_severity (HTError *info)
 {
-    return info ? info->severity : 0;
+    return info ? info->severity : ERR_UNKNOWN;
 }
 
 PUBLIC int HTError_index (HTError * info)
 {
-    return info ? info->element : -1;
+    return info ? info->element : HTERR_INTERNAL;
 }
 
 PUBLIC void * HTError_parameter (HTError * info, int * length)

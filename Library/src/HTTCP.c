@@ -717,7 +717,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_CONNECT);
 		if (cbf)
-		    (*cbf)(request,HT_PROG_CONNECT,HT_MSG_NULL,NULL,NULL,NULL);
+		    (*cbf)(request,HT_PROG_CONNECT,HT_MSG_NULL,NULL,host,NULL);
 	    }
 	    net->tcpstate = TCP_NEED_CONNECT;
 	    break;

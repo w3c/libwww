@@ -873,17 +873,17 @@ PUBLIC void HTAnchor_setLength (HTParentAnchor * me, long int length)
 /*
 **	Allowed methods	(Allow)
 */
-PUBLIC int HTAnchor_methods (HTParentAnchor * me)
+PUBLIC HTMethod HTAnchor_methods (HTParentAnchor * me)
 {
     return me ? me->methods : METHOD_INVALID;
 }
 
-PUBLIC void HTAnchor_setMethods (HTParentAnchor * me, int methodset)
+PUBLIC void HTAnchor_setMethods (HTParentAnchor * me, HTMethod methodset)
 {
     if (me) me->methods = methodset;
 }
 
-PUBLIC void HTAnchor_appendMethods (HTParentAnchor * me, int methodset)
+PUBLIC void HTAnchor_appendMethods (HTParentAnchor * me, HTMethod methodset)
 {
     if (me) me->methods |= methodset;
 }

@@ -575,7 +575,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		*/
 		request->input_stream = HTMethod_hasEntity(request->method) ?
 		    HTMIMERequest_new(request, HTTPRequest_new(request, HTBufWriter_new(net, YES, 512), NO), YES) :
-			HTTPRequest_new(request, HTBufWriter_new(net,YES,256), YES);
+			HTTPRequest_new(request, HTBufWriter_new(net,YES,512), YES);
 
 		/*
 		** Set up concurrent read/write if this request isn't the

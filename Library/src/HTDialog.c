@@ -111,11 +111,11 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
     }
     switch (op) {
       case HT_PROG_DNS:
-	HTTrace("Looking up %s\n", (char *) input);
+	HTTrace("Looking up %s\n", input ? (char *) input : "");
 	break;
 
       case HT_PROG_CONNECT:
-	HTTrace("Contacting host...\n");
+	HTTrace("Contacting %s\n", input ? (char *) input : "");
 	break;
 
       case HT_PROG_ACCEPT:

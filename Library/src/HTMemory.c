@@ -49,7 +49,7 @@ PUBLIC BOOL HTMemoryCall_delete (HTMemoryCallback * cbf)
 */
 PUBLIC BOOL HTMemoryCall_deleteAll (void)
 {
-    if (MEM_TRACE) HTTrace("Mem Delete..All Callback functions\n");
+    if (MEM_TRACE) HTTrace("Mem Delete.. All Callback functions\n");
     if (HTMemCall) {
 	HTList_delete(HTMemCall);
 	HTMemCall = NULL;
@@ -99,7 +99,7 @@ PUBLIC void * HTMemory_calloc (size_t nobj, size_t size)
 	}
     }
     if (MEM_TRACE)
-	HTTrace("Memory.... Couldn't allocate %d objects of size %d\n",
+	HTTrace("Memory...... Couldn't allocate %d objects of size %d\n",
 		 nobj, size);
     return NULL;
 }
@@ -122,7 +122,7 @@ PUBLIC void * HTMemory_realloc (void * p, size_t size)
 	}
     }
     if (MEM_TRACE)
-	HTTrace("Memory.... Couldn't reallocate %d bytes\n", size);
+	HTTrace("Memory...... Couldn't reallocate %d bytes\n", size);
     return NULL;
 }
 
@@ -132,7 +132,7 @@ PUBLIC void * HTMemory_realloc (void * p, size_t size)
 PUBLIC void HTMemory_free (void * ptr)
 {
     if (ptr) {
-	if (MEM_TRACE) HTTrace("Memory.... Freeing %p\n", ptr);
+	if (MEM_TRACE) HTTrace("Memory Free. %p\n", ptr);
 	free(ptr);
     }
 }

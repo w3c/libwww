@@ -176,7 +176,7 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	if (dir->base) {
 	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
 	    char *full;
-	    if ((full = HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
+	    if ((full = (char *) HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
 		HT_OUTOFMEM("HTDirNode_print");
 	    strcpy(full, dir->base);
 	    strcat(full, escaped);
@@ -198,7 +198,7 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	if (dir->base) {
 	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
 	    char *full;
-	    if ((full = HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
+	    if ((full = (char *) HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
 		HT_OUTOFMEM("HTDirNode_print");
 	    strcpy(full, dir->base);
 	    strcat(full, escaped);

@@ -303,7 +303,7 @@ PUBLIC HTNet * HTNet_dup (HTNet * src)
 */
 PUBLIC HTPriority HTNet_priority (HTNet * net)
 {
-    return (net ? net->priority : -1);
+    return (net ? net->priority : HT_PRIORITY_INV);
 }
 
 /*	HTNet_setPriority

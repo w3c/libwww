@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Error Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 21-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Feb-1996 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -104,6 +104,7 @@ terminated automaticly.  See also HTError_addSystem for system errors. Returns Y
 typedef struct _HTError HTError;
 
 typedef enum _HTSeverity {
+    ERR_UNKNOWN		  = 0x0,
     ERR_FATAL		  = 0x1,
     ERR_NON_FATAL	  = 0x2,
     ERR_WARN	 	  = 0x4,

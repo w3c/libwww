@@ -111,7 +111,7 @@ PUBLIC CONST char *HTMessageIdStr (void)
 	return "";
     }
 #ifndef NO_GETPID
-    sprintf(buf, "<%ldZ%d@%s>", sectime, getpid(), address ? address : "@@@");
+    sprintf(buf, "<%ldZ%ld@%s>", sectime, getpid(), address ? address : "@@@");
 #else
     sprintf(buf, "<%ldZ%s>", sectime, address ? address : "@@@");
 #endif /* NO_GETPID */

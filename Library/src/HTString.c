@@ -139,13 +139,13 @@ PUBLIC char * HTSACat (char ** dest, CONST char * src)
 PUBLIC char * HTStrMatch (CONST char * tmpl, CONST char * name)
 {
     while (*tmpl && *name && *tmpl==*name) tmpl++, name++;
-    return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : NULL;
+    return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : (char *) NULL;
 }    
 
 PUBLIC char * HTStrCaseMatch (CONST char * tmpl, CONST char * name)
 {
     while (*tmpl && *name && TOUPPER(*tmpl)==TOUPPER(*name)) tmpl++, name++;
-    return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : NULL;
+    return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : (char *) NULL;
 }    
 
 /*	Strip white space off a string

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Anchor Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -445,11 +445,9 @@ extern void HTAnchor_setLength		(HTParentAnchor *me,
 <H3>Allowed methods (Allow)</H3>
 
 <PRE>
-extern int HTAnchor_methods		(HTParentAnchor *me);
-extern void HTAnchor_setMethods		(HTParentAnchor *me,
-					 int		methodset);
-extern void HTAnchor_appendMethods	(HTParentAnchor *me,
-					 int		methodset);
+extern HTMethod HTAnchor_methods (HTParentAnchor * me);
+extern void HTAnchor_setMethods (HTParentAnchor * me, HTMethod methodset);
+extern void HTAnchor_appendMethods (HTParentAnchor * me, HTMethod methodset);
 </PRE>
 
 <H3>Version</H3>

@@ -190,7 +190,7 @@ PRIVATE BOOL ParseFTPLine (HTStream *me)
 	break;
 	
       default:
-	return HTDir_addElement(me->dir, me->buffer, NULL, NULL, 0);
+	return HTDir_addElement(me->dir, me->buffer, NULL, NULL, HT_IS_FILE);
 	break;
     }
     return NO;
