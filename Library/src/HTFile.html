@@ -18,7 +18,10 @@ it can be reached by FTP.
 #include "HTAccess.h"
 #include "HTML.h"		/* SCW */
 
-
+#ifdef SHORT_NAMES
+#define HTGetCoD	HTGetContentDescription
+#define HTSplFiN	HTSplitFilename
+#endif /*SHORT_NAMES*/
  
 </PRE>
 <H2>Controlling globals</H2>These flags control how directories
@@ -43,11 +46,31 @@ extern int HTDirReadme;		/* Include readme files in listing? */
 
 </PRE>
 
-<H2>Do Multiformat Handling</H2>
+<H2>Multiformat Handling</H2>
+
+<H3>Split Filename to suffixes</H3>
+<PRE>
+PUBLIC int HTSplitFilename PARAMS((char *	s_str,
+				   char **	s_arr));
+
+</PRE>
+
+<H3>Get Content Description According to Suffixes</H3>
+<PRE>
+PUBLIC HTContentDescription * HTGetContentDescription PARAMS((char ** actual,
+							      int	  n));
+
+</PRE>
+
+<H3>Do Multiformat Handling</H3>
+This is actually implemented in <CODE>HTMulti.c</CODE>.
 <PRE>
 PUBLIC char * HTMulti PARAMS((HTRequest *	req,
 			      char *		path,
 			      struct stat *	stat_info));
+
+#define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
+#define MAX_SUFF 15		/* Maximum number of suffixes for a file */
 
 </PRE>
 

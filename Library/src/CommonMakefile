@@ -77,10 +77,10 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTHistory.o $(LOB)/HTNews.o $(LOB)/HTGopher.o \
 	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) \
 	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
-	$(LOB)/HTUU.o
+	$(LOB)/HTUU.o $(LOB)/HTMulti.o
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
-        $(CMN)HTBTree.c \
+        $(CMN)HTBTree.c $(CMN)HTMulti.c \
 	$(CMN)HTFTP.c   $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c	\
 	$(CMN)HTMLPDTD.c \
 	$(CMN)HTPlain.c	$(CMN)HTWriter.c  $(CMN)HTFWriter.c \
@@ -327,6 +327,10 @@ $(LOB)/HTTCP.o : $(OE) $(CMN)HTTCP.c $(CMN)HTUtils.h
 $(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTUtils.h \
 	 $(CMN)HTMLPDTD.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFile.c
+
+$(LOB)/HTMulti.o : $(OE) $(CMN)HTMulti.c $(CMN)HTUtils.h \
+	 $(CMN)HTFile.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTMulti.c
 
 $(LOB)/HTBTree.o : $(OE) $(CMN)HTBTree.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTBTree.c
