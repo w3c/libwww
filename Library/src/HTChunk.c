@@ -17,6 +17,15 @@
 #include "HTUtils.h"
 #include "HTChunk.h"				         /* Implemented here */
 
+struct _HTChunk {
+    int		size;		/* In bytes			*/
+    int		growby;		/* Allocation unit in bytes	*/
+    int		allocated;	/* Current size of *data	*/
+    char *	data;		/* Pointer to malloced area or 0 */
+};	
+
+/* --------------------------------------------------------------------------*/
+
 /*	Create a chunk with a certain allocation unit
 **	--------------
 */
@@ -53,6 +62,26 @@ PUBLIC void HTChunk_delete (HTChunk * ch)
 	HT_FREE(ch->data);
     	HT_FREE(ch);
     }
+}
+
+PUBLIC char * HTChunk_data (HTChunk * ch)
+{
+    return ch ? ch->data : NULL;
+}
+
+PUBLIC int HTChunk_size (HTChunk * ch)
+{
+    return ch ? ch->size : -1;
+}
+
+PUBLIC BOOL HTChunk_truncate (HTChunk * ch, int position)
+{
+    if (ch && position>=0 && position < ch->size) {
+	ch->size = position;
+	if (ch->data) memset(ch->data+position, '\0', ch->allocated-position);
+	return YES;
+    }
+    return NO;
 }
 
 /*	Create a chunk from an allocated string
@@ -136,6 +165,10 @@ PUBLIC void HTChunk_putb (HTChunk * ch, const char * block, int len)
     }
 }
 
+PUBLIC void HTChunk_terminate (HTChunk * ch)
+{
+    HTChunk_putc(ch, '\0');
+}
 
 /*	Ensure a certain size
 **	---------------------

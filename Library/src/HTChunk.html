@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Chunk Class</TITLE>
 </HEAD>
 <BODY>
@@ -14,9 +14,9 @@
 */
 </PRE>
 <P>
-The Chunk Class &nbsp;defines a way to automatically handle dynamic strings
-and other data types. You create a chunk with an initial size and it will
-then automatically grow to accomodate added data to the chunk. It is a general
+The Chunk Class defines a way to automatically handle dynamic strings and
+other data types. You create a chunk with an initial size and it will then
+automatically grow to accomodate added data to the chunk. It is a general
 utility module. It is garanteed that the array is <CODE>'\0' </CODE>terminated
 at all times (and hence is a valid C type string). The method
 <A HREF="HTChunk.html#Terminate">HTChunkTerminate</A> can be used to explicitly
@@ -33,21 +33,6 @@ Library</A>.
 <PRE>
 #ifndef HTCHUNK_H
 #define HTCHUNK_H
-
-</PRE>
-<H2>
-  The Chunk Class
-</H2>
-<P>
-This structure should not be referenced outside this module! We only keep
-it here to maintain high performance. <B>Don't </B>use it directly!
-<PRE>
-typedef struct {
-	int	size;		/* In bytes			*/
-	int	growby;		/* Allocation unit in bytes	*/
-	int	allocated;	/* Current size of *data	*/
-	char *	data;		/* Pointer to malloced area or 0 */
-} HTChunk;
 </PRE>
 <H2>
   Create new chunk
@@ -57,7 +42,8 @@ Create a new chunk and specify the number of bytes to allocate at a time
 when the chunk is later extended. Arbitrary but normally a trade-off time
 vs. memory
 <PRE>
-#define HTChunkCreate(growby) HTChunk_new(growby)
+typedef struct _HTChunk HTChunk;
+
 extern HTChunk * HTChunk_new (int growby);
 </PRE>
 <H2>
@@ -66,7 +52,6 @@ extern HTChunk * HTChunk_new (int growby);
 <P>
 Free a chunk created by <CODE>HTChunkCreate</CODE>from memory
 <PRE>
-#define HTChunkFree(ch) HTChunk_delete(ch)
 extern void HTChunk_delete (HTChunk * ch);
 </PRE>
 <H2>
@@ -77,7 +62,6 @@ Keep the chunk in memory but clear all data kept inside. This can be used
 if you know that you can reuse the allocated memory instead of allocating
 new memory.
 <PRE>
-#define HTChunkClear(ch) HTChunk_clear(ch)
 extern void HTChunk_clear (HTChunk * ch);
 </PRE>
 <H2>
@@ -88,7 +72,6 @@ Make sure that a chunk has a certain size. If this is not the case then the
 chunk is expanded. Nothing is done if the current size if bigger than the
 size requested.
 <PRE>
-#define HTChunkEnsure(ch, s) HTChunk_ensure(ch, s)
 extern void HTChunk_ensure (HTChunk * ch, int s);
 </PRE>
 <H2>
@@ -97,7 +80,6 @@ extern void HTChunk_ensure (HTChunk * ch, int s);
 <P>
 Add the character and increment the size of the chunk by one character
 <PRE>
-#define HTChunkPutc(ch, c) HTChunk_putc(ch, c)
 extern void HTChunk_putc (HTChunk * ch, char c);
 </PRE>
 <H2>
@@ -107,7 +89,6 @@ extern void HTChunk_putc (HTChunk * ch, char c);
 Add the string and increment the size of the chunk by the length of the string
 (without the trailing zero)
 <PRE>
-#define HTChunkPuts(ch, str) HTChunk_puts(ch, str)
 extern void HTChunk_puts (HTChunk * ch, const char *str);
 </PRE>
 <H2>
@@ -120,6 +101,34 @@ extern void HTChunk_putb (HTChunk * ch, const char *block, int len);
 
 </PRE>
 <H2>
+  Return Pointer to Data
+</H2>
+<P>
+This define converts a chunk to a normal char pointer so that it can be parsed
+to any ANSI C string function.
+<PRE>
+extern char * HTChunk_data (HTChunk * ch);
+</PRE>
+<H2>
+  Return Current Size
+</H2>
+<P>
+Returns the current size of the chunk
+<PRE>
+extern int HTChunk_size (HTChunk * ch);
+</PRE>
+<H2>
+  Truncate Chunk
+</H2>
+<P>
+If for some reason you want to cut off a piece of a chunk then you can
+use this function. It sets the size of the chunk to be
+<CODE>position</CODE>. Clearing the chunk is equivalent to a position
+of 0.
+<PRE>
+extern BOOL HTChunk_truncate (HTChunk * ch, int position);
+</PRE>
+<H2>
   Zero Terminate a chunk
 </H2>
 <P>
@@ -128,21 +137,10 @@ in order to be used in C. However, <B>by default</B> any chunk is
 <I>always</I> zero terminated, so the only purpose of this function is to
 increment the size counter with one corresponding to the zero.
 <PRE>
-#define HTChunkTerminate(ch)	HTChunk_terminate(ch)
-#define HTChunk_terminate(ch)	HTChunk_putc((ch), '\0')
+extern void HTChunk_terminate (HTChunk * ch);
 </PRE>
 <H2>
-  Return Pointer to Data
-</H2>
-<P>
-This define converts a chunk to a normal char pointer so that it can be parsed
-to any ANSI C string function.
-<PRE>
-#define HTChunkData(me)         ((me) ? (me)-&gt;data : NULL)
-#define HTChunk_data(me)         ((me) ? (me)-&gt;data : NULL)
-</PRE>
-<H2>
-  CString conversions
+  CString Conversions
 </H2>
 <P>
 A Chunk may be build from an allocated string. The chunk assumes control
@@ -154,13 +152,20 @@ extern HTChunk * HTChunk_fromCString	(char * str, int grow);
 extern char * HTChunk_toCString		(HTChunk * ch);
 </PRE>
 <H2>
-  Return Current Size
+  Old Interface Names
 </H2>
 <P>
-Returns the current size of the chunk
+Don't use these in new applications
 <PRE>
-#define HTChunkSize(me)         ((me) ? (me)-&gt;size : -1)
-#define HTChunk_size(me)         ((me) ? (me)-&gt;size : -1)
+#define HTChunkCreate(growby) HTChunk_new(growby)
+#define HTChunkFree(ch)       HTChunk_delete(ch)
+#define HTChunkClear(ch)      HTChunk_clear(ch)
+#define HTChunkEnsure(ch, s)  HTChunk_ensure((ch), (s))
+#define HTChunkPutc(ch, c)    HTChunk_putc((ch), (c))
+#define HTChunkPuts(ch, str)  HTChunk_puts((ch), (str))
+#define HTChunkTerminate(ch)  HTChunk_terminate(ch)
+#define HTChunkData(me)       HTChunk_data(ch)
+#define HTChunkSize(me)       HTChunk_size(ch)
 </PRE>
 <PRE>
 #endif

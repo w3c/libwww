@@ -214,7 +214,7 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 
     /* Now we are ready to execute the command */
     if (PROT_TRACE)
-	HTTrace("Telnet...... Command is `%s\'\n", cmd->data);
+	HTTrace("Telnet...... Command is `%s\'\n", HTChunk_data(cmd));
     if (user) {
 	HTChunk *msg = HTChunk_new(128);
 	if (strcasecomp(access, "rlogin")) {
