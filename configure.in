@@ -113,7 +113,7 @@ dnl This is the standard UNIX value
 AC_DEFINE(CACHE_FILE_PREFIX, "/usr/wsrc/")
 
 dnl Checks for libraries:
-AC_CHECK_LIB(ICE, IceConnectionNumber)
+dnl AC_CHECK_LIB(ICE, IceConnectionNumber)
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(inet, connect)
 AC_CHECK_LIB(nsl, t_accept)

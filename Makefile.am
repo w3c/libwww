@@ -21,11 +21,12 @@ EXTRA_DIST = \
 	PATCHES.html \
 	LICENSE.html
 
-# We need to install the config.h header file as well
+# We need to install the config.h header file as well. As this file
+# is platform specific, we do not install it with the other libwww include files
 install-exec-local:
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(pkgincludedir)
-	$(INSTALL_DATA) $(top_builddir)/$(CONFIG_HEADER) $(pkgincludedir)/$(CONFIG_HEADER);
+	$(mkinstalldirs) $(includedir)
+	$(INSTALL_DATA) $(top_builddir)/$(CONFIG_HEADER) $(includedir)/$(CONFIG_HEADER);
 
 # This is our install script provided by Soren Sandmann
 bin_SCRIPTS = libwww-config

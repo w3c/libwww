@@ -17,5 +17,5 @@ libxmlparse_la_SOURCES = \
 
 libxmlparse_la_LDFLAGS = -rpath $(libdir)
 
-include_HEADERS = \
+pkginclude_HEADERS = \
 	xmlparse.h

@@ -45,7 +45,7 @@ while test $# -gt 0; do
       echo @VERSION@
       ;;
     --cflags)
-      echo -I@includedir@/@PACKAGE@ @DEFS@
+      echo -I@includedir@ -I@includedir@/@PACKAGE@ @DEFS@
       ;;
     --libs)
       echo -L@libdir@ @LWWWXML@ @LWWWZIP@ @LWWWWAIS@ @LWWWSQL@ -lwwwinit -lwwwapp -lwwwhtml -lwwwtelnet -lwwwnews -lwwwhttp -lwwwmime -lwwwgopher -lwwwftp -lwwwfile -lwwwdir -lwwwcache -lwwwstream -lwwwmux -lwwwtrans -lwwwcore -lwwwutils @LWWWMD5@ @LIBS@
