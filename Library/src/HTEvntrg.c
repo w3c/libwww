@@ -540,8 +540,7 @@ LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 	}
     return (0);
 }
-extern HWND MonitorWindow;
-#pragma message(__FILE__ ": using async HTEvent_Loop")
+
 PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 {
     int status;
@@ -603,7 +602,6 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 #else /* WWW_WIN_ASYNC  - Unix HTEvent_Loop */
 
-#pragma message(__FILE__ ": using unix-style HTEvent_Loop")
 PUBLIC int HTEvent_Loop( HTRequest * theRequest ) 
 {
     fd_set treadset, twriteset, texceptset ;    
