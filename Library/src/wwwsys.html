@@ -500,8 +500,27 @@ already defined specifically.
 #ifdef NeXT
 #include "sys/types.h"
 #include "sys/stat.h"
-#define S_ISDIR(m) (m & S_IFDIR)
-#define S_ISREG(m) (m & S_IFREG)
+
+#ifndef S_ISDIR
+#define S_ISDIR(m)     (m &amp; S_IFDIR)
+#define S_ISREG(m)     (m &amp; S_IFREG)
+#define S_ISCHR(m)     (m &amp; S_IFCHR)
+#define S_ISBLK(m)     (m &amp; S_IFBLK)
+#define S_ISLNK(m)     (m &amp; S_IFLNK)
+#define S_ISSOCK(m)    (m &amp; S_IFSOCK)
+#define S_ISFIFO(m)    (NO)
+#endif
+
+#ifndef WEXITSTATUS
+#define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
+#endif
+
+#ifndef S_IRWXU
+#define S_IRWXU 0000700
+#define S_IRWXG 0000070
+#define S_IRWXO 0000007
+#endif
+
 #endif
 
 </PRE>
