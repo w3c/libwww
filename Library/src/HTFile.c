@@ -354,7 +354,7 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     matches = HTList_new();
     while ((dirbuf = readdir(dp))) {
 	if (!dirbuf->d_ino) continue;	/* Not in use */
-	if (dirbuf->d_namlen >= baselen) {
+	if ((int)(dirbuf->d_namlen) >= baselen) {
 	    n = split_filename(dirbuf->d_name, actual);
 	    if (multi_match(required, m, actual, n)) {
 		HTContentDescription * cd;
@@ -842,7 +842,7 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 #ifdef NO_GROUPS
     return NO;		/* Safe answer till we find the correct algorithm */
 #else
-    int 	groups[NGROUPS];	
+    gid_t 	groups[NGROUPS];	
     uid_t	myUid;
     int		ngroups;			/* The number of groups  */
     struct stat	fileStatus;
