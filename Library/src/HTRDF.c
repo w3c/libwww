@@ -1337,7 +1337,6 @@ PUBLIC char * HTRDF_processTypedNode(HTRDF *me, HTElement *typedNode)
 		    d = HTElement_new2(tValue);
 		    HTElement_addChild(newPredicate, d);
 		    HTElement_addChild(typedNode, newPredicate);
-		    HTElement_removeAttribute(typedNode, sAttribute);
 		}
 	    }	
 	    HT_FREE(tValue);
@@ -2553,6 +2552,9 @@ PUBLIC HTStream * HTRDFToTriples (HTRequest *		request,
 **             responsible for freeing this pointer.
 **        new_triple_callback - the callback invoked when a new triple
 **             is created.  If NULL, the default handler will be invoked.
+**        context - a void pointer to pass to the new_triple_callback.
+**             Should set NULL if no data needs to be passed to the
+**             callback.
 **        name - the file name or buffer name to be used when the RDF
 **             parser needs a document name
 **
@@ -2563,7 +2565,7 @@ PUBLIC HTStream * HTRDFToTriples (HTRequest *		request,
 
 PRIVATE BOOL initialize_parsers(XML_Parser *xmlparser, HTRDF **rdfparser, 
     HTStream **stream, char **uri, HTTripleCallback_new * new_triple_callback, 
-    const char * name)
+    void *context, const char * name)
 {
     /* Create an XML parser */
 #ifdef USE_NS
@@ -2592,9 +2594,9 @@ PRIVATE BOOL initialize_parsers(XML_Parser *xmlparser, HTRDF **rdfparser,
     HTRDF_createBags(*rdfparser, NO); 
 
     if (new_triple_callback)
-        HTRDF_registerNewTripleCallback(*rdfparser, new_triple_callback, NULL);
+        HTRDF_registerNewTripleCallback(*rdfparser, new_triple_callback, context);
     else
-        HTRDF_registerNewTripleCallback(*rdfparser, triple_newInstance, NULL);
+        HTRDF_registerNewTripleCallback(*rdfparser, triple_newInstance, context);
 
     rdf_setHandlers(*xmlparser);
     XML_SetUserData(*xmlparser, *rdfparser);
@@ -2626,12 +2628,16 @@ PRIVATE BOOL initialize_parsers(XML_Parser *xmlparser, HTRDF **rdfparser,
 **        new_triple_callback the callback that is invoked when a triple
 **                       is created. If NULL, the default triple handler is
 **                        invoked.
+**        context - a void pointer to pass to the new_triple_callback.
+**             Should set NULL if no data needs to be passed to the
+**             callback.
 **      Returns:
 **        Returns YES if the file is successfully parsed; otherwise NO is
 **        returned and an error message is logged. 
 */
 
-PUBLIC BOOL HTRDF_parseFile (const char *file_name, HTTripleCallback_new * new_triple_callback)
+PUBLIC BOOL HTRDF_parseFile (const char *file_name, 
+  HTTripleCallback_new * new_triple_callback, void *context)
 {
     char buff[512]; /* the file input buffer */
     FILE *fp;
@@ -2656,7 +2662,7 @@ PUBLIC BOOL HTRDF_parseFile (const char *file_name, HTTripleCallback_new * new_t
 
     /* Initialize the XML and RDF parsers */
     status = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, 
-			   new_triple_callback, file_name);
+			   new_triple_callback, context, file_name);
     if (!status) {
 	fclose (fp);
         return NO;
@@ -2726,12 +2732,16 @@ PUBLIC BOOL HTRDF_parseFile (const char *file_name, HTTripleCallback_new * new_t
 **       new_triple_callback the callback that is invoked when a triple
 **                    is created. If NULL, the default triple handler is
 **                     invoked.
+**        context - a void pointer to pass to the new_triple_callback.
+**             Should set NULL if no data needs to be passed to the
+**             callback.
 **      Returns:
 **       Returns YES if the buffer is successfully parsed; otherwise NO is
 **       returned and an error message is logged. 
 */
 
-PUBLIC BOOL HTRDF_parseBuffer (const char *buffer, const char *buffer_name, int buffer_len, HTTripleCallback_new * new_triple_callback)
+PUBLIC BOOL HTRDF_parseBuffer (const char *buffer, const char *buffer_name, 
+  int buffer_len, HTTripleCallback_new * new_triple_callback, void *context)
 {
     XML_Parser xmlparser;
     HTRDF *rdfparser;
@@ -2754,7 +2764,7 @@ PUBLIC BOOL HTRDF_parseBuffer (const char *buffer, const char *buffer_name, int 
     }
 
     status = initialize_parsers(&xmlparser, &rdfparser, &stream, &uri, 
-			        new_triple_callback, buffer_name);
+			        new_triple_callback, context, buffer_name);
     if (!status)
         return NO;
 
