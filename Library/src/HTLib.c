@@ -52,9 +52,39 @@ PUBLIC const char * HTLib_appName (void)
     return HTAppName ? HTAppName : "UNKNOWN";
 }
 
+PUBLIC BOOL HTLib_setAppName (const char * name)
+{
+    if (name) {
+	char * ptr;
+	StrAllocCopy(HTAppName, name);
+	ptr = HTAppName;
+	while (*ptr) {
+	    if (isspace((int) *ptr)) *ptr = '_';
+	    ptr++;
+	}
+	return YES;
+    }
+    return NO;
+}
+
 PUBLIC const char * HTLib_appVersion (void)
 {
     return HTAppVersion ? HTAppVersion : "0.0";
+}
+
+PUBLIC BOOL HTLib_setAppVersion (const char * version)
+{
+    if (version) {
+	char * ptr;
+	StrAllocCopy(HTAppVersion, version);
+	ptr = HTAppVersion;
+	while (*ptr) {
+	    if (isspace((int) *ptr)) *ptr = '_';
+	    ptr++;
+	}
+	return YES;
+    }
+    return NO;
 }
 
 /*	Information about libwww
@@ -120,24 +150,8 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 	HTTrace("WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
     /* Set the application name and version */
-    if (AppName) {
-	char *ptr;
-	StrAllocCopy(HTAppName, AppName);
-	ptr = HTAppName;
-	while (*ptr) {
-	    if (isspace((int) *ptr)) *ptr = '_';
-	    ptr++;
-	}
-    }
-    if (AppVersion) {
-	char *ptr;
-	StrAllocCopy(HTAppVersion, AppVersion);
-	ptr = HTAppVersion;
-	while (*ptr) {
-	    if (isspace((int) *ptr)) *ptr = '_';
-	    ptr++;
-	}
-    }
+    HTLib_setAppName(AppName);
+    HTLib_setAppVersion(AppVersion);
 
     /* Create a default user profile and initialize it */
     UserProfile = HTUserProfile_new(HT_DEFAULT_USER, NULL);

@@ -1,11 +1,10 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1996 -->
-  <TITLE>W3C Sample Code Library libwww Global Libwww Information</TITLE>
+  <TITLE>W3C Sample Code Library libwww Initialization</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Global Libwww Information
+  Libwww Initialization
 </H1>
 <PRE>
 /*
@@ -18,65 +17,85 @@ This module contains some generic functions for getting the name and version
 of libwww. It also contains some global configuration options like if you
 can access the local file system, for example.
 <P>
-This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
-Library</A>.
+This module is implemented by <A HREF="HTLib.c">HTLib.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTLIB_H
 #define HTLIB_H
 
-#include "HTUser.h"
+#include "<A HREF="HTUser.html">HTUser.h</A>"
 </PRE>
-<H3>
-  <IMG SRC="../../Icons/32x32/warning"> Initializing and Terminating the Library
-</H3>
+<H2>
+  Initializing and Terminating libwww
+</H2>
 <P>
-These two functions initiates memory and settings for the Library core and
-cleans up memory kept by the core when about to exit the application. They
-&nbsp;<B>must</B> be used!
+These two functions initiates memory and settings for the libwww core and
+cleans up memory kept by libwww core when exiting the application. They
+&nbsp;MUST be used as libwww otherwise is in a undefined state.
 <PRE>extern BOOL HTLibInit (const char * AppName, const char * AppVersion);
 extern BOOL HTLibTerminate (void);
 </PRE>
-<H3>
-  Library Name and Version
-</H3>
+<H2>
+  Libwww Name and Version
+</H2>
 <P>
 You can get the generic name of the Library and the version by using the
 following functions:
 <PRE>extern const char * HTLib_name (void);
 extern const char * HTLib_version (void);
 </PRE>
-<H3>
-  Is the Library Initalized?
-</H3>
+<H2>
+  Is libwww Initalized?
+</H2>
 <P>
 Returns YES or NO
 <PRE>extern BOOL HTLib_isInitialized (void);
 </PRE>
-<H3>
+<H2>
   Application Name and Version
+</H2>
+<P>
+Returns the name of the application name and the version number. The name
+and version SHOULD be short and to the point. They MUST NOT be used for
+advertising or other non-essential information. Although any token character
+MAY appear in a product-version, this token SHOULD only be used for a version
+identifier.
+<H3>
+  Set or get the application name
 </H3>
 <P>
-Returns the name of the application and the version number that was passed
-to the <CODE>HTLibInit()</CODE> function.
+The name can not contain any spaces as it is used as part of the user agent
+field. For the same reason, the string MUST be in US-ASCII. For example,
+"<B>SmartApp</B>"
 <PRE>
 extern const char * HTLib_appName (void);
-extern const char * HTLib_appVersion (void);
+extern BOOL HTLib_setAppName (const char * name);
 </PRE>
 <H3>
-  <A NAME="Secure">Accessing the Local File System</A>
+  Set or get the application version
 </H3>
 <P>
-The Library does normally use the local file system for dumping unknown data
-objects, file cache etc. In some situations this is not desired and we can
-therefore turn it off. This mode also prevents you from being able to access
-other resources where you have to log in telnet, for example.
+The version token can not contain any spaces as it is used as part of the
+user agent field. For the same reason, the string MUST be in US-ASCII. For
+example, "<B>1.0</B>". 
+<PRE>
+extern const char * HTLib_appVersion (void);
+extern BOOL HTLib_setAppVersion (const char * version);
+</PRE>
+<H2>
+  <A NAME="Secure">Accessing the Local File System</A>
+</H2>
+<P>
+Libwww does normally use the local file system for dumping unknown data objects,
+file cache etc. In some situations this is not desired and we can therefore
+turn it off. This mode also prevents you from being able to access other
+resources where you have to login telnet, for example.
 <PRE>extern BOOL HTLib_secure (void);
 extern void HTLib_setSecure (BOOL mode);
 </PRE>
-<H3>
+<H2>
   Default User Profile
-</H3>
+</H2>
 <P>
 The default <A HREF="HTUser.html">user profile</A> is automatically created
 by the libwww in order to get information about the <I>hostname</I>, default
