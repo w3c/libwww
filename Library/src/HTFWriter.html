@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>File Writer for libwww</TITLE>
-<NEXTID N="z2">
+<TITLE>HTFWriter:  File Writer for libwww</TITLE>
+<NEXTID N="z4">
 </HEAD>
 <BODY>
 <H1>C File Writer</H1>It is useful to have both FWriter
@@ -26,25 +26,57 @@ NAME="z0" HREF="HTFWriter.c">HTFWriter.c</A>
 <PRE>extern HTStream * HTFWriter_new PARAMS((FILE * fp));
 
 </PRE>
-<H2>Converters</H2>
+<H2>Converters</H2>HTSaveAndCallBack will save to a
+cache file and call the request->callback
+function with the filename as parameter.
 <PRE>extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack;
-/*
-extern HTStream * HTSaveAndExecute PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
 
-extern HTStream * HTSaveLocally PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
+</PRE>
+<H2><A
+NAME="z3">The cache</A></H2>The cache contains details of temporary
+disk files which contain the contents
+of remote documents.   There is also
+a <A
+NAME="z2" HREF="HTAnchor.html#z1">list of cache items for each URL</A>
+in its anchor object.
+<H3>An item in the cache</H3>
+<PRE>typedef struct _HTCacheItem {
+    HTParentAnchor *	anchor;
+    HTFormat		format;		/* May have many formats per anchor */
+    char *		filename;
+    time_t		load_time;
+    time_t		load_delay;
+    int			reference_count;
+} HTCacheItem;
 
-extern HTStream * HTSaveAndCallBack PARAMS((HTRequest * request,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
-*/
+</PRE>
+<H3>The Cache Itself</H3>There is one global cache. No, it's
+not reentrant code then.  If we find
+a use for >1 cache then we can change
+it. Currently the obvious advantage
+is when all things which could gain
+from caching use the same one.
+<PRE>extern HTList * HTCache;	/* made up of HTCacheItem items */
+
+</PRE>
+<H3>The Cache Limit</H3>The cache limit is the number of
+files which are kept. Yes, I know,
+the amount of disk space wouldbe
+more relevant. So this may change.
+Currentlyit is present to 100 but
+may be changed by the application
+by writing into this variable.
+<PRE>extern int	HTCacheLimit;
+
+</PRE>
+<H3>Clear a cache</H3>
+<PRE>extern void HTCacheClear PARAMS((HTList * cache));
+
+</PRE>
+<H3>Stream for writing to cache</H3>Note that HTSaveAndCallBack will
+also generate a cache file.
+<PRE>extern HTConverter HTCacheWriter;
 
 #endif
-</PRE>end</A></BODY>
+</PRE>end</BODY>
 </HTML>

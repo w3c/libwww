@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTFormat: The format manager in the WWW Library</TITLE>
-<NEXTID N="z16">
+<NEXTID N="z18">
 </HEAD>
 <BODY>
 <H1>Manage different document formats</H1>Here we describe the functions of
@@ -145,15 +145,16 @@ struct _HTPresentation {
 	float   secs_per_byte;
 };
 
-</PRE>The list of presentations is kept
+</PRE>A global list of converters is kept
 by this module.  It is also scanned
 by modules which want to know the
 set of formats supported. for example.
-<PRE>/* extern HTList * HTPresentations; */
+ Note there is also an additional
+list associated with each <A
+NAME="z16" HREF="HTAccess.html#z5">request</A>.
+<PRE>extern HTList * <A
+NAME="z17">HTConversions</A> ;
 
-</PRE>The default presentation is used
-when no other is approporate
-<PRE>/* extern  HTPresentation* default_presentation; */
 
 </PRE>
 <H2>HTSetPresentation: Register a system
@@ -296,9 +297,8 @@ extern void HTCopyNoCR PARAMS((
 
 </PRE>
 <H2>HT<A
-NAME="z15">Input Socket: Buffering for network
-in</A></H2>
-<H2></H2>This routines provide simple character
+NAME="z15"> Input Socket: Buffering for network
+in</A></H2>This routines provide simple character
 input from sockets. These are used
 for parsing input in arbitrary IP
 protocols (Gopher, NNTP, FTP).
@@ -383,5 +383,5 @@ well.
 <PRE>extern BOOL HTOutputSource;	/* Flag: shortcut parser */
 #endif
 
-</PRE>end</BODY>
+</PRE>end</A></BODY>
 </HTML>

@@ -492,10 +492,9 @@ PRIVATE void de_escape ARGS2(char *, command, CONST char *, selector)
 **	 Bug:	No decoding of strange data types as yet.
 **
 */
-PUBLIC int HTLoadGopher ARGS2(
-	CONST char *,		arg,
-	HTRequest *,		request)
+PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 {
+    CONST char * arg = HTAnchor_physical(request->anchor);
     char *command;			/* The whole command */
     int status;				/* tcp return */
     char gtype;				/* Gopher Node type */

@@ -51,6 +51,8 @@ struct _HTStream {
 extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
+PUBLIC BOOL HTCacheHTTP = YES;	/* Enable caching of HTTP-retrieved files */
+
 /*		Load Document from HTTP Server			HTLoadHTTP()
 **		==============================
 **
@@ -68,10 +70,9 @@ extern char * HTAppVersion;	/* Application version: please supply */
 **	read.
 **
 */
-PUBLIC int HTLoadHTTP ARGS2 (
-	CONST char *, 		arg,
-	HTRequest *,		request)
+PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 {
+    CONST char * arg = HTAnchor_physical(request->anchor);
     int s;				/* Socket number for returned data */
     int status;				/* tcp return */
     char crlf[3];			/* A CR LF equivalent string */
@@ -543,7 +544,14 @@ copy:
 	    goto clean_up;
 	}
     
-    
+        /* @@ Bug: The decision of whether or not to cache should also be
+	made contingent on a IP address match or non match */
+	
+        if (HTCacheHTTP) {
+	    target = HTTee(target, HTCacheWriter(request, NULL, format_in,
+	    	request->output_format, request->output_stream));
+	}
+	
 /*	Push the data down the stream
 **	We have to remember the end of the first buffer we just read
 */

@@ -18,8 +18,10 @@
 #include <ctype.h>
 #include "tcp.h"
 #include "HTAnchor.h"
+
 #include "HTUtils.h"
 #include "HTParse.h"
+#include "HTFWriter.h"	/* for cache stuff */
 
 typedef struct _HyperDoc Hyperdoc;
 #ifdef VMS
@@ -282,6 +284,9 @@ PUBLIC BOOL HTAnchor_delete
   free (me->address);
   /* Devise a way to clean out the HTFormat if no longer needed (ref count?) */
   free (me);
+  if (me->cacheItems) {
+      HTCacheClear(me->cacheItems);
+  }
   return YES;  /* Parent deleted */
 }
 

@@ -40,10 +40,10 @@ parse HTML</H2>
 allows it to be retained (for example
 by the styled text object) after
 the structured stream has been closed.
- To be actually deleted, the HTML
+To be actually deleted, the HTML
 object must  be closed once more
 times than it has been reopened.
-<PRE>extern void HTML_reopen PARAMS((HTStructured *, me));
+<PRE>extern void HTML_reopen PARAMS((HTStructured * me));
 
 </PRE>
 <H2>Converters</H2>
@@ -71,12 +71,12 @@ document unloaded.
 <H3>On entry,</H3>
 <DL>
 <DT>sink
-<DD>is a stream to the output device
+<DD> is a stream to the output device
 if any
 <DT>number
-<DD>is the HTTP error number
+<DD> is the HTTP error number
 <DT>message
-<DD>is the human readable message.
+<DD> is the human readable message.
 </DL>
 
 <H3>On exit,</H3>a return code like HT_LOADED if object
@@ -89,5 +89,5 @@ exists else &lt; 0
 #endif
 
 
-</PRE>end</A></BODY>
+</PRE>end</BODY>
 </HTML>

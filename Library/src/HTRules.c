@@ -346,7 +346,8 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
         if (pointer) status = sscanf(pointer, "%f%f%f",
 			    &quality, &secs, &secs_per_byte);
         else status = 0;
-	HTSetPresentation(word2, word3,
+	if (!HTConversions) HTConversions = HTList_new();
+	HTSetPresentation(HTConversions, word2, word3,
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );

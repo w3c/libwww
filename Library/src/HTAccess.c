@@ -44,7 +44,8 @@
 #include "HTList.h"
 #include "HText.h"	/* See bugs above */
 #include "HTAlert.h"
-
+#include "HTFWriter.h"	/* for cache stuff */
+#include "HTTee.h"
 
 /*	These flags may be set to modify the operation of this module
 */
@@ -255,8 +256,7 @@ PRIVATE int HTLoad ARGS2(
     if (status < 0) return status;	/* Can't resolve or forbidden */
     
     p = HTAnchor_protocol(request->anchor);
-    return (*(p->load))(HTAnchor_physical(request->anchor),
-    			request);
+    return (*(p->load))(request);
 }
 
 
@@ -317,6 +317,33 @@ PRIVATE BOOL HTLoadDocument ARGS2(
         HText_select(text);
 	return YES;
     }
+    
+    /* Check the Cache
+    */
+    /* Bug: for each format, we only check whether it is ok, we
+       don't check them all and chose the best */
+    if (request->anchor->cacheItems) {
+        HTList * list = request->anchor->cacheItems;
+        int i;
+	int n = HTList_count(list);
+	for(i=0; i<n; i++) {
+	    HTCacheItem * item = HTList_objectAt(list, i);
+	    HTStream * s = HTStreamStack(item->format, request);
+	    if (s) {		/* format was suitable */
+	        FILE * fp = fopen(item->filename, "r");
+	    	if (TRACE) fprintf(stderr, "Cache hit for %s\n",
+					full_address);
+		if (fp) {
+		    HTFileCopy(fp, s);
+		    fclose(fp);
+		    return YES;
+		} else {
+		    fprintf(stderr, "***** Can't read cache file %s !\n",
+		    	item->filename);
+		} /* file open ok */
+	    } /* stream ok */
+	} /* next cache item */
+    } /* if cache available for this anchor */
     
     status = HTLoad(full_address, request);
 

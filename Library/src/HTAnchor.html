@@ -1,6 +1,8 @@
 <HTML>
 <HEAD>
-<TITLE>Anchor object for libwww</TITLE></HEAD>
+<TITLE>Anchor object for libwww</TITLE>
+<NEXTID N="z2">
+</HEAD>
 <BODY>
 <H1>Hypertext "Anchor" Object</H1>An anchor represents a region of
 a hypertext document which is linked
@@ -53,7 +55,6 @@ typedef struct _HTAnchor HTAnchor;
 typedef struct _HTParentAnchor HTParentAnchor;
 
 </PRE>Must be AFTER definition of HTAnchor:
-
 <PRE>#include "HTFormat.h"
 
 typedef HTAtom HTLinkType;
@@ -63,7 +64,9 @@ typedef struct {
   HTLinkType *	type;		/* Semantics of this link */
 } HTLink;
 
-struct _HTAnchor {		/* Generic anchor : just links */
+</PRE>
+<H3>Generic Anchor type</H3>
+<PRE>struct _HTAnchor {		/* Generic anchor : just links */
   HTLink	mainLink;	/* Main (or default) destination of this */
   HTList *	links;  	/* List of extra links from this, if any */
   /* We separate the first link from the others to avoid too many small mallocs
@@ -71,7 +74,9 @@ struct _HTAnchor {		/* Generic anchor : just links */
   HTParentAnchor * parent;	/* Parent of this anchor (self for adults) */
 };
 
-struct _HTParentAnchor {
+</PRE>
+<H3>Anchor for a whole object</H3>
+<PRE>struct _HTParentAnchor {
   /* Common part from the generic anchor structure */
   HTLink	mainLink;	/* Main (or default) destination of this */
   HTList *	links;  	/* List of extra links from this, if any */
@@ -89,9 +94,14 @@ struct _HTParentAnchor {
   HTList*	methods;	/* Methods available as HTAtoms */
   void *	protocol;	/* Protocol object */
   char *	physical;	/* Physical address */
+  HTList *	<A
+NAME="z1">cacheItems</A>;	/* Cache hits (see <A
+NAME="z0" HREF="HTFWriter.html">HTFWriter</A>) for this URL */
 };
 
-typedef struct {
+</PRE>
+<H3>Anchor for a fragment of an object</H3>
+<PRE>typedef struct {
   /* Common part from the generic anchor structure */
   HTLink	mainLink;	/* Main (or default) destination of this */
   HTList *	links;  	/* List of extra links from this, if any */
@@ -313,5 +323,8 @@ extern BOOL HTAnchor_link
 #endif /* HTANCHOR_H */
 
 
-</BODY>
+
+
+
+</A></PRE></BODY>
 </HTML>

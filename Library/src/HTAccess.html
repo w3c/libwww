@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTAccess:  Access manager  for libwww</TITLE>
-<NEXTID N="z4">
+<NEXTID N="z6">
 </HEAD>
 <BODY>
 <H1>Access Manager</H1>This module keeps a list of valid
@@ -91,9 +91,12 @@ is asking for user confusion.
 NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
 of things about it need to be passed
 along.  These are all put into a
-HTRequest structure.
+HTRequest structure.  Note there
+is also a <A
+NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>.
 <PRE>struct _HTRequest {
-	HTList * 	conversions;	/* conversions allowed in this case */
+	HTList * 	<A
+NAME="z5">conversions</A>;	/* conversions allowed in this case */
 	char *		from;		/* On behalf of whom? */
 	HTStream*	output_stream;	/* For non-interactive, set this */ 
 	HTAtom * 	output_format;	/* To convert on load, set this */
@@ -353,12 +356,10 @@ is already valid (made valid by HTAccess).
 <PRE>typedef struct _HTProtocol {
 	char * name;
 	
-	int (*load)PARAMS((
-		CONST char * 	full_address,
-		HTRequest *	request));
+	int (*load)PARAMS((HTRequest *	request));
 		
-	HTStream* (*saveStream)PARAMS((
-				HTRequest *	request));
+	HTStream* (*saveStream)PARAMS((HTRequest *	request));
+
 	HTStream* (*postStream)PARAMS((
 				HTRequest *	request,
 				HTParentAnchor* postTo));
@@ -380,5 +381,6 @@ use this.
 <PRE>extern HTParentAnchor * HTHomeAnchor NOPARAMS;
 
 #endif /* HTACCESS_H */
-</PRE>end of HTAccess</BODY>
+
+</PRE>end of HTAccess</A></BODY>
 </HTML>

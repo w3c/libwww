@@ -7,12 +7,14 @@
 **	Bugs:
 **		strings written must be less than buffer size.
 */
+#define CACHE_LIMIT 100		/* files */
 
 #include "HTFWriter.h"
 
 #include "HTFormat.h"
 #include "HTAlert.h"
 #include "HTFile.h"
+#include "HTList.h"
 
 /*		Stream Object
 **		------------
@@ -28,6 +30,7 @@ struct _HTStream {
 	char *			filename;
 	HTRequest *		request;	/* saved for callback */
 	BOOL (*callback) PARAMS((struct _HTRequest * req, void * filename));
+	HTCacheItem *		cache;
 };
 
 
@@ -133,6 +136,13 @@ PRIVATE void HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 */
 PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 {
+    if (me->cache) {
+        time_t finish_time;
+	time(&finish_time);
+	me->cache->load_delay = finish_time - me->cache->load_time;
+	/* Actually, ought to use darf t ANSII difftime() */
+	/* But that I bet is more portable in real life  (@@?) */
+    }
     fclose(me->fp);
     if (me->end_command) {		/* Temp file */
         HTProgress(me->end_command);	/* Tell user what's happening */
@@ -196,7 +206,7 @@ PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
     
     if (!fp) return NULL;
 
-    me = (HTStream*)malloc(sizeof(*me));
+    me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTFWriter;       
 
@@ -251,7 +261,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 	return HTBlackHole();
     }
     
-    me = (HTStream*)malloc(sizeof(*me));
+    me = (HTStream*)calloc(sizeof(*me), 1);
     if (me == NULL) outofmem(__FILE__, "Save and execute");
     me->isa = &HTFWriter;  
     
@@ -262,7 +272,6 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
     tmpnam (fnam);
     if (suffix) strcat(fnam, suffix);
-    me->filename = NULL;
     me->request = request;	/* won't be freed */
     
     me->fp = fopen (fnam, "w");
@@ -330,13 +339,10 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 	return HTBlackHole();
     }
     
-    me = (HTStream*)malloc(sizeof(*me));
+    me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "SaveLocally");
     me->isa = &HTFWriter;  
-    me->end_command = NULL;
-    me->remove_command = NULL;	/* If needed, put into end_command */
     me->announce = YES;
-    me->filename = NULL;
     
     /* Save the file under a suitably suffixed name */
     
@@ -364,14 +370,63 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     return me;
 }
 
+/*	Cache handling
+**	--------------
+*/
+
+PUBLIC HTList * HTCache;
+PUBLIC int	HTCacheLimit = CACHE_LIMIT;
+
+PRIVATE void HTCache_remove ARGS1(HTCacheItem *, item)
+{
+    HTList_removeObject(HTCache, item);
+    HTList_removeObject(item->anchor->cacheItems, item);
+    unlink(item->filename);
+    free(item->filename);
+    free(item);
+}
+
+/* This can be called for the main list or an anchor's list
+*/
+
+int fred;
+
+PUBLIC void HTCacheClear (HTList * list)
+{
+    HTCacheItem * item;
+    while ((item=HTList_objectAt(list, 0)) != NULL) {
+        HTCache_remove(item);
+    }
+}
+
+/*  Remove a file from the cache to prevent too many files from being cached
+*/
+PRIVATE void limit_cache NOARGS
+{
+    HTCacheItem * item;
+    int i;
+    int n = HTList_count(HTCache);
+    time_t best_delay = 0;   /* time_t in principle can be any arith type */
+    HTCacheItem* best_item = NULL;
+    
+    if (n < HTCacheLimit) return;		/* Limit not reached */
+    
+    for (i=0; i<n; i++) {
+	if (item->load_delay < best_delay) {
+	    best_delay = item->load_delay;
+	    best_item = item;
+	}
+    }
+    
+    if (best_item) HTCache_remove(best_item);
+}
+
 
 /*	Save and Call Back
 **	------------------
 **
-** Bugs: Cache management @@@@
-**
 */
-PUBLIC HTStream* HTSaveAndCallBack ARGS5(
+PUBLIC HTStream* HTCacheWriter ARGS5(
 	HTRequest *,		request,
 	void *,			param,
 	HTFormat,		input_format,
@@ -389,7 +444,7 @@ PUBLIC HTStream* HTSaveAndCallBack ARGS5(
 	return HTBlackHole();
     }
     
-    me = (HTStream*)malloc(sizeof(*me));
+    me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "SaveLocally");
     me->isa = &HTFWriter;  
     me->end_command = NULL;
@@ -405,6 +460,8 @@ PUBLIC HTStream* HTSaveAndCallBack ARGS5(
     if (suffix) strcat(fnam, suffix);
     me->filename = NULL;
     
+    limit_cache();		/* Limit number (not size) of files */
+    
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
 	HTAlert("Can't open local file to write into for callback.");
@@ -412,10 +469,45 @@ PUBLIC HTStream* HTSaveAndCallBack ARGS5(
 	free(me);
 	return NULL;
     }
+    
+    /* Set up a cache record */
+    
+    me->cache = (HTCacheItem*)calloc(sizeof(*me->cache),1);
+    if (!me->cache)outofmem(__FILE__, "cache");
+    time(&me->cache->load_time);
+    StrAllocCopy(me->cache->filename, fnam);
+    me->cache->anchor = request->anchor;
+    if (!request->anchor->cacheItems)
+    	request->anchor->cacheItems = HTList_new();
+    HTList_addObject(request->anchor->cacheItems, me->cache);
+    me->cache->format = input_format;
+    HTList_addObject(HTCache, me->cache);
+    
     me->callback = request->callback;
     me->request = request;	/* won't be freed */
     me->filename = fnam;   /* will be freed */
     return me;
 }
 
+/*	Save and Call Back
+**	------------------
+**
+*/
+
+
+PUBLIC HTStream* HTSaveAndCallBack ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
+{
+   HTStream * me = HTCacheWriter(request, param,
+   			input_format, output_format, output_stream);
+   if (me) {
+       me->callback = request->callback;
+   }
+   return me;
+   
+}
 

@@ -1,0 +1,28 @@
+<HTML>
+<HEAD>
+<TITLE>HTTee:  Tee stream for libwww</TITLE>
+<NEXTID N="z2">
+</HEAD>
+<BODY>
+<H1>Tee stream</H1>This is part of <A
+NAME="z1" HREF="Overview.html">libwww</A> .  The Tee
+stream just writes everything you
+put into it into two oter streams.<P>
+One use (the only use?!) is for taking
+a cached copey on disk while loading
+the main copy, without having to
+wait for the disk copy to be finished
+and reread it.
+<PRE>#include "HTStream.h"
+
+extern HTStream * HTTee PARAMS((HTStream* s1, HTStream* s2));
+
+
+
+
+
+</PRE>
+<ADDRESS><A
+NAME="0" HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A>
+</ADDRESS></BODY>
+</HTML>

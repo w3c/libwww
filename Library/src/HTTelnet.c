@@ -196,21 +196,14 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 **			(See WWW.h)
 **
 */
-PRIVATE int HTLoadTelnet
-ARGS4
-(
- CONST char *,		addr,
- HTParentAnchor *,	anchor,
- HTFormat,		format_out,
- HTStream *,		sink			/* Ignored */
-)
+PRIVATE int HTLoadTelnet ARGS1(HTRequest *, request)
 {
     char * access;
-    
+    CONST char * addr = HTAnchor_physical(request->anchor);
     char * host;
     int status;
     
-    if (sink) {
+    if (request->output_stream) {
         HTAlert("Can't output a live session -- it has to be interactive");
 	return HT_NO_ACCESS;
     }

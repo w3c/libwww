@@ -639,11 +639,10 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
 **			HTLOADED	OK 
 **
 */
-PUBLIC int HTLoadFile ARGS2 (
-	CONST char *,		addr,
-	HTRequest *,		request
-)
+PUBLIC int HTLoadFile ARGS1 (HTRequest *,		request)
+
 {
+    CONST char * addr = HTAnchor_physical(request->anchor);
     char * filename;
     HTFormat format;
     char * nodename = 0;

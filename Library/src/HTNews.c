@@ -832,10 +832,9 @@ PRIVATE void read_group ARGS3(
 /*		Load by name					HTLoadNews
 **		============
 */
-PUBLIC int HTLoadNews ARGS2(
-	CONST char *,		arg,
-	HTRequest *,		request)
+PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 {
+    CONST char * arg = HTAnchor_physical(request->anchor);
     char command[257];			/* The whole command */
     char groupName[GROUP_NAME_LENGTH];	/* Just the group name */
     int status;				/* tcp return */

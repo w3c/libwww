@@ -68,8 +68,7 @@ struct _HTStream {
 **	--------------------
 */
 
-/* PUBLIC  HTList * HTPresentations = 0;		*/
-/* PUBLIC  HTPresentation* default_presentation = 0;	*/
+PUBLIC HTList * HTConversions = NULL;
 
 
 /*	Define a presentation system command for a content-type
@@ -243,24 +242,30 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 	HTRequest *,		request)
 {
     HTFormat rep_out = request->output_format;	/* Could be a param */
-    HTList * conversions = request->conversions; /* Could be a param */
+    HTList * conversion[2];
     HTAtom * wildcard = HTAtom_for("*");
     HTFormat source = WWW_SOURCE;
+    int which_list;
+    HTPresentation * pres, *match, *wildcard_match=0,
+			*source_match=0, *source_wildcard_match=0;
+    
     if (TRACE) fprintf(stderr,
     	"HTFormat: Constructing stream stack for %s to %s\n",
 	HTAtom_name(rep_in),	
 	HTAtom_name(rep_out));
 		
+
     if (rep_out == WWW_SOURCE ||
     	rep_out == rep_in) return request->output_stream;
 
-/*    if (!HTPresentations) HTFormatInit(); */	/* set up the list */
+    conversion[0] = request->conversions;
+    conversion[1] = HTConversions;
     
-    {
+    for(which_list = 0; which_list<2; which_list++)
+     if (conversion[which_list]) {
+        HTList * conversions = conversion[which_list];
 	int n = HTList_count(conversions);
 	int i;
-	HTPresentation * pres, *match, *wildcard_match=0,
-			*source_match=0, *source_wildcard_match=0;
 	for(i=0; i<n; i++) {
 	    pres = HTList_objectAt(conversions, i);
 	    if (pres->rep == rep_in) {
@@ -279,22 +284,16 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 		}
 	    }
 	}
-	
-	match = wildcard_match ? wildcard_match :
-		source_match ?	source_match : 
-		source_wildcard_match;
-	
-	if (match) return (*match->converter)(
-		    request, match->command, rep_in, rep_out,
-		    request->output_stream);
     }
-
+    match = wildcard_match ? wildcard_match :
+	    source_match ?	source_match : 
+	    source_wildcard_match;
     
-#ifdef XMOSAIC_HACK_REMOVED_NOW  /* Use above source method instead */
-    return request->output_stream;
-#else
+    if (match) return (*match->converter)(
+		request, match->command, rep_in, rep_out,
+		request->output_stream);
+
     return NULL;
-#endif
 }
 	
 
@@ -307,14 +306,16 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 **	length	The size of the data to be converted
 */
 PUBLIC float HTStackValue ARGS5(
-	HTList *,		conversions,
+	HTList *,		theseConversions,
 	HTFormat,		rep_in,
 	HTFormat,		rep_out,
 	float,			initial_value,
 	long int,		length)
 {
     HTAtom * wildcard = HTAtom_for("*");
-
+    int which_list;
+    HTList* conversion[2];
+    
     if (TRACE) fprintf(stderr,
     	"HTFormat: Evaluating stream stack for %s worth %.3f to %s\n",
 	HTAtom_name(rep_in),	initial_value,
@@ -325,7 +326,12 @@ PUBLIC float HTStackValue ARGS5(
 
  /*   if (!HTPresentations) HTFormatInit();	 set up the list */
     
-    {
+    conversion[0] = theseConversions;
+    conversion[1] = HTConversions;
+    
+    for(which_list = 0; which_list<2; which_list++)
+     if (conversion[which_list]) {
+        HTList * conversions = conversion[which_list];
 	int n = HTList_count(conversions);
 	int i;
 	HTPresentation * pres;
@@ -490,6 +496,7 @@ PUBLIC void HTCopyNoCR ARGS2(
 **   when the format is textual.
 **
 */
+
 PUBLIC int HTParseSocket ARGS3(
 	HTFormat,		rep_in,
 	int,			file_number,

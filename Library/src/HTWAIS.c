@@ -522,11 +522,7 @@ display_search_response ARGS4(
 **
 **	This renders any object or search as required
 */
-PUBLIC int HTLoadWAIS ARGS4(
-	CONST char *,		arg,
-	HTParentAnchor *,	anAnchor,
-	HTFormat,		format_out,
-	HTStream*,		sink)
+PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 
 #define MAX_KEYWORDS_LENGTH 1000
 #define MAX_SERVER_LENGTH 1000
@@ -535,6 +531,11 @@ PUBLIC int HTLoadWAIS ARGS4(
 #define MAXDOCS 40
 
 {
+    CONST char * arg = HTAnchor_physical(request->anchor);
+    HTParentAnchor *	anAnchor = request->anchor;
+    HTFormat		format_out = request->output_format;
+    HTStream*		sink = request->output_stream;
+    
     static CONST char * error_header =
 "<h1>Access error</h1>\nThe following error occured in accesing a WAIS server:<P>\n";
     char * key;			  /* pointer to keywords in URL */
@@ -644,7 +645,8 @@ PUBLIC int HTLoadWAIS ARGS4(
 	char filename[256];
 	FILE * fp;
 #endif
-	HTStructured * target = HTML_new(anAnchor, format_out, sink);
+	HTStructured * target = HTML_new(request, NULL,
+					WWW_HTML, format_out, sink);
 	
 	START(HTML_ISINDEX);
 
@@ -695,7 +697,7 @@ PUBLIC int HTLoadWAIS ARGS4(
     
         /* Send advance title to get something fast to the other end */
 	
-	target = HTML_new(anAnchor, format_out, sink);
+	target = HTML_new(request, NULL, WWW_HTML, format_out, sink);
 	
 	START(HTML_ISINDEX);
 	START(HTML_TITLE);
@@ -767,7 +769,7 @@ PUBLIC int HTLoadWAIS ARGS4(
 	  0 != strcmp(doctype, "HTML") ;
 
 
-	target = HTStreamStack(format_in, format_out, sink, anAnchor);
+	target = HTStreamStack(format_in, request);
 	if (!target) return HTLoadError(sink, 500,
 		"Can't convert format of WAIS document");
 /*	Decode hex or litteral format for document ID
