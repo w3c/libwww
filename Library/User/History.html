@@ -16,6 +16,280 @@
 This is a list of changes to <A HREF="../">libwww</A> in reverse chronological
 order. See also the <A HREF="ReleaseNotes.html">release notes</A> for the
 <A HREF="../cvs.html#Releases">latest release</A>.
+
+<h2><a name="5.2.8">Release 5.2.8, Apr 14, 1999</a></h2>
+<p>
+For this release, special thanks go to the <a
+href="Collaborators.html#Collaborators">libwww hackers</a> Olga
+Antropova, Vladimir Kozlov, John Punin Olga Antropova, Jose Kahan,
+Vladimir Kozlov, John Punin, Bob Racko, and Raffaele Sena for all
+their hard work and cool new features including:
+
+<ul>
+<li><a href="../Distribution.html#Source">RPMs are now available for libwww</a>
+</li>
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0046.html">Split up the Unix library into many small libraries</a> as is the case for wintel DLLs. This allows for more modular use of libwww on Unix.</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0015.html">HTML/4 support</a> in the <a
+href="../src/WWWHTML.html">libwww HTML parser</a></li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0352.html">Support for HTTP redirections</a> in the robot</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0410.html">Updated documentation on the various libwww modules</a></li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0400.html">HTTP cookies</a> and small <a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0003.html">cookie sample app</a></li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0388.html">Easier handling of adding new header fields</a> to HTTP requests</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0000.html">SSL transport</a> - this code is not part of the libwww distribution because of US export restrictions on glue code for cryptographic code. We hope to make them available shortly</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0310.html">Support for HTTP/1.1 Upgrade header</a> which allows for "hot-swapping" changing protocols</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0423.html">Support for writing multiple times</a> when doing PUT/POST type operations</li>
+
+</ul>
+
+Also <a href="ToDo.html">in progress</a> is work on
+<ul>
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0040.html">Proposal for moving slowly to C++</a></li>
+<li>RDF parser</li>
+</ul>
+
+<h2>Release 5.2.6, Feb 24, 1999</h2>
+<p>
+This release is the has a lot of bug fixes and new features - primarily as a
+result of lots of really cool work done by people hacking away on libwww
+including:</p>
+<ul>
+<li>
+John Punin's integration with <a
+href="http://www.w3.org/Library/src/HTXML.html">Integration</a> James Clark's
+<a href="http://www.jclark.com/xml/expat.html">Expat XML parser</a>,
+</li>
+<li>
+Jose Kahan's <a
+href="http://www.egroups.com/list/www-lib/703.html">client-side Digest
+Authentication implementation</a>,
+</li>
+<li><p>
+<a>A tiny new Web browser based with only a strict minimum of HTTP and HTML in
+only 170K on linux (stripped) into libwww.</a></p>
+</li>
+</ul>
+
+<h2>Release 5.2, Nov 1, 1998</h2>
+<p>
+This release is the first release after the <a href="../cvs.html">libwww CVS
+Repository</a> was made public in May 1998. At the time of the release there
+were more than 500 checked out versions of the libwww code base and numerous
+people have contributed to this release in form of <a
+href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
+
+<h3>New Features</h3>
+<ul>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.145&amp;r2=1.146">Added
+a method</a> in the <a href="../src/HTAccess.html">HTAccess API</a> for
+posting forms and returning the response as a <a
+href="../src/HTChunk.html">HTChunk object</a>
+</li>
+<li>
+Added handler for unknown content encodings in the <a
+href="../../ComLine/">Command Line tool</a> to be a through line (identity
+decoding) using the <a href="#bestmatch">best matching mechanism</a>
+</li>
+<li>
+Added support for <a href="../src/HTProxy.html">regex handling of proxies</a>
+so that you can now say something like this: all URIs matching this regex goes
+to this proxy, all others go to this, etc.
+</li>
+<li>
+Better control of how much data is being sent in the <a
+href="../src/HTReq.html"> REQUEST OBJECT</A>. Now you can both get the
+total number of bytes read and written as well as the number of entity (body)
+bytes read and written. This uses features provided by the HTNet object
+</li>
+<li>
+The default implementation of <a href="../src/HTDialog.c">progress
+notifications</a> now uses the new HTRequest bytes read/written methods.
+</li>
+<li>
+The mime parser in <a href="../src/HTMIME.c">HTMIME.c</a> and <a
+href="../src/HTMIMERq.c">HTMIMERq.c</a> now uses the updated control of bytes
+read/written.
+</li>
+<li>
+Added support for version conflict detection in <a href="../../WinCom/">Web
+Commander</a> (update all of WinCom area)
+</li>
+<li>
+The <a href="../../WinCom/">Web Commander</a> - the Win32 GUI PUT sample
+application has been updated from the ground up - try it out!
+</li>
+</ul>
+
+<h3>Bug Fixes</h3>
+<ul>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.144&amp;r2=1.145">Remove
+access authentication credentials</a> duplicates when doing the HTSaveFilter
+on the same resource
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAnchor.c?r1=1.77&amp;r2=1.78">Checks
+that etags are not the same when setting a new one</a>. This caused first the
+old (which was also the new) to be deleted and then created again.
+</li>
+<li>
+Fixed HTTP POST problem where small post data didn't always get posted. This
+affects several files including <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.88&amp;r2=2.89">HTMIME.c</a>
+and <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIMERq.c?r1=2.38&amp;r2=2.39">HTMIMERq.c</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTTP.c?r1=1.164&amp;r2=1.165">Fixed
+HTTP PUT problem</a> when a 100 Continue code came more than 2 secs after the
+request.
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTTP.c?r1=1.163&amp;r2=1.164">Added
+interrupt alert message</a> to <a href="../../src/HTTP.c">HTTP.c</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTFilter.c?r1=2.27&amp;r2=2.28">Added
+alert message when status is 503 Retry</a> to the information filter in <a
+href="../../src/HTFilter.c">HTFilter.c</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTFile.c?r1=1.146&amp;r2=1.147">The
+last modified time is now stored in the anchor object when opening a local
+file</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.143&amp;r2=1.144">Added
+support for preconditions in the save document calls in HTAccess</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTBufWrt.c?r1=2.22&amp;r2=2.23">Deleted
+unused variable in HTBufWrt.c</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTResponse.html?r1=2.8&amp;r2=2.9">Fixed
+typo in function prototype in HTResponse.html</a>
+</li>
+<li>
+Made <tt>WWW_TraceFlag</tt> unsigned integer in <a
+href="../src/HTUtils.html">HTUtils.html</a> (was signed) and changed order in
+wwwsys.html so that netinet/in.h now is included before netinet/tcp.h in
+wwwsys.html. This was a problem on RC6000.
+</li>
+<li>
+Put in a few checks for invalid function arguments (NULL etc.) in <a
+href="../src/HTEscape.c">HTEscape.c</a> and <a
+href="../src/HTParse.c">HTParse.c</a>
+</li>
+<li>
+Added explicit support for HTTP preconditions (the if-* headers) so that they
+can now be turned on and off on a pr request basis. This affects <a
+href="../src/HTReqMan.c">HTReqMan.c</a> <a
+href="../src/HTReq.html">HTReq.html</a> and <a
+href="../src/HTReqMan.html">HTReqMan.html</a>
+</li>
+<li>
+Changed the <a name="bestmatch" href="../src/HTFormat.html#encoding">encoding
+streamstack builder</a> to support <em>best matching</em> (wildcard matching)
+capabilities. This means that you now can register a default decoder like
+this: <code>HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding,
+0.3)</code>, for example where <code>HTIdentityCoding</code> is a coder
+provided by libwww. The quality indicates how much you like it (between 0.0
+and 1.0)
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTProxy.c?r1=2.15&amp;r2=2.16">Now
+also removes the after authentication filter is all proxies are
+unregistered</a>
+</li>
+<li>
+Changed the progress notifications in HTAlert to also include
+<b>Interrupted!</b> This affects <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTCache.c?r1=2.50&amp;r2=2.51">HTCache.c</a>
+(a little), <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAlert.html?r1=2.51&amp;r2=2.52">HTAlert.html</a>
+(and .h), and <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTDialog.c?r1=2.27&amp;r2=2.28">HTDialog.c</a>
+</li>
+<li>
+Moved the increment of bytes written (used in PUT) from the <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTBufWrt.c?r1=2.21&amp;r2=2.22">buffered
+output steam </a>to the <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWriter.c?r1=2.50&amp;r2=2.51">unbuffered
+output stream</a> which gives a more accurate reading.
+</li>
+<li>
+Bad typo bug when deleting before filters in <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTNet.c?r1=2.93&amp;r2=2.94">HTNetCall_addBefore</a>
+which caused deletion problems in the Filter list
+</li>
+<li>
+Fixed a problem when PUT'ing to a non-existent host (or invalid portnumber) in
+the <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.142&amp;r2=1.143">Save
+Filter</a>. The cleanup is now made more cleanly.
+</li>
+<li>
+Moved the <b>Done!</b> progress notification into <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.87&amp;r2=2.88">HTMIME.c</a>
+instead of in <a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTReader.c?r1=2.24&amp;r2=2.25">HTReader.c</a>
+as it no longer has much to do with closing the TCP connection.
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTChannl.c?r1=2.17&amp;r2=2.18">Made
+sure that local files are closed when using ANSI C file descriptors</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWWWStr.c?r1=2.26&amp;r2=2.27">Fixed
+bug in the conversion from URI to local Windows file in HTWWWToLocal()</a>
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47"
+name="Auth1">Fixed problem in the template generation in the access
+authentication module</a>. This can cause the authentication module to not
+find the credentials already given.
+</li>
+<li>
+<a
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTHost.c?r1=2.46&amp;r2=2.47">Fixed
+strange deletion of semaphore control for non-persistent connections</a>
+</li>
+<li>
+A close socket event wasn't registered on Windows. This is now done in <a
+href="../src/HTHost.c">HTHost.c</a>.
+</li>
+<li>
+On some platforms, it is not possible to refer to function addresses across
+shared libraries. The result is that the libwww API that uses function
+addresses don't always work. I have added an opcode version of the <a
+href="../src/HTAlert.html">HTAlert API</a> to handle this for user messages
+and progress notifications.
+</li>
+</ul>
+
 <H2>
   Release 5.1m May 21, 1998
 </H2>
