@@ -1,7 +1,7 @@
 #include "HTFWriter_glue.h"
 
 #define bad_vars "Invalid variable names or non-existent entries."
-#define err_string "Wrong # of args. \n\n"
+#define err_string "wrong # args: should be "
 
 Tcl_HashTable	HTableStream;
 Tcl_HashTable	HTableReq;

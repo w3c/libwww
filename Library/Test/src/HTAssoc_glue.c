@@ -2,7 +2,7 @@
 
 #define max_keyname 20
 #define bad_vars "Invalid variable names or non-existent entries."
-#define err_string "Wrong # of args. \n\n"
+#define err_string "wrong # args: should be "
 
 Tcl_HashTable   HTableAssoc;
 

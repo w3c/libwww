@@ -9,6 +9,9 @@
 #include "HTFWriter_glue.h"
 #include "HTAssoc_glue.h"
 #include "HTUser_glue.h"
+#include "HTBind_glue.h"
+#include "HTHost_glue.h"
+#include "URLgen.h"
 
 #define appname     "WWWtest"
 #define appversion  "1.0"
@@ -27,6 +30,8 @@ Tcl_HashTable	HTableStream;
 Tcl_HashTable   HTableVoid;
 Tcl_HashTable   HTableUser;
 Tcl_HashTable   HTableAssoc;
+Tcl_HashTable   HTableHost;
+Tcl_HashTable   HTableChannel;
 
 typedef struct{
     char           *name;
@@ -89,6 +94,15 @@ static int HTUnEscape_tcl(ClientData clientData, Tcl_Interp *interp,
 static LibraryFunction www_commands[] = {
 
   { "version",			version_tcl,			NULL, 0 },
+  { "random",	        	random_tcl,			NULL, 0 },
+  { "generate_char",		generate_char_tcl,		NULL, 0 },
+  { "add_item",			add_item_tcl,			NULL, 0 },
+  { "generate_login",		generate_login_tcl,		NULL, 0 },
+  { "generate_genericurl",	generate_genericurl_tcl,	NULL, 0 },
+  { "ftpURL",			ftpURL_tcl,			NULL, 0 },
+  { "httpURL",			httpURL_tcl,			NULL, 0 },
+  { "gopherURL",		gopherURL_tcl,			NULL, 0 },
+  { "telnetURL",		telnetURL_tcl,			NULL, 0 },
 
   /*HTParse*/
 
@@ -337,8 +351,52 @@ static LibraryFunction www_commands[] = {
 
   /* HTUser */
 
-    { "HTUserProfile_new",	HTUserProfile_new_tcl,		NULL, 0 },
-    
+  { "HTUserProfile_new",	HTUserProfile_new_tcl,		NULL, 0 },
+  { "HTUserProfile_localize",	HTUserProfile_localize_tcl,	NULL, 0 },
+  { "HTUserProfile_delete",	HTUserProfile_delete_tcl,	NULL, 0 },
+  { "HTUserProfile_fqdn",	HTUserProfile_fqdn_tcl,	        NULL, 0 },
+  { "HTUserProfile_setFqdn",	HTUserProfile_setFqdn_tcl,	NULL, 0 },
+  { "HTUserProfile_email",	HTUserProfile_email_tcl,	NULL, 0 },
+  { "HTUserProfile_setEmail",	HTUserProfile_setEmail_tcl,	NULL, 0 },
+  { "HTUserProfile_news",	HTUserProfile_news_tcl,	        NULL, 0 },
+  { "HTUserProfile_setNews",	HTUserProfile_setNews_tcl,	NULL, 0 },
+  { "HTUserProfile_tmp",	HTUserProfile_tmp_tcl,	        NULL, 0 },
+  { "HTUserProfile_setTmp",	HTUserProfile_setTmp_tcl,	NULL, 0 },
+
+  { "HTUserProfile_timezone",	HTUserProfile_timezone_tcl,	NULL, 0 },
+  { "HTUserProfile_setTimezone",HTUserProfile_setTimezone_tcl,	NULL, 0 },
+
+  { "HTUserProfile_context",	HTUserProfile_context_tcl,	NULL, 0 },
+  { "HTUserProfile_setContext",	HTUserProfile_setContext_tcl,	NULL, 0 },
+
+  /* HTBind */
+  { "HTBind_int",               HTBind_int_tcl,                 NULL, 0 },
+  { "HTBind_deleteAll",         HTBind_deleteAll_tcl,           NULL, 0 },
+  { "HTBind_caseSensitive",     HTBind_caseSensitive_tcl,       NULL, 0 },
+  { "HTBind_setDelimiters",     HTBind_setDelimiters_tcl,       NULL, 0 },
+  { "HTBind_add",               HTBind_add_tcl,                 NULL, 0 },
+  { "HTBind_addType",           HTBind_addType_tcl,             NULL, 0 },
+  { "HTBind_addEncoding",       HTBind_addEncoding_tcl,         NULL, 0 },
+  { "HTBind_addTransfer",       HTBind_addTransfer_tcl,         NULL, 0 },
+  { "HTBind_addLanguage",       HTBind_addLanguage_tcl,         NULL, 0 },
+  { "HTBind_getSuffix",         HTBind_getSuffix_tcl,           NULL, 0 },
+  { "HTBind_getBindings",       HTBind_getBindings_tcl,         NULL, 0 },
+
+  /*HTHost*/
+  {"HTHost_new",                HTHost_new_tcl,                 NULL, 0 },
+  {"HTHost_class",              HTHost_class_tcl,               NULL, 0 },
+  {"HTHost_setClass",           HTHost_setClass_tcl,            NULL, 0 },
+  {"HTHost_version",            HTHost_version_tcl,             NULL, 0 },
+  {"HTHost_setVersion",         HTHost_setVersion_tcl,          NULL, 0 },
+  {"HTHost_setChannel",         HTHost_setChannel_tcl,          NULL, 0 },
+  {"HTHost_clearChannel",       HTHost_clearChannel_tcl,        NULL, 0 }, 
+  {"HTHost_channel",            HTHost_channel_tcl,             NULL, 0 }, 
+  {"HTHost_isPersistent",       HTHost_isPersistent_tcl,        NULL, 0 },
+  {"HTHost_persistTimeout",      HTHost_persistTimeout_tcl,       NULL, 0 },
+  {"HTHost_setPersistTimeout",   HTHost_setPersistTimeout_tcl,    NULL, 0 },
+  {"HTHost_setPersistExpires",   HTHost_setPersistExpires_tcl,    NULL, 0 },
+  {"HTHost_persistExpires",      HTHost_persistExpires_tcl,       NULL, 0 },
+
     { 0 }
 };
 
@@ -354,7 +412,14 @@ int WWWLib_Init(Tcl_Interp *interp) {
   Tcl_InitHashTable(&HTableVoid, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableAssoc, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableUser, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableHost, TCL_STRING_KEYS);
 
+  /*added by xing, not sure if needed? */
+
+  Tcl_InitHashTable(&HTableChannel, TCL_STRING_KEYS);
+
+  random_seed();
+  init_strings();
   for(c = www_commands; c->name; c++){
     Tcl_CreateCommand(interp, c->name, c->proc, c->data,
 		      NULL /* delete proc???*/);
@@ -371,6 +436,8 @@ void WWWLib_Terminate() {
     Tcl_DeleteHashTable(&HTableVoid);
     Tcl_DeleteHashTable(&HTableAssoc);
     Tcl_DeleteHashTable(&HTableUser);
+    Tcl_DeleteHashTable(&HTableHost);
+    Tcl_DeleteHashTable(&HTableChannel);
 }
 
 /*========================================================*/  
