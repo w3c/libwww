@@ -42,15 +42,16 @@
 #define LM_EXPIRATION(t)	(HTMIN((MAX_LM_EXPIRATION), (t) / 10))
 #endif
 
-#define WARN_HEURISTICS		24*3600		/* When to issue a warning */
+#define WARN_HEURISTICS		24*3600		  /* When to issue a warning */
 
 #define HASH_SIZE 	599
-#define DUMP_FREQUENCY	20			/* Dump index after 20 loads */
+#define DUMP_FREQUENCY	10			 /* Dump index every x loads */
 
-#define MEGA		0x100000L
-#define HT_CACHE_SIZE	(20*MEGA)		/* Default cache size is 20M */
-#define HT_MIN_CACHE_SIZE	(5*MEGA)		   /* Min cache size */
-#define SIZE_BUFFER	(1*MEGA)      /* Buffer for metainfo and directories */
+#define MEGA			0x100000L
+#define HT_CACHE_TOTAL_SIZE	20		/* Default cache size is 20M */
+#define HT_CACHE_FOLDER_PCT	10    /* 10% of cache size for metainfo etc. */
+#define HT_MIN_CACHE_TOTAL_SIZE	 5			/* 5M Min cache size */
+#define HT_MAX_CACHE_ENTRY_SIZE	 3     /* 3M Max sixe of single cached entry */
 
 /* Final states have negative value */
 typedef enum _CacheState {
@@ -122,8 +123,10 @@ PRIVATE int DefaultExpiration = NO_LM_EXPIRATION;
 PRIVATE HTList ** 	CacheTable = NULL;
 
 /* Cache size variables */
-PRIVATE long		HTCacheSize = HT_CACHE_SIZE;
-PRIVATE long		HTTotalSize = 0L;
+PRIVATE long		HTCacheTotalSize = HT_CACHE_TOTAL_SIZE*MEGA;
+PRIVATE long		HTCacheFolderSize = (HT_CACHE_TOTAL_SIZE*MEGA)/HT_CACHE_FOLDER_PCT;
+PRIVATE long		HTCacheContentSize = 0L;
+PRIVATE long		HTCacheMaxEntrySize = HT_MAX_CACHE_ENTRY_SIZE*MEGA;
 
 PRIVATE int		new_entries = 0;	   /* Number of new entries */
 
@@ -135,7 +138,7 @@ PRIVATE HTNetAfter HTCacheCheckFilter;
 
 PRIVATE BOOL HTCacheGarbage (void)
 {
-    long old_size = HTTotalSize;
+    long old_size = HTCacheContentSize;
     if (CACHE_TRACE) HTTrace("Cache....... Garbage collecting\n");
     if (CacheTable) {
 	time_t cur_time = time(NULL);
@@ -187,13 +190,13 @@ PRIVATE BOOL HTCacheGarbage (void)
 	    BOOL removed = NO;
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... Collecting entries with %d hits\n",hits);
-	    if (HTTotalSize + SIZE_BUFFER > HTCacheSize) {
+	    if (HTCacheContentSize + HTCacheFolderSize > HTCacheTotalSize) {
 		for (cnt=0; cnt<HASH_SIZE; cnt++) {
 		    if ((cur = CacheTable[cnt])) { 
 			HTList * old_cur = cur;
 			HTCache * pres;
 			while ((pres = (HTCache *) HTList_nextObject(cur))) {
-			    if (pres->hits <= hits) {
+			    if (pres->size > HTCacheMaxEntrySize || pres->hits <= hits) {
 				HTCache_remove(pres);
 				cur = old_cur;
 				removed = YES;
@@ -210,7 +213,7 @@ PRIVATE BOOL HTCacheGarbage (void)
 	}
 	if (CACHE_TRACE)
 	    HTTrace("Cache....... Size reduced from %ld to %ld\n",
-		    old_size, HTTotalSize);
+		    old_size, HTCacheContentSize);
 	/*
 	**  Dump the new content to the index file
 	*/
@@ -397,7 +400,7 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	}
 
 	/* Update the total cache size */
-	HTTotalSize += cache->size;
+	HTCacheContentSize += cache->size;
 
 	return YES;
     }
@@ -842,16 +845,45 @@ PUBLIC HTExpiresMode HTCacheMode_expires (void)
 */
 PUBLIC BOOL HTCacheMode_setMaxSize (int size)
 {
-    long new_size = size < 5 ? HT_MIN_CACHE_SIZE : size * MEGA;
-    if (new_size < HTTotalSize) HTCacheGarbage();
-    HTCacheSize = new_size - SIZE_BUFFER;
-    if (CACHE_TRACE) HTTrace("Cache...... Total cache size: %ld\n", new_size);
+    long new_size = size < HT_MIN_CACHE_TOTAL_SIZE ?
+	HT_MIN_CACHE_TOTAL_SIZE*MEGA : size*MEGA;
+    long old_size = HTCacheTotalSize;
+    HTCacheTotalSize = new_size;
+    HTCacheFolderSize = HTCacheTotalSize/HT_CACHE_FOLDER_PCT;
+    if (new_size < old_size) HTCacheGarbage();
+    if (CACHE_TRACE)
+	HTTrace("Cache...... Total cache size: %ld with %ld bytes for metainformation and folders\n",
+		HTCacheTotalSize, HTCacheFolderSize);
     return YES;
 }
 
 PUBLIC int HTCacheMode_maxSize (void)
 {
-    return HTCacheSize / MEGA;
+    return HTCacheTotalSize / MEGA;
+}
+
+/*
+**  How big can a single cached entry be in Mbytes. The default is 3M
+**  
+*/
+PUBLIC BOOL HTCacheMode_setMaxCacheEntrySize (int size)
+{
+    long new_size = size*MEGA;
+    if (new_size > 0 && new_size < HTCacheTotalSize-HTCacheFolderSize) {
+	long old_size = HTCacheMaxEntrySize;
+	HTCacheMaxEntrySize = new_size;
+	if (new_size < old_size) HTCacheGarbage();
+	if (CACHE_TRACE)
+	    HTTrace("Cache...... Max entry cache size is %ld\n", HTCacheMaxEntrySize);
+	return YES;
+    }
+    if (CACHE_TRACE) HTTrace("Cache...... Max entry cache size is unchanged\n");
+    return NO;
+}
+
+PUBLIC int HTCacheMode_maxCacheEntrySize (void)
+{
+    return HTCacheMaxEntrySize / MEGA;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -871,7 +903,7 @@ PRIVATE BOOL delete_object (HTList * list, HTCache * me)
 {
     if (CACHE_TRACE) HTTrace("Cache....... delete %p from list %p\n",me, list);
     HTList_removeObject(list, (void *) me);
-    HTTotalSize -= me->size;
+    HTCacheContentSize -= me->size;
     free_object(me);
     return YES;
 }
@@ -1141,16 +1173,16 @@ PRIVATE BOOL HTCache_setSize (HTCache * cache, long written, BOOL append)
 	**  with a certain size. This size may be a subpart of the total entity
 	**  (in case the download was interrupted)
 	*/
-	if (cache->size > 0 && !append) HTTotalSize -= cache->size;
+	if (cache->size > 0 && !append) HTCacheContentSize -= cache->size;
 	cache->size = written;
-	HTTotalSize += written;
+	HTCacheContentSize += written;
 
 	/*
 	**  Now add the new size to the total cache size. If the new size is
 	**  bigger than the legal cache size then start the gc.
 	*/
-	if (CACHE_TRACE) HTTrace("Cache....... Total size %ld\n", HTTotalSize);
-	if (HTTotalSize > HTCacheSize) HTCacheGarbage();
+	if (CACHE_TRACE) HTTrace("Cache....... Total size %ld\n", HTCacheContentSize);
+	if (HTCacheContentSize + HTCacheFolderSize > HTCacheTotalSize) HTCacheGarbage();
 	return YES;
     }
     return NO;
@@ -1232,7 +1264,7 @@ PUBLIC BOOL HTCache_deleteAll (void)
 	    HTList_delete(CacheTable[cnt]);
 	}
 	HT_FREE(CacheTable);
-	HTTotalSize = 0L;
+	HTCacheContentSize = 0L;
 	return YES;
     }
     return NO;
@@ -1513,7 +1545,7 @@ PUBLIC BOOL HTCache_flushAll (void)
 
 	/* Write the new empty index to disk */
 	HTCacheIndex_write(HTCacheRoot);
-	HTTotalSize = 0L;
+	HTCacheContentSize = 0L;
 	return YES;
     }
     return NO;
@@ -1793,11 +1825,21 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
 {
     HTCache * cache = NULL;
     FILE * fp = NULL;
-    
     HTResponse * response = HTRequest_response(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
+
+    /* If cache is not enabled then exit now */
     if (!HTCacheEnable || !HTCacheInitialized) {
 	if (CACHE_TRACE) HTTrace("Cache....... Not enabled\n");
+	return NULL;
+    }
+
+    /*
+    ** Check to see if we already now can see that the entry is going
+    ** to be too big.
+    */
+    if (HTAnchor_length(anchor) > HTCacheMaxEntrySize) {
+	if (CACHE_TRACE) HTTrace("Cache....... Entry is too big - won't cache\n");
 	return NULL;
     }
 

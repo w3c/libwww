@@ -88,6 +88,19 @@ extern BOOL HTCacheMode_setMaxSize (int size);
 extern int  HTCacheMode_maxSize    (void);
 </PRE>
 <H3>
+  Max Size of a Single Cache Entry
+</H3>
+<P>
+It is also possible to control the max size of a single cache entry so
+that the cache doesn't get filled with a very few, very large cached
+entries. The default max size for a single cached entry is 3M. The
+value indicated must be in Mbytes, for example, a vaue of 3 would mean
+3 MBytes.
+<PRE>
+extern BOOL HTCacheMode_setMaxCacheEntrySize (int size);
+extern int HTCacheMode_maxCacheEntrySize (void);
+</PRE>
+<H3>
   How do we handle Expiration of Cached Objects?
 </H3>
 <P>
