@@ -131,7 +131,7 @@ SOURCES = $(CFILES) $(HFILES) \
 
 SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
-	$(WWW)/All/Implementation/Makefile.include \
+	$(WWW)/All/Implementation/Makefile \
 	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
  	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
 	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
