@@ -380,8 +380,8 @@ extern HTAssocList * HTResponse_handOverHeader (HTResponse * me);
 <P>The string returned in the HTTP status line. Some servers send custom
 info in this string and applications may want to show it.
 <PRE>
-extern PUBLIC char * HTResponse_reason (HTResponse * me);
-PUBLIC BOOL HTResponse_setReason (HTResponse * me, char * reason);
+extern char * HTResponse_reason (HTResponse * me);
+extern BOOL HTResponse_setReason (HTResponse * me, char * reason);
 </PRE>
 
 <PRE>
