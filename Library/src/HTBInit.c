@@ -124,6 +124,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("wav",	"audio/x-wav",			NULL,		"binary",	NULL,	1.0);	/* Windows+ WAVE format	*/
     HTBind_add("xbm",	"image/x-xbitmap",		NULL,		"binary",	NULL,	1.0);	/* X bitmap		*/
     HTBind_add("xls",	"application/vnd.ms-excel",	NULL,		"binary",	NULL,	0.5);	/* MS Excel 		*/
+    HTBind_add("xml",	"application/xml",    		NULL,		"binary",	NULL,	1.0);	/* xml			*/
     HTBind_add("xpm",	"image/x-xpixmap",		NULL,		"binary",	NULL,	1.0);	/* X pixmap format	*/
     HTBind_add("xwd",	"image/x-xwindowdump",		NULL,		"binary",	NULL,	1.0);	/* X window dump (xwd)	*/
 
