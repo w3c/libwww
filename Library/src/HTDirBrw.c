@@ -812,7 +812,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 
     if (HTDirAccess == HT_DIR_SELECTIVE) {
 	StrAllocCat(pathname, HT_DIR_ENABLE_FILE);
-	if (STAT(pathname, &file_info)) {
+	if (HT_STAT(pathname, &file_info)) {
 	    if (TRACE) fprintf(TDEST,
 	        "HTBrowse.... Can't stat() file: %s (errno: %d)\n",
 			       pathname, errno);
@@ -891,7 +891,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    /* First make a lstat() and get a key ready. */
 	    *(pathname+pathend) = '\0';
 	    StrAllocCat(pathname, dirbuf->d_name);
-	    if (LSTAT(pathname, &file_info)) {
+	    if (HT_LSTAT(pathname, &file_info)) {
 #ifndef VMS
 		if (TRACE) fprintf(TDEST,
 		"HTBrowse.... OUPS, lstat failed on %s (errno: %d)\n",
@@ -912,7 +912,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	       show the item in the list */
 	    if ((file_info.st_mode & S_IFMT) == S_IFLNK) {
 		int symend;		
-		if (STAT(pathname, &file_info)) {
+		if (HT_STAT(pathname, &file_info)) {
 		    if (TRACE)
 			fprintf(TDEST, "HTBrowse.... stat failed on symbolic link %s, errno: %d\n", pathname, errno);
 		    KeyFree(nodekey);

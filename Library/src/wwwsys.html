@@ -643,11 +643,11 @@ can stat them.
 <PRE>
 #ifdef VMS
 typedef unsigned long mode_t;
-#define STAT	HTStat
-#define LSTAT	HTStat
-#else /* non VMS */
-#define STAT	stat
-#define LSTAT	lstat
+#define HT_STAT		HTStat
+#define HT_LSTAT	HTStat
+#else
+#define HT_STAT		stat
+#define HT_LSTAT	lstat
 #endif /* non VMS */
 </PRE>
 
@@ -828,6 +828,7 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 
 <PRE>
 #ifdef decstation
+#include &lt;unistd.h&gt;
 #define NO_TIMEZONE					/* Ultrix has gmtoff */
 #define RLOGIN_USER
 #endif

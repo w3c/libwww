@@ -268,7 +268,7 @@ PRIVATE BOOL create_cache_place ARGS1(char *, cfn)
 
     while ((cur = strchr(cur, '/'))) {
 	*cur = 0;
-	if (create || STAT(cfn, &stat_info) == -1) {
+	if (create || HT_STAT(cfn, &stat_info) == -1) {
 	    create = YES;	/* To avoid doing stat()s in vain */
 	    if (CACHE_TRACE)
 		fprintf(TDEST,"Cache....... creating cache dir \"%s\"\n",cfn);
