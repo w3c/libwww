@@ -364,7 +364,7 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 				       req->output_stream, req, NO);
 	    
 	    /* howcome: test for return value from HTCacheWriter 12/1/95 */
-	    if (HTCache_isEnabled() &&
+	    if (req->method==METHOD_GET && HTCache_isEnabled() &&
 		(s = HTCacheWriter(req, NULL, WWW_MIME,	req->output_format,
 				   req->output_stream))) {
 		me->target = HTTee(me->target, s);
