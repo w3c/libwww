@@ -721,6 +721,13 @@ See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
 #endif
 </PRE>
 
+<H3>Definition of Max Domain Name Length</H3>
+<PRE>
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 64			/* Any better ideas? */
+#endif
+</PRE>
+
 <H3>Macros for manipulating masks for select()</H3>
 <PRE>
 #ifdef SELECT

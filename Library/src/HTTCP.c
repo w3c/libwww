@@ -590,6 +590,7 @@ PUBLIC char * HTGetHostName ARGS1(int, soc)
 }
 
 
+#ifdef OLD_CODE
 /*	Derive the name of the host on which we are
 **	-------------------------------------------
 **
@@ -629,11 +630,61 @@ PRIVATE void get_host_details NOARGS
 
 #endif /* not Decnet */
 }
+#endif /* OLD_CODE */
 
-
+/*								HTHostName
+**	Returns the name of this host. It first uses gethostname()
+**	and if it not finds any domain name then it tries getdomainname.
+**	If using the DNS and we are on a multi homed host, then the first
+**	entry is used.
+**
+**	Return: hostname on success else NULL
+*/
 PUBLIC CONST char * HTHostName NOARGS
 {
-    get_host_details();
+    char name[MAXHOSTNAMELEN+1];
+    if (hostname)					  /* If already done */
+	return hostname;
+    *(name+MAXHOSTNAMELEN) = '\0';
+    if (gethostname(name, MAXHOSTNAMELEN)) { 	     /* Maybe without domain */
+	if (TRACE)
+	    fprintf(stderr, "HostName.... Can't get host name\n");
+	return NULL;
+    }
+    CTRACE(tfp, "HostName.... Local host name is %s\n", name);
+    StrAllocCopy(hostname, name);
+
+#ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
+#ifdef sun						/* Don't use the DNS */
+    if (getdomainname(name, MAXHOSTNAMELEN)) {
+	if (TRACE)
+	    fprintf(stderr, "HostName.... Can't get domain name\n");
+	FREE(hostname);
+	return NULL;
+    }
+
+    /* If the host name and the first part of the domain name are different
+       then use the former as it is more exact (I guess) */
+    if (strncmp(name, hostname, (int) strlen(hostname))) {
+	char *domain = strchr(name, '.');
+	if (!domain)
+	    domain = name;
+	StrAllocCat(hostname, domain);
+    }
+#else			      /* Now we try to get information on the domain */
+    {
+	struct hostent *hostelement;
+	if ((hostelement = gethostbyname(hostname)) == NULL) {
+	    if (TRACE)
+		fprintf(stderr, "HostName.... Can't find host name on DNS\n");
+	    FREE(hostname);
+	    return NULL;
+	}
+	StrAllocCopy(hostname, phost->h_name);
+    }
+#endif /* DNS access */
+#endif /* not Decnet */
+    CTRACE(tfp, "HostName.... Full local host name is %s\n", hostname);
     return hostname;
 }
 
