@@ -105,6 +105,21 @@ in order for all clients to take advantage.
 extern char *  HTGetCurrentDirectoryURL (void);
 </PRE>
 <H2>
+  <A NAME="FormInput">Handle HTML Form Input fields</A>
+</H2>
+<P>
+Takes a string of the form "<CODE>a=b</CODE>" containing HTML form data,
+escapes it accordingly and puts it into the association list so that it readily
+can be passed to any of the HTAccess function that handles HTML form data.
+The string should not be encoded in any way - this function encodes it according
+to the HTML form encoding rules.
+<P>
+Examples are "foo=bar", "baz=foo and bar", "a= b ", " a = b ", "toto=", "four
+= two + two", "six three + three", and "a=b=c"
+<PRE>
+extern BOOL HTParseFormInput (HTAssocList * list, const char * str);
+</PRE>
+<H2>
   <A NAME="Trace">Handle Library Trace Messages</A>
 </H2>
 <P>
@@ -175,7 +190,9 @@ TRACE flags. The following characters are used as follows:
   <DT>
     <B>x</B>
   <DD>
-    Show <A HREF="WWWMux.html">MUX</A> Trace Messages
+    Show <A HREF="WWWMux.html">MUX</A> Trace Messages <B>*</B>
+  <DD>
+    Show <EM>ALL</EM> Trace Messages
 </DL>
 <P>
 The string must be null terminated, an example is "<TT>sop</TT>".

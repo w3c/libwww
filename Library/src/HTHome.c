@@ -170,6 +170,43 @@ PUBLIC HTParentAnchor * HTTmpAnchor (HTUserProfile * up)
 }
 
 /*
+**	Takes a string of the form "a=b" containing HTML form data, escapes
+**	it accordingly and puts it into the association list so that it
+**	readily can be passed to any of the HTAccess function that handles
+**	HTML form data.
+*/
+PUBLIC BOOL HTParseFormInput (HTAssocList * list, const char * str)
+{
+    if (list && str) {
+	char * me = NULL;
+	char * name = NULL;
+	char * value = NULL;
+	StrAllocCopy(me, str);
+	value = strchr(me, '=');
+	if (value) 
+	    *value++ = '\0';
+	else
+	    value = "";
+	name = HTStrip(me);
+
+	/* Escape the name and value */
+	if (name) {
+	    char * escaped_name = HTEscape(name, URL_XALPHAS);
+	    char * escaped_value = HTEscape(value, URL_XALPHAS);
+	    if (APP_TRACE)
+		HTTrace("Form data... Adding name `%s\' with value `%s\' to %p\n",
+			escaped_name, escaped_value, list);
+	    HTAssocList_addObject(list, escaped_name, escaped_value);
+	    HT_FREE(escaped_name);
+	    HT_FREE(escaped_value);
+	}
+	HT_FREE(me);
+	return YES;
+    }
+    return NO;
+}
+
+/*
 **	Standard interface to libwww TRACE messages. Pass this function a
 **	string of characters and it will set up the appropriate TRACE flags.
 **	The shortnames for the trace messages are not as intuitive as they
@@ -199,6 +236,7 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	    case 'i': WWWTRACE |= SHOW_PICS_TRACE; 	break;
 	    case 'o': WWWTRACE |= SHOW_CORE_TRACE; 	break;
 	    case 'x': WWWTRACE |= SHOW_MUX_TRACE; 	break;
+	    case '*': WWWTRACE |= SHOW_ALL_TRACE; 	break;
 	    default:
 		if (WWWTRACE) HTTrace("Trace....... Bad argument\n");
 	    }
