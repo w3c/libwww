@@ -30,7 +30,56 @@ struct _HTStream {
 
 /*_________________________________________________________________________
 **
-**			A C T I O N 	R O U T I N E S
+**		B L A C K    H O L E    C L A S S
+**
+**	There is only one black hole instance shared by anyone
+**	who wanst a black hole.  These black holes don't radiate,
+**	they just absorb data.
+*/
+PRIVATE void HTBlackHole_put_character ARGS2(HTStream *, me, char, c)
+{}
+PRIVATE void HTBlackHole_put_string ARGS2(HTStream *, me, CONST char*, s)
+{}
+PRIVATE void HTBlackHole_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+{}
+PRIVATE void HTBlackHole_free ARGS1(HTStream *, me)
+{}
+PRIVATE void HTBlackHole_abort ARGS2(HTStream *, me, HTError, e)
+{}
+
+
+/*	Black Hole stream
+**	-----------------
+*/
+PRIVATE CONST HTStreamClass HTBlackHoleClass =
+{		
+	"BlackHole",
+	HTBlackHole_free,
+	HTBlackHole_abort,
+	HTBlackHole_put_character, 	HTBlackHole_put_string,
+	HTBlackHole_write
+}; 
+
+PRIVATE HTStream HTBlackHoleInstance =
+{
+	&HTBlackHoleClass,
+	NULL,
+	NULL,
+	NULL,
+	NO
+};
+
+/*	Black hole craetion
+*/
+PUBLIC HTStream * HTBlackHole NOARGS
+{
+    return &HTBlackHoleInstance;
+}
+
+
+/*_________________________________________________________________________
+**
+**		F I L E     A C T I O N 	R O U T I N E S
 **  Bug:
 **	All errors are ignored.
 */
@@ -157,6 +206,7 @@ PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
 /* @@ to be written.  sprintfs will do for now.  */
 
 
+
 /*	Take action using a system command
 **	----------------------------------
 **
@@ -184,6 +234,11 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     CONST char * suffix;
     
     HTStream* me;
+    
+    if (HTClientHost) {
+        HTAlert("Can't save data to file -- please run WWW locally");
+	return HTBlackHole();
+    }
     
     me = (HTStream*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "Save and execute");
@@ -254,6 +309,11 @@ PUBLIC HTStream* HTSaveLocally ARGS3(
     CONST char * suffix;
     
     HTStream* me;
+    
+    if (HTClientHost) {
+        HTAlert("Can't save data to file -- please run WWW locally");
+	return HTBlackHole();
+    }
     
     me = (HTStream*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "SaveLocally");
