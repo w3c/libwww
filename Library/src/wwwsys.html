@@ -449,6 +449,12 @@ extern int errno;
 #endif
 
 </PRE>
+<H2>Solaris</H2>
+<PRE>
+#ifdef __srv4__
+#include &lt;unistd>
+#endif
+</PRE>
 <H2>OSF/1</H2>
 <PRE>#ifdef __osf__
 #define USE_DIRENT
