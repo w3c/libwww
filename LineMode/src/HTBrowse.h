@@ -1,4 +1,4 @@
-/*                                                     Style Management for Line Mode Browser
+/*                                                          Main Module for Line Mode Browser
                             MAIN MODULE FOR LINE MODE BROWSER
                                              
  */
@@ -14,23 +14,15 @@
 #ifndef HTBROWSE_H
 #define HTBROWSE_H
 
-#include "tcp.h"
+extern int      HTScreenWidth;
+extern int      HTScreenHeight;
 
-#ifdef SHORT_NAMES
-#define HTScreenHeight          HTScHeig
-#define HTScreenWidth           HTScWidt
-#define display_anchors         HTDiAnch
-#define interactive             HTIntera
-#define reference_mark          HTReMark
-#endif
-
-extern  int  HTScreenWidth;             /* By default */
-extern  int  HTScreenHeight;            /* Undefined */
-extern  BOOL display_anchors;           /* anchor will be shown in text? */
-
-                                        
-extern char * reference_mark;           /* Format string for  [1] &c */
-extern char * end_mark;                 /* Format string for  [End] */
+/* Anchor specific information */
+extern BOOL     display_anchors;                    /* Show anchors in text? */
+extern char *   start_reference;                  /* Format for start anchor */
+extern char *   end_reference;                             /* for end anchor */
+extern char *   reference_mark;                       /* for reference lists */
+extern char *   end_mark;                         /* Format string for [End] */
 
 #endif /* HTBROWSE_H */
 /*

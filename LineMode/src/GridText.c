@@ -9,6 +9,7 @@
 #include <assert.h>
 
 #include "WWWLib.h"
+#include "HTBrowse.h"
 #include "HTFont.h"
 #include "GridStyle.h"
 #include "GridText.h"
@@ -18,11 +19,6 @@
 #include "a_stdio.h"
 #endif
 
-struct _HTStream {			/* only know it as object */
-    CONST HTStreamClass *	isa;
-    /* ... */
-};
-
 #define MAX_LINE	HTScreenWidth	/* No point in accumulating more */
 #ifdef THINK_C
 #define LOADED_LIMIT 3			/* For now, save last two texts */
@@ -30,28 +26,22 @@ struct _HTStream {			/* only know it as object */
 #define LOADED_LIMIT 6			/* For now, save last five texts */
 #endif
 
-/*	From main program:
-*/
-extern char * start_reference;		/* Template for anchors */
-extern char * end_reference;		/* Template for anchors */
-extern char * end_mark;			/* Template for end */
-extern int HTScreenWidth,		/* The screen width */
-	HTScreenHeight;			/* The screen height */
-extern BOOL display_anchors;		/* anchor will be shown in text? */
-	
 #ifdef CURSES
 #define DISPLAY_LINES (HTScreenHeight)
 #define       TITLE_LINES      0
 #else
-#define DISPLAY_LINES (HTScreenHeight - 1)   /* Exclude prompt line */
+#define DISPLAY_LINES (HTScreenHeight - 2)   /* Exclude prompt line */
 #define       TITLE_LINES      1
 #endif
 
+struct _HTStream {			/* only know it as object */
+    CONST HTStreamClass *	isa;
+    /* ... */
+};
 
 /*	From default style sheet:
 */
 extern HTStyleSheet * styleSheet;	/* Default or overridden */
-
 
 /*	Exports
 */ 
