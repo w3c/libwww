@@ -300,7 +300,7 @@ int main (int argc, char ** argv)
 		Cleanup(0, sql, loginfo);
 
 	    } else if (!strcmp(argv[arg], "-v")) {
-		WWWTRACE |= SHOW_SQL_TRACE;
+		HTSetTraceMessageMask("q");
 
 	    } else if (!strcmp(argv[arg], "-nocreate")) {
 		create_db = NO;
