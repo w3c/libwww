@@ -43,7 +43,7 @@
 */
 PUBLIC char * HTGetCurrentDirectoryURL (void)
 {
-    char wd[HT_MAX_PATH+1];
+    char wd[HT_MAX_PATH+2];
 
 #ifdef HAVE_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
     char * result = (char *) getcwd(wd, sizeof(wd)); 
@@ -56,6 +56,7 @@ PUBLIC char * HTGetCurrentDirectoryURL (void)
 #endif /* HAVE_GETWD */
 #endif /* HAVE_GETCWD */
     *(wd+HT_MAX_PATH) = '\0';
+    if (*(wd+strlen(wd)-1) != '/') strcat(wd, "/");
     return result ? HTLocalToWWW(result) : NULL;
 }
 

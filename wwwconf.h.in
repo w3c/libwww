@@ -142,11 +142,11 @@
 /* Define this to be the tn3270 program name. */
 #undef TN3270_PROGRAM
 
-/* Define this if it isn't in the header files.  */
-#undef u_char
-
 /* For removing a file */
 #undef unlink
+
+/* Define this if it isn't in the header files.  */
+#undef u_char
 
 /* Define this if it isn't in the header files.  */
 #undef u_short
@@ -171,6 +171,15 @@
 
 /* The number of bytes in a long.  */
 #undef SIZEOF_LONG
+
+/* The number of bytes in an enum.  */
+#undef SIZEOF_ENUM
+
+/* The number of bytes in a function pointer */
+#undef SIZEOF_FN_P
+
+/* The number of bytes in a wide char  */
+#undef SIZEOF_WCHAR_T
 
 /* Define if you have the chdir function.  */
 #undef HAVE_CHDIR
