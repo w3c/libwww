@@ -327,6 +327,14 @@ as an <A HREF="HTAtom.html">atom</A>, for example "zip", "chunked", etc.
 Encodings are registered in lists and content encodings are separated from
 transfer encodings by registering them in different lists.
 <H3>
+  Basic Encoders
+</H3>
+<P>
+We have a small set of basic coders that can be hooked in anywhere.
+<PRE>
+extern HTCoder HTIdentityCoding;
+</PRE>
+<H3>
   The HTCoding Object
 </H3>
 <P>

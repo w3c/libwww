@@ -132,6 +132,14 @@ PUBLIC HTStream * HTSaveConverter (HTRequest *	request,
     return HTBlackHole();
 }
 
+PUBLIC HTStream * HTIdentityCoding (HTRequest *	request,
+				    void *	param,
+				    HTEncoding	coding,
+				    HTStream *	output_stream)
+{
+    return output_stream;
+}
+
 /*
 **	For all `accept lists' there is a local list and a global list. The
 **	local list is a part of the request structure and the global list is
@@ -642,6 +650,8 @@ PUBLIC HTStream * HTContentCodingStack (HTEncoding	encoding,
     HTList * coders[2];
     HTStream * top = target;
     HTCoding * pres = NULL;
+    HTCoding * best_match = NULL;
+    double best_quality = -1e30;		/* Pretty bad! */
     int cnt;
     if (!encoding || !request) {
 	if (CORE_TRACE) HTTrace("Codings... Nothing applied...\n");
@@ -654,26 +664,31 @@ PUBLIC HTStream * HTContentCodingStack (HTEncoding	encoding,
     for (cnt=0; cnt < 2; cnt++) {
 	HTList * cur = coders[cnt];
 	while ((pres = (HTCoding *) HTList_nextObject(cur))) {
-	    if (pres->encoding == encoding) {
-		if (CORE_TRACE) HTTrace("C-E......... Found...\n");
-		if (encode) {
-		    if (pres->encoder)
-			top = (*pres->encoder)(request, param, encoding, top);
-		    break;
-		} else if (pres->decoder) {
-		    top = (*pres->decoder)(request, param, encoding, top);
-		    break;
-		}
+	    if ((pres->encoding == encoding || HTMIMEMatch(pres->encoding, encoding)) &&
+		pres->quality > best_quality) {
+		best_match = pres;
+		best_quality = pres->quality;
 	    }
 	}
     }
 
-    /*
-    **  If this is not a unity coding and we didn't find any coders
-    **  that could handle it then put in a local file save stream
-    **  instead of the stream that we got.
-    */
-    if (!HTFormat_isUnityContent(encoding) && target==top) {
+    if (best_match) {
+	if (CORE_TRACE)
+	    HTTrace("C-E......... Found `%s\'\n", HTAtom_name(best_match->encoding));
+	if (encode) {
+	    if (best_match->encoder)
+		top = (*best_match->encoder)(request, param, encoding, top);
+	} else {
+	    if (best_match->decoder)
+		top = (*best_match->decoder)(request, param, encoding, top);
+	}
+    } else if (!HTFormat_isUnityContent(encoding)) {
+
+	/*
+	**  If this is not a unity coding and we didn't find any coders
+	**  that could handle it then put in a local file save stream
+	**  instead of the stream that we got.
+	*/
 	if (encode) {
 	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - can't encode stream!\n");
 	} else {
@@ -758,7 +773,7 @@ PUBLIC HTStream * HTTransferCodingStack (HTEncoding	encoding,
     for (cnt=0; cnt < 2; cnt++) {
 	HTList * cur = coders[cnt];
 	while ((pres = (HTCoding *) HTList_nextObject(cur))) {
-	    if (pres->encoding == encoding) {
+	    if (pres->encoding == encoding || HTMIMEMatch(pres->encoding, encoding)) {
 		if (CORE_TRACE) HTTrace("C-E......... Found...\n");
 		if (encode) {
 		    if (pres->encoder)
