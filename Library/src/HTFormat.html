@@ -116,7 +116,7 @@ set of formats supported. for example.
 </PRE>
 <H2>HTSetPresentation: Register a system
 command to present a format</H2>
-<H2>On entry,</H2>
+<H3>On entry,</H3>
 <DL>
 <DT>rep
 <DD> is the MIME - style format name
@@ -145,7 +145,7 @@ will wait (0 for infinity)
 </PRE>
 <H2>HTSetConversion:   Register a converstion
 routine</H2>
-<H2>On entry,</H2>
+<H3>On entry,</H3>
 <DL>
 <DT>rep_in
 <DD> is the content-type input
@@ -173,7 +173,7 @@ NAME=z3>HTStreamStack:   Create a stack of
 streams</A></H2>This is the routine which actually
 sets up the conversion. It currently
 checks only for direct conversions,
-but indirect conversions are forseen.
+but multi-stage conversions are forseen.
 It takes a stream into which the
 output should be sent in the final
 format, builds the conversion stack,
@@ -194,7 +194,7 @@ them.
 filter stack</H2>Must return the cost of the same
 stack which HTStreamStack would set
 up.
-<H2>On entry,</H2>
+<H3>On entry,</H3>
 <DL>
 <DT>format_in
 <DD> The fomat of the data to
@@ -296,6 +296,21 @@ if succesful, &lt;0 if not.
 	HTParentAnchor	*anchor,
 	FILE		*fp,
 	HTStream*	sink));
+
+</PRE>
+<H2>HTFormatInit: Set up default presentations
+and conversions</H2>These are defined in HTInit.c or
+HTSInit.c if these have been replaced.
+If you don't call this routine, and
+you don't define any presentations,
+then this routine will automatically
+be called the first time a conversion
+is needed. However, if you explicitly
+add some conversions (eg using HTLoadRules)
+then you may want also to explicitly
+call this to get the defaults as
+well.
+<PRE>extern void HTFormatInit NOPARAMS;
 
 </PRE>
 <H2>Epilogue</H2>

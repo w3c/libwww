@@ -857,9 +857,20 @@ ARGS4 (
     {
         char *filename = HTParse(name, "", PARSE_PATH + PARSE_PUNCTUATION);
 	char command[LINE_LENGTH+1];
+	BOOL binary;
+	HTAtom * encoding;
 	if (!*filename) StrAllocCopy(filename, "/");
+	format = HTFileFormat(filename, &encoding);
+	binary = (encoding != HTAtom_for("8bit")
+		  && encoding != HTAtom_for("7bit"));
+        if (binary != control->binary) {
+	    char * mode = binary ? "I" : "A";
+	    sprintf(command, "TYPE %s%c%c", mode, CR, LF);
+	    status = response(command);
+	    if (status != 2) return -status;
+	    control->binary = binary;
+	}
 	sprintf(command, "RETR %s%c%c", filename, CR, LF);
-	format = HTFileFormat(filename);
 	status = response(command);
 	if (status != 1) {  /* Failed : try to CWD to it */
 	  sprintf(command, "CWD %s%c%c", filename, CR, LF);

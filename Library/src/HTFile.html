@@ -1,8 +1,15 @@
 <HEADER>
-<TITLE>File access in libwww</TITLE></HEADER>
+<TITLE>File access in libwww</TITLE>
+<NEXTID N="4">
+</HEADER>
 <BODY>
-<H1>File Access</H1>These are routines for file access
-used by WWW browsers.
+<H1>File Access</H1>These are routines for local file
+access used by WWW browsers and servers.
+Implemented by HTFile.c. <P>
+If the file is not a local file,
+then we pass it on to <A
+NAME=z3 HREF="HTFTP.html">HTFTP</A> in case
+it can be reached by FTP.
 <PRE>#ifndef HTFILE_H
 #define HTFILE_H
 
@@ -61,44 +68,68 @@ directory link for any anchor.
 	HTAnchor * 	anchor));
 
 </PRE>
-<H2>Output a directory entry</H2>This is only used by HTFTP.c for
-example -- it is a common routine
-for generating a linked directory
-entry.
+<H2>Output a directory entry</H2>This is used by HTFTP.c for example
+-- it is a common routine for generating
+a linked directory entry.
 <PRE>extern void HTDirEntry PARAMS((
 	HTStructured *  target,		/* in which to put the linked text */
 	CONST char *	tail,		/* last part of directory name */
 	CONST char *	entry));	/* name of this entry */
 
 </PRE>
-<H2>Define the representation for a file
-suffix</H2>
-<PRE>
-/* On entry,
-**	suffix		includes the "." if that is important (normally, yes!)
-**	representation	is MIME-style
-**	quality		an a priori judgement of the quality of such files
-**
-** Example:   HTSetSuffix(".ps", "application/postscript", 1.0);
+<H2><A
+NAME=z1>HTSetSuffix: Define the representation
+for a file suffix</A></H2>This defines a mapping between local
+file suffixes and file content types
+and encodings.
+<H3>On entry,</H3>
+<DL>
+<DT>suffix
+<DD> includes the "." if that is
+important (normally, yes!)
+<DT>representation
+<DD> is MIME-style content-type
+<DT>encoding
+<DD> is MIME-style <A
+NAME=z0 HREF="../../Protocols/rfc1341/5_Content-Transfer-Encoding.html#z0">content-transfer-encoding</A>
+(8bit, 7bit, etc)
+<DT>quality
+<DD> an a priori judgement of
+the quality of such files (0.0..1.0)
+</DL>
+
+<PRE>/* Example:   HTSetSuffix(".ps", "application/postscript", "8bit", 1.0);
 **
 */
 
 extern void HTSetSuffix PARAMS((
 	CONST char *	suffix,
 	CONST char *	representation,
+	CONST char *	encoding,
 	float		quality));
 	
 
 </PRE>
-<H2>Determine file format from file name</H2>
-<PRE>
+<H2>HTFileFormat: Get Representation
+and Encoding from file name</H2>
+<H3>On exit,</H3>
+<DL>
+<DT>return
+<DD>The represntation it imagines
+the file is in
+<DT>*pEncoding
+<DD>The encoding (binary, 7bit,
+etc). See <A
+NAME=z2 HREF="#z1">HTSetSuffix</A>.
+</DL>
 
-extern HTFormat HTFileFormat PARAMS((
-		CONST char * filename));
+<PRE>extern HTFormat HTFileFormat PARAMS((
+		CONST char * 	filename,
+		HTAtom ** 	pEncoding));
 
 
 </PRE>
-<H2>Determine file format from file name</H2>
+<H2>Determine file value from file name</H2>
 <PRE>
 
 extern float HTFileValue PARAMS((
@@ -150,4 +181,4 @@ NULL.
 
 #endif /* HTFILE_H */
 
-</PRE>end of HTFile</A></BODY>
+</PRE>end of HTFile</BODY>

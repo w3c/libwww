@@ -231,11 +231,11 @@ PUBLIC int HTParseInet ARGS2(SockA *,sin, CONST char *,str)
 
     } else {		    /* Alphanumeric node name: */
 #ifdef MVS	/* Oustanding problem with crash in MVS gethostbyname */
-	if(TRACE)printf("HTTCP: Calling gethostbyname(%s)\n", host);
+	if(TRACE)fprintf(stderr, "HTTCP: Calling gethostbyname(%s)\n", host);
 #endif
 	phost=gethostbyname(host);	/* See netdb.h */
 #ifdef MVS
-	if(TRACE)printf("HTTCP: gethostbyname() returned %d\n", phost);
+	if(TRACE)fprintf(stderr, "HTTCP: gethostbyname() returned %d\n", phost);
 #endif
 	if (!phost) {
 	    if (TRACE) fprintf(stderr, 

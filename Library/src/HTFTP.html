@@ -1,24 +1,31 @@
-<PRE>
-/*			FTP access functions		HTFTP.h
-**			====================
-*/
-
-
-#ifndef HTFTP_H
+<HEADER>
+<TITLE>FTP access module for libwww</TITLE>
+<NEXTID N="1">
+</HEADER>
+<BODY>
+<H1>FTP access functions</H1>This isn't really  a valid protocol
+module -- it is lumped together with<A
+NAME=z0 HREF="HTFile.html">
+HTFile</A> . That could be changed easily.<P>
+Author: Tim Berners-Lee. Public Domain.
+Please mail changes to timbl@info.cern.ch
+<PRE>#ifndef HTFTP_H
 #define HTFTP_H
 
+#include "HTUtils.h"
 #include "HTAnchor.h"
 #include "HTStream.h"
 
-/*	Retrieve File from Server
-**	-------------------------
-**
-** On exit,
-**	returns		Socket number for file if good.
-**			&#60;0 if bad.
-*/
-extern int HTFTPLoad
-PARAMS
+</PRE>
+<H2>Retrieve File from Server</H2>
+<H3>On exit,</H3>
+<DL>
+<DT>returns
+<DD> Socket number for file if
+good.&lt;0 if bad.
+</DL>
+
+<PRE>extern int HTFTPLoad PARAMS
 ((
   CONST char * 		name,
   HTParentAnchor * 	anchor,
@@ -26,18 +33,11 @@ PARAMS
   HTStream*		sink
 ));
 
-/*	Close socket opened for reading a file, and get final message
-**	-------------------------------------------------------------
-**
-*/
-/*extern int HTFTP_close_file PARAMS ((int soc)); */
 
-
-/*	Return Host Name
-**	----------------
-*/
-extern CONST char * HTHostName
-NOPARAMS;
+</PRE>
+<H2>Return Host Name</H2>
+<PRE>extern CONST char * HTHostName NOPARAMS;
 
 #endif
-</PRE>
+
+</PRE>end</A></BODY>

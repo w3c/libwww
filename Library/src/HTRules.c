@@ -264,14 +264,19 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
 	free(line);
 	return -2;	/*syntax error */
     }
-    if (pointer) status = sscanf(pointer, "%f%f%f",
-			    &quality, &secs, &secs_per_byte);
-    else status = 0;
 
     if (0==strcasecomp(word1, "suffix")) {
-	HTSetSuffix(word2, word3, status >= 1? quality : 1.0);
+        char * encoding = HTNextField(&pointer);
+	if (pointer) status = sscanf(pointer, "%f", &quality);
+	else status = 0;
+	HTSetSuffix(word2,	word3,
+				encoding ? encoding : "binary",
+				status >= 1? quality : 1.0);
 
     } else if (0==strcasecomp(word1, "presentation")) {
+        if (pointer) status = sscanf(pointer, "%f%f%f",
+			    &quality, &secs, &secs_per_byte);
+        else status = 0;
 	HTSetPresentation(word2, word3,
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 		: 0.0,

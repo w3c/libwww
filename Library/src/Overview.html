@@ -1,6 +1,6 @@
 <HEADER>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="60">
+<NEXTID N="62">
 </HEADER>
 <BODY>
 <H1>Library Internals</H1>The <A
@@ -86,9 +86,15 @@ modules.
 <DT><A
 NAME=z46 HREF="HTFile.html">File access</A>
 <DD> HTFile.c provides access
-to files, using HTFTP.c for remote
-access.  The latter uses HTTCP for
-common TCP routines.
+to files, using <A
+NAME=z61 HREF="#z60">HTFTP</A> for remote
+access if the hostname isn't the
+local one.  The latter uses HTTCP
+for common TCP routines.
+<DT><A
+NAME=z60 HREF="HTFTP.html">FTP access</A>
+<DD>Uses HTTCP for common TCP
+routines.
 <DT><A
 NAME=z45 HREF="HTTP.html">HTTP access</A>
 <DD> The <A
@@ -274,7 +280,7 @@ NAME=z49 HREF="HTParse.html">URL parsing</A>
 utilities fo handling W3 addresses.
 <DT><A
 NAME=z59 HREF="HTBTree.html">Binary Trees</A>
-<DD>Used for sorting filenames
+<DD> Used for sorting filenames
 in directories, etc.
 <DT><A
 NAME=z50 HREF="HTChunk.html">Chunks</A>
@@ -288,5 +294,4 @@ for strings of charcters.
 </DL>
 
 <ADDRESS><A
-NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
-</ADDRESS></BODY>
+NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>

@@ -40,6 +40,7 @@
 typedef struct _HTSuffix {
 	char *		suffix;
 	HTAtom *	rep;
+	HTAtom *	encoding;
 	float		quality;
 } HTSuffix;
 
@@ -88,8 +89,8 @@ PRIVATE char *HTCacheRoot = "/tmp/W3_Cache_";   /* Where to cache things */
 */
 
 PRIVATE HTList * HTSuffixes = 0;
-PRIVATE HTAtom * no_suffix_representation = NULL;
-PRIVATE HTAtom * unknown_suffix_representation = NULL;
+PRIVATE HTSuffix no_suffix = { "*", NULL, NULL, 1.0 };
+PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, 1.0};
 
 
 /*	Define the representation associated with a file suffix
@@ -100,33 +101,38 @@ PRIVATE HTAtom * unknown_suffix_representation = NULL;
 **	Calling this with suffix set to "*.*" will set the default
 **	representation for unknown suffix files which contain a ".".
 */
-PUBLIC void HTSetSuffix ARGS3(
+PUBLIC void HTSetSuffix ARGS4(
 	CONST char *,	suffix,
 	CONST char *,	representation,
+	CONST char *,	encoding,
 	float,		value)
 {
     
     HTSuffix * suff;
     
-    if (strcmp(suffix, "*")==0) {
-        no_suffix_representation = HTAtom_for(representation);
-        return;
+    if (strcmp(suffix, "*")==0) suff = &no_suffix;
+    else if (strcmp(suffix, "*.*")==0) suff = &unknown_suffix;
+    else {
+	suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
+	if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
+	
+	if (!HTSuffixes) HTSuffixes = HTList_new();
+	HTList_addObject(HTSuffixes, suff);
+	
+	StrAllocCopy(suff->suffix, suffix);
     }
-    
-    if (strcmp(suffix, "*.*")==0) {
-        unknown_suffix_representation = HTAtom_for(representation);
-        return;
-    }
-    
-    suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
-    if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
-    
-    if (!HTSuffixes) HTSuffixes = HTList_new();
-    
-    StrAllocCopy(suff->suffix, suffix);
+
     suff->rep = HTAtom_for(representation);
+    
+    {
+    	char * enc = NULL;
+	char * p;
+	StrAllocCopy(enc, encoding);
+	for (p=enc; *p; p++) *p = TOLOWER(*p);
+	suff->encoding = HTAtom_for(encoding);
+    }
+    
     suff->quality = value;
-    HTList_addObject(HTSuffixes, suff);
 }
 
 
@@ -405,9 +411,15 @@ PUBLIC CONST char * HTFileSuffix ARGS1(HTAtom*, rep)
 /*	Determine file format from file name
 **	------------------------------------
 **
+**	This version will return the representation and also set
+**	a variable for the encoding.
+**
+**	It will handle for example  x.txt, x.txt,Z, x.Z
 */
 
-PUBLIC HTFormat HTFileFormat ARGS1 (CONST char *,filename)
+PUBLIC HTFormat HTFileFormat ARGS2 (
+			CONST char *,	filename,
+			HTAtom **,	pencoding)
 
 {
     HTSuffix * suff;
@@ -418,25 +430,40 @@ PUBLIC HTFormat HTFileFormat ARGS1 (CONST char *,filename)
 #ifndef NO_INIT    
     if (!HTSuffixes) HTFileInit();
 #endif
+    *pencoding = NULL;
     n = HTList_count(HTSuffixes);
     for(i=0; i<n; i++) {
         int ls;
 	suff = HTList_objectAt(HTSuffixes, i);
 	ls = strlen(suff->suffix);
 	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
-	    return suff->rep;		/* OK -- found */
+	    int j;
+	    *pencoding = suff->encoding;
+	    if (suff->rep) return suff->rep;		/* OK -- found */
+	    
+	    for(j=0; j<n; j++) {  /* Got encoding, need representation */
+		int ls2;
+		suff = HTList_objectAt(HTSuffixes, j);
+		ls2 = strlen(suff->suffix);
+		if ((ls <= lf) && 0==strncmp(
+			suff->suffix, filename + lf - ls -ls2, ls2)) {
+		    if (suff->rep) return suff->rep;
+		}
+	    }
+	    
 	}
     }
     
-    /* default tree */
+    /* defaults tree */
     
-    return strchr(filename, '.') ? 	/* Unknown suffix */
-    	 ( unknown_suffix_representation ? unknown_suffix_representation
-	   : no_suffix_representation ? no_suffix_representation
-	   : WWW_BINARY)
-	: 				/* No suffix */
-    	 ( no_suffix_representation ? no_suffix_representation
-	   : WWW_PLAINTEXT);
+    suff = strchr(filename, '.') ? 	/* Unknown suffix */
+    	 ( unknown_suffix.rep ? &unknown_suffix : &no_suffix)
+	 : &no_suffix;
+	 
+    /* set default encoding unless found with suffix already */
+    if (!*pencoding) *pencoding = suff->encoding ? suff->encoding
+				    : HTAtom_for("binary");
+    return suff->rep ? suff->rep : WWW_BINARY;
 }
 
 
@@ -511,12 +538,13 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 
     if (TRACE) {
         int i;
-	printf("File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
+	fprintf(stderr, 
+	    "File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
     	    (unsigned int) fileStatus.st_mode, fileStatus.st_uid,
 	    fileStatus.st_gid,
 	    myUid, ngroups);
-	for (i=0; i<ngroups; i++) printf(" %d", groups[i]);
-	printf(")\n");
+	for (i=0; i<ngroups; i++) fprintf(stderr, " %d", groups[i]);
+	fprintf(stderr, ")\n");
     }
     
     if (fileStatus.st_mode & 0002)		/* I can write anyway? */
@@ -671,7 +699,8 @@ PUBLIC int HTLoadFile ARGS4 (
     int fd = -1;		/* Unix file descriptor number = INVALID */
     char * nodename = 0;
     char * newname=0;	/* Simplified name of file */
-
+    HTAtom * encoding;	/* @@ not used yet */
+    
 /*	Reduce the filename to a basic form (hopefully unique!)
 */
     StrAllocCopy(newname, addr);
@@ -679,7 +708,7 @@ PUBLIC int HTLoadFile ARGS4 (
     nodename=HTParse(newname, "", PARSE_HOST);
     free(newname);
     
-    format = HTFileFormat(filename);
+    format = HTFileFormat(filename, &encoding);
 
 
 #ifdef vms
@@ -759,7 +788,7 @@ forget_multi:
 		
 		if (dirbuf->d_namlen > baselen &&      /* Match? */
 		    !strncmp(dirbuf->d_name, base, baselen)) {	
-		    HTFormat rep = HTFileFormat(dirbuf->d_name);
+		    HTFormat rep = HTFileFormat(dirbuf->d_name, &encoding);
 		    float value = HTStackValue(rep, format_out,
 		    				HTFileValue(dirbuf->d_name),
 						0.0  /* @@@@@@ */);
@@ -999,8 +1028,8 @@ forget_multi:
 open_file:
 	{
 	    FILE * fp = fopen(localname,"r");
-	    if(TRACE) printf ("HTAccess: Opening `%s' gives %x\n",
-				localname, fp);
+	    if(TRACE) fprintf (stderr, "HTFile: Opening `%s' gives %p\n",
+				localname, (void*)fp);
 	    if (fp) {		/* Good! */
 		if (HTEditable(localname)) {
 		    HTAtom * put = HTAtom_for("PUT");

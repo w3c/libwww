@@ -101,6 +101,9 @@ $(USELIBDIR)/libwww.a :
 lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
+inc :
+	(cd $(WWW)/Library/Implementation && make inc)
+
 
 #	Make a copy of the binary and documentation on this machine
 install :	$(PROD)
