@@ -188,6 +188,7 @@ PRIVATE char *	     logfile_root = 0;	         /* Log file name */
 PUBLIC char *	     log_file_name = 0;	         /* Root of log file name */
 PRIVATE BOOL	     filter=0;		               /* Load from stdin? */
 PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
+PRIVATE HTRequest * request;
 
 
 #ifdef VMS
@@ -279,7 +280,6 @@ int main
 #endif /* ultrix and OSF/1 */
 
     HTFormat format_in = WWW_HTML;		/* By default */
-    HTFormat * request;
     
 #ifdef THINK_C /* command line from Think_C */
     int i;
@@ -287,7 +287,8 @@ int main
 #endif
 
     request =  HTRequest_new();
-
+    request->conversions = HTList_new();
+	 
 #ifdef VMS
     output = stdout;
 #endif /* VMS */
@@ -561,7 +562,7 @@ int main
 **	-----------------------------------------------
 */
 
-    HTFormatInit();
+    HTFormatInit(request->conversions);
     
 /*	Open output file
 **	----------------
@@ -619,11 +620,16 @@ int main
 */
 
     if (filter) {			/* Just convert formats */
-        HTParseSocket(format_in, request->output_format, 
-                home_anchor,
-		0,			/* stdin unix file */
-		request->output_stream);
-        goto good;
+    	/*   HTParseSocket(format_in, request->output_format, */
+    	/*           home_anchor,										*/
+		/*   0,			** stdin unix file **						*/
+		/* request->output_stream);									*/
+		
+		/* HENRIK */
+     	HTParseSocket(	format_in,
+    						0,					/* stdin unix file */
+		  					request);
+			goto good;
     }
     
 /*	Load first document
@@ -1148,7 +1154,9 @@ down:
 	case 'F':
 		if (is_index && Check_User_Input("FIND")){ /* Keyword search ? */
 find:
-			if (HTSearch(other_words, HTMainAnchor))
+			/* if (HTSearch(other_words, HTMainAnchor)) */
+			/* HENRIK */
+			if (HTSearch(other_words, HTMainAnchor, request))
 				HTHistory_record((HTAnchor*)HTMainAnchor);
 			goto ret;
 			}
@@ -1236,7 +1244,9 @@ lcd:	      if (!next_word) {  /* Missing argument */
 
 	case 'M':
 	if (Check_User_Input("MANUAL")){ 	/* Read User manual */
-		if (HTLoadRelative(MANUAL, HTMainAnchor), request)
+		/* if (HTLoadRelative(MANUAL, HTMainAnchor), request) */
+		/* HENRIK */
+		if (HTLoadRelative(MANUAL, HTMainAnchor, request))
 			HTHistory_record((HTAnchor*)HTMainAnchor);
 		goto ret;
 		}
@@ -1455,7 +1465,10 @@ lcd:	      if (!next_word) {  /* Missing argument */
 	
 
 	if (is_index && *this_word) {  /* No commands, search keywords */
-	    if (HTSearch(this_command + (this_word - choice), HTMainAnchor))
+	    /* if (HTSearch(this_command + (this_word - choice), HTMainAnchor)) */
+	    /* HENRIK */
+		 if (HTSearch(this_command + (this_word - choice), HTMainAnchor, request))
+
 	    HTHistory_record((HTAnchor*)HTMainAnchor);
 	} else {             
 	    Error_Selection();

@@ -776,7 +776,9 @@ PUBLIC void HText_appendImage ARGS5(
 	HText *,		text,
 	HTChildAnchor *,	anc,
 	CONST char *,		alt,
-	int,			alignment,
+	/* int,			alignment, */
+	/* HENRIK */
+	CONST char*, 		alignment,
 	BOOL,			isMap)
 {
     /* HText_beginAnchor(text, anc); */
