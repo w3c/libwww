@@ -2,7 +2,7 @@
 ** HTDAV test file 
 **
 ** Using this program, you may test all WebDAV high level functions available 
-** in libwww. 
+** in libwww, and also test your webserver, if you want. 
 **
 ** Authors: 
 **	MKP  	Manuele Kirsch Pinheiro (Manuele.Kirsch_Pinheiro@inrialpes.fr, manuele@inf.ufrgs.br)
@@ -138,7 +138,7 @@ PRIVATE int error_callback (HTRequest * request, HTResponse * response,
 	HTList * error_list = NULL;
 	HTError * error = NULL;
 	
-	HTPrint ("MyPut: ERROR CALLBACK\n");
+    HTPrint ("%s: ERROR CALLBACK\n",APP_NAME);
 	HTPrint ("\trequest %s \n\tresponse %s \n\tstatus %d\n", \
 			(request)?"OK":"NULL",\
 			(response)?"OK":"NULL",status);
@@ -147,6 +147,7 @@ PRIVATE int error_callback (HTRequest * request, HTResponse * response,
 	    error_list = HTRequest_error (request);
             while (error_list && (error = (HTError *) HTList_nextObject(error_list))) {
                 HTPrint ("\tError location %s\n",HTError_location(error));
+
 	        switch (HTError_severity(error)) {
 		    case ERR_UNKNOWN :
 		        HTPrint ("\tSeverity : UNKNOWN\n");
@@ -188,7 +189,7 @@ PRIVATE void my_headers (HTRequest *request) {
     HTAssocList * headers = NULL; 
     HTParentAnchor * anchor = NULL;
 
-    HTPrint ("MyGet: Searching headers...\n");  	
+    HTPrint ("%s: Searching headers...\n",APP_NAME);  
     
     anchor = HTRequest_anchor (request);
     headers = HTAnchor_header(anchor);
@@ -352,7 +353,7 @@ PRIVATE BOOL lock_request (Cmdline * arg) {
 	if (arg->D) HTDAV_setDepthHeader (headers,arg->D);
 	if (arg->T) HTDAV_setTimeoutHeader (headers,arg->T);
 
-	HTPrint ("func %d src %s\n",arg->func,(src)?"yes":"no");
+    HTPrint ("function %d src? %s\n",arg->func,(src)?"yes":"no");
 
         switch (arg->func) {
             case 1: status = HTLOCKDocumentAnchor (request,dst,src,headers);
@@ -748,9 +749,9 @@ int main (int argc, char ** argv)
     }//if argc>3
     else {	
             HTPrint ("Usage: \n");
-	    HTPrint ("<method> <method_function> [options_headers] <function_arguments>\n\n");
+        HTPrint ("%s <method> <method_function> [options_headers] <function_arguments>\n\n",argv[0]);
 	    HTPrint ("methods are: -[lufpkcm]\n");
-	    HTPrint ("method_function are: -[1-4] (see functions order in HTDAV.h)\n");
+        HTPrint ("method_function are: -[1-4] (see functions order in HTDAV.html)\n");
 	    HTPrint ("options_headers are:\n");
 	    HTPrint ("\t-D <depth_header_value>    (for Depth header)\n");
 	    HTPrint ("\t-T <timeout_header_value>  (for Timeout header)\n");
