@@ -1,9 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
  <HEAD>
-  <TITLE>
-     Changes Committed to the libwww CVS Source Tree
-  </TITLE>
+  <TITLE>Latest libwww Changes Committed to CVS</TITLE>
   <LINK rel=STYLESHEET href="http://www.w3.org/StyleSheets/Area/Overview.css" type="text/css">
  </HEAD>
 <BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" VLINK="#551A8B">
@@ -12,14 +10,20 @@
   <A HREF="./">CVS Changes</A>
 
 <H1>
-  Changes Committed to the libwww CVS Source Tree
+  Latest libwww Changes Committed to CVS
 </H1>
 
-Here you can ind all the <A
-HREF="http://www.w3.org/Library">libwww</A> code changes after a
+Here you can find all the <A
+HREF="http://www.w3.org/Library/">libwww</A> code changes after a
 certain date/time. If you haven't already then <A
 HREF="http://www.w3.org/Library/cvs.html">get the libwww code base
 directly from CVS</A>.<P>
+
+If you already have checked out the code then you can get the latest
+changes by doing a <A
+HREF="http://www.w3.org/Library/cvs.html#update">CVS update</A> and <A
+HREF="http://www.w3.org/Library/cvs.html#Easy">recompile the
+code</A>.<P>
 
 Discussions about libwww should happen on the <A
 HREF="http://www.w3.org/Library/#Forums">&lt;www-lib@w3.org&gt;</A>

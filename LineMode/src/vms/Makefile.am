@@ -4,5 +4,5 @@ AUTOMAKE_OPTIONS = foreign
 
 EXTRA_DIST = \
 	descrip.mms \
- 	build_multinet.com
+	build_multinet.com \
 	setup.com

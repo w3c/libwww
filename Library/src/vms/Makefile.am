@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = \
 	descrip.mms \
 	COPYING.LIB \
- 	build_multinet.com
+	build_multinet.com \
 	build_multinet.com_alpha \
 	multinet.opt \
 	ltinet.opt_alpha \
