@@ -31,6 +31,8 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+#define DEF_LAST_SEGMENT	"index"
+
 /////////////////////////////////////////////////////////////////////////////
 // Libwww filters
 
@@ -201,15 +203,40 @@ BOOL CRequest::SetCacheValidation(int mode)
 
 int CRequest::GetDocument (HTAnchor * address, int cacheValidation)
 {
+    char filebuf[1024];
     ASSERT(address != NULL); 
+    char * uri = HTAnchor_address(address);
 
     m_pSource = address;
     
     CWinComApp * pApp = (CWinComApp *) AfxGetApp();
     ASSERT(pApp != NULL); 
-    
-    // Find the file name where we should save the document
+
     CFileDialog fd(FALSE);
+
+    /* Find the start filename */
+    {
+	char * name = NULL;
+	char * suffix = HTBind_getSuffix(HTAnchor_parent(address));
+        char * uri_path = NULL;
+	if (uri && (uri_path = HTParse(uri, "", PARSE_PATH|PARSE_PUNCTUATION))) {
+	    char * last_segment = strrchr(uri_path, '/');
+	    if (last_segment && *(last_segment+1)) {
+		StrAllocMCopy(&name, ++last_segment, NULL);
+	    } else {
+		StrAllocMCopy(&name, DEF_LAST_SEGMENT,
+			      suffix ? suffix : "", NULL);
+	    }
+	}
+
+	strcpy(filebuf, name);
+        fd.m_ofn.lpstrFile = filebuf;
+	
+	HT_FREE(name);
+	HT_FREE(suffix);
+    }
+
+    /* Find the start folder */
     fd.m_ofn.lpstrInitialDir = pApp->GetIniCWD();
 
     if (fd.DoModal() == IDOK) {
@@ -240,15 +267,16 @@ int CRequest::GetDocument (HTAnchor * address, int cacheValidation)
 	m_pProgress->ShowWindow(SW_SHOW);
 
 	/* Start the GET */
-	char * addr = HTAnchor_address(address);
-        if (HTLoadToFile (addr, m_pHTRequest, m_saveAs) == NO) {
-            HT_FREE(addr);
+        if (HTLoadToFile (uri, m_pHTRequest, m_saveAs) == NO) {
+            HT_FREE(uri);
 	    return -1;
         }
-        HT_FREE(addr);
 
+        HT_FREE(uri);
         return 0;
     }
+
+    HT_FREE(uri);
     return -1;
 }
 
