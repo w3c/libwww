@@ -212,6 +212,7 @@ $(FTP)/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
 	    $(SPECIFIC) \
 	    $(CMN)*.html
 	compress -f $(FTP)/src/WWWLibrary_$(VC).tar
+	gzip -f $(FTP)/src/WWWLibrary_$(VC).tar
 
 zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
