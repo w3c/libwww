@@ -26,33 +26,38 @@ PUBLIC unsigned int HTErrorShowMask = HT_ERR_SHOW_WARNING+HT_ERR_SHOW_PARS;
 
 /* All errors that are not strictly HTTP errors but originates from, e.g., 
    the FTP protocol all have element numbers > HTERR_HTTP_CODES_END, i.e.,
-   they should be placed after the blank line */
+   they should be placed after the blank line
+
+   NOTE: codes marked `HTTP' should be future HTTP error codes.
+*/
 PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 200, "OK", 			"ok.multi" },
     { 201, "Created", 			"created.multi" },
     { 202, "Accepted", 			"accepted.multi" },
     { 203, "Partial Information", 	"partial.multi" },
-    { 204, "No Response", 		"no_response.multi" },
+    { 204, "No Response",		"no_response.multi" },
     { 301, "Moved", 			"moved.multi" },
     { 302, "Found", 			"found.multi" },
     { 303, "Method", 			"method.multi" },
-    { 304, "Not Modified", 		"not_modified.multi" },
-    { 400, "Bad Request", 		"bad_request.multi" },
-    { 401, "Unauthorized", 		"unauthorized.multi" },
+    { 304, "Not Modified Since",       	"not_modified.multi" },
+    { 400, "Invalid Request", 		"bad_request.multi" },
+    { 401, "Unauthorized Access Denied","unauthorized.multi" },
     { 402, "Payment Required", 		"payment.multi" },
-    { 403, "Forbidden", 		"forbidden.multi" },
-    { 404, "Not Found", 		"not_found.multi" },
-    { 500, "Can't access document",	"internal.multi" },
-    { 501, "Not Implemented", 		"not_implemented.multi" },
+    { 403, "Access forbidden by rule", 	"forbidden.multi" },
+    { 404, "No Match Found for",       	"not_found.multi" },
+    { 500, "Can't Access Document",	"internal.multi" },
+    { 501, "Command not Implemented", 	"not_implemented.multi" },
     { 0,   "-------------------------", "-----------------------" },
     { 0,   "Can't locate remote host", 	"locate_host.multi" },
     { 0,   "FTP-server replies", 	"ftp.multi" },
     { 0,   "FTP-server doesn't reply", 	"no_server.multi" },
     { 0,   "Server timed out", 		"time_out.multi" },
     { 0,   "Gopher-server replies", 	"gopher.multi" },
-    { 0,   "Data transfer Interrupted", "interrupt.multi" },
+    { 0,   "Data transfer interrupted", "interrupt.multi" },
     { 0,   "CSO-server replies", 	"cso.multi" },
-    { 0,   "System call %s failed: ",	"system.multi" }
+    { 0,   "Bad or Unknown Response",	"bad_reply.multi" },	     /* HTTP */
+    { 0,   "News-server replies",	"news.multi" },
+    { 0,   "System call `%s' failed: ",	"system.multi" }
 };
 
 /* ------------------------------------------------------------------------- */
@@ -61,7 +66,9 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
 **
 **	Add an error message to the error list in HTRequest. `par' and `where'
 **	might be set to NULL. If par is a string, it is sufficient to let
-**	par_length be unspecified, i.e., 0.
+**	par_length be unspecified, i.e., 0. If only a part of the string is
+**	wanted then specify a par_length inferior to strlen((char *) par).
+**	The string is '\0' terminated automaticly.
 **
 **	NOTE: See also HTErrorSysAdd for system errors
 **

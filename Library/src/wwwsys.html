@@ -8,23 +8,24 @@
 include files and macros. This file
 includes for each system the files
 necessary for network and file I/O.
- Part of <A
-NAME="z4" HREF="Overview.html">libwww</A>.
+ Part of <A NAME="z4" HREF="Overview.html">libwww</A>.
+
 <H3>Authors</H3>
 <DL>
 <DT>TBL
-<DD> Tim Berners-Lee, W3 project,
-CERN, &lt;timbl@info.cern.ch>
+<DD> Tim Berners-Lee, W3 project, CERN, &lt;timbl@info.cern.ch&gt;
 <DT>EvA
-<DD> Eelco van Asperen &lt;evas@cs.few.eur.nl>
+<DD> Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
 <DT>MA
 <DD> Marc Andreesen NCSA
 <DT>MD
-<DD> Mark Donszelmann &lt;duns@vxcern.cern.ch>
+<DD> Mark Donszelmann &lt;duns@vxcern.cern.ch&gt;
 <DT>AT
-<DD> Aleksandar Totic &lt;atotic@ncsa.uiuc.edu>
+<DD> Aleksandar Totic &lt;atotic@ncsa.uiuc.edu&gt;
 <DT>SCW
-<DD> Susan C. Weber &lt;sweber@kyle.eitech.com>
+<DD> Susan C. Weber &lt;sweber@kyle.eitech.com&gt;
+<DT>HF
+<DD> Henrik Frystyk, &lt;frystyk@dxcern.cern.ch&gt;
 </DL>
 
 <H3>History:</H3>
@@ -46,13 +47,13 @@ xmosaic release
 <PRE>
 #ifndef TCP_H
 #define TCP_H
-
 </PRE>
-<H2>Default values</H2>These values may be reset and altered
-by system-specific sections later
-on.  there are also a bunch of <A
-NAME="z2" HREF="#z1">defaults
-at the end</A> .
+
+<H2>Default values</H2>These values may be reset and altered by
+system-specific sections later on. There is also a bunch of
+<A NAME="z5" HREF="#z2">defaults</A> at the end and a section for
+<A NAME="z11" HREF="#z10">ordinary BSD unix versions</A>.
+
 <PRE>/* Default values of those: */
 #define NETCLOSE close	    /* Routine to close a TCP-IP socket		*/
 #define NETREAD  read	    /* Routine to read from a TCP-IP socket	*/
@@ -74,18 +75,23 @@ typedef struct sockaddr_dn SockA;  /* See netdnet/dn.h or custom vms.h */
 #else /* Internet */
 typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #endif
-
-
 </PRE>
-<H2>Macintosh - Think-C</H2>Think-C is one development environment
-on the Mac.<P>
-We recommend that you compile with
-4-byte ints to be compatible with
-MPW C.  We used Tom Milligan's s_socket
-library which was written for 4 byte
-int, and the MacTCP library assumes
-4-byte int.
-<PRE>#ifdef THINK_C
+
+<H1><A NAME="z1">Platform Specific Stuff</H1>
+Information below this line is general for most platforms. <P>
+
+See also <A NAME="z6" HREF="#z2">General Stuff</A>
+
+<H2>Macintosh - Think-C</H2>
+
+Think-C is one development environment on the Mac.<P>
+
+We recommend that you compile with 4-byte ints to be compatible with
+MPW C. We used Tom Milligan's s_socket library which was written for 4 byte
+int, and the MacTCP library assumes 4-byte int.
+
+<PRE>
+#ifdef THINK_C
 #undef GOT_SYSTEM
 #define DEBUG			/* Can't put it on the CC command line	*/
 #define NO_UNIX_IO		/* getuid() missing			*/
@@ -106,8 +112,7 @@ int, and the MacTCP library assumes
 #define socket s_socket
 #define getsockname s_getsockname
 
-/* The function prototype checking is better than the include files
-*/
+/* The function prototype checking is better than the include files */
 
 extern s_close(int s);
 extern s_read(int s, char *buffer, int buflen);
@@ -122,32 +127,26 @@ extern s_socket(int domain, int type, int protocol);
 extern s_getsockname(int s, struct sockaddr *name, int *namelen);
 extern struct hostent *gethostent(const char * name);
 extern unsigned long inet_addr(const char * name);
-
 #endif /* THINK_C */
-
-
 </PRE>
-<H2>Macintosh - MPW</H2>MPW is one development environment
-on the Mac.<P>
-This entry was created by Aleksandar
-Totic (atotic@ncsa.uiuc.edu) this
-file is compatible with sockets package
-released by NCSA.  One major conflict
-is that this library redefines write/read/etc
-as macros.  In some of HTML code
-these macros get executed when they
-should not be. Such files should
-define NO_SOCKET_DEFS on top. This
-is a temporary hack.
-<PRE>#ifdef applec			/* MPW  */
+
+<H2>Macintosh - MPW</H2>
+
+MPW is one development environment on the Mac.<P>
+
+This entry was created by Aleksandar Totic (atotic@ncsa.uiuc.edu) this
+file is compatible with sockets package released by NCSA.  One major conflict
+is that this library redefines write/read/etc as macros.  In some of HTML code
+these macros get executed when they should not be. Such files should
+define NO_SOCKET_DEFS on top. This is a temporary hack.
+
+<PRE>
+#ifdef applec			/* MPW  */
 #undef GOT_SYSTEM
 #define DEBUG			/* Can't put it on the CC command line */
-#define NO_UNIX_IO		/* getuid() missing
-*/
-#define NO_GETPID		/* getpid() does not exist
-*/
-#define NO_GETWD		/* getwd() does not exist
-*/
+#define NO_UNIX_IO		/* getuid() missing */
+#define NO_GETPID		/* getpid() does not exist */
+#define NO_GETWD		/* getwd() does not exist */
 
 #undef NETCLOSE		    /* Routine to close a TCP-IP socket */
 #undef NETREAD		    /* Routine to read from a TCP-IP socket */
@@ -161,25 +160,25 @@ is a temporary hack.
 #define ANON_FTP_HOSTNAME
 #ifndef NO_SOCKET_DEFS
 #include &lt;MacSockDefs.h>
-#endif
+#endif /* NO_SOCKET_DEFS */
 
 #include &lt;socket.ext.h>
 #include &lt;string.h>
 
-#endif                 /* MPW */
-
-
+#endif /* MPW */
 
 #ifndef STDIO_H
 #include &lt;stdio.h>
 #define STDIO_H
 #endif
-
 </PRE>
+
 <H2>Big Blue - the world of incompatibility</H2>
-<H2>IBM RS600</H2>On the IBM RS-6000, AIX is almost
-Unix.
-<PRE>#ifdef _AIX
+
+IBM RS600</H2>On the IBM RS-6000, AIX is almost Unix. <P>
+
+<PRE>
+#ifdef _AIX
 #define AIX
 #endif
 #ifdef AIX
@@ -193,14 +192,15 @@ Unix.
 #ifdef _IBMR2
 #define USE_DIRENT		/* sys V style directory open */
 #endif
-
-
 </PRE>
-<H2>IBM VM-CMS, VM-XA Mainframes</H2>MVS is compiled as for VM. MVS has
-no unix-style I/O.  The command line
-compile options seem to come across
-in lower case.
-<PRE>#ifdef mvs
+
+<H2>IBM VM-CMS, VM-XA Mainframes</H2>
+
+MVS is compiled as for VM. MVS has no unix-style I/O.  The command line
+compile options seem to come across in lower case.
+
+<PRE>
+#ifdef mvs
 #define MVS
 #endif
 
@@ -233,30 +233,30 @@ in lower case.
 #ifndef SHORT_NAMES
 #define SHORT_NAMES		/* 8 character uniqueness for globals */
 #endif
-#include &lt;manifest.h>                                                           
-#include &lt;bsdtypes.h>                                                           
-#include &lt;stdefs.h>                                                             
-#include &lt;socket.h>                                                             
+#include &lt;manifest.h>
+#include &lt;bsdtypes.h>
+#include &lt;stdefs.h>
+#include &lt;socket.h>
 #include &lt;in.h>
 #include &lt;inet.h>
-#include &lt;netdb.h>                                                                 
+#include &lt;netdb.h>
 #include &lt;errno.h>	    /* independent */
 extern char asciitoebcdic[], ebcdictoascii[];
 #define TOASCII(c)   (c=='\n' ?  10  : ebcdictoascii[c])
-#define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])                                   
+#define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])
 #include &lt;bsdtime.h>
 #include &lt;time.h>
-#include &lt;string.h>                                                            
+#include &lt;string.h>
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
 #endif
-
-
 </PRE>
-<H2>IBM-PC running MS-DOS with SunNFS
-for TCP/IP</H2>This code thanks to Eelco van Asperen
-&lt;evas@cs.few.eur.nl>
-<PRE>#ifdef PCNFS
+
+<H2>IBM-PC running MS-DOS with SunNFS for TCP/IP</H2>
+This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl>
+
+<PRE>
+#ifdef PCNFS
 #include &lt;sys/types.h>
 #include &lt;string.h>
 #include &lt;errno.h>	    /* independent */
@@ -268,12 +268,15 @@ for TCP/IP</H2>This code thanks to Eelco van Asperen
 #define FD_CLR(fd,pmask) (*(unsigned*)(pmask)) &amp;= ~(1&lt;&lt;(fd))
 #define FD_ZERO(pmask)   (*(unsigned*)(pmask))=0
 #define FD_ISSET(fd,pmask) (*(unsigned*)(pmask) &amp; (1&lt;&lt;(fd)))
+#define NO_GROUPS
 #endif  /* PCNFS */
-
 </PRE>
-<H2>IBM-PC running Windows NT</H2>These parameters providede by  Susan
-C. Weber &lt;sweber@kyle.eitech.com>.
-<PRE>#ifdef _WINDOWS
+
+<H2>IBM-PC running Windows NT</H2>
+These parameters providede by  Susan C. Weber &lt;sweber@kyle.eitech.com>.
+
+<PRE>
+#ifdef _WINDOWS
 #include "fcntl.h"			/* For HTFile.c */
 #include "sys\types.h"			/* For HTFile.c */
 #include "sys\stat.h"			/* For HTFile.c */
@@ -295,12 +298,10 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
 #endif  /* WINDOWS */
- 
-
-
 </PRE>
-<H2>VAX/VMS</H2>Under VMS, there are many versions
-of TCP-IP. Define one if you do not
+
+<H2>VAX/VMS</H2>
+Under VMS, there are many versions of TCP-IP. Define one if you do not
 use Digital's UCX product:
 <DL>
 <DT>UCX
@@ -324,7 +325,9 @@ number, so we make the @@@ HORRIBLE
 will be greater than 10 but a unix
 file descriptor less than 10.  It
 works.
-<PRE>#ifdef VMS 
+
+<PRE>
+#ifdef VMS 
 #define CACHE_FILE_PREFIX  "SYS$LOGIN:Z_"
 
 #ifdef WIN_TCP
@@ -424,41 +427,45 @@ works.
 #endif  /* of Multinet or other TCP includes */
 
 #define TCP_INCLUDES_DONE
+</PRE>
 
-</PRE>On VMS machines, the linker needs
+On VMS machines, the linker needs
 to be told to put global data sections
 into a data segment using these storage
 classes. (MarkDonszelmann)
-<PRE>#ifdef VAXC
+
+<PRE>
+#ifdef VAXC
 #define GLOBALDEF globaldef
 #define GLOBALREF globalref
 #endif /*  VAXC */
-
 #endif	/* vms */
+</PRE>
 
-</PRE>On non-VMS machines, the GLOBALDEF
-and GLOBALREF storage types default
+On non-VMS machines, the GLOBALDEF and GLOBALREF storage types default
 to normal C storage types.
-<PRE>#ifndef GLOBALREF
+
+<PRE>
+#ifndef GLOBALREF
 #define GLOBALDEF
 #define GLOBALREF extern
 #endif
-
-
-
 </PRE>
+
 <H2>SCO ODT unix version</H2>
+
 <PRE>
 #ifdef sco
 #include &lt;unistd.h>
 #include &lt;sys/fcntl.h>
 #define USE_DIRENT
 #endif
-
 </PRE>
-<H2>MIPS unix</H2>
-<PRE>/* Mips hack (bsd4.3/sysV mixture...) */
 
+<H2>MIPS unix</H2>
+Mips hack (bsd4.3/sysV mixture...)
+
+<PRE>
 #ifdef Mips	/* Bruker */
 extern int errno;
 typedef mode_t		int;
@@ -466,9 +473,28 @@ typedef mode_t		int;
 #define S_ISCHR(m)	(m & S_IFCHR)
 #define S_ISBLK(m)	(m & S_IFBLK)
 #define WEXITSTATUS(s)	(((s).w_status >> 8) & 0377)
-#endif
-
 </PRE>
+
+<H3>File Permissions</H3>
+
+<PRE>
+#ifndef S_IRWXU
+#define S_IRWXU 0000700
+#define S_IRWXG 0000070
+#define S_IRWXO 0000007
+#define S_IRUSR 0000400
+#define S_IWUSR 0000200
+#define S_IXUSR 0000100
+#define S_IRGRP 0000040
+#define S_IWGRP 0000020
+#define S_IXGRP 0000010
+#define S_IROTH 0000004
+#define S_IWOTH 0000002
+#define S_IXOTH 0000001
+#endif /* S_IRWXU */
+#endif /* Mips */
+</PRE>
+
 <H2>Solaris</H2>
 (And Linux, thanks to Rainer Klute)
 <PRE>
@@ -479,59 +505,17 @@ typedef mode_t		int;
 </PRE>
 
 <H2>OSF/1</H2>
-<PRE>#ifdef __osf__
+<PRE>
+#ifdef __osf__
 #define USE_DIRENT
 #endif /* OSF1 AXP */
 </PRE>
-
-<H2>Regular BSD unix versions</H2>
-
-These are a default unix where not already defined specifically.
-
-<PRE>
-#ifndef INCLUDES_DONE
-
-#include &lt;sys/types.h>
-/* #include &lt;streams/streams.h>			not ultrix */
-#include &lt;string.h>
-
-#include &lt;errno.h>		    /* independent */
-#include &lt;sys/time.h>	    /* independent */
-#include &lt;sys/stat.h>
-#include &lt;sys/param.h>
-#include &lt;sys/file.h>	    /* For open() etc */
-#define INCLUDES_DONE
-#endif	/* Normal includes */
-</PRE>
-
-<H3>Directory reading stuff - BSD or SYS V</H3>
-<PRE>
-#ifdef unix                    /* if this is to compile on a UNIX machine */
-#define GOT_READ_DIR 1    /* if directory reading functions are available */
-#ifdef USE_DIRENT             /* sys v version */
-#include &lt;dirent.h>
-#define direct dirent
-#else
-#include &lt;sys/dir.h>
-#endif
-#if defined(sun) &amp;&amp; defined(__svr4__)
-#include &lt;sys/fcntl.h>
-#include &lt;limits.h>
-#endif
-#ifndef FNDELAY
-#define FNDELAY		O_NDELAY
-#endif
-#endif
-
-</PRE>
-
 
 <H2>ISC 3.0</H2>
 by Lauren Weinstein &lt;lauren@vortex.com&gt;.
 <PRE>
 
 #ifdef ISC3
-
 #define USE_DIRENT		/* Lauren */
 #define GOT_READ_DIR 1		/* Lauren */
 #include &lt;sys/ipc.h&gt;	/* Lauren */
@@ -556,7 +540,6 @@ typedef int mode_t;		/* Lauren */
 #define _SYSV3	   /* Lauren */
 #include &lt;time.h&gt;  /* Lauren */
 
-
 #include &lt;sys/fcntl.h&gt;
 #define S_ISDIR(m)	(((m) & 0170000) == 0040000)
 #define S_ISCHR(m)	(((m) & 0170000) == 0020000)
@@ -564,33 +547,18 @@ typedef int mode_t;		/* Lauren */
 #define S_ISREG(m)	(((m) & 0170000) == 0100000)
 #define S_ISFIFO(m)	(((m) & 0170000) == 0010000)
 #define S_ISLNK(m)	(((m) & 0170000) == 0120000)
-
 #endif	/* ISC 3.0 */
-
 </PRE>
 
-<H3>Rough estimate of max path length</H3>
+<H2>SOCKS</H2>
+SOCKS modifications by Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.
 <PRE>
-#ifdef MAXPATHLEN
-#define HT_MAX_PATH MAXPATHLEN
-#else
-#ifdef PATH_MAX
-#define HT_MAX_PATH PATH_MAX
-#else
-#define HT_MAX_PATH 1024	 	      	/* Any better ideas? */
-#endif
-#endif
-</PRE>
-
-
-<H3>Definition of NGROUPS</H3>
-<PRE>
-#ifndef NGROUPS
-#ifdef NGROUPS_MAX
-#define NGROUPS NGROUPS_MAX
-#else
-#define NGROUPS 20				/* Any better ideas? */
-#endif
+#if defined(SOCKS) && !defined(RULE_FILE)
+#define connect Rconnect
+#define accept  Raccept
+#define getsockname Rgetsockname
+#define bind Rbind 
+#define listen Rlisten  
 #endif
 </PRE>
 
@@ -615,15 +583,10 @@ typedef unsigned short mode_t;
 #ifndef WEXITSTATUS
 #define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
 #endif
-
-#endif
 </PRE>
 
-
-<H2>File Permissions</H2>
+<H3>File Permissions for NeXT</H3>
 <PRE>
-
-#if defined(NeXT) || defined(Mips)
 #ifndef S_IRWXU
 #define S_IRWXU 0000700
 #define S_IRWXG 0000070
@@ -637,15 +600,63 @@ typedef unsigned short mode_t;
 #define S_IROTH 0000004
 #define S_IWOTH 0000002
 #define S_IXOTH 0000001
-#endif
-#endif
-
-
+#endif /* S_IRWXU */
+#endif /* NeXT */
 </PRE>
-<H2><A
-NAME="z1">Defaults</A></H2>
+
+<H2><A NAME="z10">Regular BSD unix versions</H2>
+
+These are a default unix where not already defined specifically.
+
+<PRE>
+#ifndef INCLUDES_DONE
+
+#include &lt;sys/types.h>
+/* #include &lt;streams/streams.h>			not ultrix */
+#include &lt;string.h>
+
+#include &lt;errno.h>		    /* independent */
+#include &lt;sys/time.h>	    /* independent */
+#include &lt;sys/stat.h>
+#include &lt;sys/param.h>
+#include &lt;sys/file.h>	    /* For open() etc */
+#define INCLUDES_DONE
+#endif	/* Normal includes */
+</PRE>
+
+<H3>Directory reading stuff - BSD or SYS V</H3>
+<PRE>
+#ifdef unix                    	  /* if this is to compile on a UNIX machine */
+#define GOT_READ_DIR 1       /* if directory reading functions are available */
+
+#define USE_DIRENT		  /* Try this all the time, Henrik May 29 94 */
+#ifdef USE_DIRENT             			 	    /* sys v version */
+#include &lt;dirent.h>
+#define STRUCT_DIRENT struct dirent
+#else
+#include &lt;sys/dir.h>
+#define STRUCT_DIRENT struct direct
+#endif
+
+#if defined(sun) &amp;&amp; defined(__svr4__)
+#include &lt;sys/fcntl.h>
+#include &lt;limits.h>
+#endif
+#ifndef FNDELAY
+#define FNDELAY		O_NDELAY
+#endif
+#endif
+</PRE>
+
+<H1><A NAME="z2">General Stuff</A></H1>
+
+Information below this line is general for most platforms. <P>
+
+See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
+
 <H3>Include files for TCP</H3>
-<PRE>#ifndef TCP_INCLUDES_DONE
+<PRE>
+#ifndef TCP_INCLUDES_DONE
 #include &lt;sys/socket.h>
 #include &lt;netinet/in.h>
 
@@ -656,12 +667,44 @@ NAME="z1">Defaults</A></H2>
 
 #include &lt;netdb.h>
 #endif	/* TCP includes */
-
-
 </PRE>
-<H3>Macros for manipulating masks for
-select()</H3>
-<PRE>#ifdef SELECT
+
+<H3>Rough estimate of max path length</H3>
+<PRE>
+#ifndef HT_MAX_PATH
+#ifdef MAXPATHLEN
+#define HT_MAX_PATH MAXPATHLEN
+#else
+#ifdef PATH_MAX
+#define HT_MAX_PATH PATH_MAX
+#else
+#define HT_MAX_PATH 1024	 	      	/* Any better ideas? */
+#endif
+#endif
+#endif /* HT_MAX_PATH */
+</PRE>
+
+
+<H3>Definition of NGROUPS</H3>
+<PRE>
+#ifdef NO_UNIX_IO
+#define NO_GROUPS
+#endif
+
+#ifndef NO_GROUPS
+#ifndef NGROUPS
+#ifdef NGROUPS_MAX
+#define NGROUPS NGROUPS_MAX
+#else
+#define NGROUPS 20				/* Any better ideas? */
+#endif
+#endif
+#endif
+</PRE>
+
+<H3>Macros for manipulating masks for select()</H3>
+<PRE>
+#ifdef SELECT
 #ifndef FD_SET
 typedef unsigned int fd_set;
 #define FD_SET(fd,pmask) (*(pmask)) |=  (1&lt;&lt;(fd))
@@ -670,45 +713,34 @@ typedef unsigned int fd_set;
 #define FD_ISSET(fd,pmask) (*(pmask) &amp; (1&lt;&lt;(fd)))
 #endif  /* FD_SET */
 #endif  /* SELECT */
-
 </PRE>
-<H3><A
-NAME="z0">M</A> acros for converting characters</H3>
-<PRE>#ifndef TOASCII
+
+<H3>Macros for converting characters</H3>
+
+<PRE>
+#ifndef TOASCII
 #define TOASCII(c) (c)
 #define FROMASCII(c) (c)                                   
 #endif
-
 </PRE>
-<H3>Cache file prefix</H3>This is something onto which we tag
-something meaningful to make a cache
-file name.  used in HTWSRC.c at least.
-If it is nor defined at all, caching
+
+<H3>Cache file prefix</H3>
+
+This is something onto which we tag something meaningful to make a cache
+file name.  used in HTWSRC.c at least. If it is nor defined at all, caching
 is turned off.
-<PRE>#ifndef CACHE_FILE_PREFIX
+
+<PRE>
+#ifndef CACHE_FILE_PREFIX
 #ifdef unix
 #define CACHE_FILE_PREFIX  "/usr/wsrc/"
 #endif
 #endif
 </PRE>
 
-
-<H2>SOCKS</H2>
-SOCKS modifications by Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.
 <PRE>
-#if defined(SOCKS) && !defined(RULE_FILE)
-#define connect Rconnect
-#define accept  Raccept
-#define getsockname Rgetsockname
-#define bind Rbind 
-#define listen Rlisten  
 #endif
 </PRE>
-
-
-<PRE>
-
-#endif /* TCP_H */
-
-</PRE>end of system-specific file</A></BODY>
+End of system-specific file
+</BODY>
 </HTML>

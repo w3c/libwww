@@ -47,6 +47,7 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 #include "HTMLGen.h"
 #include "HTTCP.h"
 #include "HTGuess.h"
+#include "HTError.h"
 
 
 PUBLIC	BOOL HTOutputSource = NO;	/* Flag: shortcut parser to stdout */
@@ -850,16 +851,6 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 		    best_quality = pres->quality;
 		}
 	    }
-
-#ifdef OLD_CODE
-	    /* This case is now included in the best_match loop */
-	    /* Special case when input format is 'www/source' */ 
-	    if (pres->rep == source) {
-	        if (pres->rep_out == rep_out ||
-		    wild_match(pres->rep_out, rep_out))
-	            source_match = pres;
-	    }
-#endif
 	}
     }
 
@@ -874,6 +865,16 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 	return (*match->converter)(
 	request, match->command, rep_in, rep_out,
 	request->output_stream);
+    }
+    {
+	char *msg = NULL;
+	StrAllocCopy(msg, "Can't convert from ");
+	StrAllocCat(msg, HTAtom_name(rep_in));
+	StrAllocCat(msg, " to ");
+	StrAllocCat(msg, HTAtom_name(rep_out));
+	HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
+		   (void *) msg, (int) strlen(msg), "HTStreamStack");
+	free(msg);
     }
     return NULL;
 }
@@ -1079,6 +1080,7 @@ PUBLIC void HTCopyNoCR ARGS2(
 **   CRLF at the end of lines which need to be stripped to LF for unix
 **   when the format is textual.
 **
+**	Returns <0 on error, HT_LOADED on success.
 */
 
 PUBLIC int HTParseSocket ARGS3(
@@ -1094,15 +1096,9 @@ PUBLIC int HTParseSocket ARGS3(
 	return -1;
     }
 
-    stream = HTStreamStack(rep_in, request, YES);
-
-    if (!stream) {
-	char buffer[1024];	/* @@@@@@@@ */
-	sprintf(buffer, "Sorry, can't convert from %s to %s.",
-		HTAtom_name(rep_in), HTAtom_name(request->output_format));
-	if (TRACE) fprintf(stderr, "ParseSocket. %s\n", buffer);
-        return HTLoadError(request, 501, buffer);
-    }
+    /* Set up stream stack */
+    if ((stream = HTStreamStack(rep_in, request, YES)) == NULL)
+	return -1;
     
 /*	Push the data, ignoring CRLF if necessary, down the stream
 **
@@ -1152,15 +1148,9 @@ PUBLIC int HTParseFile ARGS3(
 	return -1;
     }
 
-    stream = HTStreamStack(rep_in, request, YES);
-    
-    if (!stream) {
-	char buffer[1024];	/* @@@@@@@@ */
-	sprintf(buffer, "Sorry, can't convert from %s to %s.",
-		HTAtom_name(rep_in), HTAtom_name(request->output_format));
-	if (TRACE) fprintf(stderr, "ParseFile... %s\n", buffer);
-	return HTLoadError(request, 501, buffer);
-    }
+    /* Set up stream stack */
+    if ((stream = HTStreamStack(rep_in, request, YES)) == NULL)
+	return -1;
     
 /*	Push the data down the stream
 **

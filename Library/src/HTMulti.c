@@ -20,11 +20,13 @@
 #define R_OK 3
 #endif
 
+#ifdef OLD_CODE
 #ifdef USE_DIRENT		/* Set this for Sys V systems */
 #define STRUCT_DIRENT struct dirent
 #else
 #define STRUCT_DIRENT struct direct
 #endif
+#endif /* OLD_CODE */
 
 
 PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */

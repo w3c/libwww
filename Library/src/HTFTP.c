@@ -133,11 +133,11 @@ PRIVATE char *	this_addr;				    /* Local address */
 **	Returns 0 if OK, -1 on error
 */
 PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
-			     u_short, default_port, int *, s,
+			     u_short, default_port, int *, sockfd,
 			     u_long *, addr)
 {
     int status;
-    struct sockaddr_in sock_addr;
+    SockA sock_addr;				/* SockA is defined in tcp.h */
     char *p1 = HTParse(url, "", PARSE_HOST);
     char *at_sign;
     char *host;
@@ -149,10 +149,15 @@ PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
 	host = p1;
     if (TRACE) fprintf(stderr, "HTDoConnect. Looking up `%s\'\n", host);
 
-   /* Set up defaults: */
+   /* Set up defaults */
     memset((void *) &sock_addr, '\0', sizeof(sock_addr));
+#ifdef DECNET
+    sock_addr.sdn_family = AF_DECnet;	      /* Family = DECnet, host order */
+    sock_addr.sdn_objnum = DNP_OBJ;	      /* Default: http object number */
+#else  /* Internet */
     sock_addr.sin_family = AF_INET;
     sock_addr.sin_port = htons(default_port);
+#endif
 
     /* Get node name */
     if (HTParseInet(&sock_addr, host)) {
@@ -160,11 +165,15 @@ PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
 	HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
 		   (void *) host, strlen(host), "HTDoConnect");
 	free (p1);
-	*s = -1;
+	*sockfd = -1;
 	return -1;
     }
 
-    if ((*s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+#ifdef DECNET
+    if ((*sockfd = socket(AF_DECnet, SOCK_STREAM, 0)) < 0) {
+#else
+    if ((*sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+#endif
 	HTErrorSysAdd(request, ERR_FATAL, NO, "socket");
 	free (p1);
 	return -1;
@@ -173,15 +182,15 @@ PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
 	*addr = ntohl(sock_addr.sin_addr.s_addr);
 
     if (TRACE)
-	fprintf(stderr, "HTDoConnect. Created socket number %d\n", *s);
+	fprintf(stderr, "HTDoConnect. Created socket number %d\n", *sockfd);
 
-    if ((status = connect(*s, (struct sockaddr *) &sock_addr,
+    if ((status = connect(*sockfd, (struct sockaddr *) &sock_addr,
 			  sizeof(sock_addr))) < 0) {
 	HTErrorSysAdd(request, ERR_FATAL, NO, "connect");
-	if (NETCLOSE(*s) < 0)
+	if (NETCLOSE(*sockfd) < 0)
 	    HTErrorSysAdd(request, ERR_FATAL, NO, "close");
 	free(p1);
-	*s = -1;
+	*sockfd = -1;
 	return -1;
     }
     free(p1);
@@ -200,7 +209,7 @@ PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
 */
 PRIVATE int HTDoAccept ARGS2(HTRequest *, request, int, sockfd)
 {
-    struct sockaddr_in soc_address;
+    SockA soc_address;				/* SockA is defined in tcp.h */
     int status;
     int cnt;
     int soc_addrlen = sizeof(soc_address);
@@ -238,6 +247,7 @@ PRIVATE int HTDoAccept ARGS2(HTRequest *, request, int, sockfd)
     HTErrorAdd(request, ERR_FATAL, NO, HTERR_TIME_OUT, NULL, 0, "HTDoAccept");
     return -1;
 }
+
 
 /* ------------------------------------------------------------------------- */
 /*			   Directory Specific Functions			     */
@@ -933,8 +943,7 @@ PRIVATE int HTFTP_send_cmd ARGS3(ftp_ctrl_info *, ctrl_info, char *, cmd,
 			      (int) strlen(command));
 	if (status < 0) {
 	    if (TRACE)
-		fprintf(stderr, "FTP......... Error sending command: %s",
-			command);
+		fprintf(stderr, "FTP......... Error sending command\n");
 	    HTInetStatus("write");
 	    free(command);
 	    return -1;
@@ -1038,7 +1047,7 @@ PRIVATE int HTFTP_close_data_con ARGS1(ftp_data_info *, data)
 		fprintf(stderr, "FTP......... Closing data socket %d\n",
 			data->socket);
 	    if ((status = NETCLOSE(data->socket)) < 0)
-		HTInetStatus("close data socket");
+		HTInetStatus("NETCLOSE");
 #ifdef REPEAT_LISTEN
 	    if (master_socket == data->socket)
 		master_socket = -1;
@@ -1300,7 +1309,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     if (session) {
 	BOOL found = NO;
 	HTList *cur = session;
-	struct sockaddr_in sock_addr;
+	SockA sock_addr;			/* SockA is defined in tcp.h */
 	char *host;
 	    
 	/* if theres an @ then use the stuff after it as a hostname */
@@ -1417,7 +1426,6 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     FREE(user.passwd);
 
     /* Now get ready for a connect */
-    if (TRACE) fprintf(stderr, "FTP......... Looking for `%s\'\n", url);
     if ((status = HTDoConnect (req, url, serv_port, &ctrl->socket,
 			       &ctrl->serv_node)) < 0)
     {
@@ -1452,7 +1460,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 */
 PRIVATE BOOL get_listen_socket ARGS1(ftp_data_info *, data)
 {
-    struct sockaddr_in local_addr;		   /* Binary network address */
+    SockA local_addr;				   /* Binary network address */
     int status = -1;
 
 #ifdef REPEAT_LISTEN
@@ -2925,10 +2933,11 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 	return -1;
     }
     url = HTAnchor_physical(request->anchor);
+    HTSimplify(url);
+    if (TRACE) fprintf(stderr, "FTP......... Looking for `%s\'\n", url);
 
     /* Initiate a (possibly already exsisting) control connection and a
        corresponding data connection */
-    HTSimplify(url);
     if((ctrl = HTFTP_init_con(request, url)) == NULL) {
 	goto endfunc;
     }

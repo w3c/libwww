@@ -710,7 +710,13 @@ PRIVATE int HTGopher_send_cmd ARGS3(HTRequest *, 	request,
 /*		Load by name					HTLoadGopher
 **		============
 **
-**	 Bug:	No decoding of strange data types as yet.
+**	Given a hypertext address, this routine loads a gopher document
+**
+** On entry,
+**      request         This is the request structure
+** On exit,
+**      returns         <0              Error has occured
+**                      HT_LOADED       OK
 **
 */
 PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
@@ -724,7 +730,6 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	return -1;
     }
     url = HTAnchor_physical(request->anchor);
-
     if (TRACE) fprintf(stderr, "HTGopher.... Looking for `%s\'\n", url);
 
     /* Initiate a new gopher structure */
@@ -769,7 +774,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 
 	/* Now generate the final command */
 	if (status != HT_LOADED) {
-	    char telneteol[3];
+	    char crlf[3];
 	    StrAllocCopy(gopher->command, selector);
 	    if (query) {
 		char *p;
@@ -780,10 +785,10 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	    }
 	    HTUnEscape(gopher->command);
 	    HTCleanTelnetString(gopher->command);  /* Prevent security holes */
-	    *telneteol = CR;			       /* Telnet termination */
-	    *(telneteol+1) = LF;
-	    *(telneteol+2) = '\0';
-	    StrAllocCat(gopher->command, telneteol);
+	    *crlf = CR;				       /* Telnet termination */
+	    *(crlf+1) = LF;
+	    *(crlf+2) = '\0';
+	    StrAllocCat(gopher->command, crlf);
 	} 
 	free(path);
     }

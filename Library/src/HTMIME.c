@@ -326,18 +326,15 @@ PUBLIC HTStream* HTMIMEConvert ARGS5(
 {
     HTStream* me;
     
-    me = (HTStream*)malloc(sizeof(*me));
+    me = (HTStream*)calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTMIME;       
 
     me->sink = 		output_stream;
     me->request = 	request;
-    me->target = 	NULL;
     me->state = 	BEGINNING_OF_LINE;
     me->format = 	WWW_PLAINTEXT;
     me->targetRep = 	output_format;
-    me->boundary = 	0;		/* Not set yet */
-    me->net_ascii = 	NO;	/* Local character set */
     return me;
 }
 

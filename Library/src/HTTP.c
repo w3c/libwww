@@ -1,6 +1,12 @@
 /*	HyperText73 Tranfer Protocol	- Client implementation		HTTP.c
 **	==========================
 **
+**	This module implments the HTTP protocol
+**
+** History:
+**    < May 24 94 ??	Unknown - but obviosly written
+**	May 24 94 HF	Made reentrent and cleaned up a bit
+**
 ** Bugs:
 **	Not implemented:
 **		Forward
@@ -8,31 +14,16 @@
 **		Error handling
 */
 
-/*	Module parameters:
-**	-----------------
-**
-**  These may be undefined and redefined by syspec.h
-*/
-
-/* Implements:
-*/
-#include "HTTP.h"
-
 #define HTTP_VERSION	"HTTP/1.0"
-#define HTTP2				/* Version is greater than 0.9 */
+#define HTTP2				      /* Version is greater than 0.9 */
+#define VERSION_LENGTH 		20    /* Number of chars in protocol version */
 
-#define INIT_LINE_SIZE		1024	/* Start with line buffer this big */
-#define LINE_EXTEND_THRESH	256	/* Minimum read size */
-#define VERSION_LENGTH 		20	/* for returned protocol version */
-
-/* Uses:
-*/
+/* Uses: */
 #include "HTParse.h"
 #include "HTUtils.h"
 #include "tcp.h"
 #include "HTTCP.h"
 #include "HTFormat.h"
-#include <ctype.h>
 #include "HTAlert.h"
 #include "HTMIME.h"
 #include "HTML.h"		/* SCW */
@@ -42,11 +33,19 @@
 #include "HTTee.h"		/* Tee off a cache stream */
 #include "HTFWriter.h"		/* Write to cache file */
 #include "HTError.h"
+#include "HTChunk.h"
+#include "HTTP.h"					       /* Implements */
+
+/* Macros and other defines */
+#define PUTBLOCK(b, l)	(*target->isa->put_block)(target, b, l)
+#define PUTS(s)		(*target->isa->put_string)(target, s)
+#define FREE_TARGET	(*target->isa->free)(target)
 
 struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */
 };
 
+/* Globals */
 extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
@@ -56,6 +55,16 @@ PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
 
 extern BOOL using_proxy;	/* are we using a proxy gateway? */
 PUBLIC char * HTProxyHeaders = NULL;	/* Headers to pass as-is */
+
+/* ------------------------------------------------------------------------- */
+/* TEMPORARY STUFF  - MOVE TO HTML file */
+
+typedef struct _http_info {
+    int                         socket;   /* Socket number for communication */
+    HTInputSocket *		isoc;
+} http_info;
+
+/* ------------------------------------------------------------------------- */
 
 PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 				     HTInputSocket *,	isoc)
@@ -125,191 +134,94 @@ PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 }
 
 
-
-/*		Load Document from HTTP Server			HTLoadHTTP()
-**		==============================
+/*                                                              HTTPCleanup
 **
-**	Given a hypertext address, this routine loads a document.
+**      This function closes the connection and frees memory.
 **
-**
-** On entry,
-**	arg	is the hypertext reference of the article to be loaded.
-**
-** On exit,
-**	returns	>=0	If no error, a good socket number
-**		<0	Error.
-**
-**	The socket must be closed by the caller after the document has been
-**	read.
-**
+**      Returns 0 on OK, else -1
 */
-PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
+PRIVATE int HTTPCleanup ARGS2(HTRequest *, request, http_info *, http)
 {
-    CONST char * arg = NULL;
-    int s;				/* Socket number for returned data */
-    int status;				/* tcp return */
-    char crlf[3];			/* A CR LF equivalent string */
-    HTStream *	target = NULL;		/* Unconverted data */
-    BOOL cache_http = YES;	   /* Enable caching of HTTP-retrieved files */
+    int status = 0;
+    if (!request) {
+	if (TRACE) fprintf(stderr, "HTTPCleanup. Bad argument!\n");
+	status = -1;
+    } else {
+	if (http->socket >= 0) {
+	    if (TRACE) fprintf(stderr, "HTTP........ Closing socket %d\n",
+			       http->socket);
+	    if ((status = NETCLOSE(http->socket)) < 0)
+		HTErrorSysAdd(request, ERR_FATAL, NO, "NETCLOSE");	    
+	}	
+    }	
+    free(http);
+    return status;
+}
 
-    CONST char* gate = 0;		/* disable this feature */
-    SockA soc_address;			/* Binary network address */
-    SockA * sin = &soc_address;
-    BOOL extensions = YES;		/* Assume good HTTP server */
 
-#ifdef OLD_CODE
-    if (HTImProxy) HTProxyBytes = 0;
-#endif
-
-    arg = HTAnchor_physical(request->anchor);
-
-    if (!arg) return -3;		/* Bad if no name sepcified	*/
-    if (!*arg) return -2;		/* Bad if name had zero length	*/
-
-/*  Set up defaults:
+/*                                                              HTTPSendRequest
+**
+**      This function composes and sends a request to the connected server
+**      specified.
+**
+**      Returns 0 on OK, else -1 but does NOT close the connection
 */
-#ifdef DECNET
-    sin->sdn_family = AF_DECnet;	    /* Family = DECnet, host order */
-    sin->sdn_objnum = DNP_OBJ;          /* Default: http object number */
-#else  /* Internet */
-    sin->sin_family = AF_INET;	    /* Family = internet, host order */
-    sin->sin_port = htons(TCP_PORT);    /* Default: http port    */
-#endif
-
-    sprintf(crlf, "%c%c", CR, LF);	/* To be corect on Mac, VM, etc */
-    
-    if (TRACE) {
-        if (gate) fprintf(stderr,
-		"HTTPAccess: Using gateway %s for %s\n", gate, arg);
-        else fprintf(stderr, "HTTPAccess: Direct access for %s\n", arg);
+PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
+				  http_info *, http, char *, url)
+{
+    int status = 0;
+    BOOL extensions = YES;			  /* Assume good HTTP server */
+    HTChunk *command = HTChunkCreate(2048);		/* The whole command */
+    if (request->method != METHOD_INVALID) {
+	HTChunkPuts(command, HTMethod_name(request->method));
+	HTChunkPutc(command, ' ');
     }
-    
-/* Get node name and optional port number:
-*/
+    else
+	HTChunkPuts(command, "GET ");
+
+    /* if we are using a proxy gateway don't copy in the first slash
+     ** of say: /gopher://a;lkdjfl;ajdf;lkj/;aldk/adflj
+     ** so that just gohper://.... is sent. */
     {
-	char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
-	int status = HTParseInet(sin, p1);  /* TBL 920622 */
-	if (status) {
-#if 0
-	    HTAddError2(request,"No such host:",p1);
-#endif
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
-		       (void*)p1, strlen(p1), "HTLoadHTTP");
-	    free(p1);
-	    return status;   /* No such host for example */
-	}
-        free(p1);
-    }
-    
-/*
-** Compose authorization information (this was moved here
-** from after the making of the connection so that the connection
-** wouldn't have to wait while prompting username and password
-** from the user).				-- AL 13.10.93
-*/
-#ifdef ACCESS_AUTH
-    HTAA_composeAuth(request);
-    if (TRACE) {
-	if (request->authorization)
-	    fprintf(stderr, "HTTP: Sending Authorization: %s\n",
-		    request->authorization);
+	char *p1 = HTParse(url, "", PARSE_PATH|PARSE_PUNCTUATION);
+	if (using_proxy)
+	    HTChunkPuts(command, p1+1);
 	else
-	    fprintf(stderr, "HTTP: Not sending authorization (yet)\n");
+	    HTChunkPuts(command, p1);
+	free(p1);
     }
-#endif /* ACCESS_AUTH */
-   
-/*	Now, let's get a socket set up from the server for the data:
-*/      
-#ifdef DECNET
-    s = socket(AF_DECnet, SOCK_STREAM, 0);
-#else
-    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-#endif
-    status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
-    if (status < 0) {
-	    if (TRACE) fprintf(stderr, 
-	      "HTTP: Unable to connect to remote host for `%s' (errno = %d).\n",
-	      arg, errno);
-#if 0
-	    HTAddError2(request,"Unable to connect to remote host:",
-			HTErrnoString());
-#endif
-	    HTErrorSysAdd(request, ERR_FATAL, NO, "connect");
-	    return HTInetStatus("connect");
-      }
-    
-    if (TRACE) fprintf(stderr, "HTTP connected, socket %d\n", s);
 
-
-/*	Compose and send command
-**	------------------------
-*/
-    {
-        char *command;			/* The whole command */
-	
-/*	Ask that node for the document,
-**	omitting the host name & anchor if not gatewayed.
-*/        
-	if (gate) { /* This is no longer used, and could be thrown away */
-	    command = malloc(4 + strlen(arg)+ 2 + 31);
-	    if (command == NULL) outofmem(__FILE__, "HTLoadHTTP");
-	    strcpy(command, "GET ");
-	    strcat(command, arg);
-	} else { /* not gatewayed */
-	    char * p1 = HTParse(arg, "", PARSE_PATH|PARSE_PUNCTUATION);
-	    command = malloc(4 + strlen(p1)+ 2 + 31);
-	    if (command == NULL) outofmem(__FILE__, "HTLoadHTTP");
-	    if (request->method != METHOD_INVALID) {
-		strcpy(command, HTMethod_name(request->method));
-		strcat(command, " ");
-	    }
-	    else {
-		strcpy(command, "GET ");
-	    }
-	    /* if we are using a proxy gateway don't copy in the first slash
-	    ** of say: /gopher://a;lkdjfl;ajdf;lkj/;aldk/adflj
-	    ** so that just gohper://.... is sent.
-	    */
-	    if (using_proxy)
-		strcat(command, p1+1);
-	    else
-		strcat(command, p1);
-	    free(p1);
-	}
 #ifdef HTTP2
-	if (extensions) {
-	    strcat(command, " ");
-	    strcat(command, HTTP_VERSION);
-	}
+    if (extensions) {
+	HTChunkPutc(command, ' ');
+	HTChunkPuts(command, HTTP_VERSION);
+    }
 #endif
+    HTChunkPutc(command, CR);			     /* CR LF, as in rfc 977 */
+    HTChunkPutc(command, LF);
     
-	strcat(command, crlf);	/* CR LF, as in rfc 977 */
-    
-	if (extensions && HTImProxy && HTProxyHeaders) {
-	    StrAllocCat(command, HTProxyHeaders);
-	}
-	else if (extensions) {
+    if (extensions && HTImProxy && HTProxyHeaders) {
+	HTChunkPuts(command, HTProxyHeaders);
+    } else if (extensions) {
 
+	/* If no conversion list, then put it up, but leave initialization
+	   to the client */
+	if (!HTConversions)
+	    HTConversions = HTList_new();
+
+	/* Run through both lists and generate `accept' lines */
+	{
 	    int i;
-	    HTAtom * present = WWW_PRESENT;
 	    char line[256];    /*@@@@ */
 	    HTList *conversions[2];
-
-	    if (!HTConversions) {
-		HTConversions = HTList_new();
-/*		HTFormatInit(HTConversions);	App may do this not us tbl940210 */
-	    }
-
 	    conversions[0] = HTConversions;
 	    conversions[1] = request->conversions;
-
 	    
 	    for (i=0; i<2; i++) {
 		HTList *cur = conversions[i];
 		HTPresentation *pres;
-
-		while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
-		    if (pres->rep_out == present) {
+		while ((pres = (HTPresentation *) HTList_nextObject(cur))) {
+		    if (pres->rep_out == WWW_PRESENT) {
 			if (pres->quality != 1.0) {
 			    sprintf(line, "Accept: %s; q=%.3f%c%c",
 				    HTAtom_name(pres->rep),
@@ -318,55 +230,183 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			    sprintf(line, "Accept: %s%c%c",
 				    HTAtom_name(pres->rep), CR, LF);
 			}
-			StrAllocCat(command, line);
+			HTChunkPuts(command, line);
 		    }
 		}
 	    }
+	}
 
+	/* Put out user-agent */
+	{
+	    char line[256];
 	    sprintf(line, "User-Agent: %s/%s  libwww/%s%c%c",
 		    HTAppName ? HTAppName : "unknown",
 		    HTAppVersion ? HTAppVersion : "0.0",
 		    HTLibraryVersion, CR, LF);
-	    StrAllocCat(command, line);
-
-#ifdef ACCESS_AUTH
-	    if (request->authorization != NULL) {
-		sprintf(line, "Authorization: %s%c%c",
-			request->authorization, CR, LF);
-		StrAllocCat(command, line);
-	    }
-#endif /* ACCESS_AUTH */
-
+	    HTChunkPuts(command, line);
 	}
 
-	StrAllocCat(command, crlf);	/* Blank line means "end" */
+	/* Put out authorization */
+	if (request->authorization != NULL) {
+	    HTChunkPuts(command, "Authorization: ");
+	    HTChunkPuts(command, request->authorization);
+	    HTChunkPutc(command, CR);
+	    HTChunkPutc(command, LF);
+	}
+    }
+    HTChunkPutc(command, CR);			   /* Blank line means "end" */
+    HTChunkPutc(command, LF);
+    HTChunkTerminate(command);
+    if (TRACE) fprintf(stderr, "HTTP Tx..... %s", command->data);
     
-	if (TRACE) fprintf(stderr, "HTTP Tx: %s\n", command);
-    
-    /*	Translate into ASCII if necessary
-    */
+    /* Translate into ASCII if necessary */
 #ifdef NOT_ASCII
-	{
-	    char * p;
-	    for(p = command; *p; p++) {
-		*p = TOASCII(*p);
-	    }
+    {
+	char * p;
+	for(p = command; *p; p++) {
+	    *p = TOASCII(*p);
 	}
+    }
 #endif
     
-	status = NETWRITE(s, command, (int)strlen(command));
-	free(command);
-	if (status<0) {
-	    if (TRACE) fprintf(stderr,
-	    	"HTTPAccess: Unable to send command.\n");
-#if 0
-	    HTAddError2(request,"Couldn't send request:",HTErrnoString());
-#endif
-	    HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
-	    return HTInetStatus("send");
+    /* Now, we are ready for sending the request */
+    if ((status = NETWRITE(http->socket, command->data, command->size)) < 0) {
+	if (TRACE) fprintf(stderr, "HTTP Tx..... Error sending command\n");
+	HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
+	if (status != HT_INTERRUPTED) {
+	    char *unescaped = NULL;
+	    StrAllocCopy(unescaped, url);
+	    HTUnEscape(unescaped);
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
+		       (void *) unescaped, (int) strlen(unescaped),
+		       "HTTPSendRequest");
+	    free(unescaped);
 	}
-    } /* compose and send command */
+    }
+    HTChunkFree(command);
+    return status;
+}
+
+
+/*                                                              HTTPGetBody
+**
+**      Put up a streamstack and read the body from the socket.
+**	In the special case of user asking for source and the message
+**	being in MIME, we force the MIME decoding to occur, as it is really
+**	HTTP decoding.  If the user really wants the HTTP headers, he
+**	can ask for them as www/mime.
+**
+**	Returns < 0 on error, else HT_LOADED
+*/
+PRIVATE int HTTPGetBody ARGS5(HTRequest *, request, http_info *, http,
+			      HTInputSocket *, isoc, HTFormat, format_in,
+			      BOOL, use_cache)
+{
+    int status = -1;
+    HTStream  *target = NULL;				 /* Unconverted data */
+    if (format_in == WWW_MIME && request->output_format == WWW_SOURCE) {
+	target = HTMIMEConvert(request, NULL, format_in,
+			       request->output_format,
+			       request->output_stream);
+    } else
+	target = HTStreamStack(format_in, request, NO);
+    if (target) {
+	
+	/* @@ Bug: The decision of whether or not to cache should also
+	   be made contingent on a IP address match or non match. */
+	
+	if (HTCacheDir && use_cache) {
+	    target = HTTee(target,
+			   HTCacheWriter(request, NULL, format_in,
+					 request->output_format,
+					 request->output_stream));
+	}
+	
+	/* Push the data down the stream remembering the end of the
+	   first buffer we just read */
+	if (format_in == WWW_HTML)
+	    target = HTNetToText(target);/* Pipe through CR stripper */
+	
+	PUTBLOCK(isoc->input_pointer,
+		 isoc->input_limit-isoc->input_pointer);
+	HTCopy(http->socket, target);		     /* USE RETURN AS STATUS */
+	FREE_TARGET;
+	status = HT_LOADED;
+    }
+    return status;
+}
+
+
+/*		Load Document from HTTP Server			HTLoadHTTP()
+**		==============================
+**
+**	Given a hypertext address, this routine loads a document.
+**
+** On entry,
+**      request		This is the request structure
+** On exit,
+**	returns		<0		Error has occured
+**			HT_LOADED	OK
+*/
+PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
+{
+    char *url;
+    int status = -1;					       /* tcp return */
+    http_info *http;			    /* Specific protocol information */
+
+    if (!request || !request->anchor) {
+        if (TRACE) fprintf(stderr, "HTLoadHTTP.. Bad argument\n");
+        return -1;
+    }
+    url = HTAnchor_physical(request->anchor);
+    HTSimplify(url);
+    if (TRACE) fprintf(stderr, "HTTP........ Looking for `%s\'\n", url);
+
+    /* Initiate a new http structure */
+    if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
+        outofmem(__FILE__, "HTLoadHTTP");
+    http->socket = -1;
     
+/*
+** Compose authorization information (this was moved here
+** from after the making of the connection so that the connection
+** wouldn't have to wait while prompting username and password
+** from the user).				-- AL 13.10.93
+*/
+    HTAA_composeAuth(request);
+    if (TRACE) {
+	if (request->authorization)
+	    fprintf(stderr, "HTTP........ Sending Authorization: %s\n",
+		    request->authorization);
+	else
+	    fprintf(stderr, "HTTP........ Not sending authorization (yet)\n");
+    }
+
+    /* Now let's set up a connection */
+    if ((status = HTDoConnect(request, url, TCP_PORT,
+			      &http->socket, NULL)) < 0) {
+        if (TRACE)
+            fprintf(stderr, "HTTP........ Connection not established!\n");
+	if (status != HT_INTERRUPTED) {
+	    char *unescaped = NULL;
+	    StrAllocCopy(unescaped, url);
+	    HTUnEscape(unescaped);
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
+		       (void *) unescaped, (int) strlen(unescaped),
+		       "HTLoadHTTP");
+	    free(unescaped);
+	}
+	HTTPCleanup(request, http);
+	return status;
+    }
+    if (TRACE) fprintf(stderr, "HTTP........ Connected, socket %d\n",
+		       http->socket);
+
+    /* Compose the request and send it over the net */
+    if ((status = HTTPSendRequest(request, http, url)) < 0) {
+	HTTPCleanup(request, http);
+	return status;
+    }    
 
 /*	Read the response
 **	-----------------
@@ -399,15 +439,12 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
 	    while (remain > 0  &&
 		   (buf = HTInputSocket_getBlock(request->isoc, &i))) {
-		int status = NETWRITE(s, buf, i);
+		int status = NETWRITE(http->socket, buf, i);
 		if (status < 0) {
 		    CTRACE(stderr, "HTTPAccess.. Unable to forward body\n");
-#if 0
-		    HTAddError2(request,"Couldn't forward message body:",
-				HTErrnoString());
-#endif
-		    HTErrorSysAdd(request,ERR_FATAL,NO,"NETWRITE");
-		    return HTInetStatus("send");
+		    HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
+		    HTTPCleanup(request, http);
+		    return status;
 		}
 		remain -= i;
 		i = remain;
@@ -417,16 +454,15 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	/*
 	** Load results directly to client
 	*/
-	HTCopy(s, request->output_stream);
+	HTCopy(http->socket, request->output_stream);
 	(*request->output_stream->isa->free)(request->output_stream);
-
+	HTTPCleanup(request, http);
 	return HT_LOADED;
-    }
-    else {	/* read response */
+    } else {						    /* read response */
 
 	HTFormat format_in;		/* Format arriving in the message */
-	HTInputSocket *isoc = HTInputSocket_new(s);
-	char * status_line = HTInputSocket_getStatusLine(isoc);
+	HTInputSocket *isoc = HTInputSocket_new(http->socket);
+	char *status_line = HTInputSocket_getStatusLine(isoc);
 
 /* Kludge to trap binary responses from illegal HTTP0.9 servers.
 ** First time we have enough, look at the stub in ASCII
@@ -440,20 +476,15 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 **	An HTTP 0.9 server returning a binary document with
 **	characters < 128 will be read as ASCII.
 */
-
 	/* If HTTP 0 response, then DO NOT CACHE (Henrik 14/02-94) */
 	if (!status_line) {	
 	    if (HTInputSocket_seemsBinary(isoc)) {
 		format_in = HTAtom_for("www/unknown");
-	    }
-	    else {
+	    } else {
 		format_in = WWW_HTML;
 	    }
-	    cache_http = NO;	/* Do not cache */
-	    goto copy;
-	} /* end kludge */
-
-	if (status_line) {	/* Decode full HTTP response */
+	    status = HTTPGetBody(request, http, isoc, format_in, NO);
+	} else {
 	    /*
 	    ** We now have a terminated server status line, and we have
 	    ** checked that it is most probably a legal one.  Parse it.
@@ -462,41 +493,89 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    int server_status;
 
 	    if (TRACE)
-		fprintf(stderr, "HTTP Status Line: Rx: %.70s\n", status_line);
-    
-	    sscanf(status_line, "%20s%d", server_version, &server_status);
-
+		fprintf(stderr, "HTTP Rx..... `%.70s\'\n", status_line);
+	    {
+		char formatstr[20];
+		sprintf(formatstr, "%%%ds%%d", VERSION_LENGTH);
+		if (sscanf(status_line, formatstr, server_version,
+			   &server_status) < 2) {
+		    int length = (int) strlen(status_line);
+		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+			       (void *) status_line, length < 50 ? length : 50,
+			       "HTLoadHTTP");
+		    HTInputSocket_free(isoc);	    
+		    free(http);
+		    free(status_line);
+		    return -1;				     /* Bad response */
+		}
+		*(server_version+VERSION_LENGTH) = '\0';
+	    }
 	    format_in = HTAtom_for("www/mime");
     
-	    switch (server_status / 100) {
+	    /* Big switch for all response codes */
+	    switch (server_status/100) {
 
-	      default:		/* bad number */
-		HTAlert("Unknown status reply from server!");
+	      case 2:		/* Good: Got MIME object */
+		status = HTTPGetBody(request, http, isoc, format_in, YES);
 		break;
 		    
 	      case 3:		/* Various forms of redirection */
-		HTAlert(
-	    "Redirection response from server is not handled by this client");
+		switch (server_status) {
+		  case 301:					    /* Moved */
+		  case 302:					    /* Found */
+		  case 303:					   /* Method */
+		    HTAlert("This client doesn't support automatic redirection");
+			    status = -1;
+		    break;
+		  case 304:			       /* Not modified Since */
+		    {
+			char *unescaped = NULL;
+			StrAllocCopy(unescaped, url);
+			HTUnEscape(unescaped);
+			HTErrorAdd(request, ERR_WARNING, NO,
+				   HTERR_NOT_MODIFIED, (void *) unescaped,
+				   (int) strlen(unescaped), "HTLoadHTTP");
+			free(unescaped);
+		    }
+		    status = HT_LOADED;
+		    break;
+
+		  default:
+		    {
+			int length = (int) strlen(status_line);
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+				   (void *) status_line, length < 50 ?
+				   length : 50, "HTLoadHTTP");
+		    }
+		    status = -1;
+		    break;
+		}
 		break;
 		    
 	      case 4:		/* Access Authorization problem */
-#ifdef ACCESS_AUTH
 		switch (server_status) {
 		  case 401:
 		    parse_401_headers(request, isoc);
 
 		    if (TRACE) fprintf(stderr, "%s %d %s\n",
-				       "HTTP: close socket", s,
+				       "HTTP: close socket", http->socket,
 				       "to retry with Access Authorization");
 		    if (HTAA_retryWithAuth(request, HTLoadHTTP)) {
 			status = HT_LOADED;/* @@ THIS ONLY WORKS ON LINEMODE */
-			goto clean_up;
+			break;
 		    }
 		    /* else falltrough */
 		  default:
 		    {
-			char *p1 = HTParse(gate ? gate : arg, "",
-					   PARSE_HOST);
+			char *unescaped = NULL;
+			StrAllocCopy(unescaped, url);
+			HTUnEscape(unescaped);
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+				   (void *) unescaped,
+				   (int) strlen(unescaped), "HTLoadHTTP");
+			free(unescaped);
+#ifdef OLD_CODE
+			char *p1 = HTParse(url, "", PARSE_HOST);
 			char * message;
 
 			if (!(message = (char*)malloc(strlen(status_line) +
@@ -511,19 +590,24 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			status = HTLoadError(request, server_status, message);
 			free(message);
 			free(p1);
-			goto clean_up;
+#endif /* OLD_CODE */
 		    }
-		} /* switch */
-		goto clean_up;
+		    status = -1;
+		    break;
+		}
 		break;
-#else
-		/* case 4 without Access Authorization falls through */
-		/* to case 5 (previously "I think I goofed").  -- AL */
-#endif /* ACCESS_AUTH */
 
 	      case 5:		/* I think you goofed */
 		{
-		    char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
+		    char *unescaped = NULL;
+		    StrAllocCopy(unescaped, url);
+		    HTUnEscape(unescaped);
+		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
+			       (void *) unescaped, (int) strlen(unescaped),
+			       "HTLoadHTTP");
+		    free(unescaped);
+#ifdef OLD_CODE
+		    char *p1 = HTParse(url, "", PARSE_HOST);
 		    char * message = (char*)malloc(strlen(status_line) + 
 						   strlen(p1) + 100);
 		    if (!message) outofmem(__FILE__, "HTTP 5xx status");
@@ -532,88 +616,35 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    status = HTLoadError(request, server_status, message);
 		    free(message);
 		    free(p1);
-		    goto clean_up;
+#endif
 		}
+		status = -1;
 		break;
-		    
-	      case 2:		/* Good: Got MIME object */
+
+	      default:					       /* bad number */
+		{
+		    int length = (int) strlen(status_line);
+		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+			       (void *) status_line, length < 50 ? length : 50,
+			       "HTLoadHTTP");
+		}
+		status = -1;
 		break;
-    
-	    } /* switch on response code */
-	    
-	} /* Full HTTP reply */
-	    
-    
-/*	Set up the stream stack to handle the body of the message
-**
-**	In the special case of user asking for source and the message
-**	being in MIME, we force the MIME decoding to occur, as it is really
-**	HTTP decoding.  If the user really wants the HTTP headers, he
-**	can ask for them as www/mime.
-*/
-
-copy:
-
-	if ((format_in == WWW_MIME)
-	    && (request->output_format == WWW_SOURCE)) {
-	    target = HTMIMEConvert(request, NULL, format_in,
-	    request->output_format, request->output_stream);
-	} else {
-	    target = HTStreamStack(format_in, request, NO);
-	}
-	
-	if (!target) {
-	    char buffer[1024];	/* @@@@@@@@ */
-	    sprintf(buffer, "Sorry, no known way of converting %s to %s.",
-		    HTAtom_name(format_in), HTAtom_name(request->output_format));
-	    fprintf(stderr, "HTTP: %s", buffer);
-	    status = HTLoadError(request, 501, buffer);
-	    goto clean_up;
-	}
-    
-        /* @@ Bug: The decision of whether or not to cache should also be
-	** made contingent on a IP address match or non match.
-	*/
-
-        if (HTCacheDir && cache_http) {
-	    target = HTTee(target, HTCacheWriter(request, NULL, format_in,
-						 request->output_format,
-						 request->output_stream));
-	}
-	
-/*	Push the data down the stream
-**	We have to remember the end of the first buffer we just read
-*/
-	if (format_in == WWW_HTML)  {  
-	    target = HTNetToText(target);	/* Pipe through CR stripper */
+	    }
+	    FREE(status_line);			 /* Leak fix Henrik 18/02-94 */
 	}
 
-	(*target->isa->put_block)(target,
-				  isoc->input_pointer,
-				  isoc->input_limit - isoc->input_pointer);
-
-	HTCopy(s, target);
-	    
-	(*target->isa->free)(target);
-	status = HT_LOADED;
-    
-/*	Clean up
-*/
-	
-clean_up: 
-	if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
-	(void) NETCLOSE(s);
-	if (isoc)
-	    HTInputSocket_free(isoc);	    
-	if (status_line)
-	    free(status_line);		/* Leak fix Henrik 18/02-94 */
-	return status;			/* Good return  */
-    
-    } /* read response */
-} /* load HTTP */
+	/* Close the socket and free memory */
+	HTInputSocket_free(isoc);	    
+	HTTPCleanup(request, http);
+	return status;			/* Good return  */    
+    }
+}
 
 /*	Protocol descriptor
 */
 
 GLOBALDEF PUBLIC HTProtocol HTTP = { "http", HTLoadHTTP, 0, 0 };
+
+
 

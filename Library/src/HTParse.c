@@ -391,17 +391,6 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 	    *tokptr++ = strptr;
 	}
 
-#if 0
-	{
-	    char **test = tokstart;
-	    fprintf(stderr, "--- start ---\n");
-	    fprintf(stderr, "Filename:\t`%s\'\n", filename);
-	    while (*test)
-		fprintf(stderr, "Token:\t\t`%s\'\n", *test++);
-	    fprintf(stderr, "Segments:\t%d\n", segcnt);
-	}
-#endif
-
 	/* Scan backwards for '.' and '..' */
 	tokptr--;
 	while(tokptr >= tokstart) {
@@ -435,16 +424,6 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 
 	if (slashtail == YES && *(urlptr+(int)strlen(urlptr)-1) != '/')
 	    strcat(urlptr, "/");
-#if 0
-	{
-	    char **test = tokstart;
-	    while (*test)
-		fprintf(stderr, "Token:\t\t`%s\'\n", *test++);
-	    fprintf(stderr, "Segments:\t%d\n", segcnt);
-	    fprintf(stderr, "Filename:\t`%s\'\n", filename);
-	    fprintf(stderr, "---  end  ---\n\n");
-	}
-#endif
 	free(url);
 	free(tokstart);
     }

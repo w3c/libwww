@@ -943,28 +943,34 @@ PUBLIC int HTLoadError ARGS3(
 **       OVERRIDDEN BY THE CLIENT OR SERVER
 **								HTErrorMsg
 **
-**	Creates an error message on standard output containing the 
-**	error_stack messages. The HTErr 
-**	Only if the global variable HTErrorInfoPath != NULL, an anchor
-**	will be created to an message help file. It is garanteed that
-**	NO STREAM has been put up or taken down in the library at this point.
+**	Default function that creates an error message using HTAlert() to
+**	put out the contents of the error_stack messages. Furthermore, the
+**	error_info structure contains a name of a help file that might be put
+**	up as a link. This file can then be multi-linguistic.
+**
 **	This function might be overwritten by a smart server or client.
 */
 PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 {
     HTList *cur = request->error_stack;
     BOOL highest = YES;
+    HTChunk *chunk;
     HTErrorInfo *pres;
     if (!request) {
 	if (TRACE) fprintf(stderr, "HTErrorMsg.. Bad argument!\n");
 	return;
     }
+
+    /* This check is only necessary if the error message is put down the
+       stream, because we have to know if a stream has been put up and/or
+       taken down again. Here it is only put as an example */
     if (request->error_block) {
 	if (TRACE) fprintf(stderr, "HTErrorMsg.. Errors are not printed as no stream is available.\n");
 	return;
     }
 
     /* Output messages */
+    chunk = HTChunkCreate(128);
     while ((pres = (HTErrorInfo *) HTList_nextObject(cur))) {
 
 	/* Check if we are going to show the message */
@@ -978,53 +984,53 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 			    "HTError..... Generating error message.\n");
 		
 		/* Output title */
-		fprintf(stderr, "\nError Message:\n");
-
 		if (pres->severity == ERR_WARNING)
-		    fprintf(stderr, "Warning ");
+		    HTChunkPuts(chunk, "Warning ");
 		else if (pres->severity == ERR_NON_FATAL)
-		    fprintf(stderr, "Non Fatal Error ");
+		    HTChunkPuts(chunk, "Non Fatal Error ");
 		else if (pres->severity == ERR_FATAL)
-		    fprintf(stderr, "Fatal Error ");
+		    HTChunkPuts(chunk, "Fatal Error ");
 		else {
-		    fprintf(stderr, "Unknown Classification of Error...\n");
+		    if (TRACE)
+			fprintf(stderr, "HTError..... Unknown Classification of Error (%d)...\n", pres->severity);
+		    HTChunkFree(chunk);
 		    return;
 		}
 
 		/* Only output error code if it is a real HTTP code */
-		if (pres->element < HTERR_HTTP_CODES_END)
-		    fprintf(stderr, "%d  ", error_info[pres->element].code);
+		if (pres->element < HTERR_HTTP_CODES_END) {
+		    char codestr[10];
+		    sprintf(codestr, "%d ", error_info[pres->element].code);
+		    HTChunkPuts(chunk, codestr);
+		}
 		highest = NO;
 	    } else
-		fprintf(stderr, "\nReason: ");
+		HTChunkPuts(chunk, "\nReason: ");
 
 	    /* Output error message */
-	    if (pres->element != HTERR_SYSTEM)
-		fprintf(stderr, "%s ", error_info[pres->element].msg);
+	    if (pres->element != HTERR_SYSTEM) {
+		HTChunkPuts(chunk, error_info[pres->element].msg);
+		HTChunkPutc(chunk, ' ');
+	    }
 
 	    /* Output parameters */
 	    if (pres->par && HTErrorShowMask & HT_ERR_SHOW_PARS) {
 		int cnt;
-		char *tstr;
-		char *nptr;
-		if ((tstr = (char *) malloc(pres->par_length+1)) == NULL)
-		    outofmem(__FILE__, "HTErrorMsg");
-		nptr = tstr;
+		char ch;
 		for (cnt=0; cnt<pres->par_length; cnt++) {
-		    if (*((char *)(pres->par)+cnt) < 0x20 ||
-			*((char *)(pres->par)+cnt) >= 0x7F)
-			*nptr++ = '#';
+		    ch = *((char *)(pres->par)+cnt);
+		    if (ch < 0x20 || ch >= 0x7F)
+			HTChunkPutc(chunk, '#'); /* Can't print real content */
 		    else
-			*nptr++ = *((char *)(pres->par)+cnt);
+			HTChunkPutc(chunk, ch);
 		}
-		*nptr = '\0';
-		fprintf(stderr, "%s", tstr);
-		free(tstr);
 	    }
 
 	    /* Output location */
 	    if (pres->where && HTErrorShowMask & HT_ERR_SHOW_LOCATION) {
-		fprintf(stderr, "This occured in %s\n", pres->where);
+		HTChunkPuts(chunk, "This occured in ");
+		HTChunkPuts(chunk, pres->where);
+		HTChunkPutc(chunk, '\n');
 	    }
 	    
 	    /* If we only are going to show the higest entry */
@@ -1032,7 +1038,10 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		break;
 	}
     }
-    fprintf(stderr, "\n");
+    HTChunkPutc(chunk,  '\n');
+    HTChunkTerminate(chunk);
+    HTAlert(chunk->data);
+    HTChunkFree(chunk);
     return;
 }
 

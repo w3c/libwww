@@ -41,8 +41,9 @@
 #include "HTML.h"
 #include "HTChunk.h"
 #include "HTIcons.h"
-#include "HTDirBrw.h"					 /* Implemented here */
 #include "HTDescript.h"
+#include "HTError.h"
+#include "HTDirBrw.h"					 /* Implemented here */
 
 
 #ifdef Mips
@@ -53,11 +54,13 @@ PRIVATE char * months[12] = {
 
 
 /* Macros and other defines */
+#ifdef OLD_CODE
 #ifdef USE_DIRENT			       /* Set this for Sys V systems */
 #define STRUCT_DIRENT struct dirent
 #else
 #define STRUCT_DIRENT struct direct
 #endif /* USE_DIRENT */
+#endif /* OLD_CODE */
 
 #define PUTC(c) (*target->isa->put_character)(target, c)
 #define PUTS(s) (*target->isa->put_string)(target, s)
@@ -754,7 +757,9 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	fprintf(stderr,"HTBrowse.... Browsing `%s\'\n", directory);
         
     if (HTDirAccess == HT_DIR_FORBID)
-	return HTLoadError(req, 403, "Directory browsing is not allowed.");
+	return HTErrorAdd(req, ERR_FATAL, NO, HTERR_FORBIDDEN,
+			  (void *) directory, (int) strlen(directory),
+			  "HTBrowseDirectory");
     
     /* Initialize path name for stat() */
     StrAllocCopy(pathname, directory);
@@ -792,17 +797,14 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	        "HTBrowse.... Can't stat() file: %s (errno: %d)\n",
 			       pathname, errno);
 	    free(pathname);
-	    return HTLoadError(req, 403,
-	        "Selective access is not enabled for this directory");
+	    return HTErrorAdd(req, ERR_FATAL, NO, HTERR_FORBIDDEN,
+			      (void *) directory, (int) strlen(directory),
+			      "HTBrowseDirectory");
 	}
     }
 
-    if ((dp = opendir(directory)) == NULL) {
-	if (TRACE) fprintf(stderr,
-	    "HTBrowse.... Can't open directory: %s. (errno: %d)\n",
-			   directory, errno);
-	return HTLoadError(req, 403, "This directory is not readable.");
-    }
+    if ((dp = opendir(directory)) == NULL)
+	return HTErrorSysAdd(req,  ERR_FATAL, NO, "opendir");
 
     if (HTDirDescriptions)
 	descriptions = HTReadDescriptions(directory);

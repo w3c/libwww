@@ -16,7 +16,6 @@
 #include "HTFormat.h"
 #include "HTAlert.h"
 #include "HTList.h"
-#include "HTML.h"	/* HTLoadError() */
 
 /*		Stream Object
 **		------------
@@ -140,12 +139,15 @@ PRIVATE BOOL header_and_flush ARGS1(HTStream *, me)
 
     me->output_stream = HTStreamStack(me->req->content_type, me->req, NO);
     if (!me->output_stream) {
+#ifdef OLD_CODE
+	/* Error message now moved to HTStreamStack(), Henrik May 22 94 */
 	char buffer[1024];
 	sprintf(buffer, "Guesser: Sorry, can't convert from %s to %s.",
 		HTAtom_name(me->req->content_type),
 		HTAtom_name(me->req->output_format));
 	CTRACE(stderr, "HTFormat.... %s\n", buffer);
         HTLoadError(me->req, 501, buffer);
+#endif /* OLD_CODE */
 	me->discard = YES;	/* Turning into a black hole */
 	return NO;
     }

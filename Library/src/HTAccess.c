@@ -94,6 +94,32 @@ PUBLIC HTRequest * HTRequest_new NOARGS
 }
 
 
+/*	Clear  a request structure
+**	---------------------------
+**	This function clears the reguest structure so that only the
+**	conversions remain. Everything else is as if it was created from
+**	scratch.
+*/
+PUBLIC void HTRequest_clear ARGS1(HTRequest *, req)
+{
+    HTList *conversions;
+    if (!req) {
+	if (TRACE)
+	    fprintf(stderr, "Clear....... request: Bad argument!\n");
+	return;
+    }
+    conversions = req->conversions;		     /* Save the conversions */
+    HTErrorFree(req);
+    HTAACleanup(req);
+    FREE(req->from);
+    memset(req, '\0', sizeof(HTRequest));
+
+    /* Now initialize as from scratch but with the old list of conversions */
+    req->conversions = conversions;
+    req->output_format = WWW_PRESENT;	    /* default it to present to user */
+}
+
+
 /*	Delete a request structure
 **	--------------------------
 */
@@ -490,8 +516,21 @@ PUBLIC int HTLoad ARGS1(HTRequest *, request)
 	request->method = METHOD_GET;
     status = get_physical(request);
     if (status == HT_FORBIDDEN) {
+#ifdef OLD_CODE
         return HTLoadError(request, 500,
-			   "Access forbidden by rule");
+                           "Access forbidden by rule");
+#endif /* OLD_CODE */
+	char *url = HTAnchor_address((HTAnchor *) request->anchor);
+	if (url) {
+	    HTUnEscape(url);
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		       (void *) url, (int) strlen(url), "HTLoad");
+	    free(url);
+	} else {
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		       NULL, 0, "HTLoad");
+	}
+	return -1;
     }
     if (status < 0) return status;	/* Can't resolve or forbidden */
 
@@ -513,8 +552,21 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
     request->method = METHOD_PUT;
     status = get_physical(request);
     if (status == HT_FORBIDDEN) {
+#ifdef OLD_CODE
         HTLoadError(request, 500,
 		    "Access forbidden by rule");
+	return NULL;	/* should return error status? */
+#endif /* OLD_CODE */
+	char *url = HTAnchor_address((HTAnchor *) request->anchor);
+	if (url) {
+	    HTUnEscape(url);
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		       (void *) url, (int) strlen(url), "HTLoad");
+	    free(url);
+	} else {
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		       NULL, 0, "HTLoad");
+	}
 	return NULL;	/* should return error status? */
     }
     if (status < 0) return NULL; /* @@ error. Can't resolve or forbidden */
@@ -557,8 +609,8 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     HText *	text;
     char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
     
-    if (TRACE) fprintf (stderr,
-      "HTAccess: loading document %s\n", full_address);
+    if (TRACE) fprintf (stderr, "HTAccess.... Loading document %s\n",
+			full_address);
 
     request->using_cache = NULL;
     
@@ -659,10 +711,10 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
 	/* This is done in the specific load procedures... Henrik 07/03-94 */
-#if 0
+#ifdef OLD_CODE
 	if (request->old_error_stack)
 	    HTLoadError(request, 500, "Unable to access document.");
-#endif
+#endif /* OLD_CODE */
 	if (request->error_stack)
 	    HTErrorMsg(request);
 	free(full_address);

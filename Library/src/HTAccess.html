@@ -188,10 +188,11 @@ is asking for user confusion.
 NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
 of things about it need to be passed
 along.  These are all put into a
-HTRequest structure.  Note there
-is also a <A
-NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
-.
+HTRequest structure. <P>
+
+<NOTE>Note 1:</NOTE> There is also a <A NAME="z4" HREF="HTFormat.html#z17">global list of converters</A> <P>
+<NOTE>Note 2:</NOTE> It is <B>NOT</B> safe to reuse a request structure for more than one request. It should be freed and reallocated or cleared, see <A HREF="#z100">functions to manipulate HTRequest Structure</A>
+
 <PRE>struct _HTRequest {
 
 </PRE>The elements of the request structure
@@ -260,8 +261,7 @@ by the protocol and parsing modules.
 Valid thoughout the access.
 <PRE>	HTChildAnchor *	childAnchor;	/* For element within the object  */
 
-</PRE><A
-NAME="z6">T</A> he anchor for the sub object if
+</PRE>The anchor for the sub object if
 any.  The object builder should ensure
 that htis is selected, highlighted,
 etc when the object is loaded. NOTE:
@@ -299,26 +299,34 @@ hit
 			retry_callback;	/* Called when password entered	  */
 };
 
-</PRE>Just to make things easier especially
-for clients, here is a function to
-return a new blank request:
-<H2>Create blank request</H2>This request has defaults in -- in
+</PRE>
+
+<H2><A NAME="z100">Functions to Manipulate a HTRequest Structure</A></H2>
+
+Just to make things easier especially for clients, here are some functions to
+manipulate the request structure:
+
+<H3>Create blank request</H3>This request has defaults in -- in
 most cases it will need some information
 added before being passed to HTAccess,
 but it will work as is for a simple
 request.
 <PRE>
 PUBLIC HTRequest * HTRequest_new NOPARAMS;
-
-
 </PRE>
-<H2>Delete request structure</H2>Frees also conversion list hanging
+
+<H3>Delete request structure</H3>Frees also conversion list hanging
 from req->conversions.
 <PRE>
 PUBLIC void HTRequest_delete PARAMS((HTRequest * req));
-
-
 </PRE>
+
+<H3>Clear a request structure</H3>
+Clears a request structure so that it can be reused. The only thing that differs from using free/new is that the list of conversions is kept.
+<PRE>
+extern void HTRequest_clear PARAMS((HTRequest * req));
+</PRE>
+
 <H2>Flags which may be set to control
 this module</H2>
 <PRE>

@@ -853,15 +853,15 @@ PRIVATE void read_group ARGS3(
 #endif	/* NOT OVERLAP */
 
 	    if (status == 221) {	/* Head follows - parse it:*/
-
+		int ch;
 		p = line;				/* Write pointer */
 		done = NO;
 		while(!done){
-		    char ch = *p++ = NEXT_CHAR;
-		    if (ch==(char)EOF) {
+		    if ((ch = HTInputSocket_getCharacter(isoc)) < 0) {
 			abort_socket();	/* End of file, close socket */
 			return;		/* End of file on response */
 		    }
+		    *p++ = (unsigned char) ch;
 		    if ((ch == LF)
 			|| (p == &line[LINE_LENGTH]) ) {
 		    
