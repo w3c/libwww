@@ -25,6 +25,8 @@
 #include "WWWXML.h"
 #include "HTRDF.h"
 
+static const char * FILE_SCHEME = "file://";
+
 struct _HTStream {
     const HTStreamClass *	isa;
     int 	 		state;
@@ -357,6 +359,7 @@ PRIVATE void XML_startElement (void * userData,
     HTAssocList * namespaces = HTAssocList_new();
     HTAssocList * newAL = HTAssocList_new();
     int i = 0;
+
     /**
      * The following loop tries to identify special xmlns prefix
      * attributes and update the namespace stack accordingly.
@@ -2512,3 +2515,129 @@ PUBLIC HTStream * HTRDFToTriples (HTRequest *		request,
     return HTXML_new(request, param, input_format, output_format, me);
 }
 
+PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_triple_callback)
+{
+    char buff[512]; /* the file input buffer */
+    FILE *fp;
+    XML_Parser xmlparser;
+    HTRDF *rdfparser;
+    HTStream * stream = NULL;
+    char *uri;
+    BOOL free_uri = YES;
+
+    /* Sanity check */
+    if (!file_name)
+        return "RDFParseFile: file_name is NULL";
+
+    /* If the file does not exist, return now */
+    fp = fopen (file_name, "r");
+    if (!fp)  /* annotation index file doesn't exist */
+        return "RDFParseFile: file open failed";
+
+    /* We need an XML parser */
+#ifdef USE_NS
+    xmlparser = XML_ParserCreateNS (NULL, ':');
+#else
+    xmlparser = XML_ParserCreate (NULL);
+#endif /* USE_NS */
+
+    if (!xmlparser) {
+        fclose (fp);
+        return "RDFParseFile: Could not create an XML parser";
+    }
+
+    /* We need also need RDF parser to create the triples */
+    rdfparser = HTRDF_new();
+    if (!rdfparser) {
+      fclose (fp);
+      XML_ParserFree(xmlparser);
+      return "RDFParseFile: Could not allocate memory for RDF parser";
+    }
+
+    /* Must construct a URI from file_name for the parser */
+    if (strncmp (file_name, FILE_SCHEME, 7)) {
+        uri = HT_MALLOC (strlen(FILE_SCHEME) + strlen(file_name) + 1);
+        if (!uri) {
+            fclose (fp);
+            XML_ParserFree(xmlparser);
+            HTRDF_delete(rdfparser);
+            return "RDFParseFile: memory allocation error";
+        }
+      (void) strcpy (uri, FILE_SCHEME);
+      (void) strcat (uri, file_name);
+      free_uri = YES;
+    }
+
+    HTRDF_setSource(rdfparser, uri);
+    HTRDF_createBags(rdfparser, NO); 
+
+    if (new_triple_callback)
+        HTRDF_registerNewTripleCallback(rdfparser, new_triple_callback, NULL);
+    else
+        HTRDF_registerNewTripleCallback(rdfparser, triple_newInstance, NULL);
+
+    rdf_setHandlers(xmlparser);
+    XML_SetUserData(xmlparser, rdfparser);
+
+    /* Create a stream to be used to process the triple output */
+    if ((stream = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL) {
+        if (free_uri) HT_FREE(uri);
+        fclose (fp);
+        XML_ParserFree(xmlparser);
+        HTRDF_delete(rdfparser);
+        return "RDFParseFile: Could not allocate memory for HTStream";
+    }
+    stream->isa = &HTRDFTriplesClass;
+    stream->state = HT_OK;
+    stream->request = NULL;    /* Don't have a request */
+    stream->target = NULL;     /* Don't have another stream */
+    stream->rdfparser = rdfparser;
+
+    /* 
+     * The parsing occurs on one read buffer at a time instead of 
+     * reading everything into memory and then parsing
+     */
+    for (;;) {
+        int done;
+        int buff_len;
+        fgets(buff, sizeof(buff), fp);
+        if (ferror(fp)) {
+            if (free_uri) HT_FREE(uri);
+            fclose (fp);
+            XML_ParserFree(xmlparser);
+            HTRDF_delete(rdfparser);
+            HT_FREE(stream);
+            return "RDFParseFile: error reading file";
+        }
+        done = feof(fp);
+        if (done)
+            buff_len = 0;
+        else
+            buff_len = strlen (buff);
+        if (! XML_Parse(xmlparser, buff, buff_len, done)) {
+            fprintf (stderr, "Parse error at line %d:\n%s\n",
+                     XML_GetCurrentLineNumber(xmlparser),
+                     XML_ErrorString(XML_GetErrorCode(xmlparser)));
+            if (free_uri) HT_FREE(uri);
+            fclose(fp);
+            XML_ParserFree(xmlparser);
+            HTRDF_delete(rdfparser);
+            HT_FREE(stream);
+            return "RDFParseFile: parse error";
+        }
+        if (done)
+            break;
+    }
+
+    /* The file has been parsed, generate the triples */
+    generate_triples(stream);
+
+    /* Cleanup */
+    if (free_uri) HT_FREE(uri);
+    fclose (fp);
+    XML_ParserFree(xmlparser);
+    HTRDF_delete(rdfparser);
+    HT_FREE(stream);
+
+    return NULL;
+}
