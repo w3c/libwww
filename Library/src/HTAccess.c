@@ -154,7 +154,7 @@ PUBLIC BOOL HTLoadToFile (const char * url, HTRequest * request,
 
 	/* If replace then open the file */
 	if ((fp = fopen(filename, "wb")) == NULL) {
-	    HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE, 
+	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_FILE, 
 			       (char *) filename, strlen(filename),
 			       "HTLoadToFile"); 
 	    return NO;
