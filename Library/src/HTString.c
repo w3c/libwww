@@ -187,7 +187,7 @@ PUBLIC int HTTrace(const char * fmt, ...)
     va_list pArgs;
     va_start(pArgs, fmt);
     if (PHTTraceCallback)
-	(*PHTTraceCallback)(fmt, pArgs);
+	return (*PHTTraceCallback)(fmt, pArgs);
 #ifdef WWW_WIN_WINDOWS
     return (0);
 #else
