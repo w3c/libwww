@@ -39,7 +39,7 @@
 
 #ifdef WWW_WIN_ASYNC
 #define TIMEOUT	1 /* WM_TIMER id */
-PRIVATE HWND HTsocketWin;
+PRIVATE HWND HTSocketWin;
 PRIVATE unsigned long HTwinMsg;
 #endif
 
@@ -152,7 +152,7 @@ PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 PUBLIC BOOL HTEventrg_winHandle (HTRequest * request)
 {
     if (request) {
-	request->hwnd = HTsocketWin;
+	request->hwnd = HTSocketWin;
 	request->winMsg = HTwinMsg;
 	return YES;
     }
@@ -161,7 +161,7 @@ PUBLIC BOOL HTEventrg_winHandle (HTRequest * request)
 
 PUBLIC BOOL HTEventrg_setWinHandle (HWND window, unsigned long message)
 {
-    HTsocketWin = window;
+    HTSocketWin = window;
     HTwinMsg = message;
     return YES;
 }
@@ -170,7 +170,7 @@ PUBLIC HWND HTEventrg_getWinHandle (unsigned long * pMessage)
 {
     if (pMessage)
         *pMessage = HTwinMsg;
-    return (HTsocketWin);
+    return (HTSocketWin);
 }
 #else
 #ifdef WWW_WIN_DLL
@@ -208,7 +208,7 @@ PUBLIC BOOL HTEventrg_registerTimeout (struct timeval *tp, HTRequest * request,
     if (tp) {
 #ifdef WWW_WIN_ASYNC
 	/* same window process WWW_WIN_ASYNC stuff and TIMEOUT */
-	SetTimer(HTsocketWin, TIMEOUT, tp->tv_usec/1000 + tp->tv_sec*1000, 0);
+	SetTimer(HTSocketWin, TIMEOUT, tp->tv_usec/1000 + tp->tv_sec*1000, 0);
 #else
 	tvptr = &seltime.tv;
 	tvptr->tv_sec = tp->tv_sec;
@@ -234,7 +234,7 @@ PUBLIC BOOL HTEventrg_unregisterTimeout(void)
 {
 #ifdef WWW_WIN_ASYNC
     /* Same window process WWW_WIN_ASYNC stuff and TIMEOUT */
-    KillTimer(HTsocketWin, TIMEOUT);
+    KillTimer(HTSocketWin, TIMEOUT);
 #else
     tvptr = NULL;
 #endif
@@ -334,7 +334,7 @@ PUBLIC int HTEventrg_register (SOCKET s, HTRequest * rq, SockOps ops,
 #endif
 /*    if (rq->hwnd != 0) {
         if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) { */
-        if (WSAAsyncSelect( s, HTsocketWin, HTwinMsg, ops) < 0) {
+        if (WSAAsyncSelect( s, HTSocketWin, HTwinMsg, ops) < 0) {
 	    HTRequest_addSystemError(rq, ERR_FATAL, GetLastError(), NO,
 				     "WSAAsyncSelect");
 	    return HTERROR;
@@ -616,10 +616,10 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 		    return status;
 	    }
 	}
-    	if (!PeekMessage(&msg, HTsocketWin, 0, 0, PM_REMOVE)) { /* PeekMessage won't work with a NULL hWnd */
+    	if (!PeekMessage(&msg, HTSocketWin, 0, 0, PM_REMOVE)) { /* PeekMessage won't work with a NULL hWnd */
 	    if (msg.message == WM_QUIT) {
     		/* got a WM_QUIT from system */
-		DestroyWindow(HTsocketWin);
+		DestroyWindow(HTSocketWin);
 		return HT_ERROR;
 	    }
 	    TranslateMessage(&msg);
@@ -1036,7 +1036,7 @@ PUBLIC BOOL HTEventrg_init (const char * AppName, const char * AppVersion)
 PUBLIC BOOL HTEventrg_terminate (void)
 {
 #ifdef WWW_WIN_ASYNC
-    DestroyWindow(HTsocketWin);
+    DestroyWindow(HTSocketWin);
 #endif
     return YES;
 }
