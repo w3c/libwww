@@ -3,7 +3,7 @@
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
-	Authorization: Basic ZnJ5c3R5azpkYW5tYXJr.
+	Authorization: Basic Hjfuafjr676afjkd98sl.
 	Host: jigedit.w3.org.
 	User-Agent: WebCommander/1.1 libwww/5.1n.
 	Connection: TE.
@@ -32,7 +32,7 @@
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
-	Authorization: Basic ZnJ5c3R5azpkYW5tYXJr.
+	Authorization: Basic Hjfuafjr676afjkd98sl.
 	Expect: 100-continue.
 	Host: jigedit.w3.org.
 	User-Agent: WebCommander/1.1 libwww/5.1n.

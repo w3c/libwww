@@ -1,0 +1,74 @@
+<HTML>
+<HEAD>
+  <TITLE>Web Commander Solves the Lost Update Problem</TITLE>
+  <LINK rel=STYLESHEET href="../StyleSheets/Area/Overview.css" type="text/css">
+</HEAD>
+<BODY BGCOLOR="#ffffff" TEXT="#000000">
+<P>
+<A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
+    HEIGHT="48"></A>
+<A HREF="../Library/"><IMG BORDER="0" ALT="libwww" SRC="../Icons/WWW/Lib48x"></A>
+<B><A HREF="./">Web Commander</A></B>
+<H1>
+  Web Commander Solves the Lost Update Problem
+</H1>
+<P>
+The <A HREF="/Collaboration/Locking">Lost Update Problem</A> has been present
+in most distributed authoring sessions using rudimentary HTTP/1.0 features.
+the Web Commander can now demonstrate how to avoid this problem based on
+HTTP/1.1 features including persistent cache, strong etags, <TT>if-match</TT>
+header fields and <TT>HEAD</TT> requests.
+<P>
+A couple of notes:
+<UL>
+  <LI>
+    Web Commander uses the normal <A HREF="../Library/src/HTReq.html">libwww
+    Request API</A> without modifications
+  <LI>
+    As the requests contain the <TT>TE</TT> header field indicating that the
+    client understands deflate, the server sends back deflated and chunked responses
+  <LI>
+    Web Commander only detects conflicts - it doesn't try to resolve them
+</UL>
+<H3>
+  Testing Whether a Document Exists using HEAD Requests
+</H3>
+<P>
+If the user wants to save a document that we don't know anything about then
+we have to issue a HEAD request before doing a PUT.
+<UL>
+  <LI>
+    <A HREF="tcpdumps/new-entry.txt">The first trace</A> shows a situation where
+    the document doesn't exist and the PUT request is executed normally
+  <LI>
+    <A HREF="tcpdumps/replace-entry.txt">The second trace</A> shows a situation
+    where the document already exists. The user is then given two options: two
+    download the existing version or to override it. In the trace the user overrides
+    the existing version.
+</UL>
+<H3>
+  Using the Etag in subsequent PUT Requests
+</H3>
+<P>
+When a new document has been created on the server, it sends back the etag
+in the <TT>201 (Created)</TT> response. This etag is stored in our
+<A HREF="../Library/src/HTCache.html">persistent HTTP/1.1 cache</A>. Once
+the etag is known, it is used on all subsequent PUT requests in a
+<TT>if-match</TT> header field. If the resource has changed on the server
+the etags will no match and the PUT will not succeed. Instead the user will
+be given the same two options as above, that is, either to get the new version
+or to override it.
+<UL>
+  <LI>
+    <A HREF="tcpdumps/update-entry.txt">This trace</A> shows a PUT request with
+    a&nbsp;if-match header field. In this situation the etag matches and the
+    PUT request is executed. A new etag is sent back in the <TT>204 (No Data)</TT>
+    response. This etag is now saved in the persistent cache.
+</UL>
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
