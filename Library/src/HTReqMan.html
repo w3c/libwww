@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -22,8 +22,8 @@ the old HTAccess module. See also the public part of the declarition
 in the <A HREF="HTReq.html">HTReq Module</A>.<P>
 
 This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/hypertext/WWW/Library/">
-W3C Reference Library</A>. <P>
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTREQMAN_H
@@ -206,8 +206,8 @@ extern BOOL HTRequest_killPostWeb (HTRequest * me);
 	(me) == (me)->source->mainDestination)
 #define HTRequest_isSource(me) \
 	((me) &amp;&amp; (me)->source &amp;&amp; (me) == (me)->source)
-#define HTRequest_isPostWeb(me) \
-	((me) &amp;&amp; (me)->source)
+#define HTRequest_isPostWeb(me) ((me) &amp;&amp; (me)->source)
+#define HTRequest_source(me) ((me) ? (me)->source : NULL)
 </PRE>
 
 End of Declaration

@@ -17,7 +17,6 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
-#include "HTAnchor.h"
 #include "HTSocket.h"
 #include "HTStream.h"
 #include "HTDir.h"

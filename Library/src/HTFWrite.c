@@ -27,6 +27,7 @@
 #include "HTBind.h"
 #include "HTList.h"
 #include "HTParse.h"
+#include "HTReq.h"
 #include "HTFWrite.h"					 /* Implemented here */
 
 #define HASH_SIZE 1001		/* Tunable */
@@ -46,7 +47,7 @@ struct _HTStream {
 	BOOL			announce;
 	char *			filename;
 	HTRequest *		request;	/* saved for callback */
-	BOOL (*callback) PARAMS((struct _HTRequest * req, void * filename));
+	HTRequestCallback	*callback;
 };
 
 PRIVATE HTStream	HTBlackHoleInstance;		      /* Made static */

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 22-Oct-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -155,6 +155,19 @@ These are regular MIME types defined. Others can be added!
 #define WWW_VIDEO 	HTAtom_for("video/mpeg")
 #define WWW_GIF 	HTAtom_for("image/gif")
 #define WWW_PNG 	HTAtom_for("image/x-png")  /* @@@ soon image/png @@@ */
+</PRE>
+
+We also have some that come from the various protocols
+
+<PRE>
+#define WWW_GOPHER_MENU HTAtom_for("text/x-gopher")
+
+#define WWW_FTP_LNST	HTAtom_for("text/x-ftp-lnst")
+#define WWW_FTP_LIST	HTAtom_for("text/x-ftp-list")
+
+#define WWW_NNTP_LIST   HTAtom_for("text/x-nntp-list")
+#define WWW_NNTP_OVER	HTAtom_for("text/x-nntp-over")
+#define WWW_NNTP_HEAD	HTAtom_for("text/x-nntp-head")
 </PRE>
 
 <H4>Register a Presenter</H4>

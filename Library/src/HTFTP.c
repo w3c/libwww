@@ -147,7 +147,6 @@ struct _HTStream {
     HTRequest *			request;
     ftp_ctrl *			ctrl;
     HTSocketEOL			state;
-    int				status;
     HTChunk *			welcome;
     BOOL			junk;		       /* For too long lines */
     BOOL			first_line;
@@ -171,7 +170,7 @@ PRIVATE FTPDataCon FTPMode = FTP_DATA_PASV;
 **      This function closes the connection and frees memory.
 **      Returns YES on OK, else NO
 */
-PRIVATE int FTPCleanup (HTRequest *request, int status)
+PRIVATE int FTPCleanup (HTRequest * request, int status)
 {
     HTNet *cnet = request->net;
     ftp_ctrl *ctrl = (ftp_ctrl *) cnet->context;
@@ -207,7 +206,7 @@ PRIVATE int FTPCleanup (HTRequest *request, int status)
 **	Returns HT_LOADED if OK, HT_OK if more, HT_ERROR if error
 **	the control connection.
 */
-PRIVATE int ScanResponse (HTStream *me)
+PRIVATE int ScanResponse (HTStream * me)
 {
     int reply = 0;
     char cont = '\0';
@@ -279,22 +278,22 @@ PRIVATE int FTPStatus_put_block (HTStream * me, CONST char * b, int l)
     return HT_OK;
 }
 
-PRIVATE int FTPStatus_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int FTPStatus_put_string (HTStream * me, CONST char * s)
 {
     return FTPStatus_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int FTPStatus_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int FTPStatus_put_character (HTStream * me, char c)
 {
     return FTPStatus_put_block(me, &c, 1);
 }
 
-PRIVATE int FTPStatus_flush ARGS1(HTStream *, me)
+PRIVATE int FTPStatus_flush (HTStream * me)
 {
     return (*me->target->isa->flush)(me->target);
 }
 
-PRIVATE int FTPStatus_free ARGS1(HTStream *, me)
+PRIVATE int FTPStatus_free (HTStream * me)
 {
     int status = HT_OK;
     if (me->target) {
@@ -306,7 +305,7 @@ PRIVATE int FTPStatus_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int FTPStatus_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int FTPStatus_abort (HTStream * me, HTError e)
 {
     if (me->target)
 	(*me->target->isa->abort)(me->target, e);
@@ -331,8 +330,7 @@ PRIVATE CONST HTStreamClass FTPStatusClass =
     FTPStatus_put_block
 };
 
-PRIVATE HTStream * FTPStatus_new ARGS2(HTRequest *, request,
-				       ftp_ctrl *, ctrl)
+PRIVATE HTStream * FTPStatus_new (HTRequest * request, ftp_ctrl * ctrl)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "FTPStatus_new");
@@ -1217,7 +1215,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
 **	returns		HT_ERROR	Error has occured in call back
 **			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadFTP ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
+PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
     HTNet *cnet = request->net;

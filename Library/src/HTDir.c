@@ -10,7 +10,7 @@
 **	The module is only compiled if GOT_READ_DIR is defined
 **
 ** Authors:
-**		HF	Henrik Frystyk, CERN, <frystyk@w3.org>
+**		HF	Henrik Frystyk, MIT, <frystyk@w3.org>
 ** History:
 **	   Sep 95  HFN	written
 **

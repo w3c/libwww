@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -23,8 +23,8 @@ things about it need to be passed along together with a request.
 <P>
 
 This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/hypertext/WWW/Library/">
-W3C Reference Library</A>. <P>
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTREQ_H
@@ -362,8 +362,8 @@ extern HTEnHd HTRequest_enHd (HTRequest *request);
 
 If this parameter is set then a `Referer: &lt;parent address&gt; can
 be generated in the request to the server, see <A
-HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">
-Referer field in a HTTP Request</A>
+HREF="http://www.w3.org/pub/WWW/Protocols/">Referer field in a HTTP
+Request</A>
 
 <PRE>
 extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);

@@ -1,0 +1,38 @@
+<HTML>
+<HEAD>
+<TITLE>MIME Request Stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
+</HEAD>
+<BODY>
+
+<H1>MIME Request Stream</H1>
+
+The MIME Request stream generates a MIME request header and writes it
+to the target which is normally a HTWriter stream.<P>
+
+This module is implemented by <A HREF="HTMIMERq.c">HTMIMERq.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTMIMERQ_H
+#define HTMIMERQ_H
+
+#include "HTStream.h"
+#include "HTReq.h"
+</PRE>
+
+<H3>Streams Definition</H3>
+
+This stream makes a MIME header before it goes into transparent mode.
+
+<PRE>
+extern HTStream * HTMIMERequest_new (HTRequest * request, HTStream * target);
+
+#endif
+</PRE>
+
+End of HTMIMERq
+</BODY>
+</HTML>
+

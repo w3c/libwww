@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access Scheme Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Oct-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -20,9 +20,8 @@ with associated access code. New access protocols may be registered at
 any time.<P>
 
 This module is implemented by <A HREF="HTProt.c">HTProt.c</A>, and it
-is a part of the <A NAME="z10"
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>. <P>
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTPROT_H
@@ -81,7 +80,7 @@ extern BOOL HTProtocol_delete (CONST char * name);
 <H3>Remove ALL Registered Schemes</H3>
 
 This is the garbage collection function. It is called by <A
-HREF="HTReq.html#Library">HTLibTerminate</A>
+HREF="HTAccess.html#Library">HTLibTerminate()</A>
 
 <PRE>
 extern BOOL HTProtocol_deleteAll (void);

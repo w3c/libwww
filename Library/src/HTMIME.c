@@ -80,6 +80,7 @@ struct _HTStream {
     HTChunk *			buffer;
     HTSocketEOL			EOLstate;
     BOOL			transparent;
+    BOOL			nntp;
 };
 
 PRIVATE HTMIMEHandler *HTMIMEUnknown = NULL;  	   /* Unknown header handler */
@@ -164,6 +165,13 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 
 	      case 'm':
 		check_pointer = "ime-version";
+		ok_state = JUNK_LINE;  /* We don't use this but recognize it */
+		state = CHECK;
+		break;
+
+	      case 'n':
+		check_pointer = "ewsgroups";
+		me->nntp = YES;			 /* Due to news brain damage */
 		ok_state = JUNK_LINE;  /* We don't use this but recognize it */
 		state = CHECK;
 		break;
@@ -552,7 +560,8 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
     }
 #endif
 
-    if (anchor->content_type!=WWW_UNKNOWN || anchor->content_length>0) {
+    /* News server almost never send content type or content length */
+    if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
 	if (STREAM_TRACE)
 	    fprintf(TDEST, "MIMEParser.. Convert %s to %s\n",
 		    HTAtom_name(anchor->content_type),

@@ -623,7 +623,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case FS_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		FileCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -631,7 +632,6 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		FileCleanup(request, main ? HT_LOADED : HT_IGNORE);
 	    } else
 		FileCleanup(request, HT_LOADED);
 	    return HT_OK;
@@ -639,7 +639,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case FS_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		FileCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -647,7 +648,6 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		FileCleanup(request, main ? HT_NO_DATA : HT_IGNORE);
 	    } else
 		FileCleanup(request, HT_NO_DATA);
 	    return HT_OK;
@@ -655,7 +655,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case FS_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		FileCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
@@ -664,7 +665,6 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		FileCleanup(request, main ? HT_RETRY : HT_IGNORE);
 	    } else
 		FileCleanup(request, HT_RETRY);
 	    return HT_OK;
@@ -673,7 +673,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		FileCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
@@ -682,7 +683,6 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		FileCleanup(request, main ? HT_ERROR : HT_IGNORE);
 	    } else
 		FileCleanup(request, HT_ERROR);
 	    return HT_OK;

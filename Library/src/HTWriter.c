@@ -7,7 +7,8 @@
 **	This is a try with a non-buffered output stream which remembers
 **	state using the write_pointer. As normally we have a big buffer
 **	somewhere else in the stream chain an extra output buffer will often
-**	not be needed.
+**	not be needed. There is also a small buffer stream that can be used
+**	if athis is not the case.
 */
 
 /* Library include files */
@@ -16,13 +17,14 @@
 #include "HTString.h"
 #include "HTReq.h"
 #include "HTNetMan.h"
+#include "HTConLen.h"
 #include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;
 	SOCKFD			sockfd;
 	HTNet *			net;
-	char			*write_pointer;
+	char			*wptr;
 	BOOL			leave_open;
 #ifdef NOT_ASCII
 	BOOL			make_ascii;    /* Are we writing to the net? */
@@ -62,7 +64,7 @@ struct _HTStream {
 **	the  pipe  has been read, write() transfers at least
 **	{PIPE_BUF} bytes.
 */
-PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
+PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 {
     int b_write;
     CONST char *limit = buf+len;
@@ -78,19 +80,19 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 	    *dest = TOASCII(*orig);
 	    dest++, orig++;
 	}
-	me->write_pointer = me->ascbuf;
+	me->wptr = me->ascbuf;
 	limit = me->ascbuf+len;
     }
 #else
-    if (!me->write_pointer)
-	me->write_pointer = (char *) buf;
+    if (!me->wptr)
+	me->wptr = (char *) buf;
     else
-	len -= (me->write_pointer - buf);
+	len -= (me->wptr - buf);
 #endif
 
     /* Write data to the network */
-    while (me->write_pointer < limit) {
-	if ((b_write = NETWRITE(me->sockfd, me->write_pointer, len)) < 0) {
+    while (me->wptr < limit) {
+	if ((b_write = NETWRITE(me->sockfd, me->wptr, len)) < 0) {
 
 #ifdef EAGAIN
 	    if (socerrno == EAGAIN || socerrno == EWOULDBLOCK)/* POSIX, SVR4 */
@@ -110,7 +112,7 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 	    }
 	}
 	HTEvent_UnRegister(me->sockfd, (SockOps) FD_WRITE);
-	me->write_pointer += b_write;
+	me->wptr += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
 	    fprintf(TDEST, "Write Socket %d bytes written to socket %d\n",
@@ -119,7 +121,7 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 #ifdef NOT_ASCII
     FREE(me->ascbuf);
 #else
-    me->write_pointer = NULL;
+    me->wptr = NULL;
 #endif
     return HT_OK;
 }
@@ -127,28 +129,27 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 /*	Character handling
 **	------------------
 */
-PRIVATE int HTWriter_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTWriter_put_character (HTStream * me, char c)
 {
     return HTWriter_write(me, &c, 1);
 }
-
 
 /*	String handling
 **	---------------
 **
 **	Strings must be smaller than this buffer size.
 */
-PRIVATE int HTWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTWriter_put_string (HTStream * me, CONST char * s)
 {
     return HTWriter_write(me, s, (int) strlen(s));
 }
 
-PRIVATE int HTWriter_flush ARGS1(HTStream *, me)
+PRIVATE int HTWriter_flush (HTStream * me)
 {
     return HT_OK;	       /* As we don't keep any buffer in this stream */
 }
 
-PRIVATE int HTWriter_free ARGS1(HTStream *, me)
+PRIVATE int HTWriter_free (HTStream * me)
 {
     int status = HT_OK;
     if (!me->leave_open) {
@@ -159,7 +160,7 @@ PRIVATE int HTWriter_free ARGS1(HTStream *, me)
     return status;
 }
 
-PRIVATE int HTWriter_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTWriter_abort (HTStream * me, HTError e)
 {
     if (!me->leave_open)
 	NETCLOSE(me->sockfd);
@@ -188,13 +189,23 @@ PRIVATE CONST HTStreamClass HTWriter =
 */
 PUBLIC HTStream* HTWriter_new (HTNet *net, BOOL leave_open)
 {
-    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
+    HTStream* me = (HTStream *) calloc(1, sizeof(HTStream));
     if (me == NULL) outofmem(__FILE__, "HTWriter_new");
     me->isa = &HTWriter;       
     me->leave_open = leave_open;
     me->sockfd = net->sockfd;
     me->net = net;
     return me;
+}
+
+/*
+**	Set up stream to write to a socket. If buf_size > 0 then we set up
+**	buffered output used for at most buf_size bytes. From that point we 
+**	switch to unbuffered mode. Otherwise we'll use nonbuffered output.
+*/
+PUBLIC HTStream* HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size)
+{
+    return HTBuffer_new(HTWriter_new(net, leave_open), net->request, buf_size);
 }
 
 /*	Subclass-specific Methods

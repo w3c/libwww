@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Anchor object Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -29,9 +29,8 @@ find:
 </UL>
 
 This module is implemented by <A HREF="HTAnchor.c">HTAnchor.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <H2>History</H2>
 
@@ -193,7 +192,7 @@ might not be already loaded. The parent anchor returned can either be
 created on the spot or is already in the hash table.
 
 <PRE>
-extern HTAnchor * HTAnchor_findAddress		PARAMS((CONST char * address));
+extern HTAnchor * HTAnchor_findAddress		(CONST char * address);
 </PRE>
 
 <H3>Find/Create a Child Anchor</H3>
@@ -204,8 +203,8 @@ can either be created on the spot or is already in the hash table. The
 <EM>tag</EM> is the part that's after the '#' sign in a URI.
 
 <PRE>
-extern HTChildAnchor * HTAnchor_findChild	PARAMS((HTParentAnchor *parent,
-							CONST char *	tag));
+extern HTChildAnchor * HTAnchor_findChild	(HTParentAnchor *parent,
+						 CONST char *	tag);
 </PRE>
 
 <H3>Find/Create a Child Anchor and Link to Another Parent</H3>
@@ -219,10 +218,10 @@ parent anchor.
 
 <PRE>
 extern HTChildAnchor * HTAnchor_findChildAndLink
-		PARAMS((HTParentAnchor * parent,	/* May not be 0 */
+		(HTParentAnchor * parent,		/* May not be 0 */
 		CONST char * tag,			/* May be "" or 0 */
 		CONST char * href,			/* May be "" or 0 */
-		HTLinkType * ltype));			/* May be 0 */
+		HTLinkType * ltype);			/* May be 0 */
 </PRE>
 
 <H3>Delete an Anchor</H3>
@@ -233,7 +232,7 @@ delete the targets. If this anchor's source list is empty, we delete
 it and its children.
 
 <PRE>
-extern BOOL HTAnchor_delete	PARAMS((HTParentAnchor *me));
+extern BOOL HTAnchor_delete	(HTParentAnchor *me);
 </PRE>
 
 <H3>Delete all Anchors</H3>
@@ -248,7 +247,7 @@ anyway.  It is <EM>always</EM> for the application to delete any
 list!
 
 <PRE>
-extern BOOL HTAnchor_deleteAll	PARAMS((HTList * objects));
+extern BOOL HTAnchor_deleteAll	(HTList * objects);
 </PRE>
 
 
@@ -265,10 +264,10 @@ the <EM>main link</EM>. If one already exists then this new link is
 simply added to the list.
 
 <PRE>
-extern BOOL HTAnchor_link	PARAMS((HTAnchor *	source,
-					HTAnchor *	destination,
-					HTLinkType *	type,
-					HTMethod	method));
+extern BOOL HTAnchor_link	(HTAnchor *	source,
+				 HTAnchor *	destination,
+				 HTLinkType *	type,
+				 HTMethod	method);
 </PRE>
 
 <H3>Find the Link Object that Binds two Anchors</H3>
@@ -277,7 +276,7 @@ If the destination anchor is a target of a link from the source anchor
 then return the link object, else NULL.
 
 <PRE>
-extern HTLink *HTAnchor_findLink PARAMS((HTAnchor *src, HTAnchor *dest));
+extern HTLink *HTAnchor_findLink (HTAnchor *src, HTAnchor *dest);
 #define HTAnchor_findMainLink(me) ((me) ? &amp;((me)-&gt;mainLink) : NULL)
 </PRE>
 
@@ -294,7 +293,7 @@ The method used in a link can be PUT, or POST, for example
 Find the anchor which is the main target of this anchor.
 
 <PRE>
-extern HTAnchor * HTAnchor_followMainLink	PARAMS((HTAnchor *me));
+extern HTAnchor * HTAnchor_followMainLink (HTAnchor *me);
 #define HTAnchor_linkDest(me) ((me) ? (me)-&gt;dest : NULL)
 </PRE>
 
@@ -303,8 +302,7 @@ extern HTAnchor * HTAnchor_followMainLink	PARAMS((HTAnchor *me));
 Return the anchor with a given typed link.
 
 <PRE>
-extern HTAnchor * HTAnchor_followTypedLink	PARAMS((HTAnchor *me,
-							HTLinkType *type));
+extern HTAnchor * HTAnchor_followTypedLink (HTAnchor *me, HTLinkType *type);
 </PRE>
 
 <H3>Result of a Link</H3>
@@ -315,8 +313,7 @@ link information.
 
 <PRE>
 #define HTAnchor_linkResult(me)	((me) ? me-&gt;result : HT_LINK_INVALID)
-extern BOOL HTAnchor_setLinkResult	PARAMS((HTLink *	link,
-						HTLinkResult 	result));
+extern BOOL HTAnchor_setLinkResult	(HTLink * link, HTLinkResult result);
 </PRE>
 
 <H3>Make a particular link the main link</H3>
@@ -324,7 +321,7 @@ extern BOOL HTAnchor_setLinkResult	PARAMS((HTLink *	link,
 Any outgoing link can at any time be the main destination.
 
 <PRE>
-extern BOOL HTAnchor_makeMainLink	PARAMS((HTAnchor *me, HTLink *movingLink));
+extern BOOL HTAnchor_makeMainLink	(HTAnchor *me, HTLink *movingLink);
 </PRE>
 
 <H3>Move Link Information</H3>
@@ -335,7 +332,7 @@ information to the new anchor and change the link information in the
 old one to "redirect".
 
 <PRE>
-extern BOOL HTAnchor_moveAllLinks PARAMS((HTAnchor *src, HTAnchor *dest));
+extern BOOL HTAnchor_moveAllLinks	(HTAnchor *src, HTAnchor *dest);
 </PRE>
 
 <H3>Remove Link Information</H3>
@@ -343,8 +340,8 @@ extern BOOL HTAnchor_moveAllLinks PARAMS((HTAnchor *src, HTAnchor *dest));
 Delete link information between two or more anchors
 
 <PRE>
-extern BOOL HTAnchor_removeLink	PARAMS((HTAnchor *src, HTAnchor *dest));
-extern BOOL HTAnchor_removeAllLinks PARAMS((HTAnchor * me));
+extern BOOL HTAnchor_removeLink		(HTAnchor *src, HTAnchor *dest);
+extern BOOL HTAnchor_removeAllLinks	(HTAnchor * me);
 </PRE>
 
 <H3>Move a child anchor to the head of the list of its siblings</H3>
@@ -353,7 +350,7 @@ This is to ensure that an anchor which might have already existed is
 put in the correct order as we load the document.
 
 <PRE>
-extern void HTAnchor_makeLastChild	PARAMS((HTChildAnchor *me));
+extern void HTAnchor_makeLastChild	(HTChildAnchor *me);
 </PRE>
 
 <A NAME="access"><H2>Access Methods of an Anchor</H2></A>
@@ -368,13 +365,13 @@ structures.
 For parent anchors this returns the anchor itself
 
 <PRE>
-extern HTParentAnchor * HTAnchor_parent		PARAMS((HTAnchor *me));
+extern HTParentAnchor * HTAnchor_parent	(HTAnchor *me);
 </PRE>
 
 <H4>Does it have any Anchors within it?</H4>
 
 <PRE>
-extern BOOL HTAnchor_hasChildren		PARAMS((HTParentAnchor *me));
+extern BOOL HTAnchor_hasChildren	(HTParentAnchor *me);
 </PRE>
 
 <H3>Graphic Object (HyperDoc)</H3>
@@ -385,14 +382,13 @@ graphic object in memory.
 <H4>Assign a HyperDoc to an Anchor</H4>
 
 <PRE>
-extern void HTAnchor_setDocument		PARAMS((HTParentAnchor *me,
-							HyperDoc *	doc));
+extern void HTAnchor_setDocument	(HTParentAnchor *me, HyperDoc *	doc);
 </PRE>
 
 <H4>Return the <EM>HyperDoc</EM> of an anchor (if any)</H4>
 
 <PRE>
-extern HyperDoc * HTAnchor_document	PARAMS((HTParentAnchor *me));
+extern HyperDoc * HTAnchor_document	(HTParentAnchor *me);
 </PRE>
 
 <H3>URI Information of Anchors</H3>
@@ -408,7 +404,7 @@ Returns the full URI of the anchor, child or parent as a malloc'd
 string to be freed by the caller as when th eanchor was created.
 
 <PRE>
-extern char * HTAnchor_address		PARAMS((HTAnchor *me));
+extern char * HTAnchor_address		(HTAnchor *me);
 </PRE>
 
 <H3>Cache Information</H3>
@@ -421,9 +417,8 @@ whether the data object is out of date (for example if a
 HREF="HTMIME.html">MIME parser</A> to find out.
 
 <PRE>
-extern BOOL HTAnchor_cacheHit		PARAMS((HTParentAnchor	*me));
-extern void HTAnchor_setCacheHit	PARAMS((HTParentAnchor	*me,
-						BOOL		cacheHit));
+extern BOOL HTAnchor_cacheHit		(HTParentAnchor	*me);
+extern void HTAnchor_setCacheHit	(HTParentAnchor	*me, BOOL cacheHit);
 </PRE>
 
 <H3>Physical address</H3>
@@ -431,26 +426,24 @@ extern void HTAnchor_setCacheHit	PARAMS((HTParentAnchor	*me,
 Contains the physical address after we haved looked for proxies etc.
 
 <PRE>
-extern char * HTAnchor_physical		PARAMS((HTParentAnchor * me));
+extern char * HTAnchor_physical		(HTParentAnchor * me);
 
-extern void HTAnchor_setPhysical	PARAMS((HTParentAnchor * me,
-						char * protocol));
+extern void HTAnchor_setPhysical	(HTParentAnchor * me, char * protocol);
 </PRE>
 
 <H3>Is the Anchor searchable?</H3>
 
 <PRE>
-extern void HTAnchor_clearIndex		PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setIndex		PARAMS((HTParentAnchor *me));
-extern BOOL HTAnchor_isIndex		PARAMS((HTParentAnchor *me));
+extern void HTAnchor_clearIndex		(HTParentAnchor *me);
+extern void HTAnchor_setIndex		(HTParentAnchor *me);
+extern BOOL HTAnchor_isIndex		(HTParentAnchor *me);
 </PRE>
 
 <H3>What Protocol should be Used</H3>
 
 <PRE>
-extern void * HTAnchor_protocol		PARAMS((HTParentAnchor * me));
-extern void HTAnchor_setProtocol	PARAMS((HTParentAnchor * me,
-						void* protocol));
+extern void * HTAnchor_protocol		(HTParentAnchor * me);
+extern void HTAnchor_setProtocol	(HTParentAnchor * me, void* protocol);
 </PRE>
 
 <H3>Title handling</H3>
@@ -461,87 +454,87 @@ passed as a HTTP header in the response. Any title element found in an
 HTML document will overwrite a title given in a HTTP header.
 
 <PRE>
-extern CONST char * HTAnchor_title	PARAMS((HTParentAnchor *me));
+extern CONST char * HTAnchor_title	(HTParentAnchor *me);
 
-extern void HTAnchor_setTitle		PARAMS((HTParentAnchor *me,
-						CONST char *	title));
+extern void HTAnchor_setTitle		(HTParentAnchor *me,
+					 CONST char *	title);
 
-extern void HTAnchor_appendTitle	PARAMS((HTParentAnchor *me,
-						CONST char *	title));
+extern void HTAnchor_appendTitle	(HTParentAnchor *me,
+					 CONST char *	title);
 </PRE>
 
 <H3>Media Types (Content-Type)</H3>
 
 <PRE>
-extern HTFormat HTAnchor_format		PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setFormat		PARAMS((HTParentAnchor *me,
-						HTFormat	form));
+extern HTFormat HTAnchor_format		(HTParentAnchor *me);
+extern void HTAnchor_setFormat		(HTParentAnchor *me,
+					 HTFormat	form);
 </PRE>
 
 <H3>Charset parameter to Content-Type</H3>
 
 <PRE>
-extern HTCharset HTAnchor_charset	PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setCharset		PARAMS((HTParentAnchor *me,
-						HTCharset	charset));
+extern HTCharset HTAnchor_charset	(HTParentAnchor *me);
+extern void HTAnchor_setCharset		(HTParentAnchor *me,
+					 HTCharset	charset);
 </PRE>
 
 <H3>Level parameter to Content-Type</H3>
 
 <PRE>
-extern HTLevel HTAnchor_level		PARAMS((HTParentAnchor * me));
-extern void HTAnchor_setLevel		PARAMS((HTParentAnchor * me,
-						HTLevel		level));
+extern HTLevel HTAnchor_level		(HTParentAnchor * me);
+extern void HTAnchor_setLevel		(HTParentAnchor * me,
+					 HTLevel	level);
 </PRE>
 
 <H3>Content Language</H3>
 
 <PRE>
-extern HTLanguage HTAnchor_language	PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setLanguage	PARAMS((HTParentAnchor *me,
-						HTLanguage	language));
+extern HTLanguage HTAnchor_language	(HTParentAnchor *me);
+extern void HTAnchor_setLanguage	(HTParentAnchor *me,
+					 HTLanguage	language);
 </PRE>
 
 <H3>Content Encoding</H3>
 
 <PRE>
-extern HTEncoding HTAnchor_encoding	PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setEncoding	PARAMS((HTParentAnchor *me,
-						HTEncoding	encoding));
+extern HTEncoding HTAnchor_encoding	(HTParentAnchor *me);
+extern void HTAnchor_setEncoding	(HTParentAnchor *me,
+					 HTEncoding	encoding);
 </PRE>
 
 <H3>Content Transfer Encoding</H3>
 
 <PRE>
-extern HTCte HTAnchor_cte		PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setCte		PARAMS((HTParentAnchor *me,
-						HTCte		cte));
+extern HTCte HTAnchor_cte		(HTParentAnchor *me);
+extern void HTAnchor_setCte		(HTParentAnchor *me,
+					 HTCte		cte);
 </PRE>
 
 <H3>Content Length</H3>
 
 <PRE>
-extern long int HTAnchor_length		PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setLength		PARAMS((HTParentAnchor *me,
-						long int	length));
+extern long int HTAnchor_length		(HTParentAnchor *me);
+extern void HTAnchor_setLength		(HTParentAnchor *me,
+					 long int	length);
 </PRE>
 
 <H3>Allowed methods (Allow)</H3>
 
 <PRE>
-extern int HTAnchor_methods		PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setMethods		PARAMS((HTParentAnchor *me,
-						int		methodset));
-extern void HTAnchor_appendMethods	PARAMS((HTParentAnchor *me,
-						int		methodset));
+extern int HTAnchor_methods		(HTParentAnchor *me);
+extern void HTAnchor_setMethods		(HTParentAnchor *me,
+					 int		methodset);
+extern void HTAnchor_appendMethods	(HTParentAnchor *me,
+					 int		methodset);
 </PRE>
 
 <H3>Version</H3>
 
 <PRE>
-extern CONST char * HTAnchor_version	PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setVersion		PARAMS((HTParentAnchor *me,
-						CONST char *	version));
+extern CONST char * HTAnchor_version	(HTParentAnchor *me);
+extern void HTAnchor_setVersion		(HTParentAnchor *me,
+					 CONST char *	version);
 </PRE>
 
 <H3>Date</H3>
@@ -550,8 +543,8 @@ Returns the date that was registered in the RFC822 header "Date"
 
 <PRE>
 #define HTAnchor_date(me)		((me) ? (me)-&gt;date : -1)
-extern void HTAnchor_setDate		PARAMS((HTParentAnchor	*me,
-						CONST time_t	*date));
+extern void HTAnchor_setDate		(HTParentAnchor	*me,
+					 CONST time_t	*date);
 </PRE>
 
 <H3>Last Modified Date</H3>
@@ -560,24 +553,24 @@ Returns the date that was registered in the RFC822 header "Last-Modified"
 
 <PRE>
 #define HTAnchor_lastModified(me)	((me) ? (me)-&gt;last_modified : -1)
-extern void HTAnchor_setLastModified	PARAMS((HTParentAnchor	*me,
-						CONST time_t	*lm));
+extern void HTAnchor_setLastModified	(HTParentAnchor	*me,
+					 CONST time_t	*lm);
 </PRE>
 
 <H3>Expires Date</H3>
 
 <PRE>
 #define HTAnchor_expires(me)		((me) ? (me)-&gt;expires : -1)
-extern void HTAnchor_setExpires		PARAMS((HTParentAnchor	*me,
-						CONST time_t	*expires));
+extern void HTAnchor_setExpires		(HTParentAnchor	*me,
+					 CONST time_t	*expires);
 </PRE>
 
 <H3>Derived from</H3>
 
 <PRE>
-extern CONST char * HTAnchor_derived	PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setDerived		PARAMS((HTParentAnchor *me,
-						CONST char *	derived_from));
+extern CONST char * HTAnchor_derived	(HTParentAnchor *me);
+extern void HTAnchor_setDerived		(HTParentAnchor *me,
+					 CONST char *	derived_from);
 </PRE>
 
 <H3>Extra Headers</H3>
@@ -588,9 +581,9 @@ use the field in the <A HREF="HTReq.html#z1">request structure</A>
 for sending test headers.
 
 <PRE>
-extern HTList * HTAnchor_Extra		PARAMS((HTParentAnchor *me));
-extern void HTAnchor_addExtra		PARAMS((HTParentAnchor *me,
-						CONST char *	header));
+extern HTList * HTAnchor_Extra		(HTParentAnchor *me);
+extern void HTAnchor_addExtra		(HTParentAnchor *me,
+					 CONST char *	header);
 </PRE>
 
 <H3>Status of Header Parsing</H3>
@@ -598,14 +591,14 @@ extern void HTAnchor_addExtra		PARAMS((HTParentAnchor *me,
 These are primarily for internal use
 
 <PRE>
-extern BOOL HTAnchor_headerParsed	PARAMS((HTParentAnchor *me));
-extern void HTAnchor_setHeaderParsed	PARAMS((HTParentAnchor *me));
+extern BOOL HTAnchor_headerParsed	(HTParentAnchor *me);
+extern void HTAnchor_setHeaderParsed	(HTParentAnchor *me);
 </PRE>
 
 <H3>We want to clear the header information...</H3>
 
 <PRE>
-extern void HTAnchor_clearHeader	PARAMS((HTParentAnchor *me));
+extern void HTAnchor_clearHeader	(HTParentAnchor *me);
 
 #endif /* HTANCHOR_H */
 </PRE>

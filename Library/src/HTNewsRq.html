@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+<TITLE>NNTP Request Stream</TITLE>
+<!-- Changed by: Felix Lo, 21-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Oct-1995 -->
+</HEAD>
+<BODY>
+
+<H1>NNTP Request Stream</H1>
+
+The NNTP Request stream generates a NNTP request header and writes it
+to the target which is normally a HTWriter stream.<P>
+
+This module is implemented by <A HREF="HTNewsRq.c">HTNewsRq.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTNEWSREQ_H
+#define HTNEWSREQ_H
+
+#include "HTStream.h"
+#include "HTAccess.h"
+</PRE>
+
+<H3>Streams Definition</H3>
+
+This stream makes a HTNews request header before it goes into
+transparent mode.
+
+<PRE>
+extern HTStream * HTNewsPost_new (HTRequest * request, HTStream * target);
+
+#endif
+</PRE>
+
+End of HTNewsReq
+</BODY>
+</HTML>
+

@@ -1,12 +1,11 @@
 /*								      HTTPReq.c
-**	MULTITHREADED IMPLEMENTATION OF HTTP CLIENT
+**	HTTP MESSAGES GENERATION
 **
 **	This module implements the output stream for HTTP used for sending
 **	requests with or without a entity body.
 **
 ** History:
 **	Jan 95 HFN	Written from scratch
-**
 */
 
 /* Library Includes */
@@ -21,24 +20,14 @@
 #include "HTWriter.h"
 #include "HTReqMan.h"
 #include "HTChunk.h"
+#include "HTMIMERq.h"
 #include "HTTPReq.h"					       /* Implements */
 
-/* Type definitions and global variables etc. local to this module */ 
 extern char * HTAppName;		  /* Application name: please supply */
 extern char * HTAppVersion;	       /* Application version: please supply */
 PUBLIC char * HTProxyHeaders = NULL;		    /* Headers to pass as-is */
 
-/* Macros and other defines */
-#define MIME_VERSION	"MIME/1.0"
-#define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
-#define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
-#define FREE_TARGET	
-#define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
-
-/* Type definitions and global variables etc. local to this module */
-
-PRIVATE char linebuf[256];	/* @@@ */
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
@@ -68,9 +57,7 @@ PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
     HTChunkPutc(header, ' ');
     HTChunkPutc(header, CR);
     HTChunkPutc(header, LF);
-    HTChunkTerminate(header);
-    if (PROT_TRACE)
-	fprintf(TDEST, "HTTP Tx..... %s", header->data);
+    if (PROT_TRACE) fprintf(TDEST, "HTTP Tx..... %s", HTChunkData(header));
 }
 
 /*	HTTPMakeRequest
@@ -79,10 +66,9 @@ PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
 */
 PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 {
+    char linebuf[256];			/* @@@ */
     HTChunk *header = me->buffer;
-    HTParentAnchor *entity =
-	(request->source && request->source->anchor) ?
-	    request->source->anchor : request->anchor;
+    HTParentAnchor *anchor = HTRequest_anchor(request);
 
     /* Generate the HTTP/1.0 RequestLine */
     if (request->method != METHOD_INVALID) {
@@ -93,7 +79,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 
     /* If we are using a proxy then only take the `path' info in the URL */
     {
-	char *addr = HTAnchor_physical(request->anchor);
+	char *addr = HTAnchor_physical(anchor);
 	char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
 	if (request->using_proxy) {
 	    HTChunkPuts(header, fullurl+1);
@@ -105,34 +91,6 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
     HTChunkPuts(header, " HTTP/1.0");
     HTChunkPutc(header, CR);
     HTChunkPutc(header, LF);
-
-    /* General Headers */
-    if (request->GenMask & HT_DATE) {
-	time_t local = time(NULL);
-	sprintf(linebuf, "Date: %s%c%c", HTDateTimeStr(&local, NO), CR,LF);
-	HTChunkPuts(header, linebuf);
-    }
-    if (request->GenMask & HT_FORWARDED) {		/* @@@@@@ */
-    }
-    if (request->GenMask & HT_MESSAGE_ID) {
-	CONST char *msgid = HTMessageIdStr();
-	if (msgid) {
-	    sprintf(linebuf, "Message-ID: %s%c%c", msgid, CR, LF);
-	    HTChunkPuts(header, linebuf);
-	}
-    }
-    if (request->GenMask & HT_MIME) {
-	sprintf(linebuf, "MIME-Version: %s%c%c", MIME_VERSION, CR, LF);
-	HTChunkPuts(header, linebuf);
-    }
-    if (request->GenMask & HT_CONNECTION) {
-	sprintf(linebuf, "Connection: Keep-Alive%c%c", CR, LF);
-	HTChunkPuts(header, linebuf);
-    }
-    if (request->RequestMask & HT_NO_CACHE) {
-	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
-	HTChunkPuts(header, linebuf);
-    }
 
     /* Request Headers */
     if (request->RequestMask & HT_ACCEPT_TYPE) {
@@ -240,14 +198,14 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
     }
     if (request->RequestMask & HT_IMS) {
-	if (entity->last_modified != -1) {
+	if (anchor->last_modified != -1) {
 	    sprintf(linebuf, "If-Modified-Since: %s%c%c",
-		    HTDateTimeStr(&entity->last_modified, NO), CR, LF);
+		    HTDateTimeStr(&anchor->last_modified, NO), CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
     }
     if (request->RequestMask & HT_HOST) {
-	char *orig = HTAnchor_address((HTAnchor *) request->anchor);
+	char *orig = HTAnchor_address((HTAnchor *) anchor);
 	char *host = HTParse(orig, "", PARSE_HOST);
 	char *ptr = strchr(host, ':');		     /* Chop off port number */
 	if (ptr) *ptr = '\0';
@@ -257,7 +215,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	free(host);
     }
     if (request->RequestMask & HT_REFERER && request->parentAnchor) {
-	char *act = HTAnchor_address((HTAnchor *) request->anchor);
+	char *act = HTAnchor_address((HTAnchor *) anchor);
 	char *parent = HTAnchor_address((HTAnchor *) request->parentAnchor);
 	char *relative = HTParse(parent, act,
 				 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
@@ -276,99 +234,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		HTLibraryVersion, CR, LF);
 	HTChunkPuts(header, linebuf);
     }
-
-    /* Now put out entity headers if we are using PUT or POST. If we have a
-    ** PostAnchor then we take the information from this and uses the
-    ** destination anchor to contain the reply. Otherwise, we have created an
-    ** anchor (using internal editing etc) and we can use the destination
-    ** anchor directly.
-    */
-    if (request->method==METHOD_PUT || request->method==METHOD_POST) {
-	if (request->EntityMask & HT_ALLOW) {		/* @@@@@@@@@@ */
-
-	}
-	if (request->EntityMask & HT_CONTENT_ENCODING &&
-	    entity->content_encoding) {
-	    sprintf(linebuf, "Content-Encoding: %s%c%c",
-		    HTAtom_name(entity->content_encoding), CR, LF);
-	    HTChunkPuts(header, linebuf);
-	}
-
-	/* @@@ SHOULD BE A LIST @@@ */
-	if (request->EntityMask & HT_CONTENT_LANGUAGE &&
-	    entity->content_language) {
-	    sprintf(linebuf, "Content-Language: %s%c%c",
-		    HTAtom_name(entity->content_language), CR, LF);
-	    HTChunkPuts(header, linebuf);
-	}
-	if (request->EntityMask & HT_CONTENT_LENGTH) {   /* Must be there!!! */
-	    sprintf(linebuf, "Content-Length: %ld%c%c",
-		    entity->content_length, CR, LF);
-	    HTChunkPuts(header, linebuf);	
-	}
-	if (request->EntityMask & HT_CTE && entity->cte) {
-	    sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
-		    HTAtom_name(entity->cte), CR, LF);
-	    HTChunkPuts(header, linebuf);
-	}
-	if (request->EntityMask & HT_CONTENT_TYPE && entity->content_type) {
-	    sprintf(linebuf, "Content-Type: %s",
-		    HTAtom_name(entity->content_type));
-	    if (entity->charset) {
-		strcat(linebuf, "; charset=");
-		strcat(linebuf, HTAtom_name(entity->charset));
-	    }
-	    if (entity->level) {
-		strcat(linebuf, "; level=");
-		strcat(linebuf, HTAtom_name(entity->level));
-	    }
-	    HTChunkPuts(header, linebuf);
-	    HTChunkPutc(header, CR);
-	    HTChunkPutc(header, LF);
-	}
-	if (request->EntityMask & HT_DERIVED_FROM && entity->derived_from) {
-	    sprintf(linebuf, "Derived-From: %s%c%c", entity->derived_from,
-		    CR, LF);
-	    HTChunkPuts(header, linebuf);
-	}
-	if (request->EntityMask & HT_EXPIRES) {
-	    if (entity->expires != -1) {
-		sprintf(linebuf, "Expires: %s%c%c",
-			HTDateTimeStr(&entity->expires, NO), CR,LF);
-		HTChunkPuts(header, linebuf);
-	    }
-	}
-	if (request->EntityMask & HT_LAST_MODIFIED) {
-	    if (entity->last_modified != -1) {
-		sprintf(linebuf, "Last-Modified: %s%c%c",
-			HTDateTimeStr(&entity->last_modified, NO), CR,LF);
-		HTChunkPuts(header, linebuf);
-	    }
-	}
-	if (request->EntityMask & HT_LINK) {		/* @@@@@@@@@@ */
-
-	}
-	if (request->EntityMask & HT_TITLE) {		/* @@@@@@@@@@ */
-
-	}
-	if (request->EntityMask & HT_URI) {		/* @@@@@@@@@@ */
-
-	}
-	if (request->EntityMask & HT_VERSION && entity->version) {
-	    sprintf(linebuf, "Version: %s%c%c", entity->version, CR, LF);
-	    HTChunkPuts(header, linebuf);
-	}
-    }
-
-    /* Put out extra information if any */
-    if (request->ExtraHeaders)
-	HTChunkPuts(header, request->ExtraHeaders);
-    
-    HTChunkPutc(header, CR);			   /* Blank line means "end" */
-    HTChunkPutc(header, LF);
-    HTChunkTerminate(header);
-    if (PROT_TRACE)
-	fprintf(TDEST, "HTTP Tx..... %s", header->data);
+    if (PROT_TRACE) fprintf(TDEST, "HTTP Tx..... %s", header->data);
 }
 
 PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
@@ -383,7 +249,8 @@ PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 	    HTTP09Request(me, me->request);
 	else
 	    HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status=PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK) {
+	if ((status = PUTBLOCK(HTChunkData(me->buffer),
+			       HTChunkSize(me->buffer))) == HT_OK) {
 	    me->transparent = YES;
 	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}
@@ -406,7 +273,8 @@ PRIVATE int HTTPRequest_put_string ARGS2(HTStream *, me, CONST char*, s)
 */
 PRIVATE int HTTPRequest_flush ARGS1(HTStream *, me)
 {
-    return HTTPRequest_put_block(me, NULL, 0);
+    int status = HTTPRequest_put_block(me, NULL, 0);
+    return status==HT_OK ? (*me->target->isa->flush)(me->target) : status;
 }
 
 /*
@@ -426,12 +294,10 @@ PRIVATE int HTTPRequest_free ARGS1(HTStream *, me)
 
 PRIVATE int HTTPRequest_abort ARGS2(HTStream *, me, HTError, e)
 {
-    if (me->target)
-	ABORT_TARGET;
+    if (me->target) (*me->target->isa->abort)(me->target, e);
     HTChunkFree(me->buffer);
     free(me);
-    if (PROT_TRACE)
-	fprintf(TDEST, "HTTPRequest. ABORTING...\n");
+    if (PROT_TRACE) fprintf(TDEST, "HTTPRequest. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -461,5 +327,5 @@ PUBLIC HTStream * HTTPRequest_new ARGS2(HTRequest *,	request,
     me->buffer = HTChunkCreate(512);
     me->version = HTDNS_serverVersion(dns);
     me->transparent = NO;
-    return me;
+    return HTMIMERequest_new(request, me);		/* @@@ */
 }

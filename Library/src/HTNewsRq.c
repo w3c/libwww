@@ -1,0 +1,190 @@
+/*								     HTNewsRq.c
+**	NNTP MESSAGE GENERATION
+**
+**	This module implements the output stream for MIME used for sending
+**	requests with or without a entity body to HTTP, NEWS, etc.
+**
+** History:
+**	Jan 95 HFN	Written
+*/
+
+/* Library Includes */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
+#include "HTParse.h"
+#include "HTTCP.h"
+#include "HTWriter.h"
+#include "HTReqMan.h"
+#include "HTChunk.h"
+#include "HTMIMERq.h"
+#include "HTNewsRq.h"					       /* Implements */
+
+#define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
+
+struct _HTStream {
+    CONST HTStreamClass *	isa;
+    HTStream *		  	target;
+    HTRequest *			request;
+    SOCKFD			sockfd;
+    HTChunk *  			buffer;
+    int				version;
+    BOOL			transparent;
+};
+
+/* ------------------------------------------------------------------------- */
+/* 			    News Output Post Stream			     */
+/* ------------------------------------------------------------------------- */
+
+/*	NewsPost_start
+**	--------------
+**	NNTP needs two extra headers: "From" and "Newsgroups".
+**	Take the newsgroups from the Postweb model as destinations for this
+**	anchor.
+**	Return YES if OK else NO
+*/
+PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
+{
+    char linebuf[128];		/* @@@ */
+    HTChunk *header = me->buffer;
+    CONST char *mailaddress = HTGetMailAddress();
+    if (mailaddress) {
+	sprintf(linebuf, "From: %s%c%c", mailaddress, CR, LF);
+	HTChunkPuts(header, linebuf);
+    }
+
+    /*
+    **	Find all the newsgroups we are posting to by looking at all the
+    **  destinations from the source of this request.
+    ** 	First the main link and then the sub links
+    */
+    HTChunkPuts(header, "Newsgroups :");    
+    if (HTRequest_isDestination(request)) {
+	HTRequest *src_req = HTRequest_source(request);
+	HTParentAnchor *src_anchor = HTRequest_anchor(src_req);
+	HTLink *link = HTAnchor_findMainLink(src_anchor);
+	HTAnchor *dest = HTAnchor_linkDest(link);
+	HTMethod method = HTAnchor_linkMethod(link);
+	if (link && method == METHOD_POST &&
+	    HTAnchor_linkResult(link) == HT_LINK_NONE) {
+	    char *desturl = HTAnchor_physical((HTParentAnchor *) dest);
+	    char *access = HTParse(desturl, "", PARSE_ACCESS);
+	    if (!strcasecomp(access, "news") || !strcasecomp(access, "nntp")) {
+		char *newsgroup = HTParse(desturl, "", PARSE_PATH);
+		HTUnEscape(newsgroup);
+		HTCleanTelnetString(newsgroup);
+		HTChunkPuts(header, newsgroup);
+		free(newsgroup);
+	    }
+	    free(access);
+	}
+
+	/* DO FOR ALL SUB ANCHOR DESTINATION S AS WELL */
+	
+    }
+    if (PROT_TRACE) fprintf(TDEST, "News Tx..... %s", HTChunkData(header));
+    return YES;
+}
+
+/*	NewsPost_end
+**	------------
+**	End the posting by CRLF.CRLF
+**	returns whatever PUT_BLOCK returns
+*/
+PRIVATE int NewsPost_end (HTStream * me)
+{
+    char buf[6];
+    *buf = CR;
+    *(buf+1) = LF;
+    *(buf+2) = '.';
+    *(buf+3) = CR;
+    *(buf+4) = LF;
+    *(buf+5) = '\0';
+    return PUTBLOCK(buf, 5);
+}
+
+PRIVATE int NewsPost_put_block (HTStream * me, CONST char* b, int l)
+{
+    if (!me->target) {
+	return HT_WOULD_BLOCK;
+    } else if (me->transparent)
+	return b ? PUTBLOCK(b, l) : HT_OK;
+    else {
+	int status;
+	NewsPost_start(me, me->request);
+	if ((status = PUTBLOCK(HTChunkData(me->buffer),
+			       HTChunkSize(me->buffer))) == HT_OK) {
+	    me->transparent = YES;
+	    return b ? PUTBLOCK(b, l) : HT_OK;
+	}
+	return status;
+    }
+}
+
+PRIVATE int NewsPost_put_character (HTStream * me, char c)
+{
+    return NewsPost_put_block(me, &c, 1);
+}
+
+PRIVATE int NewsPost_put_string (HTStream * me, CONST char * s)
+{
+    return NewsPost_put_block(me, s, strlen(s));
+}
+
+/*
+**	Flushes header but doesn't free stream object
+*/
+PRIVATE int NewsPost_flush (HTStream * me)
+{
+    return NewsPost_put_block(me, NULL, 0);
+}
+
+/*
+**	Flushes data and frees stream object
+*/
+PRIVATE int NewsPost_free (HTStream * me)
+{
+    int status;
+    if ((status = NewsPost_flush(me)) != HT_OK ||
+	(status = NewsPost_end(me)) != HT_OK ||
+	(status = (*me->target->isa->_free)(me->target)) != HT_OK)
+	return status;
+    HTChunkFree(me->buffer);
+    free(me);
+    return status;
+}
+
+PRIVATE int NewsPost_abort (HTStream * me, HTError e)
+{
+    if (me->target) (*me->target->isa->abort)(me->target, e);
+    HTChunkFree(me->buffer);
+    free(me);
+    if (PROT_TRACE) fprintf(TDEST, "NewsPost.... ABORTING...\n");
+    return HT_ERROR;
+}
+
+/*	NewsPost Stream
+**	-----------------
+*/
+PRIVATE CONST HTStreamClass NewsPostClass =
+{		
+    "NewsPost",
+    NewsPost_flush,
+    NewsPost_free,
+    NewsPost_abort,
+    NewsPost_put_character,
+    NewsPost_put_string,
+    NewsPost_put_block
+};
+
+PUBLIC HTStream * HTNewsPost_new (HTRequest * request, HTStream * target)
+{
+    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
+    if (!me) outofmem(__FILE__, "NewsPost_new");
+    me->isa = &NewsPostClass;
+    me->target = target;
+    me->request = request;
+    me->buffer = HTChunkCreate(256);
+    me->transparent = NO;
+    return HTMIMERequest_new(request, me);		/* @@@ */
+}

@@ -162,7 +162,7 @@ PRIVATE BOOL HTTPAuthentication (HTRequest * request)
 **	appropiate error message and decides whether we should expect data
 **	or not.
 */
-PRIVATE void HTTPNextState ARGS1(HTStream *, me)
+PRIVATE void HTTPNextState (HTStream * me)
 {
     switch (me->status) {
 
@@ -195,79 +195,79 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
 	
       case 400:						      /* Bad Request */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 401:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_AA;
 	break;
 	
       case 402:						 /* Payment required */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 403:							/* Forbidden */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 404:							/* Not Found */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 405:						      /* Not Allowed */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 406:						  /* None Acceptable */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NONE_ACCEPTABLE,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 407:			       	    /* Proxy Authentication Required */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PROXY,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 408:						  /* Request Timeout */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 500:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 	
       case 501:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 502:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
       case 503:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_DOWN,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 
 	/* If Retry-After header is found then return HT_RETRY else HT_ERROR */
 	if (me->request->retry_after)
@@ -278,13 +278,13 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
 
       case 504:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
-		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
         me->http->next = HTTP_ERROR;
 	break;
 
       default:						       /* bad number */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
-		   (void *) me->buffer, me->buflen, "HTLoadHTTP");
+		   (void *) me->buffer, me->buflen, "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
     }
@@ -307,7 +307,7 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
 **
 **	Return: YES if buffer should be written out. NO otherwise
 */
-PRIVATE int stream_pipe ARGS1(HTStream *, me)
+PRIVATE int stream_pipe (HTStream * me)
 {
     HTRequest *req = me->request;
     HTNet *net = req->net;
@@ -385,7 +385,7 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 **	Searches for HTTP header line until buffer fills up or a CRLF or LF
 **	is found
 */
-PRIVATE int HTTPStatus_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
+PRIVATE int HTTPStatus_put_block (HTStream * me, CONST char * b, int l)
 {
     while (!me->transparent && l-- > 0) {
 	int status;
@@ -419,22 +419,22 @@ PRIVATE int HTTPStatus_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
     return HT_OK;
 }
 
-PRIVATE int HTTPStatus_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTTPStatus_put_string (HTStream * me, CONST char * s)
 {
     return HTTPStatus_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int HTTPStatus_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTTPStatus_put_character (HTStream * me, char c)
 {
     return HTTPStatus_put_block(me, &c, 1);
 }
 
-PRIVATE int HTTPStatus_flush ARGS1(HTStream *, me)
+PRIVATE int HTTPStatus_flush (HTStream * me)
 {
     return (*me->target->isa->flush)(me->target);
 }
 
-PRIVATE int HTTPStatus_free ARGS1(HTStream *, me)
+PRIVATE int HTTPStatus_free (HTStream * me)
 {
     int status = HT_OK;
     if (me->target) {
@@ -442,10 +442,10 @@ PRIVATE int HTTPStatus_free ARGS1(HTStream *, me)
 	    return HT_WOULD_BLOCK;
     }
     free(me);
-    return HT_OK;
+    return status;
 }
 
-PRIVATE int HTTPStatus_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTTPStatus_abort (HTStream * me, HTError e)
 {
     if (me->target)
 	ABORT_TARGET;
@@ -469,8 +469,7 @@ PRIVATE CONST HTStreamClass HTTPStatusClass =
     HTTPStatus_put_block
 };
 
-PRIVATE HTStream * HTTPStatus_new ARGS2(HTRequest *, request,
-					http_info *, http)
+PRIVATE HTStream * HTTPStatus_new (HTRequest * request, http_info * http)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTTPStatus_new");
@@ -513,7 +512,11 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	http->next = HTTP_ERROR;
 	net->context = http;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
+#if 1
+	if (HTRequest_isPostWeb(request))
+#else
 	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
+#endif
 	    HTTPCleanup(request, HT_IGNORE);
 	else
 	    HTTPCleanup(request, HT_INTERRUPTED);
@@ -564,7 +567,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* Set up stream TO network */
 		request->input_stream =
-		    HTTPRequest_new(request, HTWriter_new(net, YES));
+		    HTTPRequest_new(request, HTBufWriter_new(net, YES, 512));
 
 		/*
 		** Set up concurrent read/write if this request isn't the
@@ -597,7 +600,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTNet *srcnet = request->source->net;
 		    HTEvent_Register(srcnet->sockfd, request->source,
 				     (SockOps) FD_READ,
-				     HTLoadHTTP, srcnet->priority);
+				     srcnet->cbf, srcnet->priority);
 		    return HT_OK;
 		}
 		status = request->PostCallBack ?
@@ -628,6 +631,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case HTTP_EXPIRED:
 	    /* Dirty hack and fall through */
+	    if (PROT_TRACE) fprintf(TDEST, "HTTP........ Expired\n");
 	    request->redirect = request->anchor->address;
 
 	  case HTTP_REDIRECTION:
@@ -749,7 +753,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    
 	  case HTTP_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -757,7 +762,6 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		HTTPCleanup(request, main ? HT_LOADED : HT_IGNORE);
 	    } else
 		HTTPCleanup(request, HT_LOADED);
 	    return HT_OK;
@@ -765,7 +769,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    
 	  case HTTP_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -773,7 +778,6 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		HTTPCleanup(request, main ? HT_NO_DATA : HT_IGNORE);
 	    } else
 		HTTPCleanup(request, HT_NO_DATA);
 	    return HT_OK;
@@ -781,7 +785,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    
 	  case HTTP_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link = 
@@ -790,7 +795,6 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		HTTPCleanup(request, main ? HT_RETRY : HT_IGNORE);
 	    } else
 		HTTPCleanup(request, HT_RETRY);
 	    return HT_OK;
@@ -799,7 +803,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
+			    HT_ERROR : HT_IGNORE);
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
@@ -808,7 +813,6 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		HTTPCleanup(request, main ? HT_ERROR : HT_IGNORE);
 	    } else
 		HTTPCleanup(request, HT_ERROR);
 	    return HT_OK;

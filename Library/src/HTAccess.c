@@ -335,6 +335,9 @@ PUBLIC BOOL HTSearchAbsolute (CONST char *	keywords,
 **	or POST to the remote destination using HTTP. The caller can decide the
 **	exact method used and which HTTP header fields to transmit by setting
 **	the user fields in the request structure.
+**	If posting to NNTP then we can't dispatch at this level but must pass
+**	the source anchor to the news module that then takes all the refs
+**	to NNTP and puts into the "newsgroups" header
 **	Returns YES if request accepted, else NO
 */
 PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)

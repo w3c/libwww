@@ -32,17 +32,15 @@ struct _HTStream {
 
 /* ------------------------------------------------------------------------- */
 
-/*
-**  Converter from CRLF to \n
-**  -------------------------
-**  The input is assumed to be in local representation with lines
-**  delimited by (CR,LF) pairs in the local representation.
-**  The conversion to local representation is always done in HTSocket.c
-**  The (CR,LF) sequence when found is changed to a '\n' character,
-**  the internal C representation of a new line.
-**
+/*	Converter from CRLF to \n
+**	-------------------------
+**	The input is assumed to be in local representation with lines
+**	delimited by (CR,LF) pairs in the local representation.
+**	The conversion to local representation is always done in HTSocket.c
+**	The (CR,LF) sequence when found is changed to a '\n' character,
+**	the internal C representation of a new line.
 */
-PRIVATE int NetToText_put_block ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int NetToText_put_block (HTStream * me, CONST char * s, int l)
 {
     int status;
     if (!me->start)
@@ -69,65 +67,68 @@ PRIVATE int NetToText_put_block ARGS3(HTStream *, me, CONST char*, s, int, l)
     return HT_OK;
 }
 
-PRIVATE int NetToText_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int NetToText_put_character (HTStream * me, char c)
 {
     return NetToText_put_block(me, &c, 1);
 }
 
-PRIVATE int NetToText_put_string ARGS2(HTStream *, me, CONST char *, s)
+PRIVATE int NetToText_put_string (HTStream * me, CONST char * s)
 {    
     return NetToText_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int NetToText_flush ARGS1(HTStream *, me)
+PRIVATE int Net_flush (HTStream * me)
 {
-    return me->target->isa->flush(me->target);
+    return me->target ? (*me->target->isa->flush)(me->target) : HT_OK;
 }
 
-PRIVATE int NetToText_free ARGS1(HTStream *, me)
+PRIVATE int Net_free (HTStream * me)
 {
-    me->target->isa->_free(me->target);		       /* Close rest of pipe */
+    int status = HT_OK;
+    if (me->target) {
+	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
+	    return HT_WOULD_BLOCK;
+    }
     free(me);
-    return HT_OK;
+    return status;
 }
 
-PRIVATE int NetToText_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int Net_abort (HTStream * me, HTError e)
 {
-    me->target->isa->abort(me->target,e);	       /* Abort rest of pipe */
+    if (me->target)
+	(*me->target->isa->abort)(me->target, e);
     free(me);
     return HT_ERROR;
 }
 
 PRIVATE HTStreamClass NetToTextClass = {
     "NetToText",
-    NetToText_flush,
-    NetToText_free,
-    NetToText_abort,
+    Net_flush,
+    Net_free,
+    Net_abort,
     NetToText_put_character,
     NetToText_put_string,
     NetToText_put_block
 };
 
-PUBLIC HTStream * HTNetToText ARGS1(HTStream *, target)
+PUBLIC HTStream * HTNetToText (HTStream * target)
 {
-    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
+    HTStream* me = (HTStream *) calloc(1, sizeof(HTStream));
     if (me == NULL) outofmem(__FILE__, "NetToText");
     me->isa = &NetToTextClass;
-    
     me->had_cr = NO;
     me->target = target;
     return me;
 }
 
-/*
-**  Converter from \n to CRLF
-**  -------------------------
-**  The input is assumed to be in local representation with lines
-**  delimited by \n. The \n when found is changed to a CRLF sequence,
-**  the network representation of a new line.
-**  Conversion: '\r' is stripped and \n => CRLF
+/*	Converter from \n to CRLF
+**	-------------------------
+**	The input is assumed to be in local representation with lines
+**	delimited by \n. The \n when found is changed to a CRLF sequence,
+**	the network representation of a new line.
+**	Conversion: '\r' is stripped and \n => CRLF
 */
-PRIVATE int TextToNet_put_block ARGS3(HTStream *, me, CONST char*, b, int, len)
+PRIVATE int TextToNet_put_block (HTStream * me, CONST char* b, int len)
 {
     int status;
     CONST char *limit = b+len;
@@ -156,53 +157,36 @@ PRIVATE int TextToNet_put_block ARGS3(HTStream *, me, CONST char*, b, int, len)
     return HT_OK;
 }
 
-PRIVATE int TextToNet_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int TextToNet_put_character (HTStream * me, char c)
 {
     return TextToNet_put_block(me, &c, 1);
 }
 
-PRIVATE int TextToNet_put_string ARGS2(HTStream *, me, CONST char *, s)
+PRIVATE int TextToNet_put_string (HTStream * me, CONST char * s)
 {    
     return TextToNet_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int TextToNet_flush ARGS1(HTStream *, me)
-{
-    return me->target->isa->flush(me->target);
-}
-
-PRIVATE int TextToNet_free ARGS1(HTStream *, me)
-{
-    me->target->isa->_free(me->target);		       /* Close rest of pipe */
-    free(me);
-    return HT_OK;
-}
-
-PRIVATE int TextToNet_abort ARGS2(HTStream *, me, HTError, e)
-{
-    me->target->isa->abort(me->target,e);	       /* Abort rest of pipe */
-    free(me);
-    return HT_ERROR;
-}
-
 PRIVATE HTStreamClass TextToNetClass = {
     "TextToNet",
-    TextToNet_flush,
-    TextToNet_free,
-    TextToNet_abort,
+    Net_flush,
+    Net_free,
+    Net_abort,
     TextToNet_put_character,
     TextToNet_put_string,
     TextToNet_put_block
 };
 
-PUBLIC HTStream * HTTextToNet ARGS1(HTStream *, target)
+PUBLIC HTStream * HTTextToNet (HTStream * target)
 {
-    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
+    HTStream* me = (HTStream *) calloc(1, sizeof(HTStream));
     if (me == NULL) outofmem(__FILE__, "TextToNet");
     me->isa = &TextToNetClass;
-    
     me->had_cr = NO;
     me->target = target;
     return me;
 }
+
+
+
 

@@ -131,7 +131,8 @@ PUBLIC void HTAccessInit (void)
 {
 #ifndef DECNET
     HTProtocol_add("ftp", NO, HTLoadFTP);
-    HTProtocol_add("nntp", YES, HTLoadNews);
+    HTProtocol_add("nntp", NO, HTLoadNews);
+    HTProtocol_add("news", NO, HTLoadNews);
     HTProtocol_add("gopher", NO, HTLoadGopher);
 #ifdef HT_DIRECT_WAIS
     HTProtocol_add("wais", YES, HTLoadWAIS);

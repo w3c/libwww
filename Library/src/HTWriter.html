@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket Writer Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -33,15 +33,45 @@ Reference Library</A>. <P>
 
 #include "HTStream.h"
 #include "HTNet.h"
+</PRE>
 
+<H2>Unbuffered output</H2>
+
+This is a non-buffered output stream which remembers state using the
+write_pointer. As normally we have a big buffer somewhere else in the
+stream chain an extra output buffer will often not be needed. There is
+also a small buffer stream that can be used if this is not the case.
+
+<PRE>
 extern HTStream * HTWriter_new (HTNet *net, BOOL leave_open);
+</PRE>
 
+<H2>Buffered Output</H2>
+
+This is a buffer output stream writing to a socket. However, it uses a
+"one-time" buffer in that you can specify the total amount of bytes to
+be buffered. From that point it goes into transparent mode. If
+buf_size > 0 then we set up buffered output used for at most buf_size
+bytes. Otherwise we'll use nonbuffered output.
+
+<PRE>
+extern HTStream * HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size);
+</PRE>
+
+<H2>ASCII Stream Converter</H2>
+
+If you are on a non-ASCII machine then this stream converts to ASCII
+before data is written to the socket.
+
+<PRE>
 #ifdef NOT_ASCII
 extern HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open);
 #endif
 
 #endif
 </PRE>
-end
+
+End of socket stream declaration
+
 </BODY>
 </HTML>

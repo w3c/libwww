@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>CRLF Stripper Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Oct-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -20,16 +20,15 @@ passing it into a stream which expects text in the local C
 representation.  It does newline conversion.  As usual, pass its
 output stream to it when creating it. <P>
 
-This module is implemented by <A HREF="HTNetTxt.c">HTNetTxt.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+This module is implemented by <A HREF="HTNetTxt.c">HTNetTxt.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTNETTXT_H
 #define HTNETTXT_H
 
-extern HTStream * HTNetToText PARAMS ((HTStream * sink));
+extern HTStream * HTNetToText (HTStream * target);
 
 #endif
 </PRE>

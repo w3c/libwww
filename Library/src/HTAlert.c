@@ -296,10 +296,10 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		break;
 	}
     }
-    HTChunkPutc(chunk,  '\n');
-    HTChunkTerminate(chunk);
-    if (HTChunkSize(chunk) > 2)
+    if (HTChunkSize(chunk)) {
+	HTChunkPutc(chunk, '\n');
 	HTAlert(request, HTChunkData(chunk));
+    }
     HTChunkFree(chunk);
     return;
 }
