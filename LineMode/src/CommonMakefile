@@ -91,7 +91,7 @@ SPECIFIC =  \
 include $(ABS)$(LM)Version.make
 
 $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
-	purify -cache-dir=./ $(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(WWWLIB) $(WAISLIB) $(LFLAGS)
+	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(WWWLIB) $(WAISLIB) $(LFLAGS)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 

@@ -174,10 +174,24 @@ extern HTStyleSheet * styleSheet;
 #endif
 #endif
 
-#define INFINITY		1024		/*!! BUG*/
-#define ADDRESS_LENGTH		INFINITY	/* Maximum address length of node */
+#define INFINITY		1024		                     /*!! BUG*/
+#define ADDRESS_LENGTH		INFINITY   /* Maximum address length of node */
 #define TITLE_LENGTH		INFINITY	/* Maximum length of a title */
-#define RESPONSE_LENGTH		INFINITY	/* Maximum length of users response */
+#define RESPONSE_LENGTH		INFINITY /* Maximum length of users response */
+
+#ifndef MAXPATHLEN
+#define NO_GETWD                      /* Assume no  getwd() if no MAXPATHLEN */
+#else
+extern char * getwd();
+#endif
+
+#ifdef HAS_GETCWD	               	   /* May be defined on command line */
+extern char * getcwd();
+#endif
+
+#ifndef NO_GETPID			 /* May be defined from command line */
+extern int getpid();
+#endif
 
 /*	Public Variables
 **	================
@@ -193,7 +207,7 @@ PUBLIC  BOOL display_anchors = YES;	         /* anchor will be shown in text? */
 PRIVATE  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
 PRIVATE  char * output_file_name = NULL;    /* -o xxxx */
 					   
-PUBLIC char * start_reference = NULL;       /* Format string for start anchor */
+PUBLIC char * start_reference = NULL;      /* Format string for start anchor */
 PUBLIC char * end_reference = REF_MARK;     /* for end anchor */
 PUBLIC char * reference_mark = "[%d] ";     /* for reference lists */
 PRIVATE char * refhead = DEFAULT_REF_HEAD;  /* Reference list heading */
@@ -301,7 +315,6 @@ int main
     BOOL argument_found = NO;
     BOOL logfile_flag = NO;
     BOOL first_keyword = YES;
-    BOOL default_used = NO;	 /* Fell back on home page? */
     char* default_default=0;	 /* Parse home relative to this */
 
 #if defined(ultrix) || defined(__osf__)
@@ -339,7 +352,6 @@ int main
 
     {
 	char wd[1024];			/*!! Arbitrary*/
-	extern char * getcwd();
 	char * result = getcwd(wd, sizeof(wd)); 
 	if (result) {
 
@@ -377,7 +389,6 @@ int main
 #else   /* has getwd */
 	{
       	    char wd[MAXPATHLEN];
-	    extern char * getwd();
       	    char * result = getwd(wd);
 	    if (result) {
 	        StrAllocCat(default_default, wd);
@@ -1226,6 +1237,7 @@ find:	       	if (next_word && HTSearch(other_words, HTMainAnchor, request))
 	    }
 #ifdef unix
 	    else if (Check_User_Input ("LCD")) {       /* Local change dir ? */
+	    extern int chdir();
 lcd:	        if (!next_word) {                        /* Missing argument */
                     printf ("\nPlease specify the name of the new local directory.\n");
 		    goto ret;
@@ -1241,10 +1253,10 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 		    printf ("\nLocal directory is now:\n %s\n",
 			    getcwd (choice, sizeof(choice)));
 #else   /* has NO getcwd */
-		    ErrMsg("HTBrowse: This platform does not support getwd() or getcwd()", NULL);
+		    ErrMsg("This platform does not support getwd() or getcwd()", NULL);
 #endif	/* has no getcwd */
 #else   /* has getwd */
-		    printf ("\nLocal directory is now:\n %s\n", getwd (choice));
+		    printf("\nLocal directory is now:\n %s\n", getwd (choice));
 #endif  /* has getwd */
 		    /* End AS Sep 93 */
 		}
@@ -1484,9 +1496,8 @@ lcd:	        if (!next_word) {                        /* Missing argument */
         }	/* Switch on 1st character */
 	
 	if (is_index && *this_word) {        /* No commands, search keywords */
-	    if (HTSearch(this_command + (this_word - choice),
-			 HTMainAnchor, request))
-		HTHistory_record((HTAnchor*)HTMainAnchor);
+	    next_word = other_words = this_command;
+	    goto find;
 	} else {             
 	    Error_Selection();
 	}
