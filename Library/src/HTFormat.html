@@ -260,14 +260,22 @@ A <CODE>presenter</CODE> is a module (possibly an external program) which
 can present a graphic object of a certain MIME type to the user. That is,
 <CODE>presenters</CODE> are normally used to present objects that the
 <CODE>converters</CODE> are not able to handle. Data is transferred to the
-external program using for example the
-<A HREF="HTFWrite.html">HTSaveAndExecute</A> stream which writes to a local
-file. Both presenters and converters are of the type
+external program using a special "presenter stream" which for example can
+use the local disk to transfer the data from libwww to the external program.
+<P>
+Libwww provides a default <A HREF="HTFWrite.html">HTSaveAndExecute</A>
+stream which you may want to use for this purpose. However, any stream
+that is of type <CODE>HTConverter</CODE> will do. You can manage the
+special presenter stream using the following methods:
+<PRE>
+extern void HTPresentation_setConverter (HTConverter * pconv);
+extern HTConverter * HTPresentation_converter (void);
+</PRE>
+Both presenters and converters are of the type
 <A HREF="#converter">HTConverter</A>.
 <PRE>
 extern void HTPresentation_add (HTList *	conversions,
-</PRE>
-<PRE>				const char * 	representation,
+				const char * 	representation,
 				const char * 	command,
 				const char * 	test_command,
 				double		quality,

@@ -34,6 +34,8 @@ PRIVATE HTList * HTLanguages = NULL;
 
 PRIVATE double HTMaxSecs = 1e10;		/* No effective limit */
 
+PRIVATE HTConverter * presentation_converter = NULL;
+
 struct _HTStream {
     const HTStreamClass *	isa;
 };
@@ -152,6 +154,16 @@ PUBLIC HTStream * HTIdentityCoding (HTRequest *	request,
 /* 	  			CONTENT TYPES				     */
 /* ------------------------------------------------------------------------- */
 
+PUBLIC void HTPresentation_setConverter (HTConverter * pconv)
+{
+    presentation_converter = pconv;
+}
+
+PUBLIC HTConverter * HTPresentation_converter (void)
+{
+    return presentation_converter;
+}
+
 /*	Define a presentation system command for a content-type
 **	-------------------------------------------------------
 ** INPUT:
@@ -171,24 +183,25 @@ PUBLIC void HTPresentation_add (HTList *	conversions,
 				double		secs_per_byte)
 {
     HTPresentation * pres;
-    if ((pres = (HTPresentation  *) HT_CALLOC(1,sizeof(HTPresentation))) == NULL)
-        HT_OUTOFMEM("HTSetPresentation");
-    
-    pres->rep = HTAtom_for(representation);
-    pres->rep_out = WWW_PRESENT;		/* Fixed for now ... :-) */
-    pres->converter = HTSaveAndExecute;		/* Fixed for now ...     */
-    pres->quality = quality;
-    pres->secs = secs;
-    pres->secs_per_byte = secs_per_byte;
-    pres->rep = HTAtom_for(representation);
-    pres->command = NULL;
-    StrAllocCopy(pres->command, command);
-    pres->test_command = NULL;
-    StrAllocCopy(pres->test_command, test_command);
-    if (CORE_TRACE)
-	HTTrace("Presentation Adding `%s\' with quality %.2f\n",
-		command, quality);
-    HTList_addObject(conversions, pres);
+    if (presentation_converter) {
+	if ((pres = (HTPresentation  *) HT_CALLOC(1,sizeof(HTPresentation))) == NULL)
+	    HT_OUTOFMEM("HTSetPresentation");
+        pres->rep = HTAtom_for(representation);
+	pres->rep_out = WWW_PRESENT;		/* Fixed for now ... :-) */
+	pres->converter = presentation_converter;
+	pres->quality = quality;
+	pres->secs = secs;
+	pres->secs_per_byte = secs_per_byte;
+	pres->rep = HTAtom_for(representation);
+	pres->command = NULL;
+	StrAllocCopy(pres->command, command);
+	pres->test_command = NULL;
+	StrAllocCopy(pres->test_command, test_command);
+	if (CORE_TRACE)
+	    HTTrace("Presentation Adding `%s\' with quality %.2f\n",
+		    command, quality);
+	HTList_addObject(conversions, pres);
+    }
 }
 
 PUBLIC void HTPresentation_deleteAll (HTList * list)
