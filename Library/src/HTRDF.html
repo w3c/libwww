@@ -384,12 +384,11 @@ extern HTConverter HTRDFToTriples;
 This function parses a file of RDF in a synchronous, non-blocking
 way.  In other words, the file is not asynchronously loaded.  
 
-Returns NULL if the file is successfully parsed; otherwise a 
-pointer to a static error message is returned.  The caller must NOT 
-free the pointer returned by this function.
+Returns YES if the file is successfully parsed; otherwise NO is
+returned and an error message is logged. 
 <PRE>
-extern char * HTRDF_parseFile (const char *file_name, 
-                               HTTripleCallback_new * new_triple_callback);
+extern BOOL HTRDF_parseFile (const char *file_name, 
+                             HTTripleCallback_new * new_triple_callback);
 </PRE>
 <H3>
   Parse a buffer of RDF
@@ -400,14 +399,13 @@ This function parses a buffer of RDF in a synchronous, non-blocking way.
 If new_triple_callback is NULL, the default triple handler is 
 invoked.   
 
-Returns NULL if the buffer is successfully parsed; otherwise a 
-pointer to a static error message is returned.  The caller must NOT
-free the pointer returned by this function.
+Returns YES if the buffer is successfully parsed; otherwise NO is
+returned and an error message is logged. 
 <PRE>
-PUBLIC char * HTRDF_parseBuffer (const char *buffer, 
-		                 const char *buffer_name, 
-                                 int buffer_len, 
-                                 HTTripleCallback_new * new_triple_callback);
+extern BOOL HTRDF_parseBuffer (const char *buffer, 
+		               const char *buffer_name, 
+                               int buffer_len, 
+                               HTTripleCallback_new * new_triple_callback);
 </PRE>
 
 <PRE>
