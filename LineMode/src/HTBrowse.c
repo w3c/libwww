@@ -1916,6 +1916,7 @@ int main (int argc, char ** argv)
 	HTPresenterInit(lm->presenters);
 	HTRequest_setConversion(request, lm->presenters, NO);
     } else {
+
 	/*
 	** Add default content decoder. We insert a through line as it doesn't
 	** matter that we get an encoding that we don't know when not in
