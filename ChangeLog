@@ -1,5 +1,11 @@
 Changes with libwww 5.3.3
-	
+
+2001-08-14	Jose Kahan <jose@w3.org>
+
+	* HTProfile_newPreemptiveClient wasn't intializing the 
+	  default event loop in all cases (bug reported by
+	  Olivier Steinau).
+
 2001-03-14	Jose Kahan <jose@w3.org>
 
 	* Digest authentication didn't work well with pipelining requests.
