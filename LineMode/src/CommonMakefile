@@ -274,7 +274,10 @@ $(FTP)/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 	    $(DISTRIBUTION) \
 	    $(SPECIFIC) \
 	    $(LM)*.html
+	cp $(FTP)/src/WWWLineMode_$(VL).tar $(FTP)/src/temp.tar
 	compress -f $(FTP)/src/WWWLineMode_$(VL).tar
+	mv $(FTP)/src/temp.tar $(FTP)/src/WWWLineMode_$(VL).tar
+	gzip -f $(FTP)/src/WWWLineMode_$(VL).tar
 
 zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
