@@ -27,12 +27,12 @@ the <CODE>WWW</CODE> directory:
 
 <OL>
 
-<LI>Download the patch, for example <EM>lmb-1.patch</EM>
+<LI>Download the patch, for example <EM>lmb-1.fix</EM>
 
 <LI>Invoke the patch command by typing 
 
 <PRE>
-	patch &lt; lmb-1.patch
+	patch &lt; lmb-1.fix
 </PRE>
 
 <LI>Rebuild the code by typing
@@ -55,7 +55,7 @@ for user input. If the browser is run as a cron job then STDIN comes
 from <CODE>/dev/null</CODE> which always returns ready for reading in
 a select call. Line Mode browser then thinks that the user has
 interrupted the request and exists. Apply <A
-HREF="Patch/lmb-1.patch">this patch</A> in order to avoid the problem.
+HREF="Patch/lmb-1.fix">this patch</A> in order to avoid the problem.
 
 </DL>
 
