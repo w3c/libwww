@@ -9,6 +9,8 @@ webbot_LDADD = ../../Library/src/libwww.a -lm
 webbot_DEPENDENCIES = \
 	../../Library/src/libwww.a
 
+SUBDIRS = windows
+
 INCLUDES = -I$(srcdir)/../../Library/src
 
 #	.h files are distributed but originally are made from the
