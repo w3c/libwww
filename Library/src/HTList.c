@@ -81,6 +81,33 @@ PUBLIC BOOL HTList_removeObject (HTList * me, void * oldObject)
     return NO;			/* object not found or NULL list */
 }
 
+PUBLIC HTList * HTList_addList (HTList * me, void * newObject)
+{
+    if (me) {
+	HTList *newNode;
+	if ((newNode = (HTList  *) HT_CALLOC(1, sizeof(HTList))) == NULL)
+	    HT_OUTOFMEM("HTList_addObject");
+	newNode->object = newObject;
+	newNode->next = me->next;
+	me->next = newNode;
+	return newNode;
+    } else {
+	HTTRACE(CORE_TRACE, "HTList...... Can not add object %p to nonexisting List\n" _ newObject);
+    }
+    return (HTList *) NULL;
+}
+
+PUBLIC HTList * HTList_appendList (HTList * me, void *newObject)
+{
+    if (me) {
+	while (me->next) 
+	    me = me->next;
+	return HTList_addList(me, newObject);
+    }
+    return (HTList *) NULL;
+}
+
+
 PUBLIC BOOL HTList_quickRemoveElement (HTList * me, HTList * last)
 {
     if (me && last) {
