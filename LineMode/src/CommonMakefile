@@ -43,11 +43,12 @@ LM  = $(WWW)/LineMode/Implementation/
 DOC = $(WWW)/LineMode/Defaults
 ICON= $(WWW)/Icons
 BIN = $(WWW)/LineMode/$(WWW_MACH)
+LIBWWW = $(LIB)/libwww.a
 PROD= www
 FTP = /afs/w3.org/devel/Dist/linemode
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
-LFLAGS2 = $(LFLAGS) -L$(LIB) -lwww
+LFLAGS2 = $(LFLAGS) -L$(LIB) $(WAISLIB) $(MATHLIB) -lwww
 
 #	memory leak checkers
 PROOF = proof
@@ -100,6 +101,7 @@ DOCS =	$(LM)*.html \
 SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
+	$(DOC)/Patch/*.fix \
 	$(LM)DefaultStyles.c.classic \
 	$(LM)DefaultStyles.c.modern \
 	$(LM)vms/descrip.mms \
@@ -114,32 +116,30 @@ TOTAL =	$(LEGAL) \
 	$(DOCS) \
 	$(SPECIFIC)
 
-$(BIN)/$(PROD) : $(OBJS) $(LIB)/libwww.a
-	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS2) \
-	$(WAISLIB) $(MATHLIB)
+all : inc $(BIN)/$(PROD)
+
+$(BIN)/$(PROD) : $(OBJS) $(LIBWWW)
+	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS2)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
-purify : $(OBJS) $(LIB)/libwww.a
+purify : $(OBJS) $(LIBWWW)
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS2) \
-	$(WAISLIB) $(MATHLIB)
+	$(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS2)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
-proof : $(OBJS) $(LIB)/libwww.a
-	$(PROOF) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS2) \
-	$(WAISLIB) $(MATHLIB)
+proof : $(OBJS) $(LIBWWW)
+	$(PROOF) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS2)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
-cyrillic : $(OBJS-CYR) $(LIB)/libwww.a
-	$(CC) -o $(PROD)_$(VL) $(OBJS) $(OBJ)/a_stdio.o $(LFLAGS2) \
-	$(WAISLIB) $(MATHLIB)
+cyrillic : $(OBJS-CYR) $(LIBWWW)
+	$(CC) -o $(PROD)_$(VL) $(OBJS) $(OBJ)/a_stdio.o $(LFLAGS2)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
-$(LIB)/libwww.a :
+$(LIBWWW) :
 	@echo You must get and make the WWWLibrary product first!
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
@@ -180,7 +180,7 @@ cleanall : clean
 
 #		Distribution use only:
 #		----------------------
-distribute : $(LEGAL) $(SOURCES)
+distribute : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
@@ -188,15 +188,15 @@ distribute : $(LEGAL) $(SOURCES)
 	(cd $(WWW); cvs tag \
 	    `sed -e 's/V. = /v/' LineMode/Implementation/Version.make | sed -e 's?\.?/?'` \
 	    LineMode)
-	@echo Distribution of Line Mode version $(VC) up to date.
+	@echo Distribution of Line Mode version $(VL) up to date.
 
 #	Source Snapshot
-snapshot : $(LEGAL) $(SOURCES)
+snapshot : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
 	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
-	@echo Snapshot of Line Mode version $(VC) up to date.
+	@echo Snapshot of Line Mode version $(VL) up to date.
 
 $(FTP)/$(PROD)_$(VL)_src.tar.Z : $(SOURCES)
 	tar cvf $(FTP)/$(PROD)_$(VL)_src.tar $(TOTAL)

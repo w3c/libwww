@@ -39,7 +39,7 @@
 **	-----------------------------------------------------
 **	Function taken from Mosaic's HTTelnet.c.
 */
-PRIVATE void make_system_secure ARGS1(char *, str)
+PRIVATE void make_system_secure (char * str)
 {
     char *ptr1, *ptr2;
     if ((str == NULL)||(*str == '\0'))
@@ -71,7 +71,7 @@ PRIVATE void make_system_secure ARGS1(char *, str)
 **	Returns	HT_NO_DATA	OK
 **		HT_ERROR	Error
 */
-PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
+PRIVATE int remote_session (HTRequest * request, char * url)
 {
     int status = HT_NO_DATA;
     HTChunk *cmd = HTChunkCreate(64);
@@ -276,7 +276,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 **	returns		HT_ERROR	Error has occured or interrupted
 **			HT_NO_DATA	if return status 204 No Response
 */
-PUBLIC int HTLoadTelnet ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
+PUBLIC int HTLoadTelnet (SOCKET soc, HTRequest * request, SockOps ops)
 {
     char *url = HTAnchor_physical(request->anchor);
 

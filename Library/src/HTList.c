@@ -14,7 +14,7 @@
 #include "HTUtils.h"
 #include "HTList.h"
 
-HTList * HTList_new NOARGS
+HTList * HTList_new (void)
 {
   HTList *newList = (HTList *)malloc (sizeof (HTList));
   if (newList == NULL) outofmem(__FILE__, "HTList_new");
@@ -23,7 +23,7 @@ HTList * HTList_new NOARGS
   return newList;
 }
 
-void HTList_delete ARGS1(HTList *,me)
+void HTList_delete (HTList * me)
 {
   HTList *current;
   while ((current = me)) {
@@ -32,7 +32,7 @@ void HTList_delete ARGS1(HTList *,me)
   }
 }
 
-BOOL HTList_addObject ARGS2(HTList *,me, void *,newObject)
+BOOL HTList_addObject (HTList * me, void * newObject)
 {
     if (me) {
 	HTList *newNode = (HTList *)malloc (sizeof (HTList));
@@ -50,7 +50,7 @@ BOOL HTList_addObject ARGS2(HTList *,me, void *,newObject)
     return NO;
 }
 
-BOOL HTList_removeObject ARGS2(HTList *, me, void *, oldObject)
+BOOL HTList_removeObject (HTList *  me, void *  oldObject)
 {
     if (me) {
 	HTList *previous;
@@ -67,7 +67,7 @@ BOOL HTList_removeObject ARGS2(HTList *, me, void *, oldObject)
     return NO;			/* object not found or NULL list */
 }
 
-void * HTList_removeLastObject ARGS1 (HTList *,me)
+void * HTList_removeLastObject  (HTList * me)
 {
   if (me && me->next) {
     HTList *lastNode = me->next;
@@ -79,7 +79,7 @@ void * HTList_removeLastObject ARGS1 (HTList *,me)
     return NULL;
 }
 
-void * HTList_removeFirstObject ARGS1 (HTList *,me)
+void * HTList_removeFirstObject  (HTList * me)
 {
   if (me && me->next) {
     HTList * prevNode;
@@ -96,7 +96,7 @@ void * HTList_removeFirstObject ARGS1 (HTList *,me)
     return NULL;
 }
 
-int HTList_count ARGS1 (HTList *,me)
+int HTList_count  (HTList * me)
 {
   int count = 0;
   if (me)
@@ -105,7 +105,7 @@ int HTList_count ARGS1 (HTList *,me)
   return count;
 }
 
-int HTList_indexOf ARGS2(HTList *,me, void *,object)
+int HTList_indexOf (HTList * me, void * object)
 {
   if (me) {
     int position = 0;
@@ -118,7 +118,7 @@ int HTList_indexOf ARGS2(HTList *,me, void *,object)
   return -1;  /* Object not in the list */
 }
 
-void * HTList_objectAt ARGS2 (HTList *,me, int,position)
+void * HTList_objectAt  (HTList * me, int position)
 {
   if (position < 0)
     return NULL;
@@ -133,7 +133,7 @@ void * HTList_objectAt ARGS2 (HTList *,me, int,position)
 }
 
 
-void * HTList_removeObjectAt ARGS2 (HTList *,me, int,position)
+void * HTList_removeObjectAt  (HTList * me, int position)
 {
   if (position < 0)
     return NULL;

@@ -53,6 +53,7 @@
 */
 
 #include "WWWLib.h"			      /* Global Library Include file */
+#include "WWWApp.h"			      /* Global Library Include file */
 #include "HTFile.h"				/* Specific protocol modules */
 #include "HTBrowse.h"			     /* Things exported, short names */
 #include "GridText.h"				     /* Hypertext definition */
@@ -61,6 +62,9 @@
 #ifndef VL
 #define VL "unspecified"
 #endif
+
+#define LMB_NAME		"W3CLineMode"
+#define LMB_VERSION		VL
 
 /* Default page for "Manual" command */
 #define MANUAL	"http://www.w3.org/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
@@ -111,9 +115,6 @@
 struct ARc arc;
 #endif
 
-/* These must be defined as they are used in the Library */
-PUBLIC char *		HTAppName = "W3CLineMode";   /* Application name */
-PUBLIC char *		HTAppVersion = VL;            /* Application version */
 
 /* Screen size parameters */
 PUBLIC int		HTScreenWidth   = SCREEN_WIDTH;	       /* By default */
@@ -138,6 +139,9 @@ PRIVATE	HTList *	reqlist = NULL;		  /* List of active requests */
 PRIVATE HTParentAnchor*	home_anchor = NULL;	    /* First document anchor */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
 PRIVATE FILE *	        output = stdout;	   /* Destination for output */
+
+PRIVATE HTList *	converters = NULL;
+PRIVATE HTList *	presenters = NULL;
 
 /* History Management */
 PRIVATE HTHistory *	hist = NULL;			     /* History list */
@@ -198,7 +202,7 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
     if (!reqlist) reqlist = HTList_new();
     HTRequest_setContext(newreq, (void *) HTContext_new());
     if (Interactive)
-	HTPresenterInit(newreq->conversions);		/* Set up local list */
+	HTRequest_setConversion(newreq, presenters, NO);
     if (Blocking)
 	HTRequest_setPreemtive(newreq, YES);
     HTList_addObject(reqlist, (void *) newreq);
@@ -1001,9 +1005,18 @@ int main ARGS2(int, argc, char **, argv)
     char *	outputfile = NULL;		 	 	  /* -o xxxx */
     char *	rulefile = NULL;
 
-    HTLibInit();			   /* Start up W3C Reference Library */
+    /* Bootstrap libwww and initialize the streams and protocol modules */
+    HTLibInit(LMB_NAME, LMB_VERSION);	   /* Start up W3C Reference Library */
+    HTAccessInit();			  /* Initialize the protocol modules */
+    HTFileInit();		     /* Bind file extensions and media types */
     HTStdIconInit(NULL);				 /* Initialize icons */
     HTProxy_getEnvVar();		   /* Read the environment variables */
+
+    converters = HTList_new();
+    HTConverterInit(converters);		       /* Set up global list */
+    HTFormat_setConversion(converters);
+
+    request =  HTRequest_new();        /* Create the first request structure */
 
 #ifdef GUSI				   /* Starts Mac GUSI socket library */
     GUSISetup(GUSIwithSIOUXSockets);
@@ -1025,8 +1038,6 @@ int main ARGS2(int, argc, char **, argv)
 #ifdef CYRILLIC
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
-
-    request =  HTRequest_new();        /* Create the first request structure */
 
     for (arg=1; arg<argc ; arg++) {	   /* Check for command line options */
 	if (*argv[arg] == '-') {
@@ -1298,6 +1309,12 @@ int main ARGS2(int, argc, char **, argv)
     }
 
     /* Do remaining Initialization */
+    if (HTPrompt_interactive()) {
+	presenters = HTList_new();
+	HTPresenterInit(presenters);		       /* Local list */
+	HTRequest_setConversion(request, presenters, NO);
+    }
+
 #ifdef CATCH_SIG
     SetSignal();
 #endif
@@ -1328,11 +1345,6 @@ int main ARGS2(int, argc, char **, argv)
 	}
     }
 #endif
-
-    /* Force predefined presentations etc to be set up  */
-    HTConverterInit(HTConversions);		       /* Set up global list */
-    if (HTPrompt_interactive())
-	HTPresenterInit(request->conversions);		       /* Local list */
 
     /* Open output file */
     if (!HTPrompt_interactive()) {
@@ -1467,11 +1479,13 @@ endproc:
 	    HTList_delete(hyperdocs);
 	}
     }
-    HTLibTerminate();
     if (HTPrompt_interactive())	   /* Terminate with a LF if not interactive */
 	printf("\n");
     else
 	HTRequest_delete(request);
+    HTFormat_deleteAll();
+    HTPresenter_deleteAll(presenters);
+    HTLibTerminate();
 #ifdef VMS
     return status ? status : 1;
 #else

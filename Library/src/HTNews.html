@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>NNTP Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 21-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -26,14 +26,36 @@ Reference Library</A>.
 #define HTNEWS_H
 #include "HTEvntrg.h"
 
+#define MAX_NEWS_LINE		384		 /* Don't use more than this */
+
 extern HTEventCallBack HTLoadNews;
-
-#define MAX_NEWS_LINE		128		 /* Don't use more than this */
-#define MAX_NEWS_ARTICLES	100		   /* Max number of articles */
-
-#endif /* HTNEWS_H */
-
 </PRE>
+
+<H2>Setting Number of Articles to Show</H2>
+
+You can set the number of news articles to be shown at a time. Default is 100
+
+<PRE>
+extern BOOL HTNews_setMaxArticles (int new_max);
+extern int HTNews_maxArticles (void);
+</PRE>
+
+<H2>Handling the News Host</H2>
+
+The default news host is "news" but you can get ans set the value here.
+
+<PRE>
+extern BOOL HTNews_setHost (CONST char * newshost);
+extern CONST char *HTNews_host (void);
+extern void HTFreeNewsHost (void);
+</PRE>
+
+<PRE>
+#endif /* HTNEWS_H */
+</PRE>
+
+End of News declaration
+
 </BODY>
 </HTML>
 

@@ -51,6 +51,8 @@
 #define SERVER_FILE		"/usr/local/lib/rn/server"
 #endif
 
+#define MAX_NEWS_ARTICLES	100		   /* Max number of articles */
+
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)	     (me->target, b, l)
 #define ABORT_TARGET    (*me->target->isa->abort)            (me->target, e)
 

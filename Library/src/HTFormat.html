@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Oct-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -24,7 +24,8 @@ this module is:
 
 <UL>
 <LI><A HREF="#converter">Converters</A>
-<LI><A HREF="#user">Global Preferences (media type, language, charset etc.)</A>
+<LI><A HREF="#user">Generic preferences (media type, language, charset etc.)</A>
+<LI><A HREF="#global">Global Preferences</A>
 <LI><A HREF="#Rank">Content Negotiation</A>
 <LI><A HREF="#z3">The Stream Stack</A>
 </UL>
@@ -62,7 +63,7 @@ typedef HTStream * HTConverter	PARAMS((HTRequest *	request,
 					HTStream *	output_stream));
 </PRE>
 
-<A NAME="user"><H2>User Preferences</H2></A>
+<A NAME="user"><H2>Generic Preferences</H2></A>
 
 The Library contains functionality for letting the application (or
 user) express the preferences for the rendition of a given data object
@@ -74,50 +75,6 @@ when issuing a request. The categories supported are:
 <LI>Language
 <LI>Charset
 </UL>
-
-There are two places where these preferences can be registered: in a
-<EM>global</EM> list valid for <B>all</B> requests and a
-<EM>local</EM> list valid for a particular request only. The elements
-are all <A HREF="HTAtom.html">atoms</A> representations. This allows
-faster manipulation (comparison and copying) that if we stayed with
-strings.
-
-<H3>Global Registrations</H3>
-
-These are valid for <EM>all</EM> requests
-
-<H4>Content Types</H4>
-
-The <EM>global</EM> list of specific conversions which the format
-manager can do in order to fulfill the request.  There is also a <A
-HREF="HTReq.html"><EM>local</EM></A> list of conversions which
-contains a generic set of possible conversions.
-
-<PRE>
-extern void HTFormat_setConversion	(HTList *list);
-extern HTList * HTFormat_conversion	(void);
-</PRE>
-
-<H4>Content Encodings</H4>
-
-<PRE>
-extern void HTFormat_setEncoding	(HTList *list);
-extern HTList * HTFormat_encoding	(void);
-</PRE>
-
-<H4>Content Encodings</H4>
-
-<PRE>
-extern void HTFormat_setLanguage	(HTList *list);
-extern HTList * HTFormat_language	(void);
-</PRE>
-
-<H4>Content Encodings</H4>
-
-<PRE>
-extern void HTFormat_setCharset		(HTList *list);
-extern HTList * HTFormat_charset	(void);
-</PRE>
 
 <A NAME="FormatTypes"><H3>Registration of Accepted Content Types</H3></A>
 
@@ -204,15 +161,20 @@ We also have some that come from the various protocols
 #define WWW_NNTP_HEAD	HTAtom_for("text/x-nntp-head")
 </PRE>
 
-<H4>Register a Presenter</H4>
+<H4>Add a Presenter</H4>
+
+This function creates a presenter object and adds to the list of
+conversions.
 
 <DL>
 <DT>conversions
 <DD>The list of <CODE>conveters</CODE> and <CODE>presenters</CODE>
-<DT>representation
+<DT>rep_in
 <DD>the MIME-style format name
-<DT>command
-<DD>the MAILCAP-style command template
+<DT>rep_out
+<DD>is the resulting content-type after the conversion
+<DT>converter
+<DD>is the routine to call which actually does the conversion
 <DT>quality
 <DD>A degradation faction [0..1]
 <DT>maxbytes
@@ -231,7 +193,16 @@ extern void HTPresentation_add (HTList *	conversions,
 				double		secs_per_byte);
 </PRE>
 
-<H4>Register a Converter</H4>
+<H4>Delete a list of Presenters</H4>
+
+<PRE>
+extern void HTPresentation_deleteAll	(HTList * list);
+</PRE>
+
+<H4>Add a Converter</H4>
+
+This function creates a presenter object and adds to the list of
+conversions.
 
 <DL>
 <DT>conversions
@@ -260,10 +231,16 @@ extern void HTConversion_add   (HTList *	conversions,
 				double		secs_per_byte);
 </PRE>
 
+<H4>Delete a list of Converters</H4>
+
+<PRE>
+extern void HTConversion_deleteAll	(HTList * list);
+</PRE>
+
 <A NAME="Encoding"><H3>Registration of Accepted Content Encodings</H3></A>
 
 Encodings are the HTTP extension of transfer encodings. Encodings
-include compress, gzip etc. These are the data structures:
+include compress, gzip etc.
 
 <PRE>
 typedef struct _HTAcceptNode {
@@ -286,54 +263,98 @@ typedef struct _HTAcceptNode {
 <H4>Register an Encoding</H4>
 
 <PRE>
-extern void HTAcceptEncoding	PARAMS((HTList *	list,
-					CONST char *	enc,
-					double		quality));
+extern void HTEncoding_add (HTList * 		list,
+			    CONST char *	enc,
+			    double		quality);
 </PRE>
 
-<H3><A NAME="charset">Registration of Accepted Charsets</A></H3>
+<H4>Delete a list of Encoders</H4>
 
-We use the same <CODE>HTAcceptNode</CODE> as above.
+<PRE>
+extern void HTEncoding_add (HTList * 		list,
+			    CONST char *	enc,
+			    double		quality);
+</PRE>
+
+<H3><A NAME="charset">Accepted Charsets</A></H3>
 
 <H4>Register a Charset</H4>
 
 <PRE>
-extern void HTAcceptCharset	PARAMS((HTList *	list,
-					CONST char *	charset,
-					double		quality));
+extern void HTCharset_add (HTList *		list,
+			   CONST char *		charset,
+			   double		quality);
 </PRE>
 
-<A NAME="Language"><H3>Registration of Accepted Content Languages</H3></A>
+<H4>Delete a list of Charsets</H4>
 
-We use the same <CODE>HTAcceptNode</CODE> as above.
+<PRE>
+extern void HTCharset_deleteAll	(HTList * list);
+</PRE>
+
+<A NAME="Language"><H3>Accepted Content Languages</H3></A>
 
 <H4>Register a Language</H4>
 
 <PRE>
-extern void HTAcceptLanguage	PARAMS((HTList *	list,
-					CONST char *	lang,
-					double		quality));
+extern void HTLanguage_add (HTList *		list,
+			    CONST char *	lang,
+			    double		quality);
 </PRE>
 
-<H3>Garbage Collection of User Preferences</H3>
-
-This is used for cleaning up the lists of user preferences, both the
-local and the global lists:
-
-<H3>Remove Local Preferences</H3>
-
-The function is called from <A HREF="HTReq.html#z100">HTRequest_delete</A>.
+<H4>Delete a list of Languages</H4>
 
 <PRE>
-extern void HTFormatDelete	PARAMS((HTRequest * request));
+extern void HTLangusge_deleteAll (HTList * list);
 </PRE>
 
-<H3>Remove Global Preferences</H3>
+<A NAME="global"><H2>Global Registrations</H2></A>
 
-The function is called from <A HREF="HTReq.html#Library">HTLibTerminate</A>.
+There are two places where these preferences can be registered: in a
+<EM>global</EM> list valid for <B>all</B> requests and a
+<EM>local</EM> list valid for a particular request only. These are
+valid for <EM>all</EM> requests. See the <A HREF="HTReq.html">Request
+Manager</A> fro local sets.
+
+<H3>Content Types</H3>
+
+The <EM>global</EM> list of specific conversions which the format
+manager can do in order to fulfill the request.  There is also a <A
+HREF="HTReq.html"><EM>local</EM></A> list of conversions which
+contains a generic set of possible conversions.
 
 <PRE>
-extern void HTDisposeConversions NOPARAMS;
+extern void HTFormat_setConversion	(HTList *list);
+extern HTList * HTFormat_conversion	(void);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTFormat_setEncoding	(HTList *list);
+extern HTList * HTFormat_encoding	(void);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTFormat_setLanguage	(HTList *list);
+extern HTList * HTFormat_language	(void);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTFormat_setCharset		(HTList *list);
+extern HTList * HTFormat_charset	(void);
+</PRE>
+
+<H3>Delete All Global Lists</H3>
+
+This is a convenience function that might make life easier.
+
+<PRE>
+extern void HTFormat_deleteAll (void);
 </PRE>
 
 <A NAME="Rank"><H2>Ranking of Accepted Formats</H2></A>

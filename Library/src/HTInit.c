@@ -26,6 +26,7 @@
 #include "HTMIME.h"
 #include "HTWSRC.h"
 #include "HTFWrite.h"
+#include "HTNewsLs.h"
 
 /* Protocol Modules */
 #include "HTTP.h"
@@ -67,6 +68,13 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTConversion_add(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
+
+    /*
+    ** The following conversions are converting ASCII output from various
+    ** protocols to HTML objects.
+    */
+    HTConversion_add(c,"text/x-nntp-list",	"www/present",	HTNewsList,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/x-nntp-over",	"www/present",	HTNewsGroup,	1.0, 0.0, 0.0);
 
     /*
     ** This dumps all other formats to local disk without any further

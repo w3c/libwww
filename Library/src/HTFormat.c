@@ -51,117 +51,6 @@ struct _HTStream {
 **	used to add specific accept headers to the request.
 */
 
-/*
-**	Cleanup memory after the LOCAL list of converters, language,
-**	charset, and encoding in the HTRequest structure. Note that
-** 	all these also have a global representation.
-*/
-PUBLIC void HTFormatDelete ARGS1(HTRequest *, request)
-{
-    if (!request)
-	return;
-
-    /* List of converters and presenters */
-    if (request->conversions) {
-	HTList *cur = request->conversions;
-	HTPresentation *pres;
-	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
-	    FREE(pres->command); /* Leak fixed AL 6 Feb 1994 */
-	    free(pres);
-	}
-	HTList_delete(request->conversions);
-	request->conversions = NULL;
-    }
-
-    /* List of encoders (or decoders) */
-    if (request->encodings) {
-	HTList *cur = request->encodings;
-	HTAcceptNode *pres;
-	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
-	    free(pres);
-	}
-	HTList_delete(request->encodings);
-	request->encodings = NULL;
-    }
-
-    /* List of natural languages */
-    if (request->languages) {
-	HTList *cur = request->languages;
-	HTAcceptNode *pres;
-	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
-	    free(pres);
-	}
-	HTList_delete(request->languages);
-	request->languages = NULL;
-    }
-
-    /* List of charsets */
-    if (request->charsets) {
-	HTList *cur = request->charsets;
-	HTAcceptNode *pres;
-	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
-	    free(pres);
-	}
-	HTList_delete(request->charsets);
-	request->charsets = NULL;
-    }
-}
-
-
-/*
-**	Cleanup memory after the GLOBAL list of converters, encodings,
-**	languages, charsets etc. Note that there
-**	is also a LOCAL conversion list associated with each HTRequest
-**	structure. Written by Eric Sink, eric@spyglass.com
-*/
-PUBLIC void HTDisposeConversions NOARGS
-{
-    /* List of converters/preenters */
-    if (HTConversions) {
-	HTList *cur = HTConversions;
-	HTPresentation *pres;
-	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
-	    FREE(pres->command);
-	    free(pres);
-	}
-	HTList_delete(HTConversions);
-	HTConversions = NULL;
-    }
-
-    /* List of encoders */
-    if (HTEncodings) {
-	HTList *cur = HTEncodings;
-	HTAcceptNode *pres;
-	while ((pres = (HTAcceptNode*) HTList_nextObject(cur))) {
-	    free(pres);
-	}
-	HTList_delete(HTEncodings);
-	HTEncodings = NULL;
-    }
-
-    /* List of Languages */
-    if (HTLanguages) {
-	HTList *cur = HTLanguages;
-	HTAcceptNode *pres;
-	while ((pres = (HTAcceptNode*) HTList_nextObject(cur))) {
-	    free(pres);
-	}
-	HTList_delete(HTLanguages);
-	HTLanguages = NULL;
-    }
-
-    /* List of Charsets */
-    if (HTCharsets) {
-	HTList *cur = HTCharsets;
-	HTAcceptNode *pres;
-	while ((pres = (HTAcceptNode*) HTList_nextObject(cur))) {
-	    free(pres);
-	}
-	HTList_delete(HTCharsets);
-	HTCharsets = NULL;
-    }
-}
-
 
 /*	Define a presentation system command for a content-type
 **	-------------------------------------------------------
@@ -198,6 +87,18 @@ PUBLIC void HTPresentation_add (HTList *	conversions,
     HTList_addObject(conversions, pres);
 }
 
+PUBLIC void HTPresentation_deleteAll (HTList * list)
+{
+    if (list) {
+	HTList *cur = list;
+	HTPresentation *pres;
+	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
+	    FREE(pres->command);
+	    free(pres);
+	}
+	HTList_delete(list);
+    }
+}
 
 /*	Define a built-in function for a content-type
 **	---------------------------------------------
@@ -224,11 +125,96 @@ PUBLIC void HTConversion_add (HTList *		conversions,
     HTList_addObject(conversions, pres);
 }
 
+PUBLIC void HTConversion_deleteAll (HTList * list)
+{
+    HTPresentation_deleteAll(list);
+}
+
+PUBLIC void HTEncoding_add (HTList * 		list,
+			    CONST char *	enc,
+			    double		quality)
+{
+    HTAcceptNode * node;
+    if (!list || !enc || !*enc) {
+	if (WWWTRACE)
+	    fprintf(TDEST, "Encodings... Bad argument\n");
+	return;
+    }
+    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
+    if (!node) outofmem(__FILE__, "HTAcceptEncoding");
+    HTList_addObject(list, (void*)node);
+
+    node->atom = HTAtom_for(enc);
+    node->quality = quality;
+}
+
+PUBLIC void HTEncoding_deleteAll (HTList * list)
+{
+    if (list) {
+	HTList *cur = list;
+	HTAcceptNode *pres;
+	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+	    free(pres);
+	}
+	HTList_delete(list);
+    }
+}
+
+PUBLIC void HTLanguage_add (HTList *		list,
+			    CONST char *	lang,
+			    double		quality)
+{
+    HTAcceptNode * node;
+    if (!list || !lang || !*lang)  {
+	if (WWWTRACE)
+	    fprintf(TDEST, "Languages... Bad argument\n");
+	return;
+    }
+    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
+    if (!node) outofmem(__FILE__, "HTAcceptLanguage");
+
+    HTList_addObject(list, (void*)node);
+    node->atom = HTAtom_for(lang);
+    node->quality = quality;
+}
+
+PUBLIC void HTLanguage_deleteAll (HTList * list)
+{
+    HTEncoding_deleteAll(list);
+}
+
+PUBLIC void HTCharset_add (HTList *		list,
+			   CONST char *		charset,
+			   double		quality)
+{
+    HTAcceptNode * node;
+    if (!list || !charset || !*charset)  {
+	if (WWWTRACE)
+	    fprintf(TDEST, "Charset..... Bad argument\n");
+	return;
+    }
+    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
+    if (!node) outofmem(__FILE__, "HTAcceptCharsetuage");
+
+    HTList_addObject(list, (void*)node);
+    node->atom = HTAtom_for(charset);
+    node->quality = quality;
+}
+
+PUBLIC void HTCharset_deleteAll (HTList * list)
+{
+    HTEncoding_deleteAll(list);
+}
+
+/* ------------------------------------------------------------------------- */
+/* 			GLOBAL LIST OF CONVERTERS ETC.			     */
+/* ------------------------------------------------------------------------- */
+
 /*
 **	Global Accept Format Types Conversions
 **	list can be NULL
 */
-PUBLIC void HTFormat_setConversion (HTList *list)
+PUBLIC void HTFormat_setConversion (HTList * list)
 {
     HTConversions = list;
 }
@@ -280,62 +266,28 @@ PUBLIC HTList * HTFormat_charset (void)
     return HTCharsets;
 }
 
-PUBLIC void HTAcceptEncoding ARGS3(HTList *,	list,
-				   CONST char *,enc,
-				   double,	quality)
+/*
+**	Convenience function to clean up
+*/
+PUBLIC void HTFormat_deleteAll (void)
 {
-    HTAcceptNode * node;
-    if (!list || !enc || !*enc) {
-	if (WWWTRACE)
-	    fprintf(TDEST, "Encodings... Bad argument\n");
-	return;
+    if (HTConversions) {
+	HTConversion_deleteAll(HTConversions);
+	HTConversions = NULL;
     }
-    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
-    if (!node) outofmem(__FILE__, "HTAcceptEncoding");
-    HTList_addObject(list, (void*)node);
-
-    node->atom = HTAtom_for(enc);
-    node->quality = quality;
-}
-
-
-PUBLIC void HTAcceptLanguage ARGS3(HTList *,	list,
-				   CONST char *,lang,
-				   double,	quality)
-{
-    HTAcceptNode * node;
-    if (!list || !lang || !*lang)  {
-	if (WWWTRACE)
-	    fprintf(TDEST, "Languages... Bad argument\n");
-	return;
+    if (HTLanguages) {
+	HTLanguage_deleteAll(HTLanguages);
+	HTLanguages = NULL;
     }
-    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
-    if (!node) outofmem(__FILE__, "HTAcceptLanguage");
-
-    HTList_addObject(list, (void*)node);
-    node->atom = HTAtom_for(lang);
-    node->quality = quality;
-}
-
-
-PUBLIC void HTAcceptCharset ARGS3(HTList *,	list,
-				  CONST char *,	charset,
-				  double,	quality)
-{
-    HTAcceptNode * node;
-    if (!list || !charset || !*charset)  {
-	if (WWWTRACE)
-	    fprintf(TDEST, "Charset..... Bad argument\n");
-	return;
+    if (HTEncodings) {
+	HTEncoding_deleteAll(HTEncodings);
+	HTEncodings = NULL;
     }
-    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
-    if (!node) outofmem(__FILE__, "HTAcceptCharsetuage");
-
-    HTList_addObject(list, (void*)node);
-    node->atom = HTAtom_for(charset);
-    node->quality = quality;
+    if (HTCharsets) {
+	HTCharset_deleteAll(HTCharsets);
+	HTCharsets = NULL;
+    }
 }
-
 
 /* ------------------------------------------------------------------------- */
 /* 				FORMAT NEGOTIATION			     */

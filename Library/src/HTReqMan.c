@@ -84,13 +84,7 @@ PUBLIC HTRequest * HTRequest_new (void)
     HTRequest * me = (HTRequest*) calloc(1, sizeof(HTRequest));
     if (!me) outofmem(__FILE__, "HTRequest_new()");
     
-    /* User preferences for this particular request. Only empty lists! */
-    me->conversions = HTList_new();
-    me->encodings = HTList_new();
-    me->languages = HTList_new();
-    me->charsets = HTList_new();
-
-    /* Force Reload */
+   /* Force Reload */
     me->reload = HT_ANY_VERSION;
 
     /* Format of output */
@@ -125,7 +119,6 @@ PUBLIC void HTRequest_delete (HTRequest * request)
     if (request) {
 	FREE(request->redirect);
 	FREE(request->authenticate);
-	HTFormatDelete(request);
 	HTErrorFree(request);
 	HTAACleanup(request);
 

@@ -5,7 +5,8 @@
 /*
 **      (c) COPYRIGHT MIT 1995.
 **      Please first read the full copyright statement in the file COPYRIGH.
-*//*
+*/
+/*
 
    This is the Line mode browser version
    
@@ -27,7 +28,7 @@ typedef long int HTLMFont;      /* For now */
 #define HT_BLACK        0
 #define HT_WHITE        1
 
-#endif /* HTFONT_H *//*
+#endif /* HTFONT_H */
+/*
 
    End of HTFont */
-

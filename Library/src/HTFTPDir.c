@@ -197,7 +197,7 @@ PRIVATE BOOL ParseFTPLine (HTStream *me)
 /*
 **	Searches for FTP line until buffer fills up or a CRLF or LF is found
 */
-PRIVATE int FTPDir_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
+PRIVATE int FTPDir_put_block (HTStream * me, CONST char * b, int l)
 {
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
@@ -234,29 +234,29 @@ PRIVATE int FTPDir_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
     return HT_OK;
 }
 
-PRIVATE int FTPDir_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int FTPDir_put_string (HTStream * me, CONST char * s)
 {
     return FTPDir_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE int FTPDir_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int FTPDir_put_character (HTStream * me, char c)
 {
     return FTPDir_put_block(me, &c, 1);
 }
 
-PRIVATE int FTPDir_flush ARGS1(HTStream *, me)
+PRIVATE int FTPDir_flush (HTStream * me)
 {
     return HT_OK;
 }
 
-PRIVATE int FTPDir_free ARGS1(HTStream *, me)
+PRIVATE int FTPDir_free (HTStream * me)
 {
     HTDir_free(me->dir);
     free(me);
     return HT_OK;
 }
 
-PRIVATE int FTPDir_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int FTPDir_abort (HTStream * me, HTError e)
 {
     if (PROT_TRACE) fprintf(TDEST, "FTPDir...... ABORTING...\n");
     FTPDir_free(me);

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Linked List Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Oct-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -18,18 +18,15 @@
 The list object is a generic container for storing collections of
 things in order.  In principle it could be implemented in many ways,
 but in practice knowing that it is a linked list is important for
-speed.  See also the <A NAME="z2" HREF="#z1">traverse macro</A> for
-example. <P>
+speed.<P>
 
 This module is implemented by <A HREF="HTList.c">HTList.c</A>, and it
-is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTLIST_H
 #define HTLIST_H
-
 
 typedef struct _HTList HTList;
 
@@ -37,37 +34,73 @@ struct _HTList {
   void * object;
   HTList * next;
 };
-
-extern HTList *	HTList_new NOPARAMS;
-extern void	HTList_delete PARAMS((HTList *me));
 </PRE>
 
-<H3>Add object to START of list</H3>
+<H2>Creation and Deletion Methods</H2>
+
+These two functions create and deletes a list
 
 <PRE>
-extern BOOL	HTList_addObject PARAMS((HTList *me, void *newObject));
-extern BOOL	HTList_removeObject PARAMS((HTList *me, void *oldObject));
-extern void *	HTList_removeLastObject PARAMS((HTList *me));
-extern void *	HTList_removeFirstObject PARAMS((HTList *me));
-#define 	HTList_isEmpty(me) (me ? me->next == NULL : YES)
-extern int	HTList_count PARAMS((HTList *me));
-extern int	HTList_indexOf PARAMS((HTList *me, void *object));
-#define 	HTList_lastObject(me) \
-		((me) &amp;&amp; (me)->next ? (me)->next->object : NULL)
-extern void *	HTList_objectAt PARAMS((HTList *me, int position));
+extern HTList *	HTList_new	(void);
+extern void	HTList_delete	(HTList *me);
 </PRE>
 
-<H3><A NAME="z1">Traverse list</A></H3>
+<H2>Add an Element to List</H2>
+
+A new list element is added to the beginning of the list so that it is
+first element just after the head element.
+
+<PRE>
+extern BOOL	HTList_addObject (HTList *me, void *newObject);
+</PRE>
+
+<H2>Remove List Elements</H2>
+
+<PRE>
+extern BOOL	HTList_removeObject		(HTList *me, void *oldObject);
+extern void *	HTList_removeLastObject		(HTList *me);
+extern void *	HTList_removeFirstObject	(HTList *me);
+</PRE>
+
+<H2>Size of a List</H2>
+
+Two small function to ask for the size
+
+<PRE>
+#define 	HTList_isEmpty(me)		(me ? me->next == NULL : YES)
+extern int	HTList_count			(HTList *me);
+</PRE>
+
+<H2>Reference List Elements By Index</H2>
+
+In some situations is is required to use an index in order to refer to
+a list element. This is for example the case if an element can be
+registered multiple times.
+
+<PRE>
+extern int	HTList_indexOf	(HTList *me, void *object);
+extern void *	HTList_objectAt	(HTList *me, int position);
+</PRE>
+
+<H2>Find Last Element Added</H2>
+
+<PRE>
+#define		HTList_lastObject(me) \
+		((me) &amp;&amp; (me)->next ? (me)->next->object : NULL)
+</PRE>
+
+<H2>Traverse list</H2>
 
 Fast macro to traverse the list.  Call it first with copy of list
 header: it returns the first object and increments the passed list
 pointer.  Call it with the same variable until it returns NULL.
 
-<PRE>#define HTList_nextObject(me) \
-  ((me) &amp;&amp; ((me) = (me)->next) ? (me)->object : NULL)
+<PRE>
+#define		HTList_nextObject(me) \
+		((me) &amp;&amp; ((me) = (me)->next) ? (me)->object : NULL)
 </PRE>
 
-<H3>Free list</H3>
+<H2>Free list</H2>
 
 <PRE>
 #define HTList_free(x)  FREE(x)

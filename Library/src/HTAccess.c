@@ -152,7 +152,6 @@ PUBLIC BOOL HTLibTerminate NOARGS
     if (WWWTRACE)
 	fprintf(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
     HTAtom_deleteAll();
-    HTDisposeConversions();
     HTDNS_deleteAll();
 
     HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
