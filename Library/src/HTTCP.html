@@ -60,6 +60,15 @@ weights on the time it takes to sestablish a connection.
 extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
 </PRE>
 
+<H3>Control Variables</H3>
+
+This parameter determines the maximum number of hosts in the cache. If a 
+connect call fails, the entry is automaticly removed from the cache so that 
+next time we ask the DNS. 
+
+<PRE>
+extern unsigned int	HTConCacheSize;
+</PRE>
 
 <H2>Errors and status indications</H2>
 
