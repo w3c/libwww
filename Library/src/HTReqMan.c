@@ -487,12 +487,12 @@ PUBLIC BOOL HTRequest_negotiation (HTRequest * me)
 **  if-* header fields that can be used to avoid version conflicts
 **  etc.
 */
-PUBLIC void HTRequest_setPreconditions (HTRequest * me, BOOL mode)
+PUBLIC void HTRequest_setPreconditions (HTRequest * me, HTPreconditions mode)
 {
     if (me) me->preconditions = mode;
 }
 
-PUBLIC BOOL HTRequest_preconditions (HTRequest * me)
+PUBLIC HTPreconditions HTRequest_preconditions (HTRequest * me)
 {
     return me ? me->preconditions : NO;
 }

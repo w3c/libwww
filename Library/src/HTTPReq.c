@@ -385,7 +385,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTC('"');
 	PUTBLOCK(crlf, 2);
 	if (PROT_TRACE) HTTrace("HTTP........ If-Range using etag `%s\'\n", etag);
-    } else if (request_mask & HT_C_IF_MATCH_ALL) {
+    } else if (request_mask & HT_C_IF_MATCH_ANY) {
 	PUTS("If-Match: *");
 	PUTBLOCK(crlf, 2);
 	if (PROT_TRACE) HTTrace("HTTP........ If-Match using `*\'\n");
@@ -410,7 +410,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     **  first uses etags and the second uses dates. Etags have precedence over
     **  dates.
     */
-    if (request_mask & HT_C_IF_NONE_MATCH_ALL) {
+    if (request_mask & HT_C_IF_NONE_MATCH_ANY) {
 	PUTS("If-None-Match: *");
 	PUTBLOCK(crlf, 2);
 	if (PROT_TRACE) HTTrace("HTTP........ If-None-Match using `*\'\n");

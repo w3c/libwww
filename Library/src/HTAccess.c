@@ -756,6 +756,39 @@ PUBLIC HTChunk * HTPostFormAnchorToChunk (HTAssocList * formdata,
 /* --------------------------------------------------------------------------*/
 /*				PUT A DOCUMENT 				     */
 /* --------------------------------------------------------------------------*/ 
+
+/* 
+**  If we use our persistent cache then we can protect
+**  against the lost update problem by saving the etag
+**  or last modified date in the cache and use it on all
+**  our PUT operations.
+*/
+PRIVATE BOOL add_preconditions (HTRequest * request)
+{
+    if (request) {
+	HTPreconditions precons = HTRequest_preconditions(request);
+	switch (precons) {
+	case HT_MATCH_THIS:
+	    HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
+	    break;
+	    
+	case HT_MATCH_ANY:
+	    HTRequest_addRqHd(request, HT_C_IF_MATCH_ANY);
+	    break;
+	    
+	case HT_DONT_MATCH_THIS:
+	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
+	    break;
+	    
+	case HT_DONT_MATCH_ANY:
+	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH_ANY);
+	    break;
+	}
+	return YES;
+    }
+    return NO;
+}
+
 PRIVATE BOOL setup_anchors (HTRequest * request,
 			    HTParentAnchor * source, HTParentAnchor * dest,
 			    HTMethod method)
@@ -879,8 +912,7 @@ PUBLIC BOOL HTPutAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
-	    if (HTRequest_preconditions(request))
-    		HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
+	    add_preconditions(request);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
@@ -1034,8 +1066,7 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
-	    if (HTRequest_preconditions(request))
-	        HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
+	    add_preconditions(request);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
@@ -1134,25 +1165,8 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	HTRequest_setOutputFormat(request, me->format);
 	HTRequest_setOutputStream(request, me->target);
 
-	/* 
-	** If we using a persistent cache then we can protect
-	** against the lost update problem by saving the etag
-	** or last modified date in the cache and use it on all
-	** our PUT operations.
-	*/
-	if (HTRequest_preconditions(request)) {
-#if 0
-	    /*
-	    ** We don't want to copy from the source anchor as this
-	    ** may be from another server
-	    */
-	    time_t src_time = HTAnchor_lastModified(me->source);
-	    char * src_etag = HTAnchor_etag(me->source);
-	    HTAnchor_setLastModified(HTAnchor_parent(me->destination), src_time);
-	    HTAnchor_setEtag(HTAnchor_parent(me->destination), src_etag);
-#endif
-	    HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
-	}
+        /* Set up preconditions */
+	add_preconditions(request);
 
         /* Delete existing credentials as they are generated anew */
         HTRequest_deleteCredentialsAll(request);
