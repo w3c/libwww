@@ -11,6 +11,7 @@ EXTRA_LTLIBRARIES = \
 	libxmltok.la
 
 libxmltok_la_SOURCES = \
+	ascii.h \
 	asciitab.h \
 	iasciitab.h \
 	latin1tab.h \

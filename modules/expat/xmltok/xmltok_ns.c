@@ -1,9 +1,9 @@
-const ENCODING *NS(XmlGetUtf8InternalEncoding)()
+const ENCODING *NS(XmlGetUtf8InternalEncoding)(void)
 {
   return &ns(internal_utf8_encoding).enc;
 }
 
-const ENCODING *NS(XmlGetUtf16InternalEncoding)()
+const ENCODING *NS(XmlGetUtf16InternalEncoding)(void)
 {
 #if XML_BYTE_ORDER == 12
   return &ns(internal_little2_encoding).enc;
@@ -45,7 +45,7 @@ int NS(XmlInitEncoding)(INIT_ENCODING *p, const ENCODING **encPtr, const char *n
   int i = getEncodingIndex(name);
   if (i == UNKNOWN_ENC)
     return 0;
-  INIT_ENC_INDEX(p) = (char)i;
+  SET_INIT_ENC_INDEX(p, i);
   p->initEnc.scanners[XML_PROLOG_STATE] = NS(initScanProlog);
   p->initEnc.scanners[XML_CONTENT_STATE] = NS(initScanContent);
   p->initEnc.updatePosition = initUpdatePosition;
@@ -65,7 +65,7 @@ const ENCODING *NS(findEncoding)(const ENCODING *enc, const char *ptr, const cha
   if (ptr != end)
     return 0;
   *p = 0;
-  if (streqci(buf, "UTF-16") && enc->minBytesPerChar == 2)
+  if (streqci(buf, KW_UTF_16) && enc->minBytesPerChar == 2)
     return enc;
   i = getEncodingIndex(buf);
   if (i == UNKNOWN_ENC)

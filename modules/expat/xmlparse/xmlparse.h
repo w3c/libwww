@@ -137,6 +137,15 @@ typedef void (*XML_DefaultHandler)(void *userData,
 				   const XML_Char *s,
 				   int len);
 
+/* This is called for the start of the DOCTYPE declaration when the
+name of the DOCTYPE is encountered. */
+typedef void (*XML_StartDoctypeDeclHandler)(void *userData,
+					    const XML_Char *doctypeName);
+
+/* This is called for the start of the DOCTYPE declaration when the
+closing > is encountered, but after processing any external subset. */
+typedef void (*XML_EndDoctypeDeclHandler)(void *userData);
+
 /* This is called for a declaration of an unparsed (NDATA)
 entity.  The base argument is whatever was set by XML_SetBase.
 The entityName, systemId and notationName arguments will never be null.
@@ -309,6 +318,11 @@ XML_SetDefaultHandlerExpand(XML_Parser parser,
 		            XML_DefaultHandler handler);
 
 void XMLPARSEAPI
+XML_SetDoctypeDeclHandler(XML_Parser parser,
+			  XML_StartDoctypeDeclHandler start,
+			  XML_EndDoctypeDeclHandler end);
+
+void XMLPARSEAPI
 XML_SetUnparsedEntityDeclHandler(XML_Parser parser,
 				 XML_UnparsedEntityDeclHandler handler);
 
@@ -353,7 +367,7 @@ XML_SetUserData(XML_Parser parser, void *userData);
 #define XML_GetUserData(parser) (*(void **)(parser))
 
 /* This is equivalent to supplying an encoding argument
-to XML_CreateParser. It must not be called after XML_Parse
+to XML_ParserCreate. It must not be called after XML_Parse
 or XML_ParseBuffer. */
 
 int XMLPARSEAPI
@@ -414,6 +428,35 @@ XML_Parser XMLPARSEAPI
 XML_ExternalEntityParserCreate(XML_Parser parser,
 			       const XML_Char *context,
 			       const XML_Char *encoding);
+
+enum XML_ParamEntityParsing {
+  XML_PARAM_ENTITY_PARSING_NEVER,
+  XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE,
+  XML_PARAM_ENTITY_PARSING_ALWAYS
+};
+
+/* Controls parsing of parameter entities (including the external DTD
+subset). If parsing of parameter entities is enabled, then references
+to external parameter entities (including the external DTD subset)
+will be passed to the handler set with
+XML_SetExternalEntityRefHandler.  The context passed will be 0.
+Unlike external general entities, external parameter entities can only
+be parsed synchronously.  If the external parameter entity is to be
+parsed, it must be parsed during the call to the external entity ref
+handler: the complete sequence of XML_ExternalEntityParserCreate,
+XML_Parse/XML_ParseBuffer and XML_ParserFree calls must be made during
+this call.  After XML_ExternalEntityParserCreate has been called to
+create the parser for the external parameter entity (context must be 0
+for this call), it is illegal to make any calls on the old parser
+until XML_ParserFree has been called on the newly created parser.  If
+the library has been compiled without support for parameter entity
+parsing (ie without XML_DTD being defined), then
+XML_SetParamEntityParsing will return 0 if parsing of parameter
+entities is requested; otherwise it will return non-zero. */
+
+int XMLPARSEAPI
+XML_SetParamEntityParsing(XML_Parser parser,
+			  enum XML_ParamEntityParsing parsing);
 
 enum XML_Error {
   XML_ERROR_NONE,

@@ -117,7 +117,7 @@ int PREFIX(scanComment)(const ENCODING *enc, const char *ptr, const char *end,
 			const char **nextTokPtr)
 {
   if (ptr != end) {
-    if (!CHAR_MATCHES(enc, ptr, '-')) {
+    if (!CHAR_MATCHES(enc, ptr, ASCII_MINUS)) {
       *nextTokPtr = ptr;
       return XML_TOK_INVALID;
     }
@@ -128,10 +128,10 @@ int PREFIX(scanComment)(const ENCODING *enc, const char *ptr, const char *end,
       case BT_MINUS:
 	if ((ptr += MINBPC(enc)) == end)
 	  return XML_TOK_PARTIAL;
-	if (CHAR_MATCHES(enc, ptr, '-')) {
+	if (CHAR_MATCHES(enc, ptr, ASCII_MINUS)) {
 	  if ((ptr += MINBPC(enc)) == end)
 	    return XML_TOK_PARTIAL;
-	  if (!CHAR_MATCHES(enc, ptr, '>')) {
+	  if (!CHAR_MATCHES(enc, ptr, ASCII_GT)) {
 	    *nextTokPtr = ptr;
 	    return XML_TOK_INVALID;
 	  }
@@ -205,9 +205,9 @@ int PREFIX(checkPiTarget)(const ENCODING *enc, const char *ptr, const char *end,
   if (end - ptr != MINBPC(enc)*3)
     return 1;
   switch (BYTE_TO_ASCII(enc, ptr)) {
-  case 'x':
+  case ASCII_x:
     break;
-  case 'X':
+  case ASCII_X:
     upper = 1;
     break;
   default:
@@ -215,9 +215,9 @@ int PREFIX(checkPiTarget)(const ENCODING *enc, const char *ptr, const char *end,
   }
   ptr += MINBPC(enc);
   switch (BYTE_TO_ASCII(enc, ptr)) {
-  case 'm':
+  case ASCII_m:
     break;
-  case 'M':
+  case ASCII_M:
     upper = 1;
     break;
   default:
@@ -225,9 +225,9 @@ int PREFIX(checkPiTarget)(const ENCODING *enc, const char *ptr, const char *end,
   }
   ptr += MINBPC(enc);
   switch (BYTE_TO_ASCII(enc, ptr)) {
-  case 'l':
+  case ASCII_l:
     break;
-  case 'L':
+  case ASCII_L:
     upper = 1;
     break;
   default:
@@ -271,7 +271,7 @@ int PREFIX(scanPi)(const ENCODING *enc, const char *ptr, const char *end,
 	  ptr += MINBPC(enc);
 	  if (ptr == end)
 	    return XML_TOK_PARTIAL;
-	  if (CHAR_MATCHES(enc, ptr, '>')) {
+	  if (CHAR_MATCHES(enc, ptr, ASCII_GT)) {
 	    *nextTokPtr = ptr + MINBPC(enc);
 	    return tok;
 	  }
@@ -290,7 +290,7 @@ int PREFIX(scanPi)(const ENCODING *enc, const char *ptr, const char *end,
       ptr += MINBPC(enc);
       if (ptr == end)
 	return XML_TOK_PARTIAL;
-      if (CHAR_MATCHES(enc, ptr, '>')) {
+      if (CHAR_MATCHES(enc, ptr, ASCII_GT)) {
 	*nextTokPtr = ptr + MINBPC(enc);
 	return tok;
       }
@@ -308,12 +308,13 @@ static
 int PREFIX(scanCdataSection)(const ENCODING *enc, const char *ptr, const char *end,
 			     const char **nextTokPtr)
 {
+  static const char CDATA_LSQB[] = { ASCII_C, ASCII_D, ASCII_A, ASCII_T, ASCII_A, ASCII_LSQB };
   int i;
   /* CDATA[ */
   if (end - ptr < 6 * MINBPC(enc))
     return XML_TOK_PARTIAL;
   for (i = 0; i < 6; i++, ptr += MINBPC(enc)) {
-    if (!CHAR_MATCHES(enc, ptr, "CDATA["[i])) {
+    if (!CHAR_MATCHES(enc, ptr, CDATA_LSQB[i])) {
       *nextTokPtr = ptr;
       return XML_TOK_INVALID;
     }
@@ -342,12 +343,12 @@ int PREFIX(cdataSectionTok)(const ENCODING *enc, const char *ptr, const char *en
     ptr += MINBPC(enc);
     if (ptr == end)
       return XML_TOK_PARTIAL;
-    if (!CHAR_MATCHES(enc, ptr, ']'))
+    if (!CHAR_MATCHES(enc, ptr, ASCII_RSQB))
       break;
     ptr += MINBPC(enc);
     if (ptr == end)
       return XML_TOK_PARTIAL;
-    if (!CHAR_MATCHES(enc, ptr, '>')) {
+    if (!CHAR_MATCHES(enc, ptr, ASCII_GT)) {
       ptr -= MINBPC(enc);
       break;
     }
@@ -485,7 +486,7 @@ int PREFIX(scanCharRef)(const ENCODING *enc, const char *ptr, const char *end,
 			const char **nextTokPtr)
 {
   if (ptr != end) {
-    if (CHAR_MATCHES(enc, ptr, 'x'))
+    if (CHAR_MATCHES(enc, ptr, ASCII_x))
       return PREFIX(scanHexCharRef)(enc, ptr + MINBPC(enc), end, nextTokPtr);
     switch (BYTE_TYPE(enc, ptr)) {
     case BT_DIGIT:
@@ -678,7 +679,7 @@ int PREFIX(scanAtts)(const ENCODING *enc, const char *ptr, const char *end,
 	    ptr += MINBPC(enc);
 	    if (ptr == end)
 	      return XML_TOK_PARTIAL;
-	    if (!CHAR_MATCHES(enc, ptr, '>')) {
+	    if (!CHAR_MATCHES(enc, ptr, ASCII_GT)) {
 	      *nextTokPtr = ptr;
 	      return XML_TOK_INVALID;
 	    }
@@ -787,7 +788,7 @@ int PREFIX(scanLt)(const ENCODING *enc, const char *ptr, const char *end,
       ptr += MINBPC(enc);
       if (ptr == end)
 	return XML_TOK_PARTIAL;
-      if (!CHAR_MATCHES(enc, ptr, '>')) {
+      if (!CHAR_MATCHES(enc, ptr, ASCII_GT)) {
 	*nextTokPtr = ptr;
 	return XML_TOK_INVALID;
       }
@@ -836,12 +837,12 @@ int PREFIX(contentTok)(const ENCODING *enc, const char *ptr, const char *end,
     ptr += MINBPC(enc);
     if (ptr == end)
       return XML_TOK_TRAILING_RSQB;
-    if (!CHAR_MATCHES(enc, ptr, ']'))
+    if (!CHAR_MATCHES(enc, ptr, ASCII_RSQB))
       break;
     ptr += MINBPC(enc);
     if (ptr == end)
       return XML_TOK_TRAILING_RSQB;
-    if (!CHAR_MATCHES(enc, ptr, '>')) {
+    if (!CHAR_MATCHES(enc, ptr, ASCII_GT)) {
       ptr -= MINBPC(enc);
       break;
     }
@@ -866,12 +867,12 @@ int PREFIX(contentTok)(const ENCODING *enc, const char *ptr, const char *end,
 #undef LEAD_CASE
     case BT_RSQB:
       if (ptr + MINBPC(enc) != end) {
-	 if (!CHAR_MATCHES(enc, ptr + MINBPC(enc), ']')) {
+	 if (!CHAR_MATCHES(enc, ptr + MINBPC(enc), ASCII_RSQB)) {
 	   ptr += MINBPC(enc);
 	   break;
 	 }
 	 if (ptr + 2*MINBPC(enc) != end) {
-	   if (!CHAR_MATCHES(enc, ptr + 2*MINBPC(enc), '>')) {
+	   if (!CHAR_MATCHES(enc, ptr + 2*MINBPC(enc), ASCII_GT)) {
 	     ptr += MINBPC(enc);
 	     break;
 	   }
@@ -953,7 +954,7 @@ int PREFIX(scanPoundName)(const ENCODING *enc, const char *ptr, const char *end,
       return XML_TOK_INVALID;
     }
   }
-  return XML_TOK_PARTIAL;
+  return -XML_TOK_POUND_NAME;
 }
 
 static
@@ -971,7 +972,7 @@ int PREFIX(scanLit)(int open, const ENCODING *enc,
       if (t != open)
 	break;
       if (ptr == end)
-	return XML_TOK_PARTIAL;
+	return -XML_TOK_LITERAL;
       *nextTokPtr = ptr;
       switch (BYTE_TYPE(enc, ptr)) {
       case BT_S: case BT_CR: case BT_LF:
@@ -1033,7 +1034,7 @@ int PREFIX(prologTok)(const ENCODING *enc, const char *ptr, const char *end,
     }
   case BT_CR:
     if (ptr + MINBPC(enc) == end)
-      return XML_TOK_TRAILING_CR;
+      return -XML_TOK_PROLOG_S;
     /* fall through */
   case BT_S: case BT_LF:
     for (;;) {
@@ -1066,11 +1067,11 @@ int PREFIX(prologTok)(const ENCODING *enc, const char *ptr, const char *end,
   case BT_RSQB:
     ptr += MINBPC(enc);
     if (ptr == end)
-      return XML_TOK_PARTIAL;
-    if (CHAR_MATCHES(enc, ptr, ']')) {
+      return -XML_TOK_CLOSE_BRACKET;
+    if (CHAR_MATCHES(enc, ptr, ASCII_RSQB)) {
       if (ptr + MINBPC(enc) == end)
 	return XML_TOK_PARTIAL;
-      if (CHAR_MATCHES(enc, ptr + MINBPC(enc), '>')) {
+      if (CHAR_MATCHES(enc, ptr + MINBPC(enc), ASCII_GT)) {
 	*nextTokPtr = ptr + 2*MINBPC(enc);
 	return XML_TOK_COND_SECT_CLOSE;
       }
@@ -1083,7 +1084,7 @@ int PREFIX(prologTok)(const ENCODING *enc, const char *ptr, const char *end,
   case BT_RPAR:
     ptr += MINBPC(enc);
     if (ptr == end)
-      return XML_TOK_PARTIAL;
+      return -XML_TOK_CLOSE_PAREN;
     switch (BYTE_TYPE(enc, ptr)) {
     case BT_AST:
       *nextTokPtr = ptr + MINBPC(enc);
@@ -1213,7 +1214,7 @@ int PREFIX(prologTok)(const ENCODING *enc, const char *ptr, const char *end,
       return XML_TOK_INVALID;
     }
   }
-  return XML_TOK_PARTIAL;
+  return -tok;
 }
 
 static
@@ -1326,6 +1327,61 @@ int PREFIX(entityValueTok)(const ENCODING *enc, const char *ptr, const char *end
   return XML_TOK_DATA_CHARS;
 }
 
+#ifdef XML_DTD
+
+static
+int PREFIX(ignoreSectionTok)(const ENCODING *enc, const char *ptr, const char *end,
+			     const char **nextTokPtr)
+{
+  int level = 0;
+  if (MINBPC(enc) > 1) {
+    size_t n = end - ptr;
+    if (n & (MINBPC(enc) - 1)) {
+      n &= ~(MINBPC(enc) - 1);
+      end = ptr + n;
+    }
+  }
+  while (ptr != end) {
+    switch (BYTE_TYPE(enc, ptr)) {
+    INVALID_CASES(ptr, nextTokPtr)
+    case BT_LT:
+      if ((ptr += MINBPC(enc)) == end)
+	return XML_TOK_PARTIAL;
+      if (CHAR_MATCHES(enc, ptr, ASCII_EXCL)) {
+	if ((ptr += MINBPC(enc)) == end)
+	  return XML_TOK_PARTIAL;
+	if (CHAR_MATCHES(enc, ptr, ASCII_LSQB)) {
+	  ++level;
+	  ptr += MINBPC(enc);
+	}
+      }
+      break;
+    case BT_RSQB:
+      if ((ptr += MINBPC(enc)) == end)
+	return XML_TOK_PARTIAL;
+      if (CHAR_MATCHES(enc, ptr, ASCII_RSQB)) {
+	if ((ptr += MINBPC(enc)) == end)
+	  return XML_TOK_PARTIAL;
+	if (CHAR_MATCHES(enc, ptr, ASCII_GT)) {
+	  ptr += MINBPC(enc);
+	  if (level == 0) {
+	    *nextTokPtr = ptr;
+	    return XML_TOK_IGNORE_SECT;
+	  }
+	  --level;
+	}
+      }
+      break;
+    default:
+      ptr += MINBPC(enc);
+      break;
+    }
+  }
+  return XML_TOK_PARTIAL;
+}
+
+#endif /* XML_DTD */
+
 static
 int PREFIX(isPublicId)(const ENCODING *enc, const char *ptr, const char *end,
 		       const char **badPtr)
@@ -1357,7 +1413,7 @@ int PREFIX(isPublicId)(const ENCODING *enc, const char *ptr, const char *end,
 #endif
       break;
     case BT_S:
-      if (CHAR_MATCHES(enc, ptr, '\t')) {
+      if (CHAR_MATCHES(enc, ptr, ASCII_TAB)) {
 	*badPtr = ptr;
 	return 0;
       }
@@ -1391,7 +1447,8 @@ int PREFIX(getAtts)(const ENCODING *enc, const char *ptr,
 {
   enum { other, inName, inValue } state = inName;
   int nAtts = 0;
-  int open;
+  int open = 0; /* defined when state == inValue;
+		   initialization just to shut up compilers */
 
   for (ptr += MINBPC(enc);; ptr += MINBPC(enc)) {
     switch (BYTE_TYPE(enc, ptr)) {
@@ -1452,8 +1509,8 @@ int PREFIX(getAtts)(const ENCODING *enc, const char *ptr,
 	       && nAtts < attsMax
 	       && atts[nAtts].normalized
 	       && (ptr == atts[nAtts].valuePtr
-		   || BYTE_TO_ASCII(enc, ptr) != ' '
-		   || BYTE_TO_ASCII(enc, ptr + MINBPC(enc)) == ' '
+		   || BYTE_TO_ASCII(enc, ptr) != ASCII_SPACE
+		   || BYTE_TO_ASCII(enc, ptr + MINBPC(enc)) == ASCII_SPACE
 	           || BYTE_TYPE(enc, ptr + MINBPC(enc)) == open))
 	atts[nAtts].normalized = 0;
       break;
@@ -1483,22 +1540,22 @@ int PREFIX(charRefNumber)(const ENCODING *enc, const char *ptr)
   int result = 0;
   /* skip &# */
   ptr += 2*MINBPC(enc);
-  if (CHAR_MATCHES(enc, ptr, 'x')) {
-    for (ptr += MINBPC(enc); !CHAR_MATCHES(enc, ptr, ';'); ptr += MINBPC(enc)) {
+  if (CHAR_MATCHES(enc, ptr, ASCII_x)) {
+    for (ptr += MINBPC(enc); !CHAR_MATCHES(enc, ptr, ASCII_SEMI); ptr += MINBPC(enc)) {
       int c = BYTE_TO_ASCII(enc, ptr);
       switch (c) {
-      case '0': case '1': case '2': case '3': case '4':
-      case '5': case '6': case '7': case '8': case '9':
+      case ASCII_0: case ASCII_1: case ASCII_2: case ASCII_3: case ASCII_4:
+      case ASCII_5: case ASCII_6: case ASCII_7: case ASCII_8: case ASCII_9:
 	result <<= 4;
-	result |= (c - '0');
+	result |= (c - ASCII_0);
 	break;
-      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+      case ASCII_A: case ASCII_B: case ASCII_C: case ASCII_D: case ASCII_E: case ASCII_F:
 	result <<= 4;
-	result += 10 + (c - 'A');
+	result += 10 + (c - ASCII_A);
 	break;
-      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+      case ASCII_a: case ASCII_b: case ASCII_c: case ASCII_d: case ASCII_e: case ASCII_f:
 	result <<= 4;
-	result += 10 + (c - 'a');
+	result += 10 + (c - ASCII_a);
 	break;
       }
       if (result >= 0x110000)
@@ -1506,10 +1563,10 @@ int PREFIX(charRefNumber)(const ENCODING *enc, const char *ptr)
     }
   }
   else {
-    for (; !CHAR_MATCHES(enc, ptr, ';'); ptr += MINBPC(enc)) {
+    for (; !CHAR_MATCHES(enc, ptr, ASCII_SEMI); ptr += MINBPC(enc)) {
       int c = BYTE_TO_ASCII(enc, ptr);
       result *= 10;
-      result += (c - '0');
+      result += (c - ASCII_0);
       if (result >= 0x110000)
 	return -1;
     }
@@ -1522,46 +1579,46 @@ int PREFIX(predefinedEntityName)(const ENCODING *enc, const char *ptr, const cha
 {
   switch ((end - ptr)/MINBPC(enc)) {
   case 2:
-    if (CHAR_MATCHES(enc, ptr + MINBPC(enc), 't')) {
+    if (CHAR_MATCHES(enc, ptr + MINBPC(enc), ASCII_t)) {
       switch (BYTE_TO_ASCII(enc, ptr)) {
-      case 'l':
-	return '<';
-      case 'g':
-	return '>';
+      case ASCII_l:
+	return ASCII_LT;
+      case ASCII_g:
+	return ASCII_GT;
       }
     }
     break;
   case 3:
-    if (CHAR_MATCHES(enc, ptr, 'a')) {
+    if (CHAR_MATCHES(enc, ptr, ASCII_a)) {
       ptr += MINBPC(enc);
-      if (CHAR_MATCHES(enc, ptr, 'm')) {
+      if (CHAR_MATCHES(enc, ptr, ASCII_m)) {
 	ptr += MINBPC(enc);
-	if (CHAR_MATCHES(enc, ptr, 'p'))
-	  return '&';
+	if (CHAR_MATCHES(enc, ptr, ASCII_p))
+	  return ASCII_AMP;
       }
     }
     break;
   case 4:
     switch (BYTE_TO_ASCII(enc, ptr)) {
-    case 'q':
+    case ASCII_q:
       ptr += MINBPC(enc);
-      if (CHAR_MATCHES(enc, ptr, 'u')) {
+      if (CHAR_MATCHES(enc, ptr, ASCII_u)) {
 	ptr += MINBPC(enc);
-	if (CHAR_MATCHES(enc, ptr, 'o')) {
+	if (CHAR_MATCHES(enc, ptr, ASCII_o)) {
 	  ptr += MINBPC(enc);
-  	  if (CHAR_MATCHES(enc, ptr, 't'))
-	    return '"';
+  	  if (CHAR_MATCHES(enc, ptr, ASCII_t))
+	    return ASCII_QUOT;
 	}
       }
       break;
-    case 'a':
+    case ASCII_a:
       ptr += MINBPC(enc);
-      if (CHAR_MATCHES(enc, ptr, 'p')) {
+      if (CHAR_MATCHES(enc, ptr, ASCII_p)) {
 	ptr += MINBPC(enc);
-	if (CHAR_MATCHES(enc, ptr, 'o')) {
+	if (CHAR_MATCHES(enc, ptr, ASCII_o)) {
 	  ptr += MINBPC(enc);
-  	  if (CHAR_MATCHES(enc, ptr, 's'))
-	    return '\'';
+  	  if (CHAR_MATCHES(enc, ptr, ASCII_s))
+	    return ASCII_APOS;
 	}
       }
       break;
@@ -1635,29 +1692,16 @@ int PREFIX(sameName)(const ENCODING *enc, const char *ptr1, const char *ptr2)
 }
 
 static
-int PREFIX(nameMatchesAscii)(const ENCODING *enc, const char *ptr1, const char *ptr2)
+int PREFIX(nameMatchesAscii)(const ENCODING *enc, const char *ptr1,
+			     const char *end1, const char *ptr2)
 {
   for (; *ptr2; ptr1 += MINBPC(enc), ptr2++) {
+    if (ptr1 == end1)
+      return 0;
     if (!CHAR_MATCHES(enc, ptr1, *ptr2))
       return 0;
   }
-  switch (BYTE_TYPE(enc, ptr1)) {
-  case BT_LEAD2:
-  case BT_LEAD3:
-  case BT_LEAD4:
-  case BT_NONASCII:
-  case BT_NMSTRT:
-#ifdef XML_NS
-  case BT_COLON:
-#endif
-  case BT_HEX:
-  case BT_DIGIT:
-  case BT_NAME:
-  case BT_MINUS:
-    return 0;
-  default:
-    return 1;
-  }
+  return ptr1 == end1;
 }
 
 static
