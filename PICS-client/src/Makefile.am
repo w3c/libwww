@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = windows
 
-lib_LIBRARIES = pics
+lib_LIBRARIES = libpics.a
 
 SUBDIRS = windows
 
@@ -19,7 +19,7 @@ SUFFIXES = .h .html
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
-pics_SOURCES = \
+libpics_a_SOURCES = \
 	CSChkLab.c	CSStream.c	CSKwik.c \
 	CSLabel.c	CSLLOut.c	CSLLURLs.c \
 	CSMacRed.c	CSMem.c		CSApp.c \

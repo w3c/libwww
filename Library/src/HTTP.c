@@ -110,7 +110,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     if (HTRequest_isDestination(req))
 	HTRequest_removeDestination(req);
     else if (input) {
-	if (status == HT_INTERRUPTED)
+	if (status == HT_INTERRUPTED || status == HT_RECOVER_PIPE)
 	    (*input->isa->abort)(input, NULL);
 	else
 	    (*input->isa->_free)(input);
@@ -532,8 +532,12 @@ PRIVATE int stream_pipe (HTStream * me)
 #ifdef HT_MUX
 	    HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);
 #else
+#ifdef HT_NO_PIPELINING
+	    HTNet_setPersistent(net, YES, HT_TP_SINGLE);
+#else
 	    HTNet_setPersistent(net, YES, HT_TP_PIPELINE);
-#endif
+#endif /* HT_NO_PIPELINING */
+#endif /* HT_MUX */
 	} else { 
 	    if (PROT_TRACE)HTTrace("HTTP Status. No 1.x version number - treat it as a HTTP/1.0 server\n");
 	    HTHost_setVersion(host, HTTP_10);
@@ -801,18 +805,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	HTTPCleanup(request, http->result);
 	return HT_OK;
     } else if (type == HTEvent_RESET) {
-	if (HTRequest_isPostWeb(request)) {
-	    if (HTRequest_isDestination(request)) {
-		HTRequest * source = HTRequest_source(request);
-		HTLink *link =
-		    HTLink_find((HTAnchor *)HTRequest_anchor(source),
-				(HTAnchor *) anchor);
-		HTLink_setResult(link, HT_LINK_ERROR);
-	    }
-	    HTRequest_killPostWeb(request);
-	}
 	HTTPCleanup(request, HT_RECOVER_PIPE);
-	http->state = HTTP_NEED_STREAM;
+	http->state = HTTP_BEGIN;
 	return HT_OK;
     }
 

@@ -206,7 +206,13 @@ PRIVATE int HTBufferWriter_put_string (HTOutputStream * me, const char * s)
 PRIVATE int HTBufferWriter_close (HTOutputStream * me)
 {
     if (me) {
+#if 0
+	/*
+	** The channel has been closed so we shouldn't do any more on
+	** it at all
+	*/
 	HTBufferWriter_flush(me);
+#endif
 	if (me->target) (*me->target->isa->close)(me->target);
 	HT_FREE(me->data);
 	HT_FREE(me);

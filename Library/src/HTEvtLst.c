@@ -191,8 +191,8 @@ PRIVATE void EventList_dump (void)
 /*		T I M E O U T   H A N D L E R				     */
 PRIVATE int EventListTimerHandler (HTTimer * timer, void * param, HTEventType type)
 {
-    SockEvents * sockp = (SockEvents *)param;
-    HTEvent * event;
+    SockEvents * sockp = (SockEvents *) param;
+    HTEvent * event = NULL;
     /* HTMemLog_flush(); keep around - very useful for debugging crashes - EGP */
 #ifdef IN_EVENT
     if (sockp->events[HTEvent_INDEX(HTEvent_READ)]->timer == timer)
@@ -224,7 +224,9 @@ PRIVATE int EventListTimerHandler (HTTimer * timer, void * param, HTEventType ty
 	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", sockp->s);
 	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
     }
-    HTTrace("Event....... can't find event for timer %p.\n", timer);
+    if (THD_TRACE)
+	HTTrace("Event....... Can't find event for timer %p with context %p\n",
+		timer, param);
     return HT_ERROR;
 }
 
@@ -371,15 +373,19 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     FD_SET(s, FdArray+HTEvent_INDEX(type));
     if (s > MaxSock) MaxSock = s ;
 #endif /* !WWW_WIN_ASYNC */
+
     /*
-    ** If the timeout has been set (relative in millis) then we register 
-    ** a new timeout for this event
+    **  If the timeout has been set (relative in millis) then we register 
+    **  a new timeout for this event unless we already have a timer.
     */
     if (event->millis >= 0) {
 #ifdef IN_EVENT
-	event->timer = HTTimer_new(NULL, EventListTimerHandler, sockp, event->millis, YES);
+	event->timer = HTTimer_new(event->timer, EventListTimerHandler,
+				   sockp, event->millis, YES);
 #else
-	sockp->timeouts[HTEvent_INDEX(type)] = HTTimer_new(NULL, EventListTimerHandler, sockp, event->millis, YES);
+	sockp->timeouts[HTEvent_INDEX(type)] =
+	    HTTimer_new(sockp->timeouts[HTEvent_INDEX(type)],
+			EventListTimerHandler, sockp, event->millis, YES);
 #endif
     }
 

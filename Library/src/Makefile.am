@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-lib_LIBRARIES = www
+lib_LIBRARIES = libwww.a
 
 SUBDIRS = windows vms
 
@@ -15,7 +15,7 @@ inc: $(BUILT_SOURCES)
 
 AUTOMAKE_OPTIONS = foreign
 
-www_SOURCES = \
+libwww_a_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \
 	HTMethod.c 	HTProt.c 	HTCache.c \
 	HTReqMan.c 	HTDNS.c 	HTArray.c \
@@ -53,9 +53,9 @@ www_SOURCES = \
 	HTMuxCh.c	HTTimer.c	HTTrace.c \
 	HTMemLog.c
 
-www_LIBADD = @HTWAIS@
+libwww_a_LIBADD = @HTWAIS@
 
-EXTRA_www_SOURCES = \
+EXTRA_libwww_a_SOURCES = \
 	HTWAIS.c
 
 BUILT_SOURCES = sysdep.h \

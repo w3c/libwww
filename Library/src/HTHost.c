@@ -29,6 +29,7 @@
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
 #define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
 #define MAX_PIPES		50   /* maximum number of pipelined requests */
+#define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
 
 struct _HTInputStream {
     const HTInputStreamClass *	isa;
@@ -239,7 +240,8 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
 	    pres->events[i]= HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, EventTimeout);
 	}
 	if (CORE_TRACE) 
-	    HTTrace("Host info... added `%s\' to list %p\n", host, list);
+	    HTTrace("Host info... added `%s\' with host %p to list %p\n",
+		    host, pres, list);
 	HTList_addObject(list, (void *) pres);
     }
     return pres;
@@ -277,7 +279,7 @@ PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_por
 		  *port++ = '\0';
 		  if (!*port || !isdigit(*port))
 		      port = 0;
-		  u_port = atol(port);
+		  u_port = (u_short) atol(port);
 	      }
 	      /* Find information about this host */
 	      if ((me = HTHost_new(parsedHost, u_port)) == NULL) {
@@ -662,8 +664,10 @@ PUBLIC BOOL HTHost_recoverPipe (HTHost * host)
 	int piped = HTList_count(host->pipeline);
 	if (piped > 0) {
 	    int cnt;
+	    host->recovered++;
 	    if (CORE_TRACE)
-		HTTrace("Host recover Moving %d Net objects from pipe line to pending queue\n", piped);
+		HTTrace("Host recovered %d times. Moving %d Net objects from pipe line to pending queue\n",
+			host->recovered, piped);
 	    
 	    /*
 	    **  Unregister this host for all events
@@ -691,7 +695,14 @@ PUBLIC BOOL HTHost_recoverPipe (HTHost * host)
 	    HTChannel_setSemaphore(host->channel, 0);
 	    HTHost_clearChannel(host, HT_INTERRUPTED);
 	}
+#if 0
+	/*
+	**  We don't wanna change state here
+	*/
 	return HTHost_launchPending(host);
+#else
+	return YES;
+#endif
     }
     return NO;
 }
@@ -733,10 +744,21 @@ PUBLIC BOOL HTHost_setMode (HTHost * host, HTTransportMode mode)
 		HTChannel_setSemaphore(host->channel, 0);
 		HTHost_clearChannel(host, HT_INTERRUPTED);
 	    }
-	}	
-	host->mode = mode;
-	if (PROT_TRACE)
-	    HTTrace("Host info... New mode is %d for host %p\n", host->mode, host);
+	}
+
+	/*
+	**  If we know that this host is bad then we don't allow anything than
+	**  single mode. We can't recover connections for the rest of our life
+	*/
+	if (mode == HT_TP_PIPELINE && host->recovered > MAX_HOST_RECOVER) {
+	    if (PROT_TRACE)
+		HTTrace("Host info... %p is bad for pipelining so we won't do it!!!\n",
+			host);
+	} else {
+	    host->mode = mode;
+	    if (PROT_TRACE)
+		HTTrace("Host info... New mode is %d for host %p\n", host->mode, host);
+	}
     }
     return NO;
 }
@@ -1120,7 +1142,7 @@ PUBLIC HTInputStream * HTHost_getInput (HTHost * host, HTTransport * tp,
 	HTChannel_setInput(ch, input);
 	return HTChannel_getChannelIStream(ch);
     }
-    if (CORE_TRACE) HTTrace("Host Object.. Can't create input stream\n");
+    if (CORE_TRACE) HTTrace("Host Object. Can't create input stream\n");
     return NULL;
 }
 
@@ -1133,7 +1155,7 @@ PUBLIC HTOutputStream * HTHost_getOutput (HTHost * host, HTTransport * tp,
 	HTChannel_setOutput(ch, output);
 	return output;
     }
-    if (CORE_TRACE) HTTrace("Host Object.. Can't create output stream\n");
+    if (CORE_TRACE) HTTrace("Host Object. Can't create output stream\n");
     return NULL;
 }
 

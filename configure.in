@@ -5,7 +5,7 @@ dnl Please first read the full copyright statement in the file COPYRIGH.
 AC_PREREQ(2.2)
 AC_INIT(Library)
 AC_REVISION
-AC_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR(config)
 
 dnl Cheks for platform information
@@ -178,7 +178,7 @@ AC_ARG_ENABLE(signals, [  --enable-signals        use internal libwww signal han
 
 AC_MSG_CHECKING(whether to disable Nagle's algorithm)
 AC_ARG_ENABLE(nagle,
-[  --disable-nagle         Turning of Nagle's algorithm.],
+[  --disable-nagle         Turning off Nagle's algorithm.],
 [ case "${enableval}" in
   no)
     AC_MSG_RESULT(yes)
@@ -190,6 +190,21 @@ AC_ARG_ENABLE(nagle,
   esac ],
   AC_MSG_RESULT(yes)
   AC_DEFINE(HT_NO_NAGLE)
+)
+
+AC_MSG_CHECKING(whether to disable HTTP/1.1 pipelining)
+AC_ARG_ENABLE(pipelining,
+[  --disable-pipelining    Turning off HTTP/1.1 Pipelining.],
+[ case "${enableval}" in
+  no)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_NO_PIPELINING)
+    ;;
+  *) 
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
 )
 
 AC_MSG_CHECKING(whether to define _REENTRANT)

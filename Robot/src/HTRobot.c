@@ -50,7 +50,9 @@ typedef enum _MRFlags {
     MR_PREEMPTIVE	= 0x4,
     MR_TIME		= 0x8,
     MR_SAVE	  	= 0x10,
-    MR_QUIET	  	= 0x20
+    MR_QUIET	  	= 0x20,
+    MR_VALIDATE		= 0x40,
+    MR_END_VALIDATE	= 0x80
 } MRFlags;
 
 typedef struct _Robot {
@@ -221,9 +223,21 @@ PRIVATE Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod meth
     me->dest = dest;
     HTList_addObject(robot->fingers, (void *)me);
 
+    /* Set the context for this request */
     HTRequest_setContext (request, me);
-    if (robot->flags & MR_PREEMPTIVE) HTRequest_setPreemptive(request, YES);
+
+    /* Check the various flags to customize the request */
+    if (robot->flags & MR_PREEMPTIVE)
+	HTRequest_setPreemptive(request, YES);
+    if (robot->flags & MR_VALIDATE)
+	HTRequest_setReloadMode(request, HT_CACHE_VALIDATE);
+    if (robot->flags & MR_END_VALIDATE)
+	HTRequest_setReloadMode(request, HT_CACHE_END_VALIDATE);
+
+    /* We wanna make sure that we are sending a Host header (default) */
     HTRequest_addRqHd(request, HT_C_HOST);
+
+    /* Set the method for this request */
     HTRequest_setMethod(request, method);
     robot->cnt++;
     return me;
@@ -431,14 +445,21 @@ PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
 PUBLIC void HText_beginAppend (HText * text) {}
 PUBLIC void HText_appendParagraph (HText * text) {}
 
+PRIVATE int RobotTrace (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
 
 int main (int argc, char ** argv)
 {
-    int		status = 0;	
+    int		status = 0;
     int		arg;
+    BOOL	cache = NO;			     /* Use persistent cache */
+    BOOL	flush = NO;		       /* flush the persistent cache */
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
     Robot *	mr = NULL;
@@ -463,11 +484,12 @@ int main (int argc, char ** argv)
 #endif
 
 #ifdef MEMLOG
-    HTMemLog_open("data.log", 8192, YES);
+    HTMemLog_open("/tmp/data.log", 8192, YES);
 #endif
 
     /* Initiate W3C Reference Library with a robot profile */
     HTProfile_newRobot(APP_NAME, APP_VERSION);
+    HTTrace_setCallback(RobotTrace);
 
     /* Add the default HTML parser to the set of converters */
     {
@@ -506,6 +528,22 @@ int main (int argc, char ** argv)
 		int timeout = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
 		if (timeout > 0) mr->timer = timeout;
+
+	    /* Start the persistent cache */
+	    } else if (!strcmp(argv[arg], "-cache")) {
+		cache = YES;
+
+	    /* Persistent cache flush */
+	    } else if (!strcmp(argv[arg], "-flush")) {
+		flush = YES;
+
+	    /* Do a cache validation */
+	    } else if (!strcmp(argv[arg], "-validate")) {
+		mr->flags |= MR_VALIDATE;
+
+	    /* Do an end-to-end cache-validation */
+	    } else if (!strcmp(argv[arg], "-endvalidate")) {
+		mr->flags |= MR_END_VALIDATE;
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
@@ -597,6 +635,14 @@ int main (int argc, char ** argv)
 	}
     }
 
+    /* Should we use persistent cache? */
+    if (cache) {
+	HTCacheInit(NULL, 20);
+
+	/* Should we start by flushing? */
+	if (flush) HTCache_flushAll();
+    }
+
     /* Log file specifed? */
     if (mr->logfile) HTLog_open(mr->logfile, YES, YES);
 
@@ -614,6 +660,15 @@ int main (int argc, char ** argv)
     ** buffered in the output buffer
     */
     HTRequest_setFlush(finger->request, YES);
+
+    /*
+    ** Check whether we should do some kind of cache validation on
+    ** the load
+    */
+    if (mr->flags & MR_VALIDATE)
+	HTRequest_setReloadMode(finger->request, HT_CACHE_VALIDATE);
+    if (mr->flags & MR_END_VALIDATE)
+	HTRequest_setReloadMode(finger->request, HT_CACHE_END_VALIDATE);
 
     /*
     **  Now do the load

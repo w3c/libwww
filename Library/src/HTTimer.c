@@ -89,14 +89,16 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 	CLEARME(timer);
 	return NO;
     }
-    HTList_quickRemoveElement(cur, last);
+    if (HTList_quickRemoveElement(cur, last))
+	if (THD_TRACE) HTTrace("Timer....... Deleted timer %p\n", timer);
+    else
+	if (THD_TRACE) HTTrace("Timer....... Could not delete timer %p\n", timer);
 
     /*
     **  Call any platform specific timer handler
     */
     if (DeletePlatformTimer) DeletePlatformTimer(timer);
 
-    if (THD_TRACE) HTTrace("Timer....... Deleted timer %p\n", timer);
     CLEARME(timer);
     HT_FREE(timer);
     return YES;
@@ -128,6 +130,9 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	    return NULL;
 	}
 	HTList_quickRemoveElement(cur, last);
+	if (THD_TRACE)
+	    HTTrace("Timer....... Found timer %p with callback %p, context %p, and %s timeout %d\n",
+		    timer, cbf, param, relative ? "relative" : "absolute", millis);
 	/* could optimize by sorting from last when ((HTList *)(last->object))->expires < expires (most common case) */
     } else {
 
@@ -136,15 +141,15 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	if ((timer = (HTTimer *) HT_CALLOC(1, sizeof(HTTimer))) == NULL)
 	    HT_OUTOFMEM("HTTimer_new");
 	last = Timers;
+	if (THD_TRACE)
+	    HTTrace("Timer....... Created timer %p with callback %p, context %p, and %s timeout %d\n",
+		    timer, cbf, param, relative ? "relative" : "absolute", millis);
     }
     /*	sort new element into list
      */
     for (cur = last; 
 	 (pres = (HTTimer *) HTList_nextObject(cur)) != NULL && pres->expires < expires; 
 	 last = cur);
-    if (THD_TRACE)
-	HTTrace("Timer....... Created timer %p with callback %p, context %p, and %s timeout %d\n",
-		 timer, cbf, param, relative ? "relative" : "absolute", millis);
     if (!millis) return timer;
     timer->expires = expires;
     timer->cbf = cbf;

@@ -12,5 +12,7 @@ SUBDIRS = Patch Architecture Using Guide Style Platform
 BUILT_SOURCES = \
 	Extrnals.html
 
+SUFFIXES = .html
+
 Extrnals.html:
 	$(top_srcdir)/config/makeindx.pl $(srcdir)/../src $(srcdir)/../src/WWW*.html > Extrnals.html

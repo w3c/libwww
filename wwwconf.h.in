@@ -106,6 +106,9 @@
 /* Define to disable Nagle's algorithm */
 #undef HT_NO_NAGLE
 
+/* Define to disable HTTP/1.1 pipelining */
+#undef HT_NO_PIPELINING
+
 /* Define this if it's not typedef'd automatically. */
 #undef BOOLEAN
 
@@ -132,24 +135,6 @@
 
 /* Define this if it isn't in the header files.  */
 #undef u_long
-
-/* Define this if you have the external variable 'timezone' */
-#undef HAVE_TIMEZONE
-
-/* Define this if you have the external variable 'altzone' */
-#undef HAVE_ALTZONE
-
-/* Define this if you have the external variable 'altzone' */
-#undef HAVE_DAYLIGHT
-
-/* Define this if tm structure includes a tm_gmtoff entry. */
-#undef HAVE_TM_GMTOFF
-
-/* Define this if your ioctl understands the winsize structure. */
-#undef HAVE_WINSIZE
-
-/* Define this if the extern timezone is negative. */
-#undef NEGATIVE_TIMEZONE
 
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT

@@ -286,7 +286,6 @@ PUBLIC char * HTGetHostName (void)
 {
     char * hostname = NULL;
     int fqdn = 0;				     /* 0=no, 1=host, 2=fqdn */
-    FILE *fp;
     char name[MAXHOSTNAMELEN+1];
     *(name+MAXHOSTNAMELEN) = '\0';
 
@@ -310,29 +309,32 @@ PUBLIC char * HTGetHostName (void)
 
 #ifdef RESOLV_CONF
     /* Now try the resolver config file */
-    if (fqdn==1 && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
-	char buffer[80];
-	*(buffer+79) = '\0';
-	while (fgets(buffer, 79, fp)) {
-	    if (!strncasecomp(buffer, "domain", 6) ||
-		!strncasecomp(buffer, "search", 6)) {
-		char *domainstr = buffer+6;
-		char *end;
-		while (*domainstr == ' ' || *domainstr == '\t')
-		    domainstr++;
-		end = domainstr;
-		while (*end && !isspace(*end))
-		    end++;
-		*end = '\0';
-		if (*domainstr) {
-		    StrAllocCat(hostname, ".");
-		    StrAllocCat(hostname, domainstr);
-		    fqdn = 2;
-		    break;
+    {
+	FILE *fp;
+	if (fqdn==1 && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
+	    char buffer[80];
+	    *(buffer+79) = '\0';
+	    while (fgets(buffer, 79, fp)) {
+		if (!strncasecomp(buffer, "domain", 6) ||
+		    !strncasecomp(buffer, "search", 6)) {
+		    char *domainstr = buffer+6;
+		    char *end;
+		    while (*domainstr == ' ' || *domainstr == '\t')
+			domainstr++;
+		    end = domainstr;
+		    while (*end && !isspace(*end))
+			end++;
+		    *end = '\0';
+		    if (*domainstr) {
+			StrAllocCat(hostname, ".");
+			StrAllocCat(hostname, domainstr);
+			fqdn = 2;
+			break;
+		    }
 		}
 	    }
+	    fclose(fp);
 	}
-	fclose(fp);
     }
 #endif /* RESOLV_CONF */
 

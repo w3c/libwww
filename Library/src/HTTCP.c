@@ -105,7 +105,8 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
 #ifdef HT_NO_NAGLE
     {
 	int disable = 1;
-	status = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &disable, sizeof(int));
+	status = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
+			    (char *) &disable, sizeof(int));
 	if (status == -1) {
 	    if (PROT_TRACE)
 		HTTrace("Socket...... Could not disable Nagle's algorithm - error %d\n",

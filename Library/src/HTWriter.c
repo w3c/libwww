@@ -135,6 +135,10 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		continue;
 #endif
 	    } else {
+#ifdef EPIPE
+		if (socerrno == EPIPE)
+		    HTTrace("Write Socket got EPIPE\n");
+#endif /* EPIPE */
 		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 					 "NETWRITE");
 		return HT_ERROR;

@@ -1,4 +1,4 @@
-dnl aclocal.m4 generated automatically by aclocal 1.1g
+dnl aclocal.m4 generated automatically by aclocal 1.1l
 
 AC_DEFUN(AC_SYS_AFS_SYSNAME, [
 AC_CHECK_PROG(ac_afsws_fs_found, fs, yes)
@@ -23,11 +23,11 @@ dnl Use AC_PROG_INSTALL, supplementing it with INSTALL_SCRIPT ##
 dnl substitution.                                             ##
 dnl --------------------------------------------------------- ##
 
-AC_DEFUN(fp_PROG_INSTALL,
-[AC_PROG_INSTALL
-test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL} -m 755'
-AC_SUBST(INSTALL_SCRIPT)dnl
-])
+dnl AC_DEFUN(fp_PROG_INSTALL,
+dnl [AC_PROG_INSTALL
+dnl test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL} -m 755'
+dnl AC_SUBST(INSTALL_SCRIPT)dnl
+dnl ])
 
 dnl AC_PATH_WAIS(ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND])
 AC_DEFUN(AC_PATH_WAIS, [
@@ -682,6 +682,19 @@ AC_DEFUN(AC_DECL_NEED_SYS_ERR,
 ])dnl
 
 
+
+# Like AC_CONFIG_HEADER, but automatically create stamp file.
+
+AC_DEFUN(AM_CONFIG_HEADER,
+[AC_PREREQ([2.12])
+AC_CONFIG_HEADER([$1])
+dnl When config.status generates a header, we must update the stamp-h file.
+dnl This file resides in the same directory as the config header
+dnl that is generated.  We must strip everything past the first ":",
+dnl and everything past the last "/".
+AC_OUTPUT_COMMANDS(changequote(<<,>>)dnl
+test -z "<<$>>CONFIG_HEADER" || echo timestamp > patsubst(<<$1>>, <<^\([^:]*/\)?.*>>, <<\1>>)stamp-h<<>>dnl
+changequote([,]))])
 
 # Do all the work for Automake.  This macro actually does too much --
 # some checks are only needed if your package does certain things.

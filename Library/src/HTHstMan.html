@@ -72,6 +72,7 @@ struct _HTHost {
     HTList *		pending;	      /* List of pending Net objects */
     BOOL		persistent;
     HTTransportMode	mode;	      			   /* Supported mode */
+    int                 recovered;        /* How many times had we recovered */
 
     /* Support for transports */
     HTChannel *		channel;			     /* data channel */

@@ -1175,11 +1175,11 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     me->allow = METHOD_INVALID;
     if (me->content_encoding) {
 	HTList_delete(me->content_encoding);
-	me->content_encoding = HTList_new();
+	me->content_encoding = NULL;
     }
     if (me->content_language) {
 	HTList_delete(me->content_language);
-	me->content_language = HTList_new();
+	me->content_language = NULL;
     }
     HT_FREE(me->content_base);
     HT_FREE(me->content_location);

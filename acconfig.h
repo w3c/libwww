@@ -42,6 +42,9 @@
 /* Define to disable Nagle's algorithm */
 #undef HT_NO_NAGLE
 
+/* Define to disable HTTP/1.1 pipelining */
+#undef HT_NO_PIPELINING
+
 /* Define this if a typedef'd function definition may not be preceeded by 
 its ``extern'' declaration. */
 #undef NO_EXTERN_TYPEDEF_FUNC
