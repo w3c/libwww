@@ -315,9 +315,10 @@ PRIVATE BOOL HTLoadDocument ARGS4(
 #ifdef CURSES
         user_message("Can't access `%s'", full_address);
 #else
-	fprintf(stderr, "HTAccess: Can't access `%s'\n", full_address);
+	if (TRACE) fprintf(stderr, 
+		"HTAccess: Can't access `%s'\n", full_address);
 #endif
-
+	HTLoadError(sink, 500, "Unable to access document.")
 	return NO;
     }
     
