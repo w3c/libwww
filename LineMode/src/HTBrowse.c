@@ -200,6 +200,52 @@ PRIVATE void Reference_List PARAMS((BOOL titles));
 
 PRIVATE HTFormat HTInputFormat = NULL;
 
+
+
+
+#ifdef ultrix
+#define GET_SCREEN_SIZE
+#endif
+
+#ifdef __osf__
+#define GET_SCREEN_SIZE
+#endif
+
+#ifdef GET_SCREEN_SIZE
+#include <sys/ioctl.h>
+
+/*
+ * Get size of the output screen. Stolen from less.
+ */
+void
+scrsize(p_height, p_width)
+      int *p_height;
+      int *p_width;
+{
+      register char *s;
+      int ioctl();
+      struct winsize w;
+
+      if (ioctl(2, TIOCGWINSZ, &w) == 0 && w.ws_row > 0)
+              *p_height = w.ws_row;
+      else
+      if ((s = getenv("LINES")) != NULL)
+              *p_height = atoi(s);
+      else
+              *p_height = SCREEN_HEIGHT;
+
+      if (ioctl(2, TIOCGWINSZ, &w) == 0 && w.ws_col > 0)
+              *p_width = w.ws_col;
+      else
+      if ((s = getenv("COLUMNS")) != NULL)
+              *p_width = atoi(s);
+      else
+              *p_width = 80;
+}
+#endif /* GET_SCREEN_SIZE, BSN */
+
+
+
 /* MAIN PROGRAM
 ** ------------
 */
@@ -220,6 +266,10 @@ int main
     BOOL default_used = NO;	 /* Fell back on home page? */
     char* default_default=0;	 /* Parse home relative to this */
 
+#if defined(ultrix) || defined(__osf__)
+    int scr_height, scr_width;
+#endif /* ultrix and OSF/1 */
+
     HTFormat format_in = WWW_HTML;		/* By default */
     HTOutputFormat = WWW_PRESENT;	        /* By default */
     
@@ -230,6 +280,11 @@ int main
 	
     StrAllocCopy(default_default, "file://");
     StrAllocCat(default_default, HTHostName()); /* eg file://cernvax.cern.ch */
+
+#ifdef GET_SCREEN_SIZE
+    scrsize(&scr_height, &scr_width);
+    HTScreenHeight = scr_height;
+#endif /* ultrix or OSF/1, BSN */
 
 #ifndef MAXPATHLEN
 #define NO_GETWD		/* Assume no  getwd() if no MAXPATHLEN */
