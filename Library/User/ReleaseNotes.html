@@ -13,7 +13,9 @@ alt="RELEASE"></p>
 
 <h1>Release Notes for Libwww</h1>
 
-<p>See also the <a href="../Changes">the latest changes</a> that are <a
+<p>See also the <a
+href="http://dev.w3.org/cvsweb/~checkout~libwww/ChangeLog?content-type=text/plain&amp;only_with_tag=HEAD">the
+latest changes</a> that are <a
 href="../cvs.html">committed to and available from CVS </a>but not yet <a
 href="../cvs.html#Releases">in a release</a>. See also the <a
 href="History.html">full libwww release history</a>.</p>
@@ -21,12 +23,17 @@ href="History.html">full libwww release history</a>.</p>
 <h2><a name="5.3.11">Release 5.3.2, Dec 14, 2000</a></h2>
 
 <p>This is a minor release that mainly provides bug fixes and small
-enhancements that have been commited to CVS since the last release. Special
-thanks to Wayne Davison, Art Barstow,  Peter Stamfest, Zhu Qun-Ying, Jens
-Meggers,  Ken Olum for their contributions.</p>
+enhancements that have been commited to CVS since the last release.  Vladimir
+Koslov provided indispensable help for testing and preparing the Win32
+release. Special thanks to Wayne Davison, Art Barstow,  Peter Stamfest, 
+Zhu Qun-Ying, Jens Meggers,  Ken Olum for their contributions.</p>
 <ul>
-  <li>Summary of principal changes
+  <li>Summary of principal changes (the <a
+      href="http://dev.w3.org/cvsweb/~checkout~libwww/ChangeLog?content-type=text/plain&amp;only_with_tag=HEAD">ChangeLog</a> provides a detailed
+      account)
     <ul>
+      <li>The following sample applications could core dump under Windows:
+          <code>head.c, getheaders.c, chunk.c, chunkbody.c, multichunk.c</code>
       <li>When retrieving an object from the cache, the HTTP headers
         associated with the object weren't stored in the HTResponse
       object.</li>
@@ -41,6 +48,12 @@ Meggers,  Ken Olum for their contributions.</p>
   </li>
   <li>Outstanding bugs
     <ul>
+      <li>The <code>webbot</code> crashes from time to time under Windows. It
+        seems to be a problem while reading the <code>robots.txt</code> file,
+	 where the application frees a request that's still registred in the
+	 Windows async. loop.,</li>
+      <li>The <code>tiny.c</code> sample application doesn't prompt the user
+          with a text input.</li>
       <li>Interpretation of <a
         href="http://lists.w3.org/Archives/Public/www-lib/2000JulSep/0050.html">FD_CLOSE</a>
         under Windows.</li>
@@ -52,7 +65,8 @@ Meggers,  Ken Olum for their contributions.</p>
   </li>
   <li>To do
     <ul>
-      <li>Compile the answers to the libwww survey.</li>
+      <li>Compile the answers to the libwww survey (volunteers are 
+      welcome).</li>
     </ul>
   </li>
 </ul>
@@ -63,3 +77,4 @@ Meggers,  Ken Olum for their contributions.</p>
 </address>
 </body>
 </html>
+
