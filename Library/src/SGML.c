@@ -329,11 +329,12 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 
     switch(context->state) {
     case S_text:
-	if (c=='&' && (context->element_stack &&
-	    		context->element_stack->tag  &&
-	    		( context->element_stack->tag->contents == SGML_MIXED
-			 || context->element_stack->tag->contents == SGML_RCDATA)
-			)) {
+	if (c=='&' && (!context->element_stack || (
+	    		 context->element_stack->tag  &&
+	    		 ( context->element_stack->tag->contents == SGML_MIXED
+			   || context->element_stack->tag->contents ==
+			      				 SGML_RCDATA)
+			))) {
 	    string->size = 0;
 	    context->state = S_ero;
 	    
