@@ -125,9 +125,10 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		    return HT_WOULD_BLOCK;
 #ifdef __svr4__
 		    /* 
-		    ** In Solaris envirnoment, SIGPOLL is used to signal end of buffer for
-		    ** /dev/audio.  If your process is also doing a socket read, it will cause
-		    ** an EINTR error.  This error will cause the www library request to 
+		    ** In Solaris envirnoment, SIGPOLL is used to signal end 
+		    ** of buffer for /dev/audio.  If your process is also doing
+		    ** a socket read, it will cause an EINTR error.  This 
+		    ** error will cause the www library request to 
 		    ** terminate prematurly.
 		    */
                 } else if (socerrno == EINTR) {
@@ -143,6 +144,25 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		    HTTRACE(STREAM_TRACE, "Read Socket. got ECONNRESET\n" _ soc);
 		    goto socketClosed;
 #endif /* ECONNRESET */
+#ifdef _WINSOCKAPI_					/* windows */
+		    /* 
+		    ** JK: added new tests here, based on the following text:
+		    ** Under BSD Unixes, if the remote peer closes its 
+		    ** connection and your program is blocking on recv(), you
+		    ** will get a 0 back from recv(). Winsock behaves the same
+		    ** way, except that it can also return -1, with 
+		    ** WSAGetLastError() returning WSAECONNRESET, 
+		    ** WSAECONNABORTED or WSAESHUTDOWN, to signal the
+		    ** detectable flavors of abnormal disconnections.
+		    ** (from the Winsock Programmer's FAQ, Warren Young)
+		    */
+		} else if (socerrno == ECONNABORTED) {
+		    HTTRACE(STREAM_TRACE, "Read Socket. got ECONNABORTED\n" _ soc);
+		    goto socketClosed;
+		} else if (socerrno == ESHUTDOWN) {
+		    HTTRACE(STREAM_TRACE, "Read Socket. got ESHUTDOWN\n" _ soc);
+		    goto socketClosed;
+#endif /* _WINSOCKAPI */
 		} else { 			     /* We have a real error */
 
 		    if (request)
