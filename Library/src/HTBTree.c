@@ -1,6 +1,9 @@
 /*                  Binary Tree for sorting things
 **                  ==============================
 **                      Author: Arthur Secret
+**
+**       4 March 94: Bug fixed in the balancing procedure
+**
 */
 
 
@@ -97,8 +100,8 @@ PUBLIC void HTBTree_add ARGS2(
     HTBTElement * added_element;
     HTBTElement * forefather_of_element;
     HTBTElement * father_of_forefather;
-    BOOL father_found,top_found,first_correction;
-    int depth,depth2;
+    BOOL father_found,top_found;
+    int depth,depth2,corrections;
         /* father_of_element is a pointer to the structure that is the father of the
         ** new object "object".
         ** added_element is a pointer to the structure that contains or will contain 
@@ -111,7 +114,7 @@ PUBLIC void HTBTree_add ARGS2(
         ** top_found indicates by a value NO when, in case of a difference of depths
         **  < 2, the top of the tree is encountered and forbids any further try to
         ** balance the tree.
-        ** first_correction is a boolean used to avoid infinite loops in cases
+        ** corrections is an integer used to avoid infinite loops in cases
         ** such as:
         **
         **             3                        3
@@ -214,12 +217,13 @@ PUBLIC void HTBTree_add ARGS2(
         } while ((depth != depth2) && (father_of_forefather != NULL));
         
 
+
             /*
             ** 2/ Balancing the binary tree, if necessary
             */
         top_found = YES;
-        first_correction = YES;
-        while ((top_found) && (first_correction))
+        corrections = 0;
+        while ((top_found) && (corrections < 7))
         {
             if ((abs(father_of_element->left_depth
                       - father_of_element->right_depth)) < 2)
@@ -231,9 +235,9 @@ PUBLIC void HTBTree_add ARGS2(
             else
  	    {                /* We start the process of balancing */
 
-                first_correction = NO;
+                corrections = corrections + 1;
                     /* 
-                    ** first_correction is a boolean used to avoid infinite 
+                    ** corrections is an integer used to avoid infinite 
                     ** loops in cases such as:
                     **
                     **             3                        3
@@ -241,8 +245,22 @@ PUBLIC void HTBTree_add ARGS2(
                     **           5                            5
                     **
                     ** 3 is used to show that it need not be the top of the tree
+		    ** But let's avoid these two exceptions anyhow 
+		    ** with the two following conditions (4 March 94 - AS)
                     */
 
+		if ((father_of_element->left == NULL) 
+		    && (father_of_element->right->right == NULL) 
+		    && (father_of_element->right->left->left == NULL) 
+		    && (father_of_element->right->left->right == NULL)) 
+		    corrections = 7;
+
+		if ((father_of_element->right == NULL) 
+		    && (father_of_element->left->left == NULL) 
+		    && (father_of_element->left->right->right == NULL) 
+		    && (father_of_element->left->right->left == NULL))
+		    corrections = 7;
+ 
 
                 if (father_of_element->left_depth > father_of_element->right_depth)
 	        {
@@ -253,28 +271,49 @@ PUBLIC void HTBTree_add ARGS2(
                                           father_of_element->left_depth);
                     if (father_of_element->up != NULL)
 		    {
+			/* Bug fixed in March 94  -  AS */
+			BOOL first_time;
+
                         father_of_forefather = father_of_element->up;
                         forefather_of_element = added_element;
+			first_time = YES;
                         do 
                         {
                             if (father_of_forefather->left
                                  == forefather_of_element->up)
-                            {
-                                depth = father_of_forefather->left_depth;
-                                father_of_forefather->left_depth = 1
-                                    + MAXIMUM(forefather_of_element->left_depth,
-                                          forefather_of_element->right_depth);
+                              {
+				  depth = father_of_forefather->left_depth;
+				  if (first_time)
+				  {
+				      father_of_forefather->left_depth = 1
+					  + MAXIMUM(forefather_of_element->left_depth,
+						  forefather_of_element->right_depth);
+					first_time = NO;
+				   }
+				   else
+				       father_of_forefather->left_depth = 1
+					   + MAXIMUM(forefather_of_element->up->left_depth,
+					      forefather_of_element->up->right_depth);
+
                                 depth2 = father_of_forefather->left_depth;
 			    }
                             else
 			    {
                                 depth = father_of_forefather->right_depth;
-                                father_of_forefather->right_depth = 1
-                                    + MAXIMUM(forefather_of_element->left_depth,
-                                          forefather_of_element->right_depth);
+				if (first_time)
+				{
+				    father_of_forefather->right_depth = 1
+				      + MAXIMUM(forefather_of_element->left_depth,
+					       forefather_of_element->right_depth);
+				    first_time = NO;
+				}				
+				else
+				    father_of_forefather->right_depth = 1
+				      + MAXIMUM(forefather_of_element->up->left_depth,
+					   forefather_of_element->up->right_depth);
                                 depth2 = father_of_forefather->right_depth;
 			    }
-                            forefather_of_element = father_of_forefather;
+                            forefather_of_element = forefather_of_element->up;
                             father_of_forefather = father_of_forefather->up;
 			} while ((depth != depth2) && 
 				 (father_of_forefather != NULL));
@@ -337,29 +376,50 @@ PUBLIC void HTBTree_add ARGS2(
                             MAXIMUM(father_of_element->right_depth,
                                 father_of_element->left_depth);
                     if (father_of_element->up != NULL)
+			/* Bug fixed in March 94  -  AS */
 		    {
+			BOOL first_time;
+
                         father_of_forefather = father_of_element->up;
                         forefather_of_element = added_element;
+			first_time = YES;
                         do 
                         {
-                            if (father_of_forefather->left == father_of_element)
+                            if (father_of_forefather->left 
+				== forefather_of_element->up)
                             {
                                 depth = father_of_forefather->left_depth;
-                                father_of_forefather->left_depth = 1
-                                                 + MAXIMUM(added_element->left_depth,
-                                                         added_element->right_depth);
-                                depth2 = father_of_forefather->left_depth;
+                                if (first_time)
+				{
+				    father_of_forefather->left_depth = 1
+				       + MAXIMUM(forefather_of_element->left_depth,
+					       forefather_of_element->right_depth);
+				    first_time = NO;
+				}
+                                else
+				    father_of_forefather->left_depth = 1
+				      + MAXIMUM(forefather_of_element->up->left_depth,
+				       	  forefather_of_element->up->right_depth);
+				depth2 = father_of_forefather->left_depth;
 			    }
                             else
 			    {
                                 depth = father_of_forefather->right_depth;
-                                father_of_forefather->right_depth = 1
-                                                 + MAXIMUM(added_element->left_depth,
-                                                         added_element->right_depth);
+				if (first_time)
+				{
+				    father_of_forefather->right_depth = 1
+				       + MAXIMUM(forefather_of_element->left_depth,
+					       forefather_of_element->right_depth);
+				    first_time = NO;
+				}
+				else
+				    father_of_forefather->right_depth = 1
+				      + MAXIMUM(forefather_of_element->up->left_depth,
+					   forefather_of_element->up->right_depth);
                                 depth2 = father_of_forefather->right_depth;
 			    }
                             father_of_forefather = father_of_forefather->up;
-                            forefather_of_element = father_of_forefather;
+                            forefather_of_element = forefather_of_element->up;
 			} while ((depth != depth2) && 
 				 (father_of_forefather != NULL));
                         father_of_forefather = father_of_element->up;
