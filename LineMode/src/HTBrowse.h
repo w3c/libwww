@@ -26,7 +26,6 @@
 extern  int  HTScreenWidth;		/* By default */
 extern  int  HTScreenHeight;		/* Undefined */
 extern  BOOL display_anchors;		/* anchor will be shown in text? */
-extern  BOOL interactive;       	/*  e.g. shows prompts etc */
 
 					   
 extern char * reference_mark;      	/* Format string for  [1] &c */

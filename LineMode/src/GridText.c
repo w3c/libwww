@@ -30,7 +30,8 @@ struct _HTStream {			/* only know it as object */
 
 /*	From main program:
 */
-extern char * reference_mark;		/* Template for anchors */
+extern char * start_reference;		/* Template for anchors */
+extern char * end_reference;		/* Template for anchors */
 extern char * end_mark;			/* Template for end */
 extern int HTScreenWidth,		/* The screen width */
 	HTScreenHeight;			/* The screen height */
@@ -714,6 +715,7 @@ PUBLIC void HText_appendCharacter ARGS2(HText *,text, char,ch)
 PUBLIC void HText_beginAnchor ARGS2(HText *,text, HTChildAnchor *,anc)
 {
     TextAnchor * a = (TextAnchor *) malloc(sizeof(*a));
+    char marker[100];
     
     if (a == NULL) outofmem(__FILE__, "HText_beginAnchor");
     a->start = text->chars + text->last_line->size;
@@ -732,6 +734,12 @@ PUBLIC void HText_beginAnchor ARGS2(HText *,text, HTChildAnchor *,anc)
     } else {
         a->number = 0;
     }
+    
+    if (start_reference && a->number && display_anchors) {
+    	/* If it goes somewhere */
+	sprintf(marker, start_reference, a->number);
+	HText_appendText(text, marker);
+    }
 }
 
 
@@ -740,7 +748,7 @@ PUBLIC void HText_endAnchor ARGS1(HText *,text)
     TextAnchor * a = text->last_anchor;
     char marker[100];
     if (a->number && display_anchors) {	 /* If it goes somewhere */
-	sprintf(marker, reference_mark, a->number);
+	sprintf(marker, end_reference, a->number);
 	HText_appendText(text, marker);
     }
     a->extent = text->chars + text->last_line->size - a->start;

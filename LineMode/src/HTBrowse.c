@@ -81,6 +81,7 @@
 #include "HTML.h"	/* For parser */
 #include "HTFWriter.h"	/* For non-interactive output */
 #include "HTFile.h"	/* For Dir access flags */
+#include "HTRules.h"    /* For loading rule file */
 
 #ifdef THINK_C					 /* Macintosh Think C development system */
 #include <console.h>
@@ -157,8 +158,11 @@ PUBLIC  BOOL display_anchors = YES;	         /* anchor will be shown in text? */
 PRIVATE  BOOL interactive     = YES;          /*  e.g. shows prompts etc */
 PRIVATE  char * output_file_name = NULL;     /* -o xxxx */
 					   
-PUBLIC char * reference_mark = REF_MARK;     /* Format string for [1] &c */
-PUBLIC char * end_mark = END_MARK;           /* Format string for [End] */
+PUBLIC char * start_reference = NULL;   /* Format string for start anchor */
+PUBLIC char * end_reference = REF_MARK; /* for end anchor */
+PUBLIC char * reference_mark = "[%d] "; /* for reference lists */
+PRIVATE char * refhead = NULL;		/* Reference list heading */
+PUBLIC char * end_mark = END_MARK;      /* Format string for [End] */
 
 /* Moved into other files: */
 
@@ -354,7 +358,17 @@ int main
 	    /* Anchor format */
 	    } else if (0==strcmp(argv[arg], "-a")) { 
 		if (++arg < argc)
-		    reference_mark = argv[arg];	  /* Change representation */
+		    end_reference = argv[arg];	  /* Change representation */
+
+	    /* Anchor format */
+	    } else if (0==strcmp(argv[arg], "-ar")) { 
+		if (++arg < argc)
+		    reference_mark = argv[arg]; /* Change representation */
+
+	    /* Anchor format */
+	    } else if (0==strcmp(argv[arg], "-as")) { 
+		if (++arg < argc)
+		    start_reference = argv[arg]; /* Change representation */
 
 	    /* No anchors */
 	    } else if (0==strcmp(argv[arg], "-na")) { 
@@ -384,6 +398,11 @@ int main
 		    }
 		} /* loop over characters */
 #endif
+	    /* Reference list heading */
+	    } else if (0==strcmp(argv[arg], "-refhead")) { 
+		if (++arg < argc)
+		    refhead = argv[arg]; /* Change representation */
+
 	    /* Source please */
 	    } else if (0==strcmp(argv[arg], "-source")) {
 		    HTOutputFormat = WWW_SOURCE;
@@ -454,9 +473,18 @@ int main
 	} /* Not an option '-'*/
     } /* End of argument loop */
 
+    if (HTClientHost) HTSecure = YES;
+    
     if (HTScreenHeight == -1)		/* Default page size */
 	HTScreenHeight = interactive ? SCREEN_HEIGHT : 999999;
 
+
+/*	Force predefined presentations etc to be set up
+**	-----------------------------------------------
+*/
+
+    HTFormatInit();
+    
 /*	Open output file
 **	----------------
 */
@@ -723,8 +751,9 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 	    printf("\n\n     There are no references from this document.\n\n");
     } else {
 	    
-	printf("\n\n     References from this document:-\n\n");
-	    
+	printf(refhead ? refhead 
+		: "\n\n     References from this document:-\n");
+	printf("\n");    
 	for (n=1; n<=HText_sourceAnchors(HTMainText); n++) {
 	    HTAnchor * destination =
 	    HTAnchor_followMainLink(
@@ -735,7 +764,7 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 	    CONST char * title = titles ? HTAnchor_title(parent) : 0 ;
 
 	    printf(reference_mark, n);
-	    printf("  %s%s\n",
+	    printf("%s%s\n",
 		    ((HTAnchor*)parent!=destination) && title ? "in " : "",
 		    (char *)(title ? title : address));
 	    free(address);
