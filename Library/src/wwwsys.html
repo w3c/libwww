@@ -784,6 +784,10 @@ Their existance is discovered by <CODE>configure</CODE>.
 /* syslog.h */
 #ifdef HAVE_SYSLOG_H
 #include &lt;syslog.h&gt;
+#else
+#ifdef HAVE_SYS_SYSLOG_H
+#include &lt;sys/socket.h&gt;
+#endif
 #endif
 
 /* socket.h */
