@@ -782,7 +782,7 @@ PUBLIC HTStructured* HTML_new ARGS5(
     if (output_format != WWW_PLAINTEXT
     	&& output_format != WWW_PRESENT
 	&& output_format != HTAtom_for("text/x-c")) {
-        HTStream * intermediate = HTStreamStack(WWW_HTML, request);
+        HTStream * intermediate = HTStreamStack(WWW_HTML, request, NO);
 	if (intermediate) return HTMLGenerator(intermediate);
         fprintf(stderr, "** Internal error: can't parse HTML to %s\n",
        		HTAtom_name(output_format));

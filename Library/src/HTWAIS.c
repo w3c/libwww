@@ -769,7 +769,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	  0 != strcmp(doctype, "HTML") ;
 
 
-	target = HTStreamStack(format_in, request);
+	target = HTStreamStack(format_in, request, NO);
 	if (!target) return HTLoadError(request, 500,
 		"Can't convert format of WAIS document");
 /*	Decode hex or litteral format for document ID

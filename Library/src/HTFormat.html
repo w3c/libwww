@@ -294,10 +294,14 @@ data in the input format should be
 fed.  The anchor is passed because
 hypertxet objects load information
 into the anchor object which represents
-them.
+them. <P>
+If <CODE>guess</CODE> is true and input format is
+<CODE>www/unknown</CODE>, try to guess the format
+by looking at the first few butes of the stream. <P>
 <PRE>extern HTStream * HTStreamStack PARAMS((
 	HTFormat		format_in,
-	HTRequest *		request));
+	HTRequest *		request,
+	BOOL			guess));
 
 </PRE>
 <H2>HTStackValue: Find the cost of a

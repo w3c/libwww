@@ -45,6 +45,8 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 #include "SGML.h"
 #include "HTML.h"
 #include "HTMLGen.h"
+#include "HTGuess.h"
+
 
 PUBLIC	BOOL HTOutputSource = NO;	/* Flag: shortcut parser to stdout */
 
@@ -719,9 +721,9 @@ PRIVATE BOOL better_match ARGS2(HTFormat, f,
 **	The star/star format is special, in that if you can take
 **	that you can take anything. However, we
 */
-PUBLIC HTStream * HTStreamStack ARGS2(
-	HTFormat,		rep_in,
-	HTRequest *,		request)
+PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
+				      HTRequest *,	request,
+				      BOOL,		guess)
 {
     HTFormat rep_out = request->output_format;	/* Could be a param */
     HTList * conversion[2];
@@ -733,7 +735,12 @@ PUBLIC HTStream * HTStreamStack ARGS2(
     	"HTFormat: Constructing stream stack for %s to %s\n",
 	HTAtom_name(rep_in),	
 	HTAtom_name(rep_out));
-		
+
+    if (guess  &&  rep_in == WWW_UNKNOWN) {
+	CTRACE(stderr, "Returning... guessing stream\n");
+	return HTGuess_new(request);
+    }
+
     if (rep_out == WWW_SOURCE || rep_out == rep_in)
 	return request->output_stream;
 
@@ -995,7 +1002,7 @@ PUBLIC int HTParseSocket ARGS3(
     HTStream * stream;
     HTStreamClass targetClass;    
 
-    stream = HTStreamStack(rep_in, request);
+    stream = HTStreamStack(rep_in, request, YES);
 
     if (!stream) {
 	char buffer[1024];	/* @@@@@@@@ */
@@ -1048,7 +1055,7 @@ PUBLIC int HTParseFile ARGS3(
     HTStream * stream;
     HTStreamClass targetClass;    
 
-    stream = HTStreamStack(rep_in, request);
+    stream = HTStreamStack(rep_in, request, YES);
     
     if (!stream) {
 	char buffer[1024];	/* @@@@@@@@ */

@@ -529,7 +529,7 @@ copy:
 	    target = HTMIMEConvert(request, NULL, format_in,
 	    request->output_format, request->output_stream);
 	} else {
-	    target = HTStreamStack(format_in, request);
+	    target = HTStreamStack(format_in, request, NO);
 	}
 	
 	if (!target) {

@@ -176,7 +176,7 @@ PUBLIC void HTFileInit NOARGS
     HTAddType(".avi",    "video/x-msvideo",		"binary", 1.0);	/* MS Video for Windows	*/
     HTAddType(".movie",  "video/x-sgi-movie",		"binary", 1.0);	/* SGI "moviepalyer"	*/
 
-    HTAddType("*.*",     "application/octet-stream",	"binary", 0.1);
+    HTAddType("*.*",     "www/unknown",			"binary", 0.1);
     HTAddType("*",       "text/plain",			"7bit",   0.5);
 
 }

@@ -128,7 +128,7 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 	        if (TRACE) fprintf(stderr,
 			"HTMIME: MIME content type is %s, converting to %s\n",
 			HTAtom_name(me->format), HTAtom_name(me->targetRep));
-		me->target = HTStreamStack(me->format, me->request);
+		me->target = HTStreamStack(me->format, me->request, NO);
 		if (!me->target) {
 		    if (TRACE) fprintf(stderr, "MIME: Can't translate! ** \n");
 		    me->target = me->sink;	/* Cheat */

@@ -98,6 +98,7 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
     if (req) {
 	HTFormatDelete(req->conversions);
 	HTAACleanup(req);
+	FREE(req->from);
 	FREE(req);
     }
 }
@@ -570,7 +571,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	    
 	    request->using_cache = item;
 	    
-	    s = HTStreamStack(item->format, request);
+	    s = HTStreamStack(item->format, request, NO);
 	    if (s) {		/* format was suitable */
 	        FILE * fp = fopen(item->filename, "r");
 	    	if (TRACE) fprintf(stderr, "Cache: HIT file %s for %s\n",

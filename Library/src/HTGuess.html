@@ -1,0 +1,38 @@
+<HTML>
+<HEAD>
+<TITLE>HTGuess: Guess content-type from a stream</TITLE>
+</HEAD>
+<BODY>
+<H1>Content-Type Guesser</H1>
+
+This stream is a one that reads first a chunk of stuff, tries to
+figure out the format, and calls <CODE>HTStreamStack()</CODE>.  This
+is a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. <P>
+
+This could be extended arbitrarily to recognize all the possible
+file formats in the world, if someone only had time to do it. <P>
+
+Part of <A HREF="Overview.html">libwww</A>. Implemented by <A
+HREF="HTGuess.c"><CODE>HTGuess.c</CODE></A>. <P>
+
+<PRE>
+#ifndef HTGUESS_H
+#define HTGUESS_H
+
+#include "HTStream.h"
+#include &lt;stdio.h&gt;
+#include "HTFormat.h"
+
+#ifdef SHORT_NAMES
+#define	HTGuess_new	HTGuessN
+#endif
+
+PUBLIC HTStream * HTGuess_new PARAMS((HTRequest * req));
+
+
+#endif	/* !HTGUESS_H */
+
+</PRE>
+End of file <CODE>HTGuess.h</CODE>.
+</BODY>
+</HTML>
