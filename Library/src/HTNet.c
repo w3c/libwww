@@ -927,6 +927,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 
         /* Remove object from the table of Net Objects */
 	unregister_net(net);
+        free_net(net);
 
     	/* Call AFTER filters */
 	HTNet_executeAfterAll(request, status);
@@ -936,7 +937,6 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	** we now do this after having called the after filters so that
 	** these filters can use the information in the Net object
 	*/
-        free_net(net);
 
 	return YES;
     }
