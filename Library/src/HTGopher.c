@@ -29,11 +29,14 @@
 #define GOPHER_UUENCODED	'6'
 #define GOPHER_INDEX		'7'
 #define GOPHER_TELNET		'8'
+#define GOPHER_BINARY           '9'
 #define GOPHER_GIF              'g'
-#define GOPHER_HTML		'h'		/* HTML */
-#define GOPHER_IMAGE            'I'
-#define GOPHER_DUPLICATE	'+'
+#define GOPHER_HTML		'h'	        /* HTML */
+#define GOPHER_SOUND            's'
 #define GOPHER_WWW		'w'		/* W3 address */
+#define GOPHER_IMAGE            'I'
+#define GOPHER_TN3270           'T'
+#define GOPHER_DUPLICATE	'+'
 
 #include <ctype.h>
 #include "HTUtils.h"		/* Coding convention macros */
@@ -217,14 +220,22 @@ PRIVATE void parse_menu ARGS2 (
 	    
 	    if (gtype == GOPHER_WWW) {	/* Gopher pointer to W3 */
 		write_anchor(name, selector);
-
+		
 	    } else if (port) {		/* Other types need port */
 		if (gtype == GOPHER_TELNET) {
 		    if (*selector) sprintf(address, "telnet://%s@%s/",
-		    	selector, host);
+					   selector, host);
 		    else sprintf(address, "telnet://%s/", host);
-		    
-		} else {			/* If parsed ok */
+		}
+		else if (gtype == GOPHER_TN3270) 
+		{
+		    if (*selector) 
+			sprintf(address, "tn3270://%s@%s/",
+				selector, host);
+		    else 
+			sprintf(address, "tn3270://%s/", host);
+		}
+		else {			/* If parsed ok */
 		    char *q;
 		    char *p;
 		    sprintf(address, "//%s/%c", host, gtype);
@@ -240,8 +251,13 @@ PRIVATE void parse_menu ARGS2 (
 		    *q++ = 0;			/* terminate address */
 		}
 		PUTS("        "); /* Prettier JW/TBL */
-		write_anchor(name, address);
-
+		/* Error response from Gopher doesn't deserve to
+		   be a hyperlink. */
+		if (strcmp (address, "gopher://error.host:1/0"))
+		    write_anchor(name, address);
+		else
+		    PUTS(name);
+		PUTS("\n");
 	    } else { /* parse error */
 	        if (TRACE) fprintf(stderr,
 			"HTGopher: Bad menu item.\n");
@@ -261,22 +277,181 @@ PRIVATE void parse_menu ARGS2 (
     
     return;
 }
+/*	Parse a Gopher CSO document
+ **	============================
+ **
+ **   Accepts an open socket to a CSO server waiting to send us
+ **   data and puts it on the screen in a reasonable manner.
+ **
+ **   Perhaps this data can be automatically linked to some
+ **   other source as well???
+ **
+ **  Taken from hacking by Lou Montulli@ukanaix.cc.ukans.edu
+ **  on XMosaic-1.1, and put on libwww 2.11 by Arthur Secret, 
+ **  secret@dxcern.cern.ch .
+ */
+
+PRIVATE void parse_cso ARGS2 (
+			      CONST char *,	arg,
+			      HTParentAnchor *,anAnchor)
+{
+    char ch;
+    char line[BIG];
+    char *p = line;
+    char *second_colon, last_char='\0';
+    CONST char *title;
+    
+    title = HTAnchor_title(anAnchor);
+    START(HTML_H1);
+    PUTS("CSO Search Results");
+    END(HTML_H1);
+    START(HTML_PRE);
+
+    /* start grabbing chars from the network */
+    while ((ch=NEXT_CHAR) != (char)EOF) 
+	{
+	    if (ch != '\n') 
+		{
+		    *p = ch;		/* Put character in line */
+		    if (p< &line[BIG-1]) p++;
+		} 
+	    else 
+		{
+		    *p++ = 0;		/* Terminate line */
+		    p = line;		/* Scan it to parse it */
+		    
+		    /* OK we now have a line in 'p' lets parse it and 
+		       print it */
+		    
+		    /* Break on line that begins with a 2. It's the end of
+		     * data.
+		     */
+		    if (*p == '2')
+			break;
+		    
+		    /*  lines beginning with 5 are errors, 
+		     *  print them and quit
+		     */
+		    if (*p == '5') {
+			START(HTML_H2);
+			PUTS(p+4);
+			END(HTML_H2);
+			break;
+		    }
+		    
+		    if(*p == '-') {
+			/*  data lines look like  -200:#:
+			 *  where # is the search result number and can be  
+			 *  multiple digits (infinate?)
+			 *  find the second colon and check the digit to the
+			 *  left of it to see if they are diferent
+			 *  if they are then a different person is starting. 
+			 *  make this line an <h2>
+			 */
+			
+			/* find the second_colon */
+			second_colon = strchr( strchr(p,':')+1, ':');
+			
+			if(second_colon != NULL) {  /* error check */
+			    
+			    if (*(second_colon-1) != last_char)   
+				/* print seperator */
+			    {
+				END(HTML_PRE);
+				START(HTML_H2);
+			    }
+				
+			    
+			    /* right now the record appears with the alias 
+			     * (first line)
+			     * as the header and the rest as <pre> text
+			     * It might look better with the name as the
+			     * header and the rest as a <ul> with <li> tags
+			     * I'm not sure whether the name field comes in any
+			     * special order or if its even required in a 
+			     * record,
+			     * so for now the first line is the header no 
+			     * matter
+			     * what it is (it's almost always the alias)
+			     * A <dl> with the first line as the <DT> and
+			     * the rest as some form of <DD> might good also?
+			     */
+			    
+			    /* print data */
+			    PUTS(second_colon+1);
+			    PUTS("\n");
+			    
+			    if (*(second_colon-1) != last_char)   
+				/* end seperator */
+			    {
+				END(HTML_H2);
+				START(HTML_PRE);
+			    }
+							    
+			    /* save the char before the second colon
+			     * for comparison on the next pass
+			     */
+			    last_char =  *(second_colon-1) ;
+			    
+			} /* end if second_colon */
+		    } /* end if *p == '-' */
+		} /* if end of line */
+	    
+	} /* Loop over characters */
+    
+    /* end the text block */
+    PUTS("\n");
+    END(HTML_PRE);
+    PUTS("\n");
+    END_TARGET;
+    FREE_TARGET;
+
+    return;  /* all done */
+} /* end of procedure */
 
 /*	Display a Gopher Index document
-**	-------------------------------
-*/
+ **	-------------------------------
+ */
 
 PRIVATE void display_index ARGS2 (
-	CONST char *,	arg,
-	HTParentAnchor *,anAnchor)
+				  CONST char *,	arg,
+				  HTParentAnchor *,anAnchor)
 {
     
     START(HTML_H1);
     PUTS(arg);
+    PUTS(" index");
     END(HTML_H1);
+    START(HTML_ISINDEX);
+    PUTS("\nThis is a searchable Gopher index.");
+    PUTS(" Please enter keywords to search for.\n");
     
-    PUTS("\nPlease enter words to search for.\n");
-	
+    if (!HTAnchor_title(anAnchor))
+    	HTAnchor_setTitle(anAnchor, arg);
+    
+    END_TARGET;
+    FREE_TARGET;
+    return;
+}
+
+
+/*      Display a CSO index document
+**      -------------------------------
+*/
+
+PRIVATE void display_cso ARGS2 (
+        CONST char *,   arg,
+        HTParentAnchor *,anAnchor)
+{
+    START(HTML_H1);
+    PUTS(arg);
+    PUTS(" index");
+    END(HTML_H1);
+    START(HTML_ISINDEX);
+    PUTS("\nThis is a searchable index of a CSO database.\n");
+    PUTS(" Please enter keywords to search for. The keywords that you enter");
+    PUTS(" will allow you to search on a person's name in the database.\n");
+
     if (!HTAnchor_title(anAnchor))
     	HTAnchor_setTitle(anAnchor, arg);
     
@@ -391,6 +566,32 @@ PUBLIC int HTLoadGopher ARGS4(
 		}
 	    }
 	    strcat(command, query);
+        } else if (gtype == GOPHER_CSO) {
+            char * query;
+            HTAnchor_setIndex(anAnchor);        /* Search is allowed */
+            query = strchr(selector, '?');      /* Look for search string */
+            if (!query || !query[1]) {          /* No search required */
+		target = HTML_new(anAnchor, format_out, sink);
+		targetClass = *target->isa;
+                display_cso(arg, anAnchor);     /* Display "cover page" */
+                return HT_LOADED;                 /* Local function only */
+            }
+            *query++ = 0;                       /* Skip '?'     */
+            command = malloc(strlen("query")+ 1 + strlen(query)+ 2 + 1);
+              if (command == NULL) outofmem(__FILE__, "HTLoadGopher");
+
+            de_escape(command, selector);       /* Bug fix TBL 921208 */
+
+            strcpy(command, "query ");
+
+            {                                   /* Remove plus signs 921006 */
+                char *p;
+                for (p=query; *p; p++) {
+                    if (*p == '+') *p = ' ';
+                }
+            }
+            strcat(command, query);
+
 	    
 	} else {				/* Not index */
 	    command = command = malloc(strlen(selector)+2+1);
@@ -457,10 +658,28 @@ PUBLIC int HTLoadGopher ARGS4(
 	targetClass = *target->isa;
         parse_menu(arg, anAnchor);
 	break;
-	    	
+	 
+    case GOPHER_CSO:
+	target = HTML_new(anAnchor, format_out, sink);
+	targetClass = *target->isa;
+      	parse_cso(arg, anAnchor);
+	break;
+   	
+      case GOPHER_MACBINHEX:
+      case GOPHER_PCBINHEX:
+      case GOPHER_UUENCODED:
+      case GOPHER_BINARY:
+        /* Specifying WWW_UNKNOWN forces dump to local disk. */
+        HTParseSocket (WWW_UNKNOWN, format_out, anAnchor, s, sink);
+	break;
+
     case GOPHER_TEXT :
     default:			/* @@ parse as plain text */
      	HTParseSocket(WWW_PLAINTEXT, format_out, anAnchor, s, sink);
+	break;
+
+      case GOPHER_SOUND :
+    	HTParseSocket(WWW_AUDIO, format_out, anAnchor, s, sink);
 	break;
 	
     } /* switch(gtype) */
