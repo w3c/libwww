@@ -209,6 +209,19 @@ $(FTP)/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
 	    $(CMN)*.html
 	compress -f $(FTP)/www/src/WWWLibrary_$(VC).tar
 
+zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
+	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/Library/Implementation/Version.make \
+	-f WWW/Library/Implementation/CommonMakefile \
+	$(FTP)/www/src/WWWLibrary_$(VC).zip)
+	@echo Distribution of Library version $(VC) up to date.
+
+$(FTP)/www/src/WWWLibrary_$(VC).zip : $(SOURCES)
+	zip -v $(FTP)/www/src/WWWLibrary_$(VC).zip \
+	    $(SOURCES) \
+	    $(SPECIFIC) \
+	    $(CMN)*.html
+
 #	Hypertext supplied in text format
 #	---------------------------------
 
