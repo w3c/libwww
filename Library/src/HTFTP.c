@@ -52,6 +52,10 @@
 **	Sep 95	HFN	Rewritten to support streams and persistent conenctions
 **			and multiplexed IO
 **	Mar 1998 NG	Neil Griffin - Bug fixes and additions for FTP support on NT.
+**      Jan 2000 JB     Joe Bester - Fixed the protocol bug that appeared after
+**                      after the CERT advisory warning on wu. Added code
+**                      to do an incremental streaming of FTP data.
+**                       
 ** Notes:
 **     			Portions Copyright 1994 Trustees of Dartmouth College
 ** 			Code for recognizing different FTP servers and
@@ -1069,6 +1073,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
     char *segment = NULL;
     HTNet *dnet = ctrl->dnet;
     BOOL data_is_active = (sockfd == HTNet_socket(dnet));
+    HTPostCallback *pcbf;
     typedef enum _state {
 	SUB_ERROR = -2,
 	SUB_SUCCESS = -1,
@@ -1245,12 +1250,25 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		      int length = (int)HTAnchor_length(entity);
 		      HTStream * output = 
 			  (HTStream *)HTChannel_output(HTNet_host(dnet)->channel);
-		      status = (*output->isa->put_block)(output,document,length);
+		      pcbf = HTRequest_postCallback(request);
+		      if (pcbf) {
+			status = (*pcbf)(request, output);
+		      } else {
+			status = (*output->isa->put_block)(output,
+							   document,
+							   length);
+			if (status == HT_OK) {
+			  status = HT_LOADED;
+			}
+		      }
+
 		      if (status == HT_WOULD_BLOCK) {
 			  return HT_WOULD_BLOCK;
+		      } else if ( status == HT_LOADED ) {
+			ctrl->substate = SUB_SUCCESS;
+			data->complete |= 3;
 		      } else if ( status == HT_OK ) {
-			  ctrl->substate = SUB_SUCCESS;
-			  data->complete |= 3;
+			return HT_WOULD_BLOCK;
 		      } else {
 			  ctrl->substate = SUB_ERROR;
 			  data->stream_error = YES;
@@ -1262,6 +1280,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		  if (status == HT_WOULD_BLOCK)
 		      return HT_WOULD_BLOCK;
 		  else if (status == HT_LOADED || status == HT_CLOSED || status == HT_OK) {
+		      HTDoClose(dnet);
 		      data->complete |= 1; 
 		      if (data->complete >= 3)
 			  ctrl->substate = SUB_SUCCESS;
