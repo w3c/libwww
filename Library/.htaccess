@@ -1,0 +1,5 @@
+RewriteEngine On
+RewriteBase /Library
+RewriteRule pub$		http://www.w3.org/Library [P,L]  
+RewriteRule member$		http://www.w3.org/Library [P,L]  
+
