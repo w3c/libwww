@@ -302,23 +302,22 @@ int HTBind_getBindings_tcl(ClientData clientData, Tcl_Interp *interp,
 int HTBind_getFormat_tcl(ClientData clientData, Tcl_Interp *interp, 
 			 int argc, char **argv) {
   if(argc==7) {
-    double quality;
+    double *quality;
     char *filename = argv[1];
     char *format_keyname = argv[2];
     char *enc_keyname = argv[3];
     char *cte_keyname = argv[4];
     char *lang_keyname = argv[5];
     char *quality_string = argv[6];    
-    int conversion_success = Tcl_GetDouble(interp, quality_string, &quality); 
+    int conversion_success = Tcl_GetDouble(interp, quality_string, quality); 
     if(filename && format_keyname && enc_keyname && cte_keyname
        && lang_keyname && (conversion_success == TCL_OK)) {
-      double quality;
       HTFormat format = HTAtom_for(format_keyname);
       HTEncoding enc = HTAtom_for(enc_keyname);
       HTEncoding cte = HTAtom_for(cte_keyname);
       HTLanguage lang = HTAtom_for(lang_keyname);
     
-      BOOL result = HTBing_getFormat(filename, &format, &enc, &cte, 
+      BOOL result = HTBind_getFormat(filename, &format, &enc, &cte, 
 				     &lang, quality);
 
       Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);

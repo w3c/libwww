@@ -33,8 +33,8 @@ extern int HTLoadAnchor_tcl(ClientData, Tcl_Interp *, int, char **);
 
 extern int HTLoadAnchorRecursive_tcl(ClientData, Tcl_Interp *, int, char **);
 
-extern int HTSearch_tcl(ClientData, Tcl_Interp *, int, char **);
-
+/*extern int HTSearch_tcl(ClientData, Tcl_Interp *, int, char **);
+ */
 extern int HTSearchAbsolute_tcl(ClientData, Tcl_Interp *, int, char **);
 
 extern int HTCopyAnchor_tcl(ClientData, Tcl_Interp *, int, char **);

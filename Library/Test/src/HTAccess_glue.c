@@ -242,15 +242,15 @@ int HTLoadToStream_tcl(ClientData clientData, Tcl_Interp *interp, int argc,
 		       char **argv) {
   if(argc == 4) {
     char *url = argv[1];
-    char *filter_string = argv[2];
+    char *stream_string = argv[2];
     char *keyname = argv[3];
-    if(url && filter_string && keyname) {
-      BOOL filter;
+    if(url && stream_string && keyname) {
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, keyname);
-      int conversion_success = Tcl_GetBoolean(interp, filter_string, &filter);
-      if(request_entry && (conversion_success == TCL_OK)) {
+      Tcl_HashEntry *stream_entry = Tcl_FindHashEntry(&HTableStream, stream_string);
+      if(stream_entry && request_entry) {
 	HTRequest *request = Tcl_GetHashValue(request_entry);
-	BOOL result = HTLoadToStream(url, filter, request);
+	HTStream *stream = Tcl_GetHashValue(stream_entry);
+	BOOL result = HTLoadToStream(url, stream, request);
 
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 	return TCL_OK;
@@ -359,7 +359,7 @@ int HTLoadAnchorRecursive_tcl (ClientData clientData, Tcl_Interp *interp,
 
 /*search an anchor*/
 
-
+/*
 int HTSearch_tcl(ClientData clientData, Tcl_Interp *interp, 
 		      int argc, char **argv) {
   if (argc == 4) {
@@ -386,7 +386,7 @@ int HTSearch_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, err_string, NULL);
   }
 }
-
+*/
 
 /*search a document from absolute name */
 
