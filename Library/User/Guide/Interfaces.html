@@ -14,10 +14,11 @@
   Library Interfaces
 </H1>
 <P>
-This is the overall set of interfaces in the W3C Sample Code Library. An interface
-can cover multiple related C modules and it is defined by a <B>WWW*.h</B>
-include file, for example <A HREF="../../src/WWWCore.html">WWWCore.h</A>.
-On <A HREF="../Platform/WinDLL.html">Windows platforms</A>, each interface
+This is the overall set of interfaces in the W3C Sample Code Library. An
+interface can cover multiple related C modules and it is defined by a
+<B>WWW*.h</B> include file, for example
+<A HREF="../../src/WWWCore.html">WWWCore.h</A>. On
+<A HREF="../Platform/WinDLL.html">Windows platforms</A>, each interface
 corresponds to a DLL with a DLL definition file defining all exported methods
 and data objects.
 <H2>
@@ -44,16 +45,14 @@ and referenced via the TTYPrint macro in
   <LI>
     <A HREF="../../src/windows/wwwdll.def">Definition list of exported API</A>
 </UL>
-<P>
-<A NAME="utils"></A>
 <H3>
   wwwutils.dll
 </H3>
 <P>
 The Utility modules are mostly container modules, dynamic strings and other
 stuff that you can't live without when building applications. The modules
-are used by the core part of the W3C Sample Code Library but can also be used
-by the application. See also the main Library include file called
+are used by the core part of the W3C Sample Code Library but can also be
+used by the application. See also the main Library include file called
 <A HREF="../../src/WWWLib.html">WWWLib.h</A> which contains all converters
 and protocol modules known to the Library. You can include this one if the
 application is to use all the functionality of the Library.
@@ -63,8 +62,6 @@ application is to use all the functionality of the Library.
   <LI>
     <A HREF="../../src/WWWUtil.html">Interface include file</A>
 </UL>
-<P>
-<A NAME="core"></A>
 <H3>
   wwwcore.dll
 </H3>
@@ -91,9 +88,6 @@ modules that makes it easier to use the core.
 <H3>
   wwwstream.dll
 </H3>
-<P>
-.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwstream.def">Definition list of exported API</A>
@@ -123,7 +117,6 @@ that as the <A HREF="../../src/HText.html">HText</A> is <B>not</B> included
 in this interface. The reason is that the HText interface only is declared
 by the Library but must be defined by the application. Therefore it can not
 be part of a DLL but must be included directly in the application.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwhtml.def">Definition list of exported API</A>
@@ -137,29 +130,11 @@ be part of a DLL but must be included directly in the application.
 This is the include file for the directory handling modules that can be used
 together with the core of the W3C Sample Code Library. It contains all Directory
 specific modules which are required to compile and build the DIRECTORY DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwdir.def">Definition list of exported API</A>
   <LI>
     <A HREF="../../src/WWWDir.html">Interface include file</A>
-</UL>
-<H3>
-  wwwguess.dll
-</H3>
-<P>
-This interface provides functionality for guessing unknown media types from
-magic words. The stream is a one that reads first a chunk of stuff, tries
-to figure out the format, and calls <CODE>HTStreamStack()</CODE>. This is
-a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. This could be
-extended arbitrarily to recognize all the possible file formats in the world,
-if someone only had time to do it.
-<P>
-<UL>
-  <LI>
-    <A HREF="../../src/windows/wwwguess.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWGuess.html">Interface include file</A>
 </UL>
 <H3>
   wwwmime.dll
@@ -168,7 +143,6 @@ if someone only had time to do it.
 This is the module for basic RFC822/MIME parsing that can be used together
 with the core of the W3C Sample Code Library. It contains all MIME specific
 modules which are required to compile and build the MIME DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwmime.def">Definition list of exported API</A>
@@ -239,7 +213,6 @@ directly if desired.
 This is the include file for local file handling modules that can be used
 together with the core of the W3C Sample Code Library. It contains modules
 which are required to compile and build the FILE DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwfile.def">Definition list of exported API</A>
@@ -253,7 +226,6 @@ which are required to compile and build the FILE DLL.
 This is the include file for the basic FTP module that can be used together
 with the core of the W3C Sample Code Library. It contains all FTP specific
 modules which are required to compile and build the FTP DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwftp.def">Definition list of exported API</A>
@@ -267,7 +239,6 @@ modules which are required to compile and build the FTP DLL.
 This is the include file for the basic GOPHER module that can be used together
 with the core of the W3C Sample Code Library. It contains all GOPHER specific
 modules which are required to compile and build the GOPHER DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwgophe.def">Definition list of exported API</A>
@@ -279,9 +250,9 @@ modules which are required to compile and build the GOPHER DLL.
 </H3>
 <P>
 This is the include file for all HTTP access including the server side and
-the client side. It can be used together with the core of the W3C Sample Code
-Library. It contains all HTTP specific modules which are required to compile
-and build the HTTP DLL.
+the client side. It can be used together with the core of the W3C Sample
+Code Library. It contains all HTTP specific modules which are required to
+compile and build the HTTP DLL.
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwhttp.def">Definition list of exported API</A>
@@ -295,7 +266,6 @@ and build the HTTP DLL.
 This is the include file for the basic NNTP module that can be used together
 with the core of the W3C Sample Code Library. It contains all News specific
 modules which are required to compile and build the News DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwnews.def">Definition list of exported API</A>
@@ -310,7 +280,6 @@ This is the include file for the basic Telnet, rlogin, and TN3270 module
 that can be used together with the core of the W3C Sample Code Library. It
 contains all Telnet, rlogin, and TN3270 specific modules which are required
 to compile and build the Telnet, rlogin, and TN3270 DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwtelnt.def">Definition list of exported API</A>
@@ -324,30 +293,41 @@ to compile and build the Telnet, rlogin, and TN3270 DLL.
 This is the include file for the basic WAIS module that can be used together
 with the core of the W3C Sample Code Library. It contains all WAIS specific
 modules which are required to compile and build the WAIS DLL.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwwais.def">Definition list of exported API</A>
   <LI>
     <A HREF="../../src/WWWWAIS.html">Interface include file</A>
 </UL>
-<P>
 <H3>
   wwwtrans.dll
 </H3>
 <P>
 Description here.
-<P>
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwtrans.def">Definition list of exported API</A>
   <LI>
     <A HREF="../../src/WWWTrans.html">Interface include file</A>
 </UL>
+<H3>
+  wwwzip.dll
+</H3>
+<P>
+The stream part of the Library is a set of streams that can be used to
+encode/decode, or compress/decompress content. Many of the streams are based
+on <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib</A> which is a freely
+available compression library.
+<UL>
+  <LI>
+    <A HREF="../../src/windows/wwwzip.def">Definition list of exported API</A>
+  <LI>
+    <A HREF="../../src/WWWZip.html">Interface include file</A>
+</UL>
 <P>
   <HR>
 <ADDRESS>
-  Eric Prud'hommeaux and Henrik Frystyk,
-  <A HREF="mailto:libwww.w3.org">libwww@w3.org</A> January 1996
+  <A HREF="../../../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
