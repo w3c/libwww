@@ -1915,6 +1915,13 @@ int main (int argc, char ** argv)
 	lm->presenters = HTList_new();
 	HTPresenterInit(lm->presenters);
 	HTRequest_setConversion(request, lm->presenters, NO);
+    } else {
+	/*
+	** Add default content decoder. We insert a through line as it doesn't
+	** matter that we get an encoding that we don't know when not in
+	** interactive mode.
+	*/
+	HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding, 0.3);
     }
 
     if (HTScreenHeight == -1) {				/* Default page size */
