@@ -23,12 +23,9 @@ that all external functionality can be reached through this one.
 #ifndef WWWLIB_H
 #define WWWLIB_H
 
-/* System dependencies. These are only included if the application wants
-   to use the same set of macros. Define HT_SYSDEP */
-#ifdef HT_SYSDEP
+/* System dependencies */
 #include "tcp.h"
 #include "HTUtils.h"			/* Macros and other stuff */
-#endif /* HT_SYSDEP */
 
 /* General Utilities */
 #include "HTString.h"
@@ -51,12 +48,13 @@ that all external functionality can be reached through this one.
 /* History Management */
 #include "HTHist.h"			/* Navigational aids */
 
-/* Presentation of graphical objects and other streams */
+/* Presenters, converters and other streams */
 #include "HTML.h"			/* For HTML parser */
 #include "HTMLGen.h"			/* For reformatting HTML */
 #include "HTWriter.h"
 #include "HTFWrite.h"
-#include "HTNetTxt.h"
+#include "HTMIME.h"
+#include "HTWSRC.h"
 
 /* Directory Listings */
 #include "HTIcons.h"
