@@ -184,8 +184,12 @@ PRIVATE BOOL HTCacheGarbage (void)
 		    time_t resident_time = cur_time - pres->response_time;
 		    time_t current_age = pres->corrected_initial_age +
 			resident_time;
-		    if (pres->freshness_lifetime < current_age) {
-			HTCache_remove(pres);
+		    /* 2000-08-08 Jens Meggers: HTCache_remove doesn't
+		       remove a cache entry if it's locked. To avoid
+		       an endless loop, we check the return value of 
+		       HTCache_remove before skipping the entry. */
+		    if ((pres->freshness_lifetime < current_age)
+			&& HTCache_remove(pres)) {
 			cur = old_cur;
 		    } else {
 			old_cur = cur;
@@ -210,8 +214,14 @@ PRIVATE BOOL HTCacheGarbage (void)
 		    HTList * old_cur = cur;
 		    HTCache * pres;
 		    while ((pres = (HTCache *) HTList_nextObject(cur))) {
-			if (pres->size > HTCacheMaxEntrySize || pres->hits <= hits) {
-			    HTCache_remove(pres);
+			/* 2000-08-08 Jens Meggers: HTCache_remove doesn't
+			   remove a cache entry if it's locked. To avoid
+			   going into an endless loop, we check the return
+			   value of  HTCache_remove before marking the
+			   object as removed. */
+			if ((pres->size > HTCacheMaxEntrySize 
+			     || pres->hits <= hits) 
+			    && HTCache_remove(pres)) {
 			    cur = old_cur;
 			    removed = YES;
 			} else {
