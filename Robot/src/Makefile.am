@@ -36,8 +36,11 @@ webbot_SOURCES = \
 BUILT_SOURCES = \
 	HTRobot.h HTRobMan.h RobotTxt.h HTQueue.h
 
+DOCS :=	$(wildcard *.html)
+
 EXTRA_DIST = \
-	 $(BUILT_SOURCES) \
+	$(BUILT_SOURCES) \
+	$(DOCS) \
 	robot.sh
 
 inc: $(BUILT_SOURCES)
