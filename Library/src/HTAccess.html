@@ -194,11 +194,7 @@ are as follows.
 using HTTP <A
 NAME="z7" HREF="../../Protocols/HTTP/Methods.html">method names</A> .
 <PRE>	HTList * 	conversions ;
-</PRE>
-<DL>
-<DT>
-</DL>
-NULL, or a list of conversions which
+</PRE>NULL, or a list of conversions which
 the format manager can do in order
 to fulfill the request.  This is
 set by the caller of HTAccess. Typically
@@ -213,7 +209,7 @@ the output stream.
 </PRE>The list of (human) language values
 acceptable in the response
 <PRE>	BOOL (*<A
-NAME="z9">callback</A>) PARAMS((
+NAME="z9"> callback</A> ) PARAMS((
 				struct _HTRequest* request,
 				void *param));
 
@@ -226,7 +222,7 @@ example.
 </PRE>An arbitrary pointer passed to HTAccess
 and passed back as a parameter to
 the <A
-NAME="z10" HREF="#z9">callback</A>.
+NAME="z10" HREF="#z9">callback</A> .
 <PRE>	HTStream*	output_stream; 
 
 </PRE>NULL in the case of display to the
@@ -253,13 +249,13 @@ anchor may be picked out.
 <PRE>	HTParentAnchor*	anchor;
 
 </PRE>The anchor for the object in question.
- Set immediately by HTAcesss.  Used
+Set immediately by HTAcesss.  Used
 by the protocol and parsing modules.
 Valid thoughout the access.
 <PRE>	HTChildAnchor *	childAnchor;	/* For element within the object  */
 
 </PRE><A
-NAME="z6">T</A>he anchor for the sub object if
+NAME="z6">T</A> he anchor for the sub object if
 any.  The object builder should ensure
 that htis is selected, highlighted,
 etc when the object is loaded. NOTE:
@@ -479,6 +475,34 @@ yet.
 
 
 </PRE>
+<H2>Bind an anchor to a request structure
+without loading</H2>The anchor parameter may be a child
+anchor. The anchor in the request
+is set to the parent anchor. This
+is useful in non-interactive mode
+if no home-anchor is known. Actually
+the same as HTLoadAnchor(), but without
+loading
+<H3>On Entry,</H3>
+<DL>
+<DT>anchor
+<DD> may be a child or parenet
+anchor or 0 in which case there is
+no effect.
+<DT>request->anchor      
+<DD> Not set yet.
+</DL>
+
+<H3>On Exit,</H3>
+<PRE>
+</PRE>returns YES	 Success<P>
+returns NO	 Failure <P>
+request->anchor	 The parenet anchor.
+<PRE>
+extern BOOL HTBindAnchor PARAMS((HTAnchor *anchor, HTRequest *request));
+
+
+</PRE>
 <H2>Make a stream for Saving object back</H2>
 <H3>On Entry,</H3>
 <DL>
@@ -584,5 +608,5 @@ use this.
 
 #endif /* HTACCESS_H */
 
-</PRE>end of HTAccess</A></BODY>
+</PRE>end of HTAccess</BODY>
 </HTML>

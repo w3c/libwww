@@ -870,3 +870,29 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
     free(ref);
     return anchor;
 }
+
+
+/*		Bind an Anchor to the request structure
+**		---------------------------------------
+**
+**    On Entry,
+**	anchor		The child or parenet anchor to be binded
+**	request		The request sturcture
+**    On Exit,
+**        returns    YES     Success
+**                   NO      Failure 
+**
+**  Note: Actually the same as HTLoadAnchor() but DOES NOT do the loading
+**						Henrik Frystyk 17/02-94
+*/
+
+PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
+{
+    if (!anchor) return NO;	/* No link */
+    
+    request->anchor  = HTAnchor_parent(anchor);
+    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
+    					: (HTChildAnchor*) anchor;
+	
+} /* HTBindAnchor */
+
