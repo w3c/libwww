@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Known Bugs in W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -13,7 +13,31 @@
 
 The list of known bugs are in reverse chronological order. Please report bugs or bug-fixes to <A
 HREF="mailto:libwww@w3.org">libwww@w3.org</A> noting the version of the Library and what caused the
-bug to appear.
+bug to appear. <P>
+
+The provided patches are relative to the <CODE>WWW</CODE> directory in
+the distribution tree. In order to apply a patch, do the following in
+the <CODE>WWW</CODE> directory:
+
+<OL>
+
+<LI>Download the patch, for example <EM>lib-1.fix</EM>
+
+<LI>Invoke the patch command by typing 
+
+<PRE>
+	patch &lt; lib-1.fix
+</PRE>
+
+<LI>Rebuild the code by typing
+
+<PRE>
+	make clobber
+	./BUILD library
+</PRE>
+</OL>
+
+<HR>
 
 <H2>Library 4.0</H2>
 
@@ -32,13 +56,22 @@ with the development of Arena.
 
 <H2>Library 3.1</H2>
 
-<UL>
+<DL>
 
-<LI>Bug in time stamp on files in FTP directory listings. The Library supports "long" directory
-listings for FTP Unix, VMS and Windows NT servers with file type, size, time and date etc. However,
-the time stamp is wrong by one hour for files created when dayligt savingtime is enabled. The reason
-is that the FTP module in the Library doesn't know the timezone of the remote FTP server and hence
-doesn't know when DSR is enabled or disabled.
+<DT>Bug in time stamp on files in FTP directory listings
+
+<DD>The Library supports "long" directory listings for FTP Unix, VMS
+and Windows NT servers with file type, size, time and date
+etc. However, the time stamp is wrong by one hour for files created
+when dayligt savingtime is enabled. The reason is that the FTP module
+in the Library doesn't know the timezone of the remote FTP server and
+hence doesn't know when DSR is enabled or disabled. This is fixed in
+the next version
+
+<DT>Bug if more than 20 nested HTML tags
+
+<DD>A bug which makes the HTML parser crash. You can use the <A
+HREF="../Patch/lib-1.fix">following patch</A> for it.
 
 </UL>
 

@@ -1,0 +1,79 @@
+===================================================================
+RCS file: /afs/w3.org/hypertext/WWW/Library/Repository/Implementation/HTML.c,v
+retrieving revision 1.43
+diff -c -r1.43 HTML.c
+*** 1.43	1995/05/19 02:05:35
+--- Library/Implementation/HTML.c	1995/10/16 22:13:47
+***************
+*** 68,75 ****
+      HTStyle *			new_style;
+      HTStyle *			old_style;
+      BOOL			in_word;  /* Have just had a non-white char */
+!     stack_element 	stack[MAX_NESTING];
+!     stack_element 	*sp;		/* Style stack pointer */
+  };
+  
+  struct _HTStream {
+--- 68,76 ----
+      HTStyle *			new_style;
+      HTStyle *			old_style;
+      BOOL			in_word;  /* Have just had a non-white char */
+!     stack_element 		stack[MAX_NESTING];
+!     stack_element 		*sp;		/* Style stack pointer */
+!     int				overflow;  /* Keep track of overflow nesting */
+  };
+  
+  struct _HTStream {
+***************
+*** 626,633 ****
+  
+      if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
+          if (me->sp == me->stack) {
+! 	    fprintf(TDEST, "HTML: ****** Maximum nesting of %d exceded!\n",
+! 	    MAX_NESTING); 
+  	    return;
+  	}
+      	--(me->sp);
+--- 627,636 ----
+  
+      if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
+          if (me->sp == me->stack) {
+! 	    if (SGML_TRACE)
+! 		fprintf(TDEST, "HTML........ Maximum nesting of %d exceded!\n",
+! 			MAX_NESTING);
+! 	    me->overflow++;
+  	    return;
+  	}
+      	--(me->sp);
+***************
+*** 663,668 ****
+--- 666,677 ----
+      }
+  #endif
+      
++     /* If overflow of nestings, we need to get back to reality */
++     if (me->overflow > 0) {
++ 	me->overflow--;
++ 	return;
++     }
++ 
+      me->sp++;				/* Pop state off stack */
+      
+      switch(element_number) {
+***************
+*** 831,837 ****
+  	exit (-99);
+      }
+  
+!     me = (HTStructured*) malloc(sizeof(*me));
+      if (me == NULL) outofmem(__FILE__, "HTML_new");
+  
+      if (!got_styles) get_styles();
+--- 840,846 ----
+  	exit (-99);
+      }
+  
+!     me = (HTStructured*) calloc(1, sizeof(*me));
+      if (me == NULL) outofmem(__FILE__, "HTML_new");
+  
+      if (!got_styles) get_styles();
