@@ -39,6 +39,17 @@
 
 #include "HTInit.h"				         /* Implemented here */
 
+/*
+** A bug in the Pyramid compiler requires this
+*/
+#ifdef pyramid
+extern HTConverter HTMIMEConvert, HTMLToC, HTMLToPlain, HTMLPresent,
+                   HTMLToTeX, HTPlainToHTML, HTPlainPresent, HTSaveLocally,
+                   HTWSRCConvert;
+#endif /* pyramid */
+
+/* ------------------------------------------------------------------------- */
+
 /*	BINDINGS BETWEEN A SOURCE MEDIA TYPE AND A DEST MEDIA TYPE (CONVERSION)
 **	----------------------------------------------------------------------
 **
@@ -53,10 +64,6 @@ PUBLIC void HTConverterInit ARGS1(HTList *, c)
     HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-#ifdef NEW_CODE
-    HTSetConversion(c,"text/newslist",		"www/present",	HTNewsList,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/newslist",		"text/html",	HTNewsList,	1.0, 0.0, 0.0);
-#endif
     HTSetConversion(c,"application/octet-stream","www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
     HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
     HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);

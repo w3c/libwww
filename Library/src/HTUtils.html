@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros for the W3 code library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -185,7 +186,8 @@ performance difference. (Foteos Macrides).
 
 #ifdef _STANDARD_CODE_
 
-#ifndef sco			/* The sco CC compiler does not know const */
+/* The sco ODT 3.0 CC compiler has some trouble with  const */
+#if !defined(sco) || defined(sco_os5) 
 #define CONST const		/* "const" only exists in STDC */
 #else
 #define CONST

@@ -536,22 +536,22 @@ PUBLIC HTBTElement * HTBTree_next ARGS2(
     */
     if (father_of_element != NULL)
     {
-        printf("\nObject = %s\t",(char *)father_of_element->object);
+        fprintf(TDEST, "\nObject = %s\t",(char *)father_of_element->object);
         if (father_of_element->up != NULL)
-            printf("Objet du pere = %s\n",
+            fprintf(TDEST, "Objet du pere = %s\n",
 		   (char *)father_of_element->up->object);
-        else printf("Pas de Pere\n");
+        else fprintf(TDEST, "Pas de Pere\n");
         if (father_of_element->left != NULL)
-            printf("Objet du fils gauche = %s\t",
+            fprintf(TDEST, "Objet du fils gauche = %s\t",
 		   (char *)father_of_element->left->object); 
-        else printf("Pas de fils gauche\t");
+        else fprintf(TDEST, "Pas de fils gauche\t");
         if (father_of_element->right != NULL)
-            printf("Objet du fils droit = %s\n",
+            fprintf(TDEST, "Objet du fils droit = %s\n",
 		   (char *)father_of_element->right->object);
-        else printf("Pas de fils droit\n");
-        printf("Profondeur gauche = %i\t",father_of_element->left_depth);
-        printf("Profondeur droite = %i\n",father_of_element->right_depth);
-        printf("      **************\n");
+        else fprintf(TDEST, "Pas de fils droit\n");
+        fprintf(TDEST, "Profondeur gauche = %i\t",father_of_element->left_depth);
+        fprintf(TDEST, "Profondeur droite = %i\n",father_of_element->right_depth);
+        fprintf(TDEST, "      **************\n");
     }
 #endif
     return father_of_element;
@@ -702,13 +702,13 @@ main ()
     HTBTree_add(tree,"core");
     HTBTree_add(tree,"EmacsWWW");
 #ifdef BTREE_TRACE
-    printf("\nTreeTopObject=%s\n\n",tree->top->object);
+    fprintf(TDEST, "\nTreeTopObject=%s\n\n",tree->top->object);
 #endif
     next_element = HTBTree_next(tree,NULL);
     while (next_element != NULL)
     {
 #ifndef BTREE_TRACE
-        printf("The next element is %s\n",next_element->object);
+        fprintf(TDEST, "The next element is %s\n",next_element->object);
 #endif
         next_element = HTBTree_next(tree,next_element);
     }

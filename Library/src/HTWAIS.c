@@ -443,11 +443,6 @@ PRIVATE void output_text_record ARGS4(
     boolean,                    binary)
 {
   long count;
-  /* printf(" Text\n");
-     print_any("     DocumentID:  ", record->DocumentID);
-     printf("     VersionNumber:  %d\n", record->VersionNumber);
-     */
-
   if (binary) {
     (*target->isa->put_block)(target,
 			      record->DocumentText->bytes,

@@ -43,6 +43,13 @@ struct _HTStream {
     CONST HTStreamClass *	isa;
 };
 
+/*
+** A bug in the Pyramid compiler requires this
+*/
+#ifdef pyramid
+extern HTConverter HTSaveAndExecute;
+#endif /* pyramid */
+
 /* ------------------------------------------------------------------------- */
 /* 	  ACCEPT LISTS OF CONVERSIONS, ENCODINGS, LANGUAGE, AND CHARSET	     */
 /* ------------------------------------------------------------------------- */
