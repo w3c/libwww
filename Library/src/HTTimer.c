@@ -35,6 +35,34 @@ PRIVATE HTList * Timers = NULL;			   /* List of timers */
 
 /* ------------------------------------------------------------------------- */
 
+#ifdef WWW_WIN_ASYNC
+
+#define SET_PLATFORM_TIMER(timer)	Timer_setWindowsTimer(timer)
+#define DELETE_PLATFORM_TIMER(timer)	Timer_deleteWindowsTimer(timer)
+
+PRIVATE int Timer_setWindowsTimer(HTTimer * timer)
+{
+    HWND hwnd;
+    UINT id;
+    hwnd HTEventList_getWinHAndle(&id);
+    return SetTimer(hwnd, (UINT)timer, (UINT)timer->millis, NULL) != 0;
+}
+
+PRIVATE int Timer_deleteWindowsTimer(HTTimer * timer)
+{
+    HWND hwnd;
+    UINT id;
+    hwnd HTEventList_getWinHAndle(&id);
+    return KillTimer(hwnd, (UINT)timer) != 0;
+}
+
+#else /* WWW_WIN_ASYNC */
+
+#define SET_PLATFORM_TIMER(timer)
+#define DELETE_PLATFORM_TIMER(timer)
+
+#endif /* !WWW_WIN_ASYNC */
+
 PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 {
     HTList * last;
@@ -42,6 +70,7 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
     if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL)
 	return NO;
     HTList_quickRemoveElement(cur, last);
+    DELETE_PLATFORM_TIMER(timer);
     if (THD_TRACE) HTTrace("Timer....... Deleted timer %p\n", timer);
     HT_FREE(timer);
     return YES;
@@ -108,6 +137,7 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     */
     if (cur == NULL)
 	HTList_appendObject(Timers, (void *)timer);
+    SET_PLATFORM_TIMER(timer);
     return timer;
 }
 
@@ -118,6 +148,7 @@ PUBLIC BOOL HTTimer_deleteAll (void)
     HTTimer * pres;
     if (Timers) {
 	while ((pres = (HTTimer *) HTList_nextObject(cur))) {
+	    DELETE_PLATFORM_TIMER(pres);
 	    HT_FREE(pres);
 	}
 	HTList_delete(Timers);
