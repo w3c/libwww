@@ -649,7 +649,7 @@ static int inside = 0;
 	{
 	    long cl = HTAnchor_length(HTRequest_anchor(request));
 	    if (cl > 0) {
-		long b_read = HTRequest_bytesRead(request);
+		long b_read = HTRequest_bodyRead(request);
 		double pro = (double) b_read/cl*100;
 		char buf[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
