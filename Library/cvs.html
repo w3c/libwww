@@ -220,11 +220,17 @@ number:
     (at least version 1.1)</B>
   <DD>
     A tool for automatically handling generation of shared libraries
+</DL>
+<P>
+<B>Optionally</B> these tools are used by libwww if available
+<DL>
   <DT>
-    <B><A HREF="../LineMode/">W3C www</A></B> (<EM>optional</EM>)
+    <B><A HREF="../LineMode/">W3C www</A></B>
   <DD>
-    The libwww Line Mode Browser is used to generate the header files (from
-    <CODE>.html</CODE> to <CODE>.h</CODE>)
+    If available then the libwww Line Mode Browser is used by the makefiles to
+    generate the header files (from <CODE>.html</CODE> to <CODE>.h</CODE>) and
+    some other files as needed. If not available then the <A HREF="#Easy">perl
+    script</A> is used instead.
 </DL>
 <H4>
   Using the GNU Tools

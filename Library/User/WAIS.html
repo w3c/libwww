@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <TITLE>WAIS to WWW Gateway</TITLE>
+  <TITLE>WAIS to HTTP Gateway</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
@@ -12,34 +12,20 @@
   The WAIS to WWW gateway
 </H1>
 <P>
-The <A HREF="../">W3C Sample Code Library</A> supports <I>direct
-<A HREF="http://www.cnidr.org">WAIS</A></I> access which means that
-<B>all</B> applications built on top of the Library can serve as a WWW-WAIS
-gateway. Making your application capable of accessing WAIS servers requires
-that you link libwww with the freeWAIS library. Note that any type of application
-can have direct WAIS access including servers and clients. This page explains
-how you can set up your own WWW-WAIS gateway. There are basically two conditions
-that must be fulfilled in order to do this:
+Libwww supports direct <A HREF="http://www.cnidr.org">WAIS</A> access which
+means that applications using libwww can access WAIS servers. In order to
+do this you must have the following:
 <UL>
   <LI>
-    A version of the <A HREF="../">Libwww</A> with <I>direct WAIS</I> access
-    enabled
+    <A HREF="../../INSTALL.html">Enable WAIS access in libwww before compiling</A>
   <LI>
-    The freeWAIS libraries from
+    Install the freeWAIS libraries from
     <A HREF="ftp://ftp.cnidr.org/pub/NIDR.tools/freewais/">CNIDR</A>. The version
     currently supported is <B>freeWAIS 0.5</B>
 </UL>
 <P>
 If you do <I>not</I> enable direct WAIS access, your application may still
-access WAIS servers by passing through another WWW-WAIS <I>gateway</I>. As
-an example, W3C provides such a gateway as a special service. You can find
-the gateway at <A HREF="http://www.w3.org:8001">http://www.w3.org:8001</A>.
-Please note the special port 8001 which must be a part of the URL.
-<P>
-You can <B>enable </B>direct WAIS in libwww as an
-<A HREF="../../INSTALL.html#features">optional feature in the GNU configure
-script</A> Please read the <A HREF="../../INSTALL.html">installation instructions
-</A>for more details
+access WAIS servers through a HTTP-WAIS gateway.
 <H2>
   WSRC files
 </H2>
