@@ -1298,7 +1298,7 @@ NODEP_CPP_HTPRO=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwwais.lib"
+SOURCE=..\..\..\Bin\wwwwais.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1310,7 +1310,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwwais.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwutils.lib"
+SOURCE=..\..\..\Bin\wwwutils.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1322,7 +1322,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwutils.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwtrans.lib"
+SOURCE=..\..\..\Bin\wwwtrans.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1334,7 +1334,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwtrans.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwtelnt.lib"
+SOURCE=..\..\..\Bin\wwwtelnt.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1346,7 +1346,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwtelnt.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwstream.lib"
+SOURCE=..\..\..\Bin\wwwstream.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1358,7 +1358,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwstream.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwnews.lib"
+SOURCE=..\..\..\Bin\wwwnews.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1370,7 +1370,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwnews.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwmime.lib"
+SOURCE=..\..\..\Bin\wwwmime.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1382,7 +1382,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwmime.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwhttp.lib"
+SOURCE=..\..\..\Bin\wwwhttp.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1394,7 +1394,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwhttp.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwhtml.lib"
+SOURCE=..\..\..\Bin\wwwhtml.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1406,7 +1406,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwhtml.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwgophe.lib"
+SOURCE=..\..\..\Bin\wwwgophe.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1418,7 +1418,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwgophe.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwftp.lib"
+SOURCE=..\..\..\Bin\wwwftp.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1430,7 +1430,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwftp.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwfile.lib"
+SOURCE=..\..\..\Bin\wwwfile.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1442,7 +1442,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwfile.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwdll.lib"
+SOURCE=..\..\..\Bin\wwwdll.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1454,7 +1454,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwdll.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwdir.lib"
+SOURCE=..\..\..\Bin\wwwdir.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1466,7 +1466,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwdir.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwcore.lib"
+SOURCE=..\..\..\Bin\wwwcore.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1478,7 +1478,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwcore.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwcache.lib"
+SOURCE=..\..\..\Bin\wwwcache.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1490,7 +1490,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwcache.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwapp.lib"
+SOURCE=..\..\..\Bin\wwwapp.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1502,7 +1502,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwapp.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\pics.lib"
+SOURCE=..\..\..\Bin\pics.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1514,7 +1514,7 @@ SOURCE="\My Projects\w3c-libwww-5.1\Bin\pics.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwzip.lib"
+SOURCE=..\..\..\Bin\wwwzip.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 

@@ -1430,7 +1430,7 @@ BuildCmds= \
 ################################################################################
 # Begin Source File
 
-SOURCE="\My Projects\w3c-libwww-5.1\Bin\wwwzip.lib"
+SOURCE=..\..\..\Bin\wwwzip.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
