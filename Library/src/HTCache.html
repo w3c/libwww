@@ -20,8 +20,7 @@ done.However, it is a fully HTTP/1.1 compliant cache manager.&nbsp;More advanced
 implementations are welcome!
 <P>
 This module is implemented by <A HREF="HTCache.c">HTCache.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
-Library</A>.
+a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTCACHE_H
 #define HTCACHE_H
@@ -199,6 +198,19 @@ version. Therefore we need a special metainformation update function.
 extern BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
                                 HTResponse * response);
 </PRE>
+<H3>
+  Check Cached Entry
+</H3>
+<P>
+After we get a response back, we should check whether we can still cache
+an entry and/or we should add an entry for a resource that has just been
+created so that we can remember the etag and other things. The latter allows
+us to guarantee that we don't loose data due to the lost update problem.
+<PRE>
+extern HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
+                                HTParentAnchor * anchor);
+</PRE>
+<P>
 <H3>
   Load a Cached Object
 </H3>

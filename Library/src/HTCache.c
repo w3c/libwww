@@ -126,7 +126,7 @@ PRIVATE long		HTTotalSize = 0L;
 
 PRIVATE int		new_entries = 0;	   /* Number of new entries */
 
-PRIVATE HTNetAfter HTCacheTouchFilter;
+PRIVATE HTNetAfter HTCacheCheckFilter;
 
 /* ------------------------------------------------------------------------- */
 /*  			     CACHE GARBAGE COLLECTOR			     */
@@ -646,10 +646,20 @@ PRIVATE BOOL HTCache_getSingleUserLock (const char * root)
 	if ((fp = fopen(location, "r")) != NULL) {
 	    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
 	    HTTrace("Cache....... In `%s\' is already in use\n", root);
-    	    if (cbf) (*cbf)(NULL, HT_A_CONFIRM, HT_MSG_CACHE_LOCK,NULL,location,NULL);
 	    fclose(fp);
-	    HT_FREE(location);
-	    return NO;
+            if (cbf) {
+                BOOL result = (*cbf)(NULL, HT_A_CONFIRM,
+                                     HT_MSG_CACHE_LOCK,NULL,location,NULL);
+                if (result == YES) {
+                    REMOVE(location);
+                } else {
+                    HT_FREE(location);
+                    return NO;
+                }
+            } else {
+                HT_FREE(location);
+                return NO;    
+            }
 	}
 	if ((fp = fopen(location, "w")) == NULL) {
 	    HTTrace("Cache....... Can't open `%s\' for writing\n", location);
@@ -720,9 +730,10 @@ PUBLIC BOOL HTCacheInit (const char * cache_root, int size)
 	HTCacheIndex_read(HTCacheRoot);
 
 	/*
-	**  Register the cache AFTER filter for handling 201 responses
+	**  Register the cache AFTER filter for checking whether
+        **  we should invalidate the cached entry
 	*/
-	HTNet_addAfter(HTCacheTouchFilter, "http://*",	NULL, HT_CREATED,
+	HTNet_addAfter(HTCacheCheckFilter, "http://*",	NULL, HT_ALL,
 		       HT_FILTER_MIDDLE);
 
 	/*
@@ -1063,8 +1074,8 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
 **  remember the etag and other things. This allows us to guarantee that
 **  we don't loose data due to the lost update problem
 */
-PRIVATE HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
-				 HTParentAnchor * anchor)
+PUBLIC HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
+				HTParentAnchor * anchor)
 {
     HTCache * cache = NULL;
 
@@ -1084,17 +1095,34 @@ PRIVATE HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
 }
 
 /*
-**	Cache Touch AFTER filter
+**	Cache Check AFTER filter
 **	------------------------
 **	Add an entry for a resource that has just been created so that we can 
 **	remember the etag and other things. This allows us to guarantee that
-**	we don't loose data due to the lost update problem
+**	we don't loose data due to the lost update problem. We also check
+**	whether we should delete the cached entry if the request/response
+**	invalidated it (if success and method was not "safe")
 */
-PRIVATE int HTCacheTouchFilter (HTRequest * request, HTResponse * response,
+PRIVATE int HTCacheCheckFilter (HTRequest * request, HTResponse * response,
 				void * param, int status)
 {
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTCache_touch(request, response, anchor);
+    if (status/100==2 && !HTMethod_isSafe(HTRequest_method(request))) {
+        if (status==201) {
+	    HTParentAnchor * anchor = HTAnchor_parent(HTResponse_redirection(response));
+    	    if (!anchor) anchor = HTRequest_anchor(request);
+	    HTCache_touch(request, response, anchor);
+	} else {
+	    HTParentAnchor * anchor = HTRequest_anchor(request);
+	    HTCache * cache = HTCache_find(anchor);
+	    if (cache) {
+		if (status == 204)
+		    HTCache_updateMeta(cache, request, response);
+		else
+		    HTCache_remove(cache);
+	    }
+	    HTCache_touch(request, response, anchor);
+	}
+    }
     return HT_OK;
 }
 
