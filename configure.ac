@@ -708,6 +708,7 @@ AC_ARG_WITH(ssl,
     LWWWSSL="-lwwwssl" 
     LIBWWWSSL='${top_builddir}/Library/src/SSL/libwwwssl.la'
     WWWSSLEX='wwwssl$(EXEEXT)'
+    AC_DEFINE(HT_SSL, 1, [Define to enable ssl transport.])
     ;;
   esac ],
 [ AC_MSG_RESULT(no) ])

@@ -25,7 +25,6 @@
 
 #include "HTRobMan.h"
 #include "RobotTxt.h"
-#include "HTSSL.h" 
 
 #define SHOW_QUIET(mr)		((mr) && !((mr)->flags & MR_QUIET))
 #define SHOW_REAL_QUIET(mr)	((mr) && !((mr)->flags & MR_REAL_QUIET))
@@ -85,20 +84,6 @@ int main (int argc, char ** argv)
     /* Need our own trace and print functions */
     HTPrint_setCallback(printer);
     HTTrace_setCallback(tracer);
-
-    /* Set the SSL protocol method. By default, it is the highest
-       available protocol. Setting it up to SSL_V23 allows the client
-       to negotiate with the server and set up either TSLv1, SSLv3,
-       or SSLv2 */
-    HTSSL_protMethod_set (HTSSL_V23);    
-
-    /* Set the certificate verification depth to 2 in order to be
-       able to
-       validate self signed certificates */
-    HTSSL_verifyDepth_set (2);
-
-    /* Register SSL stuff for handling ssl access */
-    HTSSLhttps_init(YES);
 
     /* Build a new robot object */
     mr = Robot_new();
@@ -390,6 +375,31 @@ int main (int argc, char ** argv)
 
 #endif
 
+#ifdef HT_SSL
+            } else if (!strncmp(argv[arg], "-verifydepth", 12)) {
+               mr->sslverifydepth = (arg+1 < argc && *argv[arg+1] != '-') ?
+                    atoi(argv[++arg]) : DEFAULT_SSL_VDEPTH;
+            } else if (!strncmp(argv[arg], "-sslprot", 8)) {
+               if (arg+1 < argc && *argv[arg+1] != '-') {
+                  if (!strcmp(argv[arg], "v2")) {
+                      mr->sslprot = HTSSL_V2;
+                  } else if (!strcmp(argv[arg], "v3")) {
+                      mr->sslprot = HTSSL_V3;
+                  } else if (!strcmp(argv[arg], "v23")) {
+                      mr->sslprot = HTSSL_V23;
+                  } else {
+                      mr->sslprot = DEFAULT_SSL_PROT;
+                  }
+               }
+            } else if (!strncmp(argv[arg], "-keyfile", 8)) {
+                mr->sslkeyfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+                    argv[++arg] : DEFAULT_SSL_KFILE;
+            } else if (!strncmp(argv[arg], "-certfile", 9)) {
+                mr->sslcertfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+                    argv[++arg] : DEFAULT_SSL_CFILE;
+
+#endif
+
 	    } else {
 		if (SHOW_REAL_QUIET(mr)) HTPrint("Bad Argument (%s)\n", argv[arg]);
 	    }
@@ -417,6 +427,34 @@ int main (int argc, char ** argv)
 	VersionInfo();
 	Cleanup(mr, 0);
     }
+#ifdef HT_SSL
+    /* Set the SSL protocol method. By default, it is the highest
+       available protocol. Setting it up to SSL_V23 allows the client
+       to negotiate with the server and set up either TSLv1, SSLv3,
+       or SSLv2 */
+    HTSSL_protMethod_set (mr->sslprot ? mr->sslprot : DEFAULT_SSL_PROT);
+
+    /* Set the certificate verification depth to 2 in order to be
+       able to
+       validate self signed certificates */
+    HTSSL_verifyDepth_set (mr->sslverifydepth ? 
+			   mr->sslverifydepth : 
+			   DEFAULT_SSL_VDEPTH);
+ 
+    /* Setup cert stuff */
+    if (mr->sslcertfile) {
+        HTSSL_certFile_set(mr->sslcertfile);
+        HTPrint("Setting certfile %s\n", HTSSL_certFile());
+    }
+    /* Setup key stuff */
+    if (mr->sslkeyfile) {
+        HTSSL_keyFile_set(mr->sslkeyfile);
+        HTPrint("Setting keyfile %s\n", HTSSL_keyFile());
+    }
+
+    /* Register SSL stuff for handling ssl access */
+    HTSSLhttps_init(YES);
+#endif /* HT_SSL */
 
     if (mr->depth != DEFAULT_DEPTH && 
 	(mr->prefix == NULL || *mr->prefix == '*')) {

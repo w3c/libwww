@@ -55,6 +55,10 @@ PRIVATE int verify_error = X509_V_OK;
 /* For choosing an SSL protocol method */
 PRIVATE HTSSL_PROTOCOL ssl_prot_method = HTTLS_V1;
 
+/* Client certificate/key files */
+PRIVATE char *cert_file = NULL;
+PRIVATE char *key_file = NULL;
+
 /* ----------------------------------------------------------------- */
 
 #ifdef HTDEBUG
@@ -163,6 +167,29 @@ PUBLIC int HTSSL_verifyDepth (void)
 }
 
 /*
+**  Manipulate client-side cert/key
+*/
+PUBLIC void HTSSL_certFile_set (const char *cfile)
+{
+  StrAllocCopy(cert_file, cfile);
+}
+
+PUBLIC const char* HTSSL_certFile (void)
+{
+  return cert_file;
+}
+
+PUBLIC void HTSSL_keyFile_set (const char *kfile)
+{
+  StrAllocCopy(key_file, kfile);
+}
+
+PUBLIC const char* HTSSL_keyFile (void)
+{
+  return key_file;
+}
+
+/*
 **  Create an SSL application context if not already done
 */
 PUBLIC BOOL HTSSL_init (void)
@@ -216,6 +243,25 @@ PUBLIC BOOL HTSSL_init (void)
 	
 	/* Set the certificate verification callback */
 	SSL_CTX_set_verify(app_ctx, SSL_VERIFY_PEER, verify_callback);
+
+        /* Set client cert stuff if it exists */
+        if (cert_file != NULL) {
+            if (SSL_CTX_use_certificate_file(app_ctx,cert_file,
+                SSL_FILETYPE_PEM) <= 0) {
+                HTTRACE(PROT_TRACE,"HTSSL... unable to get certificate from '%s'\n" _ cert_file);
+                return NO;
+            }
+            if (key_file == NULL) key_file=cert_file;
+            if (SSL_CTX_use_PrivateKey_file(app_ctx,key_file,
+                SSL_FILETYPE_PEM) <= 0) {
+                HTTRACE(PROT_TRACE,"HTSSL... unable to get private key from '%s'\n" _ key_file);
+                return NO;
+            }
+            if (!SSL_CTX_check_private_key(app_ctx)) {
+                HTTRACE(PROT_TRACE,"HTSSL... Private key does not match the certificate public key\n");
+                return NO;
+            }
+        }
 
 	/* Not sure what this does */
         SSL_CTX_set_session_cache_mode(app_ctx, SSL_SESS_CACHE_CLIENT);
