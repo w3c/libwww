@@ -113,7 +113,7 @@ struct _HTInputStream {
 /* Cache parameters */ 
 PRIVATE BOOL		HTCacheEnable = NO;	      /* Disabled by default */
 PRIVATE BOOL		HTCacheInitialized = NO;
-PRIVATE char *		HTCacheRoot = NULL;  	    /* Destination for cache */
+PRIVATE char *		HTCacheRoot = NULL;   /* Local Destination for cache */
 PRIVATE HTExpiresMode	HTExpMode = HT_EXPIRES_IGNORE;
 PRIVATE HTDisconnectedMode DisconnectedMode = HT_DISCONNECT_NONE;
 
@@ -132,7 +132,9 @@ PRIVATE long		HTCacheMaxEntrySize = HT_MAX_CACHE_ENTRY_SIZE*MEGA;
 
 PRIVATE int		new_entries = 0;	   /* Number of new entries */
 
-PRIVATE HTNetAfter HTCacheCheckFilter;
+PRIVATE HTNetBefore	HTCacheFilter;
+PRIVATE HTNetAfter	HTCacheUpdateFilter;
+PRIVATE HTNetAfter	HTCacheCheckFilter;
 
 /* ------------------------------------------------------------------------- */
 /*  			     CACHE GARBAGE COLLECTOR			     */
@@ -547,7 +549,7 @@ PUBLIC BOOL HTCacheIndex_read (const char * cache_root)
     if (cache_root && CacheTable == NULL) {
 	BOOL wasInteractive;
 	char * file = cache_index_name(cache_root);
-	char * index = HTParse(file, "cache:", PARSE_ALL);
+	char * index = HTLocalToWWW(file, "cache:");
 	HTAnchor * anchor = HTAnchor_findAddress(index);	
 	HTRequest * request = HTRequest_new();
 	HTRequest_setPreemptive(request, YES);
@@ -584,8 +586,12 @@ PRIVATE BOOL create_cache_root (const char * cache_root)
     BOOL create = NO;
     if (!cache_root) return NO;
     StrAllocCopy(loc, cache_root);			 /* Get our own copy */
+#ifdef WWW_MSWINDOWS
+    cur = *(loc+1) == ':' ? loc+3 : loc+1;
+#else
     cur = loc+1;
-    while ((cur = strchr(cur, '/'))) {
+#endif
+    while ((cur = strchr(cur, DIR_SEPARATOR_CHAR))) {
 	*cur = '\0';
 	if (create || HT_STAT(loc, &stat_info) == -1) {
 	    create = YES;		   /* To avoid doing stat()s in vain */
@@ -599,7 +605,7 @@ PRIVATE BOOL create_cache_root (const char * cache_root)
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... dir `%s\' already exists\n", loc);
 	}
-	*cur++ = '/';
+	*cur++ = DIR_SEPARATOR_CHAR;
     }
     HT_FREE(loc);
     return YES;
@@ -612,32 +618,34 @@ PRIVATE BOOL create_cache_root (const char * cache_root)
 PRIVATE BOOL HTCacheMode_setRoot (const char * cache_root)
 {
     if (cache_root) {
-	StrAllocCopy(HTCacheRoot, cache_root);
-	if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
-	    StrAllocCat(HTCacheRoot, "/");
+        if ((HTCacheRoot = HTWWWToLocal(cache_root, "file:", NULL)) == NULL)
+            return NO;
+        if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != DIR_SEPARATOR_CHAR)
+	    StrAllocCat(HTCacheRoot, DIR_SEPARATOR_STR);
     } else {
 	/*
 	**  If no cache root has been indicated then look for a suitable
 	**  location.
 	*/
-	char * cr = (char *) getenv("TMPDIR");
-#if 0
-	/*
-	**  Windows screws this up pretty bad :-(
-	*/
+	char * addr = NULL;
+	char * cr = (char *) getenv("WWW_CACHE");
 	if (!cr) cr = (char *) getenv("TMP");
 	if (!cr) cr = (char *) getenv("TEMP");
-#endif
 	if (!cr) cr = HT_CACHE_LOC;
-	StrAllocCopy(HTCacheRoot, cr);
-	if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
-	    StrAllocCat(HTCacheRoot, "/");
-	StrAllocCat(HTCacheRoot, HT_CACHE_ROOT);
-	if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
-	    StrAllocCat(HTCacheRoot, "/");
+	addr = HTLocalToWWW(cr, NULL);
+	if (*(addr+strlen(addr)-1) != DIR_SEPARATOR_CHAR)
+	    StrAllocCat(addr, DIR_SEPARATOR_STR);
+	StrAllocCat(addr, HT_CACHE_ROOT);
+	if (*(addr+strlen(addr)-1) != DIR_SEPARATOR_CHAR)
+	    StrAllocCat(addr, DIR_SEPARATOR_STR);
+        if ((HTCacheRoot = HTWWWToLocal(addr, "file:", NULL)) == NULL) {
+            HT_FREE(addr);
+            return NO;
+        }
+        HT_FREE(addr);
     }
     if (create_cache_root(HTCacheRoot) == NO) return NO;
-    if (CACHE_TRACE) HTTrace("Cache Root.. Root set to `%s\'\n", HTCacheRoot);
+    if (CACHE_TRACE) HTTrace("Cache Root.. Local root set to `%s\'\n", HTCacheRoot);
     return YES;
 }
 
@@ -645,9 +653,9 @@ PRIVATE BOOL HTCacheMode_setRoot (const char * cache_root)
 **	Return the value of the cache root. The cache root can only be
 **	set through the HTCacheInit() function
 */
-PUBLIC const char * HTCacheMode_getRoot (void)
+PUBLIC char * HTCacheMode_getRoot (void)
 {
-    return HTCacheRoot;
+    return HTLocalToWWW(HTCacheRoot, NULL);
 }
 
 /*
@@ -1158,6 +1166,185 @@ PUBLIC HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
     }
 
     return cache;
+}
+
+/*
+**	Cache Validation BEFORE Filter
+**	------------------------------
+**	Check the cache mode to see if we can use an already loaded version
+**	of this document. If so and our copy is valid then we don't have
+**	to go out and get it unless we are forced to
+**	We only check the cache in caseof a GET request. Otherwise, we go
+**	directly to the source.
+*/
+PRIVATE int HTCacheFilter (HTRequest * request, void * param, int mode)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache * cache = NULL;
+    HTReload reload = HTRequest_reloadMode(request);
+    HTMethod method = HTRequest_method(request);
+    HTDisconnectedMode disconnect = HTCacheMode_disconnected();
+    BOOL validate = NO;
+
+    /*
+    **  If the cache is disabled all together then it won't help looking, huh?
+    */
+    if (!HTCacheMode_enabled()) return HT_OK;
+    if (CACHE_TRACE) HTTrace("Cachefilter. Checking persistent cache\n");
+
+    /*
+    **  Now check the cache...
+    */
+    if (method != METHOD_GET) {
+	if (CACHE_TRACE) HTTrace("Cachefilter. We only check GET methods\n");
+    } else if (reload == HT_CACHE_FLUSH) {
+	/*
+	** If the mode if "Force Reload" then don't even bother to check the
+	** cache - we flush everything we know abut this document anyway.
+	** Add the appropriate request headers. We use both the "pragma"
+	** and the "cache-control" headers in order to be
+	** backwards compatible with HTTP/1.0
+	*/
+	validate = YES;
+	HTRequest_addGnHd(request, HT_G_PRAGMA_NO_CACHE);
+	HTRequest_addCacheControl(request, "no-cache", "");
+
+	/*
+	**  We also flush the information in the anchor as we don't want to
+	**  inherit any "old" values
+	*/
+	HTAnchor_clearHeader(anchor);
+
+    } else {
+	/*
+	** Check the persistent cache manager. If we have a cache hit then
+	** continue to see if the reload mode requires us to do a validation
+	** check. This filter assumes that we can get the cached version
+	** through one of our protocol modules (for example the file module)
+	*/
+	cache = HTCache_find(anchor);
+	if (cache) {
+	    HTReload cache_mode = HTCache_isFresh(cache, request);
+	    if (cache_mode == HT_CACHE_ERROR) cache = NULL;
+	    reload = HTMAX(reload, cache_mode);
+	    HTRequest_setReloadMode(request, reload);
+
+	    /*
+	    **  Now check the mode and add the right headers for the validation
+	    **  If we are to validate a cache entry then we get a lock
+	    **  on it so that not other requests can steal it.
+	    */
+	    if (reload == HT_CACHE_RANGE_VALIDATE) {
+		/*
+		**  If we were asked to range validate the cached object then
+		**  use the etag or the last modified for cache validation
+		*/
+		validate = YES;
+		HTCache_getLock(cache, request);
+		HTRequest_addRqHd(request, HT_C_IF_RANGE);
+	    } else if (reload == HT_CACHE_END_VALIDATE) {
+		/*
+		**  If we were asked to end-to-end validate the cached object
+		**  then use a max-age=0 cache control directive
+		*/
+		validate = YES;
+		HTCache_getLock(cache, request);
+		HTRequest_addCacheControl(request, "max-age", "0");
+	    } else if (reload == HT_CACHE_VALIDATE) {
+		/*
+		**  If we were asked to validate the cached object then
+		**  use the etag or the last modified for cache validation
+		**  We use both If-None-Match or If-Modified-Since.
+		*/
+		validate = YES;
+		HTCache_getLock(cache, request);
+		HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
+	    } else if (cache) {
+		/*
+		**  The entity does not require any validation at all. We
+		**  can just go ahead and get it from the cache. In case we
+		**  have a fresh subpart of the entity, then we issue a 
+		**  conditional GET request with the range set by the cache
+		**  manager. Issuing the conditional range request is 
+		**  equivalent to a validation as we have to go out on the
+		**  net. This may have an effect if running in disconnected
+		**  mode. We disable all BEFORE filters as they don't make
+		**  sense while loading the cache entry.
+		*/
+		{
+		    char * name = HTCache_name(cache);
+		    HTAnchor_setPhysical(anchor, name);
+		    HTCache_addHit(cache);
+		    HT_FREE(name);
+		}
+	    }
+	}
+    }
+    
+    /*
+    **  If we are in disconnected mode and we are to validate an entry
+    **  then check whether what mode of disconnected mode we're in. If
+    **  we are to use our own cache then return a "504 Gateway Timeout"
+    */
+    if ((!cache || validate) && disconnect != HT_DISCONNECT_NONE) {
+	if (disconnect == HT_DISCONNECT_EXTERNAL)
+	    HTRequest_addCacheControl(request, "only-if-cached", "");
+	else {
+	    HTRequest_addError(request, ERR_FATAL, NO,
+			       HTERR_GATE_TIMEOUT, "Disconnected Cache Mode",
+			       0, "HTCacheFilter");
+	    return HT_ERROR;
+	}
+    }
+    return HT_OK;
+}
+
+/*
+**	Cache Update AFTER filter
+**	-------------------------
+**	On our way out we catch the metainformation and stores it in
+**	our persistent store. If we have a cache validation (a 304
+**	response then we use the new metainformation and merges it with
+**	the existing information already captured in the cache.
+*/
+PRIVATE int  HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
+				 void * param, int status)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache * cache = HTCache_find(anchor);
+    if (cache) {
+
+	/*
+	**  It may in fact be that the information in the 304 response
+	**  told us that we can't cache the entity anymore. If this is the
+	**  case then flush it now. Otherwise prepare for a cache read
+	*/
+	if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
+	if (HTResponse_isCachable(response) == HT_NO_CACHE) {
+	    HTCache_remove(cache);
+	} else {
+	    char * name = HTCache_name(cache);
+	    HTAnchor_setPhysical(anchor, name);
+	    HTCache_addHit(cache);
+	    HT_FREE(name);
+	    HTCache_updateMeta(cache, request, response);
+	}
+
+	/*
+	**  Start request directly from the cache. As with the redirection filter
+	**  we reuse the same request object which means that we must
+	**  keep this around until the cache load request has terminated
+	**  In the case of a 
+	*/
+	HTLoad(request, YES);
+	return HT_ERROR;
+    } else {
+
+	/* If entry doesn't already exist then create a new entry */
+	HTCache_touch(request, response, anchor);
+
+    }
+    return HT_OK;
 }
 
 /*
@@ -1729,7 +1916,7 @@ PUBLIC char * HTCache_name (HTCache * cache)
 {
     if (cache) {
 	char * local = cache->cachename;
-	char * url = HTParse(local, "cache:", PARSE_ALL);
+	char * url = HTLocalToWWW(local, "cache:");
 	return url;
     }
     return NULL;

@@ -74,16 +74,6 @@ is left to the application.
 extern HTNetBefore HTMemoryCacheFilter;
 </PRE>
 <H3>
-  Persistent Cache Validation BEFORE Filter
-</H3>
-<P>
-Check the cache mode to see if we can use an already loaded version of this
-document. If so and our copy is valid then we don't have to go out and get
-it unless we are forced to
-<PRE>
-extern HTNetBefore HTCacheFilter;
-</PRE>
-<H3>
   Client side authentication BEFORE filter
 </H3>
 <P>
@@ -101,17 +91,6 @@ Like <B>BEFORE</B> filters we provide a default set of typical <B>AFTER</B>
 filters that may be initialized by the application. Again, an easy way of
 doing this is to call the <CODE>HTAfterInit()</CODE> function in the
 <A HREF="WWWInit.html">Initialization interface</A>.
-<H3>
-  Persistent Cache Update AFTER filter
-</H3>
-<P>
-On our way out we catch the metainformation and stores it in our persistent
-store. If we have a cache validation (a 304 response then we use the new
-metainformation and merges it with the existing information already captured
-in the cache.
-<PRE>
-extern HTNetAfter HTCacheUpdateFilter;
-</PRE>
 <H3>
   Error and Information filter
 </H3>

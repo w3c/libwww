@@ -31,15 +31,28 @@ a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
   Initialize and Terminate the Persistent Cache
 </H2>
 <P>
-If `cache_root' is <CODE>NULL</CODE> then use <CODE>HT_CACHE_ROOT</CODE>
-which by default is set to "<CODE>/tmp/w3c-lib</CODE>". The
-<CODE>cache_root</CODE> location does not have to exist, it will be created
-automatically if not. An empty string will make '/' as cache root. The size
-is the total size in MBytes - the default size is 20M. The cache can not
-be less than 5M. We can only enable the cache if we are in
-<A HREF="HTLib.html#Secure">secure mode </A>where we can not access the local
-file system.&nbsp;This is for example the case if using an application as
-a telnet shell.
+The <CODE>cache_root</CODE> is the URI of the location of the persistent
+cache. An example is "<CODE>file:/tmp/w3c-lib</CODE>". If
+<CODE>cache_root</CODE> is <CODE>NULL</CODE> then determine a cache root
+using the following algorithm:
+<OL>
+  <LI>
+    Look for any environment variables (if supported) in the following order:
+    <CODE>WWW_CACHE</CODE>, <CODE>TMP</CODE>, and <CODE>TEMP</CODE>. If none
+    are set then then fall back on "<CODE>/tmp</CODE>".
+  <LI>
+    Append the folder name "<CODE>w3c-cache</CODE>" to the root identified above
+</OL>
+<P>
+The <CODE>cache_root</CODE> location does not have to exist, it will be created
+automatically if not. An empty string will make '/' the cache root.
+<P>
+The size is the total size in MBytes - the default size is 20M. The cache
+can not be less than 5M.
+<P>
+We can only enable the cache if we are in <A HREF="HTLib.html#Secure">secure
+mode</A> where we can not access the local file system. This is for example
+the case if using an application as a telnet shell.
 <PRE>
 extern BOOL HTCacheInit (const char * cache_root, int size);
 </PRE>
@@ -53,7 +66,7 @@ extern BOOL HTCacheTerminate (void);
   Cache Mode Parameters
 </H2>
 <P>
-The persistent cache has a set of overall parameters &nbsp;that you can adust
+The persistent cache has a set of overall parameters that you can adust
 <H3>
   Enable and Disable the Cache
 </H3>
@@ -70,9 +83,10 @@ extern BOOL HTCacheMode_enabled (void);
 </H3>
 <P>
 Return the value of the cache root. The cache root can only be set through
-the <CODE>HTCacheInit()</CODE> function
+the <CODE>HTCacheInit()</CODE> function. The string returned MUST be freed
+by the caller
 <PRE>
-extern const char * HTCacheMode_getRoot	(void);
+extern char * HTCacheMode_getRoot (void);
 </PRE>
 <H3>
   Total Cache Size
@@ -127,7 +141,7 @@ The cache can be set to handle disconnected operation where it does not use
 the network to validate entries and do not attempt to load new documents.
 All requests that can not be fulfilled by the cache will be returned with
 a <CODE>"504 Gateway Timeout"</CODE> response. There are two modes of how
-the cache can operate in disconnected mode: 
+the cache can operate in disconnected mode:
 <DL>
   <DT>
     <EM>No network activity at all</EM>
