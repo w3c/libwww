@@ -949,7 +949,7 @@ PRIVATE int HTFTP_get_response ARGS2(ftp_ctrl_info *, ctrl_info,
 		}
 	    }
 	} else
-	    HTChunkPutc(chunk, (char) ch);
+	    HTChunkPutc(chunk, ch);
     }
     if (!chunk->size || ch < 0) {		        /* No response read? */
 	if (TRACE) fprintf(stderr, "FTP Rx...... No response?\n");
@@ -1979,8 +1979,13 @@ PRIVATE int HTFTP_look_for_data ARGS2(HTRequest *, 	request,
     sleep(1);
 
     /* Now make the select */
+#ifdef __hpux
+    if ((status = select(maxfdpl, (int *) &read_socks, (int *) NULL,
+			 (int *) NULL, &max_wait)) < 0)
+#else
     if ((status = select(maxfdpl, &read_socks, (fd_set *) NULL,
 			 (fd_set *) NULL, &max_wait)) < 0)
+#endif /* __hpux */
         HTErrorSysAdd(request, ERR_FATAL, NO, "select");
     else if (!status) {
 	if (TRACE) fprintf(stderr, "FTP Select.. Connections timed out\n");
