@@ -14,24 +14,23 @@
 */
 </PRE>
 <P>
-The Alert class defines a set of methods to be used by libwww to be used
-for passing prompts and message to a user. In order to maintain the Library
-core application independent and natural language independent, libwww does
-not know how to communicate with a <I>user</I>. Note here that a <I>user</I>
-is a somewhat abstract notion for &nbsp;something that can receive a message
-or prompt from the Library. This can for example be a person, but is may
-also be handled automatically by a robot or a client receiving a response
-from a HTTP server.
+The Alert class defines a set of methods to be used by libwww for passing
+prompts and message to the application. In order to maintain libwww application
+independent and natural language independent, it does not know how to communicate
+with a <I>user</I>. Note here that a <I>user</I> is a somewhat abstract notion
+for &nbsp;something that can receive a message or prompt from libwww. A
+<EM>user</EM> can for example be a person, but is may also be handled
+automatically by a robot or a client receiving a response from a HTTP server.
 <P>
 Libwww has a set of <B>opcodes</B> that classifies the nature of the message,
 for example that it is a question that must be confirmed in order to continue
 a request or simply a progress notification. The application can register
-a method for any number of the defined opcodes - in case the Library has
-a message for an opcode that does not have a method associated, the message
-is ignored. You can also globally disable any message send from the Library.
+a callback for any number of the defined opcodes - in case libwww has a message
+for an opcode that does not have a method associated, the message is ignored.
+You can also globally disable any message send from libwww.
 <P>
 <B>Note</B>: The library <B>core</B> does not define any message or dialog
-methods - they are all considered part of the application. The library comes
+methods - they are all considered part of the application. However, it comes
 with a <A HREF="HTDialog.html">default set of methods</A> which can be initiated
 using the function <CODE>HTAlertInit()</CODE> in <A HREF="HTInit.html">HTInit
 module</A>
@@ -53,7 +52,12 @@ The callback functions are defined as a generic callback where the caller
 can pass a set of input parameters and the callee can return a set of outptu
 parameters. Also note that all the <CODE>*_PROG_*</CODE> opcodes are a subset
 of <CODE>HT_A_PROGRESS</CODE>. This means that you easily can register a
-callback for <EM>all</EM> progress reports.
+callback for <EM>all</EM> progress reports. 
+<P>
+The callback handler for progress notifications <EM>SHOULD NOT</EM> be used
+to interrupt the ongoing message as it is not guaranteed to be in a state
+to do so. Instead you should use the <A HREF="HTEvent.html">event handlers</A>
+or the <A HREF="HTTimer.html">timers</A> for this.
 <PRE>
 typedef enum _HTAlertOpcode {
     HT_PROG_DNS		= 0x1,		/* Doing DNS resolution */
@@ -186,7 +190,7 @@ registered then NULL is returned.
 extern HTAlertCallback * HTAlertCall_find(HTList * list, HTAlertOpcode opcode);
 </PRE>
 <H2>
-  The Reply Object
+  <A NAME="Reply">The Reply Object</A>
 </H2>
 <P>
 The reply object is used for communicating input from the <I>user</I> back
