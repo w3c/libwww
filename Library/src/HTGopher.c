@@ -340,13 +340,13 @@ PRIVATE BOOL GopherCSOLine (HTStream *me, char *line)
     HTStructured *target = me->target;
     if (*line == '1') {					 /* Information line */
 	char *start = strchr(line, ':');
-	start = start ? ++start : line;
+	if (start) start++; else start=line;
 	PUTS(start);
     } else if (*line == '2') {				/* Transfer complete */
 	return NO;
     } else if (*line == '5') {					    /* Error */
 	char *start = strchr(line, ':');
-	start = start ? ++start : line;
+	if (start) start++; else start=line;
 	PUTS(start);
     } else if (*line == '-') {					     /* data */
 	/*  data lines look like '-200:code:field:value'
@@ -399,7 +399,7 @@ PRIVATE BOOL GopherCSOLine (HTStream *me, char *line)
 	}
     } else {						     /* Unknown line */
 	char *start = strchr(line, ':');
-	start = start ? ++start : line;
+	if (start) start++; else start=line;
 	PUTS(start);
     }
     return YES;
