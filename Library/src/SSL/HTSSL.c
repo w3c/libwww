@@ -155,6 +155,10 @@ PUBLIC BOOL HTSSL_init (void)
 
     /*
     ** Initialise OpenSSL 0.9.5 random number generator.
+    ** The random generator of OpenSSL had to be initialised on platforms
+    ** that do not support /dev/random, like Compaq True64 Unix.
+    ** This is done in the default way, and means that the user of the
+    ** libwww-ssl library needs to have a .rnd file in his/her home-directory.
     */
     RAND_file_name(rnd_filename, sizeof(rnd_filename));
     RAND_load_file(rnd_filename, -1);
