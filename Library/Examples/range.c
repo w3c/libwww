@@ -28,6 +28,25 @@ PRIVATE HTChunk * result = NULL;
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
+    if (status == HT_PARTIAL_CONTENT) {
+	HTAssocList * ranges = HTResponse_range(response);
+	if (ranges) {
+	    HTAssoc * pres;
+	    BOOL first = YES;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(ranges))) {
+		if (first) {
+		    fprintf(stderr, "Ranges received: ");
+		    first = NO;
+		} else
+		    fprintf(stderr, ", ");
+		fprintf(stderr, "%s %s",
+			HTAssoc_value(pres) ? HTAssoc_value(pres) : "<null>",
+			HTAssoc_value(pres) ? HTAssoc_name(pres) : "<null>");
+	    }
+	}
+    } else if (status == HT_LOADED)
+	fprintf(stderr, "Total length of document: %ld", HTResponse_length(response));
+     
     if (result && HTChunk_data(result)) {
 	fprintf(stdout, "%s", HTChunk_data(result));
 	HTChunk_delete(result);
