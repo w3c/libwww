@@ -73,7 +73,7 @@ int main (int argc, char ** argv)
 	request = HTRequest_new();
 
 	/* We don't wany any progress notification or other user stuff */
-	HTAlert_setInteractive(NO);
+	HTAlert_setInteractive(YES);
 
 	/* Set the output format to source and put output to stdout */
 	HTRequest_setOutputFormat(request, WWW_SOURCE);
