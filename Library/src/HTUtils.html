@@ -67,9 +67,14 @@ for something more sophisticated.
 #ifdef NeXT
 #include &lt;libc.h>	/* NeXT */
 #endif
+#ifndef Mips
 #ifndef MACH /* Vincent.Cate@furmint.nectar.cs.cmu.edu */
 #include &lt;stdlib.h>	/* ANSI */
 #endif
+#else /* Mips */
+#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
+#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
+#endif /* Mips */
 #else /* ultrix */
 #include &lt;malloc.h>
 #include &lt;memory.h>

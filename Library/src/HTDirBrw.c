@@ -45,6 +45,13 @@
 #include "HTDescript.h"
 
 
+#ifdef Mips
+PRIVATE char * months[12] = {
+    "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+};
+#endif /* Mips */
+
+
 /* Macros and other defines */
 #ifdef USE_DIRENT			       /* Set this for Sys V systems */
 #define STRUCT_DIRENT struct dirent
@@ -930,8 +937,19 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		bodyptr = nodekey->body;
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
+#ifdef Mips
+		    struct tm * t = localtime(&file_info.st_mtime);
+
+		    sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
+			    t->tm_mday,
+			    months[t->tm_mon],
+			    t->tm_year % 100,
+			    t->tm_hour,
+			    t->tm_min);
+#else
 		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 			     localtime(&file_info.st_mtime));
+#endif /* non-Mips */
 		    bodyptr += HT_LENGTH_DATE;
 		    *bodyptr = ' ';
 		    bodyptr += HT_LENGTH_SPACE;
@@ -1183,8 +1201,19 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 		    if (file_info.f_mtime) {
+#ifdef Mips
+			struct tm * t = localtime(&file_info.f_mtime);
+
+			sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
+				t->tm_mday,
+				months[t->tm_mon],
+				t->tm_year % 100,
+				t->tm_hour,
+				t->tm_min);
+#else
 			strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 				 localtime(&file_info.f_mtime));
+#endif /* non-Mips */
 		    } else {
 			*bodyptr = '-';
 		    }

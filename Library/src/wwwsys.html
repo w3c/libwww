@@ -459,8 +459,13 @@ to normal C storage types.
 <H2>MIPS unix</H2>
 <PRE>/* Mips hack (bsd4.3/sysV mixture...) */
 
-#ifdef mips
+#ifdef Mips	/* Bruker */
 extern int errno;
+typedef mode_t		int;
+#define S_ENFMT		S_ISGID		/* record locking enforcement flag */
+#define S_ISCHR(m)	(m & S_IFCHR)
+#define S_ISBLK(m)	(m & S_IFBLK)
+#define WEXITSTATUS(s)	(((s).w_status >> 8) & 0377)
 #endif
 
 </PRE>
@@ -529,30 +534,30 @@ by Lauren Weinstein &lt;lauren@vortex.com&gt;.
 
 #define USE_DIRENT		/* Lauren */
 #define GOT_READ_DIR 1		/* Lauren */
-#include <sys/ipc.h>		/* Lauren */
-#include <sys/dirent.h>		/* Lauren */
-#include <sys/unistd.h>		/* Lauren */
+#include &lt;sys/ipc.h&gt;	/* Lauren */
+#include &lt;sys/dirent.h&gt;	/* Lauren */
+#include &lt;sys/unistd.h&gt;	/* Lauren */
 typedef int mode_t;		/* Lauren */
 #define d_namlen d_reclen 	/* Lauren */
 #define _POSIX_SOURCE		/* Lauren */
-#include <sys/limits.h>		/* Lauren */
+#include &lt;sys/limits.h&gt;	/* Lauren */
 #define NGROUPS NGROUPS_MAX	/* Lauren */
 
 #define SIGSTP			/* Lauren */
 #define POSIXWAIT		/* Lauren */
-#include <sys/types.h>		/* Lauren */
-#include <sys/wait.h>		/* Lauren */
-#include <net/errno.h>		/* Lauren */
+#include &lt;sys/types.h&gt;	/* Lauren */
+#include &lt;sys/wait.h&gt;	/* Lauren */
+#include &lt;net/errno.h&gt;	/* Lauren */
 
 #ifdef ORGLW	/* Lauren */
-#include <sys/file.h>
+#include &lt;sys/file.h&gt;
 #endif
 
 #define _SYSV3	   /* Lauren */
-#include <time.h>  /* Lauren */
+#include &lt;time.h&gt;  /* Lauren */
 
 
-#include <sys/fcntl.h>
+#include &lt;sys/fcntl.h&gt;
 #define S_ISDIR(m)	(((m) & 0170000) == 0040000)
 #define S_ISCHR(m)	(((m) & 0170000) == 0020000)
 #define S_ISBLK(m)	(((m) & 0170000) == 0060000)
@@ -611,6 +616,14 @@ typedef unsigned short mode_t;
 #define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
 #endif
 
+#endif
+</PRE>
+
+
+<H2>File Permissions</H2>
+<PRE>
+
+#if defined(NeXT) || defined(Mips)
 #ifndef S_IRWXU
 #define S_IRWXU 0000700
 #define S_IRWXG 0000070
@@ -625,8 +638,8 @@ typedef unsigned short mode_t;
 #define S_IWOTH 0000002
 #define S_IXOTH 0000001
 #endif
-
 #endif
+
 
 </PRE>
 <H2><A

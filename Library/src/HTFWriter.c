@@ -16,6 +16,11 @@
 #include "HTFile.h"
 #include "HTList.h"
 
+#ifdef Mips
+#define L_tmpnam 64
+#endif
+
+
 /*		Stream Object
 **		------------
 */
