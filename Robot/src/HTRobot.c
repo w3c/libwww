@@ -397,7 +397,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 		Thread_delete(mr, newreq);
 	    }
 	} else {
-	    if (SHOW_MSG) HTTrace("duplicate\n");
+	    if (SHOW_MSG) HTTrace("duplicate or max depth reached\n");
 	}
 	HT_FREE(uri);
     }
