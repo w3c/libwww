@@ -1,3 +1,18 @@
+2000-08-29 	Jose Kahan <jose@w3.org>
+
+	* Temporarily commented the XML structured stream in HTXML.c
+	  (HTXMLStructured_new) and its related code, as it creates
+	  a dependency with the libwwwxml mini-library. If this code
+	  is still useful, it should go into another module, HTSXML.c
+	  to avoid the forced dependency.
+	
+2000-08-28 	Jose Kahan <jose@w3.org>
+
+	* Updated expat to the test version 19990728, as this version
+	  adds some interesting API extensions and is now being widely
+	  used by other projects, including the Perl XML modules. The
+	  previous version is CVS tagged as expat-1-1.
+	
 2000-08-18 	Arthur Barstow <barstow@w3.org>
 
 	* HTRDF.c: Added a new public API HTRDF_parseBuffer.  It
@@ -137,4 +152,4 @@
 	  syntax error generated during the compilation OR the wrong structure 
 	  element will get referenced.  This is because the macro argument 
 	  "data" was the same name as the HTArray structure element that was
-	  being referenced in the macro. 
+	  being referenced in the macro.

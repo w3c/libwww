@@ -12,7 +12,15 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+
+/* 2000-29-08 JK : pre-pruning code out of libwww */
+#ifdef 
+#undef HT_STRUCT_XML_STREAM
+#endif
+
+#ifdef HT_STRUCT_XML_STREAM
 #include "SGML.h"
+#endif /* HT_STRUCT_XML_STREAM */
 #include "HTXML.h"     				 /* Implemented here */
 
 #define XML_MAX_ATTRIBUTES 50
@@ -25,7 +33,9 @@ struct _HTStream {
     HTStructuredClass *         actions;	
     HTStructured *              starget;	
     XML_Parser 			xmlstream;
+#ifdef HT_STRUCT_XML_STREAM
     SGML_dtd *                  dtd;
+#endif /* HT_STRUCT_XML_STREAM */
     XML_StartElementHandler     xml_start_element;
     XML_EndElementHandler       xml_end_element;
     XML_CharacterDataHandler    xml_character_data;
@@ -104,6 +114,8 @@ PRIVATE int HTXML_putString (HTStream * me, const char * s)
     return HTXML_write(me, s, (int) strlen(s));
 }
 
+#ifdef HT_STRUCT_XML_STREAM
+
 PRIVATE BOOL set_attributes_values(HTTag *tag,BOOL *present,char **value,
 				   const char *nameatt,const char *valueatt)
 {
@@ -171,6 +183,8 @@ PRIVATE void default_handler(HTStream *me, const XML_Char *s, int len)
     }
 }
 
+#endif /* HT_STRUCT_XML_STREAM */
+
 PRIVATE const HTStreamClass HTXMLClass =
 {		
     "xml",
@@ -217,6 +231,8 @@ PUBLIC BOOL HTXMLCallback_registerNew (HTXMLCallback_new * me, void * context)
     XMLInstanceContext = context;
     return YES;
 }
+
+#ifdef HT_STRUCT_XML_STREAM
 
 PUBLIC HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured * starget)
 {
@@ -275,3 +291,5 @@ PUBLIC BOOL HTXMLStructured_setUserData(HTStream *me, void *user_data)
     }
     return NO;
 }
+
+#endif /* HT_STRUCT_XML_STREAM */

@@ -28,8 +28,10 @@ details. Thanks so much to John Punin for writing this code!
 
 #include "<A HREF="HTFormat.html">HTFormat.h</A>"
 #include "<A HREF="HTStream.html">HTStream.h</A>"
+#ifdef HT_STRUCT_XML_STREAM
 #include "<A HREF="HTStruct.html">HTStruct.h</A>"
 #include "<A HREF="SGML.html">SGML.h</A>"
+#endif /* HT_STRUCT_XML_STREAM */
 
 #include &lt;xmlparse.h&gt;
 </PRE>
@@ -77,6 +79,7 @@ This is a stream that converts from the expat stream to a
 <A HREF="HTStruct.html">libwww structured stream</A>. Again, the application
 can
 <PRE>
+#ifdef HT_STRUCT_XML_STREAM
 extern BOOL HTXMLStructured_setHandlers(
 	HTStream *			me,
 	XML_StartElementHandler		start,
@@ -85,7 +88,9 @@ extern BOOL HTXMLStructured_setHandlers(
 	XML_DefaultHandler		def_handler);
 
 extern BOOL HTXMLStructured_setUserData (HTStream * me, void * user_data);
-extern HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured * starget);
+extern HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured *
+starget);
+#endif /* HT_STRUCT_XML_STREAM */
 </PRE>
 <PRE>
 #endif
