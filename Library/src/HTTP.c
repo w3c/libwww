@@ -49,6 +49,7 @@ PRIVATE FILE * htfp = NULL;
 
 /* Final states have negative value */
 typedef enum _HTTPState {
+    HTTP_KILL_PIPE	= -4,
     HTTP_RECOVER_PIPE	= -3,
     HTTP_ERROR		= -2,
     HTTP_OK		= -1,
@@ -135,9 +136,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     }	
 
     /* Free stream with data TO network */
-    if (HTRequest_isDestination(req))
-	HTRequest_removeDestination(req);
-    else if (input) {
+    if (input) {
 	if (status==HT_INTERRUPTED || status==HT_RECOVER_PIPE || status==HT_TIMEOUT)
 	    (*input->isa->abort)(input, NULL);
 	else
@@ -1042,13 +1041,20 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    ** The target for the input stream pipe is set up using the
 	    ** stream stack.
 	    */
-            {
-		HTStream *me=HTStreamStack(WWW_HTTP,
-					   HTRequest_outputFormat(request),
-					   HTRequest_outputStream(request),
-					   request, YES);
-		HTNet_setReadStream(net, me);
-		HTRequest_setOutputConnected(request, YES);
+	    {
+            /*
+            **  during a recovery, we might keep the same HTNet object.
+            **  if so, reuse it's read stream 
+            */
+            HTStream * me = HTNet_readStream( net );
+            if ( me == NULL ) {
+                me=HTStreamStack(WWW_HTTP,
+				                 HTRequest_outputFormat(request),
+				                 HTRequest_outputStream(request),
+				                 request, YES);
+				HTNet_setReadStream(net, me);
+            }
+            HTRequest_setOutputConnected(request, YES);
 	    }
 
 	    /*
@@ -1138,11 +1144,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		      type = HTEvent_READ;
 		  } else if (status==HT_CLOSED)
 		      http->state = HTTP_RECOVER_PIPE;
-		  else if (status == HT_ERROR) {
-		      http->result = HT_INTERRUPTED;
-		      http->state = HTTP_ERROR;
-		      break;
-		  }
+		  else if (status == HT_ERROR)
+		      http->state = HTTP_KILL_PIPE;
 	      } else if (type == HTEvent_FLUSH) {
 		  HTStream * input = HTRequest_inputStream(request);
 		  if (input == NULL)
@@ -1160,6 +1163,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		      http->state = http->next;	/* Jump to next state (OK or ERROR) */
 		  else if (status==HT_CLOSED)
 		      http->state = HTTP_RECOVER_PIPE;
+		  else if (status == HT_ERROR)
+		      http->state = HTTP_KILL_PIPE;
 		  else
 		      http->state = HTTP_ERROR;
 	      } else {
@@ -1168,15 +1173,6 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      break;
 
 	  case HTTP_OK:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_OK);
-		}
-	    }
 	    HTTPCleanup(request, http->result);
 	    return HT_OK;
 	    break;
@@ -1192,28 +1188,19 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		  if (host == NULL) return HT_ERROR;
 		  HTRequest_setFlush(request, YES);
 		  HTHost_recoverPipe(host);
-#if 0
-		  /* Is handled from within HTHost_recoverPipe */
-		  http->state = HTTP_BEGIN;
-		  HTHost_launchPending(host);
-#endif
 		  return HT_OK;
 	      } else
 		  http->state = HTTP_OK;
 	  }
 	  break;
 
+          case HTTP_KILL_PIPE:
+	      if (host == NULL) return HT_ERROR;
+	      HTHost_killPipe(host);
+	      return HT_OK;
+	      break;
+
 	  case HTTP_ERROR:
-	      if (HTRequest_isPostWeb(request)) {
-		  if (HTRequest_isDestination(request)) {
-		      HTRequest * source = HTRequest_source(request);
-		      HTLink *link =
-			  HTLink_find((HTAnchor *)HTRequest_anchor(source),
-				      (HTAnchor *) anchor);
-		      HTLink_setResult(link, HT_LINK_ERROR);
-		  }
-		  HTRequest_killPostWeb(request);
-	      }
 	      HTTPCleanup(request, http->result);
 	      return HT_OK;
 	      break;
