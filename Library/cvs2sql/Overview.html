@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+  <TITLE>cvs2sql - a libwww based CVS to SQL commit log converter</TITLE>
+  <LINK rel=STYLESHEET href="../../StyleSheets/Area/Overview.css" type="text/css">
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<P>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_home" BORDER="0"
+    WIDTH="72" HEIGHT="48"></A>
+<A HREF="../"><IMG BORDER="0" ALT="libwww" SRC="../../Icons/WWW/Lib48x"></A>
+<H1>
+  CVS to SQL Commit Log Converter
+</H1>
+<DIV class="intro">
+  In order to keep track of changes to the <A HREF="../cvs.html">libwww CVS
+  source tree</A>, we use this handy tool which can be used in connection with
+  CVS so that commitlog information is stored in a
+  <A HREF="http://www.tcx.se/">MySQL database</A>. The advantage of this is
+  that the SQL database can be searched using a variety of queries that makes
+  it much easier to keep track of changes.
+  <UL>
+    <LI>
+      <A HREF="#Command">Command Line Options</A>
+    <LI>
+      <A HREF="../User/ReleaseNotes.html">Release Notes</A>
+    <LI>
+      <A HREF="../../INSTALL.html">Installation Guide</A>
+    <LI>
+      <A HREF="#How">How to run cvs2sql</A>
+    <LI>
+      <A HREF="#Web">Making the database available via the Web</A>
+    <LI>
+      <A HREF="../User/Patch/">Known Bugs and Patches</A>
+  </UL>
+  <P>
+  The tool is completely generic so that it can be used with any CVS repository
+  - as long as you have a MySQL server around somewhere!
+  <P>
+  @(#) $Id$
+</DIV>
+<P>
+  <HR>
+<H2>
+  The Basics
+</H2>
+<DL>
+  <DT>
+    Author(s)
+  <DD>
+    <A HREF="../../People/Frystyk/">Henrik Frystyk Nielsen</A>
+  <DT>
+    Status
+  <DD>
+    An example application for <A HREF="../">libwww</A> and a tool for keeping
+    it up-to-date
+  <DT>
+    Plans
+  <DD>
+    New releases follow the releases of <A HREF="../Library/">libwww</A> with
+    no exception.
+  <DT>
+    Platforms
+  <DD>
+    It requires <A HREF="../../INSTALL.html">libwww to be compiled</A> with support
+    for <A HREF="http://www.tcx.se/">MySQL</A> access. Of course, it needs a
+    MySQL server and a CVS Repository in order to be of any use.
+  <DT>
+    Getting the Source Code
+  <DD>
+    cvs2sql comes as an integral part of the <A HREF="../Distribution.html">libwww
+    distribution package</A>.
+  <DT>
+    Forums
+  <DD>
+    Discussions on libwww and its sample applications take place on
+    <B>&lt;www-lib@w3.org</B>&gt;
+    (<A HREF="http://lists.w3.org/Archives/Public/www-lib/">archives</A>). See
+    the <A HREF="../../Mail/Request.html">documentation for how to subscribe</A>.
+</DL>
+<H2>
+  <A NAME="How">How to Setup cvs2sql</A>
+</H2>
+<UL>
+  <LI>
+    More
+</UL>
+<H2>
+  <A NAME="Command">Command Line Options</A>
+</H2>
+<UL>
+  <LI>
+    More
+</UL>
+<H2>
+  <A NAME="Web">Making the SQL Database Available via the Web</A>
+</H2>
+<P>
+We have a <A HREF="http://db.w3.org/Library/">web-enabled interface</A> to
+a <A HREF="http://www.tcx.se/">MySQL database</A> based on
+<A href="http://www.daa.com.au/~james/www-sql/">www-sql</A>. The
+<A HREF="www-sql/">www-sql files </A>(*.sql) are also part of the
+<A HREF="../cvs.html">libwww source tree</A>, so you get them when
+<A HREF="../cvs.html">you check it out</A>.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

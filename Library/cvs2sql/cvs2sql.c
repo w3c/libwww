@@ -321,20 +321,36 @@ int main (int argc, char ** argv)
     /* Parse the input chunk */
     {
 	char * ptr = HTChunk_data(loginfo);
-	char * operation = HTNextField(&ptr);
-	char * noop = HTNextField(&ptr);
+	char * noop1 = HTNextField(&ptr);
+	char * noop2 = HTNextField(&ptr);
 	char * root = HTNextField(&ptr);
+	char * operation = NULL;
 	char * files = NULL;
 	char * logmessage = NULL;
+	char * p;
 	char * q;
+
+	/* Find log message */
 	if ((q = strcasestr(ptr, "\nLog Message:")) != NULL) {
 	    logmessage = q+14;
 	    *q = '\0';
 	}
-	if ((q = strcasestr(ptr, "\nModified Files:")) != NULL)
-	    files = q+17;
 
-	if (files && logmessage) {
+	/* Find files */
+	if ((q = strcasestr(ptr, " Files:")) != NULL)
+	    files = q+8;
+
+	/* Find operation */
+	for (p=q; p>HTChunk_data(loginfo) && *p!='\n'; p--);
+	if (*p == '\n') operation = HTNextField(&p);
+
+#if 0
+	fprintf(stderr, "operation: `%s\', files: `%s\', log: `%s\'\n",
+		operation, files, logmessage);
+#endif
+
+	/* Create the query */
+	if (operation && files && logmessage) {
 	    char * file;
 	    int location_id = -1;
 	    int user_id = -1;
