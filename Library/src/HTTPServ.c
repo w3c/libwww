@@ -238,7 +238,6 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
     me->request = request;
     me->http = http;
     me->state = EOL_BEGIN;    
-    me->method = METHOD_INVALID;
     me->buffer = HTChunk_new(128);		 /* Sufficiant for most URLs */
     return me;
 }
