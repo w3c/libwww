@@ -1,14 +1,18 @@
+2000-09-01 	Wayne Davison <wayne@clari.net>
+
+	* HTAccess.c: Typo fix
+
 2000-09-01      Peter Stamfest <peter.stamfest@eunet.at>
 
-	* Corrected a DESTDIR problem in Makefile.am
+	* Makefile.am: corrected a DESTDIR problem
 
 2000-09-01      Jose Kahan <jose@w3.org>
 
-	* Updated the libwww version in Library/src/windows/config.h
+	* config.h: Updated the libwww version
 
 2000-09-01 	Zhu Qun-Ying <qunying@yahoo.com>
 
-	* BUG FIX: wrong closing comment in Library/src/windows/config.h
+	* config.h: BUG FIX: wrong closing comment
 
 2000-08-30 	Arthur Barstow <barstow@w3.org>
 
