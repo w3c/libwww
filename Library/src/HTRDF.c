@@ -2456,7 +2456,7 @@ PUBLIC HTStream * HTRDFToTriples (HTRequest *		request,
 				  HTFormat		output_format,
 				  HTStream *		output_stream)
 {
-    HTStream * me = HTRDFParser_new(request, param, input_format, output_format, output_stream);
+    HTStream * me = RDFParser_new(request, param, input_format, output_format, output_stream);
     HTTRACE(XML_TRACE, "RDF Converter. To Triples\n");
 
     /* Register our own tripple instance handler */
