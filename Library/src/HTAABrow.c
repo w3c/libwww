@@ -71,6 +71,7 @@ typedef struct {
                                 /* templates when to use them.	*/
                                 /* This is actually a list of	*/
                                 /* HTAASetup objects.		*/
+    HTList *	realms;		/* Information about passwords	*/
 } HTAAServer;
 
 
@@ -104,7 +105,6 @@ typedef struct {
 */
 
 PRIVATE HTList *server_table	= NULL;	/* Browser's info about servers	     */
-PRIVATE HTList *realm_table	= NULL;	/* Information about passwords	     */
 PRIVATE char *secret_key	= NULL;	/* Browser's latest secret key       */
 PRIVATE HTAASetup *current_setup= NULL;	/* The server setup we are currently */
                                         /* talking to			     */
@@ -147,6 +147,7 @@ PRIVATE HTAAServer *HTAAServer_new ARGS2(CONST char*,	hostname,
     server->hostname	= NULL;
     server->portnumber	= (portnumber > 0 ? portnumber : 80);
     server->setups	= HTList_new();
+    server->realms	= HTList_new();
 
     if (hostname) StrAllocCopy(server->hostname, hostname);
 
@@ -174,12 +175,18 @@ PRIVATE void HTAASetup_delete();	/* Forward */
 PRIVATE void HTAAServer_delete ARGS1(HTAAServer *, killme)
 {
     if (killme) {
-	HTList *cur = killme->setups;
+	HTList *cur1 = killme->setups;
+	HTList *cur2 = killme->realms;
 	HTAASetup *setup;
+	HTAARealm *realm;
 
-	while (NULL != (setup = HTList_nextObject(cur)))
+	while (NULL != (setup = (HTAASetup*)HTList_nextObject(cur1)))
 	    HTAASetup_delete(setup);
 	HTList_delete(killme->setups);
+
+	while (NULL != (realm = (HTAARealm*)HTList_nextObject(cur2)))
+	    ;	/* This sould free() the realm */
+	HTList_delete(killme->realms);
 
 	FREE(killme->hostname);
 
@@ -401,12 +408,14 @@ PRIVATE void HTAASetup_updateSpecifics ARGS2(HTAASetup *,	setup,
 /* PRIVATE 						HTAARealm_lookup()
 **		LOOKUP HTAARealm STRUCTURE BY REALM NAME
 ** ON ENTRY:
+**	realm_table	a list of realm objects.
 **	realmname	is the name of realm to look for.
 **
 ** ON EXIT:
 **	returns		the realm.  NULL, if not found.
 */
-PRIVATE HTAARealm *HTAARealm_lookup ARGS1(CONST char *, realmname)
+PRIVATE HTAARealm *HTAARealm_lookup ARGS2(HTList *,	realm_table,
+					  CONST char *, realmname)
 {
     if (realm_table && realmname) {
 	HTList *cur = realm_table;
@@ -428,6 +437,8 @@ PRIVATE HTAARealm *HTAARealm_lookup ARGS1(CONST char *, realmname)
 **		IF REALM ALREADY EXISTS, CHANGE
 **		USERNAME/PASSWORD.
 ** ON ENTRY:
+**	realm_table	a list of realms to where to add
+**			the new one, too.
 **	realmname	is the name of the password domain.
 **	username	and
 **	password	are what you can expect them to be.
@@ -435,19 +446,14 @@ PRIVATE HTAARealm *HTAARealm_lookup ARGS1(CONST char *, realmname)
 ** ON EXIT:
 **	returns		the created realm.
 */
-PRIVATE HTAARealm *HTAARealm_new ARGS3(CONST char *,	realmname,
+PRIVATE HTAARealm *HTAARealm_new ARGS4(HTList *,	realm_table,
+				       CONST char *,	realmname,
 				       CONST char *,	username,
 				       CONST char *,	password)
 {
     HTAARealm *realm;
 
-    if (!realm_table) {
-	realm_table = HTList_new();
-	realm = NULL;
-    }
-    else {
-	realm = HTAARealm_lookup(realmname);
-    }
+    realm = HTAARealm_lookup(realm_table, realmname);
 
     if (!realm) {
 	if (!(realm = (HTAARealm*)malloc(sizeof(HTAARealm))))
@@ -456,7 +462,7 @@ PRIVATE HTAARealm *HTAARealm_new ARGS3(CONST char *,	realmname,
 	realm->username = NULL;
 	realm->password = NULL;
 	StrAllocCopy(realm->realmname, realmname);
-	HTList_addObject(realm_table, (void*)realm);
+	if (realm_table) HTList_addObject(realm_table, (void*)realm);
     }
     if (username) StrAllocCopy(realm->username, username);
     if (password) StrAllocCopy(realm->password, password);
@@ -506,13 +512,14 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
     FREE(result);	/* From previous call */
 
     if ((scheme != HTAA_BASIC && scheme != HTAA_PUBKEY) || !setup ||
-	!setup->scheme_specifics || !setup->scheme_specifics[scheme])
+	!setup->scheme_specifics || !setup->scheme_specifics[scheme] ||
+	!setup->server  ||  !setup->server->realms)
 	return "";
 
     realmname = HTAssocList_lookup(setup->scheme_specifics[scheme], "realm");
     if (!realmname) return "";
 
-    realm = HTAARealm_lookup(realmname);
+    realm = HTAARealm_lookup(setup->server->realms, realmname);
     if (!realm || setup->retry) {
 	char msg[100];
 
@@ -520,14 +527,17 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
 	    if (TRACE) fprintf(stderr, "%s `%s' %s\n",
 			       "compose_auth_string: realm:", realmname,
 			       "not found -- creating");
-	    realm = HTAARealm_new(realmname, NULL, NULL);
-	    sprintf(msg,"Document is protected. Enter username for server %s: ",
-		    realm->realmname);
+	    realm = HTAARealm_new(setup->server->realms, realmname, NULL,NULL);
+	    sprintf(msg,
+		    "Document is protected. Enter username for %s at %s: ",
+		    realm->realmname,
+		    setup->server->hostname ? setup->server->hostname : "??");
 	    realm->username =
 		HTPrompt(msg, realm->username);
 	}
 	else {
-	    sprintf(msg,"Enter username for server %s: ", realm->realmname);
+	    sprintf(msg,"Enter username for %s at %s: ", realm->realmname,
+		    setup->server->hostname ? setup->server->hostname : "??");
 	    username = HTPrompt(msg, realm->username);
 	    FREE(realm->username);
 	    realm->username = username;
