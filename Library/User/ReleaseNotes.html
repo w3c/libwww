@@ -1,20 +1,36 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
 </HEAD>
 <BODY>
 
-<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
 <A HREF="../"><IMG ALT="Lib" SRC="../../Icons/WWW/Lib48x.gif"></A>
 <IMG SRC="../../Icons/WWW/relnotes48x.gif" ALT="RELEASE"></A>
 
 <H1>Library 4.0 Release Notes</H1>
 
-<IMG SRC="../../Icons/32x32/caution.gif"> Thanks to all the good work done by the alpha testers!
+<IMG SRC="../../Icons/32x32/caution.gif"> Thanks to all the good work done by the alpha testers:
 
+<UL>
+<LI>BROOKS, Charlie
+<LI>CONNOR, Kevin
+<LI>DOMINGUEZ, Mario J.
+<LI>FARKAS, Ivan
+<LI>GIZA, Jim
+<LI>KIM, Joachim
+<LI>KLUTE, Rainer
+<LI>PRUD'HOMMEAUX, Eric
+<LI>MCNEIL, Chris
+<LI>PETIT, Bertrand
+<LI>PUZIO, Maciej
+<LI>REAGEN, Jeff
+<LI>WEI, John
+<LI>WOODWARD, Jennifer
+</UL>
 
-<H2>Alpha Release 4, October 31 1995</H2>
+<H2>Alpha Release 4, November 31 1995</H2>
 
 The Library has now undergone a major restructuring in order to define the APIs between the various
 parts and to make it more modular. The new architecture is described in the <A
@@ -25,6 +41,10 @@ Request manager where the HTRequest structure is an opaque object.
 <H3>Core Modules</H3>
 
 <UL>
+
+<LI>Generalized the <A HREF="../Implementation/HTError.html">Error Manager</A> to work on lists
+instead of as directly on a request object. This makes it possible to use the error manager in all
+situations.
 
 <LI>Changed <EM>HTAppName</EM> and <EM>HTAppVersion</EM> to parameters to HTLibInit() instead of as
 global parameters.
@@ -195,6 +215,8 @@ didn't understand automatic redirect.
 
 <UL>
 
+<LI>We now have a <A HREF="../Implementation/HTBound.html">MIME multipart parser stream</A>
+
 <LI>We have added a content counter stream and a buffer stream in <A
 HREF="../Implementation/HTConLen.html">HTConLen module</A>.
 
@@ -305,6 +327,6 @@ a number to a string using prefixes. This can be used in the progress notificati
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, libwww@w3.org, October 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, libwww@w3.org, November 1995</ADDRESS>
 </BODY>
 </HTML>

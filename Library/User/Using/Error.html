@@ -1,21 +1,277 @@
-<HTML>
+a<HTML>
 <HEAD>
 <TITLE>User Guide - Error Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
 <H1>The Error Manager</H1>
 
-<B>MORE</B>
+The Library deals with two categories of errors: user errors and application errors. The former are
+all the errors that can occur when the Library is used in a "real" environment where network
+connections can disappear, disks can get full, and memory can get exhausted. The letter type of
+errors are at a lower level including invalid arguments passed to procedures, missing function
+calls, or any other application misbehavior. In this section we will examine the Library <A
+HREF="../../Implementation/HTError.html">Error Manager</A> which handles user errors. In a later
+section we will have a look at how to control the application errors at an application debug
+level using trace messages.<P>
+
+As a part of the core Library, the error manager is intended to pass information about errors and
+messages occuring in the Library back to the application. Each error is kept as an object so
+multiple errors can be nested together using the well-known <A
+HREF="../../Implementation/HTList.html">HTList object</A>. Nested error management can be used to
+build complicated error messages which an arbitrary level of details, for example:
+
+<PRE>
+	This URL could not be retrieved: http://www.foo.com
+	    Reason: The host name could not be resolved
+	        Reason: DNS service is not available
+</PRE>
+
+The principle behind the error manager is exactly like any other registration module in the Library
+in that it creates an object and binds it to a list that the caller provides. Often, errors are
+related to a specific request object and each request object will therefore keep its own list of
+errors. However, errors can also be maintained as separate lists which are not directly related to a
+request, for example, the application can keep its own list of errors independent of any Library
+errors.  <P>
+
+Errors are roughly categorized into two classes: system errors and other errors. System errors
+include all errors that occur while interacting with the operating system. Often these errors occurs
+as a result of insufficient availability or authentication to a system resource. In many operating
+systems, the system provides a set of error messages which is associated with an error code made
+available to the application via the <EM>errno</EM> variable or equivalent. All other errors are
+registered with an error message belonging to the Library Error manager. Note, that there are no
+difference in how system errors and other errors are treated, they are the same data objects and
+can be registered together with no exception.
+
+<H2>Registering Errors</H2>
+
+Now let's take a look at how a generic error list is maintained. Normal errors can be registered
+using the following function:
+
+<PRE>
+extern BOOL HTError_add		(HTList *	list,
+				 HTSeverity	severity,
+				 BOOL		ignore,
+				 int		element,
+				 void *		parameter,
+				 unsigned int	length,
+				 char *		where);
+</PRE>
+
+The first argument is a list object and as always, we need to create a list object using the
+<CODE>HTList_new </CODE> method. The next element is an indication of how serious the error is in
+the situation where it occured. Classification of errors are known from many operating systems, for
+example VMS, and it gives the application the opportunity to decide whether the current operation
+should be continued or aborted. The Library provides four severity categories:
+
+<PRE>
+typedef enum _HTSeverity {
+    ERR_FATAL,
+    ERR_NON_FATAL,
+    ERR_WARN,
+    ERR_INFO
+} HTSeverity;
+</PRE>
+
+It is not always that an error is an error immediately when it occurs. In some situations it might
+first become an error later in the process depending on the outcome of other factors - or it might
+be circumvented so that no special action is required. The <EM>ignore</EM> flag provides this
+functionality in that an error can be registered at any time with the notion: "Register this error
+but ignore it for now". <P>
+
+The <CODE>element</CODE> argument is an index into a table of all error messages. This table is
+maintained in the <A HREF="../../Implementation/HTError.c">HTError Module</A> and contains an error
+message together with a URl that might be included in an error message presented to the user. The
+values of the <CODE>element</CODE> argument itself is given by the <CODE>HTErrorElement</CODE>
+enumeration definition in the <A HREF="HTEvent.html">HTEvent Module</A>. <P>
+
+The next two arguments are used to register any parameters associated with the error. This can for
+example be the file name of a file which could not be opened, a URL which could not be accessed
+etc. By letting the parameter be a void pointer together with a length indication, the parameter can
+be an arbitrary data object. The last argument is a location description to indicate where the error
+occured. Often this is the name of the function or a module. <P>
+
+One thing, we didn't mention when describing the <A HREF="Request.html">request object</A> was that
+the <A HREF="../../Implementation/HTRequest.html">Request Object</A> provides a similar function for
+directly associating an error object with a request object. These functions uses request objects and
+not a list as the basic data object and hence the caller does not have to worry about creating or
+assigning the list to the request object; this is done automatically. The request version of how to
+register an error looks very much like its more generic companion, and it should not be necessary
+to explain the arguments any further.
+
+<PRE>
+extern BOOL HTRequest_addError (HTRequest * 	request,
+				HTSeverity	severity,
+				BOOL		ignore,
+				int		element,
+				void *		par,
+				unsigned int	length,
+				char *		where);
+</PRE>
+
+System errors can be registered in very much the same way as described above, but the set of
+parameters is a bit smaller and hopefully a bit easier to handle. The registration function is
+defined as:
+
+<PRE>
+extern BOOL HTError_addSystem (HTList *		list,
+			       HTSeverity 	severity,
+			       int		errornumber,
+			       BOOL		ignore,
+			       char *		syscall);
+</PRE>
+
+The only difference is the <CODE>errornumber</CODE> argument which, as described above, in many
+situations is provided by the operating system, for example as a <EM>errno</EM> variable. The
+<CODE>syscall</CODE> is simply the name of the function. Also this function has a mirror function in
+the <A HREF="../../Implementation/HTRequest.html">HTRequest object</A>, and again they look very
+much alike:
+
+<PRE>
+extern BOOL HTRequest_addSystemError (HTRequest * 	request,
+				      HTSeverity 	severity,
+				      int		errornumber,
+				      BOOL		ignore,
+				      char *		syscall);
+</PRE>
+
+Let's take a look at two examples of registering errors. The first example registers an
+informational error message explaining that the HTTP module received a redirection notification from
+the remote HTTP server. The first example uses the Request versions of the error registration
+functions, and the second example uses the generic versions:
+
+<PRE>
+BOOL HTTPRedirect (HTRequest * request, int status, char * location)
+{
+    if (location) {
+	if (status == 301) {
+	    HTRequest_addError(request, ERR_INFO, NO, HTERR_MOVED,
+			       location, strlen(location), "HTTPRedirect");
+	} else if (status == 302) {
+	    HTRequest_addError(request, ERR_INFO, NO, HTERR_FOUND,
+			       location, strlen(location), "HTTPRedirect");
+	}
+	return YES;
+    } else {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+			   NULL, 0, "HTTPRedirect");
+	return NO;
+    }
+}
+</PRE>
+
+The second example shows how to register a system error:
+
+<PRE>
+BOOL HTReadDir (HTRequest * request, const * directory)
+{ 
+    DIR *dp;
+    if ((dp = opendir(directory))) {
+	STRUCT_DIRENT * dirbuf;
+	while ((dirbuf = readdir(dp))) {
+
+	    /* Read Directory */
+
+	}
+	closedir(dp);
+	return YES;
+    } else {
+	HTError_addSystem(errorlist,  ERR_FATAL, errno, NO, "opendir");
+	return NO;
+    }
+}
+</PRE>
+
+<H2>Error URLs</H2>
+
+Each error message can point to a URL with extended description of what went wrong. This can for
+example also be used by a server in order to send back a error URL to the client. The file names of
+the URLs are given in the error message table but the prefix where to find them can be handled with
+the following functions
+
+<PRE>
+extern void HTError_setPrefix		(CONST char * path);
+extern CONST char *HTError_prefix	(void);
+extern void HTError_freePrefix		(void);
+</PRE>
+
+<H2>Error Messages</H2>
+
+Until now we have concentrated on how to register a set of errors in a list and how to associate
+errors with a request object. Another important thing about errors is that they often are to be
+presented to the user. The error manager can be configured to show almost any combination of the
+parameters in an error object, and all the flags are put together in a big enumeration:
+
+<PRE>
+typedef enum _HTErrorShow {
+    HT_ERR_SHOW_FATAL,		/* Show only fatal errors */
+    HT_ERR_SHOW_NON_FATAL,	/* Show non fatal and fatal errors */
+    HT_ERR_SHOW_WARNING,	/* Show warnings, non fatal, and fatal errors */
+    HT_ERR_SHOW_INFO,		/* Show all of errors */
+    HT_ERR_SHOW_PARS,		/* Show any parameters (if any) */
+    HT_ERR_SHOW_LOCATION,	/* Show the location where the error occured */
+    HT_ERR_SHOW_IGNORE,		/* Show errors even if they are ignored */
+    HT_ERR_SHOW_FIRST,		/* Show only the first registered error */
+    HT_ERR_SHOW_LINKS		/* Show any HTML links (if any) */
+    HT_ERR_SHOW_DEFAULT,	/* Default level of details *
+    HT_ERR_SHOW_DETAILED,	/* Somewhat detailed level */
+    HT_ERR_SHOW_DEBUG,		/* Very detailed */
+} HTErrorShow;
+</PRE>
+
+The last three entries in the enumeration list are only for the convenience of the application. They
+provide some useful default values for how error messages <EM>can</EM> be presented to the user. The
+setup can be modified using the following functions:
+
+<PRE>
+extern HTErrorShow HTError_show (void);
+extern BOOL HTError_setShow (HTErrorShow mask);
+</PRE>
+
+The actual generation of error messages often involves a platform dependent interface including
+special windows etc. In order to keep the error manager itself completely platform independent, the
+error presentation functionality is part of the <A
+HREF="../../Implementation/HTAlert.html">Messaging Module</A> which is described in detail later in
+this guide.
+
+<H2>Data Methods</H2>
+
+The <A HREF="../../Implementation/HTError.html">Error manager</A> contains a large set of
+configuration options and methods for accessing information about registered lists. This guide is
+not intended to describe every single public function, so here we will only present the methods in a list. Often they are self explanatory, so you can probably get a clue of what is going on anyway!
+
+<PRE>
+extern BOOL HTError_doShow		(HTError * info);
+extern BOOL HTError_ignoreLast		(HTList * list);
+extern BOOL HTError_setIgnore		(HTError * info);
+extern int HTError_code			(HTError * info);
+extern CONST char * HTError_message	(HTError * info);
+extern HTSeverity HTError_severity	(HTError * info);
+extern int HTError_parameter		(HTError * info, void *parameter);
+extern CONST char * HTError_location	(HTError * info);
+</PRE>
+
+<H2>Cleaning up Errors</H2>
+
+In case you are using the generic error interface (<CODE>HTError_add</CODE> and
+<CODE>HTError_addSystem</CODE>), the cleanup is done exactly like for all other list based
+registration mechanisms in the Library. In case you are using the request specific version, the
+request manager both handles creating and deletion of error lists, so you do not have to do
+anything. The generic interface for cleaning up looks like:
+
+<PRE>
+extern BOOL HTError_deleteAll (HTList * list);
+extern BOOL HTError_deleteLast (HTList * list);
+</PRE>
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
 </BODY>
 </HTML>

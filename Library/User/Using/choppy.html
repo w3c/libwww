@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
 </HEAD>  
 <BODY>
 
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
 <A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
 <IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using">
 
@@ -28,27 +28,27 @@ all links in this version work!<P>
 <H2>Table of Contents</H2> 
 <OL>
 <LI><A HREF="Startup.html">Getting Started</A>
-<LI><A HREF="Prefs.html">Setting Up Preferences for Language, Charset etc.</A>
+<LI><A HREF="Prefs.html">Request Preferences</A>
 <LI><A HREF="Methods.html">Registering Access Schemes</A>
 <LI><A HREF="Proxy.html">Registering Proxy Servers and Gateways</A>
-<LI><A HREF="Bind.html">Make Bindings to the local File system</A><P>
+<LI><A HREF="Bind.html">Make Bindings to the local File system</A>
+<LI><A HREF="MIME.html">Registering Protocol Headers</A><P>
 
+<LI><A HREF="Streams.html">Stream Objects</A>
 <LI><A HREF="Anchors.html">Anchor Objects</A>
-<LI><A HREF="Request.html">Request Objects</A>
-<LI><A HREF="HyperDoc.html">HyperDoc Objects</A><P>
+<LI><A HREF="HyperDoc.html">HyperDoc Objects</A>
+<LI><A HREF="Request.html">Request Objects</A><P>
 
 <LI><A HREF="Access.html">The Access Manager</A>
-<LI><A HREF="Protocol.html">The Protocol Manager</A>
-<LI><A HREF="Streams.html">The Format Manager</A>
+<LI><A HREF="Event.html">The Event Manager</A>
 <LI><A HREF="Cache.html">The Cache Manager</A>
-<LI><A HREF="Error.html">The Error Cache</A>
-<LI><A HREF="Event.html">The Event Manager</A><P>
+<LI><A HREF="Error.html">The Error Manager</A><P>
 
+<LI><A HREF="Override.html">Application Specific Modules</A>
 <LI><A HREF="Logging.html">The Log Module</A>
 <LI><A HREF="History.html">The History Module</A>
-<LI><A HREF="MIME.html">The HTTP/MIME Parser</A>
-<LI><A HREF="HTML.html">Presentation Modules</A>
-<LI><A HREF="Override.html">Application Specific Modules</A>
+<LI><A HREF="HTML.html">Presentation Modules</A><P>
+
 <LI><A HREF="Flags.html">Global Flags and special Modes</A>
 </OL>
 
@@ -423,7 +423,7 @@ The next field is reserved to be used in connection with mail cap parsers as the
 of a mail cap file. The Library does not yet directly support <A
 HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1524.txt">Mail Cap files</A> but the
 registration of presenters is foreseen to be able to work with mail cap files. The <A
-HREF="../../../../Arena/">Arena browser</A> is an example of an application having its own Mail Cap
+HREF="../../../Arena/">Arena browser</A> is an example of an application having its own Mail Cap
 file parser while using the Library. The description of the test field in <A
 HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1524.txt">RFC 1524</A> is included
 below: <P>
@@ -599,37 +599,6 @@ extern void HTFormat_setCharset		(HTList *list);
 extern HTList * HTFormat_charset	(void);
 </PRE>
 
-<H2>Getting Help on Initialization Converters and Presenters</H2>
-
-The Library has a special module called <A HREF="../../Implementation/HTInit.html">HTInit</A> which
-helps the application doing the initialization of all the converters and other preferences supported
-internally by the Library. This module is not called directly from the Library and must explicitly
-be invoked by the application. <A HREF="../../Implementation/HTInit.html">HTInit</A> is a part of
-the <A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> include file described in the previous
-section, so if you include this in your application then you have direct access to the following
-functions:
-
-The following function initializes all the converters supported natively by modules in the Library
-distribution file:
-
-<PRE>
-extern void HTConverterInit	(HTList * conversions);
-</PRE>
-
-There is a similar function for registering a common set of presenters that can be found on many
-(especially Unix) platforms:
-
-<PRE>
-extern void HTPresenterInit	(HTList * conversions);
-</PRE>
-
-In order to show the similarity between how converters and presenters are handled in the Library,
-there is also a single function that does the work of the two previous functions at once:
-
-<PRE>
-extern void HTFormatInit	(HTList * conversions);
-</PRE>
-
 <H2>Cleaning up Preferences</H2>
 
 As the application is responsible for setting up the sets of preferences, it is also responsible for
@@ -683,6 +652,37 @@ need to start all over again and create a new list object.
 
 <PRE>
 extern void HTFormat_deleteAll		(void);
+</PRE>
+
+<H2>Getting Help on Initialization Converters and Presenters</H2>
+
+The Library has a special module called <A HREF="../../Implementation/HTInit.html">HTInit</A> which
+helps the application doing the initialization of all the converters and other preferences supported
+internally by the Library. This module is not called directly from the Library and must explicitly
+be invoked by the application. <A HREF="../../Implementation/HTInit.html">HTInit</A> is a part of
+the <A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> include file described in the previous
+section, so if you include this in your application then you have direct access to the following
+functions:
+
+The following function initializes all the converters supported natively by modules in the Library
+distribution file:
+
+<PRE>
+extern void HTConverterInit	(HTList * conversions);
+</PRE>
+
+There is a similar function for registering a common set of presenters that can be found on many
+(especially Unix) platforms:
+
+<PRE>
+extern void HTPresenterInit	(HTList * conversions);
+</PRE>
+
+In order to show the similarity between how converters and presenters are handled in the Library,
+there is also a single function that does the work of the two previous functions at once:
+
+<PRE>
+extern void HTFormatInit	(HTList * conversions);
 </PRE>
 
 <H2>Summary</H2>
@@ -796,8 +796,9 @@ extern BOOL HTProxy_add		(CONST char * access, CONST char * proxy);
 </PRE>
 
 In addition to the proxy list, the Library supports a list of servers for which a proxy should
-<EM>not</EM> be consulted. This can be an advantage if a server is known to be either as well
-connected as the proxy or the remote server is in fact itself a proxy server.
+<EM>not</EM> be consulted. This can be useful in order to avoid going via a proxy server for servers
+inside a firewall, if the server is known to be either as well connected as the proxy or the remote
+server is in fact itself a proxy server.
 
 <PRE>
 extern BOOL HTNoProxy_add	(CONST char * host, CONST char * access, unsigned port);
@@ -926,11 +927,9 @@ Examples of a list of suffixes are
 
 Note that the suffixes chosen do not have to be connected with what is available on a particular
 platform. However, a certain coupling will probably make maintenance of the file system easier for
-all parties. There are three types of bindings which we will describe below:
-
-<H2>Add Binding to a Content Type</H2>
-
-The first makes a binding between a file suffix and a 
+all parties. In the following we will show the API for adding bindings between the preferences and
+the file system. You can add a binding between a Content type and a suffix by using the following
+function:
 
 <PRE>
 extern BOOL HTBind_addType	(CONST char *	suffix,
@@ -940,13 +939,9 @@ extern BOOL HTBind_addType	(CONST char *	suffix,
 
 Calling this with <EM>suffix</EM> set to "*" will set the default representation which is used in
 case no other suffix fits the actual file. Using a suffix set to "*.*" will set the default
-representation for unknown suffix files which contain a "." <P>
-
-The <EM>format</EM> argument is exactly like described in the section <A HREF="Prefs.html">Request
-Preferences</A>.
-
-<H2>Add Binding to an Encoding</H2>
-
+representation for unknown suffix files which contain a "."  The <EM>format</EM> argument is exactly
+like described in the section <A HREF="Prefs.html">Request Preferences</A>. In exactly the same way
+you can add a binding between an encoding anda file suffix using the following function:
 
 <PRE>
 extern BOOL HTBind_addEncoding	(CONST char *	suffix,
@@ -954,7 +949,7 @@ extern BOOL HTBind_addEncoding	(CONST char *	suffix,
 				 double		value);
 </PRE>
 
-<H2>Add Binding to a Language</H2>
+Bindings can also be made between a file suffix and a specific natural language:
 
 <PRE>
 extern BOOL HTBind_addLanguage	(CONST char *	suffix,
@@ -962,8 +957,295 @@ extern BOOL HTBind_addLanguage	(CONST char *	suffix,
 				 double		value);
 </PRE>
 
-<B>NOTE:</B> The suffixes <EM>can</EM> contain characters that must be escaped in a URL. However,
-they should <EM>not</EM> be encoded when parsed as the <CODE>suffix</CODE> parameter.
+In all cases, it should be mentioned, that any of the suffixes <EM>can</EM> contain characters that
+normally must be escaped in a URL, for example space &lt; &gt;. However, they should <EM>not</EM> be
+encoded when parsed as the <CODE>suffix</CODE> parameter but left as is.
+
+<H1>Registering Protocol Headers</H1>
+
+The Library provides a few powerful mechanisms to handle document metainformation and how to
+generate and parse additional header information coming across the network. This section describes
+how to handle metainformation and headers and how this can be used to experiment with existing
+protocols by means of additional headers.
+
+<H2>Header Generation</H2>
+
+Outgoing metainformation describing preferences in requests or entities to be sent to a remote
+server is handled in two ways: The Library supports a "native" set (called <EM>known</EM> headers of
+headers which can be manipulated directly, but it also provides support for header extensions
+defined by the application. This section describes how both the existing set of headers and the
+extensions can be handled.
+
+<H3>Generating Known Headers</H3>
+
+The Library manages a "native" set of protocol headers which we will introduce in this section. The
+default behavior for the Library is to use a representative set of headers on each request but all
+headers can be explicitly enabled or disabled on a per request basic by the application. Here we
+will mainly describe the set of native headers but leave the description of how to manipulate them
+for the section on managing <A HREF="Request.html">Request objects</A>. The native set of headers
+fall into the following three categories:
+
+<DL>
+
+<DT>General Headers
+
+<DD>There are a few header fields which have general applicability for both request and response
+messages, but which do not apply to the communication parties or the entity being transferred. This
+mask enables and disables these headers. If the bit is not turned on they are not sent. All headers
+are optional and the default value is not to use any of these headers at all.
+
+<DT>Request Headers
+
+<DD>The request header fields allow the client to pass additional information about the request (and
+about the client itself) to the server. All headers are optional but the default behavior is to use
+all request headers <EM>except</EM> <CODE>From</CODE> and <CODE>Pragma</CODE>. The reason is that
+the former in general requires permission by the user and the latter has special meanings for proxy
+servers.
+
+<DT>Entity Headers
+
+<DD>The entity headers contain information about the object sent in the HTTP transaction. See the <A
+HREF="../../Implementation/HTAnchor.html">anchor module</A>, for the storage of entity headers. This
+flag defines which headers are to be sent in a request together with an entity body. All headers are
+optional but the default value is to use as many as possible.
+
+</DL>
+
+As mentioned, the set of native headers are equivalent to the set of header defined by the <A
+HREF="../../../Protocols/">HTTP/1.1 protocol</A> specification. The Library also provides
+functionality for registering additional headers which we will have a look at in the next section.
+
+<H3>Generating Additional Headers</H3>
+
+The API for handling extra headers is provided by the <A HREF="../../Implementation/HTHeader.html">
+Header Manager</A>. The API is built in exactly the same way as we have seen in section <A
+HREF="Request Preferences">Prefs.html</A>, that is it uses lists of objects as the main
+component. This time the elements registered is callback functions which the application provides
+the definition of. Each time a request is to be generated, the Library looks to see if a list of
+callback functions has been registered to provide additional metainformation to send along with the
+request. If this is the case then each of these callback functions will be called in turn and the
+resulting request is then the sum of the original response and the information provided by the
+callback functions. <P>
+
+It should be mentioned, however, that this API is simple to use if you have a relative small amount
+of extra metainformation to provide and that it easily fits into an existing protocol. It is not
+suited for building entire new protocols, or to provide a massive amount of new information. In this
+case you need a more powerful model which the Library also provides: building your own
+stream. Actually this is exactly the way the the Library implements large parts of itself, but it
+requires normally a bit more work before you can get an application pout together. <P>
+
+Let us jump right in to it and have a closer look at the API. Exactly as for the request preferences
+you can <EM>add</EM> and <EM>delete</EM> an element, which in this case is a callback function. This
+function has a special definition which is given by
+
+<PRE>
+typedef int HTPostCallback (HTRequest *request, HTStream * target);
+</PRE>
+
+We have already seen the <EM>Request</EM> object before, but the <EM>Stream</EM> object is new. Or
+actually it isn't, it has just not been mentioned explicitly in the previous sections. We will hear
+a lot more about the stream object later in this guide. For now it is sufficient to know that a
+stream i an object that accepts streams of characters - much like an ANSI file stream object
+does. The return value of the callback function is currently not used but is reserved for future
+use. We can register a callback function of type <EM>HTPostCallback</EM> by using the following
+function:
+
+<PRE>
+extern BOOL HTGenerator_add (HTList * gens, HTPostCallback * callback);
+</PRE>
+
+The first argument is the well-known list object and the second is the address of the function that
+we want to be called each time a request is generated. When the callback function is called by the
+Library it must generate its metainformation and send it down the stream which eventually will end
+up on the network as part of the final request. In exactly the same way you can unregister a
+callback function at any time by calling the following function:
+
+<PRE>
+extern BOOL HTGenerator_delete (HTList * gens, HTPostCallback * callback);
+</PRE>
+
+<H2>Header Parsing</H2>
+
+The <A HREF="../../Implementation/HTMIME.html">MIME parser stream</A> parses MIME metainformation,
+for example generated by MIME-like protocols, such as HTTP, NNTP, and soon SMTP as well. For <A
+HREF="../../../Protocols/">HTTP</A> it handles all headers as defined in HTTP/1.1 of the
+specification. When a MIME header is parsed, the obtained metainformation about the document is
+stored in the <A HREF="Anchors.html">anchor object</A> where it can be accessed by the application
+using the methods of the <A HREF="../../Implementation/HTAnchor.html">Anchor module</A>. The
+metainformation in an anchor object can also be used to describe a data object that is to be
+<EM>sent</EM> to a remote location, for example using HTTP or NNTP, but we will describe this in
+more detail later in this guide. In this case the order is reversed as the application provides the
+metainformation and the appropriate headers are generated instead of generating the entries in the
+anchor object by parsing the headers. <P>
+
+<H3>Parsing Known Headers</H3>
+
+The set of headers directly handled by the <A HREF="../../Implementation/HTMIME.html">internal MIME
+parser</A> is the reader is referred to the actual implementation in order to see the exact
+list. However, some of the more special headers are: </P>
+
+<DL>
+<DT><CODE>Allow</CODE>
+<DD>Builds a list of allowed methods for this entity
+<DT><CODE>ContentEncoding</CODE>
+<DD>
+<DT><CODE>ContentLanguage</CODE>
+<DD>Builds a list of natural languages
+<DT><CODE>ContentLength</CODE>
+<DD>This parameter is now passed
+<DT><CODE>ContentType</CODE>
+<DD>The <CODE>ContentType</CODE> header now support the <CODE>charset</CODE> parameter and the
+<CODE>level</CODE> parameter, however none of them are used by the <A HREF="#HTML">HTML parser</A>
+<DT><CODE>Date</CODE>, <CODE>Expires</CODE>, <CODE>RetryAfter</CODE>, and <CODE>LastModified</CODE>
+<DD>All date and time headers are parsed understanding the following formats: RFC 1123, RFC 850,
+ANSI C's asctime(), and delta time. The latter is a non-negative integer indicating seconds after
+the message was received.  Note, that it is <EM>always</EM> for the application to issue a new
+request as a function of any of the date and time headers..
+<DT><CODE>DerivedFrom, Version</CODE>
+<DD>For handling version control when managing collaborative works using HTTP.
+</DL>  
+
+<H3>Parsing Additional Headers</H3>
+
+In many cases, if you have registered an extra set of headers to be generated, you are also in a
+situation where you would like to handle the result that is returned by the remote server. As we will
+describe in this section, the Library provides a very similar interface to the one presented above
+for generating extra headers. <P>
+
+Again, the API for handling extra headers is provided by the <A
+HREF="../../Implementation/HTHeader.html">Header Manager</A> and is based on managing list objects,
+just like we have seen many times before. Each time a request is received, and a unknown header is
+encountered by the internal <A HREF="../../Implementation/HTMIME.html">MIME parser</A>, the Library
+looks to see if a list of callback functions has been registered to parse additional
+metainformation. In case a parser is found for this particular header, the call back is called with
+the header and all parameters that might follow it. As MIME headers can contain line wrappings, the
+<A HREF="../../Implementation/HTMIME.html">MIME parser</A> canonicalizes the header line before the
+callback function is called which makes the job easier for the callback function.<P>
+
+Exactly as for the header generators you can <EM>add</EM> and <EM>delete</EM> an element, which also
+in this case is a callback function. This function has a special definition which is given by
+
+<PRE>
+typedef int HTParserCallback (HTRequest * request, CONST char * token);
+</PRE>
+
+The request object is the current request being handled and the token is the header that was
+encountered together with all parameters following it. The callback can return a value to the
+Library by using the return code of the callback function. Currently there are two return values
+recognized by the Library:
+
+<UL>
+<LI><CODE>HT_OK</CODE> if the token is received and understood
+<LI><CODE>HT_ERROR</CODE> if the callback encounters a fatal error and any further parsing should be stopped.
+</UL>
+
+While in the callback function, the application can start other requests or even kill the current
+request if required. We can register a callback function by using the following function:
+
+<PRE>
+extern BOOL HTParser_add (HTList *		parsers,
+			  CONST char *       	token,
+			  BOOL			case_sensitive,
+			  HTParserCallback *	callback);
+</PRE>
+
+Again, the first argument is a list as we have seen before. The token is a specific token by which
+the callback function should be called. This token can contain a wild card (*) which will match zero
+or more arbitrary characters. You can also specify whether the token should be matched using a case
+sensitive or case insensitive matching algorithm. Let's look at an example of how to register a
+parser callback function:
+
+<PRE>
+HTParser_add(mylist, "PICS-*", NO, myparser);
+</PRE>
+
+This registers the <CODE>myparser</CODE> function as being capable of handling all tokens starting
+with "PICS", "PiCs", "pics", for example:
+
+<PRE>
+	PICS-start
+	pics-Token
+	PICS
+</PRE>
+
+As for header generators, you can unregister a callback function by using the following function:
+
+<PRE>
+extern BOOL HTParser_delete (HTList * parsers, CONST char * token);
+</PRE>
+
+<H2>Enabling Preferences</H2>
+
+Exactly as for <A HREF="Prefs.html">Request Preferences</A>, all we have done until now is to show
+how we can register sets of preferences. However, we still need to define where and when to actually
+let the Library use the preferences. Again, this can be done in two ways: Globally or locally. When
+assigning a set of preferences, for example the set of natural languages, it can either be assigned
+to all future requests (globally) or to a specific request (locally). The preferences can also
+partly be assigned globally and partly locally so that the most common preferences are registered
+globally and only some preferences specific to a single request is then added by registering the
+sets locally. <P>
+
+Here we will only show how to handle the global registration as the local registration is part of
+the description of the request object.
+
+<H3>Additional Header Parsers</H3>
+
+<PRE>
+extern void HTHeader_setParser (HTList * list);
+extern HTList * HTHeader_parser (void);
+</PRE>
+
+<H3>Additional Header Generatores</H3>
+
+<PRE>
+extern void HTHeader_setGenerator (HTList * list);
+extern HTList * HTHeader_generator (void);
+</PRE>
+
+<H2>Cleaning up Preferences</H2>
+
+As for request preferences, the application is responsible for setting up the sets of additional
+header generation and parsing, and it is also responsible for deleting them once they are not needed
+anymore, for example when the application i s closing down, or the user has changed them. The
+Library provides two mechanisms for cleaning up old lists: It can either be done by invoking
+separate methods on each set of preferences, or it can be done in a batch of all globally registered
+preferences or all locally registered preferences relative to a single request. In this context, a
+batch is the total set of registered converters, encoder, character sets, and languages. Here we
+will only show how to cleanup preferences set-wise and as a globally batch of preferences. We leave
+the local cleanup until we have described the request object later in this guide. <P>
+
+As for the other deletion methods, when they have been called you can nor more use the lists as they
+are not pointing to valid places in the memory. The first mechanism for cleaning up lists is by
+calling the cleanup method of each preference as indicated below:
+
+<H3>Header Parsers</H3>
+
+<PRE>
+extern BOOL HTParser_delete (HTList * parsers, CONST char * token);
+extern BOOL HTParser_deleteAll (HTList * parsers);
+</PRE>
+
+<H3>Header Generators</H3>
+
+<PRE>
+extern BOOL HTGenerator_delete (HTList * gens, HTPostCallback * callback);
+extern BOOL HTGenerator_deleteAll (HTList * gens);
+</PRE>
+
+The easy way of cleaning up all global lists at once is calling the following function
+
+<PRE>
+extern void HTHeader_deleteAll (void);
+</PRE>
+
+<H1>The Format Manager</H1>
+
+<UL>
+<LI>setting up request streams
+<LI>memory management
+<LI>examples
+<LI>explain why converters have an input and an output format: chains
+</UL>
 
 <H1>Using Anchors</H1>
 
@@ -974,6 +1256,10 @@ they should <EM>not</EM> be encoded when parsed as the <CODE>suffix</CODE> param
 <LI>relations between links
 <LI>memory management
 </UL>
+
+<H1>Managing the HyperDoc Object</H1>
+
+<B>MORE</B>
 
 <H1>The Request Object</H1>
 
@@ -1411,10 +1697,6 @@ read in a progress message.
 extern long HTRequest_bytesRead(HTRequest * request);
 </PRE>
 
-<H1>Managing the HyperDoc Object</H1>
-
-<B>MORE</B>
-
 <H1>The Access Manager</H1>
 
 At this point most of the design issues have been addressed and the
@@ -1489,19 +1771,13 @@ by providing the registration mechanism of a call back function and a
 pointer to an arbitrary data structure to be passed to that call back
 function. <P>
 
-<H1>The Protocol Manager</H1>
-
-<B>MORE</B>
-
-<H1>The Format Manager</H1>
+<H1>The Event Manager</H1>
 
 <UL>
-<LI>setting up request streams
-<LI>memory management
-<LI>examples
-<LI>explain why converters have an input and an output format: chains
+<LI>The event loop
+<LI>Registering call backs
+<LI>Scheduling events
 </UL>
-
 
 <H1>The Cache Manager</H2>
 
@@ -1666,169 +1942,263 @@ where <CODE>HTExpiresMode</CODE> can take any of the values:
 
 <H1>The Error Manager</H1>
 
-<B>MORE</B>
+The Library deals with two categories of errors: user errors and application errors. The former are
+all the errors that can occur when the Library is used in a "real" environment where network
+connections can disappear, disks can get full, and memory can get exhausted. The letter type of
+errors are at a lower level including invalid arguments passed to procedures, missing function
+calls, or any other application misbehavior. In this section we will examine the Library <A
+HREF="../../Implementation/HTError.html">Error Manager</A> which handles user errors. In a later
+section we will have a look at how to control the application errors at an application debug
+level using trace messages.<P>
 
-<H1>The Event Manager</H1>
-
-<B>MORE</B>
-
-
-<H1>The Log Module</H1>
-
-It is possible to log the result of a request to the Library whether
-regardless of what type of application is using the Library. The
-current implementation of the log manager is very simple but it is
-straight forward to replace the implementation with a more
-sofisticated one. The current log format is defined as follows:
+As a part of the core Library, the error manager is intended to pass information about errors and
+messages occuring in the Library back to the application. Each error is kept as an object so
+multiple errors can be nested together using the well-known <A
+HREF="../../Implementation/HTList.html">HTList object</A>. Nested error management can be used to
+build complicated error messages which an arbitrary level of details, for example:
 
 <PRE>
-	&lt;HOST&gt; &lt;DATE&gt; &lt;METHOD&gt; &lt;URI&gt; &lt;RESULT&gt; &lt;CONTENT LENGTH&gt;
+	This URL could not be retrieved: http://www.foo.com
+	    Reason: The host name could not be resolved
+	        Reason: DNS service is not available
 </PRE>
 
-where the date and time stamp can be either in local time or
-GMT. Logging is turned off but the application can enable it at any
-time. However, it is also for the application to disable the logging
-in order to close any open file descriptors etc. The exact log API is
-described in the <A HREF="../../Implementation/HTLog.html">Log
-Manager</A>.
+The principle behind the error manager is exactly like any other registration module in the Library
+in that it creates an object and binds it to a list that the caller provides. Often, errors are
+related to a specific request object and each request object will therefore keep its own list of
+errors. However, errors can also be maintained as separate lists which are not directly related to a
+request, for example, the application can keep its own list of errors independent of any Library
+errors.  <P>
 
-<H1>Keeping Track of History</H1>
+Errors are roughly categorized into two classes: system errors and other errors. System errors
+include all errors that occur while interacting with the operating system. Often these errors occurs
+as a result of insufficient availability or authentication to a system resource. In many operating
+systems, the system provides a set of error messages which is associated with an error code made
+available to the application via the <EM>errno</EM> variable or equivalent. All other errors are
+registered with an error message belonging to the Library Error manager. Note, that there are no
+difference in how system errors and other errors are treated, they are the same data objects and
+can be registered together with no exception.
 
-The Library supports client applications in keeping track of which
-locations the user has visited while browsing the Web. The internal
-history list is implemented in the <A
-HREF="../../Implementation/HTHist.html">HTHist module</A>. This module
-is completely autonomous as it is not used by any other modules in the
-Library so if it is not referred to in the application code then it
-will not be linked into the linked application. This means that if the
-application does not need recording of history then no action is
-required at all.<P>
+<H2>Registering Errors</H2>
 
-The purpose of the history module is to try not to impose any
-particular history mechanism policy but instead to allow various
-different history mechanisms. The basic features of the history module
-are:
+Now let's take a look at how a generic error list is maintained. Normal errors can be registered
+using the following function:
 
-<UL>
-<LI>The module can handle multiple history lists
-<LI>The underlying data structure is a linear list structure
-<LI>The module keeps a position pointer into this list
-<LI>The application can refer to an element in the list by an index
-</UL>
+<PRE>
+extern BOOL HTError_add		(HTList *	list,
+				 HTSeverity	severity,
+				 BOOL		ignore,
+				 int		element,
+				 void *		parameter,
+				 unsigned int	length,
+				 char *		where);
+</PRE>
 
-Some of the navigation steps supported by the module are "back",
-"forward", and jump to a position in the list. The details of the
-module is listed in the declaration part of the <A
-HREF="../../Implementation/HTHist.html">HTHist module</A>.
+The first argument is a list object and as always, we need to create a list object using the
+<CODE>HTList_new </CODE> method. The next element is an indication of how serious the error is in
+the situation where it occured. Classification of errors are known from many operating systems, for
+example VMS, and it gives the application the opportunity to decide whether the current operation
+should be continued or aborted. The Library provides four severity categories:
 
-<H1>The HTTP/MIME Parser</H1>
+<PRE>
+typedef enum _HTSeverity {
+    ERR_FATAL,
+    ERR_NON_FATAL,
+    ERR_WARN,
+    ERR_INFO
+} HTSeverity;
+</PRE>
 
-In version 3.1 of the Library, the HTTP header parser has been made
-significantly more flexible and does support all HTTP headers included
-in the <A HREF="../../../Protocols/" >HTTP/1.0 specification</A> as
-defined by the latest draft plus allows management of unknown
-headers. Together with the support for extra headers as described in
-section <A HREF="#request">The Request Object </A> this allows
-applications more easily to experiment with HTTP.  All metainformation
-relevant to the actual communication between the client and the server
-is stored in the request object whereas the metainformation describing
-the entity body is stored in the anchor object. It is important to
-note that this information can be used both when requesting a document
-on a remote server and when describing an entity that is to be sent to
-a remote server using a method like <CODE>PUT</CODE> or
-<CODE>POST</CODE>. Some of the more special headers are: </P>
+It is not always that an error is an error immediately when it occurs. In some situations it might
+first become an error later in the process depending on the outcome of other factors - or it might
+be circumvented so that no special action is required. The <EM>ignore</EM> flag provides this
+functionality in that an error can be registered at any time with the notion: "Register this error
+but ignore it for now". <P>
 
-<DL>
-<DT><CODE>Allow</CODE></DT>
-<DD>Builds a list of allowed methods for this entity
+The <CODE>element</CODE> argument is an index into a table of all error messages. This table is
+maintained in the <A HREF="../../Implementation/HTError.c">HTError Module</A> and contains an error
+message together with a URl that might be included in an error message presented to the user. The
+values of the <CODE>element</CODE> argument itself is given by the <CODE>HTErrorElement</CODE>
+enumeration definition in the <A HREF="HTEvent.html">HTEvent Module</A>. <P>
 
-<DT><CODE>ContentEncoding</CODE></DT>
-<DD>
+The next two arguments are used to register any parameters associated with the error. This can for
+example be the file name of a file which could not be opened, a URL which could not be accessed
+etc. By letting the parameter be a void pointer together with a length indication, the parameter can
+be an arbitrary data object. The last argument is a location description to indicate where the error
+occured. Often this is the name of the function or a module. <P>
 
-<DT><CODE>ContentLanguage</CODE></DT>
-<DD>Builds a list of natural languages
+One thing, we didn't mention when describing the <A HREF="Request.html">request object</A> was that
+the <A HREF="../../Implementation/HTRequest.html">Request Object</A> provides a similar function for
+directly associating an error object with a request object. These functions uses request objects and
+not a list as the basic data object and hence the caller does not have to worry about creating or
+assigning the list to the request object; this is done automatically. The request version of how to
+register an error looks very much like its more generic companion, and it should not be necessary
+to explain the arguments any further.
 
-<DT><CODE>ContentLength</CODE></DT>
-<DD>This parameter is now passed
+<PRE>
+extern BOOL HTRequest_addError (HTRequest * 	request,
+				HTSeverity	severity,
+				BOOL		ignore,
+				int		element,
+				void *		par,
+				unsigned int	length,
+				char *		where);
+</PRE>
 
-<DT><CODE>ContentType</CODE></DT>
-<DD>The <CODE>ContentType</CODE> header now support the <CODE>charset</CODE>
-parameter and the <CODE>level</CODE> parameter, however none of them
-are used by the <A HREF="#HTML">HTML parser</A> 
+System errors can be registered in very much the same way as described above, but the set of
+parameters is a bit smaller and hopefully a bit easier to handle. The registration function is
+defined as:
 
-<DT><CODE>Date</CODE>, <CODE>Expires</CODE>, <CODE>RetryAfter</CODE>,
- and <CODE>LastModified</CODE></DT>
-<DD>All date and time headers are parsed understanding the following
-formats: RFC 1123, RFC 850, ANSI C's asctime(), and delta time. The
-latter is a non-negative integer indicating seconds after the message
-was received.  Note, that it is <EM>always</EM> for the application to
-issue a new request as a function of any of the date and time headers..
+<PRE>
+extern BOOL HTError_addSystem (HTList *		list,
+			       HTSeverity 	severity,
+			       int		errornumber,
+			       BOOL		ignore,
+			       char *		syscall);
+</PRE>
 
-<DT><CODE>DerivedFrom, Version</CODE></DT>
-<DD>For handling version control when managing collaborative works
-using HTTP.
+The only difference is the <CODE>errornumber</CODE> argument which, as described above, in many
+situations is provided by the operating system, for example as a <EM>errno</EM> variable. The
+<CODE>syscall</CODE> is simply the name of the function. Also this function has a mirror function in
+the <A HREF="../../Implementation/HTRequest.html">HTRequest object</A>, and again they look very
+much alike:
 
-<DT>Unknown Headers</DT>
-<DD>Unknown headers are put into a separate list which the application
-can accesss. 
- 
-</DL>  
+<PRE>
+extern BOOL HTRequest_addSystemError (HTRequest * 	request,
+				      HTSeverity 	severity,
+				      int		errornumber,
+				      BOOL		ignore,
+				      char *		syscall);
+</PRE>
 
-<H1>Presentation Modules</H1>
+Let's take a look at two examples of registering errors. The first example registers an
+informational error message explaining that the HTTP module received a redirection notification from
+the remote HTTP server. The first example uses the Request versions of the error registration
+functions, and the second example uses the generic versions:
 
-The HTML parser has three different levels of APIs in order to make
-the implementation as flexible as possible.  Depending on which API is
-used by the application, the output can be a stream, a structured stream
-or a set of callback functions as indicated in the figure below:
+<PRE>
+BOOL HTTPRedirect (HTRequest * request, int status, char * location)
+{
+    if (location) {
+	if (status == 301) {
+	    HTRequest_addError(request, ERR_INFO, NO, HTERR_MOVED,
+			       location, strlen(location), "HTTPRedirect");
+	} else if (status == 302) {
+	    HTRequest_addError(request, ERR_INFO, NO, HTERR_FOUND,
+			       location, strlen(location), "HTTPRedirect");
+	}
+	return YES;
+    } else {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+			   NULL, 0, "HTTPRedirect");
+	return NO;
+    }
+}
+</PRE>
 
-<P><IMG SRC="../Guide/Interfaces.gif" ALT="HTMLParser"><P>
+The second example shows how to register a system error:
 
-<DL>
+<PRE>
+BOOL HTReadDir (HTRequest * request, const * directory)
+{ 
+    DIR *dp;
+    if ((dp = opendir(directory))) {
+	STRUCT_DIRENT * dirbuf;
+	while ((dirbuf = readdir(dp))) {
 
-<DT>SGML Stream Interface
+	    /* Read Directory */
 
-<DD>This interface provides the most basic API consisting of the
-output from a stream without any form for structure imposed on the
-data. The internal <A HREF="../../Implementation/SGML.html">SGML
-parser</A> parses the data sequence, identifies SGML markup tags, and
-passes the information on the the <A
-HREF="../../Implementation/HTML.html">HTML parser</A>. However, if the
-application has its own SGML parser and HTML parser, the internal
-parsers can be disabled by removing the internal HTML converter called
-<CODE>HTMLPresent()</CODE> used to present a graphic object on the
-screen from both the global and the local list of converters and
-presenters.
+	}
+	closedir(dp);
+	return YES;
+    } else {
+	HTError_addSystem(errorlist,  ERR_FATAL, errno, NO, "opendir");
+	return NO;
+    }
+}
+</PRE>
 
-<DT>HTML Structured Stream Interface
+<H2>Error URLs</H2>
 
-<DD>If the application has its own HTML parser that understands the
-structured output from the internal SGML parser then the second API
-can be used. The current HTML parser in the Library is very basic and
-does not understand many of the new features in HTML 2 and 3.
+Each error message can point to a URL with extended description of what went wrong. This can for
+example also be used by a server in order to send back a error URL to the client. The file names of
+the URLs are given in the error message table but the prefix where to find them can be handled with
+the following functions
 
-<DT>HText Call Back Interface
+<PRE>
+extern void HTError_setPrefix		(CONST char * path);
+extern CONST char *HTError_prefix	(void);
+extern void HTError_freePrefix		(void);
+</PRE>
 
-<DD>The last API can be in case the application prefers to use the
-internal HTML parser and only wants to provide a platform dependent
-definition of the callback functions defined in the <A
-HREF="../../Implementation/HText.html" >HText module</A>.  Now, the
-parsing is all done internally in the Library and the application is
-only called with segments of fully parsed HTML. The callback functions
-are all defined as prototypes in the <A
-HREF="../../Implementation/HText.html" >HText module</A> but the
-client must provide the actual code that defines the presentation
-method used for a specific HTML tag.
+<H2>Error Messages</H2>
 
-</DL>
+Until now we have concentrated on how to register a set of errors in a list and how to associate
+errors with a request object. Another important thing about errors is that they often are to be
+presented to the user. The error manager can be configured to show almost any combination of the
+parameters in an error object, and all the flags are put together in a big enumeration:
 
-Due to the limited functionality of the internal HTML parsing module,
-many applications have chosen to implement their own HTML
-parser. Therefore many regard the HTML parser module as being an
-<EM>application specific module</EM> instead of a <EM>dynamic
-module</EM>. This will be alleviated in the next version of the
-Library, which hopefully will ease the use of the internal HTML
-parser. The current parser can be overriding as described in section
-<A HREF="#override">Application Specific Modules</A>.
+<PRE>
+typedef enum _HTErrorShow {
+    HT_ERR_SHOW_FATAL,		/* Show only fatal errors */
+    HT_ERR_SHOW_NON_FATAL,	/* Show non fatal and fatal errors */
+    HT_ERR_SHOW_WARNING,	/* Show warnings, non fatal, and fatal errors */
+    HT_ERR_SHOW_INFO,		/* Show all of errors */
+    HT_ERR_SHOW_PARS,		/* Show any parameters (if any) */
+    HT_ERR_SHOW_LOCATION,	/* Show the location where the error occured */
+    HT_ERR_SHOW_IGNORE,		/* Show errors even if they are ignored */
+    HT_ERR_SHOW_FIRST,		/* Show only the first registered error */
+    HT_ERR_SHOW_LINKS		/* Show any HTML links (if any) */
+    HT_ERR_SHOW_DEFAULT,	/* Default level of details *
+    HT_ERR_SHOW_DETAILED,	/* Somewhat detailed level */
+    HT_ERR_SHOW_DEBUG,		/* Very detailed */
+} HTErrorShow;
+</PRE>
+
+The last three entries in the enumeration list are only for the convenience of the application. They
+provide some useful default values for how error messages <EM>can</EM> be presented to the user. The
+setup can be modified using the following functions:
+
+<PRE>
+extern HTErrorShow HTError_show (void);
+extern BOOL HTError_setShow (HTErrorShow mask);
+</PRE>
+
+The actual generation of error messages often involves a platform dependent interface including
+special windows etc. In order to keep the error manager itself completely platform independent, the
+error presentation functionality is part of the <A
+HREF="../../Implementation/HTAlert.html">Messaging Module</A> which is described in detail later in
+this guide.
+
+<H2>Data Methods</H2>
+
+The <A HREF="../../Implementation/HTError.html">Error manager</A> contains a large set of
+configuration options and methods for accessing information about registered lists. This guide is
+not intended to describe every single public function, so here we will only present the methods in a list. Often they are self explanatory, so you can probably get a clue of what is going on anyway!
+
+<PRE>
+extern BOOL HTError_doShow		(HTError * info);
+extern BOOL HTError_ignoreLast		(HTList * list);
+extern BOOL HTError_setIgnore		(HTError * info);
+extern int HTError_code			(HTError * info);
+extern CONST char * HTError_message	(HTError * info);
+extern HTSeverity HTError_severity	(HTError * info);
+extern int HTError_parameter		(HTError * info, void *parameter);
+extern CONST char * HTError_location	(HTError * info);
+</PRE>
+
+<H2>Cleaning up Errors</H2>
+
+In case you are using the generic error interface (<CODE>HTError_add</CODE> and
+<CODE>HTError_addSystem</CODE>), the cleanup is done exactly like for all other list based
+registration mechanisms in the Library. In case you are using the request specific version, the
+request manager both handles creating and deletion of error lists, so you do not have to do
+anything. The generic interface for cleaning up looks like:
+
+<PRE>
+extern BOOL HTError_deleteAll (HTList * list);
+extern BOOL HTError_deleteLast (HTList * list);
+</PRE>
 
 <H1>Application Specific Modules</H1>
 
@@ -1939,167 +2309,232 @@ languages etc. is by default done using file suffixes. However, this can
 be replaces by, for example a database interface by overriding the <A HREF="../../Implementation/HTBind.html"
 >HTBind module</A>.</P>
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
-</BODY>
-</HTML> 
-<HTML>
-<HEAD>
-<TITLE>Using - Global Flags</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
-</HEAD>  
-<BODY>
+<H1>The Log Module</H1>
 
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+It is possible to log the result of a request to the Library whether
+regardless of what type of application is using the Library. The
+current implementation of the log manager is very simple but it is
+straight forward to replace the implementation with a more
+sofisticated one. The current log format is defined as follows:
+
+<PRE>
+	&lt;HOST&gt; &lt;DATE&gt; &lt;METHOD&gt; &lt;URI&gt; &lt;RESULT&gt; &lt;CONTENT LENGTH&gt;
+</PRE>
+
+where the date and time stamp can be either in local time or
+GMT. Logging is turned off but the application can enable it at any
+time. However, it is also for the application to disable the logging
+in order to close any open file descriptors etc. The exact log API is
+described in the <A HREF="../../Implementation/HTLog.html">Log
+Manager</A>.
+
+<H1>Keeping Track of History</H1>
+
+The Library supports client applications in keeping track of which
+locations the user has visited while browsing the Web. The internal
+history list is implemented in the <A
+HREF="../../Implementation/HTHist.html">HTHist module</A>. This module
+is completely autonomous as it is not used by any other modules in the
+Library so if it is not referred to in the application code then it
+will not be linked into the linked application. This means that if the
+application does not need recording of history then no action is
+required at all.<P>
+
+The purpose of the history module is to try not to impose any
+particular history mechanism policy but instead to allow various
+different history mechanisms. The basic features of the history module
+are:
+
+<UL>
+<LI>The module can handle multiple history lists
+<LI>The underlying data structure is a linear list structure
+<LI>The module keeps a position pointer into this list
+<LI>The application can refer to an element in the list by an index
+</UL>
+
+Some of the navigation steps supported by the module are "back",
+"forward", and jump to a position in the list. The details of the
+module is listed in the declaration part of the <A
+HREF="../../Implementation/HTHist.html">HTHist module</A>.
+
+<H1>Presentation Modules</H1>
+
+The HTML parser has three different levels of APIs in order to make
+the implementation as flexible as possible.  Depending on which API is
+used by the application, the output can be a stream, a structured stream
+or a set of callback functions as indicated in the figure below:
+
+<P><IMG SRC="../Guide/Interfaces.gif" ALT="HTMLParser"><P>
+
+<DL>
+
+<DT>SGML Stream Interface
+
+<DD>This interface provides the most basic API consisting of the
+output from a stream without any form for structure imposed on the
+data. The internal <A HREF="../../Implementation/SGML.html">SGML
+parser</A> parses the data sequence, identifies SGML markup tags, and
+passes the information on the the <A
+HREF="../../Implementation/HTML.html">HTML parser</A>. However, if the
+application has its own SGML parser and HTML parser, the internal
+parsers can be disabled by removing the internal HTML converter called
+<CODE>HTMLPresent()</CODE> used to present a graphic object on the
+screen from both the global and the local list of converters and
+presenters.
+
+<DT>HTML Structured Stream Interface
+
+<DD>If the application has its own HTML parser that understands the
+structured output from the internal SGML parser then the second API
+can be used. The current HTML parser in the Library is very basic and
+does not understand many of the new features in HTML 2 and 3.
+
+<DT>HText Call Back Interface
+
+<DD>The last API can be in case the application prefers to use the
+internal HTML parser and only wants to provide a platform dependent
+definition of the callback functions defined in the <A
+HREF="../../Implementation/HText.html" >HText module</A>.  Now, the
+parsing is all done internally in the Library and the application is
+only called with segments of fully parsed HTML. The callback functions
+are all defined as prototypes in the <A
+HREF="../../Implementation/HText.html" >HText module</A> but the
+client must provide the actual code that defines the presentation
+method used for a specific HTML tag.
+
+</DL>
+
+Due to the limited functionality of the internal HTML parsing module,
+many applications have chosen to implement their own HTML
+parser. Therefore many regard the HTML parser module as being an
+<EM>application specific module</EM> instead of a <EM>dynamic
+module</EM>. This will be alleviated in the next version of the
+Library, which hopefully will ease the use of the internal HTML
+parser. The current parser can be overriding as described in section
+<A HREF="#override">Application Specific Modules</A>.
 
 <H1>Global Flags</H1>
 
-The global flags consist of global variables, environment variables,
-and preprocessor defines. Some have already been introduced in the
-previous sections but this section gives a more complete listing.
+The global flags consist of global variables, environment variables, and preprocessor defines. Some
+have already been introduced in the previous sections but this section gives a more complete
+listing.
+
+<H2>Trace Messages</H3>
+
+The Library has a huge set of trace messages that can be enabled in various ways. They are often an
+important help to the application programmer in order to debug an application and this is the reason
+why they are trated in this User's Guide. <P>
+
+MORE
 
 <H3>Global Variables</H3>
 
-Global variables have until recently been in widespread use throughout
-the Library but as this often conflicts with a multithreaded
-environment, many global variables have been replaced with thread-safe
-representations. However, many modules do still contain state
-independent global variables defining display options, global
-time-outs, trace options etc. Typical examples are the module to
-generate <A HREF="../../Implementation/HTDir.html">directory
-listings</A> for HTTP, FTP, and local file access to directories and
-the <A HREF="../../Implementation/HTError.html" >error handling
-module</A>.
+Global variables have until recently been in widespread use throughout the Library but as this often
+conflicts with a multithreaded environment, many global variables have been replaced with
+thread-safe representations. However, many modules do still contain state independent global
+variables defining display options, global time-outs, trace options etc. Typical examples are the
+module to generate <A HREF="../../Implementation/HTDir.html">directory listings</A> for HTTP, FTP,
+and local file access to directories and the <A HREF="../../Implementation/HTError.html" >error
+handling module</A>.
 
-Only four specific global variables are to be mentioned in this paper,
-The first two must be defined in the application before linking with
-the library, and they <EM>must</EM> be assigned values with specific
-semantics.
+Only four specific global variables are to be mentioned in this paper, The first two must be defined
+in the application before linking with the library, and they <EM>must</EM> be assigned values with
+specific semantics.
 
 <DL>
 
 <DT><CODE>HTSecure</CODE>
-<DD>If this flag is enabled then the application has no access to the
-local file system.  This allows applications to be used as a shell for
-remote logins, for example using telnet. the default value is <EM>OFF</EM>
+<DD>If this flag is enabled then the application has no access to the local file system.  This
+allows applications to be used as a shell for remote logins, for example using telnet. the default
+value is <EM>OFF</EM>
 
 <DT><CODE>HTImProxy</CODE>
-<DD>A proxy server must have a socket as the default destination for
-incoming data in order to forward data either to the proxy client or to
-the remote server. If this flag is set, then  the default behavior of
-sending data to the user is diabled. The default value is <EM>OFF</EM>.
+<DD>A proxy server must have a socket as the default destination for incoming data in order to
+forward data either to the proxy client or to the remote server. If this flag is set, then the
+default behavior of sending data to the user is diabled. The default value is <EM>OFF</EM>.
 
 </DL>
 
 <H3>Environment Variables</H3>
 
-Apart from the environment
-variables for setting up a proxy server or a gateway described in
-section <A HREF="Methods.html">Access Methods</A>, the Library supports only
-two other environment variables:
-</P>
+Apart from the environment variables for setting up a proxy server or a gateway described in section
+<A HREF="Methods.html">Access Methods</A>, the Library supports only two other environment
+variables: </P>
 
 <DL>
 <DT><CODE>WWW_HOME</CODE>
-<DD>This variable is used by the help function
-<CODE>HTHomeAnchor()</CODE> to find the address of the default document
-to load when a client application is started. If no <CODE>WWW_HOME</CODE>
-variable has been specified at run time, by default, the Library returns
-<B>http://www.w3.org/</B>.
+<DD>This variable is used by the help function <CODE>HTHomeAnchor()</CODE> to find the address of
+the default document to load when a client application is started. If no <CODE>WWW_HOME</CODE>
+variable has been specified at run time, by default, the Library returns <B>http://www.w3.org/</B>.
  
 <DT><CODE>USERNAME</CODE>, <CODE>LOGNAME</CODE>, <CODE>USER</CODE>
-<DD>These are the variables that are searched when looking for the user
-name of the current user. They are somewhat platform dependent as the
-<CODE>USERNAME</CODE> is for Windows NT, and the others are for Unix
-with <CODE>LOGNAME</CODE> as having highest priority.
+<DD>These are the variables that are searched when looking for the user name of the current
+user. They are somewhat platform dependent as the <CODE>USERNAME</CODE> is for Windows NT, and the
+others are for Unix with <CODE>LOGNAME</CODE> as having highest priority.
 
 </DL>
 
 <H3>Preprocessor Defines</H3>
 
-Most of the preprocessor defines
-in the Library are platform dependent that are determined as a result of
-the <EM>BUILD script</EM>. However, there are some few defines that on
-a platform independent basis can change the default behavior of the
-Library.</P>
+Most of the preprocessor defines in the Library are platform dependent that are determined as a
+result of the <EM>BUILD script</EM>. However, there are some few defines that on a platform
+independent basis can change the default behavior of the Library.</P>
 
 <DL>
 <DT><CODE>HT_REENTRANT</CODE>
-
-<DD>This boolean define should be enabled if the reentrant versions
-("*_r") of the system calls should be used. The name of these system
-calls are currently "*_r", for example <CODE>strtok_r</CODE>. The
-default value is <EM>OFF</EM>.
+<DD>This boolean define should be enabled if the reentrant versions ("*_r") of the system calls
+should be used. The name of these system calls are currently "*_r", for example
+<CODE>strtok_r</CODE>. The default value is <EM>OFF</EM>.
 
 <DT><CODE>HT_SHARED_DISK_CACHE</CODE>
-
-<DD>If the cache can be shared between several clients this will have
-an effect on the way, update of a document will be done. The default
-cache implementation of the cache manager does not support this so the
-default value is NOT defined.
+<DD>If the cache can be shared between several clients this will have an effect on the way, update
+of a document will be done. The default cache implementation of the cache manager does not support
+this so the default value is NOT defined.
 
 <DT><CODE>HT_DIRECT_WAIS</CODE>
-
-<DD>This boolean define is enabled by the <EM>Makefile.include</EM>
-file as described in section <A HREF="Methods.html">Access Methods</A>. The
-default value is <EM>OFF</EM>.
+<DD>This boolean define is enabled by the <EM>Makefile.include</EM> file as described in section <A
+HREF="Methods.html">Access Methods</A>. The default value is <EM>OFF</EM>.
 
 <DT><CODE>HT_DEFAULT_WAIS_GATEWAY</CODE>
-
 <DD>A constant string value which WAIS gateway to contact if
 <CODE>HT_DIRECT_WAIS</CODE> is not defined and no gateway has been
 defined using environment variables
 
 <DT><CODE>HT_FTP_NO_PORT</CODE>
-
-<DD>The FTP module can handle both <CODE>PASV</CODE> and
-<CODE>PORT</CODE> when requesting a document from a FTP server. If the
-application is a proxy server running on top of a firewall machine
-then <CODE>PORT</CODE> is normally not allowed as a firewall does not
-accept incoming connections on arbitrary ports. This define will
-disable the use of <CODE>PORT</CODE>. The default value is to
-<EM>use</EM> <CODE>PORT</CODE> if <CODE>PASV</CODE> fails.
+<DD>The FTP module can handle both <CODE>PASV</CODE> and <CODE>PORT</CODE> when requesting a
+document from a FTP server. If the application is a proxy server running on top of a firewall
+machine then <CODE>PORT</CODE> is normally not allowed as a firewall does not accept incoming
+connections on arbitrary ports. This define will disable the use of <CODE>PORT</CODE>. The default
+value is to <EM>use</EM> <CODE>PORT</CODE> if <CODE>PASV</CODE> fails.
 
 <DT><CODE>WWWLIB_SIG</CODE>
-
-<DD>The Library has a very small set of signal handlers whose action
-most often are simply to ignore the signals. However, due to a bug in
-the TCP kernel on Solaris and other SVR4 platforms returning a
-SIG_PIPE signal, some kind of handling is required on these platforms,
-and the signal handling is enabled by default on these platforms.
+<DD>The Library has a very small set of signal handlers whose action most often are simply to ignore
+the signals. However, due to a bug in the TCP kernel on Solaris and other SVR4 platforms returning a
+SIG_PIPE signal, some kind of handling is required on these platforms, and the signal handling is
+enabled by default on these platforms.
 
 <DT><CODE>HT_TMP_ROOT</CODE>
-
-<DD>The default destination for temporary files if no other
-destination has been given by the application. Temporary files include
-files created for external presenters etc. The default value is
-<CODE>/tmp</CODE> which obviously is not suited for large amount of
-data.
+<DD>The default destination for temporary files if no other destination has been given by the
+application. Temporary files include files created for external presenters etc. The default value is
+<CODE>/tmp</CODE> which obviously is not suited for large amount of data.
 
 <DT><CODE>HT_CACHE_ROOT</CODE>
-
-<DD>If the cache is enabled and no cache root directory has been
-specified then use this as the location. The default value is again
-<CODE>/tmp</CODE>.
+<DD>If the cache is enabled and no cache root directory has been specified then use this as the
+location. The default value is again <CODE>/tmp</CODE>.
 
 <DT><CODE>HT_NO_RULES</CODE>
-
-<DD>If this flag is enabled then no configuration or rule file is
-searched for map rules when handling a request even if a rule file has
-been specified by the application. The default value is <EM>OFF</EM>
+<DD>If this flag is enabled then no configuration or rule file is searched for map rules when
+handling a request even if a rule file has been specified by the application. The default value is
+<EM>OFF</EM>
 
 <DT><CODE>HT_NO_PROXY</CODE>
-
-<DD>If no environment variables are to be searched for gateways or
-proxies for a request. The default value is <EM>OFF</EM>
+<DD>If no environment variables are to be searched for gateways or proxies for a request. The
+default value is <EM>OFF</EM>
 
 </DL>
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
 </BODY>
 </HTML> 
