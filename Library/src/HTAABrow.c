@@ -629,6 +629,7 @@ PUBLIC BOOL HTPasswordDialog (HTRequest * req)
 	    req->realm->username = HTAlert_replyMessage(reply);
 	    req->realm->password = HTAlert_replySecret(reply);
 	}
+	HTAlert_deleteReply(reply);
 	/* Suggested by marca; thanks! */
 	return req->realm->username ? YES : NO;
     }

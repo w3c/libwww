@@ -1,0 +1,19 @@
+EXPORTS
+;HTProxy                @ 100
+HTProxy_add             @ 101
+HTProxy_deleteAll       @ 102
+HTGateway_add           @ 103
+HTGateway_deleteAll     @ 104
+HTNoProxy_add           @ 105
+HTNoProxy_deleteAll     @ 106
+HTProxy_find            @ 107
+HTGateway_find          @ 108
+HTProxy_getEnvVar       @ 109
+;HTRules                @ 200
+HTRule_global           @ 201
+HTRule_setGlobal        @ 202
+HTRule_add              @ 203
+HTRule_deleteAll        @ 204
+HTRule_translate        @ 205
+HTRule_parseLine        @ 206
+HTRules                 @ 207

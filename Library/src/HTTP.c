@@ -652,6 +652,10 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_retry(request)) {
 		    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
 		    HTAnchor *anchor = HTAnchor_findAddress(request->redirect);
+
+		    /* Make sure that we don't get this from cache */
+		    HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+		    
 		    if (HTRequest_isPostWeb(request)) {
 			HTRequest *dest = HTRequest_mainDestination(request);
 			if (cbf && (*cbf)(request, HT_A_CONFIRM, HT_MSG_MOVED,
@@ -708,6 +712,10 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    /* Ask the user for a UserID and a passwd */
 	    if (HTTPAuthentication(request) && HTAA_retryWithAuth(request)) {
 		int ret;
+
+		/* Make sure that we don't get this from cache */
+		HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+
 		if (HTRequest_isPostWeb(request)) {
 		    HTRequest *dest = HTRequest_mainDestination(request);
 		    HTAnchor_appendMethods(request->anchor, request->method);

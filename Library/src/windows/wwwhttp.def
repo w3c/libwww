@@ -1,0 +1,17 @@
+EXPORTS
+;HTTP.c             @ 100
+HTLoadHTTP          @ 101
+;HTTPRq.c           @ 200
+HTProxyHeaders      @ 201
+HTTPRequest_new     @ 202
+;HTAABrow           @ 300
+HTAA_composeAuth    @ 301
+HTPasswordDialog    @ 302
+HTAA_retryWithAuth  @ 303
+;HTAAUtil           @ 400
+HTAAScheme_enum     @ 401
+HTAAScheme_name     @ 402
+HTAA_templateMatch  @ 403
+HTAA_templateCaseMatch @ 404
+HTAA_makeProtectionTemplate @ 405
+HTAA_parseArgList   @ 406

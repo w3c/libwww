@@ -1,0 +1,9 @@
+EXPORTS
+;HTMLGen            @ 100
+HTMLGenerator       @ 101
+HTPlainToHTML       @ 102
+HTPlainTo7BitHTML   @ 103
+;HTMLPdtd           @ 200
+HTStartAnchor       @ 201
+HTMLPutImg          @ 202
+HTNextID            @ 203

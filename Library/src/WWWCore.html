@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Declaration of W3C Reference Library CORE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -53,6 +53,7 @@ extern "C" {
 
 <PRE>
 #include "HTAccess.h"			/* Document access network code */
+#include "HTAlert.h"			/* User Messages and Dialogs */
 #include "HTAnchor.h"			/* Anchor class Definition */
 #include "HTBind.h"			/* Binding to file suffixes */
 #include "HTConLen.h"			/* Content Length Counter */
@@ -72,21 +73,6 @@ extern "C" {
 #include "HTTee.h"			/* T streem for splitting a stream */
 #include "HTWWWStr.h"			/* Web Related String Functions */
 #include "HTWriter.h"			/* Write to a unix file descriptor */
-</PRE>
-
-<H3>Application Specific</H3>
-
-The Library has a special module called <A
-HREF="HTAlert.html">HTAlert</A> which provides all communication with
-the user, for example prompting for a confirmation whether a file
-should be overwritten. In order to remain portable, the current
-implementation of <A HREF="HTAlert.html">HTAlert</A> only uses
-standard ANSI input/output functions. In most cases, an application
-will want to override this with a more platform specific
-implementation, for example to fit a GUI interface.
-
-<PRE>
-#include "HTAlert.h"			/* Messages and User prompts */
 </PRE>
 
 End of Core modules

@@ -1,0 +1,19 @@
+EXPORTS
+;HTNews                 @ 100
+HTNewsStatus_new        @ 101
+HTNews_setMaxArticles   @ 102
+HTNews_maxArticles      @ 103
+HTNews_setHost          @ 104
+HTNews_host             @ 105
+HTFreeNewsHost          @ 106
+HTLoadNews              @ 107
+;HTNewsLs               @ 200
+HTNewsList              @ 201
+HTNewsGroup             @ 202
+;HTNewsRqLs             @ 300
+HTNewsPost_new          @ 301
+;HTNDir                 @ 400
+HTNewsDir_setWidth      @ 401
+HTNewsDir_new           @ 402
+HTNewsDir_addElement    @ 403
+HTNewsDir_free          @ 404

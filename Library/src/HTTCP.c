@@ -988,7 +988,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 #ifdef WWW_WIN_ASYNC
 		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
 		    rv = WSAAsyncSelect(net->sockfd, request->hwnd, 
-					request->winMsg, levents);
+					net->request->winMsg, levents);
 		    if (rv == SOCKET_ERROR) {
 			status = -1 ;
 			if (PROT_TRACE) 

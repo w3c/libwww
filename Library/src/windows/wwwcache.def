@@ -1,0 +1,18 @@
+EXPORTS
+;HTCache                    @ 100
+HTCache_clearMem            @ 101
+HTCache_deleteAll           @ 102
+HTCache_enable              @ 103
+HTCache_disable             @ 104
+HTCache_isEnabled           @ 105
+HTCache_setRoot             @ 106
+HTCache_getRoot             @ 107
+HTCache_freeRoot            @ 108
+HTMemoryCache_register      @ 109
+HTMemoryCache_unRegister    @ 200
+HTMemoryCache_check          @ 201
+HTCache_setExpiresMode      @ 202
+HTCache_expiresMode         @ 203
+HTCache_getReference        @ 204
+HTCache_isValid             @ 205
+HTCacheWriter               @ 206

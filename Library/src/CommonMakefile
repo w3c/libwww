@@ -146,6 +146,7 @@ ICONS = $(ICON)/WWW/Bug48x.gif \
 	$(ICON)/WWW/install48x.gif \
 	$(ICON)/WWW/relnotes48x.gif \
 	$(ICON)/WWW/startup48x.gif \
+	$(ICON)/32x32/smiley.gif \
 	$(ICON)/32x32/caution.gif
 
 LEGAL =	$(WWW)/README \
@@ -160,6 +161,7 @@ SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
+	$(WIN)/*.mak \
 	$(WIN)/*.def \
 	$(WIN)/*.c \
 	$(WIN)/*.h \

@@ -163,8 +163,9 @@ PUBLIC BOOL HTConfirm (HTRequest * request, HTAlertOpcode op,
     if (input) TTYPrint(TDEST, " (%s)", (char *) input);
     TTYPrint(TDEST, " (y/n) ");
 #ifndef NO_STDIO
-    if (fgets(response, 4, stdin)) {		   /* get reply, max 3 chars */
+    if (fgets(response, 4, stdin)) 		   /* get reply, max 3 chars */
 #endif
+    {
 	char *ptr = response;
 	while (*ptr) {
 	    if (*ptr == '\n') {
@@ -216,7 +217,7 @@ PUBLIC BOOL HTPromptPassword (HTRequest * request, HTAlertOpcode op,
     if (reply && msgnum>=0) {
 #ifndef NO_PASSWD
 	char * pw = (char *) getpass(HTDialogs[msgnum]);
-	if (pw) HTAlert_setReplyMessage(reply, pw);
+	if (pw) HTAlert_setReplySecret(reply, pw);
 	return YES;
 #endif
     }
