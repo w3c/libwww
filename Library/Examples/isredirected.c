@@ -19,6 +19,16 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
@@ -32,12 +42,12 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	char * addr = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
 	char * re_addr = HTAnchor_address(HTResponse_redirection(response));
 	time_t retry_after = HTResponse_retryTime(response);
-	fprintf(stdout, "The address `%s\' was redirected to `%s\'\n",
+	HTPrint("The address `%s\' was redirected to `%s\'\n",
 		addr, re_addr ? re_addr : "<none>");
 	if (retry_after >= 0)
-	    fprintf(stdout, "A retry after period of %d secs was given\n", retry_after);
+	    HTPrint("A retry after period of %d secs was given\n", retry_after);
     } else {
-	fprintf(stdout, "Request didn't result in a redirection\n");
+	HTPrint("Request didn't result in a redirection\n");
     }
 
     /* We are done with this request */
@@ -60,6 +70,15 @@ int main (int argc, char ** argv)
     /* Create a new premptive client */
     HTProfile_newRobot("catch-redirect", "1.0");
 
+    /* Gotta set up our own traces */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
+
+    /* Turn on TRACE so we can see what is going on */
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
+
     /* Set a timeout to 10 secs */
     HTHost_setEventTimeout(10000);
 
@@ -70,15 +89,15 @@ int main (int argc, char ** argv)
     if (argc >= 2) {
 	dst_str = argv[1];
     } else {
-	fprintf(stdout, "Type the URI of the destination you want to check whether it redirected or not\n");
-	fprintf(stdout, "\t%s <address>\n", argv[0]);
-	fprintf(stdout, "For example, %s http://www.w3.org\n", argv[0]);
+	HTPrint("Type the URI of the destination you want to check whether it redirected or not\n");
+	HTPrint("\t%s <address>\n", argv[0]);
+	HTPrint("For example, %s http://www.w3.org\n", argv[0]);
 	return -1;
     }
 
     if (dst_str && *dst_str) {
 
-	fprintf(stdout, "Sending request to %s\n", dst_str);
+	HTPrint("Sending request to %s\n", dst_str);
 
 	/* Create a request */
 	request = HTRequest_new();

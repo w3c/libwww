@@ -158,7 +158,7 @@ int main (int argc, char ** argv)
 		VersionInfo(argv[0]);
 		Cleanup(ms, 0);
 		
-#ifdef WWWTRACE
+#ifdef HTDEBUG
 	    /* trace flags */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
 		HTSetTraceMessageMask(argv[arg]+2);

@@ -69,9 +69,9 @@ int main (int argc, char ** argv)
 	max_forward = atoi(argv[2]);
 	if (max_forward<0 || max_forward>10) max_forward=1;
     } else {
-	printf("Type the URI of the destination you want to TRACE and the max number of hops you want to try\n");
-	printf("\t%s <destination> <hops>\n", argv[0]);
-	printf("For example, %s http://www.w3.org 2\n", argv[0]);
+	HTPrint("Type the URI of the destination you want to TRACE and the max number of hops you want to try\n");
+	HTPrint("\t%s <destination> <hops>\n", argv[0]);
+	HTPrint("For example, %s http://www.w3.org 2\n", argv[0]);
 	return -1;
     }
 
@@ -80,7 +80,7 @@ int main (int argc, char ** argv)
 	/* Make source relative to where we are */
 	char * cwd = HTGetCurrentDirectoryURL();
 
-	fprintf(stdout, "Tracing request to %s with %d number of hops\n",
+	HTPrint("Tracing request to %s with %d number of hops\n",
 		dst_str, max_forward);
 
 	/* Create a request */

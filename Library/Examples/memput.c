@@ -19,6 +19,16 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
@@ -43,12 +53,16 @@ int main (int argc, char ** argv)
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("libwww-PUT", "1.0");
 
+    /* Gotta set up our own traces */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
+
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Set trace messages and alert messages*/
-#if 1
-    HTSetTraceMessageMask("sop");
+#if 0
+    HTSetTraceMessageMask("p");
 #endif
 
     /* Handle command line args */
@@ -56,16 +70,16 @@ int main (int argc, char ** argv)
 	dst_str = argv[1];
 	data = argv[2];
     } else {
-	printf("Type the URI of the destination you want to create/update and the contents that you want to save.\n");
-	printf("\t%s <destination> <data>\n", argv[0]);
-	printf("For example, %s http://myserver/destination.html \"This is some testdata\"\n",
+	HTPrint("Type the URI of the destination you want to create/update and the contents that you want to save.\n");
+	HTPrint("\t%s <destination> <data>\n", argv[0]);
+	HTPrint("For example, %s http://myserver/destination.html \"This is some testdata\"\n",
 	       argv[0]);
 	return -1;
     }
 
     if (data && *data && dst_str && *dst_str) {
 
-	fprintf(stdout, "Saving to %s\n", dst_str);
+	HTPrint("Saving to %s\n", dst_str);
 
 	/* Create a request */
 	request = HTRequest_new();

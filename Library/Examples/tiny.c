@@ -75,6 +75,16 @@ PRIVATE HText_addText	text_add;
 /*                                LIBWWW SETUP                               */
 /* ------------------------------------------------------------------------- */
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE void mime_setup (void)
 {
     struct {
@@ -134,7 +144,6 @@ PRIVATE void mime_setup (void)
 */
 PRIVATE void libwww_setup (void)
 {
-
     /* Set up TCP as transport */
     HTTransport_add("buffered_tcp", HT_TP_SINGLE, HTReader_new, HTBufferWriter_new);
 
@@ -235,11 +244,11 @@ PRIVATE void text_build (HText * me, HTextStatus status)
 {
     if (status==HTEXT_END || status==HTEXT_ABORT) {
 	int kids = HTList_count(me->kids);
-	fprintf(stdout,"\n");
+	HTPrint("\n");
 	if (kids > 0)
-	    fprintf(stderr, "\nHit a number between [0..%d]: ", kids-1);
+	    HTPrint("\nHit a number between [0..%d]: ", kids-1);
 	else
-	    fprintf(stderr, "\nNo links found\n");
+	    HTPrint("\nNo links found\n");
     }
 }
 
@@ -259,12 +268,12 @@ PRIVATE void text_link (HText * 	me,
 	if (element_number == HTML_A) {
 	    if (!me->kids) me->kids = HTList_new();
 	    HTList_appendObject(me->kids, anchor);
-	    fprintf(stdout, "[%d]", HTList_count(me->kids)-1);
+	    HTPrint("[%d]", HTList_count(me->kids)-1);
 	} else if (element_number == HTML_IMG) {
 	    if (present[HTML_IMG_ALT] && value[HTML_IMG_ALT])
-		fprintf(stdout, "<%s>", value[HTML_IMG_ALT]);
+		HTPrint("<%s>", value[HTML_IMG_ALT]);
 	    else
-		fprintf(stdout, "<IMAGE>");
+		HTPrint("<IMAGE>");
 	}
     }
 }
@@ -286,7 +295,7 @@ PRIVATE HTAnchor * text_findAnchor (HText * me, int index)
 PRIVATE BOOL get_document (HTRequest * request, HTAnchor * anchor)
 {
     char * address = HTAnchor_address(anchor);
-    fprintf(stderr, "fetching %s\n", address);
+    HTPrint("fetching %s\n", address);
     HT_FREE(address);
     HTRequest_setAnchor(request, anchor);
     return HTLoad(request, NO);
@@ -387,11 +396,11 @@ PRIVATE int console_parser (SOCKET s, void * param, HTEventType type)
 	if (app->current && (anchor = text_findAnchor(app->current, index)))
 	    get_document(new_request, anchor);
 	else
-	    fprintf(stderr, "Index out of range - try again\n");
+	    HTPrint("Index out of range - try again\n");
 	break;
 
     default:
-	fprintf(stderr, "Unknown command - type a number of 'q' for quit\n");
+	HTPrint("Unknown command - type a number of 'q' for quit\n");
     }
     
     return HT_OK;
@@ -401,7 +410,7 @@ PRIVATE int request_terminater (HTRequest * request, HTResponse * response,
 				void * param, int status) 
 {
     App * app = (App *) param;
-    if (status!=HT_LOADED) fprintf(stderr, "Load couldn't be completed successfully\n");
+    if (status!=HT_LOADED) HTPrint("Load couldn't be completed successfully\n");
     Request_delete(app, request);
     return HT_OK;
 }
@@ -414,6 +423,10 @@ int main (int argc, char ** argv)
     HTRequest * request = NULL;
     HTAnchor * anchor = NULL;
 
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
+
     /* Handle command line args */
     if (argc >= 2) {
 	char * uri = HTParse(argv[1], NULL, PARSE_ALL);
@@ -421,11 +434,15 @@ int main (int argc, char ** argv)
 	    anchor = HTAnchor_findAddress(DEFAULT_HOME);
 	HT_FREE(uri);
     } else {
-	printf("Type the URI of the first page you want to load\n");
-	printf("\t%s <address>\n", argv[0]);
-	printf("For example, %s http://www.w3.org\n", argv[0]);
+	HTPrint("Type the URI of the first page you want to load\n");
+	HTPrint("\t%s <address>\n", argv[0]);
+	HTPrint("For example, %s http://www.w3.org\n", argv[0]);
 	return -1;
     }
+
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
 
     /* Initiate libwww */
     libwww_setup();
@@ -435,10 +452,6 @@ int main (int argc, char ** argv)
 
     /* Add our own request terminate handler */
     HTNet_addAfter(request_terminater, NULL, app, HT_ALL, HT_FILTER_LAST);
-
-#if 0
-    HTSetTraceMessageMask("op");
-#endif
 
     /* Start the first request */
     request = Request_new(app);

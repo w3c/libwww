@@ -24,6 +24,16 @@
 
 #define MAX_COUNT	1024
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 int main (int argc, char ** argv)
 {
     HTRequest * request = NULL;
@@ -49,12 +59,16 @@ int main (int argc, char ** argv)
     /* Initialize libwww core */
     HTProfile_newPreemptiveClient("TestApp", "1.0");
 
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
+    
     /* Don't say anything */
     HTAlert_setInteractive(NO);
 
     /* Turn on TRACE so we can see what is going on */
 #if 0
-    WWWTRACE = SHOW_CORE_TRACE + SHOW_STREAM_TRACE + SHOW_PROTOCOL_TRACE;
+    HTSetTraceMessageMask("sop");
 #endif
 
     if (uri && maxcount<MAX_COUNT) {
@@ -64,7 +78,7 @@ int main (int argc, char ** argv)
 	ms_t start = HTGetTimeInMillis();
 	ms_t end = -1;
 	int cnt;
-	fprintf(stdout, "Starting downloading %s %d time(s) at %s\n",
+	HTPrint("Starting downloading %s %d time(s) at %s\n",
 		uri, maxcount, HTDateTimeStr(&local, YES));
 	for (cnt=0; cnt<maxcount; cnt++) {
 	    request = HTRequest_new();
@@ -88,18 +102,18 @@ int main (int argc, char ** argv)
 
 	local = time(NULL);
 	end = HTGetTimeInMillis();
-	fprintf(stdout, "Ending at %s - spent %ld ms\n",
+	HTPrint("Ending at %s - spent %ld ms\n",
 		HTDateTimeStr(&local, YES), end-start);
 
 	HT_FREE(absolute_uri);
 	HT_FREE(cwd);
     } else {
-	fprintf(stderr, "Downloads the same URI n times\n");
-	fprintf(stderr, "Syntax: %s -n <count> <URI>\n", argv[0]);
+	HTPrint("Downloads the same URI n times\n");
+	HTPrint("Syntax: %s -n <count> <URI>\n", argv[0]);
     }
 
     /* Terminate the Library */
     HTProfile_delete();
-    fprintf(stdout, "\n");
+    HTPrint("\n");
     return 0;
 }

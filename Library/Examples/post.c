@@ -19,6 +19,16 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
@@ -43,6 +53,10 @@ int main (int argc, char ** argv)
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("libwww-POST", "1.0");
 
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
+
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
@@ -51,9 +65,9 @@ int main (int argc, char ** argv)
 	dst_str = argv[1];
 	data = argv[2];
     } else {
-	printf("Type the URI of the destination you want to POST to and the contents that you want to post.\n");
-	printf("\t%s <destination> <data>\n", argv[0]);
-	printf("For example, %s http://myserver/destination.html \"This is some testdata\"\n",
+	HTPrint("Type the URI of the destination you want to POST to and the contents that you want to post.\n");
+	HTPrint("\t%s <destination> <data>\n", argv[0]);
+	HTPrint("For example, %s http://myserver/destination.html \"This is some testdata\"\n",
 	       argv[0]);
 	return -1;
     }
@@ -63,7 +77,7 @@ int main (int argc, char ** argv)
 	/* Make source relative to where we are */
 	char * cwd = HTGetCurrentDirectoryURL();
 
-	fprintf(stdout, "Posting to %s\n", dst_str);
+	HTPrint("Posting to %s\n", dst_str);
 
 	/* Create a request */
 	request = HTRequest_new();

@@ -20,6 +20,16 @@
 #include "WWWInit.h"
 #include "WWWHTML.h"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
@@ -45,7 +55,7 @@ PRIVATE void foundLink (HText * text,
 	*/
 	HTAnchor * dest = HTAnchor_followMainLink((HTAnchor *) anchor);
 	char * address = HTAnchor_address(dest);
-	fprintf(stdout, "Found link `%s\'\n", address);
+	HTPrint("Found link `%s\'\n", address);
 	HT_FREE(address);
     }
 }
@@ -57,6 +67,15 @@ int main (int argc, char ** argv)
     /* Create a new premptive client */
     HTProfile_newHTMLNoCacheClient ("ShowLinks", "1.0");
 
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
+    
+    /* Set trace messages and alert messages */
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
+
     /* Add our own termination filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
@@ -66,12 +85,6 @@ int main (int argc, char ** argv)
     ** callback.
     */
     HText_registerLinkCallback(foundLink);
-
-    /* Set trace messages and alert messages */
-#if 0
-    HTSetTraceMessageMask("sop");
-#endif
-    HTAlert_setInteractive(NO);
 
     /* Setup a timeout on the request for 15 secs */
     HTHost_setEventTimeout(15000);
@@ -98,10 +111,10 @@ int main (int argc, char ** argv)
 	if (status == YES) HTEventList_loop(request);
 
     } else {
-	printf("Type the URI to print out a list of embedded links\n");
-	printf("\t%s <uri>\n", argv[0]);
-	printf("For example:\n");
-	printf("\t%s http://www.w3.org\n", argv[0]);
+	HTPrint("Type the URI to print out a list of embedded links\n");
+	HTPrint("\t%s <uri>\n", argv[0]);
+	HTPrint("For example:\n");
+	HTPrint("\t%s http://www.w3.org\n", argv[0]);
     }
 
     return 0;

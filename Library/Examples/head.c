@@ -46,9 +46,6 @@ int main (int argc, char ** argv)
         HTPrint_setCallback(printer);
 	HTTrace_setCallback(tracer);
 
-	/* We don't wany any progress notification or other user stuff */
-	HTAlert_setInteractive(NO);
-
 	/* Set the output format to source and put output to stdout */
 	HTRequest_setOutputStream(request, HTFWriter_new(request, stdout, YES));
 

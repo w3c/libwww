@@ -87,9 +87,9 @@ int main (int argc, char ** argv)
 	if (max_cnt<0 || max_cnt>MAX_COUNT) max_cnt=1;
 	remaining = max_cnt;
     } else {
-	printf("Type the URI of the destination you want to GET and the number of times you want to get it\n");
-	printf("\t%s <destination> <count>\n", argv[0]);
-	printf("For example, %s http://www.w3.org 2\n", argv[0]);
+	HTPrint("Type the URI of the destination you want to GET and the number of times you want to get it\n");
+	HTPrint("\t%s <destination> <count>\n", argv[0]);
+	HTPrint("For example, %s http://www.w3.org 2\n", argv[0]);
 	return -1;
     }
 
@@ -100,7 +100,7 @@ int main (int argc, char ** argv)
 	HTAlert_setInteractive(NO);
 
 	/* Now issue the requests */
-	fprintf(stdout, "Issuing %d GET request(s) on `%s\'\n", max_cnt, addr);
+	HTPrint("Issuing %d GET request(s) on `%s\'\n", max_cnt, addr);
 
 	for (cnt=0; cnt<max_cnt; cnt++) {
 

@@ -21,11 +21,21 @@
 
 PRIVATE HTChunk * result = NULL;
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
     if (status == HT_LOADED && result && HTChunk_data(result)) {
-	fprintf(stderr, "%s", HTChunk_data(result));
+	HTPrint("%s", HTChunk_data(result));
 	HTChunk_delete(result);
     }
 
@@ -48,16 +58,20 @@ int main (int argc, char ** argv)
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("TestApp", "1.0");
 
-    /* Add our own filter to update the history list */
-    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-
-    /* Set the timeout for long we are going to wait for a response */
-    HTHost_setEventTimeout(20000);
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
     /* Get trace messages */
 #if 0
     HTSetTraceMessageMask("sop");
 #endif
+
+    /* Add our own filter to update the history list */
+    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+
+    /* Set the timeout for long we are going to wait for a response */
+    HTHost_setEventTimeout(20000);
 
     /* Handle command line args */
     if (argc >= 2) {
@@ -95,8 +109,8 @@ int main (int argc, char ** argv)
 	HTEventList_loop(request);
 
     } else {
-	printf("Type the URI to post to and the arguments for the POST operation. Encode spaces as '+'\n");
-	printf("\t%s <uri> 'a=1' 'b=+2+' 'c=3 ...'\n", argv[0]);
+	HTPrint("Type the URI to post to and the arguments for the POST operation. Encode spaces as '+'\n");
+	HTPrint("\t%s <uri> 'a=1' 'b=+2+' 'c=3 ...'\n", argv[0]);
     }
 
     return 0;

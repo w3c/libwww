@@ -21,6 +21,16 @@
 
 PRIVATE HTChunk * result = NULL;
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
@@ -50,6 +60,11 @@ int main (int argc, char ** argv)
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("libwww-PUT", "1.0");
 
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
+
+    /* And the traces... */
 #if 0
     HTSetTraceMessageMask("sop");
 #endif
@@ -62,9 +77,9 @@ int main (int argc, char ** argv)
 	src_str = argv[1];
 	dst_str = argv[2];
     } else {
-	printf("Type the URI of the source and the URI of the destination.\n");
-	printf("\t%s <src> <dst>\n", argv[0]);
-	printf("For example, %s http://www.w3.org http://myserver/destination.html\n",
+	HTPrint("Type the URI of the source and the URI of the destination.\n");
+	HTPrint("\t%s <src> <dst>\n", argv[0]);
+	HTPrint("For example, %s http://www.w3.org http://myserver/destination.html\n",
 	       argv[0]);
 	return -1;
     }
@@ -75,7 +90,7 @@ int main (int argc, char ** argv)
 	char * cwd = HTGetCurrentDirectoryURL();
 	char * full_src_str = HTParse(src_str, cwd, PARSE_ALL);
 
-	fprintf(stdout, "Saving %s to %s\n", full_src_str, dst_str);
+	HTPrint("Saving %s to %s\n", full_src_str, dst_str);
 
 	/* Create a request */
 	request = HTRequest_new();

@@ -34,9 +34,6 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
-    if (status != HT_UPGRADE)
-	HTPrint("No upgrade header received in response :(\n");
-
     /* We are done with this request */
     HTRequest_delete(request);
 
@@ -98,9 +95,10 @@ int main (int argc, char ** argv)
 	}
 
     } else {
-	HTPrint("Type the URI to get (to test for upgrade)\n");
+	HTPrint("Type the URI to get (to test for upgrade).\n");
+	HTPrint("If an 101 Switching Protocols status is recieved\n");
+        HTPrint("then print everything following to stdout.\n\n");
 	HTPrint("\t%s <uri>\n", argv[0]);
-	HTPrint("where\n");
     }
 
     return 0;

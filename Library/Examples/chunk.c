@@ -2,6 +2,11 @@
 #include "WWWHTTP.h"
 #include "WWWInit.h"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
 PRIVATE int tracer (const char * fmt, va_list pArgs)
 {
     return (vfprintf(stderr, fmt, pArgs));
@@ -17,6 +22,7 @@ int main (int argc, char ** argv)
     HTProfile_newPreemptiveClient("TestApp", "1.0");
 
     /* Gotta set up our own traces */
+    HTPrint_setCallback(printer);
     HTTrace_setCallback(tracer);
 
     /* Turn on TRACE so we can see what is going on */
@@ -40,11 +46,11 @@ int main (int argc, char ** argv)
 	/* If chunk != NULL then we have the data */
 	if (chunk) {
 	    char * string = HTChunk_toCString(chunk);
-	    printf("%s", string ? string : "no text");
+	    HTPrint("%s", string ? string : "no text");
 	    HT_FREE(string);
 	}
     } else {
-	printf("Type the URL you want to accces on the command line\n");
+	HTPrint("Type the URL you want to accces on the command line\n");
     }
 
     /* Clean up the request */

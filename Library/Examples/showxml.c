@@ -132,7 +132,7 @@ PRIVATE int XML_externalEntityRef (XML_Parser parser,
 				   const XML_Char * systemId,
 				   const XML_Char * publicId)
 {
-    return;
+    return 0;
 }
 
 /* 
@@ -189,7 +189,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     /* We are done with this request */
     HTRequest_delete(request);
 
-    HTPrint("If you didn't see anything then it is likely that your document wasn't xml\n");
+    HTPrint("If you didn't see any tags then it is likely that your document wasn't xml\n");
 
     /* Terminate libwww */
     HTProfile_delete();
@@ -220,17 +220,16 @@ int main (int argc, char ** argv)
     HTPrint_setCallback(printer);
     HTTrace_setCallback(tracer);
 
+    /* Set trace messages */
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
+
     /* Add our own termination filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Register our new XML Instance handler */
     HTXMLCallback_registerNew (HTXML_newInstance);
-
-    /* Set trace messages and alert messages */
-#if 1
-    HTSetTraceMessageMask("sop");
-#endif
-    HTAlert_setInteractive(NO);
 
     /* Setup a timeout on the request for 15 secs */
     HTHost_setEventTimeout(15000);
@@ -260,7 +259,7 @@ int main (int argc, char ** argv)
 	HTPrint("Type the URI to parse\n");
 	HTPrint("\t%s <uri>\n", argv[0]);
 	HTPrint("For example:\n");
-	HTPrint("\t%s http://www.w3.org\n", argv[0]);
+	HTPrint("\t%s http://www.yoursite.com/your.xml\n", argv[0]);
     }
 
     return 0;
