@@ -1,34 +1,58 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
-  <TITLE>W3C Reference Library libwww Default Event Manager</TITLE>
+  <TITLE>W3C Reference Library libwww Timer Class</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Default Event Manager
+  The Timer Class
 </H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
-
-#ifndef HTEVNTLST_H
-#define HTEVNTLST_H
+</PRE>
+<P>
+The Timer class handles timer for libwww and the application. This works
+exactly as in X where you create a timer object with a callback function
+and a timeout. The callback will be called every time the timer expires.
+<PRE>
+#ifndef HTTIMER_H
+#define HTTIMER_H
 
 #include "sysdep.h"
 #include "HTReq.h"
 
 typedef struct _HTTimer HTTimer;
 typedef int HTTimerCallback (HTTimer *, void *);
-
+</PRE>
+<H3>
+  Create and Delete Timers
+</H3>
+<PRE>
 extern HTTimer * HTTimer_new (HTTimer *, HTTimerCallback *, 
-			      void *, int millis, BOOL relative);
+			      void *, ms_t millis, BOOL relative);
 extern BOOL HTTimer_delete (HTTimer * timer);
 extern BOOL HTTimer_deleteAll (void);
-extern int HTTimer_soonest (void);
+</PRE>
+<H3>
+  Get the next timer in line
+</H3>
+<P>
+Returns the next timer registered in line.
+<PRE>
+extern ms_t HTTimer_soonest (void);
+</PRE>
+<H3>
+  Dispatch All Timers that have expired
+</H3>
+<PRE>
 extern int HTTimer_dispatchAll (void);
-#endif /* HTEVTLST_H */
+</PRE>
+
+<PRE>
+#endif /* HTTIMER_H */
 </PRE>
 <P>
   <HR>

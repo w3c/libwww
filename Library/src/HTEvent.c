@@ -73,7 +73,9 @@ PUBLIC HTEvent * HTEvent_new (HTEventCallback * cbf, void * context,
 	me->param = context;
 	me->priority = priority;
 	me->millis = millis;
-	if (CORE_TRACE) HTTrace("Event....... Created event %p\n", me);
+	if (CORE_TRACE)
+	    HTTrace("Event....... Created event %p with context %p, priority %d, and timeout %d\n",
+		    me, context, priority, millis);
 	return me;
     }
     return NULL;

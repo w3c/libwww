@@ -609,7 +609,7 @@ PUBLIC char * HTGetTmpFileName (const char * dir)
 /*
 **  Copied from X utilities
 */
-PUBLIC int HTGetTimeInMillis (void)
+PUBLIC ms_t HTGetTimeInMillis (void)
 {
     struct timeval tp;
     gettimeofday(&tp, NULL);

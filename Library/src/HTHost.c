@@ -100,7 +100,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    targetNet = (HTNet *)HTList_firstObject(host->pipeline);
 	    if (targetNet) {
 		if (CORE_TRACE)
-		    HTTrace(HTHIDE("HostEvent: READ passed to %s.\n"), 
+		    HTTrace(HTHIDE("Host Event.. READ passed to %s.\n"), 
 			    HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
 		if ((ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), 
 						  targetNet->event.param, type)) != HT_OK)
@@ -121,7 +121,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    return HT_OK;
 
 	/* If there was notargetNet, it should be a close */
-	HTTrace(HTHIDE("HostEvent: host %s closed connection.\n"), 
+	HTTrace(HTHIDE("Host Event.. host %s closed connection.\n"), 
 		host->hostname);
 
 	/* Is there garbage in the channel? Let's check: */
@@ -138,17 +138,22 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	HTNet * targetNet = (HTNet *)HTList_lastObject(host->pipeline);
 	if (targetNet) {
 	    if (CORE_TRACE)
-		HTTrace(HTHIDE("HostEvent: WRITE passed to %s.\n"), 
+		HTTrace(HTHIDE("Host Event.. WRITE passed to %s.\n"), 
 			HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
 	    return (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, type);
 	}
-	HTTrace(HTHIDE("HostEvent: Who wants to write to %s?\n"), 
-		host->hostname);
+	HTTrace(HTHIDE("Host Event.. Who wants to write to %s?\n"), host->hostname);
 	return HT_ERROR;
-	}
+    } else if (type == HTEvent_TIMEOUT) {
 
-    HTTrace(HTHIDE("Don't know how to handle OOB data from %s?\n"), 
-	    host->hostname);
+	if (CORE_TRACE)
+	    HTTrace("Host Event.. WE SHOULD DELETE ALL REQUEST ON `%s\'?\n",
+		    host->hostname);
+
+    } else {
+	HTTrace(HTHIDE("Don't know how to handle OOB data from %s?\n"), 
+		host->hostname);
+    }
     return HT_OK;
 }
 
@@ -654,14 +659,6 @@ PUBLIC BOOL HTHost_setMode (HTHost * host, HTTransportMode mode)
 	    HTTrace("Host info... New mode is %d for host %p\n", host->mode, host);
 	host->mode = mode;
 	return HTHost_launchPending(host);
-#if 0
-	{
-	    HTNet * net = (HTNet *)HTList_firstObject(host->pipeline);
-	    if (net)
-		return HTNet_start(net);
-	    return YES;
-	}
-#endif
     }
     return NO;
 }
@@ -1088,7 +1085,7 @@ PUBLIC int HTHost_hash (HTHost * host)
     return host ? host->hash : -1;
 }
 
-PUBLIC int HTHost_writeDelay(HTHost * host, int lastFlushTime, int buffSize)
+PUBLIC int HTHost_writeDelay(HTHost * host, ms_t lastFlushTime, int buffSize)
 {
     if (host->forceWriteFlush)
 	return 0;
@@ -1103,7 +1100,7 @@ PUBLIC int HTHost_forceFlush(HTHost * host)
     if (targetNet == NULL)
 	return HT_ERROR;
     if (CORE_TRACE)
-	HTTrace(HTHIDE("HostEvent: FLUSH passed to %s.\n"), 
+	HTTrace(HTHIDE("Host Event.. FLUSH passed to %s.\n"), 
 		HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
     host->forceWriteFlush = YES;
     ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, HTEvent_FLUSH);

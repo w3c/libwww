@@ -31,7 +31,7 @@ struct _HTOutputStream {
     char *			data;				   /* buffer */
 
     BOOL			delaying;
-    int				lastFlushTime;	/* polar coordinates of the moon */
+    ms_t			lastFlushTime;	/* polar coordinates of the moon */
     HTTimer *			timer;
 };
 

@@ -25,8 +25,8 @@
 
 struct _HTTimer {
     HTTimer *	next;		/* The next guy in line */
-    int		millis;
-    int		expires;	/* Abs value in millis */
+    ms_t	millis;		/* Relative value in millis */
+    ms_t	expires;	/* Absolute value in millis */
     BOOL	relative;
     void *	param;		/* Client supplied context */
     HTTimerCallback * cbf;
@@ -54,14 +54,16 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 }
 
 PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
-			      void * param, int millis, BOOL relative)
+			      void * param, ms_t millis, BOOL relative)
 {
     HTTimer ** prev;
-    int now = HTGetTimeInMillis();
+    ms_t now = HTGetTimeInMillis();
     if (!timer) {
 	if ((timer = (HTTimer *) HT_CALLOC(1, sizeof(HTTimer))) == NULL)
-	    HT_OUTOFMEM("HTTimer_set");
-	if (THD_TRACE) HTTrace("Timer....... Created timer %p\n", timer);
+	    HT_OUTOFMEM("HTTimer_new");
+	if (THD_TRACE)
+	    HTTrace("Timer....... Created timer %p with callback %p, context %p, and %s timeout %d\n",
+		    timer, cbf, param, relative ? "relative" : "absolute", millis);
     } else {
 	for (prev = &timers; *prev; prev = &(*prev)->next) {
 	    if (*prev == timer) {
@@ -121,23 +123,21 @@ PRIVATE int HTTimer_dispatch (HTTimer * timer, int now, HTTimer ** prev)
     return (*timer->cbf) (timer, timer->param);
 }
 
-PUBLIC int HTTimer_soonest (void)
+PUBLIC ms_t HTTimer_soonest (void)
 {
-    int now;
-    if (timers == NULL) return 0;
-    now = HTGetTimeInMillis();
-    while (timers && timers->expires <= now)
-	HTTimer_dispatch(timers, now, &timers);
-    if (timers)
-	return timers->expires - now;
+    if (timers) {
+	ms_t now = HTGetTimeInMillis();
+	while (timers && timers->expires <= now)
+	    HTTimer_dispatch(timers, now, &timers);
+	if (timers) return timers->expires - now;
+    }
     return 0;
 }
 
 PUBLIC int HTTimer_dispatchAll (void)
 {
-    int now;
     if (timers) {
-	now = HTGetTimeInMillis();
+	ms_t now = HTGetTimeInMillis();
 	while (timers && timers->expires <= now)
 	    HTTimer_dispatch(timers, now, &timers);
     }

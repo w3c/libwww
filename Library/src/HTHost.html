@@ -339,7 +339,7 @@ Get the Next Net object for Reading and Writing
 extern HTNet * HTHost_firstNet     (HTHost * host);
 extern HTNet * HTHost_getReadNet  (HTHost * host);
 extern HTNet * HTHost_getWriteNet (HTHost * host);
-extern int HTHost_writeDelay(HTHost * host, int lastFlushTime, int buffSize);
+extern int HTHost_writeDelay(HTHost * host, ms_t lastFlushTime, int buffSize);
 extern int HTHost_forceFlush(HTHost * host);
 </PRE>
 
