@@ -26,7 +26,17 @@
 #include "HTHstMan.h"
 
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
+
+#if 0
 #define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
+#else
+/*
+** After the connection management draft by Jim Gettys, we have changed this
+** to 60 secs instead of an hour
+*/
+#define TCP_TIMEOUT		60L	       /* Default TCP timeout is 60s */
+#endif
+
 #define MAX_PIPES		50   /* maximum number of pipelined requests */
 #define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
 #define DEFAULT_DELAY		50	  /* Default write flush delay in ms */

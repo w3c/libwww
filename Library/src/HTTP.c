@@ -74,6 +74,7 @@ struct _HTStream {
     http_info *			http;
     HTEOLState			state;
     BOOL			transparent;
+    BOOL			cont;
     char *			version;	     /* Should we save this? */
     int				status;
     char *			reason;
@@ -563,6 +564,10 @@ PRIVATE int stream_pipe (HTStream * me)
 	    if (HTTPInformation(me) == YES) {
 		me->buflen = 0;
 		me->state = EOL_BEGIN;
+		me->target = HTStreamStack(WWW_MIME_CONT,
+					   HTRequest_debugFormat(request),
+					   HTRequest_debugStream(request),
+					   request, NO);
 		return HTMethod_hasEntity(HTRequest_method(request)) ?
 		    HT_CONTINUE : HT_OK;
 	    }
@@ -642,37 +647,54 @@ PRIVATE int stream_pipe (HTStream * me)
 */
 PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 {
+    int status = HT_OK;
     me->startLen = me->buflen;
     while (!me->transparent && l-- > 0) {
-	int status;
 	if (me->target) {
-	    if ((status = stream_pipe(me)) != HT_OK)
-		return status;
+	    if (me->cont) {
+		FREE_TARGET;
+		me->target = NULL;
+		l++;
+	    } else {
+		if ((status = stream_pipe(me)) == HT_CONTINUE) {
+		    b++; break;
+		}
+		if (status != HT_OK) return status;
+	    }
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->state == EOL_FCR) {
 		if (*b == LF) {	/* Line found */
-		    if ((status = stream_pipe(me)) != HT_OK)
-			return status;
+		    if ((status = stream_pipe(me)) == HT_CONTINUE) {
+			me->cont = YES;
+			b++; break;
+		    }
+		    if (status != HT_OK) return status;
 		} else {
 		    me->state = EOL_BEGIN;
 		}
 	    } else if (*b == CR) {
 		me->state = EOL_FCR;
 	    } else if (*b == LF) {
-		if ((status = stream_pipe(me)) != HT_OK)
-		    return status;
+		if ((status = stream_pipe(me)) == HT_CONTINUE) {
+		    me->cont = YES;
+		    b++; break;
+		}
+		if (status != HT_OK) return status;
 	    } else {
 		if (me->buflen >= MAX_STATUS_LEN) {
-		    if ((status = stream_pipe(me)) != HT_OK)
-			return status;
+		    if ((status = stream_pipe(me)) == HT_CONTINUE) {
+			me->cont = YES;
+			b++; break;
+		    }
+		    if (status != HT_OK) return status;
 		}
 	    }
 	    b++;
 	}
     }
     if (l > 0) return PUTBLOCK(b, l);
-    return HT_OK;
+    return status;
 }
 
 PRIVATE int HTTPStatus_put_string (HTStream * me, const char * s)

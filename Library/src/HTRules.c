@@ -107,7 +107,7 @@ PUBLIC BOOL HTRule_add (HTList * list, HTRuleOp op,
 			 pattern, op, replace);
 	} else
 	    HTTrace("Rule Add.... For `%s\' op %d\n", pattern, op);
-	return HTList_appendObject(rules, (void *) me);
+	return HTList_appendObject(list, (void *) me);
     }
     return NO;
 }

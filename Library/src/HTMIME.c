@@ -35,7 +35,8 @@
 typedef enum _HTMIMEMode {
     HT_MIME_HEADER	= 0x1,
     HT_MIME_FOOTER	= 0x2,
-    HT_MIME_PARTIAL	= 0x4
+    HT_MIME_PARTIAL	= 0x4,
+    HT_MIME_CONT	= 0x8
 } HTMIMEMode;
 
 struct _HTStream {
@@ -69,17 +70,15 @@ PRIVATE int pumpData (HTStream * me)
     if (HTRequest_isSource(request)) return HT_PAUSE;
 
     /*
-    **  Cache the metainformation in the anchor object by moving
+    **  Cache the metainformation in the anchor object by copying
     **  it from the response object. This we do regardless if
     **  we have a persistent cache or not as the memory cache will
     **  use it as well. If we are updating a cache entry using
-    **  byte ranges then we alreayd have the metainformation and
+    **  byte ranges then we already have the metainformation and
     **  hence we can ignore the new one as it'd better be the same.
     */
-    if (!(me->mode & (HT_MIME_PARTIAL | HT_MIME_FOOTER)) &&
-	HTResponse_isCachable(me->response)) {
+    if (!(me->mode & HT_MIME_PARTIAL) && HTResponse_isCachable(me->response))
 	HTAnchor_update(HTRequest_anchor(request), me->response);
-    }
 
     /*
     **  If we asked only to read the header or footer or we used a HEAD
@@ -89,6 +88,12 @@ PRIVATE int pumpData (HTStream * me)
 	HTRequest_method(request) == METHOD_HEAD) {
 	return HT_LOADED;
     }
+
+    /*
+    **  If we are paring a 1xx response then return HT_CONTINUE
+    */
+    if (me->mode & HT_MIME_CONT)
+	return HT_CONTINUE;
 
     /*
     **  If there is no content-length, no transfer encoding and no
@@ -284,7 +289,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 			}
 			else {
 			    HTNet_setHeaderLength(me->net, HTNet_bytesRead(me->net));
-			    if (ret == HT_LOADED)
+			    if (ret == HT_LOADED || ret == HT_CONTINUE)
 				HTHost_setConsumed(HTNet_host(me->net), length - l);
 			}
 		    }
@@ -491,6 +496,18 @@ PUBLIC HTStream * HTMIMEHeader (HTRequest *	request,
     HTStream * me = HTMIMEConvert(request, param, input_format,
 				  output_format, output_stream);
     me->mode |= HT_MIME_HEADER;
+    return me;
+}
+
+PUBLIC HTStream * HTMIMEContinue (HTRequest *	request,
+				  void *	param,
+				  HTFormat	input_format,
+				  HTFormat	output_format,
+				  HTStream *	output_stream)
+{
+    HTStream * me = HTMIMEConvert(request, param, input_format,
+				  output_format, output_stream);
+    me->mode |= HT_MIME_CONT;
     return me;
 }
 

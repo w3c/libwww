@@ -167,7 +167,11 @@ PRIVATE int HTBufferWriter_write (HTOutputStream * me, const char * buf, int len
 	else {
 	    len -= (me->block - buf);
 	}
+#if 0
 	me->bb = len - len%me->size;
+#else
+	me->bb = (len >= me->size) ? len : len - len%me->size;
+#endif
 	if (me->bb) {
 	    if ((status = PUTBLOCK(me->block, me->bb)) != HT_OK) return status;
 	    me->lastFlushTime = HTGetTimeInMillis();

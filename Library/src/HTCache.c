@@ -20,7 +20,6 @@
 #include "WWWCore.h"
 #include "WWWTrans.h"
 #include "WWWApp.h"
-#include "HTNetMan.h"
 #include "HTCache.h"					 /* Implemented here */
 
 /* This is the default cache directory: */
@@ -1228,6 +1227,10 @@ PRIVATE BOOL HTCache_readMeta (HTCache * cache, HTRequest * request)
 	} else {
 	    HTStream * target = HTStreamStack(WWW_MIME_HEAD, WWW_DEBUG,
 					      HTBlackHole(), request, NO);
+	    /*
+	    **  Make sure that we save the reponse information in the anchor
+	    */
+	    HTResponse_setCachable(HTRequest_response(request), YES);
 	    status = meta_read(fp, request, target);
 	    (*target->isa->_free)(target);
 	    fclose(fp);
@@ -1778,10 +1781,17 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		cache->state = CL_ERROR;
 		break;
 	    }
-	    if ((net->host = HTHost_new(cache->local, 0)) == NULL)
-		return NO;
-	    if (HTHost_addNet(net->host, net) == HT_PENDING)
-		if (PROT_TRACE) HTTrace("HTLoadCache. Pending...\n");
+
+	    /*
+	    **  Create a new host object and link it to the net object
+	    */
+	    {
+		HTHost * host = NULL;
+		if ((host = HTHost_new(cache->local, 0)) == NULL) return HT_ERROR;
+		HTNet_setHost(net, host);
+		if (HTHost_addNet(host, net) == HT_PENDING)
+		    if (PROT_TRACE) HTTrace("HTLoadCache. Pending...\n");
+	    }
 	    cache->state = CL_NEED_BODY;
 	    break;
 
@@ -1814,11 +1824,14 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		net->readStream = HTStreamStack(HTAnchor_format(anchor),
-						HTRequest_outputFormat(request),
-						HTRequest_outputStream(request),
-						request, YES);
-		HTRequest_setOutputConnected(request, YES);
+		{
+		    HTStream * rstream = HTStreamStack(HTAnchor_format(anchor),
+						       HTRequest_outputFormat(request),
+						       HTRequest_outputStream(request),
+						       request, YES);
+		    HTNet_setReadStream(net, rstream);
+		    HTRequest_setOutputConnected(request, YES);
+		}
 
 		/* Set the return code as being OK */
 		HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
@@ -1832,9 +1845,9 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** other protocol module even though we are in fact doing
 		** blocking connect
 		*/
-		if (!net->preemptive) {
+		if (!HTNet_preemptive(net)) {
 		    if (PROT_TRACE) HTTrace("Load Cache.. returning\n");
-		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
+		    HTHost_register(HTNet_host(net), net, HTEvent_READ);
 		    return HT_OK;
 		}
 #endif
@@ -1848,7 +1861,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	case CL_NEED_CONTENT:
-	    status = HTHost_read(net->host, net);
+	    status = HTHost_read(HTNet_host(net), net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED) {

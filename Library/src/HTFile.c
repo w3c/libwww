@@ -32,7 +32,6 @@
 #include "WWWCore.h"
 #include "WWWDir.h"
 #include "WWWTrans.h"
-#include "HTNetMan.h"
 #include "HTReqMan.h"
 #include "HTMulti.h"
 #include "HTFile.h"		/* Implemented here */
@@ -378,12 +377,16 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		break;
 	    }
 
-	    /*	    if ((net->host = HTHost_new("<local access>", 0)) == NULL) */
-	    if ((net->host = HTHost_new(file->local, 0)) == NULL)
-		return HT_ERROR;
-	    if (HTHost_addNet(net->host, net) == HT_PENDING)
-		if (PROT_TRACE) HTTrace("HTLoadFile.. Pending...\n");
-	    
+	    /*
+	    **  Create a new host object and link it to the net object
+	    */
+	    {
+		HTHost * host = NULL;
+		if ((host = HTHost_new(file->local, 0)) == NULL) return HT_ERROR;
+		HTNet_setHost(net, host);
+		if (HTHost_addNet(host, net) == HT_PENDING)
+		    if (PROT_TRACE) HTTrace("HTLoadFile.. Pending...\n");
+	    }
 	    file->state = FS_DO_CN;
 	    break;
 
@@ -459,11 +462,14 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		net->readStream = HTStreamStack(HTAnchor_format(anchor),
-						HTRequest_outputFormat(request),
-						HTRequest_outputStream(request),
-						request, YES);
-		HTRequest_setOutputConnected(request, YES);
+		{
+		    HTStream * rstream = HTStreamStack(HTAnchor_format(anchor),
+						       HTRequest_outputFormat(request),
+						       HTRequest_outputStream(request),
+						       request, YES);
+		    HTNet_setReadStream(net, rstream);
+		    HTRequest_setOutputConnected(request, YES);
+		}
 
 		/*
 		** Create the stream pipe TO the channel from the application
@@ -480,15 +486,10 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** before all destinations are ready. If destination then
 		** register the input stream and get ready for read
 		*/
-		if (HTRequest_isDestination(request)) {
-		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
-		    HTRequest_linkDestination(request);
-		}
-		if (HTRequest_isSource(request) &&
-		    !HTRequest_destinationsReady(request))
+		if (HTRequest_isSource(request) && !HTRequest_destinationsReady(request))
 		    return HT_OK;
-		HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
-				   NULL, 0, "HTLoadFile");
+		HTRequest_addError(request, ERR_INFO, NO, HTERR_OK, NULL, 0,
+				   "HTLoadFile");
 		file->state = FS_NEED_BODY;
 
 #ifndef NO_UNIX_IO
@@ -498,9 +499,9 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** other protocol module even though we are in fact doing
 		** blocking connect
 		*/
-		if (!net->preemptive) {
+		if (!HTNet_preemptive(net)) {
 		    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
-		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
+		    HTHost_register(HTNet_host(net), net, HTEvent_READ);
 		    return HT_OK;
 		}
 #endif
@@ -514,7 +515,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case FS_NEED_BODY:
-	    status = HTHost_read(net->host, net);
+	    status = HTHost_read(HTNet_host(net), net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED) {

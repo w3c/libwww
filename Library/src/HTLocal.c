@@ -52,7 +52,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
     */
     if (!HTNet_preemptive(net)) {
 #ifdef HAVE_FCNTL
-	if ((status = fcntl(HTNet_socket(net), F_GETFL, 0)) != -1) {
+	if ((status = fcntl(sockfd, F_GETFL, 0)) != -1) {
 #ifdef O_NONBLOCK
 	    status |= O_NONBLOCK;/* POSIX */
 #else
@@ -60,7 +60,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 	    status |= F_NDELAY; /* BSD */
 #endif /* F_NDELAY */
 #endif /* O_NONBLOCK */
-	    status = fcntl(HTNet_socket(net), F_SETFL, status);
+	    status = fcntl(sockfd, F_SETFL, status);
 	}
 #endif /* HAVE_FCNTL */
 	if (PROT_TRACE)

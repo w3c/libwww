@@ -554,11 +554,6 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 
 	/* Send the data down the pipe */
 	status = (*target->isa->put_block)(target, document, len);
-	if (status == HT_LOADED) {
-	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED\n");
-	    (*target->isa->flush)(target);
-	    return HT_LOADED;
-	}
 	if (status == HT_WOULD_BLOCK) {
 	    if (PROT_TRACE)HTTrace("Posting Data Target WOULD BLOCK\n");
 	    return HT_WOULD_BLOCK;
@@ -568,9 +563,12 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 	} else if (chunking && status == HT_OK) {
 	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED using chunked\n");
 	    return (*target->isa->put_block)(target, "", 0);
-	} else if (status > 0) {	      /* Stream specific return code */
-	    if (PROT_TRACE)
-		HTTrace("Posting Data. Target returns %d\n", status);
+	} else if (status == HT_LOADED || status == HT_OK) {
+	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED\n");
+	    (*target->isa->flush)(target);
+	    return HT_LOADED;
+        } else if (status > 0) {	      /* Stream specific return code */
+	    if (PROT_TRACE) HTTrace("Posting Data. Target returns %d\n", status);
 	    return status;
 	} else {				     /* we have a real error */
 	    if (PROT_TRACE) HTTrace("Posting Data Target ERROR %d\n", status);

@@ -85,13 +85,6 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
     HTList * cur;
     CHECKME(timer);
     if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL) {
-#if 0
-	/*
-	** It is not necessarily a bug to not find the timer. If it was
-	** registered with timeout 0 then it was never put into the list
-	*/
-	HTDebugBreak();
-#endif
 	CLEARME(timer);
 	return NO;
     }
@@ -151,33 +144,25 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	    HTTrace("Timer....... Created timer %p with callback %p, context %p, and %s timeout %d\n",
 		    timer, cbf, param, relative ? "relative" : "absolute", millis);
     }
-    /*	sort new element into list
-     */
+
+    /*
+    **  Sort new element into list
+    */
     for (cur = last; 
 	 (pres = (HTTimer *) HTList_nextObject(cur)) != NULL && pres->expires < expires; 
 	 last = cur);
-    if (!millis) {
-	if (THD_TRACE) HTTrace("Timer....... Timeout is 0 - returning\n");
-	return timer;
-    }
+
+    /*
+    **  If the expiration is 0 then we still register it but dispatch it immediately.
+    */
+    if (!millis) if (THD_TRACE) HTTrace("Timer....... Timeout is 0 - expires NOW\n");
+
     timer->expires = expires;
     timer->cbf = cbf;
     timer->param = param;
     timer->millis = millis;
     timer->relative = relative;
     SETME(timer);
-    /*	may already be obsolete
-     */
-    if (timer->expires <= now) {
-	int status;
-	if ((status = (*timer->cbf)(timer, timer->param, HTEvent_TIMEOUT)) != HT_OK) {
-	    if (cur)
-		HTList_quickRemoveElement(cur, last);
-	    HT_FREE(timer);
-	    CLEARME(timer);
-	    return NULL;
-	}
-    }
 
     /*
     **	add to list if timer is new
@@ -188,6 +173,19 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     **  Call any platform specific timer handler
     */
     if (SetPlatformTimer) SetPlatformTimer(timer);
+
+    /*
+    **  Check if the timer object has already expired
+    */
+    if (timer->expires <= now) {
+	int status;
+	if ((status = (*timer->cbf)(timer, timer->param, HTEvent_TIMEOUT)) != HT_OK) {
+	    if (cur) HTList_quickRemoveElement(cur, last);
+	    CLEARME(timer);
+	    HT_FREE(timer);
+	    return NULL;
+	}
+    }
 
     CLEARME(timer);
     return timer;

@@ -217,7 +217,6 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 	MIMEMakeRequest(me, me->request);
 	if (HTRequest_isDestination(me->request)) {
 	    HTNet * net = HTRequest_net(me->request);
-	    (*me->target->isa->flush)(me->target);
 	    HTNet_setBytesWritten(net, 0);
 	}
 	me->transparent = YES;	
@@ -238,17 +237,24 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 		if (HTHost_version(host) >= 3) {
 		    if (STREAM_TRACE)
 			HTTrace("MIME........ Waiting for 100...\n");
-		    (*me->target->isa->flush)(me->target);
+		    if (HTRequest_flush(me->request))	 /* @@@ Ignore return value@@@ */
+			HTHost_forceFlush(host);
+		    else
+			(*me->target->isa->flush)(me->target);
 		    return HT_PAUSE;
 		} else {
 		    HTNet * net = HTRequest_net(me->request);
 		    int zzzz = HTRequest_retrys(me->request);
 		    zzzz = zzzz ? zzzz * 2 : 2;
 		    if (zzzz > HT_MAX_WAIT) zzzz = HT_MAX_WAIT;
-		    (*me->target->isa->flush)(me->target);
-		    if (STREAM_TRACE) HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
-		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
-		    HTEvent_register(HTNet_socket(net), HTEvent_WRITE, &net->event);
+		    if (HTRequest_flush(me->request))	 /* @@@ Ignore return value@@@ */
+			HTHost_forceFlush(host);
+		    else
+			(*me->target->isa->flush)(me->target);
+		    if (STREAM_TRACE)
+			HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
+		    HTHost_register(HTNet_host(net), net, HTEvent_READ);
+		    HTHost_register(HTNet_host(net), net, HTEvent_WRITE);
 		    SLEEP(zzzz);
 		    me->put_fix = YES;
 		    return HT_WOULD_BLOCK;

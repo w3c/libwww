@@ -63,6 +63,14 @@ Parse only a footer, for example after a chunked encoding.
 extern HTConverter HTMIMEFooter;
 </PRE>
 <H3>
+  MIME 1xx Continue Header Parser
+</H3>
+<P>
+When parsed the header it returns HT_CONTINUE
+<PRE>
+extern HTConverter HTMIMEContinue;
+</PRE>
+<H3>
   Partial MIME Response parser
 </H3>
 <P>

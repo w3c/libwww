@@ -597,6 +597,10 @@ PRIVATE void HTML_end_element (HTStructured * me, int element_number)
     }
 
     me->sp++;				/* Pop state off stack */
+    if (me->sp > me->stack + MAX_NESTING - 1) {
+	if (SGML_TRACE) HTTrace("HTML Parser. Bottom of style stack reached\n");
+	me->sp = me->stack + MAX_NESTING - 1;
+    }
 
     switch(element_number) {
 

@@ -21,7 +21,6 @@
 #include "WWWStream.h"
 #include "WWWTrans.h"
 #include "HTReqMan.h"				/* @@@ */
-#include "HTNetMan.h"				/* @@@ */
 #include "HTNewsRq.h"
 #include "HTNewsLs.h"
 #include "HTNews.h"					       /* Implements */
@@ -274,7 +273,7 @@ PUBLIC int HTNews_maxArticles (void)
 PRIVATE int HTNewsCleanup (HTRequest * req, int status)
 {
     HTNet * net = HTRequest_net(req);
-    news_info *news = (news_info *) net->context;
+    news_info *news = (news_info *) HTNet_context(net);
     HTStream * input = HTRequest_inputStream(req);
 
     /* Free stream with data TO network */
@@ -370,7 +369,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 	HTNewsCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
-	news = (news_info *) net->context;		/* Get existing copy */
+	news = (news_info *) HTNet_context(net);		/* Get existing copy */
 
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
@@ -437,8 +436,11 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		net->readStream = HTNewsStatus_new(request, news);
-		HTRequest_setOutputConnected(request, YES);
+		{
+		    HTStream * rstream = HTNewsStatus_new(request, news);
+		    HTNet_setReadStream(net, rstream);
+		    HTRequest_setOutputConnected(request, YES);
+		}
 
 		/*
 		** Create the stream pipe TO the channel from the application
@@ -449,16 +451,6 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HTRequest_setInputStream(request, (HTStream *) output);
 		}
 
-		/*
-		** Set up concurrent read/write if this request isn't the
-		** source for a PUT or POST. As source we don't start reading
-		** before all destinations are ready. If destination then
-		** register the input stream and get ready for read
-		*/
-		if (HTRequest_isPostWeb(request)) {
-		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
-		    HTRequest_linkDestination(request);
-		}
 		news->state = greeting ? NEWS_NEED_GREETING : NEWS_NEED_SWITCH;
 
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
@@ -468,7 +460,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case NEWS_NEED_GREETING:
-	    status = HTHost_read(net->host, net);
+	    status = HTHost_read(HTNet_host(net), net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED) {
@@ -533,7 +525,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		HTAnchor_setFormat(anchor, WWW_PLAINTEXT);
 		news->sent = YES;
 	    } else {
-		status = HTHost_read(net->host, net);
+		status = HTHost_read(HTNet_host(net), net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -558,7 +550,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
  		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = HTHost_read(net->host, net);
+		status = HTHost_read(HTNet_host(net), net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -583,7 +575,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = HTHost_read(net->host, net);
+		status = HTHost_read(HTNet_host(net), net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -606,7 +598,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = HTHost_read(net->host, net);
+		status = HTHost_read(HTNet_host(net), net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -648,7 +640,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		news->format = WWW_NNTP_OVER;
 		news->sent = YES;
 	    } else {
-		status = HTHost_read(net->host, net);
+		status = HTHost_read(HTNet_host(net), net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -677,7 +669,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = HTHost_read(net->host, net);
+		status = HTHost_read(HTNet_host(net), net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -711,8 +703,8 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HTRequest * source = HTRequest_source(request);
 		    HTNet * srcnet = HTRequest_net(source);
 		    if (srcnet) {
-			HTHost_register(srcnet->host, srcnet, HTEvent_READ);
-			HTHost_unregister(srcnet->host, srcnet, HTEvent_WRITE);
+			HTHost_register(HTNet_host(srcnet), srcnet, HTEvent_READ);
+			HTHost_unregister(HTNet_host(srcnet), srcnet, HTEvent_WRITE);
 		    }
 		    return HT_OK;
 		}
@@ -742,7 +734,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
                 else 	
                     type = HTEvent_READ;	  /* Trick to ensure that we do READ */
 	    } else if (type == HTEvent_READ) {
-                status = HTHost_read(net->host, net);
+                status = HTHost_read(HTNet_host(net), net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
                 else if (status == HT_LOADED)

@@ -273,8 +273,7 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand)
 		HTTrace("Format...... Wkd, 00 Mon 0000 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 20) {
 		if (CORE_TRACE)
-		    HTTrace(
-			    "ERROR....... Not a valid time format \"%s\"\n",s);
+		    HTTrace("ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
 	    }
 	    tm.tm_mday = strtol(s, &s, 10);
@@ -284,29 +283,46 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand)
 	    tm.tm_min = strtol(++s, &s, 10);
 	    tm.tm_sec = strtol(++s, &s, 10);
 	}
-    } else if (isdigit(*str)) {				    /* delta seconds */
-	t = expand ? time(NULL) + atol(str) : atol(str);
-	if (CORE_TRACE) {
-	    if (expand) {
-#ifdef HT_REENTRANT
-		char buffer[CTIME_MAX];
-		HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
-#else
-		HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
-#endif
-	    } else {
-		HTTrace("Time string. Delta-time %s parsed to %ld seconds\n", str, (long) t);
+    } else if (isdigit(*str)) {
+
+	if (strchr(str, 'T')) {		        /* ISO (limited format) date string */
+	    if (CORE_TRACE) HTTrace("Format...... YYYY.MM.DDThh:mmStzWkd\n");
+	    s = (char *) str;
+	    while (*s && *s==' ') s++;
+	    if ((int)strlen(s) < 21) {
+		if (CORE_TRACE)
+		    HTTrace("ERROR....... Not a valid time format `%s\'\n", s);
+		return 0;
 	    }
+	    tm.tm_year = strtol(s, &s, 10) - 1900;
+	    tm.tm_mon  = strtol(++s, &s, 10);
+	    tm.tm_mday = strtol(++s, &s, 10);
+	    tm.tm_hour = strtol(++s, &s, 10);
+	    tm.tm_min  = strtol(++s, &s, 10);
+	    tm.tm_sec  = strtol(++s, &s, 10);
+
+	} else {					    /* delta seconds */
+	    t = expand ? time(NULL) + atol(str) : atol(str);
+	    if (CORE_TRACE) {
+		if (expand) {
+#ifdef HT_REENTRANT
+		    char buffer[CTIME_MAX];
+		    HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
+#else
+		    HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
+#endif
+		} else {
+		    HTTrace("Time string. Delta-time %s parsed to %ld seconds\n", str, (long) t);
+		}
+	    }
+	    return t;
 	}
-	return t;
 
     } else {	      /* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */
-	if (CORE_TRACE)
-	    HTTrace("Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
+	if (CORE_TRACE) HTTrace("Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
 	s = (char *) str;
 	while (*s && *s==' ') s++;
-	if (CORE_TRACE)
-	    HTTrace("Trying...... The Wrong time format: %s\n", s);
+	if (CORE_TRACE) HTTrace("Trying...... The Wrong time format: %s\n", s);
 	if ((int)strlen(s) < 24) {
 	    if (CORE_TRACE)
 		HTTrace("ERROR....... Not a valid time format \"%s\"\n",s);

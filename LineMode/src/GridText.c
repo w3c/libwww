@@ -637,7 +637,7 @@ PUBLIC void HText_setStyle (HText * text, HTStyle * style)
     after = (int) text->style->spaceAfter;
     before = (int) style->spaceBefore;
     if (SGML_TRACE)
-	HTTrace("HTML: Change to style %s\n", style->name);
+	HTTrace("Rendering... Change to style %s\n", style->name);
     blank_lines (text, after>before ? after : before);
     text->style = style;
 }
@@ -826,7 +826,7 @@ PUBLIC void HText_endAppend (HText * text)
 */
 PUBLIC void HText_dump (HText * text)
 {
-    HTTrace("HText: Dump called\n");
+    HTTrace("Rendering... Dump called\n");
 }
 	
 
@@ -934,7 +934,7 @@ PUBLIC BOOL HText_select (HText * text)
 	return YES;
     }
     if (SGML_TRACE)
-	HTTrace("HText: Nothing to select!\n");
+	HTTrace("Rendering... Nothing to select!\n");
     return NO;
 }
 
@@ -947,7 +947,7 @@ PUBLIC BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor)
     }
     if (!a) {
         if (SGML_TRACE)
-	    HTTrace("HText: No such anchor in this text!\n");
+	    HTTrace("Rendering... No such anchor in this text!\n");
         return NO;
     }
 
@@ -959,7 +959,7 @@ PUBLIC BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor)
     {
 	int l = line_for_char(text, a->start);
 	if (SGML_TRACE)
-	    HTTrace("HText: Selecting anchor [%d] at char %d, line %d\n",
+	    HTTrace("Rendering... Selecting anchor [%d] at char %d, line %d\n",
 		    a->number, a->start, l);
 
 	if ( !text->stale &&

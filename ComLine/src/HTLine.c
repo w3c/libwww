@@ -40,8 +40,6 @@
 #define DEFAULT_RULE_FILE	"w3c.conf"
 #define DEFAULT_LOG_FILE       	"w3c.log"
 
-#define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
-
 #define DEFAULT_TIMEOUT		10000		       /* timeout in millis */
 
 #define DEFAULT_HOPS		0
@@ -53,9 +51,12 @@
 #endif
 
 typedef enum _CLFlags {
-    CL_FILTER	=0x1,
-    CL_COUNT	=0x2
+    CL_FILTER	= 0x1,
+    CL_COUNT	= 0x2,
+    CL_QUIET	= 0x4
 } CLFlags;
+
+#define SHOW_MSG		(!(cl->flags & CL_QUIET))
 
 typedef struct _ComLine {
     HTRequest *		request;
@@ -187,6 +188,11 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     return HT_OK;
 }
 
+PRIVATE int LineTrace (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
@@ -221,6 +227,7 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newClient(APP_NAME, APP_VERSION);
+    HTTrace_setCallback(LineTrace);
 
     /* Add progress notification */
     HTAlert_add(HTProgress, HT_A_PROGRESS);
@@ -312,6 +319,10 @@ int main (int argc, char ** argv)
 		VersionInfo();
 		Cleanup(cl, 0);
 
+	    /* run in quiet mode */
+	    } else if (!strcmp(argv[arg], "-q")) { 
+		cl->flags |= CL_QUIET;
+
 #ifdef WWWTRACE
 	    /* trace flags */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
@@ -397,6 +408,9 @@ int main (int argc, char ** argv)
 	}
     }
 
+    /* We don't wanna cache */
+    HTCacheMode_setEnabled(NO);
+
     /*
     ** Set up the output. Even though we don't use this explicit, it is
     ** required in order to show the stream stack that we know that we are
@@ -407,6 +421,12 @@ int main (int argc, char ** argv)
 
     /* Setting event timeout */
     HTHost_setEventTimeout(cl->timer);
+
+    /*
+    ** Make sure that the first request is flushed immediately and not
+    ** buffered in the output buffer
+    */
+    HTRequest_setFlush(cl->request, YES);
 
     /* Log file specifed? */
     if (cl->logfile) HTLog_open(cl->logfile, YES, YES);

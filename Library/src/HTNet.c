@@ -182,6 +182,12 @@ PUBLIC int HTNetCall_executeBefore (HTList * list, HTRequest * request)
 					request, pres->param);
 		ret = (*pres->before)(request, pres->param, mode);
 		if (ret != HT_OK) break;
+
+		/*
+		**  Update the address to match against if the filter changed
+		**  the physical address.
+		*/
+		if ((url = HTAnchor_physical(anchor))) addr = url;
 	    }
 	}
     }
@@ -306,6 +312,12 @@ PUBLIC int HTNetCall_executeAfter (HTList * list, HTRequest * request,
 				status, pres->param);
 		    ret = (*pres->after)(request, response, pres->param, status);
 		    if (ret != HT_OK) break;
+
+		    /*
+		    **  Update the address to match against if the filter changed
+		    **  the physical address.
+		    */
+		    if ((url = HTAnchor_physical(anchor))) addr = url;
 		}
 	    }
 	}
