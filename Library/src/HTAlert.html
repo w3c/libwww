@@ -14,119 +14,111 @@
 */
 </PRE>
 
-This modue may be overridden for GUI clients. It allows progress
+This module may be overridden for GUI clients. It allows progress
 indications and warning messages to be communicated to the user in a
-portable way.
+portable way using stdio. Yes, I know that not all platforms have
+stdio :-(. It contain two parts:
+
+<UL>
+<LI><A HREF="#Interactive">A User Interactive part</A>
+<LI><A HREF="#NonInteractive">A part for sending messages to the user</A>
+</UL>
 
 <UL>
 <LI>May 92 Created By C.T. Barker
 <LI>Feb 93 Portablized etc TBL
+<LI>Mar 95 Updated by Henrik
 </UL>
 
 This module is implemented by <A HREF="HTAlert.c">HTAlert.c</A>, and
 it is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
 #ifndef HTALERT_H
 #define HTALERT_H
-#include <A NAME="z1" HREF="HTUtils.html">"HTUtils.h"</A>
 </PRE>
 
-<H2>Flags for This Module</H2>
+
+<A NAME="Interactive"><H2>User Interactive Functions</H2></A>
+
+These functions require the user to interact in some way
+
+<H3>Flags for This Module</H3>
+
+If you really don't want the library to prompt for anything at all
+then enable this constant. The default value is <EM>OFF</EM>. All
+functions returning a <EM>string</EM> return a dynamic string which
+must be freed by the caller.
 
 <PRE>
 extern BOOL HTInteractive;      	    /* Any prompts from the Library? */
 </PRE>
 
-<H2>HTPrompt and HTPromptPassword: Display a message and get the
-input</H2>
+<H3>Display a message, then wait for 'YES' or 'NO'</H3>
 
-HTPromptPassword() doesn't echo reply on the screen.
+This function prompts the user for a confirmation on the message
+passed as a parameter. If the user reacts in the affirmative, returns
+<EM>TRUE</EM>, returns <EM>FALSE</EM> otherwise.
 
-<H3>On entry,</H3>
-<DL>
-<DT>Msg
-<DD> String to be displayed.
-<DT>deflt
-<DD> If NULL the default value (only
-for HTPrompt())
-</DL>
+<PRE>
+extern BOOL HTConfirm	PARAMS((CONST char * Msg));
+</PRE>
 
-<H3>On exit,</H3>
-<DL>
-<DT>Return value
-<DD> is malloc'd string which
-must be freed.
-</DL>
+<H3>Prompt the User a Question</H3>
+
+Prompt for answer and get text back. Reply text is either NULL on
+error or a dynamic string which the caller must free.
 
 <PRE>		
 extern char * HTPrompt PARAMS((CONST char * Msg, CONST char * deflt));
-extern char * HTPromptPassword PARAMS((CONST char * Msg));
-
 </PRE>
-<H2>HTPromptUsernameAndPassword: Get both username and password</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>Msg<DD>String to be displayed.
-<DT>username<DD> Pointer to char pointer, i.e. <CODE>*username</CODE>
-points to a string.  If non-NULL it is taken to be a default value.
-<DT>password<DD> Pointer to char pointer, i.e. <CODE>*password</CODE>
-points to a string.  Initial value discarded.
-</DL>
-<H3>On exit,</H3>
-<DL>
-<DT>*username<DD> and
-<DT>*password<DD> point to newly allocated strings representing
-the typed-in username and password.  Initial strings pointed to
-by them are NOT freed!
-</DL>
+
+<H3>Prompt for a Password</H3>
+
+Prompt for password without echoing the reply. Reply text is weither
+NULL on error or a dynamic string which the caller must free. <P>
+
+<B>NOTE:</B> The current version uses <EM>getpass</EM> which on many
+systems returns a string of 8 or 16 bytes.
+
+<PRE>
+extern char * HTPromptPassword PARAMS((CONST char * Msg));
+</PRE>
+
+<H2>Prompt for a UserID and a Password</H2>
+
+This is just a composite function using <EM>HTPrompt</EM> and
+<EM>HTPromptPassword</EM>. The strings returned must be freed by
+caller.
+
 <PRE>
 extern void HTPromptUsernameAndPassword PARAMS((CONST char *	Msg,
 						char **		username,
 						char **		password));
-
 </PRE>
-<H2>Display a message, don't wait for
-input</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>Msg
-<DD> String to be displayed.
-</DL>
+
+<A NAME="NonInteractive"><H2>Messages and Warnings</H2></A>
+
+These functions are used to inform the user of an event which requires
+no response form the user.
+
+<H3>Display a Message</H3>
+
+This function simply puts out the message passed.
 
 <PRE>
 extern void HTAlert PARAMS((CONST char * Msg));
-
-
 </PRE>
-<H2>Display a progress message for information
-(and diagnostics) only</H2>
-<H3>On entry,</H3>The input is a list of parameters
-for printf.
-<PRE>extern void HTProgress PARAMS((CONST char * Msg));
 
+<H3>Display a Status Message on what's going on</H3>
 
-</PRE>
-<H2>Display a message, then wait for
-'yes' or 'no'.</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>Msg
-<DD> String to be displayed
-</DL>
-
-<H3>On exit,</H3>
-<DL>
-<DT>Returns
-<DD> If the user reacts in the
-affirmative, returns TRUE, returns
-FALSE otherwise.
-</DL>
+This function can be used to indicate the current status of a certain
+action.
 
 <PRE>
-extern BOOL HTConfirm PARAMS ((CONST char * Msg));
+extern void HTProgress PARAMS((CONST char * Msg));
 
 #endif
 </PRE>
