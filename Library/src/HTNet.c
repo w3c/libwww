@@ -787,8 +787,9 @@ PUBLIC BOOL HTNet_clear (HTNet * net)
 	net->host->channel = NULL;
 	net->readStream = NULL;
 	net->bytesRead = 0;
+	net->headerBytesRead = 0;
 	net->bytesWritten = 0;
-	net->headerLength = 0;
+	net->headerBytesWritten = 0;
 	return YES;
     }
     return NO;

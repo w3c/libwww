@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
   <TITLE>W3C Sample Code Library libwww Private Net Definition</TITLE>
 </HEAD>
 <BODY>
@@ -15,11 +15,10 @@
 </PRE>
 <P>
 This is the private definition of the Net Class. Please look in the public
-<A HREF="HTNet.html">Net Class</A> for more documentation 
+<A HREF="HTNet.html">Net Class</A> for more documentation
 <P>
 This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is a
-part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
-Library</A>.
+part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTNETMAN_H
 #define HTNETMAN_H
@@ -45,8 +44,9 @@ struct _HTNet {
 
     /* For progress notifications */
     long		bytesRead;			    /* Bytes in body */
-    long		headerLength;		     /* Bytes read in header */
+    long		headerBytesRead;	     /* Bytes read in header */
     long		bytesWritten;		 /* Bytes written to network */
+    long		headerBytesWritten;	  /* Bytes written in header */
 
 #if 0
     int			retry;		     /* Counting attempts to connect */
@@ -68,18 +68,49 @@ struct _HTNet {
 
 extern SOCKET HTNet_socket(HTNet * me);
 
-#define HTNet_setBytesRead(me,l)	((me) ? (me-&gt;bytesRead=(l)) : -1)
-#define HTNet_setBytesWritten(me,l)	((me) ? (me-&gt;bytesWritten=(l)) :-1)
-#define HTNet_setHeaderLength(me,l)	((me) ? (me-&gt;headerLength=(l)) :-1)
-
-#define HTNet_bytesRead(me)		((me) ? (me)-&gt;bytesRead : -1)
-#define HTNet_bytesWritten(me)		((me) ? (me)-&gt;bytesWritten : -1)
-#define HTNet_headerLength(me)		((me) ? (me)-&gt;headerLength : -1)
-
-#define HTNet_addBytesRead(me,l)        ((me) ? (me-&gt;bytesRead+=(l)) : -1)
-#define HTNet_addBytesWritten(me,l)     ((me) ? (me-&gt;bytesWritten+=(l)) : -1)
-#define HTNet_addHeaderLength(me,l)     ((me) ? (me-&gt;headerLength+=(l)) : -1)
-
+</PRE>
+<H2>
+  Bytes Read Stats
+</H2>
+<H3>
+  Total Bytes Read
+</H3>
+<PRE>
+#define HTNet_setBytesRead(me,l)	  ((me) ? (me-&gt;bytesRead=(l)) : -1)
+#define HTNet_bytesRead(me)		  ((me) ? (me)-&gt;bytesRead : -1)
+#define HTNet_addBytesRead(me,l)          ((me) ? (me-&gt;bytesRead+=(l)) : -1)
+</PRE>
+<H3>
+  Header Bytes Read
+</H3>
+<PRE>
+#define HTNet_setHeaderBytesRead(me,l)	  ((me) ? (me-&gt;headerBytesRead=(l)) :-1)
+#define HTNet_headerBytesRead(me)	  ((me) ? (me)-&gt;headerBytesRead : -1)
+#define HTNet_addHeaderBytesRead(me,l)    ((me) ? (me-&gt;headerBytesRead+=(l)) : -1)
+</PRE>
+<H2>
+  Bytes Written Stats
+</H2>
+<H3>
+  Total Bytes Written
+</H3>
+<PRE>
+#define HTNet_setBytesWritten(me,l)	  ((me) ? (me-&gt;bytesWritten=(l)) :-1)
+#define HTNet_bytesWritten(me)		  ((me) ? (me)-&gt;bytesWritten : -1)
+#define HTNet_addBytesWritten(me,l)       ((me) ? (me-&gt;bytesWritten+=(l)) : -1)
+</PRE>
+<H3>
+  Header Bytes Written
+</H3>
+<PRE>
+#define HTNet_setHeaderBytesWritten(me,l) ((me) ? (me-&gt;headerBytesWritten=(l)) :-1)
+#define HTNet_headerBytesWritten(me)	  ((me) ? (me)-&gt;headerBytesWritten : -1)
+#define HTNet_addHeaderBytesWritten(me,l) ((me) ? (me-&gt;headerBytesWritten+=(l)) : -1)
+</PRE>
+<H2>
+  Event Callbacks
+</H2>
+<PRE>
 extern BOOL HTNet_setEventParam(HTNet * net, void * eventParam);
 extern void* HTNet_eventParam(HTNet * net);
 extern BOOL HTNet_setEventCallback(HTNet * net, HTEventCallback * cbf);
