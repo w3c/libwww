@@ -125,7 +125,8 @@ typedef struct _HTStructuredClass{
 		HTStructured*	me));
 
 	void (*abort) PARAMS((
-		HTStructured*	me));
+		HTStructured*	me,
+		HTError		e));
 		
 	void (*put_character) PARAMS((
 		HTStructured*	me,
