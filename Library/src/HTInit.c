@@ -4,6 +4,7 @@
 
 /*	Define a basic set of suffixes and presentations
 **	------------------------------------------------
+**
 */
 
 /* Implements:

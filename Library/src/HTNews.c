@@ -980,4 +980,4 @@ PUBLIC int HTLoadNews ARGS4(
     return HT_LOADED;
 }
 
-PUBLIC HTProtocol HTNews = { "news", HTLoadNews, NULL };
+GLOBALDEF PUBLIC HTProtocol HTNews = { "news", HTLoadNews, NULL };

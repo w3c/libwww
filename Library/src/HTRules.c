@@ -10,6 +10,9 @@
 **      17 Jun 92       Bug fix: pass and fail failed if didn't contain '*' TBL
 **       1 Sep 93       Bug fix: no memory check - Nathan Torkington
 **                      BYTE_ADDRESSING removed - Arthur Secret
+**	11 Sep 93 MD	Changed %i into %d in debug printf. 
+**			VMS does not recognize %i.
+**			Bug Fix: in case of PASS, only one parameter to printf.
 **                      
 */
 
@@ -81,7 +84,12 @@ int HTAddRule(op, pattern, equiv)
     temp->op = op;
 
     strcpy(pPattern, pattern);
-    if (TRACE) printf("Rule: For `%s' op %i `%s'\n", pattern, op, equiv);
+    if (TRACE) {
+       if (equiv)
+          printf("Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
+       else
+          printf("Rule: For `%s' op %d\n", pattern, op);
+    }
 
 #ifdef PUT_ON_HEAD
     temp->next = rules;

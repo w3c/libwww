@@ -316,11 +316,12 @@ retry:
 		    char *p;
 		    start_of_data = text_buffer; /* reparse whole reply */
 		    for(p=binary_buffer; p <binary_buffer+STUB_LENGTH;p++) {
-		        if ((int)p&128) {
+		        if (((int)*p)&128) {
 			    format_in = HTAtom_for("www/unknown");
+			    length = length + status;
+			    goto copy; /* out of while loop */
 			}
 		    }
-		    break;
 		}
 	    }
 /* end kludge */
@@ -423,6 +424,8 @@ retry:
 /*	Set up the stream stack to handle the body of the message
 */
 
+copy:
+
     target = HTStreamStack(format_in,
 			format_out,
 			sink , anAnchor);
@@ -472,4 +475,4 @@ clean_up:
 /*	Protocol descriptor
 */
 
-PUBLIC HTProtocol HTTP = { "http", HTLoadHTTP, 0 };
+GLOBALDEF PUBLIC HTProtocol HTTP = { "http", HTLoadHTTP, 0 };

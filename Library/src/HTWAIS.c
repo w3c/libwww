@@ -851,6 +851,6 @@ PUBLIC int HTLoadWAIS ARGS4(
     return HT_LOADED;
 }
 
-PUBLIC HTProtocol HTWAIS = { "wais", HTLoadWAIS, NULL };
+GLOBALDEF PUBLIC HTProtocol HTWAIS = { "wais", HTLoadWAIS, NULL };
 
 

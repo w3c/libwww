@@ -676,5 +676,5 @@ PUBLIC int HTLoadGopher ARGS4(
     return HT_LOADED;
 }
 
-PUBLIC HTProtocol HTGopher = { "gopher", HTLoadGopher, NULL };
+GLOBALDEF PUBLIC HTProtocol HTGopher = { "gopher", HTLoadGopher, NULL };
 

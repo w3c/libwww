@@ -88,11 +88,11 @@ PUBLIC BOOL HTRegisterProtocol(protocol)
 #ifndef NO_INIT
 PRIVATE void HTAccessInit NOARGS			/* Call me once */
 {
-extern HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
+GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
 #ifndef DECNET
-extern HTProtocol HTFTP, HTNews, HTGopher;
+GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
 #ifdef DIRECT_WAIS
-extern HTProtocol HTWAIS;
+GLOBALREF  HTProtocol HTWAIS;
 #endif
     HTRegisterProtocol(&HTFTP);
     HTRegisterProtocol(&HTNews);

@@ -135,7 +135,7 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 		port ? port : "",
 		hostname);
 	} else if (login_protocol == tn3270) {
-	    sprintf(command, "TN3270 %s%s %s",
+	    sprintf(command, "TELNET/TN3270 %s%s %s",
 		port ? "/PORT=" : "",
 		port ? port : "",
 		hostname);
@@ -225,8 +225,8 @@ ARGS4
 }
 
 
-PUBLIC HTProtocol HTTelnet = { "telnet", HTLoadTelnet, NULL };
-PUBLIC HTProtocol HTRlogin = { "rlogin", HTLoadTelnet, NULL };
-PUBLIC HTProtocol HTTn3270 = { "tn3270", HTLoadTelnet, NULL };
+GLOBALDEF PUBLIC HTProtocol HTTelnet = { "telnet", HTLoadTelnet, NULL };
+GLOBALDEF PUBLIC HTProtocol HTRlogin = { "rlogin", HTLoadTelnet, NULL };
+GLOBALDEF PUBLIC HTProtocol HTTn3270 = { "tn3270", HTLoadTelnet, NULL };
 
 

@@ -22,7 +22,7 @@
 #include "HTParse.h"
 
 typedef struct _HyperDoc Hyperdoc;
-#ifdef vms
+#ifdef VMS
 struct _HyperDoc {
 	int junk;	/* VMS cannot handle pointers to undefined structs */
 };
