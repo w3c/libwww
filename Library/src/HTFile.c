@@ -377,16 +377,11 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		file->state = FS_TRY_FTP;
 		break;
 	    }
-	    if ((net->host = HTHost_new("<fileaccess>", 0)) == NULL)
-		return NO;
 
-	    /*
-	    ** Add the net object to the host object found above. If the
-	    ** host is idle then we can start the request right away,
-	    ** otherwise we must wait until it is free. 
-	    */
+	    if ((net->host = HTHost_new("<local access>", 0)) == NULL)
+		return HT_ERROR;
 	    if (HTHost_addNet(net->host, net) == HT_PENDING)
-		if (PROT_TRACE) HTTrace("HTDoConnect. Pending...\n");
+		if (PROT_TRACE) HTTrace("HTLoadFile.. Pending...\n");
 	    
 	    file->state = FS_DO_CN;
 	    break;

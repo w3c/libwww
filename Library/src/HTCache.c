@@ -1557,20 +1557,25 @@ PUBLIC HTStream * HTCacheAppend (HTRequest *	request,
 **      This function closes the connection and frees memory.
 **      Returns YES on OK, else NO
 */
-PRIVATE int CacheCleanup (HTRequest * request, int status)
+PRIVATE int CacheCleanup (HTRequest * req, int status)
 {
-    HTNet * net = HTRequest_net(request);
+    HTNet * net = HTRequest_net(req);
     cache_info * cache = (cache_info *) HTNet_context(net);
-    if (status != HT_IGNORE) {
-	if (cache) {
-	    HT_FREE(cache->local);
-	    HT_FREE(cache);
-	}
-	HTNet_delete(net, status);
-    } else if (cache) {
-	HTChannel * channel = HTNet_channel(net);
-	HTChannel_delete(channel, HT_OK);
+    HTStream * input = HTRequest_inputStream(req);
+
+    /* Free stream with data TO Local cache system */
+    if (input) {
+	if (status == HT_INTERRUPTED)
+	    (*input->isa->abort)(input, NULL);
+	else
+	    (*input->isa->_free)(input);
+	HTRequest_setInputStream(req, NULL);
+    }
+
+    HTNet_delete(net, status);
+    if (cache) {
 	HT_FREE(cache->local);
+	HT_FREE(cache);
     }
     return YES;
 }
@@ -1618,13 +1623,21 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
     HTRequest * request = HTNet_request(net);
     HTParentAnchor * anchor = HTRequest_anchor(request);
 
-    if (type == HTEvent_CLOSE) {				      /* Interrupted */
+    if (type == HTEvent_BEGIN) {
+	cache->state = CL_BEGIN;
+    } else if (type == HTEvent_CLOSE) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadCache");
 	CacheCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
-    } else
-	cache = (cache_info *) HTNet_context(net);	/* Get existing copy */
+    } else if (type == HTEvent_END) {
+	CacheCleanup(request, HT_OK);
+	return HT_OK;
+    } else if (type == HTEvent_RESET) {
+	CacheCleanup(request, HT_RECOVER_PIPE);
+	cache->state = CL_BEGIN;
+	return HT_OK;
+    }
 
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
@@ -1639,6 +1652,12 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    cache->state = CacheTable ?
 		(HTAnchor_headerParsed(anchor) ? CL_NEED_BODY : CL_NEED_HEAD) :
 		    CL_NEED_INDEX;
+
+	    if ((net->host = HTHost_new("<local access>", 0)) == NULL)
+		return NO;
+	    if (HTHost_addNet(net->host, net) == HT_PENDING)
+		if (PROT_TRACE) HTTrace("HTLoadCache. Pending...\n");
+
 	    break;
 
 	case CL_NEED_HEAD:
@@ -1723,6 +1742,16 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 						    HTRequest_outputStream(request),
 						    request, YES);
 		    HTRequest_setOutputConnected(request, YES);
+
+		    /*
+		    ** Create the stream pipe TO the channel from the application
+		    ** and hook it up to the request object
+		    */
+		    {
+			HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+			HTRequest_setInputStream(request, (HTStream *) output);
+		    }
+		    
 		    HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
 				       NULL, 0, "HTLoadCache");
 		    cache->state = CL_NEED_CONTENT;

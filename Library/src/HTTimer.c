@@ -294,3 +294,14 @@ PUBLIC int HTTimer_next (ms_t * pSoonest)
     HTList_delete(head);
     return ret;
 }
+
+extern void CheckSockEvent(HTTimer * timer, HTTimerCallback * cbf, void * param);
+PUBLIC void CheckTimers(void)
+{
+    HTList * cur = Timers;
+    HTTimer * pres;
+    while ((pres = (HTTimer *) HTList_nextObject(cur))) {
+	CheckSockEvent(pres, pres->cbf, pres->param);
+    }
+}
+

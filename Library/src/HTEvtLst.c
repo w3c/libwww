@@ -827,3 +827,16 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 }
 
 #endif /* !WWW_WIN_ASYNC */
+
+PUBLIC void CheckSockEvent(HTTimer * timer, HTTimerCallback * cbf, void * param)
+{
+    SockEvents * sockp = (SockEvents *)param;
+    if (cbf == EventListTimerHandler && 
+	sockp->timeouts[0] != timer && 
+	sockp->timeouts[1] != timer && 
+	sockp->timeouts[2] != timer) {
+	HTTrace("!!! bad timer %p.\n", timer);
+	HTDebugBreak();
+    }
+}
+
