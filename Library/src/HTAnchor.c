@@ -20,6 +20,7 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTParse.h"
+#include "HTMethod.h"
 #include "HTFWrite.h"					  /* for cache stuff */
 #include "HTAnchor.h"					 /* Implemented here */
 
@@ -49,6 +50,7 @@ PRIVATE HTParentAnchor * HTParentAnchor_new NOARGS
 	(HTParentAnchor *) calloc(1, sizeof (HTParentAnchor));
     newAnchor->parent = newAnchor;
     newAnchor->content_type = WWW_UNKNOWN;
+    newAnchor->mainLink.method = METHOD_INVALID;
     return newAnchor;
 }
 
@@ -197,7 +199,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink
     char * relative_to = HTAnchor_address((HTAnchor *) parent);
     char * parsed_address = HTParse(href, relative_to, PARSE_ALL);
     HTAnchor * dest = HTAnchor_findAddress(parsed_address);
-    HTAnchor_link((HTAnchor *) child, dest, ltype);
+    HTAnchor_link((HTAnchor *) child, dest, ltype, METHOD_INVALID);
     free(parsed_address);
     free(relative_to);
   }
@@ -207,9 +209,10 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink
 /*	Link me Anchor to another given one
 **	-------------------------------------
 */
-PUBLIC BOOL HTAnchor_link ARGS3(HTAnchor *,   source,
-				HTAnchor *,   destination, 
-				HTLinkType *, type)
+PUBLIC BOOL HTAnchor_link ARGS4(HTAnchor *,	source,
+				HTAnchor *,	destination, 
+				HTLinkType *,	type,
+				HTMethod,	method)
 {
     if (!(source && destination))
 	return NO;		/* Can't link to/from non-existing anchor */
@@ -219,13 +222,15 @@ PUBLIC BOOL HTAnchor_link ARGS3(HTAnchor *,   source,
     if (!source->mainLink.dest) {
 	source->mainLink.dest = destination;
 	source->mainLink.type = type;
+	source->mainLink.method = method;
     } else {
 	HTLink * newLink = (HTLink *) calloc(1, sizeof (HTLink));
 	if (newLink == NULL) outofmem(__FILE__, "HTAnchor_link");
 	newLink->dest = destination;
 	newLink->type = type;
-	if (! source->links)
-	    source->links = HTList_new ();
+	newLink->method = method;
+	if (!source->links)
+	    source->links = HTList_new();
 	HTList_addObject (source->links, newLink);
     }
     if (!destination->parent->sources)
@@ -235,52 +240,116 @@ PUBLIC BOOL HTAnchor_link ARGS3(HTAnchor *,   source,
 }
 
 
-/*	Manipulation of links
-**	---------------------
+/*
+**  Returns the main destination of this anchor
 */
-
-PUBLIC HTAnchor * HTAnchor_followMainLink
-  ARGS1 (HTAnchor *,me)
+PUBLIC HTAnchor * HTAnchor_followMainLink ARGS1(HTAnchor *, me)
 {
-  return me->mainLink.dest;
-}
-
-PUBLIC HTAnchor * HTAnchor_followTypedLink
-  ARGS2 (HTAnchor *,me, HTLinkType *,type)
-{
-  if (me->mainLink.type == type)
-    return me->mainLink.dest;
-  if (me->links) {
-    HTList *links = me->links;
-    HTLink *link;
-    while ((link = (HTLink *) HTList_nextObject (links)))
-      if (link->type == type)
-	return link->dest;
-  }
-  return NULL;  /* No link of me type */
+    return me ? me->mainLink.dest : NULL;
 }
 
 
-/*	Make main link
+/*
+**  Returns the methods registered for the main destination of this
+**  anchor
 */
-PUBLIC BOOL HTAnchor_makeMainLink
-  ARGS2 (HTAnchor *,me, HTLink *,movingLink)
+PUBLIC HTMethod HTAnchor_mainLinkMethod ARGS1(HTAnchor *, me)
 {
-  /* Check that everything's OK */
-  if (! (me && HTList_removeObject (me->links, movingLink)))
-    return NO;  /* link not found or NULL anchor */
-  else {
-    /* First push current main link onto top of links list */
-    HTLink *newLink = (HTLink*) malloc (sizeof (HTLink));
-    if (newLink == NULL) outofmem(__FILE__, "HTAnchor_makeMainLink");
-    memcpy (newLink, & me->mainLink, sizeof (HTLink));
-    HTList_addObject (me->links, newLink);
+    return me ? me->mainLink.method : METHOD_INVALID;
+}
 
-    /* Now make movingLink the new main link, and free it */
-    memcpy (& me->mainLink, movingLink, sizeof (HTLink));
-    free (movingLink);
+
+/*
+**  Moves all link information from one anchor to another.
+**  This is used in redirection etc.
+**  Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTAnchor_moveLinks ARGS2(HTAnchor *, src, HTAnchor *, dest)
+{
+    if (!src || !dest) return NO;
+    if (ANCH_TRACE)
+	fprintf(TDEST, "Move Links.. from anchor %p to anchor %p\n",
+		(void *) src, (void *) dest);
+
+    /* Move main link information */
+    dest->mainLink.dest = src->mainLink.dest;
+    dest->mainLink.type = src->mainLink.type;
+    dest->mainLink.method = src->mainLink.method;
+
+    src->mainLink.dest = NULL;
+    src->mainLink.type = NULL;
+    src->mainLink.dest = METHOD_INVALID;
+
+    /* Move link information for other links */
+    if (dest->links)
+	HTList_delete(dest->links);
+    dest->links = src->links;
+    src->links = NULL;
     return YES;
-  }
+}
+
+
+/*
+**  Returns a link with a given link type or NULL if nothing found
+*/
+PUBLIC HTAnchor * HTAnchor_followTypedLink ARGS2(HTAnchor *, me,
+						 HTLinkType *,type)
+{
+    if (me->mainLink.type == type)
+	return me->mainLink.dest;
+    if (me->links) {
+	HTList *links = me->links;
+	HTLink *link;
+	while ((link = (HTLink *) HTList_nextObject (links)))
+	    if (link->type == type)
+		return link->dest;
+    }
+    return NULL;		/* No link of me type */
+}
+
+
+/*
+**  Is this anchor a destination link of the source anchor?
+**  Return YES if so, else NO
+*/
+PUBLIC BOOL HTAnchor_isLink ARGS2(HTAnchor *, src, HTAnchor *, dest)
+{
+    if (src && dest) {
+	if (src->mainLink.dest == dest)
+	    return YES;
+	if (src->links) {
+	    HTList *cur = src->links;
+	    HTLink *pres;
+	    while ((pres = (HTLink *) HTList_nextObject(cur)) != NULL) {
+		if (pres->dest == dest)
+		    return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
+
+/*
+**  Upgrade the link to the main destination and and downgrade the
+**  current main link to the list
+*/
+PUBLIC BOOL HTAnchor_makeMainLink ARGS2 (HTAnchor *, me, HTLink *, movingLink)
+{
+    if (! (me && HTList_removeObject (me->links, movingLink)))
+	return NO;
+    else {
+	/* First push current main link onto top of links list */
+	HTLink *newLink = (HTLink*) malloc (sizeof (HTLink));
+	if (newLink == NULL) outofmem(__FILE__, "HTAnchor_makeMainLink");
+	memcpy (newLink, & me->mainLink, sizeof (HTLink));
+	HTList_addObject (me->links, newLink);
+
+	/* Now make movingLink the new main link, and free it */
+	memcpy (& me->mainLink, movingLink, sizeof (HTLink));
+	free (movingLink);
+	return YES;
+    }
 }
 
 /*		Move an anchor to the head of the list of its siblings

@@ -51,6 +51,7 @@ typedef enum _FileState {
     FILE_GOT_DATA	= -1,
     FILE_BEGIN		= 0,
     FILE_NEED_OPEN_FILE,
+    FILE_NEED_TARGET,
     FILE_NEED_BODY,
     FILE_PARSE_DIR,
     FILE_TRY_FTP
@@ -288,7 +289,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 #endif /* not VMS */
 	    fclose(fp);
 	    if (TRACE) fprintf(TDEST, "File `%s' exists\n", filename);
-	    if (REMOVE_FILE(backup_filename)) {
+	    if (REMOVE(backup_filename)) {
 		if (TRACE) fprintf(TDEST, "Backup file `%s' removed\n",
 				   backup_filename);
 	    }
@@ -328,8 +329,9 @@ PRIVATE int FileCleanup ARGS2(HTRequest *, req, BOOL, abort)
 	file = (file_info *) req->net_info;
 	if (file->sockfd != INVSOC || file->fp) {
 
-	    /* Free stream with data FROM local file system */
 	    if (file->target) {
+
+		/* Free stream with data FROM local file system */
 		if (abort)
 		    (*file->target->isa->abort)(file->target, NULL);
 		else
@@ -350,8 +352,8 @@ PRIVATE int FileCleanup ARGS2(HTRequest *, req, BOOL, abort)
 	    fclose(file->fp);
 	    file->fp = NULL;
 #endif
-	    HTThread_clear((HTNetInfo *) file);
 	}
+	    HTThread_clear((HTNetInfo *) file);
 	if (file->isoc)
 	    HTInputSocket_free(file->isoc);
 	FREE(file->localname);
@@ -398,15 +400,17 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    outofmem(__FILE__, "HTLoadFILE");
 	file->sockfd = INVSOC;			    /* Invalid socket number */
 	file->request = request;
-	request->net_info = (HTNetInfo *) file;
 	file->state = FILE_BEGIN;
+	request->net_info = (HTNetInfo *) file;
 	HTThread_new((HTNetInfo *) file);
     } else {
 	file = (file_info *) request->net_info;		/* Get existing copy */
 
 	/* @@@ NEED ALSO TO CHECK FOR ANSI FILE DESCRIPTORS @@@ */
-	if ((file->sockfd != INVSOC && HTThreadIntr(file->sockfd)) || file->fp)
-	    file->state = FILE_ERROR;
+	if (HTThreadIntr(file->sockfd)) {
+	    FileCleanup(request, YES);
+	    return HTRequest_isMainDestination(request) ? HT_ERROR : HT_OK;
+	}
     }
 
     /* Now jump into the machine. We know the state from the previous run */
@@ -473,8 +477,8 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    if (stat_info.st_size)
 			HTAnchor_setLength(request->anchor, stat_info.st_size);
 
-		    /* Put all relevant metainformation into the anchor */
-		    request->anchor->header_parsed = YES;
+		    /* Done with relevant metainformation in anchor */
+		    HTAnchor_setHeaderParsed(request->anchor);
 
 		    if (!editable && !stat_info.st_size) {
 			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
@@ -520,9 +524,8 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 			fprintf(TDEST,"HTLoadFile.. Using NON_BLOCKING I/O\n");
 		}
 	    }
-	    HTThreadState(file->sockfd, THD_SET_READ);
 #else
-#ifdef VMS
+#ifdef VMS	
 	    if (!(file->fp = fopen(file->localname,"r","shr=put","shr=upd"))) {
 #else
 	    if ((file->fp = fopen(file->localname,"r")) == NULL) {
@@ -535,6 +538,25 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		fprintf(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
 			file->localname, file->fp);
 #endif /* !NO_UNIX_IO */
+	    file->state = FILE_NEED_TARGET;
+	    break;
+
+	  case FILE_NEED_TARGET:
+	    /*
+	    ** We need to wait for the destinations to get ready
+	    */
+	    if (HTRequest_isSource(request) && !request->output_stream)
+		return HT_WOULD_BLOCK;
+	    /*
+	    ** Set up concurrent read/write if this request isn't the
+	    ** source for a PUT or POST. As source we don't start reading
+	    ** before all destinations are ready. If destination then
+	    ** register the input stream and get ready for read
+	    */
+	    if (HTRequest_isPostWeb(request)) {
+		HTThreadState(file->sockfd, THD_SET_READ);
+		HTRequest_linkDestination(request);
+	    }
 
 	    /* Set up read buffer and streams. If ANSI then sockfd=INVSOC */
 	    file->isoc = HTInputSocket_new(file->sockfd);
@@ -588,23 +610,50 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
 	  case FILE_GOT_DATA:
 	    FileCleanup(request, NO);
-
-	    /* HT_OK means everything is OK, but not finished! */
-	    return request->Source ? HT_OK : HT_LOADED;
+	    if (HTRequest_isPostWeb(request)) {
+		BOOL main = HTRequest_isMainDestination(request);
+		HTRequest_removeDestination(request);
+		return main ? HT_LOADED : HT_OK;
+	    }
+	    return HT_LOADED;
 	    break;
 
 	  case FILE_NO_DATA:
 	    FileCleanup(request, NO);
+	    if (HTRequest_isPostWeb(request)) {
+		BOOL main = HTRequest_isMainDestination(request);
+		HTRequest_removeDestination(request);
+		return main ? HT_NO_DATA : HT_OK;
+	    }
 	    return HT_NO_DATA;
 	    break;
 
 	  case FILE_RETRY:
-	    FileCleanup(request, YES);
+	    if (HTRequest_isPostWeb(request))
+		HTRequest_killPostWeb(request);
+	    else
+		FileCleanup(request, YES);
+	    if (HTRequest_isPostWeb(request)) {
+		BOOL main = HTRequest_isMainDestination(request);
+		HTRequest_removeDestination(request);
+		return main ? HT_RETRY : HT_OK;
+	    }
 	    return HT_RETRY;
 	    break;
 
 	  case FILE_ERROR:
-	    FileCleanup(request, YES);
+	    /* Clean up the other connections or just this one */
+	    if (HTRequest_isPostWeb(request)) {
+		if (file->sockfd == INVSOC)
+		    FileCleanup(request, YES);         /* If no valid socket */
+		HTRequest_killPostWeb(request);
+	    } else
+		FileCleanup(request, YES);
+	    if (HTRequest_isPostWeb(request)) {
+		BOOL main = HTRequest_isMainDestination(request);
+		HTRequest_removeDestination(request);
+		return main ? HT_ERROR : HT_OK;
+	    }
 	    return HT_ERROR;
 	    break;
 	}

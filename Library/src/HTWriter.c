@@ -107,6 +107,7 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 		return HT_ERROR;
 	    }
 	}
+	HTThreadState(me->soc, THD_CLR_WRITE);
 	me->write_pointer += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
@@ -142,7 +143,7 @@ PRIVATE int HTWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
 
 PRIVATE int HTWriter_flush ARGS1(HTStream *, me)
 {
-    return HT_OK;
+    return HT_OK;	       /* As we don't keep any buffer in this stream */
 }
 
 PRIVATE int HTWriter_free ARGS1(HTStream *, me)
@@ -192,16 +193,6 @@ PUBLIC HTStream* HTWriter_new ARGS2(SOCKFD, soc, BOOL, leave_open)
     me->soc = soc;
     return me;
 }
-
-#if 0
-PUBLIC HTStream* HTWriter_newNoClose ARGS1(SOCKFD, soc)
-{
-    HTStream * me = HTWriter_new(soc);
-    if (me) me->leave_open = YES;
-    return me;
-}
-#endif
-
 
 /*	Subclass-specific Methods
 **	-------------------------

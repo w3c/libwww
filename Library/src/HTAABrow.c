@@ -811,12 +811,12 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS1(HTRequest *,	req)
     if (!(req->dialog_msg = (char*)malloc(len)))
 	outofmem(__FILE__, "HTAA_retryWithAuth");
     if (!req->realm->username)
-	sprintf(req->dialog_msg, "%s %s at %s",
+	sprintf(req->dialog_msg, "\n%s %s at %s",
 		"Document is protected. Enter username for",
 		req->realm->realmname,
 		req->setup->server->hostname
 		? req->setup->server->hostname : "??");
-    else sprintf(req->dialog_msg, "%s %s at %s",
+    else sprintf(req->dialog_msg, "\n%s %s at %s",
 		 "Authorization failed. Enter username for",
 		 req->realm->realmname,
 		 req->setup->server->hostname

@@ -192,11 +192,10 @@ PRIVATE int HTFWriter_free ARGS1(HTStream *, me)
     if (me->leave_open != YES) fclose(me->fp);
 
     if (me->end_command) {		/* Temp file */
-        HTProgress(me->end_command);	/* Tell user what's happening */
 	system(me->end_command);	/* @@ Beware of security hole */
 	free (me->end_command);
 	if (me->remove_on_close) {
-	    unlink(me->filename);
+	    REMOVE(me->filename);
 	}
     }
     if (me->callback) {
@@ -216,7 +215,7 @@ PRIVATE int HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 		    me->filename ? me->filename : "???" );
 	free (me->end_command);
 	if (me->remove_on_close) {
-	    unlink(me->filename);
+	    REMOVE(me->filename);
 	}
     }
 
@@ -461,7 +460,7 @@ PRIVATE void HTCache_remove ARGS2(HTList *, list, HTCacheItem *, item)
 	fprintf(TDEST, "Cache: Removing %s\n", item->filename);
     HTList_removeObject(list, item);
     HTList_removeObject(item->anchor->cacheItems, item);
-    unlink(item->filename);
+    REMOVE(item->filename);
 
     /* HWL 22/9/94: since we added a hierachical file structure, we should also clean up */
     {
@@ -472,7 +471,7 @@ PRIVATE void HTCache_remove ARGS2(HTList *, list, HTCacheItem *, item)
 	    if (strcmp(item->filename, HTCacheRoot) != 0) {
 		if (CACHE_TRACE) 
 		    fprintf(TDEST, "rmdir %s\n", item->filename);
-		rmdir(item->filename);         /* this will luckily fail if directory is not empty */
+		RMDIR(item->filename);         /* this will luckily fail if directory is not empty */
 	    }
 	}
     }
@@ -559,7 +558,7 @@ PUBLIC BOOL HTCache_disable NOARGS
 */
 PUBLIC BOOL HTCache_isEnabled NOARGS
 {
-    if (HTCacheEnable) {
+    if (!HTSecure && HTCacheEnable) {
 	if (!HTCacheRoot)
 	    HTCache_setRoot(NULL);
 	return YES;
@@ -761,8 +760,6 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 	HTFormat,		input_format,
 	HTFormat,		output_format,
 	HTStream *,		output_stream)
-
-#ifdef REMOVE_FILE
 {
     char *fnam;
     HTStream* me;
@@ -813,12 +810,6 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     free (fnam);
     return me;
 }
-
-#else	/* can't do remove */
-{
-    return HTBlackHole();
-}
-#endif
 
 
 /*	Save Locally

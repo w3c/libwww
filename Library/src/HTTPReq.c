@@ -32,7 +32,7 @@ PUBLIC char * HTProxyHeaders = NULL;		    /* Headers to pass as-is */
 #define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
 #define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
-#define FREE_TARGET	(*me->target->isa->_free)(me->target)
+#define FREE_TARGET	
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
 /* Type definitions and global variables etc. local to this module */
@@ -43,6 +43,7 @@ struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
+    SOCKFD			sockfd;
     HTChunk *  			buffer;
     BOOL			transparent;
 };
@@ -59,8 +60,8 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 {
     HTChunk *header = me->buffer;
     HTParentAnchor *entity =
-	(request->CopyRequest && request->CopyRequest->anchor) ?
-	    request->CopyRequest->anchor : request->anchor;
+	(request->source && request->source->anchor) ?
+	    request->source->anchor : request->anchor;
 
     /* Generate the HTTP/1.0 RequestLine */
     if (request->method != METHOD_INVALID) {
@@ -323,9 +324,9 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 
 PRIVATE int HTTPRequest_put_character ARGS2(HTStream *, me, char, c)
 {
-    if (!me->target)
+    if (!me->target) {
 	return HT_WOULD_BLOCK;
-    else if (me->transparent)
+    } else if (me->transparent)
 	return PUTC(c);
     else {
 	int status;
@@ -340,9 +341,9 @@ PRIVATE int HTTPRequest_put_character ARGS2(HTStream *, me, char, c)
 
 PRIVATE int HTTPRequest_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
-    if (!me->target)
+    if (!me->target) {
 	return HT_WOULD_BLOCK;
-    else if (me->transparent)
+    } else if (me->transparent)
 	return PUTS(s);
     else {
 	int status;
@@ -357,9 +358,9 @@ PRIVATE int HTTPRequest_put_string ARGS2(HTStream *, me, CONST char*, s)
 
 PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 {
-    if (!me->target)
+    if (!me->target) {
 	return HT_WOULD_BLOCK;
-    else if (me->transparent)
+    } else if (me->transparent)
 	return PUTBLOCK(b, l);
     else {
 	int status;
@@ -377,9 +378,9 @@ PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 */
 PRIVATE int HTTPRequest_flush ARGS1(HTStream *, me)
 {
-    if (!me->target)
+    if (!me->target) {
 	return HT_WOULD_BLOCK;
-    else if (!me->transparent) {
+    } else if (!me->transparent) {
 	int status;
 	HTTPMakeRequest(me, me->request);		  /* Generate header */
 	if ((status=PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK)
@@ -395,21 +396,21 @@ PRIVATE int HTTPRequest_flush ARGS1(HTStream *, me)
 */
 PRIVATE int HTTPRequest_free ARGS1(HTStream *, me)
 {
-    if (!me->target)
+    int status;
+    if (!me->target) {
 	return HT_WOULD_BLOCK;
-    if (!me->transparent) {
-	int status;
+    } else if (!me->transparent) {
 	HTTPMakeRequest(me, me->request);		  /* Generate header */
 	if ((status = PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK)
 	    me->transparent = YES;
 	else
 	    return status;
     }
-    if (FREE_TARGET == HT_WOULD_BLOCK)
+    if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	return HT_WOULD_BLOCK;
     HTChunkFree(me->buffer);
     free(me);
-    return HT_OK;
+    return status;
 }
 
 PRIVATE int HTTPRequest_abort ARGS2(HTStream *, me, HTError, e)

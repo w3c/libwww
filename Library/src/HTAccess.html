@@ -32,10 +32,9 @@ The module contains a lot of stuff but the main topics are:
 <LI><A HREF="#flags">Global Flags</A><P>
 
 <LI><A HREF="#z100">Management of the HTRequest Object</A>
-<LI><A HREF="#Methods">Management of HTTP Methods (GET, PUT, etc.)</A> <P>
-<LI><A HREF="#user">Local User preferences</A>
+<LI><A HREF="#user">Local User preferences</A> <P>
 
-<LI><A HREF="#ProtReg">Access Method Registration</H2></A> <P>
+<LI><A HREF="#ProtReg">Access Scheme Registration</H2></A> <P>
 
 <LI><A HREF="#LoadDoc">Functions for loading a document</A>
 <LI><A HREF="#ClientHelp">Help functions for clients to get started</A>
@@ -54,6 +53,7 @@ The module contains a lot of stuff but the main topics are:
 #include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
 #include "<A HREF="HTStream.html">HTStream.h</A>"
 #include "<A HREF="HTAssoc.html">HTAssoc.h</A>"
+#include "<A HREF="HTMethod.html">HTMethod.h</A>"
 </PRE>
 
 <A NAME="Library"><H2>Initializing and Terminating the Library</H2></A>
@@ -185,54 +185,30 @@ Frees also conversion list hanging from req->conversions.
 extern void HTRequest_delete PARAMS((HTRequest * req));
 </PRE>
 
-<H3>Clear a request structure</H3>
-
-Clears a request structure so that it can be reused. The only thing
-that differs from using free/new is that the list of conversions is
-kept. <P>
-
-<B>NOTE:</B> It is <B>NOT</B> recommended to reuse a request structure!!!
+<H3>Post Web Management</H3>
 
 <PRE>
-extern void HTRequest_clear PARAMS((HTRequest * req));
-</PRE>
+extern BOOL HTRequest_addDestination		PARAMS((HTRequest * src,
+							HTRequest * dest));
+extern BOOL HTRequest_removeDestination		PARAMS((HTRequest * dest));
 
-<A NAME="Methods"><H2>Method Management</H2></A>
+extern BOOL HTRequest_linkDestination		PARAMS((HTRequest * dest));
+extern BOOL HTRequest_unlinkDestination		PARAMS((HTRequest * dest));
 
-These are the valid methods, see <A
-HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP
-Methods</A>. <P>
+extern BOOL HTRequest_removePostWeb		PARAMS((HTRequest * me));
+extern BOOL HTRequest_killPostWeb		PARAMS((HTRequest * me));
 
-<B>NOTE:</B> the anchor list of allowed methods are not a bitflag, not
-at list.
-
-<PRE>
-typedef enum {
-	METHOD_INVALID	= 0x0,
-	METHOD_GET	= 0x1,
-	METHOD_HEAD	= 0x2,    
-	METHOD_POST	= 0x4,    
-	METHOD_PUT	= 0x8,    
-	METHOD_DELETE	= 0x10,
-	METHOD_LINK	= 0x20,
-	METHOD_UNLINK	= 0x40
-} HTMethod;
-</PRE>
-
-<H3>Get Method Enumeration</H3>
-
-Gives the enumeration value of the method as a function of the (char *) name.
-
-<PRE>
-extern HTMethod HTMethod_enum PARAMS((CONST char * name));
-</PRE>
-
-<H3>Get Method String</H3>
-
-The reverse of <I>HTMethod_enum()</I>
-
-<PRE>
-extern CONST char * HTMethod_name PARAMS((HTMethod method));
+#define	HTRequest_mainDestination(me) \
+	((me) &amp;&amp; (me)->source ? (me)->source->mainDestination : NULL)
+#define HTRequest_isDestination(me) \
+	((me) &amp;&amp; (me)->source &amp;&amp; (me) != (me)->source)
+#define HTRequest_isMainDestination(me) \
+	((me) &amp;&amp; (me)->source &amp;&amp; \
+	(me) == (me)->source->mainDestination)
+#define HTRequest_isSource(me) \
+	((me) &amp;&amp; (me)->source &amp;&amp; (me) == (me)->source)
+#define HTRequest_isPostWeb(me) \
+	((me) &amp;&amp; (me)->source)
 </PRE>
 
 <A NAME="user"><H2>Local User Preferences</H2></A>
@@ -530,7 +506,6 @@ structure.
 
 <PRE>
 extern int HTCopyAnchor		PARAMS((HTAnchor *	src_anchor,
-					HTParentAnchor *dest_anchor,
 					HTRequest *	dest_req));
 </PRE>
 
@@ -555,7 +530,7 @@ extern int HTUploadAnchor	PARAMS((HTAnchor *	src_anchor,
 </PRE>
 
 
-<A NAME="ProtReg"><H2>Access Method Registration</H2></A>
+<A NAME="ProtReg"><H2>Access Scheme Registration</H2></A>
 
 An access method is defined by an HTProtocol structure which point to
 the routines for performing the various logical operations on an
@@ -645,7 +620,7 @@ This structure contains information about socket number, input buffer
 for reading from the network etc. The structure is used through out
 the protocol modules and is the reference point for introducing multi
 threaded execution into the library, see specifications on <A
-HREF="http://www.w3.org/hypertext/WWW/Library/User/Features/multithread.html">Multiple
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Architecture/Threads.html">Multiple
 Threads</A>.
 
 <PRE>
@@ -902,33 +877,46 @@ These two fields are used by the error reporting system to keep a
 stack of messages.
 
 <PRE>
-    HTNetInfo *	net_info;		/* Information about socket etc. */
+    char *	redirect;		/* Location or URI */
     int		redirections;		/* Number of redirections */
     time_t	retry_after;		/* Absolut time for a retry */
-    HTRequest *	CopyRequest;
-    BOOL	Source;			/* Yes if we are a "CopyRequest" */
 </PRE>
 
-Protocol specific information, socket number etc.
+We keep track of the number of redirections and also register if we
+have to repeat a request (if we received "5xx Retry After")
 
 <PRE>
-    char *	redirect;		/* Location or URI */
+    HTNetInfo *	net_info;		/* Information about socket etc. */
+</PRE>
+
+This structure contains protocol specific information, socket number etc.
+
+<PRE>
+    HTRequest *	source;			/* Source for request or itself */
+    HTRequest * mainDestination;	/* For the typical case */
+    HTList *	destinations;		/* List of related requests */
+    int		destRequests;		/* Number of destination requests */
+    int		destStreams;		/* Number of destination streams */
+</PRE>
+
+A simple model to bind related request structures together, for
+example the source and destination request in a PUT.
+
+<PRE>
     char *	WWWAAScheme;		/* WWW-Authenticate scheme */
     char *	WWWAARealm;		/* WWW-Authenticate realm */
     char *	WWWprotection;		/* WWW-Protection-Template */
+    char *	authorization;		/* Authorization: field */
+    HTAAScheme	scheme;			/* Authentication scheme used */
 </PRE>
 
-Information taken from the MIME header specifically oriented towards
-the request (not the object itself)
+Access Authentication specific information.
 
 <PRE>
-    char *	authorization;		/* Authorization: field		  */
-    HTAAScheme	scheme;			/* Authentication scheme used	  */
     HTInputSocket *	isoc;		/* InputSocket object for reading */
 </PRE>
 
-These header fields are only used by the server and will be removed at some
-point.
+This header is only used by the server and will be removed at some point.
 
 <PRE>
     HTList *	valid_schemes;		/* Valid auth.schemes		  */

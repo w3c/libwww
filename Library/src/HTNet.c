@@ -76,6 +76,18 @@ PUBLIC int HTThreadGetFDInfo ARGS2(fd_set *, read, fd_set *, write)
 }
 
 
+/*							 HTThreadStateByRequest
+**
+**	This function registers a socket as waiting for the action given
+**	(read or write etc.). It uses the request structure to find the socket
+*/
+PUBLIC void HTThreadStateByRequest ARGS2(HTRequest *, request,
+					 HTThreadAction, action)
+{
+    if (request && request->net_info && request->net_info->sockfd != INVSOC)
+	HTThreadState(request->net_info->sockfd, action);
+}
+
 /*								  HTThreadState
 **
 **	This function registers a socket as waiting for the action given
@@ -104,7 +116,6 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
     }
     switch (action) {
       case THD_SET_WRITE:
-	FD_CLR(sockfd, &HTfd_read);
 	if (!FD_ISSET(sockfd, &HTfd_write))
 	    FD_SET(sockfd, &HTfd_write);
 	if (!FD_ISSET(sockfd, &HTfd_set))
@@ -112,23 +123,22 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 	break;
 
       case THD_CLR_WRITE:
-	FD_CLR(sockfd, &HTfd_read);
 	FD_CLR(sockfd, &HTfd_write);
-	FD_CLR(sockfd, &HTfd_set);
+	if (!FD_ISSET(sockfd, &HTfd_read))
+	    FD_CLR(sockfd, &HTfd_set);
 	break;
 
       case THD_SET_READ:
 	if (!FD_ISSET(sockfd, &HTfd_read))
 	    FD_SET(sockfd, &HTfd_read);
-	FD_CLR(sockfd, &HTfd_write);
 	if (!FD_ISSET(sockfd, &HTfd_set))
 	    FD_SET(sockfd, &HTfd_set);
 	break;
 
       case THD_CLR_READ:
 	FD_CLR(sockfd, &HTfd_read);
-	FD_CLR(sockfd, &HTfd_write);
-	FD_CLR(sockfd, &HTfd_set);
+	if (!FD_ISSET(sockfd, &HTfd_write))
+	    FD_CLR(sockfd, &HTfd_set);
 	break;
 
       case THD_CLOSE:
@@ -139,8 +149,6 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 	break;
 
       case THD_SET_INTR:
-	FD_CLR(sockfd, &HTfd_read);
-	FD_CLR(sockfd, &HTfd_write);
 	if (!FD_ISSET(sockfd, &HTfd_intr))
 	    FD_SET(sockfd, &HTfd_intr);
 	break;

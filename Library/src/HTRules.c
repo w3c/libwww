@@ -347,22 +347,21 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 ** Bugs:
 **	The strings may not contain spaces.
 */
-
 int HTLoadRules ARGS1(CONST char *, filename)
 {
-    FILE * fp = fopen(filename, "r");
-    char line[LINE_LENGTH+1];
-    
-    if (!fp) {
-        if (PROT_TRACE)
-	    fprintf(TDEST, "HTRules: Can't open rules file %s\n", filename);
-	return -1; /* File open error */
+    if (filename) {
+	char line[LINE_LENGTH+1];
+	FILE * fp = fopen(filename, "r");
+	if (fp) {
+	    line[LINE_LENGTH] = '\0';	   /* Make sure that it's terminated */
+	    while (fgets(line, LINE_LENGTH, fp) != NULL)
+		HTSetConfiguration(line);
+	    fclose(fp);
+	    return 0;
+	}
     }
-    for(;;) {
-	if (!fgets(line, LINE_LENGTH+1, fp)) break;	/* EOF or error */
-	(void) HTSetConfiguration(line);
-    }
-    fclose(fp);
-    return 0;		/* No error or syntax errors ignored */
+    if (PROT_TRACE)
+	fprintf(TDEST, "Rule file... Can't open file %s\n", filename);
+    return -1;
 }
 

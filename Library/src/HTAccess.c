@@ -118,37 +118,6 @@ PUBLIC HTRequest * HTRequest_new NOARGS
 }
 
 
-/*	Clear  a request structure
-**	---------------------------
-**	This function clears the reguest structure so that only the
-**	conversions remain. Everything else is as if it was created from
-**	scratch.
-*/
-PUBLIC void HTRequest_clear ARGS1(HTRequest *, req)
-{
-    HTList *conversions;
-    if (!req) {
-	if (TRACE)
-	    fprintf(TDEST, "Clear....... request: Bad argument!\n");
-	return;
-    }
-    conversions = req->conversions;		     /* Save the conversions */
-    HTErrorFree(req);
-    HTAACleanup(req);
-    memset(req, '\0', sizeof(HTRequest));
-
-    /* Now initialize as from scratch but with the old list of conversions */
-    req->conversions = conversions;
-    req->output_format = WWW_PRESENT;	    /* default it to present to user */
-
-#ifdef _WINDOWS   
-    req->hwnd = HTsocketWin ;
-    req->winMsg = HTwinMsg ;
-#endif 
-
-}
-
-
 /*	Delete a request structure
 **	--------------------------
 */
@@ -160,8 +129,6 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 	HTFormatDelete(req);
 	HTErrorFree(req);
 	HTAACleanup(req);
-	if (req->CopyRequest)
-	    HTRequest_delete(req->CopyRequest);
 
 	/* These are temporary until we get a MIME thingy */
 	FREE(req->redirect);
@@ -173,100 +140,196 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
     }
 }
 
-/* --------------------------------------------------------------------------*/
-/*			Management of HTTP Methods			     */
-/* --------------------------------------------------------------------------*/
-
-static char *method_names[] =
-{
-    "INVALID-METHOD",
-    "GET",
-    "HEAD",
-    "POST",
-    "PUT",
-    "DELETE",
-    "LINK",
-    "UNLINK",
-    NULL
-};
-
-/*	Get method enum value
-**	---------------------
+/*
+**  Add a destination request to this source request structure so that we
+**  build the internal request representation of the POST web
+**  Returns YES if OK, else NO
 */
-PUBLIC HTMethod HTMethod_enum ARGS1(CONST char *, name)
+PUBLIC BOOL HTRequest_addDestination ARGS2(HTRequest *, src, HTRequest *, dest)
 {
-    if (name) {
-	if (!strcmp(name, *(method_names+1)))
-	    return METHOD_GET;
-	else if (!strcmp(name, *(method_names+2)))
-	    return METHOD_HEAD;
-	else if (!strcmp(name, *(method_names+3)))
-	    return METHOD_POST;
-	else if (!strcmp(name, *(method_names+4)))
-	    return METHOD_PUT;
-	else if (!strcmp(name, *(method_names+5)))
-	    return METHOD_DELETE;
-	else if (!strcmp(name, *(method_names+6)))
-	    return METHOD_LINK;
-	else if (!strcmp(name, *(method_names+7)))
-	    return METHOD_UNLINK;
-    }
-    return METHOD_INVALID;
-}
-
-
-/*	Get method name
-**	---------------
-**	Returns pointer to entry in static table in memory
-*/
-PUBLIC CONST char * HTMethod_name ARGS1(HTMethod, method)
-{
-    if (method & METHOD_GET)
-	return *(method_names+1);
-    else if (method == METHOD_HEAD)
-	return *(method_names+2);
-    else if (method == METHOD_POST)
-	return *(method_names+3);
-    else if (method == METHOD_PUT)
-	return *(method_names+4);
-    else if (method == METHOD_DELETE)
-	return *(method_names+5);
-    else if (method == METHOD_LINK)
-	return *(method_names+6);
-    else if (method == METHOD_UNLINK)
-	return *(method_names+7);
-    else
-	return *method_names;
-#if 0
-    if ((int)METHOD_INVALID  && (int)method < (int)MAX_METHODS)
-	return method_names[(int)method];
-    else
-	return method_names[(int)METHOD_INVALID];
-#endif
-}
-
-
-#if 0
-/* NOT NEEDED AS METHODS IS NOT A BIT-FLAG */
-/*	Is method in a list of method names?
-**	-----------------------------------
-*/
-PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
-				  HTList *,	list)
-{
-    char * method_name = HTMethod_name(method);
-    HTList *cur = list;
-    char *item;
-
-    while (NULL != (item = (char*)HTList_nextObject(cur))) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, " %s", item);
-	if (0==strcasecomp(item, method_name))
+    if (src && dest) {
+	if (!src->mainDestination) {
+	    src->mainDestination = dest;
+	    src->destRequests = 1;
 	    return YES;
+	} else {
+	    if (!src->destinations)
+		src->destinations = HTList_new();
+	    if (HTList_addObject(src->destinations, (void *) dest)==YES) {
+		src->destRequests++;
+		return YES;
+	    }
+	}
     }
-    return NO;	/* Not found */
+    return NO;
 }
-#endif
+
+
+/*
+**  Remove a destination request from this source request structure
+**  Remember not to delete the main destination as it comes from the
+**  application!
+**  Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTRequest_removeDestination ARGS1(HTRequest *, dest)
+{
+    BOOL found=NO;
+    if (dest && dest->source) {
+	HTRequest *src = dest->source;
+	if (src->mainDestination == dest) {
+	    dest->source = NULL;
+	    src->mainDestination = NULL;
+	    src->destRequests--;
+	    found = YES;
+	} if (src->destinations) {
+	    if (HTList_removeObject(src->destinations, (void *) dest)) {
+		HTRequest_delete(dest);
+		src->destRequests--;
+		found = YES;
+	    }
+	}
+	if (found) {
+	    if (TRACE)
+		fprintf(TDEST, "Destination. %p removed from %p\n",
+			dest, src);
+	}
+	if (!src->destRequests) {
+	    if (TRACE)
+		fprintf(TDEST, "Destination. PostWeb terminated\n");
+	    HTRequest_delete(src);
+	}
+    }
+    return found;
+}
+
+
+/*
+**  Find the source request structure and make the link between the 
+**  source output stream and the destination input stream. There can be
+**  a conversion between the two streams!
+**
+**  Returns YES if link is made, NO otherwise
+*/
+PUBLIC BOOL HTRequest_linkDestination ARGS1(HTRequest *, dest)
+{
+    if (dest && dest->input_stream && dest->source && dest!=dest->source) {
+	HTRequest *source = dest->source;
+	HTStream *pipe = HTStreamStack(source->output_format,
+				       dest->input_format,
+				       dest->input_stream,
+				       dest, YES);
+
+	/* Check if we are the only one - else spawn off T streams */
+
+	/* @@@ We don't do this yet @@@ */
+
+	source->output_stream = pipe ? pipe : dest->input_stream;
+
+	if (STREAM_TRACE)
+	    fprintf(TDEST,"Destination. Linked %p to source %p\n",dest,source);
+	if (++source->destStreams == source->destRequests) {
+	    if (STREAM_TRACE)
+		fprintf(TDEST, "Destination. All destinations ready!\n");
+	    if (source->net_info)	      /* Might already have finished */
+		HTThreadState(source->net_info->sockfd, THD_SET_READ);
+	    return YES;
+	}
+    }
+    return NO;
+}
+
+/*
+**  Remove a feed stream to a destination request from this source
+**  request structure. When all feeds are removed the request tree is
+**  ready to take down and the operation can be terminated.
+**  Returns YES if removed, else NO
+*/
+PUBLIC BOOL HTRequest_unlinkDestination ARGS1(HTRequest *, dest)
+{
+    BOOL found = NO;
+    if (dest && dest->source && dest != dest->source) {
+	HTRequest *src = dest->source;
+	if (src->mainDestination == dest) {
+	    src->output_stream = NULL;
+	    if (dest->input_stream)
+		(*dest->input_stream->isa->_free)(dest->input_stream);
+	    found = YES;
+	} else if (src->destinations) {
+
+	    /* LOOK THROUGH THE LIST AND FIND THE RIGHT ONE */
+
+	}	
+	if (found) {
+	    src->destStreams--;
+	    if (STREAM_TRACE)
+		fprintf(TDEST, "Destination. Unlinked %p from source %p\n",
+			dest, src);
+	    return YES;
+	}
+    }
+    return NO;
+}
+
+/*
+**  Removes all request structures in this PostWeb.
+*/
+PUBLIC BOOL HTRequest_removePostWeb  ARGS1(HTRequest *, me)
+{
+    if (me && me->source) {
+	HTRequest *source = me->source;
+
+	/* Kill main destination */
+	if (source->mainDestination)
+	    HTRequest_removeDestination(source->mainDestination);
+
+	/* Kill all other destinations */
+	if (source->destinations) {
+	    HTList *cur = source->destinations;
+	    HTRequest *pres;
+	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
+		HTRequest_removeDestination(pres);
+	}
+
+	/* Remove source request */
+	HTRequest_removeDestination(source);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**  Kills all threads in a POST WEB connected to this request but
+**  keep the request structures.
+**  Some requests might be preemtive, for example a SMTP request (when
+**  that has been implemented). However, this will be handled internally
+**  in the load function.
+*/
+PUBLIC BOOL HTRequest_killPostWeb  ARGS1(HTRequest *, me)
+{
+    if (me && me->source) {
+	HTRequest *source = me->source;
+
+	/* Kill main destination */
+	if (source->mainDestination)
+	    HTThread_kill(source->mainDestination->net_info);
+
+	/* Kill all other destinations */
+	if (source->destinations) {
+	    HTList *cur = source->destinations;
+	    HTRequest *pres;
+	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
+		HTThread_kill(pres->net_info);
+	}
+	/*
+	** Kill source. The stream tree is now freed so we have to build
+	** that again. This is done in HTRequest_linkDestination()
+	*/
+	HTThread_kill(source->net_info);
+	source->output_stream = NULL;
+	return YES;
+    }
+    return NO;
+}
 
 /* --------------------------------------------------------------------------*/
 /*		      Management of the HTProtocol structure		     */
@@ -741,7 +804,7 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 
       case HT_OK:
 	if (PROT_TRACE) {
-	    fprintf(TDEST,"HTAccess.... SOURCE FINISHED LOADING: `%s\'\n",uri);
+	    fprintf(TDEST,"HTAccess.... FRIEND FINISHED ACCESS: `%s\'\n",uri);
 	}
 	break;
 
@@ -817,7 +880,7 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
     HText *	text;
     char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
 
-    if (PROT_TRACE) fprintf (TDEST, "HTAccess.... Loading document %s\n",
+    if (PROT_TRACE) fprintf (TDEST, "HTAccess.... Accessing document %s\n",
 			     full_address);
 
     request->using_cache = NULL;
@@ -832,7 +895,7 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 	    if (request->childAnchor) {
 		HText_selectAnchor(text, request->childAnchor);
 	    } else {
-		HText_select(text);	
+		HText_select(text);
 	    }
 	    free(full_address);
 	    return HT_LOADED;
@@ -1183,6 +1246,9 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 **  exact method used and which HTTP header fields to transmit by setting the
 **  user fields in the request structure.
 **
+**  BUGS: Should take ALL links in the destination anchor and PUT/POST to
+**  all of them!
+**
 **	returns		HT_WOULD_BLOCK	An I/O operation would block
 **			HT_ERROR	Error has occured
 **			HT_LOADED	Success
@@ -1190,62 +1256,83 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 **			HT_RETRY	if service isn't available before
 **					request->retry_after
 */
-PUBLIC int HTCopyAnchor ARGS3(HTAnchor *,	src_anchor,
-			      HTParentAnchor *,	dest_anchor,
-			      HTRequest *,	dest_req)
-{
+PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
+			      HTRequest *,	main_dest)
+{ 
     HTRequest *src_req;
-    if (!(src_anchor && dest_anchor && dest_req))
+    if (!src_anchor || !main_dest)
 	return HT_ERROR;
 
-    if (!(dest_anchor->methods & dest_req->method)) {
-	char buf[80];
-	sprintf(buf, "It might not be allowed to %s to this destination, continue?", HTMethod_name(dest_req->method));
-	if (!HTConfirm(buf))
-	    return HT_ERROR;
+    /* Build the POST web if not already there */
+    if (!main_dest->source) {
+	src_req = HTRequest_new();		  /* First set up the source */
+	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
+	src_req->ForceReload = YES;
+	src_req->source = src_req;			  /* Point to myself */
+	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
+
+	/* Set up the main link in the source anchor */
+	{
+	    HTAnchor *main = HTAnchor_followMainLink(src_anchor);
+	    HTMethod method = HTAnchor_mainLinkMethod(src_anchor);
+	    if (!main || method==METHOD_INVALID) {
+		if (TRACE)
+		    fprintf(TDEST, "Copy Anchor. No destination found or unspecified method");
+		HTRequest_delete(src_req);
+		return HT_ERROR;
+	    }
+	    main_dest->GenMask += HT_DATE;		 /* Send date header */
+	    main_dest->source = src_req;
+	    main_dest->ForceReload = YES;
+	    main_dest->method = method;
+	    HTRequest_addDestination(src_req, main_dest);
+	    main_dest->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
+	    if (HTLoadAnchor(main, main_dest) == HT_ERROR)
+		return HT_ERROR;
+	}
+
+	/* For all other links in the source anchor */
+	if (src_anchor->links) {
+	    HTList *cur = src_anchor->links;
+	    HTLink *pres;
+	    while ((pres = (HTLink *) HTList_nextObject(cur)) != NULL) {
+		HTAnchor *dest = pres->dest;
+		HTMethod method = pres->method;
+		HTRequest *dest_req;
+		if (!dest || method==METHOD_INVALID) {
+		    if (TRACE)
+			fprintf(TDEST, "Copy Anchor. Bad anchor setup %p\n",
+				dest);
+		    return HT_ERROR;
+		}
+		dest_req = HTRequest_new();
+		dest_req->GenMask += HT_DATE;		 /* Send date header */
+		dest_req->source = src_req;
+		dest_req->ForceReload = YES;
+		dest_req->method = method;
+		HTRequest_addDestination(src_req, dest_req);
+		dest_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
+		if (HTLoadAnchor(dest, dest_req) == HT_ERROR)
+		    return HT_ERROR;
+	    }
+	}
+    } else {			 /* Use the existing Post Web and restart it */
+	src_req = main_dest->source;
+	if (src_req->mainDestination)
+	    if (HTLoadDocument(main_dest, NO) == HT_ERROR)
+		return HT_ERROR;
+	if (src_req->destinations) {
+	    HTList *cur = src_anchor->links;
+	    HTRequest *pres;
+	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
+		if (HTLoadDocument(pres, NO) == HT_ERROR)
+		    return HT_ERROR;
+	    }
+	}
     }
 
-    /* Get an internal HTRequest structure to handle the source part */
-    src_req = HTRequest_new();
-    HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
-    src_req->ForceReload = YES;
-
-    /* Mark the source request so that there only is one HTThreadTerminate()
-       function call handling the outcome of the destination request */
-    src_req->Source = YES;
-
-    /* Use SOURCE but at some point we can introduce format conversion here! */
-    src_req->output_format = WWW_SOURCE;
-
-#ifdef NO_UNIX_IO
-    {
-	char * addr = HTAnchor_address((HTAnchor *) src_anchor);
-	char *access = HTParse(addr, "", PARSE_ACCESS);
-	if (*access && !strcmp(access, "file"))
-	    dest_req->BlockingIO = YES;
-	free(addr);
-	free(access);
-    }
-#endif
-
-    dest_req->GenMask += HT_DATE;			 /* Send date header */
-    dest_req->CopyRequest = src_req;
-
-    /* First open the destination then open the source */
-    if (HTLoadAnchor((HTAnchor *) dest_anchor, dest_req) != HT_ERROR) {
-	int status;
-	/*
-	** Now make the link between the two request structures. First setup
-	** the output stream of the source so that data get redirected to
-	** the destination. Then set up the call back function so that
-	** the destination can call for more data
-	*/
-	src_req->output_stream = dest_req->input_stream;
-	dest_req->PostCallBack = HTSocketRead;
-	if ((status = HTLoadAnchor(src_anchor, src_req)) != HT_LOADED)
-	    return status;
-    }
-    return HT_ERROR;
+    /* Now open the source */
+    return HTLoadAnchor(src_anchor, src_req);
 }
 
 

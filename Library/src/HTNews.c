@@ -45,8 +45,6 @@ struct _HTStructured {
 	/* ... */
 };
 
-#define NEWS_PROGRESS(foo) HTProgress(foo)
-
 
 #define NEXT_CHAR HTInputSocket_getCharacter(isoc)
 #define LINE_LENGTH 512			/* Maximum length of line of ARTICLE etc */
@@ -1051,7 +1049,6 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
     for(retries=0;retries<2; retries++){
     
         if (s<0) {
-            NEWS_PROGRESS("Connecting to NewsHost ...");
 	    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	    status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
 	    if (status<0){
@@ -1110,7 +1107,6 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	if (status<0) break;
 	if (status >= 411 && status <= 430) break; /* no such article/group */
 	if ((status/ 100) !=2) {
-	    HTProgress(response_text);
 /*	    NXRunAlertPanel("News access", response_text,
 	    	NULL,NULL,NULL);
 */

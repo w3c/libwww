@@ -112,7 +112,10 @@ typedef enum _HTThreadAction {
 </PRE>
 
 <PRE>
-extern void HTThreadState	PARAMS((SOCKFD sockfd, HTThreadAction action));
+extern void HTThreadState		PARAMS((SOCKFD sockfd,
+					HTThreadAction action));
+extern void HTThreadStateByRequest	PARAMS((HTRequest * request,
+					HTThreadAction action));
 </PRE>
 
 This function makes life easier if you want to mark all sockets as

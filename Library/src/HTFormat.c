@@ -549,14 +549,13 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     HTList * conversion[2];
     int which_list;
     double best_quality = -1e30;		/* Pretty bad! */
-    HTPresentation *pres, *match, *best_match=0;
+    HTPresentation *pres, *best_match=NULL;
     
     request->error_block = YES;		   /* No more error output to stream */
-    if (TRACE) fprintf(TDEST,
-    	"StreamStack. Constructing stream stack for %s to %s\n",
-	HTAtom_name(rep_in),	
-	HTAtom_name(rep_out));
-
+    if (STREAM_TRACE) {
+	fprintf(TDEST, "StreamStack. Constructing stream stack for %s to %s\n",
+		HTAtom_name(rep_in), HTAtom_name(rep_out));
+    }
     if (guess  &&  rep_in == WWW_UNKNOWN) {
 	if (PROT_TRACE) fprintf(TDEST, "Returning... guessing stream\n");
 	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
@@ -573,47 +572,36 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 	HTList * cur = conversion[which_list];
 	
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
-	    if	((pres->rep == rep_in || wild_match(pres->rep, rep_in)) &&
-		 (pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))) {
-		if (!best_match ||
-		    better_match(pres->rep, best_match->rep) ||
+	    if ((pres->rep==rep_in || wild_match(pres->rep, rep_in)) &&
+		(pres->rep_out==rep_out || wild_match(pres->rep_out,rep_out))){
+		if (!best_match || better_match(pres->rep, best_match->rep) ||
 		    (!better_match(best_match->rep, pres->rep) &&
 		     pres->quality > best_quality)) {
 #ifdef GOT_SYSTEM
-		    if (!pres->test_command||(system(pres->test_command)==0)){ 
-			if (TRACE && pres->test_command) 
-			    fprintf(TDEST, "HTStreamStack testing %s %d\n",pres->test_command,system(pres->test_command)); 
+		    int result=0;
+		    if (pres->test_command) {
+			result = system(pres->test_command);
+			if (STREAM_TRACE) 
+			    fprintf(TDEST, "StreamStack. system(%s) returns %d\n", pres->test_command, result);
+		    }
+		    if (!result) {
 			best_match = pres;
 			best_quality = pres->quality;
 		    }
+#else
+		    best_match = pres;
+		    best_quality = pres->quality;
 #endif /* GOT_SYSTEM */
 		}
 	    }
 	}
     }
-
-    match = best_match ? best_match : NULL;
-    if (match) {
-	if (match->rep == WWW_SOURCE) {
-	    if (TRACE) fprintf(TDEST, "StreamStack. Don't know how to handle this, so put out %s to %s\n",
-			       HTAtom_name(match->rep), 
-			       HTAtom_name(rep_out));
-	}
-	return (*match->converter)(request, match->command, rep_in, rep_out,
-				   output_stream);
-    }
-    {
-	char *msg = NULL;
-	StrAllocCopy(msg, "Can't convert from ");
-	StrAllocCat(msg, HTAtom_name(rep_in));
-	StrAllocCat(msg, " to ");
-	StrAllocCat(msg, HTAtom_name(rep_out));
-	HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
-		   (void *) msg, (int) strlen(msg), "HTStreamStack");
-	free(msg);
-    }
-    request->error_block = NO;		 /* We didn't put up a stream anyway */
-    return NULL;
+    if (best_match)
+	return (*best_match->converter)(request, best_match->command,
+					rep_in, rep_out, output_stream);
+    if (STREAM_TRACE)
+	fprintf(TDEST, "StreamStack. No match found, dumping to local file\n");
+    return HTSaveLocally(request, NULL, rep_in, rep_out, output_stream);
 }
 	
 
@@ -635,11 +623,11 @@ PUBLIC double HTStackValue ARGS5(
     int which_list;
     HTList* conversion[2];
     
-    if (TRACE) fprintf(TDEST,
-    	"StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
-	HTAtom_name(rep_in),	initial_value,
-	HTAtom_name(rep_out));
-		
+    if (STREAM_TRACE) {
+	fprintf(TDEST, "StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
+		HTAtom_name(rep_in),	initial_value,
+		HTAtom_name(rep_out));
+    }
     if (rep_out == WWW_SOURCE ||
     	rep_out == rep_in) return 0.0;
 

@@ -35,8 +35,8 @@ CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
 FTP = /afs/w3.org/member/Dist
 
-# PURIFY_LOG = $(HOME)/purify-output
-PURIFY_CACHE = $(HOME)/purify-cache
+# PURIFY_LOG = /home2/frystyk/purify-output
+PURIFY_CACHE = /home2/frystyk/purify-cache
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
 
@@ -105,10 +105,6 @@ SPECIFIC =  \
 # This is now done by cat in WWW/All/Implementation/Makefile
 # include $(ABS)$(LM)Version.make
 
-# PURIFY_LOG = $(HOME)/purify-output
-PURIFY_CACHE = $(HOME)/purify-cache
-PURIFY = purify -cache-dir=$(PURIFY_CACHE) # -logfile=$(PURIFY_LOG)
-
 $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
 	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS) $(WWWLIB) \
 	$(WAISLIB) $(MATHLIB)
@@ -116,7 +112,8 @@ $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 
 purify : $(OBJS) $(USELIBDIR)/libwww.a
-	$(PURIFY) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS) $(WWWLIB) \
+	purify -cache-dir=$(PURIFY_CACHE) \
+	$(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS) $(WWWLIB) \
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)

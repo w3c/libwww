@@ -286,7 +286,7 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 #define IOCTL(s,c,a)	ioctlsocket(s,c, (long *) a)
 
 #define MKDIR(a,b)	mkdir((a))
-#define REMOVE_FILE	remove
+#define REMOVE(a)	remove((a))
 #define DEFAULT_SUFFIXES	"."
 
 #include &lt;io.h&gt;
@@ -1137,8 +1137,12 @@ value. However, the value <B>IS</B> used!
 #define MKDIR(a,b)	mkdir((a), (b))
 #endif
 
-#ifndef REMOVE_FILE
-#define REMOVE_FILE	unlink
+#ifndef RMDIR
+#define RMDIR(a)	rmdir((a))
+#endif
+
+#ifndef REMOVE
+#define REMOVE(a)	unlink((a))
 #endif
 
 #ifndef DEFAULT_SUFFIXES

@@ -46,6 +46,7 @@ Library of Common Code</A>.
 
 #include "HTList.h"
 #include "HTAtom.h"
+#include "HTMethod.h"
 </PRE>
 
 <A NAME="td"><H2>Types for Atoms</H2></A>
@@ -79,8 +80,10 @@ Must be AFTER definition of HTAnchor:
 typedef HTAtom HTLinkType;
 
 typedef struct {
-  HTAnchor *	dest;		/* The anchor to which this leads */
-  HTLinkType *	type;		/* Semantics of this link */
+    HTAnchor *	dest;		/* The anchor to which this leads */
+    HTLinkType *type;		/* Semantics of this link */
+    HTMethod	method;		/* Method for this link, for example PUT */
+    int		result;		/* Result of any attempt to get this link */
 } HTLink;
 </PRE>
 
@@ -251,17 +254,24 @@ the <EM>main link</EM>. If one already exists then this new link is
 simply added to the list.
 
 <PRE>
-extern BOOL HTAnchor_link		PARAMS((HTAnchor *source,
-						HTAnchor *destination,
-						HTLinkType *type));
+extern BOOL HTAnchor_link	PARAMS((HTAnchor *	source,
+					HTAnchor *	destination,
+					HTLinkType *	type,
+					HTMethod	method));
 </PRE>
 
-<H3>Find destination of link</H3>
+<H3>Find destination of Main Link</H3>
 
-FInd the anchor which is the main target of this anchor.
+Find the anchor which is the main target of this anchor.
 
 <PRE>
 extern HTAnchor * HTAnchor_followMainLink	PARAMS((HTAnchor *me));
+</PRE>
+
+<H3>Find Method of Main Link</H3>
+
+<PRE>
+extern HTMethod HTAnchor_mainLinkMethod		PARAMS((HTAnchor *me));
 </PRE>
 
 <H3>Find destination with given relationship</H3>
@@ -273,14 +283,35 @@ extern HTAnchor * HTAnchor_followTypedLink	PARAMS((HTAnchor *me,
 							HTLinkType *type));
 </PRE>
 
+<H3>Is this anchor a destination link?</H3>
+
+If the destination anchor is a link from the source anchor then return
+YES, else NO.
+
+<PRE>
+extern BOOL HTAnchor_isLink		PARAMS((HTAnchor *src, HTAnchor *dest));
+</PRE>
+
 <H3>Make a particular link the main link</H3>
 
 Any outgoing link can at any time be the main destination.
 
 <PRE>
-extern BOOL HTAnchor_makeMainLink		PARAMS((HTAnchor *me,
-							HTLink *movingLink));
+extern BOOL HTAnchor_makeMainLink	PARAMS((HTAnchor *me, HTLink *movingLink));
 </PRE>
+
+<H3>Move Link Information</H3>
+
+Move all link information form one anchor to another. This is useful
+when we get a redirection on a request and want to inherit the link
+information to the new anchor and change the link information in the
+old one to "redirect".
+
+<PRE>
+extern BOOL HTAnchor_moveLinks			PARAMS((HTAnchor *src,
+							HTAnchor *dest));
+</PRE>
+
 
 <H3>Move a child anchor to the head of the list of its siblings</H3>
 

@@ -1,7 +1,7 @@
 /*         		    					     HTBrowse.c
 **	HYPERTEXT BROWSER FOR DUMB TERMINALS
 **
-**	(c) COPYRIGHT MIT 1995.
+**	(c) COPRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **  Authors:
@@ -82,7 +82,7 @@ extern int socketdebug;		   /* Must be declared in the socket library */
 #endif
 
 #ifndef DEFAULT_OUTPUT_FILE
-#define DEFAULT_OUTPUT_FILE		"WWW-out"	/* Output file name for non-interactive run */
+#define DEFAULT_OUTPUT_FILE		"www-out"
 #endif
 
 #ifndef DEFAULT_REF_HEAD
@@ -202,6 +202,60 @@ PUBLIC char *HTSearchScript;
 
 
 /* ------------------------------------------------------------------------- */
+/*				THREAD FUNCTIONS			     */
+/* ------------------------------------------------------------------------- */
+
+/*
+**  This function creates a new request structure and adds it to the global
+**  list of active threads
+*/
+PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
+{
+    HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
+    if (!reqlist)
+	reqlist = HTList_new();
+    
+    if (Interactive)
+	HTPresenterInit(newreq->conversions);		/* Set up local list */
+
+    if (!UseMulti)
+	request->BlockingIO = YES;			 /* Use blocking I/O */
+    HTList_addObject(reqlist, (void *) newreq);
+    return newreq;
+}
+
+
+/*
+**  This function deletes a request structure and takes it out of the list
+**  of active threads.
+*/
+PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
+{
+    if (oldreq) {
+	if (reqlist)
+	    HTList_removeObject(reqlist, (void *) oldreq);
+	HTRequest_delete(oldreq);
+    }
+}
+
+
+/*
+**  This function deletes the whole list of active threads.
+*/
+PRIVATE void Thread_deleteAll NOARGS
+{
+    if (reqlist) {
+	HTList *cur = reqlist;
+	HTRequest* pres;
+	while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
+	    HTRequest_delete(pres);
+	}
+	HTList_delete(reqlist);
+	reqlist = NULL;
+    }
+}
+
+/* ------------------------------------------------------------------------- */
 /*				HELP FUNCTIONS				     */
 /* ------------------------------------------------------------------------- */
 
@@ -293,14 +347,11 @@ PRIVATE void help_screen NOARGS {
 		HText_sourceAnchors(HTMainText));
     }
 	    
-    if (UseMulti) {
+    if (UseMulti)
 	printf("  z               Interrupt a request\n");
-    }
 
-    if (HTAnchor_isIndex(HTMainAnchor)) {
-	printf(
-		"  Find <words>    Search this index for given words (separated by spaces).\n"); 
-    }
+    if (HTAnchor_isIndex(HTMainAnchor))
+	printf("  Find <words>    Search this index for given words (separated by spaces).\n"); 
 	    
     if (HTHistory_canBacktrack()) {
 	printf("  Recall          List visited documents.\n");
@@ -317,30 +368,31 @@ PRIVATE void help_screen NOARGS {
 	    printf("  Previous        Take previous link from last document.\n");
 
     printf("  REFresh         Refresh screen with current document\n");
-    printf("  Go <address>    Go to document of given [relative] address\n");
-	    
+
+    printf("  Go <address>    Go to document of given [relative] address\n");	
+    printf("  PUT             Upload a document to a HTTP server using PUT method\n");
+    printf("  POST             Upload a document to a HTTP server using PUT method\n");
+    
 #ifdef GOT_SYSTEM
     if (!HTClientHost) {	/* NOT for telnet guest! */
-	    printf("  PRInt           Print text of this document. *\n");
-	    printf("  ! <command>     Execute shell <command> without leaving.\n");
-	    printf("  > <file>        Save the text of this document in <file>. *\n");
-	    printf("                  If <file> exists use '>!' to overwrite it.\n");
-	    printf("  >> <file>       Append the text of this document to <file>. *\n");
-	    printf("  | <command>     Pipe this document to the shell <command>. *\n");
+	printf("  PRInt           Print text of this document. *\n");
+	printf("  ! <command>     Execute shell <command> without leaving.\n");
+	printf("  > <file>        Save the text of this document in <file>. *\n");
+	printf("                  If <file> exists use '>!' to overwrite it.\n");
+	printf("  >> <file>       Append the text of this document to <file>. *\n");
+	printf("  | <command>     Pipe this document to the shell <command>. *\n");
 #ifdef unix
-	    printf("  CD <directory>  Change local working directory.\n");
+	printf("  CD <directory>  Change local working directory.\n");
 #endif
-	    printf("* Prefix these commands with \"Source \" to use raw source.\n\n");
+	printf("* Prefix these commands with \"Source \" to use raw source.\n\n");
     }
 #endif
 	    
 #ifdef SLAVE_PRINTER
-    printf(
-    "  Ps              Print text of this document to Terminal's Slave printer.\n");
+    printf("  ps              Print text of this document to Terminal's Slave printer.\n");
 #endif
 	    
     printf("  Verbose         Switch to %sverbose mode.\n", WWW_TraceFlag ? "non-" : "");
-	    
     printf("  Help            Display this page.\n");
     printf("  Manual          Jump to the online manual for this program\n");
     printf("  Quit            Leave the www program.\n");	    
@@ -527,58 +579,50 @@ PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
 	fprintf(stderr, "Warning: %s (%s)\n", Msg, Str ? Str : "");
 }
 
-/* ------------------------------------------------------------------------- */
-/*				EVENT FUNCTIONS				     */
-/* ------------------------------------------------------------------------- */
 
 /*
-**  This function creates a new request structure and adds it to the global
-**  list of active threads
+**  Upload a document either from local file or from a HTTP server
+**  to a HTTP server. The method can be either PUT or POST.
+**  Returns the result of the load function.
 */
-PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
+PRIVATE int Upload ARGS2(HTRequest **, actreq, HTMethod, method)
 {
-    HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
-    if (!reqlist)
-	reqlist = HTList_new();
-    
-    if (Interactive)
-	HTPresenterInit(newreq->conversions);		/* Set up local list */
+    char *this_addr = HTAnchor_address((HTAnchor*) HTMainAnchor);
+    char *sc, *de;
+    int status = HT_INTERNAL;
+    if ((sc = HTPrompt("Source:", this_addr)) != NULL &&
+	(de = HTPrompt("Destination:", NULL)) != NULL) {
+	BOOL confirm=YES;
+	char *fd=HTParse(HTStrip(de), this_addr,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	char *fs=HTParse(HTStrip(sc), this_addr,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	HTParentAnchor *dest=(HTParentAnchor*)HTAnchor_findAddress(fd);
+	HTParentAnchor *src=(HTParentAnchor*)HTAnchor_findAddress(fs);
+	
+	/* Now link the two anchors together if not already done */
+	if (HTAnchor_isLink((HTAnchor *) src, (HTAnchor *) dest)) {
+	    CONST char *metstr =
+		HTMethod_name(HTAnchor_mainLinkMethod((HTAnchor *) src));
+	    char *msg = (char *) malloc(strlen(metstr)+100);
+	    if (!msg) outofmem(__FILE__, "Upload");
+	    sprintf(msg, "The destination is already related to the source with a %s method, continue?", metstr);
+	    confirm = HTConfirm(msg);
+	    free(msg);
+	} else
+	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
 
-    if (!UseMulti)
-	request->BlockingIO = YES;			 /* Use blocking I/O */
-    HTList_addObject(reqlist, (void *) newreq);
-    return newreq;
-}
-
-
-/*
-**  This function deletes a request structure and takes it out of the list
-**  of active threads.
-*/
-PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
-{
-    if (oldreq) {
-	if (reqlist)
-	    HTList_removeObject(reqlist, (void *) oldreq);
-	HTRequest_delete(oldreq);
-    }
-}
-
-
-/*
-**  This function deletes the whole list of active threads.
-*/
-PRIVATE void Thread_deleteAll NOARGS
-{
-    if (reqlist) {
-	HTList *cur = reqlist;
-	HTRequest* pres;
-	while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
-	    HTRequest_delete(pres);
+	if (confirm) {
+	    *actreq = Thread_new(YES);		       /* This is the source */
+	    status = HTCopyAnchor((HTAnchor *) src, *actreq);
 	}
-	HTList_delete(reqlist);
-	reqlist = NULL;
+	free(this_addr);
+	free(sc);
+	free(de);
+	free(fd);
+	free(fs);
     }
+    return status;
 }
 
 
@@ -591,8 +635,7 @@ PRIVATE void Thread_deleteAll NOARGS
 **
 **  Henrik Frystyk 02/03-94
 */
-PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req,
-				    char *, This, char *, Next)
+PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req, char *,This, char *,Next)
 {
     FILE *fp;
     char *fname;
@@ -630,6 +673,9 @@ PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req,
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
+/* ------------------------------------------------------------------------- */
+/*				EVENT FUNCTIONS				     */
+/* ------------------------------------------------------------------------- */
 
 /*								   EventHandler
 **
@@ -718,29 +764,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	break;
 	
       case 'C':
-	if (Check_User_Input("COPY")) {
-	    char *this_addr = HTAnchor_address((HTAnchor*) HTMainAnchor);
-	    char *source, *dest;
-	    if ((source = HTPrompt("Source:", this_addr)) != NULL &&
-		(dest = HTPrompt("Destination:", NULL)) != NULL) {
-		char * full_dest = HTParse(HTStrip(dest), this_addr,
-					   PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-		char * full_source = HTParse(HTStrip(source), this_addr,
-					     PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-		HTParentAnchor*	dest_anchor = (HTParentAnchor*) HTAnchor_findAddress(full_dest);
-		HTParentAnchor*	source_anchor = (HTParentAnchor*) HTAnchor_findAddress(full_source);
-		*actreq = Thread_new(YES);	       /* This is the source */
-		(*actreq)->method = METHOD_PUT;
-		loadstat = HTCopyAnchor((HTAnchor *) source_anchor,
-					dest_anchor, *actreq);
-		free(this_addr);
-		free(source);
-		free(dest);
-		free(full_dest);
-		free(full_source);
-	    }
 #ifdef unix
-	} else if (Check_User_Input("CD")) {   /* Change working directory ? */
+	if (Check_User_Input("CD")) {   /* Change working directory ? */
 	    goto lcd;
 #endif
 	} else
@@ -873,7 +898,9 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	break;
 	
       case 'P':                    
-	if (Check_User_Input("PREVIOUS")) {
+	if (Check_User_Input("POST")) {
+	    loadstat = Upload(actreq, METHOD_POST);
+	} else if (Check_User_Input("PREVIOUS")) {
 	    if (!HTHistory_canMoveBy(-1)){ 
 		printf("\n  Can't take the PREVIOUS link from the last");
 		if (!HTHistory_canBacktrack())
@@ -888,7 +915,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	else if (!HTClientHost && Check_User_Input("PRINT")) {
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
 	    char * command;
-	    char * tmplate = (char*)getenv("WWW_PRINT_COMMAND");
+	    char * tmplate = (char *) getenv("WWW_PRINT_COMMAND");
 	    int result;
 	    
 	    if (!tmplate) tmplate = "www -n -na -p66 '%s' | lpr";
@@ -913,12 +940,14 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    while(HText_canScrollDown(HTMainText)) {
 		HText_scrollDown(HTMainText);
 	    }
-	    printf("\f");  /* Form feed for new page */
+	    printf("\f");  			   /* Form feed for new page */
 	    printf ("%s",SLAVE_PRINTER_OFF);
 	    HText_scrollTop(HTMainText);
 	}	
 #endif
-	else
+	else if (Check_User_Input("PUT")) {
+	    loadstat = Upload(actreq, METHOD_PUT);
+	} else
 	    found = NO;
 	break;
 	

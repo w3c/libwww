@@ -23,6 +23,7 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTChunk.h"
+#include "HTMethod.h"
 #include "HTSocket.h"
 #include "HTFWrite.h"
 #include "HTMIME.h"					 /* Implemented here */
@@ -90,7 +91,7 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
     CONST char * check_pointer;				   /* checking input */
     char *value;
     me->transparent = YES;		  /* Pump rest of data right through */
-    if (!ptr)					       /* No header to parse */
+    if (!me->buffer->data)			       /* No header to parse */
 	return;
     while (ptr < stop) {
 	switch (state) {
@@ -300,9 +301,8 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 
 	  case ALLOW:	    
 	    while ((value = HTNextField(&ptr)) != NULL) {
-		char *lc = value;
 		HTMethod new_method;
-		while ((*lc = TOUPPER(*lc))) lc++; 
+		/* We treat them as case-insensitive! */
 		if ((new_method = HTMethod_enum(value)) != METHOD_INVALID)
 		    anchor->methods += new_method;
 	    }
@@ -516,9 +516,12 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	    HTChunkPutc(me->buffer, *b);
 	b++;
     }
-    if (l > 0)						   /* Anything left? */
-        return (*me->target->isa->put_block)(me->target, b, l);
-    return HT_OK;
+    if (me->target) {				    /* Is the stream set up? */
+	if (l > 0)					   /* Anything left? */
+	    return (*me->target->isa->put_block)(me->target, b, l);
+	return HT_OK;
+    }
+    return HT_WOULD_BLOCK;
 }
 
 
@@ -558,6 +561,8 @@ PRIVATE int HTMIME_free ARGS1(HTStream *, me)
 	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
+    if (PROT_TRACE)
+	fprintf(TDEST, "MIME........ FREEING....\n");
     HTChunkFree(me->buffer);
     free(me);
     return status;
@@ -570,6 +575,9 @@ PRIVATE int HTMIME_abort ARGS2(HTStream *, me, HTError, e)
     int status = HT_ERROR;
     if (me->target)
 	status = (*me->target->isa->abort)(me->target, e);
+    if (PROT_TRACE)
+	fprintf(TDEST, "MIME........ ABORTING...\n");
+    HTChunkFree(me->buffer);
     free(me);
     return status;
 }
