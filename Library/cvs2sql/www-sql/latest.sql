@@ -17,14 +17,17 @@ Here you can find all the <A
 HREF="http://www.w3.org/Library/">libwww</A> code changes after a
 certain date/time. If you haven't already then <A
 HREF="http://www.w3.org/Library/cvs.html">get the libwww code base
-directly from CVS</A>.<P>
-
+directly from CVS</A>. You can also browse the <A
+HREF="http://dev.w3.org/cgi-bin/cvsweb/">online libwww CVS
+repository</A> directly - this may be easier if you are looking for
+changes to a specific file.
+<P>
 If you already have checked out the code then you can get the latest
 changes by doing a <A
 HREF="http://www.w3.org/Library/cvs.html#update">CVS update</A> and <A
 HREF="http://www.w3.org/Library/cvs.html#Easy">recompile the
-code</A>.<P>
-
+code</A>.
+<P>
 Discussions about libwww should happen on the <A
 HREF="http://www.w3.org/Library/#Forums">&lt;www-lib@w3.org&gt;</A>
 mailing list.<P>
