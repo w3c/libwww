@@ -23,50 +23,29 @@ and a timeout. The callback will be called every time the timer expires.
 #include "wwwsys.h"
 #include "HTReq.h"
 
-#ifndef IN_EVENT
 typedef struct _HTTimer HTTimer;
-#endif
 
 typedef int HTTimerCallback (HTTimer *, void *, HTEventType type);
 </PRE>
-<H3>
+<H2>
   Create and Delete Timers
-</H3>
+</H2>
+<P>
+The callback function is the function that is to be called when timer expires.
 <PRE>
 extern HTTimer * HTTimer_new (HTTimer *, HTTimerCallback *, 
 			      void *, ms_t millis,
                               BOOL relative, BOOL repetitive);
 extern BOOL HTTimer_delete (HTTimer * timer);
 extern BOOL HTTimer_deleteAll (void);
+</PRE>
+<H2>
+  Dispatch Timer
+</H2>
+<P>
+Just do it
+<PRE>
 extern int HTTimer_dispatch (HTTimer * timer);
-extern ms_t HTTimer_getTime(HTTimer * timer);
-</PRE>
-<H3>
-  Reset an already existing Repetitive Timer
-</H3>
-<PRE>
-extern BOOL HTTimer_refresh(HTTimer * timer, ms_t now);
-</PRE>
-<H3>
-  Has this timer Expired?
-</H3>
-<P>
-If so then it's time to call the dispatcher!
-<PRE>
-extern BOOL HTTimer_hasTimerExpired (HTTimer * timer);
-</PRE>
-<H3>
-  Platform Specific Timers
-</H3>
-<P>
-On some platform, timers are supported via events or other OS specific
-mechanisms. You can make libwww can support these by registering a platform
-specific timer add and timer delete method.
-<PRE>
-typedef BOOL HTTimerSetCallback (HTTimer * timer);
-
-extern BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf);
-extern BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf);
 </PRE>
 <H3>
   Get the next timer in line
@@ -76,6 +55,66 @@ Dispatches all expired timers and optionally returns the time till the next
 one.
 <PRE>
 extern int HTTimer_next (ms_t * pSoonest);
+</PRE>
+<H3>
+  Reset an already existing Repetitive Timer
+</H3>
+<PRE>
+extern BOOL HTTimer_refresh(HTTimer * timer, ms_t now);
+</PRE>
+<H2>
+  Get Information about a Timer Object
+</H2>
+<H3>
+  Absolute Time when This Timer Expires
+</H3>
+<P>
+Absolute time in millies when this timer will expire
+<PRE>
+extern ms_t HTTimer_expiresAbsolute (HTTimer * timer);
+</PRE>
+<H3>
+  Relative Time this Timer is running
+</H3>
+<P>
+Gived the relative time in millies that this timer was registered with. For
+example, a relative timer set to expire in 20ms will return 20.
+<PRE>
+#define HTTimer_getTime(t)	HTTimer_expiresRelative(t)
+extern ms_t HTTimer_expiresRelative (HTTimer * timer);
+</PRE>
+<H3>
+  Has this Timer Expired?
+</H3>
+<P>
+If so then it's time to call the dispatcher!
+<PRE>
+extern BOOL HTTimer_hasTimerExpired (HTTimer * timer);
+</PRE>
+<H3>
+  What callback is this Timer Registered with?
+</H3>
+<PRE>
+extern HTTimerCallback * HTTimer_callback (HTTimer * timer);
+</PRE>
+<H3>
+  Is this Time relative or Absolute?
+</H3>
+<PRE>
+extern BOOL HTTimer_isRelative (HTTimer * timer);
+</PRE>
+<H2>
+  Platform Specific Timers
+</H2>
+<P>
+On some platform, timers are supported via events or other OS specific
+mechanisms. You can make libwww can support these by registering a platform
+specific timer add and timer delete method.
+<PRE>
+typedef BOOL HTTimerSetCallback (HTTimer * timer);
+
+extern BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf);
+extern BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf);
 </PRE>
 <PRE>
 #endif /* HTTIMER_H */

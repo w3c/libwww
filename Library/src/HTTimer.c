@@ -1,17 +1,15 @@
-/*				    				     HTEvntrg.c
-**	EVENT MANAGER
+/*
+**	TIMER MANAGER
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **	@(#) $Id$
 **
-**	Updated HTEvent module 
-**	This new module combines the functions of the old HTEvent module and 
-**	the HTThread module. We retain the old HTThread module, but it
-**	consists of calls to the HTEvent interfaces
+**	Timers based on the X server timers
 **
 ** Authors:
 **	EGP	Eric Prud'hommeaux (eric@w3.org)
+**	HFN	Henrik Frystyk Nielsen
 ** Bugs
 **
 */
@@ -37,7 +35,7 @@ PRIVATE HTList * Timers = NULL;			   /* List of timers */
 PRIVATE HTTimerSetCallback * SetPlatformTimer = NULL;
 PRIVATE HTTimerSetCallback * DeletePlatformTimer = NULL;
 
-#if 0 /* WATCH_RECURSION */
+#ifdef WATCH_RECURSION
 
 PRIVATE HTTimer * InTimer = NULL;
 #define CHECKME(timer) if (InTimer != NULL) HTDebugBreak(__FILE__, __LINE__, "\n"); InTimer = timer;
@@ -100,11 +98,24 @@ PUBLIC BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf)
     return NO;
 }
 
-PUBLIC ms_t HTTimer_getTime(HTTimer * timer)
+PUBLIC ms_t HTTimer_expiresRelative (HTTimer * timer)
 {
-    if (timer)
-	return timer->millis;
-    return 0;
+    return timer ? timer->millis : 0;
+}
+
+PUBLIC ms_t HTTimer_expiresAbsolute (HTTimer * timer)
+{
+    return timer ? timer->expires : 0;
+}
+
+PUBLIC HTTimerCallback * HTTimer_callback (HTTimer * timer)
+{
+    return timer ? timer->cbf : NULL;
+}
+
+PUBLIC BOOL HTTimer_isRelative (HTTimer * timer)
+{
+    return timer ? timer->relative : NO;
 }
 
 PUBLIC BOOL HTTimer_delete (HTTimer * timer)
