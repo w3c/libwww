@@ -9,8 +9,8 @@ Changes with libwww 5.3.2
 2002-06-05	Jose Kahan <jose@w3.org>
 
         * Updated the auto-tools files in ~/libwww and ~/libwww/config
-	  to the latest versions (autoconf 2.13, libtool 1.4.2a). If you
-   	  when compiling you see warning messages saying:
+	  to the latest versions (autoconf 2.13, libtool 1.4.2a, automake
+	   1.4-p4). If when compiling you see warning messages saying:
 	    libtool: test =: unary operator expected
   	  it means you're running an old version of libtool. If you
           cannot update this tool, then, go to the libwww directory and type:
