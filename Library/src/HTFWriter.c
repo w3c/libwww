@@ -75,12 +75,13 @@ PRIVATE CONST HTStreamClass HTBlackHoleClass =
 PRIVATE HTStream HTBlackHoleInstance =
 {
 	&HTBlackHoleClass,
+
 	NULL,
 	NO,				/* HENRIK 08/02-94 */
 	NULL,
-	NULL,
-
 	NO,
+	NO,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
