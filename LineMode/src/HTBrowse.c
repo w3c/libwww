@@ -1499,7 +1499,7 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	  case '!':
 	    if (!HTClientHost) {	                /* Local only!!!!!!! */
 		int result;
-		
+		ErrMsg("Executing", this_command);
 		result = system(strchr(this_command, '!') + 1);
 		if (result) printf("  %s  returns %d\n",
 				   strchr(this_command, '!') + 1, result);
@@ -1536,9 +1536,9 @@ PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
 {
     if (WWW_TraceFlag) {
 	if (Str)
-	    fprintf(stderr, "Line Mode Browser Message: %s (%s)\n", Msg, Str);
+	    fprintf(stderr, "Line Mode Browser: %s (%s)\n", Msg, Str);
 	else
-	    fprintf(stderr, "Line Mode Browser Message: %s\n", Msg);
+	    fprintf(stderr, "Line Mode Browser: %s\n", Msg);
     }
 }
 
