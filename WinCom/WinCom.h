@@ -59,6 +59,9 @@ public:
 	BOOL SetIniDetectVersionConflict (BOOL detect);
 	BOOL GetIniDetectVersionConflict (void);
 
+	BOOL SetIniShowServerStatus (BOOL show);
+	BOOL GetIniShowServerStatus (void);
+
 // Implementation
 
 	//{{AFX_MSG(CWinComApp)
@@ -74,6 +77,7 @@ protected:
 	CRecentFileList * m_pDestinationList;
 	CRecentFileList * m_pLinkList;
 	BOOL            m_detectVersionConflict;
+	BOOL            m_showServerStatus;
 };
 
 /////////////////////////////////////////////////////////////////////////////

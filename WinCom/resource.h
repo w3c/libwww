@@ -59,6 +59,7 @@
 #define ID_PROXY_SETUP                  32771
 #define ID_OPTIONS_PROXIES              32772
 #define ID_VERSION_CONFLICT             32777
+#define ID_SHOW_SERVER_STATUS           32778
 #define IDS_WINCOM                      61446
 #define IDS_SOURCE                      61447
 #define IDS_CANNOT_OPEN_FILE            61448
@@ -77,7 +78,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        154
-#define _APS_NEXT_COMMAND_VALUE         32778
+#define _APS_NEXT_COMMAND_VALUE         32779
 #define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

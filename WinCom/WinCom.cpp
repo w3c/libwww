@@ -136,7 +136,8 @@ CWinComApp::CWinComApp()
 	// TODO: add construction code here,
 	m_pSourceList = NULL;
 	m_pDestinationList = NULL;
-        m_detectVersionConflict = TRUE;
+        m_detectVersionConflict = FALSE;
+        m_showServerStatus = FALSE;
     
 	// Place all significant initialization in InitInstance
 }
@@ -178,8 +179,12 @@ BOOL CWinComApp::InitInstance()
             HTAlert_add(UserNameAndPassword, HT_A_USER_PW);
         }
 
-        /* Get all the warnings we can */
-        HTError_setShow((HTErrorShow) (HT_ERR_SHOW_INFO | HT_ERR_SHOW_PARS));
+        /* Set up amount of warning info */
+        {
+            m_showServerStatus = GetIniShowServerStatus();
+            int show_flag = m_showServerStatus ? HT_ERR_SHOW_PARS : 0;
+            HTError_setShow((HTErrorShow) (HT_ERR_SHOW_INFO | show_flag));
+        }
 
 	/* Add our own after filter to handle 412 precondition failed */
         HTNet_addAfter(precondition_handler, NULL, NULL, HT_PRECONDITION_FAILED, HT_FILTER_MIDDLE);
@@ -328,6 +333,22 @@ BOOL CWinComApp::GetIniDetectVersionConflict (void)
     CString strCWD		= "Detect Conflicts";
     m_detectVersionConflict = GetProfileInt(strSection, strCWD, FALSE);
     return m_detectVersionConflict;
+}
+
+BOOL CWinComApp::SetIniShowServerStatus (BOOL show)
+{
+    CString strSection		= "Application";
+    CString strCWD  		= "Show Server Status";
+    m_showServerStatus = show;
+    return WriteProfileInt(strSection, strCWD, m_showServerStatus);
+}
+
+BOOL CWinComApp::GetIniShowServerStatus (void)
+{
+    CString strSection		= "Application";
+    CString strCWD		= "Show Server Status";
+    m_showServerStatus = GetProfileInt(strSection, strCWD, FALSE);
+    return m_showServerStatus;
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -57,12 +57,15 @@ public:
 
 protected:
 	BOOL            m_detectVersionConflict;
+	BOOL            m_showServerStatus;
 
 // Generated message map functions
 protected:
 	//{{AFX_MSG(CWinComDoc)
 	afx_msg void OnVersionConflict();
 	afx_msg void OnUpdateVersionConflict(CCmdUI* pCmdUI);
+	afx_msg void OnShowServerStatus();
+	afx_msg void OnUpdateShowServerStatus(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

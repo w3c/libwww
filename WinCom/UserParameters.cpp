@@ -31,7 +31,7 @@ PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] =
     { 201, "Document Created",				"success" },
     { 202, "Accepted", 					"success" },
     { 203, "Non-authoritative Information",		"success" },
-    { 204, "Operation Succeeded but Response contained no data",		"success" },
+    { 204, "Document Updated",          		"success" },
     { 205, "Reset Content",				"success" },
     { 206, "Partial Content",				"success" },
     { 207, "Partial Update OK",				"success" },
@@ -158,7 +158,7 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
                 double pro = (double) b_written/cl*100;
                 char buf[10];
                 HTNumToStr((unsigned long) cl, buf, 10);
-                sprintf(space, "Written (%d%% of %s)", (int) pro, buf);
+                sprintf(space, "Writing (%d%% of %s)", (int) pro, buf);
             } else
                 sprintf(space, "Writing...");
         }

@@ -26,6 +26,8 @@ BEGIN_MESSAGE_MAP(CWinComDoc, CDocument)
 	//{{AFX_MSG_MAP(CWinComDoc)
 	ON_COMMAND(ID_VERSION_CONFLICT, OnVersionConflict)
 	ON_UPDATE_COMMAND_UI(ID_VERSION_CONFLICT, OnUpdateVersionConflict)
+	ON_COMMAND(ID_SHOW_SERVER_STATUS, OnShowServerStatus)
+	ON_UPDATE_COMMAND_UI(ID_SHOW_SERVER_STATUS, OnUpdateShowServerStatus)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -41,6 +43,7 @@ CWinComDoc::CWinComDoc()
     m_pRequest = new CRequest(this);
     m_cwd = HTGetCurrentDirectoryURL();
     m_detectVersionConflict = pApp->GetIniDetectVersionConflict();
+    m_showServerStatus = pApp->GetIniShowServerStatus();
 }
 
 CWinComDoc::~CWinComDoc()
@@ -50,6 +53,7 @@ CWinComDoc::~CWinComDoc()
     delete m_pRequest;
     HT_FREE(m_cwd);
     pApp->SetIniDetectVersionConflict(m_detectVersionConflict);
+    pApp->SetIniShowServerStatus(m_showServerStatus);
 }
 
 BOOL CWinComDoc::OnNewDocument()
@@ -211,4 +215,16 @@ void CWinComDoc::OnVersionConflict()
 void CWinComDoc::OnUpdateVersionConflict(CCmdUI* pCmdUI) 
 {
     pCmdUI->SetCheck(m_detectVersionConflict);
+}
+
+void CWinComDoc::OnShowServerStatus() 
+{
+    m_showServerStatus = !m_showServerStatus;
+    int show_flag = m_showServerStatus ? HT_ERR_SHOW_PARS : 0;
+    HTError_setShow((HTErrorShow) (HT_ERR_SHOW_INFO | show_flag));
+}
+
+void CWinComDoc::OnUpdateShowServerStatus(CCmdUI* pCmdUI) 
+{
+    pCmdUI->SetCheck(m_showServerStatus);
 }
