@@ -8,14 +8,15 @@ int main()
     HTList * converters = HTList_new();		/* List of converters */
     HTList * encodings = HTList_new();		/* List of encoders */
 
+    /* Set up the application's event loop. We use the 
+       example event loop that comes with the Library.  */
+    HTEventrgInit();
+
     /* Initialize libwww core */
     HTLibInit("TestApp", "1.0");
 
     /* Turn on TRACE so we can see what is going on */
     WWWTRACE = SHOW_CORE_TRACE;
-
-    /* Register the default event loop */
-    HTEventInit();
 
     /* Register the default set of transport protocols */
     HTTransportInit();

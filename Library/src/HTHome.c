@@ -218,7 +218,7 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 {
 #ifdef WWWTRACE
     WWWTRACE = 0;
-    if (shortnames) {
+    if (shortnames && *shortnames) {
 	char * ptr = (char *) shortnames;
 	for(; *ptr; ptr++) {
 	    switch (*ptr) {
@@ -241,6 +241,8 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	    }
 	}
 	if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
+    } else {
+	WWWTRACE = SHOW_ALL_TRACE;
     }
     return WWWTRACE;
 #else

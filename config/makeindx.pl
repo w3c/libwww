@@ -114,6 +114,7 @@ sub findFunctions
 sub getDLLs
 {
     local($list) = @_;
+    return if ($list eq "WWWLib.html");
     open(LIST, "grep \"#include\" $list|grep -v sysdep|") || die "Couldn't open list file \"$list\":$!\n";
     $list =~ s/.*\/(\w+\.html)/$1/;
     $list =~ s/\.html//;
