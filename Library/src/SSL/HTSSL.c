@@ -151,6 +151,14 @@ PUBLIC HTSSL_PROTOCOL HTSSL_protMethod (void)
 */
 PUBLIC BOOL HTSSL_init (void)
 {
+    char rnd_filename[_POSIX_PATH_MAX];
+
+    /*
+    ** Initialise OpenSSL 0.9.5 random number generator.
+    */
+    RAND_file_name(rnd_filename, sizeof(rnd_filename));
+    RAND_load_file(rnd_filename, -1);
+    
     if (!app_ctx) {
 	SSL_METHOD * meth = NULL;
         SSLeay_add_ssl_algorithms();
@@ -370,15 +378,15 @@ PUBLIC BOOL HTSSL_isOpen (HTSSL * htssl)
 
 PUBLIC int HTSSL_read (HTSSL * htssl, int sd, char * buff, int len)
 {
-    return htssl ? SSL_read(htssl->ssl, buff, len) : -1;
+    return htssl && htssl->ssl ? SSL_read(htssl->ssl, buff, len) : -1;
 }
 
 PUBLIC int HTSSL_write (HTSSL * htssl, int sd, char * buff, int len)
 {
-    return htssl ? SSL_write(htssl->ssl, buff, len) : -1;
+    return htssl && htssl->ssl ? SSL_write(htssl->ssl, buff, len) : -1;
 }
 
 PUBLIC int HTSSL_getError (HTSSL * htssl, int status)
 {
-    return htssl ? SSL_get_error(htssl->ssl, status) : -1;
+    return htssl && htssl->ssl ? SSL_get_error(htssl->ssl, status) : -1;
 }

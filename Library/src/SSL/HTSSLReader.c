@@ -66,12 +66,6 @@ PRIVATE int HTSSLReader_free (HTInputStream * me)
     if (me->htssl) {
 	HTSSL_free(me->htssl);
 	me->htssl = NULL;
-
-	/*
-	** do it just because SSLeay doesn't want to create a new ssl structure
-	** on a non-fresh socket
-	*/
-	HTHost_setCloseNotification (me->host, YES);   
     }
 
     if (net && net->readStream) {

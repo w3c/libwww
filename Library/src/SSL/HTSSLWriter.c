@@ -66,12 +66,6 @@ PRIVATE int HTSSLWriter_free (HTOutputStream * me)
     if (me->htssl){    
         HTSSL_free(me->htssl);
         me->htssl = NULL;
-
-        /*
-	** Do it just because SSLeay doesn't want to create a new ssl structure
-	** on a non-fresh socket
-	*/
-        HTHost_setCloseNotification (me->host, YES);        
     }
     return HT_OK;
 }
@@ -249,6 +243,10 @@ PRIVATE int HTSSLWriter_put_string (HTOutputStream * me, const char * s)
 PRIVATE int HTSSLWriter_close (HTOutputStream * me)
 {
     HTTRACE(STREAM_TRACE, "HTSSLWriter. FREEING....\n");
+    if (me->htssl) {
+	HTSSL_free(me->htssl);
+	me->htssl = NULL;
+    }
     HT_FREE(me);
     return HT_OK;
 }
