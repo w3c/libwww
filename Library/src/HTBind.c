@@ -145,9 +145,9 @@ PUBLIC void HTBind_setDelimiters (CONST char * new_suffixes)
 **	If filename suffix is already defined its previous
 **	definition is overridden (or modified)
 */
-PUBLIC BOOL HTBind_addFormat (CONST char *	suffix,
-			      CONST char *	representation,
-			      double		value)
+PUBLIC BOOL HTBind_addType (CONST char *	suffix,
+			    CONST char *	representation,
+			    double		value)
 {
     return HTBind_add(suffix, representation, NULL, NULL, value);
 }
