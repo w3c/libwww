@@ -375,7 +375,7 @@ int main (int argc, char ** argv)
 #endif
 
 	/* Find shared log message and get id */
-	if ((q = strcasestr(ptr, "\nLog Message:")) != NULL) {
+	if ((q = HTStrCaseStr(ptr, "\nLog Message:")) != NULL) {
 	    comment = q+14;
 	    *q = '\0';
 	}
@@ -387,7 +387,7 @@ int main (int argc, char ** argv)
 	    Cleanup(-1, sql, loginfo);
 
 	/* For each operation, find the files involved */
-	while ((q = strcasestr(ptr, " Files:")) != NULL) {
+	while ((q = HTStrCaseStr(ptr, " Files:")) != NULL) {
 
 	    /* Find the operation */
 	    files = q+9;
