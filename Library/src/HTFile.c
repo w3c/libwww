@@ -483,10 +483,18 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		BOOL editable = HTEditable(file->local, &file->stat_info);
 		if (file_suffix_binding) HTBind_getAnchorBindings(anchor);
 		if (editable) HTAnchor_appendAllow(anchor, METHOD_PUT);
+
+		/* Set the file size */
 		if (file->stat_info.st_size)
 		    HTAnchor_setLength(anchor, file->stat_info.st_size);
+
+		/* Set the file last modified time stamp */
+		if (file->stat_info.st_mtime > 0)
+		    HTAnchor_setLastModified(anchor, file->stat_info.st_mtime);
+
+		/* Check to see if we can edit it */
 		if (!editable && !file->stat_info.st_size) {
-		    HTRequest_addError(request, ERR_FATAL,NO,HTERR_NO_CONTENT,
+		    HTRequest_addError(request, ERR_INFO, NO, HTERR_NO_CONTENT,
 				       NULL, 0, "HTLoadFile");
 		    file->state = FS_NO_DATA;
 		} else
