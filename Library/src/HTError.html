@@ -15,14 +15,13 @@
 </PRE>
 <P>
 The Error class provides an easy API for registering errors ocurring while
-the Library serves a request. All errors are registered in an "error
-stack"&nbsp;in the <A HREF="HTReq.html">Request object</A> which allows for
-nested errors. The Error class is both natural language independent and
-application independent in that it uses enumerations in order to refer to
-specific errors. It is for the application to provide an error presentation
-module which interprets the errors associated with a request. An eample of
-such an implementation can be found in the <A HREF="HTDialog.html">HTDialog
-module</A>.
+libwww serves a request. All errors are registered in an "error stack"&nbsp;in
+the <A HREF="HTReq.html">Request object</A> which allows for nested errors.
+The Error class is both natural language independent and application independent
+in that it uses enumerations in order to refer to specific errors. It is
+for the application to provide an error presentation module which interprets
+the errors associated with a request. An eample of such an implementation
+can be found in the <A HREF="HTDialog.html">HTDialog module</A>.
 <P>
 This module is implemented by <A HREF="HTError.c">HTError.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
@@ -47,8 +46,32 @@ typedef enum _HTSeverity {
   <A NAME="errorinfo">Error Codes and Messages</A>
 </H2>
 <P>
-<B>Note:</B> All non-HTTP error codes have index numbers &gt; HTERR_HTTP_CODES,
-and they will not be shown in the error-message generated.
+<B>Note:</B> All non-HTTP error codes have (<CODE>index number &gt;
+HTERR_HTTP_CODES</CODE>), and they will not be shown in the error-message
+generated.
+<H3>
+  The Error Message Object
+</H3>
+<P>
+An error consists of a messsage code, a short, natural language specific
+message, and a URI which can point to more information. This module also
+provides a <A HREF="#Lang">default set of error objects with English text</A>.
+Errors are registered together with a severity and you can also set the mode
+for <A HREF="#What">what class of error severities should be shown and which
+should be ignored</A>.
+<PRE>
+typedef struct _HTErrorMessage {
+    int  	code;           	/* Error number */
+    char *	msg;          		/* Short explanation */
+    char *	url;			/* Explaning URL */
+} HTErrorMessage;
+</PRE>
+<H3>
+  <A NAME="Codes">Error Message Index</A>
+</H3>
+<P>
+Error codes are registered in an array where the following enumerations serve
+as an index. They must not be replaced!
 <PRE>
 typedef enum _HTErrorElement {
 	HTERR_CONTINUE = 0,					/* 100 */
@@ -138,42 +161,14 @@ typedef enum _HTErrorElement {
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
 </PRE>
-<H2>
-  What Errors should be Parsed Through?
-</H2>
+<H3>
+  <A NAME="Lang">Default English Language Messages</A>
+</H3>
 <P>
-This variable dictates which errors should be put out when generating the
-message to the user. The first four enumerations make it possible to see
-`everything as bad or worse than' this level, e.g. <CODE>HT_ERR_SHOW_NON_FATAL
-</CODE>shows messages of type <CODE>HT_ERR_SHOW_NON_FATAL </CODE>and
-<CODE>HT_ERR_SHOW_FATAL</CODE>.
-<P>
-<B>Note:</B> The default value is made so that it only puts a message to
-<EM>stderr</EM> if a `real' error has occurred. If a separate widget is available
-for information and error messages then probably
-<CODE>HT_ERR_SHOW_DETAILED</CODE> would be more appropriate.
+Default set of error messages arranged in an array into which the
+<A HREF="#Codes">index codes</A> serve as index. These error objects can
+of course be initialized as you like.
 <PRE>
-typedef enum _HTErrorShow {
-    HT_ERR_SHOW_FATAL     = 0x1,
-    HT_ERR_SHOW_NON_FATAL = 0x3,
-    HT_ERR_SHOW_WARNING   = 0x7,
-    HT_ERR_SHOW_INFO 	  = 0xF,
-    HT_ERR_SHOW_PARS	  = 0x10,
-    HT_ERR_SHOW_LOCATION  = 0x20,
-    HT_ERR_SHOW_IGNORE    = 0x40,
-    HT_ERR_SHOW_FIRST     = 0x80,
-    HT_ERR_SHOW_LINKS     = 0x100,
-    HT_ERR_SHOW_DEFAULT	  = 0x13,
-    HT_ERR_SHOW_DETAILED  = 0x1F,
-    HT_ERR_SHOW_DEBUG	  = 0x7F
-} HTErrorShow;
-
-typedef struct _HTErrorMessage {
-    int  	code;           	/* Error number */
-    char *	msg;          		/* Short explanation */
-    char *	url;			/* Explaning URL */
-} HTErrorMessage;
-
 /*    CODE  ERROR MESSAGE				ERROR URL */
 #define HTERR_ENGLISH_INITIALIZER \
     { 100, "Continue", 					"information" }, \
@@ -182,7 +177,7 @@ typedef struct _HTErrorMessage {
     { 201, "Created", 					"success" }, \
     { 202, "Accepted", 					"success" }, \
     { 203, "Non-authoritative Information",		"success" }, \
-    { 204, "No Content",				"success" }, \
+    { 204, "Document Updated",				"success" }, \
     { 205, "Reset Content",				"success" }, \
     { 206, "Partial Content",				"success" }, \
     { 207, "Partial Update OK",				"success" }, \
@@ -261,7 +256,36 @@ ignored","internal"}, \
     { 0,   "This version has expired and will be automatically reloaded", "internal" }, \
     { 0,   "Loading new rules must be explicitly acknowledged", "internal" }, \
     { 0,   "Automatic proxy redirection must be explicitly acknowledged", "internal" }
-
+</PRE>
+<H2>
+  <A NAME="What">What Errors should be Ignored or Passed Through?</A>
+</H2>
+<P>
+This variable dictates which errors should be put out when generating the
+message to the user. The first four enumerations make it possible to see
+`everything as bad or worse than' this level, e.g. <CODE>HT_ERR_SHOW_NON_FATAL
+</CODE>shows messages of type <CODE>HT_ERR_SHOW_NON_FATAL </CODE>and
+<CODE>HT_ERR_SHOW_FATAL</CODE>.
+<P>
+<B>Note:</B> The default value is made so that it only puts a message to
+<EM>stderr</EM> if a `real' error has occurred. If a separate widget is available
+for information and error messages then probably
+<CODE>HT_ERR_SHOW_DETAILED</CODE> would be more appropriate.
+<PRE>
+typedef enum _HTErrorShow {
+    HT_ERR_SHOW_FATAL     = 0x1,
+    HT_ERR_SHOW_NON_FATAL = 0x3,
+    HT_ERR_SHOW_WARNING   = 0x7,
+    HT_ERR_SHOW_INFO 	  = 0xF,
+    HT_ERR_SHOW_PARS	  = 0x10,
+    HT_ERR_SHOW_LOCATION  = 0x20,
+    HT_ERR_SHOW_IGNORE    = 0x40,
+    HT_ERR_SHOW_FIRST     = 0x80,
+    HT_ERR_SHOW_LINKS     = 0x100,
+    HT_ERR_SHOW_DEFAULT	  = 0x13,
+    HT_ERR_SHOW_DETAILED  = 0x1F,
+    HT_ERR_SHOW_DEBUG	  = 0x7F
+} HTErrorShow;
 
 extern HTErrorShow HTError_show (void);
 extern BOOL HTError_setShow (HTErrorShow mask);
