@@ -1,7 +1,12 @@
 ## Process this file with Automake to create Makefile.in.
 
-lib_LTLIBRARIES = libxmlparse.la
-libxmlparse_la_LDFLAGS = -version-info "1:0:1"
+LDFLAGS = -version-info "1:0:1"
+
+lib_LTLIBRARIES = \
+	@XMLPARSE@
+
+EXTRA_LTLIBRARIES = \
+	libxmlparse.la
 
 INCLUDES = -I$(srcdir)/../xmltok
 
@@ -9,6 +14,8 @@ libxmlparse_la_SOURCES = \
 	hashtable.h \
 	hashtable.c \
 	xmlparse.c
+
+libxmlparse_la_LDFLAGS = -rpath $(libdir)
 
 include_HEADERS = \
 	xmlparse.h

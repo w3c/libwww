@@ -1,7 +1,12 @@
 ## Process this file with Automake to create Makefile.in.
 
-lib_LTLIBRARIES = libxmltok.la
-libxmltok_la_LDFLAGS = -version-info "1:0:1"
+LDFLAGS = -version-info "1:0:1"
+
+lib_LTLIBRARIES = \
+	@XMLTOK@
+
+EXTRA_LTLIBRARIES = \
+	libxmltok.la
 
 libxmltok_la_SOURCES = \
 	asciitab.h \
@@ -15,6 +20,8 @@ libxmltok_la_SOURCES = \
 	utf8tab.h \
 	xmlrole.c \
 	xmltok.c
+
+libxmltok_la_LDFLAGS = -rpath $(libdir)
 
 EXTRA_DIST = \
 	xmltok_impl.c
