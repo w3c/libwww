@@ -6,3 +6,4 @@ HTPlain.c
 HTML.c
 HText.c
 HTHInit.c
+HTStyle.c
