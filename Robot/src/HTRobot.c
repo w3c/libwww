@@ -857,7 +857,13 @@ PUBLIC Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod metho
 PRIVATE int Finger_delete (Finger * me)
 {
     HTList_removeObject(me->robot->fingers, (void *)me);
+
+    /* Done with one more */
     me->robot->cnt--;
+
+    /* See if we don't need to keep all the metadata around in the anchors */
+    if (!(me->robot->flags & MR_KEEP_META))
+	HTAnchor_clearHeader(HTRequest_anchor(me->request));
 
     /*
     **  If we are down at one request then flush the output buffer
@@ -865,6 +871,7 @@ PRIVATE int Finger_delete (Finger * me)
     if (me->request) {
 	if (me->robot->cnt == 1) HTRequest_forceFlush(me->request);
 	HTRequest_delete(me->request);
+	me->request = NULL;
     }
 
     /*
