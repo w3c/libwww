@@ -112,8 +112,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		    }
 		}
 	    }
-	    if (!first) PUTBLOCK(crlf, 2);
 	}
+	if (!first) PUTBLOCK(crlf, 2);
     }
     if (request->RequestMask & HT_C_ACCEPT_CHAR) {
 	int list;
@@ -131,9 +131,9 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 			PUTC(',');
 		    PUTS(HTAtom_name(pres->atom));
 		}
-		if (!first) PUTBLOCK(crlf, 2);
 	    }
 	}
+	if (!first) PUTBLOCK(crlf, 2);
     }
     if (request->RequestMask & HT_C_ACCEPT_ENC) {
 	int list;
@@ -155,9 +155,9 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 			PUTS(qstr);
 		    }
 		}
-		if (!first) PUTBLOCK(crlf, 2);
 	    }
 	}
+	if (!first) PUTBLOCK(crlf, 2);
     }
     if (request->RequestMask & HT_C_ACCEPT_LAN) {
 	int list;
@@ -179,9 +179,9 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 			PUTS(qstr);
 		    }
 		}
-		if (!first) PUTBLOCK(crlf, 2);
 	    }
 	}
+	if (!first) PUTBLOCK(crlf, 2);
     }
     if (request->credentials) {			    /* Access authentication */
 	HTAssocList * cur = request->credentials;
