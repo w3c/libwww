@@ -666,6 +666,7 @@ PRIVATE int GopherEvent (SOCKET soc, void * pVoid, HTEventType type)
     HTNet * net = gopher->net;
     HTRequest * request = HTNet_request(net);
     HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTHost * host = HTNet_host(net);
     char * url = HTAnchor_physical(anchor);
     
     if (type == HTEvent_CLOSE) {			      /* Interrupted */
@@ -740,7 +741,8 @@ PRIVATE int GopherEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case GOPHER_NEED_CONNECTION:
-	    status = HTDoConnect(net, url, GOPHER_PORT);
+	    status = HTHost_connect(host, net, url, GOPHER_PORT);
+	    host = HTNet_host(net);
 	    if (status == HT_OK) {
 		/*
 		** Check the protocol class to see if we have connected to a
