@@ -15,14 +15,9 @@
 
 /* Library Includes */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTWWWStr.h"
-#include "HTAccess.h"
-#include "HTError.h"
-#include "HTEvent.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTNetMan.h"
-#include "HTReqMan.h"
 #include "HTTPGen.h"
 #include "HTTPUtil.h"
 #include "HTTPRes.h"					       /* Implements */
@@ -49,21 +44,22 @@ struct _HTStream {
 PRIVATE int HTTPMakeResponse (HTStream * me, HTRequest * request)
 {
     char crlf[3];
+    HTRsHd response_mask = HTRequest_rsHd(request);
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
-    if (request->ResponseMask & HT_S_LOCATION) {		/* @@@ */
+    if (response_mask & HT_S_LOCATION) {		/* @@@ */
 
     }
-    if (request->ResponseMask & HT_S_PROXY_AUTH) {		/* @@@ */
+    if (response_mask & HT_S_PROXY_AUTH) {		/* @@@ */
 
     }
-    if (request->ResponseMask & HT_S_PUBLIC) {			/* @@@ */
+    if (response_mask & HT_S_PUBLIC) {			/* @@@ */
 
     }
-    if (request->ResponseMask & HT_S_RETRY_AFTER) {		/* @@@ */
+    if (response_mask & HT_S_RETRY_AFTER) {		/* @@@ */
 
     }
-    if (request->ResponseMask & HT_S_SERVER) {
+    if (response_mask & HT_S_SERVER) {
 	PUTS("Server: ");
 	PUTS(HTLib_appName());
 	PUTC('/');
@@ -74,7 +70,7 @@ PRIVATE int HTTPMakeResponse (HTStream * me, HTRequest * request)
 	PUTS(HTLib_version());
 	PUTBLOCK(crlf, 2);
     }
-    if (request->ResponseMask & HT_S_WWW_AUTH) {		/* @@@ */
+    if (response_mask & HT_S_WWW_AUTH) {		/* @@@ */
 
     }
     if(PROT_TRACE)HTTrace("HTTP........ Generating Response Headers\n");

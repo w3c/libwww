@@ -15,8 +15,6 @@
 #include "WWWUtil.h"
 #include "HTAlert.h"
 #include "HTError.h"
-#include "HTNetMan.h"
-#include "HTReqMan.h"
 #include "HTChannl.h"					 /* Implemented here */
 
 #define HASH_SIZE	67
@@ -86,7 +84,8 @@ PUBLIC HTChannel * HTChannel_new (HTNet * net, BOOL active)
     if (net) {
 	HTList * list = NULL;
 	HTChannel * ch = NULL;
-	int hash = net->sockfd < 0 ? 0 : HASH(net->sockfd);
+	SOCKET sockfd = HTNet_socket(net);
+	int hash = sockfd < 0 ? 0 : HASH(sockfd);
 	if (PROT_TRACE) HTTrace("Channel..... Hash value is %d\n", hash);
 	if (!channels) {
 	    if (!(channels = (HTList **) HT_CALLOC(HASH_SIZE,sizeof(HTList*))))
@@ -96,7 +95,7 @@ PUBLIC HTChannel * HTChannel_new (HTNet * net, BOOL active)
 	list = channels[hash];
 	if ((ch = (HTChannel *) HT_CALLOC(1, sizeof(HTChannel))) == NULL)
 	    HT_OUTOFMEM("HTChannel_new");	    
-	ch->sockfd = net->sockfd;
+	ch->sockfd = sockfd;
 	ch->mode = HT_CH_SINGLE;
 	ch->active = active;
 	ch->semaphore = 1;

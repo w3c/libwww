@@ -18,7 +18,6 @@
 /* Implementation dependent include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTReqMan.h"
 #include "HTEvent.h"					 /* Implemented here */
 
 PRIVATE HTEvent_registerCallback * RegisterCBF = NULL;

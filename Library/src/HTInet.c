@@ -16,7 +16,6 @@
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
-#include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTDNS.h"
 #include "HTInet.h"					 /* Implemented here */

@@ -12,13 +12,10 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTMulti.h"
 #include "HTFile.h"
-#include "HTBind.h"
-#include "HTList.h"
-#include "HTReqMan.h"
 
 PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
 
@@ -246,7 +243,10 @@ PRIVATE char * HTGetBest (HTRequest * req, char * path)
     /*
     ** Finally get best that is readable
     */
-    if (HTRank(matches, req->conversions, req->languages, req->encodings)) {
+    if (HTRank(matches,
+	       HTRequest_conversion(req),
+	       HTRequest_language(req),
+	       HTRequest_encoding(req))) {
 	cur = matches;
 	while ((best = (HTContentDescription*)HTList_nextObject(cur))) {
 	    if (best && best->filename) {

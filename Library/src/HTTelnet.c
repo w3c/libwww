@@ -22,14 +22,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTAccess.h"
-#include "HTAnchor.h"
-#include "HTChunk.h"
-#include "HTReqMan.h"
-#include "HTAlert.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTTelnet.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -258,7 +252,9 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 */
 PUBLIC int HTLoadTelnet (SOCKET soc, HTRequest * request, SockOps ops)
 {
-    char *url = HTAnchor_physical(request->anchor);
+    HTNet * net = HTRequest_net(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * url = HTAnchor_physical(anchor);
 
     /* This is a trick as we don't have any socket! */
     if (ops == FD_NONE) {
@@ -266,12 +262,12 @@ PUBLIC int HTLoadTelnet (SOCKET soc, HTRequest * request, SockOps ops)
 	HTCleanTelnetString(url);
 	{
 	    int status = remote_session(request, url);
-	    HTNet_delete(request->net, status);
+	    HTNet_delete(net, status);
 	}
     } else if (ops == FD_CLOSE)				      /* Interrupted */
-	HTNet_delete(request->net, HT_INTERRUPTED);
+	HTNet_delete(net, HT_INTERRUPTED);
     else
-	HTNet_delete(request->net, HT_ERROR);
+	HTNet_delete(net, HT_ERROR);
     return HT_OK;
 }
 

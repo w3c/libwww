@@ -18,7 +18,6 @@
 #include "WWWLib.h"
 #include "WWWApp.h"
 #include "WWWHTTP.h"
-#include "HTReqMan.h"
 #include "HTDialog.h"					 /* Implemented here */
 
 /*

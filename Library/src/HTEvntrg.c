@@ -30,11 +30,9 @@
 
 /* Implementation dependent include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTReqMan.h"
-#include "HTError.h"
-#include "HTDNS.h"
 #include "HTEvntrg.h"					 /* Implemented here */
 
 #ifdef WWW_WIN_ASYNC

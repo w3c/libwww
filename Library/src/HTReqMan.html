@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Private Request Definition</TITLE>
 </HEAD>
 <BODY>
@@ -231,8 +231,6 @@ extern BOOL HTRequest_killPostWeb (HTRequest * me);
 	(me) == (me)-&gt;source-&gt;mainDestination)
 #define HTRequest_isSource(me) \
 	((me) &amp;&amp; (me)-&gt;source &amp;&amp; (me) == (me)-&gt;source)
-#define HTRequest_isPostWeb(me) ((me) &amp;&amp; (me)-&gt;source)
-#define HTRequest_source(me) ((me) ? (me)-&gt;source : NULL)
 </PRE>
 <P>
 End of Declaration

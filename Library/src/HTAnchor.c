@@ -17,8 +17,7 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTFormat.h"
 #include "HTParse.h"
 #include "HTMethod.h"

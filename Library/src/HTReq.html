@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Request Class</TITLE>
 </HEAD>
 <BODY>
@@ -83,6 +83,15 @@ functions in the <A HREF="HTAccess.html">HTAccess module</A>. If you like,
 you can of course use this directly!
 <PRE>
 extern BOOL HTLoad (HTRequest * request, BOOL recursive);
+</PRE>
+<H2>
+  Killing a Request
+</H2>
+<P>
+This function kills this particular request, see <A HREF="HTNet.html">HTNet
+module</A> for a function that kills them all.
+<PRE>
+extern BOOL HTRequest_kill(HTRequest * request);
 </PRE>
 <H2>
   Creation and Deletion Methods
@@ -483,13 +492,23 @@ extern HTList * HTRequest_parser (HTRequest *request, BOOL *override);
   Sending data to the Network
 </H2>
 <P>
+Multiple Request objects can be connected in order to create a
+<A HREF="../User/Architecture/PostWeb.html">PostWeb</A> for sending data
+from one location (source) to another (destination). Request objects are
+bound together by connecting the output stream of the source with the input
+stream of the destination requst. The connection can be done directly so
+that the output from the source is exactly what is sent to the destination
+or there can be a conversion between the two streams so that we can do
+conversions on the fly while copying data. This is in fact the way we use
+for building a proxy server.
+<P>
 The Library supports two ways of posting a data object to a remote destination:
 Input comes from a socket descriptor or from memory. In the case where you
 want to <EM>copy</EM> a URL, for example from local file system <EM>or</EM>
 from a remote HTTP server then you must use the
-<A HREF="../User/Architecture/PostWeb.html">POSTWeb design</A>. This model
+<A HREF="../User/Architecture/PostWeb.html">PostWeb design</A>. This model
 operates by using at least two request objects which gets linked to eachother
-as part of the POSTWeb model. However, if you are posting from memory, we
+as part of the PostWeb model. However, if you are posting from memory, we
 only use <EM>one</EM> request object to perform the operation. In order to
 do this, the application must register a callback function that can be called
 when the <A HREF="HTTP.c">HTTP client module</A> is ready for accepting data.
@@ -498,6 +517,9 @@ case you need to register a callback function of the following type using
 the methods provided in the next section.
 <PRE>
 typedef int HTPostCallback (HTRequest * request, HTStream * target);
+
+extern void HTRequest_setPostCallback (HTRequest * request, HTPostCallback * cbf);
+extern HTPostCallback * HTRequest_postCallback (HTRequest * request);
 </PRE>
 <H3>
   Input Stream
@@ -509,6 +531,24 @@ while making a request.
 <PRE>
 extern void HTRequest_setInputStream (HTRequest * request, HTStream * input);
 extern HTStream *HTRequest_inputStream (HTRequest * request);
+</PRE>
+<H3>
+  Is This Request part of a Post Web?
+</H3>
+<P>
+Check to see if this request object is part of a Post Web.
+<PRE>
+extern BOOL HTRequest_isPostWeb (HTRequest * request);
+</PRE>
+<H3>
+  Source of a Request
+</H3>
+<P>
+A request may have a source in which is another request object that as output
+stream has the input stream of this request object.
+<PRE>
+extern BOOL HTRequest_setSource (HTRequest * request, HTRequest * source);
+extern HTRequest * HTRequest_source (HTRequest * request);
 </PRE>
 <H2>
   Streams From Network to Application
@@ -553,10 +593,12 @@ a character based only has one WWW_PRESENT.
 extern void HTRequest_setDebugFormat (HTRequest *request, HTFormat format);
 extern HTFormat HTRequest_debugFormat (HTRequest *request);
 </PRE>
+<H2>
+  <A NAME="before">Net before and after calls</A>
+</H2>
 <P>
-<A NAME="before">Net before and after calls</A> The request object may have
-it's own before and after callbacks. These may override or suplement the
-global set in <A HREF="HTNet.html">HTNet</A>.
+The request object may have it's own before and after callbacks. These may
+override or suplement the global set in <A HREF="HTNet.html">HTNet</A>.
 <PRE>
 extern void HTRequest_setBefore (HTRequest *request, HTList *befores, 
 				 BOOL override);
@@ -588,18 +630,6 @@ extern void HTRequest_setContext (HTRequest *request, void *context);
 extern void *HTRequest_context (HTRequest *request);
 </PRE>
 <H2>
-  <A NAME="proxying">Using a proxy server</A>
-</H2>
-<P>
-As a HTTP request looks different when it is directed to a proxy server than
-to a origin server, we need to know whether we are using a proxy for this
-particular request or not. These two methods can be used to set and check
-the current state whether we are going to a proxy or not.
-<PRE>
-extern void HTRequest_setProxying (HTRequest * request, BOOL proxying);
-extern BOOL HTRequest_proxying (HTRequest * request);
-</PRE>
-<H2>
   Preemptive or Non-preemptive Access
 </H2>
 <P>
@@ -629,19 +659,19 @@ extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
   Binding to an Anchor Object
 </H2>
 <P>
-Every request object has an anchor associated with it. The anchor normally
-lives until the application terminates but a request object only lives as
-long as the request is being serviced.
+Every request object has an <A HREF="HTAnchor.html">anchor</A> associated
+with it. The anchor normally lives until the application terminates but a
+request object only lives as long as the request is being serviced.
 <PRE>
 extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
 extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
 </PRE>
 <H2>
-  Binding to a HTNet Object
+  Binding to a Net Object
 </H2>
 <P>
 If a request is actually going on the net then the <A HREF="HTNet.html">Net
-MAnager</A> is contacted to handle the request. The Net manager creates a
+Manager</A> is contacted to handle the request. The Net manager creates a
 HTNEt object and links it to the Request object. You can get to the HTNet
 object using the following functions.
 <PRE>
@@ -662,7 +692,7 @@ extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_negotiation (HTRequest *request);
 </PRE>
 <H2>
-  Are we Using Proxy?
+  Should we Issue a full HTTP Request-URI?
 </H2>
 <P>
 In early versions of HTTP, the request sent to the remote server varies whether
@@ -673,20 +703,21 @@ extern void HTRequest_setFullURI (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_fullURI (HTRequest *request);
 </PRE>
 <H2>
-  Error Manager
+  Error Object
 </H2>
 <P>
 Errors are like almost anything kept in lists and a error list can be associated
 with a request using the following functions. In order to make life easier,
-there are also some easy mapping functions to the real HTError module, so
-that you can add an error directly to a request object.
+there are also some easy mapping functions to the
+<A HREF="HTError.html">HTError object</A>, so that you can add an error directly
+to a request object.
 <PRE>
 extern HTList * HTRequest_error (HTRequest * request);
 extern void HTRequest_setError	(HTRequest * request, HTList * list);
 </PRE>
 <P>
 These are the cover functions that go directly to the
-<A HREF="HTError.html">Error manager</A>
+<A HREF="HTError.html">Error Object</A>
 <PRE>
 extern BOOL HTRequest_addError (HTRequest * 	request,
 				HTSeverity	severity,
@@ -715,13 +746,15 @@ extern long HTRequest_bytesRead (HTRequest * request);
 extern long HTRequest_bytesWritten (HTRequest * request);
 </PRE>
 <H2>
-  Kill a Request
+  Internal Request Objects
 </H2>
 <P>
-This function kills this particular request, see <A HREF="HTNet.html">HTNet
-module</A> for a function that kills them all.
+The library may under certain circumstances create its own Request objects.
+These are all handled internal and does not show up on the application side
+at all.
 <PRE>
-extern BOOL HTRequest_kill(HTRequest * request);
+extern BOOL HTRequest_setInternal (HTRequest * request, BOOL mode);
+extern BOOL HTRequest_internal (HTRequest * request);
 </PRE>
 <PRE>
 #endif /* HTREQ_H */

@@ -30,13 +30,11 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "HTMulti.h"
-#include "HTIcons.h"
-#include "HTDir.h"
-#include "HTLocal.h"
+#include "WWWDir.h"
+#include "WWWTrans.h"
 #include "HTReqMan.h"
 #include "HTNetMan.h"
-
+#include "HTMulti.h"
 #include "HTFile.h"		/* Implemented here */
 
 /* Final states have negative value */
@@ -119,7 +117,8 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 #ifdef HAVE_READDIR
     DIR * dp;
     struct stat file_info;
-    char *url = HTAnchor_physical(request->anchor);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char *url = HTAnchor_physical(anchor);
     char fullname[HT_MAX_PATH+1];
     char *name;
     if (PROT_TRACE) HTTrace("Reading..... directory\n");
@@ -285,7 +284,7 @@ PRIVATE BOOL HTEditable (const char * filename, struct stat * stat_info)
 */
 PRIVATE HTStream * HTFileSaveStream (HTRequest * request)
 {
-
+    
     const char * addr = HTAnchor_address((HTAnchor*)request->anchor);
     char * filename = HTWWWToLocal(addr, "", HTRequest_userProfile(request));
     FILE* fp;
@@ -382,9 +381,9 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
-    HTNet *net = request->net;		     /* Generic protocol information */
+    HTNet * net = HTRequest_net(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
     file_info *file;			      /* Specific access information */
-    HTParentAnchor *anchor = HTRequest_anchor(request);
 
     /*
     ** Initiate a new file structure and bind to request structure
@@ -440,7 +439,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    */
 	    {
 		struct stat stat_info;	      /* Contains actual file chosen */
-		if (request->ContentNegotiation) {
+		if (HTRequest_negotiation(request)) {
 		    char *new_path=HTMulti(request,file->local,&stat_info);
 		    if (new_path) {
 			HT_FREE(file->local);
@@ -499,10 +498,11 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		*/
 		if (HTAnchor_cacheHit(anchor))
 		    HTAnchor_setFormat(anchor, WWW_MIME);
-		HTNet_getInput(net, HTStreamStack(HTAnchor_format(anchor),
-						  request->output_format,
-						  request->output_stream,
-						  request, YES), NULL, 0);
+		HTNet_getInput(net,
+			       HTStreamStack(HTAnchor_format(anchor),
+					     HTRequest_outputFormat(request),
+					     HTRequest_outputStream(request),
+					     request, YES), NULL, 0);
 		/*
 		** Create the stream pipe TO the channel from the application
 		** and hook it up to the request object
@@ -588,8 +588,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -601,8 +602,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -614,8 +616,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -628,8 +631,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_ERROR:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}

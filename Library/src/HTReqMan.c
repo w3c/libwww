@@ -583,19 +583,6 @@ PUBLIC HTRequestCallback *HTRequest_callback (HTRequest *request)
 }
 
 /*
-**	Call back function for proxying
-*/
-PUBLIC void HTRequest_setProxying (HTRequest * request, BOOL proxying)
-{
-    if (request) request->using_proxy = proxying;
-}
-
-PUBLIC BOOL HTRequest_proxying (HTRequest * request)
-{
-    return request ? request->using_proxy : NO;
-}
-
-/*
 **	Context pointer to be used in context call back function
 */
 PUBLIC void HTRequest_setContext (HTRequest *request, void *context)
@@ -827,6 +814,58 @@ PUBLIC BOOL HTRequest_setRealm (HTRequest * request, char * realm)
 PUBLIC const char * HTRequest_realm (HTRequest * request)
 {
     return (request ? request->realm : NULL);
+}
+
+/*
+**  Source request
+*/
+PUBLIC BOOL HTRequest_setSource (HTRequest * request, HTRequest * source)
+{
+    if (request) {
+	request->source = source;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTRequest * HTRequest_source (HTRequest * request)
+{
+    return (request ? request->source : NULL);
+}
+
+PUBLIC BOOL HTRequest_isPostWeb (HTRequest * request)
+{
+    return (request ? request->source : NO);
+}
+
+/*
+**  Internal request object
+*/
+PUBLIC BOOL HTRequest_setInternal (HTRequest * request, BOOL mode)
+{
+    if (request) {
+	request->internal = mode;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_internal (HTRequest * request)
+{
+    return (request ? request->internal : NO);
+}
+
+/*
+**	POST Call back function for sending data to the destination
+*/
+PUBLIC void HTRequest_setPostCallback (HTRequest *request, HTPostCallback *cbf)
+{
+    if (request) request->PostCallback = cbf;
+}
+
+PUBLIC HTPostCallback * HTRequest_postCallback (HTRequest * request)
+{
+    return request ? request->PostCallback : NULL;
 }
 
 /* ------------------------------------------------------------------------- */

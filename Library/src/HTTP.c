@@ -95,22 +95,23 @@ struct _HTInputStream {
 */
 PRIVATE int HTTPCleanup (HTRequest *req, int status)
 {
-    HTNet *net = req->net;
-    http_info * http = (http_info *) HTNet_context(net);;
+    HTNet * net = HTRequest_net(req);
+    http_info * http = (http_info *) HTNet_context(net);
+    HTStream * input = HTRequest_inputStream(req);
 
     /* Free stream with data TO network */
     if (HTRequest_isDestination(req))
 	HTRequest_removeDestination(req);
-    else if (req->input_stream) {
+    else if (input) {
 	if (status == HT_INTERRUPTED)
-	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+	    (*input->isa->abort)(input, NULL);
 	else
-	    (*req->input_stream->isa->_free)(req->input_stream);
-	req->input_stream = NULL;
+	    (*input->isa->_free)(input);
+	HTRequest_setInputStream(req, NULL);
     }
 
     /* Remove the request object and our own context structure for http */
-    HTNet_delete(net, req->internal ? HT_IGNORE : status);
+    HTNet_delete(net, HTRequest_internal(req) ? HT_IGNORE : status);
     HT_FREE(http);
     return YES;
 }
@@ -262,7 +263,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 
 	/* If Retry-After header is found then return HT_RETRY else HT_ERROR */
-	if (me->request->retry_after)
+	if (HTRequest_retryTime(me->request))
 	    me->http->next = HTTP_RETRY;
 	else
 	    me->http->next = HTTP_ERROR;
@@ -471,7 +472,7 @@ PUBLIC HTStream * HTTPStatus_new (HTRequest *	request,
         HT_OUTOFMEM("HTTPStatus_new");
     me->isa = &HTTPStatusClass;
     if (request) {
-	HTNet * net = request->net;
+	HTNet * net = HTRequest_net(request);
         /* Get existing copy */
 	http_info * http = (http_info *) HTNet_context(net);
 	me->request = request;
@@ -498,7 +499,7 @@ PUBLIC HTStream * HTTPStatus_new (HTRequest *	request,
 PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
-    HTNet *net = request->net;		     /* Generic protocol information */
+    HTNet * net = HTRequest_net(request);    /* Generic protocol information */
     http_info *http;			    /* Specific protocol information */
     HTParentAnchor *anchor = HTRequest_anchor(request);
 
@@ -567,17 +568,19 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		HTNet_getInput(net, HTStreamStack(WWW_HTTP,
-						  request->output_format,
-						  request->output_stream,
-						  request, YES), NULL, 0);
+		HTNet_getInput(net,
+			       HTStreamStack(WWW_HTTP,
+					     HTRequest_outputFormat(request),
+					     HTRequest_outputStream(request),
+					     request, YES), NULL, 0);
 		/*
 		** Create the stream pipe TO the channel from the application
 		** and hook it up to the request object
 		*/
 		{
 		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
-		    HTStream * app = HTMethod_hasEntity(request->method) ?
+		    HTStream * app =
+			HTMethod_hasEntity(HTRequest_method(request)) ?
 		        HTMIMERequest_new(request,
 			  HTTPRequest_new(request,(HTStream*) output,NO),YES) :
 			    HTTPRequest_new(request, (HTStream*) output, YES);
@@ -606,22 +609,32 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_NEED_REQUEST:
 	    if (ops == FD_WRITE || ops == FD_NONE) {
 		if (HTRequest_isDestination(request)) {
-		    HTNet *srcnet = request->source->net;
+		    HTRequest * source = HTRequest_source(request);
+		    HTNet * srcnet = HTRequest_net(source);
 		    if (srcnet) {
-			HTEvent_register(srcnet->sockfd, request->source,
+			SOCKET sockfd = HTNet_socket(srcnet);
+			HTEvent_register(sockfd, source,
 					 (SockOps) FD_READ,
 					 srcnet->cbf, srcnet->priority);
-			HTEvent_unregister(net->sockfd, FD_WRITE);
+			HTEvent_unregister(sockfd, FD_WRITE);
 		    }
 		    return HT_OK;
 		}
-		status = request->PostCallback ?
-		    request->PostCallback(request, request->input_stream) :
-			(*request->input_stream->isa->flush)(request->input_stream);
-		if (status == HT_WOULD_BLOCK)
-		    return HT_OK;
-		else
-		    ops = FD_READ;	  /* Trick to ensure that we do READ */
+
+		/*
+		**  Should we use the input stream directly or call the post
+		**  callback function to send data down to the network?
+		*/
+		{
+		    HTStream * input = HTRequest_inputStream(request);
+		    HTPostCallback * pcbf = HTRequest_postCallback(request);
+		    status = pcbf ? pcbf(request, input) :
+			(*input->isa->flush)(input);
+		    if (status == HT_WOULD_BLOCK)
+			return HT_OK;
+		    else
+			ops = FD_READ;	  /* Trick to ensure that we do READ */
+		}
 	    } else if (ops == FD_READ) {
 		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
@@ -642,8 +655,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_PERM_REDIRECT:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
-		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+		    HTRequest * source = HTRequest_source(request);
+		    HTLink * link =
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -657,8 +671,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_TEMP_REDIRECT:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -671,8 +686,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_AA:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -685,8 +701,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -698,8 +715,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -711,9 +729,10 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link = 
-			HTAnchor_findLink((HTAnchor*) request->source->anchor,
-					  (HTAnchor*) anchor);
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_killPostWeb(request);
@@ -725,8 +744,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_ERROR:
 	    if (HTRequest_isPostWeb(request)) {
 		if (HTRequest_isDestination(request)) {
+		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}

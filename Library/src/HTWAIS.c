@@ -77,15 +77,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTReqMan.h"
-#include "HTError.h"
-#include "HTMLGen.h"
-#include "HTParse.h"
-#include "HTFormat.h"
-#include "HTTCP.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
  
 extern FILE * logfile;		/* Log file output */
 
@@ -653,9 +646,10 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 #define MAX_SERVICE_LENGTH 1000
 
 {
-    const char * arg = HTAnchor_physical(request->anchor);
-    HTFormat		format_out = request->output_format;
-    HTStream*		sink = request->output_stream;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    const char * arg = HTAnchor_physical(anchor);
+    HTFormat		format_out = HTRequest_outputFormat(request);
+    HTStream*		sink = HTRequest_outputStream(request);
 #if 0    
     static const char * error_header =
 "<h1>Access error</h1>\nThe following error occured in accesing a WAIS server:<P>\n";
@@ -923,7 +917,7 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 	    HTTrace(
 		    "HTLoadWAIS.. Retrieve document `%s'\n............ type `%s' length %ld\n", docname, doctype, document_length);
 		
-	HTAnchor_setFormat(request->anchor,
+	HTAnchor_setFormat(anchor,
 	  !strcmp(doctype, "WSRC") ? HTAtom_for("application/x-wais-source") :
 	  !strcmp(doctype, "TEXT") ? WWW_UNKNOWN :
 	  !strcmp(doctype, "HTML") ? WWW_HTML:
@@ -935,9 +929,9 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 	  0 != strcmp(doctype, "HTML") ;
 
 	/* Guess on TEXT format as it might be HTML */
-	if ((target = HTStreamStack(HTAnchor_format(request->anchor),
-				    request->output_format,
-				    request->output_stream,
+	if ((target = HTStreamStack(HTAnchor_format(anchor),
+				    HTRequest_outputFormat(request),
+				    HTRequest_outputStream(request),
 				    request, YES)) == NULL) {
 	    status = -1;
 	    goto cleanup;
@@ -994,7 +988,7 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 				   NULL, 0, "HTLoadWAIS");
 		    }
 		    (*target->isa->_free)(target);
-		    request->output_stream = NULL;
+		    HTRequest_setOutputStream(request, NULL);
 		    HT_FREE(docid->bytes);
 		    freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
 		    freeSearchResponseAPDU( retrieval_response);
@@ -1010,7 +1004,7 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 	} /* Loop over slices */
 
 	(*target->isa->_free)(target);
-	request->output_stream = NULL;
+	HTRequest_setOutputStream(request, NULL);
 	HT_FREE(docid->bytes);
     } /* If document rather than search */
     status = HT_LOADED;

@@ -1,36 +1,32 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww SGML Parser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Dec-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  1-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww SGML Parser</TITLE>
 </HEAD>
 <BODY>
-
-<H1>SGML Parser</H1>
-
+<H1>
+  SGML Parser
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The SGML parser is a state machine.  It is called for every character
-of the input stream. The DTD data structure contains pointers to
-functions which are called to implement the actual effect of the text
-read. When these functions are called, the attribute structures
-pointed to by the DTD are valid, and the function is parsed a pointer
-to the curent tag structure, and an "element stack" which represents
-the state of nesting within SGML elements. See also the <A
-HREF="HTStream.html">the generic Stream definition</A><P>
-
-The following aspects are from Dan Connolly's suggestions: Binary
-search, Strcutured object scheme basically, SGML content enum type.<P>
-
-This module is implemented by <A HREF="SGML.c">SGML.c</A>, and it is a
-part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
-
+<P>
+The SGML parser is a state machine. It is called for every character of the
+input stream. The DTD data structure contains pointers to functions which
+are called to implement the actual effect of the text read. When these functions
+are called, the attribute structures pointed to by the DTD are valid, and
+the function is parsed a pointer to the curent tag structure, and an "element
+stack" which represents the state of nesting within SGML elements. See also
+the <A HREF="HTStream.html">the generic Stream definition</A>
+<P>
+The following aspects are from Dan Connolly's suggestions: Binary search,
+Strcutured object scheme basically, SGML content enum type.
+<P>
+This module is implemented by <A HREF="SGML.c">SGML.c</A>, and it is a part
+of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference Library</A>.
 <PRE>
 #ifndef SGML_H
 #define SGML_H
@@ -38,16 +34,17 @@ W3C Reference Library</A>.
 #include "HTStream.h"
 #include "HTStruct.h"
 </PRE>
-
-<H2>SGML content types</H2>
+<H2>
+  SGML content types
+</H2>
 <PRE>typedef enum _SGMLContent{
-  SGML_EMPTY,    /* no content */
-  SGML_LITERAL, /* character data. Recognized exact close tag only.
-  		    Old www server compatibility only! Not SGML */
-  SGML_CDATA,    /* character data. recognize &lt;/ only */
-  SGML_RCDATA,   /* replaceable character data. recognize &lt;/ and &amp;ref; */
-  SGML_MIXED,    /* elements and parsed character data. recognize all markup */
-  SGML_ELEMENT   /* any data found will be returned as an error*/
+    SGML_EMPTY,    	/* no content */
+    SGML_LITERAL, 	/* character data. Recognized exact close tag only.
+  		    	   Old www server compatibility only! Not SGML */
+    SGML_CDATA,    	/* character data. recognize &lt;/ only */
+    SGML_RCDATA,   	/* replaceable character data. recognize &lt;/ and &amp;ref; */
+    SGML_MIXED,    	/* elements and parsed character data. recognize all markup */
+    SGML_ELEMENT   	/* any data found will be returned as an error*/
   } SGMLContent;
 
 
@@ -92,29 +89,10 @@ typedef struct {
 } SGML_dtd;
 
 #define MAX_ATTRIBUTES 20	     /* Max number of attributes per element */
-
-/*	SGML context passed to parsers */
-
-typedef struct _HTSGMLContext *HTSGMLContext;	/* Hidden */
 </PRE>
-
-<H2>Find a Tag by Name</H2>
-
-Returns a pointer to the tag within the DTD.
-
-<PRE>
-extern HTTag * SGMLFindTag (const SGML_dtd* dtd, const char * string);
-</PRE>
-
-<H2>Find a Attribute by Name</H2>
-
-Returns the number of the atribute or -1 if failure.
-
-<PRE>
-extern int SGMLFindAttribute (HTTag* tag, const char * string);
-</PRE>
-
-<H2>Create an SGML parser</H2>
+<H2>
+  Create an SGML parser
+</H2>
 <PRE>/*
 ** On entry,
 **	dtd		must point to a DTD structure as defined above
@@ -125,15 +103,10 @@ extern int SGMLFindAttribute (HTTag* tag, const char * string);
 */
 
 
-extern HTStream* SGML_new (
-	const SGML_dtd * 		dtd,
-	HTStructured *		target);
-
-#if 0
-extern const HTStreamClass SGMLParser;
-#endif
+extern HTStream * SGML_new (const SGML_dtd * 	dtd,
+			    HTStructured *	target);
 
 #endif	/* SGML_H */
 
-</PRE></BODY>
-</HTML>
+</PRE>
+</BODY></HTML>

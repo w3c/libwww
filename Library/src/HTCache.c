@@ -16,15 +16,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTFormat.h"
-#include "HTFWrite.h"
-#include "HTAccess.h"
-#include "HTBind.h"
-#include "HTList.h"
-#include "HTReqMan.h"
-#include "HTParse.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTCache.h"					 /* Implemented here */
 
 /*
@@ -635,13 +628,14 @@ PUBLIC HTStream* HTCacheWriter (HTRequest *	request,
 {
     char *fnam;
     HTStream *me;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
     if (!HTCacheEnable) {
 	if (CACHE_TRACE) HTTrace("Cache....... Not enabled\n");
 	return HTBlackHole();
     }
 
     /* Get a file name and open file */
-    if ((fnam = HTCache_getName(HTAnchor_physical(request->anchor))) == NULL)
+    if ((fnam = HTCache_getName(HTAnchor_physical(anchor))) == NULL)
 	return HTBlackHole();
 
     /* Set up the stream */

@@ -323,18 +323,18 @@ PRIVATE int proxy_handler (HTRequest * request, void * param, int status)
     char * newaddr = NULL;
     if ((newaddr = HTProxy_find(addr))) {
 	StrAllocCat(newaddr, addr);
-	HTRequest_setProxying(request, YES);
+	HTRequest_setFullURI(request, YES);
 	HTAnchor_setPhysical(anchor, newaddr);
     } else if ((newaddr = HTGateway_find(addr))) {
 	char * path = HTParse(addr,"",PARSE_HOST+PARSE_PATH+PARSE_PUNCTUATION);
 	/* Chop leading / off to make host into part of path */
 	char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
-	HTRequest_setProxying(request, NO);
+	HTRequest_setFullURI(request, NO);
 	HTAnchor_setPhysical(anchor, gatewayed);
 	HT_FREE(path);
 	HT_FREE(gatewayed);
     } else
-	HTRequest_setProxying(request, NO);
+	HTRequest_setFullURI(request, NO);
     HT_FREE(newaddr);
     HT_FREE(addr);
     return HT_OK;

@@ -12,14 +12,8 @@
 /* Library Include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTReqMan.h"
-#include "HTProt.h"
-#include "HTIOStream.h"
-#include "HTChannl.h"
-#include "HTAlert.h"
-#include "HTFormat.h"
+#include "WWWCore.h"
 #include "HTNetMan.h"
-#include "HTError.h"
 #include "HTReader.h"					 /* Implemented here */
 
 struct _HTStream {

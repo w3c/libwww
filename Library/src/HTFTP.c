@@ -165,28 +165,29 @@ PRIVATE FTPDataCon FTPMode = FTP_DATA_PASV;
 PRIVATE int FTPCleanup (HTRequest * request, int status)
 {
     if (request) {
-	HTNet * cnet = request->net;
-	ftp_ctrl * ctrl;
+	HTNet * cnet = HTRequest_net(request);
+	ftp_ctrl * ctrl = (ftp_ctrl *) HTNet_context(cnet);
+	HTStream * input = HTRequest_inputStream(request);
 	
 	/* Free stream with data TO network */
-	if (!HTRequest_isDestination(request) && request->input_stream) {
+	if (!HTRequest_isDestination(request) && input) {
 	    if (status == HT_INTERRUPTED)
-		(*request->input_stream->isa->abort)(request->input_stream,NULL);
+		(*input->isa->abort)(input, NULL);
 	    else
-		(*request->input_stream->isa->_free)(request->input_stream);
+		(*input->isa->_free)(input);
 	}
 	
 	/* Remove the request object and our own context structure for http */
-	if (cnet && (ctrl = (ftp_ctrl *) cnet->context) != NULL) {
+	if (cnet && ctrl) {
 	    HTNet * dnet = ctrl->dnet;
-	    ftp_data * data;
+	    ftp_data * data = (ftp_data *) HTNet_context(dnet);
 	    HTChunk_delete(ctrl->cmd);
 	    HT_FREE(ctrl->reply);
 	    HT_FREE(ctrl->uid);
 	    HT_FREE(ctrl->passwd);
 	    HT_FREE(ctrl->account);
 	    HT_FREE(ctrl);
-	    if (dnet && (data = (ftp_data *) dnet->context) != NULL) {
+	    if (dnet && data) {
 		HT_FREE(data->file);
 		HT_FREE(data);
 	    }
@@ -350,6 +351,7 @@ PRIVATE int SendCommand (HTRequest *request, ftp_ctrl *ctrl,
 			 char *token, char *pars)
 {
     int len = strlen(token) + (pars ? strlen(pars)+1:0) + 2;
+    HTStream * input = HTRequest_inputStream(request);
     HTChunk_clear(ctrl->cmd);
     HTChunk_ensure(ctrl->cmd, len);
     if (pars && *pars)
@@ -357,8 +359,7 @@ PRIVATE int SendCommand (HTRequest *request, ftp_ctrl *ctrl,
     else
 	sprintf(HTChunk_data(ctrl->cmd), "%s%c%c", token, CR, LF);
     if (PROT_TRACE) HTTrace("FTP Tx...... %s", HTChunk_data(ctrl->cmd));
-    return (*request->input_stream->isa->put_block)
-	(request->input_stream, HTChunk_data(ctrl->cmd), len);
+    return (*input->isa->put_block)(input, HTChunk_data(ctrl->cmd), len);
 }
 
 /*	HTFTPParseURL
@@ -1252,10 +1253,11 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
-    HTNet *cnet = request->net;
-    ftp_ctrl *ctrl;
-    ftp_data *data;
-    char *url = HTAnchor_physical(request->anchor);
+    HTNet * cnet = HTRequest_net(request);
+    ftp_ctrl * ctrl = NULL;
+    ftp_data * data = NULL;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * url = HTAnchor_physical(anchor);
 
     /*
     ** Initiate a new FTP ctrl and data structure and bind to request structure
@@ -1290,9 +1292,9 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FTP_BEGIN:
 	    HTFTPParseURL(request, url, ctrl, data);
 	    if (data->type != 'N') {
-		HTBind_getBindings(request->anchor);
+		HTBind_getBindings(anchor);
 #if 0
-		if (HTAnchor_encoding(request->anchor) != HTAtom_for("7bit"))
+		if (HTAnchor_encoding(anchor) != HTAtom_for("7bit"))
 #endif
 		    data->type = 'I';
 	    }
@@ -1424,7 +1426,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
@@ -1442,7 +1444,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
