@@ -76,7 +76,7 @@ PRIVATE BOOL launch_request (HTRequest * request, BOOL recursive)
 	HTTRACE(PROT_TRACE, "HTAccess.... Accessing document %s\n" _ full_address);
 	HT_FREE(full_address);
     }
-#endif / * HTDEBUG */
+#endif /* HTDEBUG */
     return HTLoad(request, recursive);
 }
 
