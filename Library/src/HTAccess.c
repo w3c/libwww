@@ -127,8 +127,8 @@ PUBLIC void HTRequest_clear ARGS1(HTRequest *, req)
     req->output_format = WWW_PRESENT;	    /* default it to present to user */
 
 #ifdef _WINDOWS   
-    me->hwnd = HTsocketWin ;
-    me->winMsg = HTwinMsg ;
+    req->hwnd = HTsocketWin ;
+    req->winMsg = HTwinMsg ;
 #endif 
 
 }

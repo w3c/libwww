@@ -30,7 +30,7 @@
 **		-----------
 */
 typedef enum _MIME_state {
-    BEGINNING_OF_LINE,
+    BEGINNING_OF_LINE=0,
     CHECK,				/* check against check_pointer */
     UNKNOWN,				/* Unknown header */
     JUNK_LINE,				/* Ignore rest of header */
@@ -48,7 +48,7 @@ typedef enum _MIME_state {
     CONTENT_LENGTH,
     CONTENT_TRANSFER_ENCODING,
     CONTENT_TYPE,
-    DATE,
+    MIME_DATE,
     DERIVED_FROM,
     EXPIRES,
     LAST_MODIFIED,
@@ -178,7 +178,7 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    switch (TOLOWER(*ptr)) {
 	      case 'a':
 		check_pointer = "te";
-		ok_state = DATE;
+		ok_state = MIME_DATE;
 		state = CHECK;
 		break;
 
@@ -378,7 +378,7 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    state = JUNK_LINE;
 	    break;
 
-	  case DATE:
+	  case MIME_DATE:
 	    anchor->date = HTParseTime(ptr);
 	    state = JUNK_LINE;
 	    break;

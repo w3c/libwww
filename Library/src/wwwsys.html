@@ -454,9 +454,9 @@ Some special things for the 32 bit version...
 #define MKDIR(a,b) mkdir((a))  /* CLB NT has mkdir, but only one arg */
 
 #define NO_GROUPS
-
+#define NO_ALTZONE
 #define SLEEP(n)	Sleep((n)*1000)
-#endif
+#endif /* WIN32 */
 </PRE>
 
 <H2>VAX/VMS</H2>

@@ -277,7 +277,6 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
     SocAction found = SOC_INVALID;
 
 #ifdef _WINSOCKAPI_
-    int cnt;
     int ic = 0;
 #endif
 

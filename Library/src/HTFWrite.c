@@ -160,15 +160,24 @@ PRIVATE int HTFWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
     return HT_OK;
 }
 
-PRIVATE int HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
-{
-    return (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK;
-}
-
 PRIVATE int HTFWriter_flush ARGS1(HTStream *, me)
 {
     return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
 }
+
+
+PRIVATE int HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+{
+    int status ;
+    status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK ;
+    if (l > 1 && status == HT_OK)
+	(void)HTFWriter_flush( me) ;
+    return status ;
+
+/*    return (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK; */
+    
+}
+
 
 PRIVATE int HTFWriter_free ARGS1(HTStream *, me)
 {
