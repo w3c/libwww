@@ -1,0 +1,5225 @@
+%!PS-Adobe-3.0
+%%BoundingBox: (atend)
+%%Pages: (atend)
+%%PageOrder: (atend)
+%%DocumentFonts: (atend)
+%%Creator: Frame 4.0
+%%DocumentData: Clean7Bit
+%%EndComments
+%%BeginProlog
+%
+% Frame ps_prolog 4.0, for use with Frame 4.0 products
+% This ps_prolog file is Copyright (c) 1986-1993 Frame Technology
+% Corporation.  All rights reserved.  This ps_prolog file may be
+% freely copied and distributed in conjunction with documents created
+% using FrameMaker, FrameBuilder and FrameViewer as long as this 
+% copyright notice is preserved.
+%
+% Frame products normally print colors as their true color on a color printer
+% or as shades of gray, based on luminance, on a black-and white printer. The
+% following flag, if set to True, forces all non-white colors to print as pure
+% black. This has no effect on bitmap images.
+/FMPrintAllColorsAsBlack             false def
+%
+% Frame products can either set their own line screens or use a printer's 
+% default settings. Three flags below control this separately for no 
+% separations, spot separations and process separations. If a flag
+% is true, then the default printer settings will not be changed. If it is
+% false, Frame products will use their own settings from a table based on
+% the printer's resolution.
+/FMUseDefaultNoSeparationScreen      true  def
+/FMUseDefaultSpotSeparationScreen    true  def
+/FMUseDefaultProcessSeparationScreen false def
+%
+% For any given PostScript printer resolution, Frame products have two sets of 
+% screen angles and frequencies for printing process separations, which are 
+% recomended by Adobe. The following variable chooses the higher frequencies
+% when set to true or the lower frequencies when set to false. This is only
+% effective if the appropriate FMUseDefault...SeparationScreen flag is false.
+/FMUseHighFrequencyScreens true def
+%
+% PostScript Level 2 printers contain an "Accurate Screens" feature which can
+% improve process separation rendering at the expense of compute time. This 
+% flag is ignored by PostScript Level 1 printers.
+/FMUseAcccurateScreens true def
+%
+% The following PostScript procedure defines the spot function that Frame
+% products will use for process separations. You may un-comment-out one of
+% the alternative functions below, or use your own.
+%
+% Dot function
+/FMSpotFunction {abs exch abs 2 copy add 1 gt 
+		{1 sub dup mul exch 1 sub dup mul add 1 sub }
+		{dup mul exch dup mul add 1 exch sub }ifelse } def
+%
+% Line function
+% /FMSpotFunction { pop } def
+%
+% Elipse function
+% /FMSpotFunction { dup 5 mul 8 div mul exch dup mul exch add 
+%		sqrt 1 exch sub } def
+%
+%
+/FMversion (4.0) def 
+/FMLevel1 /languagelevel where {pop languagelevel} {1} ifelse 2 lt def
+/FMPColor
+	FMLevel1 {
+		false
+		/colorimage where {pop pop true} if
+	} {
+		true
+	} ifelse
+def
+/FrameDict 400 dict def 
+systemdict /errordict known not {/errordict 10 dict def
+		errordict /rangecheck {stop} put} if
+% The readline in PS 23.0 doesn't recognize cr's as nl's on AppleTalk
+FrameDict /tmprangecheck errordict /rangecheck get put 
+errordict /rangecheck {FrameDict /bug true put} put 
+FrameDict /bug false put 
+mark 
+% Some PS machines read past the CR, so keep the following 3 lines together!
+currentfile 5 string readline
+00
+0000000000
+cleartomark 
+errordict /rangecheck FrameDict /tmprangecheck get put 
+FrameDict /bug get { 
+	/readline {
+		/gstring exch def
+		/gfile exch def
+		/gindex 0 def
+		{
+			gfile read pop 
+			dup 10 eq {exit} if 
+			dup 13 eq {exit} if 
+			gstring exch gindex exch put 
+			/gindex gindex 1 add def 
+		} loop
+		pop 
+		gstring 0 gindex getinterval true 
+		} bind def
+	} if
+/FMshowpage /showpage load def
+/FMquit /quit load def
+/FMFAILURE { 
+	dup = flush 
+	FMshowpage 
+	/Helvetica findfont 12 scalefont setfont
+	72 200 moveto
+	show FMshowpage 
+	FMquit 
+	} def 
+/FMVERSION {
+	FMversion ne {
+		(Frame product version does not match ps_prolog!) FMFAILURE
+		} if
+	} def 
+/FMBADEPSF { 
+	(PostScript Lang. Ref. Man., 2nd Ed., H.2.4 says EPS must not call X              )
+	dup dup (X) search pop exch pop exch pop length 
+	4 -1 roll 
+	putinterval 
+	FMFAILURE
+	} def
+/FMLOCAL {
+	FrameDict begin
+	0 def 
+	end 
+	} def 
+/concatprocs
+	{
+	/proc2 exch cvlit def/proc1 exch cvlit def/newproc proc1 length proc2 length add array def
+	newproc 0 proc1 putinterval newproc proc1 length proc2 putinterval newproc cvx
+}def
+FrameDict begin 
+/FMnone 0 def
+/FMcyan 1 def
+/FMmagenta 2 def
+/FMyellow 3 def
+/FMblack 4 def
+/FMcustom 5 def
+/FrameNegative false def 
+/FrameSepIs FMnone def 
+/FrameSepBlack 0 def
+/FrameSepYellow 0 def
+/FrameSepMagenta 0 def
+/FrameSepCyan 0 def
+/FrameSepRed 1 def
+/FrameSepGreen 1 def
+/FrameSepBlue 1 def
+/FrameCurGray 1 def
+/FrameCurPat null def
+/FrameCurColors [ 0 0 0 1 0 0 0 ] def 
+/FrameColorEpsilon .001 def	
+/eqepsilon {		
+	sub dup 0 lt {neg} if
+	FrameColorEpsilon le
+} bind def
+/FrameCmpColorsCMYK { 
+	2 copy 0 get exch 0 get eqepsilon {
+		2 copy 1 get exch 1 get eqepsilon {
+			2 copy 2 get exch 2 get eqepsilon {
+				3 get exch 3 get eqepsilon
+			} {pop pop false} ifelse
+		}{pop pop false} ifelse
+	} {pop pop false} ifelse
+} bind def
+/FrameCmpColorsRGB { 
+	2 copy 4 get exch 0 get eqepsilon {
+		2 copy 5 get exch 1 get eqepsilon {
+			6 get exch 2 get eqepsilon
+		}{pop pop false} ifelse
+	} {pop pop false} ifelse
+} bind def
+/RGBtoCMYK { 
+	1 exch sub 
+	3 1 roll 
+	1 exch sub 
+	3 1 roll 
+	1 exch sub 
+	3 1 roll 
+	3 copy 
+	2 copy 
+	le { pop } { exch pop } ifelse 
+	2 copy 
+	le { pop } { exch pop } ifelse 
+	dup dup dup 
+	6 1 roll 
+	4 1 roll 
+	7 1 roll 
+	sub 
+	6 1 roll 
+	sub 
+	5 1 roll 
+	sub 
+	4 1 roll 
+} bind def
+/CMYKtoRGB { 
+	dup dup 4 -1 roll add 						  
+	5 1 roll 3 -1 roll add 						  
+	4 1 roll add 								  
+	1 exch sub dup 0 lt {pop 0} if 3 1 roll 	  
+	1 exch sub dup 0 lt {pop 0} if exch 	      
+	1 exch sub dup 0 lt {pop 0} if exch	  		  
+} bind def
+/FrameSepInit {
+	1.0 RealSetgray
+} bind def
+/FrameSetSepColor { 
+	/FrameSepBlue exch def
+	/FrameSepGreen exch def
+	/FrameSepRed exch def
+	/FrameSepBlack exch def
+	/FrameSepYellow exch def
+	/FrameSepMagenta exch def
+	/FrameSepCyan exch def
+	/FrameSepIs FMcustom def
+	setCurrentScreen	
+} bind def
+/FrameSetCyan {
+	/FrameSepBlue 1.0 def
+	/FrameSepGreen 1.0 def
+	/FrameSepRed 0.0 def
+	/FrameSepBlack 0.0 def
+	/FrameSepYellow 0.0 def
+	/FrameSepMagenta 0.0 def
+	/FrameSepCyan 1.0 def
+	/FrameSepIs FMcyan def
+	setCurrentScreen	
+} bind def
+ 
+/FrameSetMagenta {
+	/FrameSepBlue 1.0 def
+	/FrameSepGreen 0.0 def
+	/FrameSepRed 1.0 def
+	/FrameSepBlack 0.0 def
+	/FrameSepYellow 0.0 def
+	/FrameSepMagenta 1.0 def
+	/FrameSepCyan 0.0 def
+	/FrameSepIs FMmagenta def
+	setCurrentScreen
+} bind def
+ 
+/FrameSetYellow {
+	/FrameSepBlue 0.0 def
+	/FrameSepGreen 1.0 def
+	/FrameSepRed 1.0 def
+	/FrameSepBlack 0.0 def
+	/FrameSepYellow 1.0 def
+	/FrameSepMagenta 0.0 def
+	/FrameSepCyan 0.0 def
+	/FrameSepIs FMyellow def
+	setCurrentScreen
+} bind def
+ 
+/FrameSetBlack {
+	/FrameSepBlue 0.0 def
+	/FrameSepGreen 0.0 def
+	/FrameSepRed 0.0 def
+	/FrameSepBlack 1.0 def
+	/FrameSepYellow 0.0 def
+	/FrameSepMagenta 0.0 def
+	/FrameSepCyan 0.0 def
+	/FrameSepIs FMblack def
+	setCurrentScreen
+} bind def
+ 
+/FrameNoSep { 
+	/FrameSepIs FMnone def
+	setCurrentScreen
+} bind def
+/FrameSetSepColors { 
+	FrameDict begin
+	[ exch 1 add 1 roll ]
+	/FrameSepColors  
+	exch def end
+	} bind def
+/FrameColorInSepListCMYK { 
+	FrameSepColors {  
+       		exch dup 3 -1 roll 
+       		FrameCmpColorsCMYK 
+       		{ pop true exit } if
+    	} forall 
+	dup true ne {pop false} if
+	} bind def
+/FrameColorInSepListRGB { 
+	FrameSepColors {  
+       		exch dup 3 -1 roll 
+       		FrameCmpColorsRGB 
+       		{ pop true exit } if
+    	} forall 
+	dup true ne {pop false} if
+	} bind def
+/RealSetgray /setgray load def
+/RealSetrgbcolor /setrgbcolor load def
+/RealSethsbcolor /sethsbcolor load def
+end 
+/setgray { 
+	FrameDict begin
+	FrameSepIs FMnone eq
+		{ RealSetgray } 
+		{ 
+		FrameSepIs FMblack eq 
+			{ RealSetgray } 
+			{ FrameSepIs FMcustom eq 
+			  FrameSepRed 0 eq and
+			  FrameSepGreen 0 eq and
+			  FrameSepBlue 0 eq and {
+			  	RealSetgray
+			  } {
+				1 RealSetgray pop 
+			  } ifelse
+			} ifelse
+		} ifelse
+	end
+} bind def
+/setrgbcolor { 
+	FrameDict begin
+	FrameSepIs FMnone eq
+	{  RealSetrgbcolor }
+	{
+		3 copy [ 4 1 roll ] 
+		FrameColorInSepListRGB
+		{
+				FrameSepBlue eq exch 
+			 	FrameSepGreen eq and exch 
+			 	FrameSepRed eq and
+			 	{ 0 } { 1 } ifelse
+		}
+		{
+			FMPColor {
+				RealSetrgbcolor
+				currentcmykcolor
+			} {
+				RGBtoCMYK
+			} ifelse
+			FrameSepIs FMblack eq
+			{1.0 exch sub 4 1 roll pop pop pop} {
+			FrameSepIs FMyellow eq
+			{pop 1.0 exch sub 3 1 roll pop pop} {
+			FrameSepIs FMmagenta eq
+			{pop pop 1.0 exch sub exch pop } {
+			FrameSepIs FMcyan eq
+			{pop pop pop 1.0 exch sub } 
+			{pop pop pop pop 1} ifelse } ifelse } ifelse } ifelse 
+		} ifelse
+		RealSetgray
+	} 
+	ifelse
+	end
+} bind def
+/sethsbcolor {
+	FrameDict begin
+	FrameSepIs FMnone eq 
+	{ RealSethsbcolor } 
+	{
+		RealSethsbcolor 
+		currentrgbcolor  
+		setrgbcolor 
+	} 
+	ifelse
+	end
+} bind def
+FrameDict begin
+/setcmykcolor where {
+	pop /RealSetcmykcolor /setcmykcolor load def
+} {
+	/RealSetcmykcolor {
+		4 1 roll
+		3 { 3 index add 0 max 1 min 1 exch sub 3 1 roll} repeat 
+		setrgbcolor pop
+	} bind def
+} ifelse
+userdict /setcmykcolor { 
+		FrameDict begin
+		FrameSepIs FMnone eq
+		{ RealSetcmykcolor } 
+		{
+			4 copy [ 5 1 roll ]
+			FrameColorInSepListCMYK
+			{
+				FrameSepBlack eq exch 
+				FrameSepYellow eq and exch 
+				FrameSepMagenta eq and exch 
+				FrameSepCyan eq and 
+				{ 0 } { 1 } ifelse
+			}
+			{
+				FrameSepIs FMblack eq
+				{1.0 exch sub 4 1 roll pop pop pop} {
+				FrameSepIs FMyellow eq
+				{pop 1.0 exch sub 3 1 roll pop pop} {
+				FrameSepIs FMmagenta eq
+				{pop pop 1.0 exch sub exch pop } {
+				FrameSepIs FMcyan eq
+				{pop pop pop 1.0 exch sub } 
+				{pop pop pop pop 1} ifelse } ifelse } ifelse } ifelse 
+			} ifelse
+			RealSetgray
+		}
+		ifelse
+		end
+	} bind put
+FMLevel1 not { 
+	
+	/patProcDict 5 dict dup begin
+		<0f1e3c78f0e1c387> { 3 setlinewidth -1 -1 moveto 9 9 lineto stroke 
+											4 -4 moveto 12 4 lineto stroke
+											-4 4 moveto 4 12 lineto stroke} bind def
+		<0f87c3e1f0783c1e> { 3 setlinewidth -1 9 moveto 9 -1 lineto stroke 
+											-4 4 moveto 4 -4 lineto stroke
+											4 12 moveto 12 4 lineto stroke} bind def
+		<8142241818244281> { 1 setlinewidth -1 9 moveto 9 -1 lineto stroke
+											-1 -1 moveto 9 9 lineto stroke } bind def
+		<03060c183060c081> { 1 setlinewidth -1 -1 moveto 9 9 lineto stroke 
+											4 -4 moveto 12 4 lineto stroke
+											-4 4 moveto 4 12 lineto stroke} bind def
+		<8040201008040201> { 1 setlinewidth -1 9 moveto 9 -1 lineto stroke 
+											-4 4 moveto 4 -4 lineto stroke
+											4 12 moveto 12 4 lineto stroke} bind def
+	end def
+	/patDict 15 dict dup begin
+		/PatternType 1 def		
+		/PaintType 2 def		
+		/TilingType 3 def		
+		/BBox [ 0 0 8 8 ] def 	
+		/XStep 8 def			
+		/YStep 8 def			
+		/PaintProc {
+			begin
+			patProcDict bstring known {
+				patProcDict bstring get exec
+			} {
+				8 8 true [1 0 0 -1 0 8] bstring imagemask
+			} ifelse
+			end
+		} bind def
+	end def
+} if
+/combineColor {
+    FrameSepIs FMnone eq
+	{
+		graymode FMLevel1 or not {
+			
+			[/Pattern [/DeviceCMYK]] setcolorspace
+			FrameCurColors 0 4 getinterval aload pop FrameCurPat setcolor
+		} {
+			FrameCurColors 3 get 1.0 ge {
+				FrameCurGray RealSetgray
+			} {
+				FMPColor graymode and {
+					0 1 3 { 
+						FrameCurColors exch get
+						1 FrameCurGray sub mul
+					} for
+					RealSetcmykcolor
+				} {
+					4 1 6 {
+						FrameCurColors exch get
+						graymode {
+							1 exch sub 1 FrameCurGray sub mul 1 exch sub
+						} {
+							1.0 lt {FrameCurGray} {1} ifelse
+						} ifelse
+					} for
+					RealSetrgbcolor
+				} ifelse
+			} ifelse
+		} ifelse
+	} { 
+		FrameCurColors 0 4 getinterval aload
+		FrameColorInSepListCMYK {
+			FrameSepBlack eq exch 
+			FrameSepYellow eq and exch 
+			FrameSepMagenta eq and exch 
+			FrameSepCyan eq and
+			FrameSepIs FMcustom eq and
+			{ FrameCurGray } { 1 } ifelse
+		} {
+			FrameSepIs FMblack eq
+			{FrameCurGray 1.0 exch sub mul 1.0 exch sub 4 1 roll pop pop pop} {
+			FrameSepIs FMyellow eq
+			{pop FrameCurGray 1.0 exch sub mul 1.0 exch sub 3 1 roll pop pop} {
+			FrameSepIs FMmagenta eq
+			{pop pop FrameCurGray 1.0 exch sub mul 1.0 exch sub exch pop } {
+			FrameSepIs FMcyan eq
+			{pop pop pop FrameCurGray 1.0 exch sub mul 1.0 exch sub } 
+			{pop pop pop pop 1} ifelse } ifelse } ifelse } ifelse 
+		} ifelse
+		graymode FMLevel1 or not {
+			
+			[/Pattern [/DeviceGray]] setcolorspace
+			FrameCurPat setcolor
+		} { 
+			graymode not FMLevel1 and {
+				
+				dup 1 lt {pop FrameCurGray} if
+			} if
+			RealSetgray
+		} ifelse
+	} ifelse
+} bind def
+/savematrix {
+	orgmatrix currentmatrix pop
+	} bind def
+/restorematrix {
+	orgmatrix setmatrix
+	} bind def
+/dmatrix matrix def
+/dpi    72 0 dmatrix defaultmatrix dtransform
+    dup mul exch   dup mul add   sqrt def
+	
+/freq dpi dup 72 div round dup 0 eq {pop 1} if 8 mul div def
+/sangle 1 0 dmatrix defaultmatrix dtransform exch atan def
+/dpiranges   [  2540    2400    1693     1270    1200     635      600      0      ] def
+/CMLowFreqs  [ 100.402  94.8683 89.2289 100.402  94.8683  66.9349  63.2456 47.4342 ] def
+/YLowFreqs   [  95.25   90.0    84.65    95.25   90.0     70.5556  66.6667 50.0    ] def
+/KLowFreqs   [  89.8026 84.8528 79.8088  89.8026 84.8528  74.8355  70.7107 53.033  ] def
+/CLowAngles  [  71.5651 71.5651 71.5651 71.5651  71.5651  71.5651  71.5651 71.5651 ] def
+/MLowAngles  [  18.4349 18.4349 18.4349 18.4349  18.4349  18.4349  18.4349 18.4349 ] def
+/YLowTDot    [  true    true    false    true    true     false    false   false   ] def
+/CMHighFreqs [ 133.87  126.491 133.843  108.503 102.523  100.402   94.8683 63.2456 ] def
+/YHighFreqs  [ 127.0   120.0   126.975  115.455 109.091   95.25    90.0    60.0    ] def
+/KHighFreqs  [ 119.737 113.137 119.713  128.289 121.218   89.8026  84.8528 63.6395 ] def
+/CHighAngles [  71.5651 71.5651 71.5651  70.0169 70.0169  71.5651  71.5651 71.5651 ] def
+/MHighAngles [  18.4349 18.4349 18.4349  19.9831 19.9831  18.4349  18.4349 18.4349 ] def
+/YHighTDot   [  false   false   true     false   false    true     true    false   ] def
+/PatFreq     [	10.5833 10.0     9.4055  10.5833 10.0	  10.5833  10.0	   9.375   ] def
+/screenIndex {
+	0 1 dpiranges length 1 sub { dup dpiranges exch get 1 sub dpi le {exit} {pop} ifelse } for
+} bind def
+/getCyanScreen {
+	FMUseHighFrequencyScreens { CHighAngles CMHighFreqs} {CLowAngles CMLowFreqs} ifelse
+		screenIndex dup 3 1 roll get 3 1 roll get /FMSpotFunction load
+} bind def
+/getMagentaScreen {
+	FMUseHighFrequencyScreens { MHighAngles CMHighFreqs } {MLowAngles CMLowFreqs} ifelse
+		screenIndex dup 3 1 roll get 3 1 roll get /FMSpotFunction load
+} bind def
+/getYellowScreen {
+	FMUseHighFrequencyScreens { YHighTDot YHighFreqs} { YLowTDot YLowFreqs } ifelse
+		screenIndex dup 3 1 roll get 3 1 roll get { 3 div
+			{2 { 1 add 2 div 3 mul dup floor sub 2 mul 1 sub exch} repeat
+			FMSpotFunction } } {/FMSpotFunction load } ifelse
+			0.0 exch
+} bind def
+/getBlackScreen  {
+	FMUseHighFrequencyScreens { KHighFreqs } { KLowFreqs } ifelse
+		screenIndex get 45.0 /FMSpotFunction load 
+} bind def
+/getSpotScreen {
+	getBlackScreen
+} bind def
+/getCompositeScreen {
+	getBlackScreen
+} bind def
+/FMSetScreen 
+	FMLevel1 { /setscreen load 
+	}{ {
+		8 dict begin
+		/HalftoneType 1 def
+		/SpotFunction exch def
+		/Angle exch def
+		/Frequency exch def
+		/AccurateScreens FMUseAcccurateScreens def
+		currentdict end sethalftone
+	} bind } ifelse
+def
+/setDefaultScreen {
+	FMPColor {
+		orgrxfer cvx orggxfer cvx orgbxfer cvx orgxfer cvx setcolortransfer
+	}
+	{
+		orgxfer cvx settransfer
+	} ifelse
+	orgfreq organgle orgproc cvx setscreen
+} bind def
+/setCurrentScreen {
+	FrameSepIs FMnone eq {
+		FMUseDefaultNoSeparationScreen {
+			setDefaultScreen
+		} {
+			getCompositeScreen FMSetScreen
+		} ifelse
+	} {
+		FrameSepIs FMcustom eq {
+			FMUseDefaultSpotSeparationScreen {
+				setDefaultScreen
+			} {
+				getSpotScreen FMSetScreen
+			} ifelse
+		} {
+			FMUseDefaultProcessSeparationScreen {
+				setDefaultScreen
+			} {
+				FrameSepIs FMcyan eq {
+					getCyanScreen FMSetScreen
+				} {
+					FrameSepIs FMmagenta eq {
+						getMagentaScreen FMSetScreen
+					} {
+						FrameSepIs FMyellow eq {
+							getYellowScreen FMSetScreen
+						} {
+							getBlackScreen FMSetScreen
+						} ifelse
+					} ifelse
+				} ifelse
+			} ifelse
+		} ifelse
+	} ifelse 
+} bind def
+end
+	/gstring FMLOCAL
+	/gfile FMLOCAL
+	/gindex FMLOCAL
+	/orgrxfer FMLOCAL
+	/orggxfer FMLOCAL
+	/orgbxfer FMLOCAL
+	/orgxfer FMLOCAL
+	/orgproc FMLOCAL
+	/orgrproc FMLOCAL
+	/orggproc FMLOCAL
+	/orgbproc FMLOCAL
+	/organgle FMLOCAL
+	/orgrangle FMLOCAL
+	/orggangle FMLOCAL
+	/orgbangle FMLOCAL
+	/orgfreq FMLOCAL
+	/orgrfreq FMLOCAL
+	/orggfreq FMLOCAL
+	/orgbfreq FMLOCAL
+	/yscale FMLOCAL
+	/xscale FMLOCAL
+	/edown FMLOCAL
+	/manualfeed FMLOCAL
+	/paperheight FMLOCAL
+	/paperwidth FMLOCAL
+/FMDOCUMENT { 
+	array /FMfonts exch def 
+	/#copies exch def
+	FrameDict begin
+	0 ne /manualfeed exch def
+	/paperheight exch def
+	/paperwidth exch def
+	0 ne /FrameNegative exch def 
+	0 ne /edown exch def 
+	/yscale exch def
+	/xscale exch def
+	FMLevel1 {
+		manualfeed {setmanualfeed} if
+		/FMdicttop countdictstack 1 add def 
+		/FMoptop count def 
+		setpapername 
+		manualfeed {true} {papersize} ifelse 
+		{manualpapersize} {false} ifelse 
+		{desperatepapersize} {false} ifelse 
+		{ (Can't select requested paper size for Frame print job!) FMFAILURE } if
+		count -1 FMoptop {pop pop} for
+		countdictstack -1 FMdicttop {pop end} for 
+		}
+		{{1 dict dup /PageSize [paperwidth paperheight]put setpagedevice}stopped
+		{ (Can't select requested paper size for Frame print job!) FMFAILURE } if
+		 {1 dict dup /ManualFeed manualfeed put setpagedevice } stopped pop }
+	ifelse 
+	
+	FMPColor {
+		currentcolorscreen
+			cvlit /orgproc exch def
+				  /organgle exch def 
+				  /orgfreq exch def
+			cvlit /orgbproc exch def
+				  /orgbangle exch def 
+				  /orgbfreq exch def
+			cvlit /orggproc exch def
+				  /orggangle exch def 
+				  /orggfreq exch def
+			cvlit /orgrproc exch def
+				  /orgrangle exch def 
+				  /orgrfreq exch def
+			currentcolortransfer 
+			FrameNegative {
+				1 1 4 { 
+					pop { 1 exch sub } concatprocs 4 1 roll
+				} for
+				4 copy
+				setcolortransfer
+			} if
+			cvlit /orgxfer exch def
+			cvlit /orgbxfer exch def
+			cvlit /orggxfer exch def
+			cvlit /orgrxfer exch def
+	} {
+		currentscreen 
+			cvlit /orgproc exch def
+				  /organgle exch def 
+				  /orgfreq exch def
+				  
+		currenttransfer 
+		FrameNegative {
+			{ 1 exch sub } concatprocs
+			dup settransfer
+		} if 
+		cvlit /orgxfer exch def
+	} ifelse
+	end 
+} def 
+/pagesave FMLOCAL
+/orgmatrix FMLOCAL
+/landscape FMLOCAL
+/pwid FMLOCAL
+/FMBEGINPAGE { 
+	FrameDict begin 
+	/pagesave save def
+	3.86 setmiterlimit
+	/landscape exch 0 ne def
+	landscape { 
+		90 rotate 0 exch dup /pwid exch def neg translate pop 
+	}{
+		pop /pwid exch def
+	} ifelse
+	edown { [-1 0 0 1 pwid 0] concat } if
+	0 0 moveto paperwidth 0 lineto paperwidth paperheight lineto 
+	0 paperheight lineto 0 0 lineto 1 setgray fill
+	xscale yscale scale
+	/orgmatrix matrix def
+	gsave 
+} def 
+/FMENDPAGE {
+	grestore 
+	pagesave restore
+	end 
+	showpage
+	} def 
+/FMFONTDEFINE { 
+	FrameDict begin
+	findfont 
+	ReEncode 
+	1 index exch 
+	definefont 
+	FMfonts 3 1 roll 
+	put
+	end 
+	} def 
+/FMFILLS {
+	FrameDict begin dup
+	array /fillvals exch def
+	dict /patCache exch def
+	end 
+	} def 
+/FMFILL {
+	FrameDict begin
+	 fillvals 3 1 roll put
+	end 
+	} def 
+/FMNORMALIZEGRAPHICS { 
+	newpath
+	0.0 0.0 moveto
+	1 setlinewidth
+	0 setlinecap
+	0 0 0 sethsbcolor
+	0 setgray 
+	} bind def
+	/fx FMLOCAL
+	/fy FMLOCAL
+	/fh FMLOCAL
+	/fw FMLOCAL
+	/llx FMLOCAL
+	/lly FMLOCAL
+	/urx FMLOCAL
+	/ury FMLOCAL
+/FMBEGINEPSF { 
+	end 
+	/FMEPSF save def 
+	/showpage {} def 
+% See Adobe's "PostScript Language Reference Manual, 2nd Edition", page 714.
+% "...the following operators MUST NOT be used in an EPS file:" (emphasis ours)
+	/banddevice {(banddevice) FMBADEPSF} def
+	/clear {(clear) FMBADEPSF} def
+	/cleardictstack {(cleardictstack) FMBADEPSF} def 
+	/copypage {(copypage) FMBADEPSF} def
+	/erasepage {(erasepage) FMBADEPSF} def
+	/exitserver {(exitserver) FMBADEPSF} def
+	/framedevice {(framedevice) FMBADEPSF} def
+	/grestoreall {(grestoreall) FMBADEPSF} def
+	/initclip {(initclip) FMBADEPSF} def
+	/initgraphics {(initgraphics) FMBADEPSF} def
+	/initmatrix {(initmatrix) FMBADEPSF} def
+	/quit {(quit) FMBADEPSF} def
+	/renderbands {(renderbands) FMBADEPSF} def
+	/setglobal {(setglobal) FMBADEPSF} def
+	/setpagedevice {(setpagedevice) FMBADEPSF} def
+	/setshared {(setshared) FMBADEPSF} def
+	/startjob {(startjob) FMBADEPSF} def
+	/lettertray {(lettertray) FMBADEPSF} def
+	/letter {(letter) FMBADEPSF} def
+	/lettersmall {(lettersmall) FMBADEPSF} def
+	/11x17tray {(11x17tray) FMBADEPSF} def
+	/11x17 {(11x17) FMBADEPSF} def
+	/ledgertray {(ledgertray) FMBADEPSF} def
+	/ledger {(ledger) FMBADEPSF} def
+	/legaltray {(legaltray) FMBADEPSF} def
+	/legal {(legal) FMBADEPSF} def
+	/statementtray {(statementtray) FMBADEPSF} def
+	/statement {(statement) FMBADEPSF} def
+	/executivetray {(executivetray) FMBADEPSF} def
+	/executive {(executive) FMBADEPSF} def
+	/a3tray {(a3tray) FMBADEPSF} def
+	/a3 {(a3) FMBADEPSF} def
+	/a4tray {(a4tray) FMBADEPSF} def
+	/a4 {(a4) FMBADEPSF} def
+	/a4small {(a4small) FMBADEPSF} def
+	/b4tray {(b4tray) FMBADEPSF} def
+	/b4 {(b4) FMBADEPSF} def
+	/b5tray {(b5tray) FMBADEPSF} def
+	/b5 {(b5) FMBADEPSF} def
+	FMNORMALIZEGRAPHICS 
+	[/fy /fx /fh /fw /ury /urx /lly /llx] {exch def} forall 
+	fx fw 2 div add fy fh 2 div add  translate
+	rotate
+	fw 2 div neg fh 2 div neg translate
+	fw urx llx sub div fh ury lly sub div scale 
+	llx neg lly neg translate 
+	/FMdicttop countdictstack 1 add def 
+	/FMoptop count def 
+	} bind def
+/FMENDEPSF {
+	count -1 FMoptop {pop pop} for 
+	countdictstack -1 FMdicttop {pop end} for 
+	FMEPSF restore
+	FrameDict begin 
+	} bind def
+FrameDict begin 
+/setmanualfeed {
+%%BeginFeature *ManualFeed True
+	 statusdict /manualfeed true put
+%%EndFeature
+	} bind def
+/max {2 copy lt {exch} if pop} bind def
+/min {2 copy gt {exch} if pop} bind def
+/inch {72 mul} def
+/pagedimen { 
+	paperheight sub abs 16 lt exch 
+	paperwidth sub abs 16 lt and
+	{/papername exch def} {pop} ifelse
+	} bind def
+	/papersizedict FMLOCAL
+/setpapername { 
+	/papersizedict 14 dict def 
+	papersizedict begin
+	/papername /unknown def 
+		/Letter 8.5 inch 11.0 inch pagedimen
+		/LetterSmall 7.68 inch 10.16 inch pagedimen
+		/Tabloid 11.0 inch 17.0 inch pagedimen
+		/Ledger 17.0 inch 11.0 inch pagedimen
+		/Legal 8.5 inch 14.0 inch pagedimen
+		/Statement 5.5 inch 8.5 inch pagedimen
+		/Executive 7.5 inch 10.0 inch pagedimen
+		/A3 11.69 inch 16.5 inch pagedimen
+		/A4 8.26 inch 11.69 inch pagedimen
+		/A4Small 7.47 inch 10.85 inch pagedimen
+		/B4 10.125 inch 14.33 inch pagedimen
+		/B5 7.16 inch 10.125 inch pagedimen
+	end
+	} bind def
+/papersize {
+	papersizedict begin
+		/Letter {lettertray letter} def
+		/LetterSmall {lettertray lettersmall} def
+		/Tabloid {11x17tray 11x17} def
+		/Ledger {ledgertray ledger} def
+		/Legal {legaltray legal} def
+		/Statement {statementtray statement} def
+		/Executive {executivetray executive} def
+		/A3 {a3tray a3} def
+		/A4 {a4tray a4} def
+		/A4Small {a4tray a4small} def
+		/B4 {b4tray b4} def
+		/B5 {b5tray b5} def
+		/unknown {unknown} def
+	papersizedict dup papername known {papername} {/unknown} ifelse get
+	end
+	statusdict begin stopped end 
+	} bind def
+/manualpapersize {
+	papersizedict begin
+		/Letter {letter} def
+		/LetterSmall {lettersmall} def
+		/Tabloid {11x17} def
+		/Ledger {ledger} def
+		/Legal {legal} def
+		/Statement {statement} def
+		/Executive {executive} def
+		/A3 {a3} def
+		/A4 {a4} def
+		/A4Small {a4small} def
+		/B4 {b4} def
+		/B5 {b5} def
+		/unknown {unknown} def
+	papersizedict dup papername known {papername} {/unknown} ifelse get
+	end
+	stopped 
+	} bind def
+/desperatepapersize {
+	statusdict /setpageparams known
+		{
+		paperwidth paperheight 0 1 
+		statusdict begin
+		{setpageparams} stopped 
+		end
+		} {true} ifelse 
+	} bind def
+/DiacriticEncoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /space /exclam /quotedbl
+/numbersign /dollar /percent /ampersand /quotesingle /parenleft
+/parenright /asterisk /plus /comma /hyphen /period /slash /zero /one
+/two /three /four /five /six /seven /eight /nine /colon /semicolon
+/less /equal /greater /question /at /A /B /C /D /E /F /G /H /I /J /K
+/L /M /N /O /P /Q /R /S /T /U /V /W /X /Y /Z /bracketleft /backslash
+/bracketright /asciicircum /underscore /grave /a /b /c /d /e /f /g /h
+/i /j /k /l /m /n /o /p /q /r /s /t /u /v /w /x /y /z /braceleft /bar
+/braceright /asciitilde /.notdef /Adieresis /Aring /Ccedilla /Eacute
+/Ntilde /Odieresis /Udieresis /aacute /agrave /acircumflex /adieresis
+/atilde /aring /ccedilla /eacute /egrave /ecircumflex /edieresis
+/iacute /igrave /icircumflex /idieresis /ntilde /oacute /ograve
+/ocircumflex /odieresis /otilde /uacute /ugrave /ucircumflex
+/udieresis /dagger /.notdef /cent /sterling /section /bullet
+/paragraph /germandbls /registered /copyright /trademark /acute
+/dieresis /.notdef /AE /Oslash /.notdef /.notdef /.notdef /.notdef
+/yen /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/ordfeminine /ordmasculine /.notdef /ae /oslash /questiondown
+/exclamdown /logicalnot /.notdef /florin /.notdef /.notdef
+/guillemotleft /guillemotright /ellipsis /.notdef /Agrave /Atilde
+/Otilde /OE /oe /endash /emdash /quotedblleft /quotedblright
+/quoteleft /quoteright /.notdef /.notdef /ydieresis /Ydieresis
+/fraction /currency /guilsinglleft /guilsinglright /fi /fl /daggerdbl
+/periodcentered /quotesinglbase /quotedblbase /perthousand
+/Acircumflex /Ecircumflex /Aacute /Edieresis /Egrave /Iacute
+/Icircumflex /Idieresis /Igrave /Oacute /Ocircumflex /.notdef /Ograve
+/Uacute /Ucircumflex /Ugrave /dotlessi /circumflex /tilde /macron
+/breve /dotaccent /ring /cedilla /hungarumlaut /ogonek /caron
+] def
+/ReEncode { 
+	dup 
+	length 
+	dict begin 
+	{
+	1 index /FID ne 
+		{def} 
+		{pop pop} ifelse 
+	} forall 
+	0 eq {/Encoding DiacriticEncoding def} if 
+	currentdict 
+	end 
+	} bind def
+FMPColor 
+	
+	{
+	/BEGINBITMAPCOLOR { 
+		BITMAPCOLOR} def
+	/BEGINBITMAPCOLORc { 
+		BITMAPCOLORc} def
+	/BEGINBITMAPTRUECOLOR { 
+		BITMAPTRUECOLOR } def
+	/BEGINBITMAPTRUECOLORc { 
+		BITMAPTRUECOLORc } def
+	}
+	
+	{
+	/BEGINBITMAPCOLOR { 
+		BITMAPGRAY} def
+	/BEGINBITMAPCOLORc { 
+		BITMAPGRAYc} def
+	/BEGINBITMAPTRUECOLOR { 
+		BITMAPTRUEGRAY } def
+	/BEGINBITMAPTRUECOLORc { 
+		BITMAPTRUEGRAYc } def
+	}
+ifelse
+/K { 
+	FMPrintAllColorsAsBlack {
+		dup 1 eq 2 index 1 eq and 3 index 1 eq and not
+			{7 {pop} repeat 0 0 0 1 0 0 0} if
+	} if 
+	FrameCurColors astore 
+	pop combineColor
+} bind def
+/graymode true def
+	/bwidth FMLOCAL
+	/bpside FMLOCAL
+	/bstring FMLOCAL
+	/onbits FMLOCAL
+	/offbits FMLOCAL
+	/xindex FMLOCAL
+	/yindex FMLOCAL
+	/x FMLOCAL
+	/y FMLOCAL
+/setPatternMode {
+	FMLevel1 {
+		/bwidth  exch def
+		/bpside  exch def
+		/bstring exch def
+		/onbits 0 def  /offbits 0 def
+		freq sangle landscape {90 add} if 
+			{/y exch def
+			 /x exch def
+			 /xindex x 1 add 2 div bpside mul cvi def
+			 /yindex y 1 add 2 div bpside mul cvi def
+			 bstring yindex bwidth mul xindex 8 idiv add get
+			 1 7 xindex 8 mod sub bitshift and 0 ne FrameNegative {not} if
+			 {/onbits  onbits  1 add def 1}
+			 {/offbits offbits 1 add def 0}
+			 ifelse
+			}
+			setscreen
+		offbits offbits onbits add div FrameNegative {1.0 exch sub} if
+		/FrameCurGray exch def
+	} { 
+		pop pop
+		dup patCache exch known {
+			patCache exch get
+		} { 
+			dup
+			patDict /bstring 3 -1 roll put
+			patDict 
+			9 PatFreq screenIndex get div dup matrix scale
+			makepattern
+			dup 
+			patCache 4 -1 roll 3 -1 roll put
+		} ifelse
+		/FrameCurGray 0 def
+		/FrameCurPat exch def
+	} ifelse
+	/graymode false def
+	combineColor
+} bind def
+/setGrayScaleMode {
+	graymode not {
+		/graymode true def
+		FMLevel1 {
+			setCurrentScreen
+		} if
+	} if
+	/FrameCurGray exch def
+	combineColor
+} bind def
+/normalize {
+	transform round exch round exch itransform
+	} bind def
+/dnormalize {
+	dtransform round exch round exch idtransform
+	} bind def
+/lnormalize { 
+	0 dtransform exch cvi 2 idiv 2 mul 1 add exch idtransform pop
+	} bind def
+/H { 
+	lnormalize setlinewidth
+	} bind def
+/Z {
+	setlinecap
+	} bind def
+	
+/PFill {
+	graymode FMLevel1 or not {
+		gsave 1 setgray eofill grestore
+	} if
+} bind def
+/PStroke {
+	graymode FMLevel1 or not {
+		gsave 1 setgray stroke grestore
+	} if
+	stroke
+} bind def
+	/fillvals FMLOCAL
+/X { 
+	fillvals exch get
+	dup type /stringtype eq
+	{8 1 setPatternMode} 
+	{setGrayScaleMode}
+	ifelse
+	} bind def
+/V { 
+	PFill gsave eofill grestore
+	} bind def
+/Vclip {
+	clip
+	} bind def
+/Vstrk {
+	currentlinewidth exch setlinewidth PStroke setlinewidth
+	} bind def
+/N { 
+	PStroke
+	} bind def
+/Nclip {
+	strokepath clip newpath
+	} bind def
+/Nstrk {
+	currentlinewidth exch setlinewidth PStroke setlinewidth
+	} bind def
+/M {newpath moveto} bind def
+/E {lineto} bind def
+/D {curveto} bind def
+/O {closepath} bind def
+	/n FMLOCAL
+/L { 
+ 	/n exch def
+	newpath
+	normalize
+	moveto 
+	2 1 n {pop normalize lineto} for
+	} bind def
+/Y { 
+	L 
+	closepath
+	} bind def
+	/x1 FMLOCAL
+	/x2 FMLOCAL
+	/y1 FMLOCAL
+	/y2 FMLOCAL
+/R { 
+	/y2 exch def
+	/x2 exch def
+	/y1 exch def
+	/x1 exch def
+	x1 y1
+	x2 y1
+	x2 y2
+	x1 y2
+	4 Y 
+	} bind def
+	/rad FMLOCAL
+/rarc 
+	{rad 
+	 arcto
+	} bind def
+/RR { 
+	/rad exch def
+	normalize
+	/y2 exch def
+	/x2 exch def
+	normalize
+	/y1 exch def
+	/x1 exch def
+	mark
+	newpath
+	{
+	x1 y1 rad add moveto
+	x1 y2 x2 y2 rarc
+	x2 y2 x2 y1 rarc
+	x2 y1 x1 y1 rarc
+	x1 y1 x1 y2 rarc
+	closepath
+	} stopped {x1 y1 x2 y2 R} if 
+	cleartomark
+	} bind def
+/RRR { 
+	/rad exch def
+	normalize /y4 exch def /x4 exch def
+	normalize /y3 exch def /x3 exch def
+	normalize /y2 exch def /x2 exch def
+	normalize /y1 exch def /x1 exch def
+	newpath
+	normalize moveto 
+	mark
+	{
+	x2 y2 x3 y3 rarc
+	x3 y3 x4 y4 rarc
+	x4 y4 x1 y1 rarc
+	x1 y1 x2 y2 rarc
+	closepath
+	} stopped
+	 {x1 y1 x2 y2 x3 y3 x4 y4 newpath moveto lineto lineto lineto closepath} if
+	cleartomark
+	} bind def
+/C { 
+	grestore
+	gsave
+	R 
+	clip
+	setCurrentScreen
+} bind def
+/CP { 
+	grestore
+	gsave
+	Y 
+	clip
+	setCurrentScreen
+} bind def
+	/FMpointsize FMLOCAL
+/F { 
+	FMfonts exch get
+	FMpointsize scalefont
+	setfont
+	} bind def
+/Q { 
+	/FMpointsize exch def
+	F 
+	} bind def
+/T { 
+	moveto show
+	} bind def
+/RF { 
+	rotate
+	0 ne {-1 1 scale} if
+	} bind def
+/TF { 
+	gsave
+	moveto 
+	RF
+	show
+	grestore
+	} bind def
+/P { 
+	moveto
+	0 32 3 2 roll widthshow
+	} bind def
+/PF { 
+	gsave
+	moveto 
+	RF
+	0 32 3 2 roll widthshow
+	grestore
+	} bind def
+/S { 
+	moveto
+	0 exch ashow
+	} bind def
+/SF { 
+	gsave
+	moveto
+	RF
+	0 exch ashow
+	grestore
+	} bind def
+/B { 
+	moveto
+	0 32 4 2 roll 0 exch awidthshow
+	} bind def
+/BF { 
+	gsave
+	moveto
+	RF
+	0 32 4 2 roll 0 exch awidthshow
+	grestore
+	} bind def
+/G { 
+	gsave
+	newpath
+	normalize translate 0.0 0.0 moveto 
+	dnormalize scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	closepath 
+	PFill fill
+	grestore
+	} bind def
+/Gstrk {
+	savematrix
+    newpath
+    2 index 2 div add exch 3 index 2 div sub exch 
+    normalize 2 index 2 div sub exch 3 index 2 div add exch 
+    translate
+    scale 
+    0.0 0.0 1.0 5 3 roll arc 
+    restorematrix
+    currentlinewidth exch setlinewidth PStroke setlinewidth
+    } bind def
+/Gclip { 
+	newpath
+	savematrix
+	normalize translate 0.0 0.0 moveto 
+	dnormalize scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	closepath 
+	clip newpath
+	restorematrix
+	} bind def
+/GG { 
+	gsave
+	newpath
+	normalize translate 0.0 0.0 moveto 
+	rotate 
+	dnormalize scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	closepath
+	PFill
+	fill
+	grestore
+	} bind def
+/GGclip { 
+	savematrix
+	newpath
+    normalize translate 0.0 0.0 moveto 
+    rotate 
+    dnormalize scale 
+    0.0 0.0 1.0 5 3 roll arc 
+    closepath
+	clip newpath
+	restorematrix
+	} bind def
+/GGstrk { 
+	savematrix
+    newpath
+    normalize translate 0.0 0.0 moveto 
+    rotate 
+    dnormalize scale 
+    0.0 0.0 1.0 5 3 roll arc 
+    closepath 
+	restorematrix
+    currentlinewidth exch setlinewidth PStroke setlinewidth
+	} bind def
+/A { 
+	gsave
+	savematrix
+	newpath
+	2 index 2 div add exch 3 index 2 div sub exch 
+	normalize 2 index 2 div sub exch 3 index 2 div add exch 
+	translate 
+	scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	restorematrix
+	PStroke
+	grestore
+	} bind def
+/Aclip {
+	newpath
+	savematrix
+	normalize translate 0.0 0.0 moveto 
+	dnormalize scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	closepath 
+	strokepath clip newpath
+	restorematrix
+} bind def
+/Astrk {
+	Gstrk
+} bind def
+/AA { 
+	gsave
+	savematrix
+	newpath
+	
+	3 index 2 div add exch 4 index 2 div sub exch 
+	
+	normalize 3 index 2 div sub exch 4 index 2 div add exch
+	translate 
+	rotate 
+	scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	restorematrix
+	PStroke
+	grestore
+	} bind def
+/AAclip {
+	savematrix
+	newpath
+    normalize translate 0.0 0.0 moveto 
+    rotate 
+    dnormalize scale 
+    0.0 0.0 1.0 5 3 roll arc 
+    closepath
+	strokepath clip newpath
+	restorematrix
+} bind def
+/AAstrk {
+	GGstrk
+} bind def
+	/x FMLOCAL
+	/y FMLOCAL
+	/w FMLOCAL
+	/h FMLOCAL
+	/xx FMLOCAL
+	/yy FMLOCAL
+	/ww FMLOCAL
+	/hh FMLOCAL
+	/FMsaveobject FMLOCAL
+	/FMoptop FMLOCAL
+	/FMdicttop FMLOCAL
+/BEGINPRINTCODE { 
+	/FMdicttop countdictstack 1 add def 
+	/FMoptop count 7 sub def 
+	/FMsaveobject save def
+	userdict begin 
+	/showpage {} def 
+	FMNORMALIZEGRAPHICS 
+	3 index neg 3 index neg translate
+	} bind def
+/ENDPRINTCODE {
+	count -1 FMoptop {pop pop} for 
+	countdictstack -1 FMdicttop {pop end} for 
+	FMsaveobject restore 
+	} bind def
+/gn { 
+	0 
+	{	46 mul 
+		cf read pop 
+		32 sub 
+		dup 46 lt {exit} if 
+		46 sub add 
+		} loop
+	add 
+	} bind def
+	/str FMLOCAL
+/cfs { 
+	/str sl string def 
+	0 1 sl 1 sub {str exch val put} for 
+	str def 
+	} bind def
+/ic [ 
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0223
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0223
+	0
+	{0 hx} {1 hx} {2 hx} {3 hx} {4 hx} {5 hx} {6 hx} {7 hx} {8 hx} {9 hx}
+	{10 hx} {11 hx} {12 hx} {13 hx} {14 hx} {15 hx} {16 hx} {17 hx} {18 hx}
+	{19 hx} {gn hx} {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12}
+	{13} {14} {15} {16} {17} {18} {19} {gn} {0 wh} {1 wh} {2 wh} {3 wh}
+	{4 wh} {5 wh} {6 wh} {7 wh} {8 wh} {9 wh} {10 wh} {11 wh} {12 wh}
+	{13 wh} {14 wh} {gn wh} {0 bl} {1 bl} {2 bl} {3 bl} {4 bl} {5 bl} {6 bl}
+	{7 bl} {8 bl} {9 bl} {10 bl} {11 bl} {12 bl} {13 bl} {14 bl} {gn bl}
+	{0 fl} {1 fl} {2 fl} {3 fl} {4 fl} {5 fl} {6 fl} {7 fl} {8 fl} {9 fl}
+	{10 fl} {11 fl} {12 fl} {13 fl} {14 fl} {gn fl}
+	] def
+	/sl FMLOCAL
+	/val FMLOCAL
+	/ws FMLOCAL
+	/im FMLOCAL
+	/bs FMLOCAL
+	/cs FMLOCAL
+	/len FMLOCAL
+	/pos FMLOCAL
+/ms { 
+	/sl exch def 
+	/val 255 def 
+	/ws cfs 
+	/im cfs 
+	/val 0 def 
+	/bs cfs 
+	/cs cfs 
+	} bind def
+400 ms 
+/ip { 
+	is 
+	0 
+	cf cs readline pop 
+	{	ic exch get exec 
+		add 
+		} forall 
+	pop 
+	
+	} bind def
+/rip { 
+	   
+	  
+	  bis ris copy pop 
+      is
+      0
+      cf cs readline pop 
+      {       ic exch get exec 
+              add 
+              } forall 
+	  pop pop 
+	  ris gis copy pop 
+	  dup is exch 
+	  
+      cf cs readline pop 
+      {       ic exch get exec 
+              add 
+              } forall 
+	  pop pop
+	  gis bis copy pop 
+	  dup add is exch 
+	  
+      cf cs readline pop 
+      {       ic exch get exec 
+              add 
+              } forall 
+      pop 
+      
+      } bind def
+/wh { 
+	/len exch def 
+	/pos exch def 
+	ws 0 len getinterval im pos len getinterval copy pop
+	pos len 
+	} bind def
+/bl { 
+	/len exch def 
+	/pos exch def 
+	bs 0 len getinterval im pos len getinterval copy pop
+	pos len 
+	} bind def
+/s1 1 string def
+/fl { 
+	/len exch def 
+	/pos exch def 
+	/val cf s1 readhexstring pop 0 get def
+	pos 1 pos len add 1 sub {im exch val put} for
+	pos len 
+	} bind def
+/hx { 
+	3 copy getinterval 
+	cf exch readhexstring pop pop 
+	} bind def
+	/h FMLOCAL
+	/w FMLOCAL
+	/d FMLOCAL
+	/lb FMLOCAL
+	/bitmapsave FMLOCAL
+	/is FMLOCAL
+	/cf FMLOCAL
+/wbytes { 
+      dup dup
+      24 eq { pop pop 3 mul }
+      { 8 eq {pop} {1 eq {7 add 8 idiv} {3 add 4 idiv} ifelse} ifelse } ifelse
+	} bind def
+/BEGINBITMAPBWc { 
+	1 {} COMMONBITMAPc
+	} bind def
+/BEGINBITMAPGRAYc { 
+	8 {} COMMONBITMAPc
+	} bind def
+/BEGINBITMAP2BITc { 
+	2 {} COMMONBITMAPc
+	} bind def
+/COMMONBITMAPc { 
+		 
+	/r exch def
+	/d exch def
+	gsave
+	
+	3 index 2 div add exch	
+	4 index 2 div add exch	
+	translate		
+	rotate			
+	1 index 2 div neg	
+	1 index 2 div neg	
+	translate		
+	scale			
+	/h exch def /w exch def
+	/lb w d wbytes def 
+	sl lb lt {lb ms} if 
+	/bitmapsave save def 
+	r                    
+	/is im 0 lb getinterval def 
+	ws 0 lb getinterval is copy pop 
+	/cf currentfile def 
+	w h d [w 0 0 h neg 0 h] 
+	{ip} image 
+	bitmapsave restore 
+	grestore
+	} bind def
+/BEGINBITMAPBW { 
+	1 {} COMMONBITMAP
+	} bind def
+/BEGINBITMAPGRAY { 
+	8 {} COMMONBITMAP
+	} bind def
+/BEGINBITMAP2BIT { 
+	2 {} COMMONBITMAP
+	} bind def
+/COMMONBITMAP { 
+	/r exch def
+	/d exch def
+	gsave
+	
+	3 index 2 div add exch	
+	4 index 2 div add exch	
+	translate		
+	rotate			
+	1 index 2 div neg	
+	1 index 2 div neg	
+	translate		
+	scale			
+	/h exch def /w exch def
+	/bitmapsave save def 
+	r                    
+	/is w d wbytes string def
+	/cf currentfile def 
+	w h d [w 0 0 h neg 0 h] 
+	{cf is readhexstring pop} image
+	bitmapsave restore 
+	grestore
+	} bind def
+/ngrayt 256 array def
+/nredt 256 array def
+/nbluet 256 array def
+/ngreent 256 array def
+	/gryt FMLOCAL
+	/blut FMLOCAL
+	/grnt FMLOCAL
+	/redt FMLOCAL
+	/indx FMLOCAL
+	/cynu FMLOCAL
+	/magu FMLOCAL
+	/yelu FMLOCAL
+	/k FMLOCAL
+	/u FMLOCAL
+FMLevel1 {
+/colorsetup {
+	currentcolortransfer
+	/gryt exch def
+	/blut exch def
+	/grnt exch def
+	/redt exch def
+	0 1 255 {
+		/indx exch def
+		/cynu 1 red indx get 255 div sub def
+		/magu 1 green indx get 255 div sub def
+		/yelu 1 blue indx get 255 div sub def
+		/k cynu magu min yelu min def
+		/u k currentundercolorremoval exec def
+%		/u 0 def
+		nredt indx 1 0 cynu u sub max sub redt exec put
+		ngreent indx 1 0 magu u sub max sub grnt exec put
+		nbluet indx 1 0 yelu u sub max sub blut exec put
+		ngrayt indx 1 k currentblackgeneration exec sub gryt exec put
+	} for
+	{255 mul cvi nredt exch get}
+	{255 mul cvi ngreent exch get}
+	{255 mul cvi nbluet exch get}
+	{255 mul cvi ngrayt exch get}
+	setcolortransfer
+	{pop 0} setundercolorremoval
+	{} setblackgeneration
+	} bind def
+}
+{
+/colorSetup2 {
+	[ /Indexed /DeviceRGB 255 
+		{dup red exch get 255 div 
+		 exch dup green exch get 255 div 
+		 exch blue exch get 255 div}
+	] setcolorspace
+} bind def
+} ifelse
+	/tran FMLOCAL
+/fakecolorsetup {
+	/tran 256 string def
+	0 1 255 {/indx exch def 
+		tran indx
+		red indx get 77 mul
+		green indx get 151 mul
+		blue indx get 28 mul
+		add add 256 idiv put} for
+	currenttransfer
+	{255 mul cvi tran exch get 255.0 div}
+	exch concatprocs settransfer
+} bind def
+/BITMAPCOLOR { 
+	/d 8 def
+	gsave
+	
+	3 index 2 div add exch	
+	4 index 2 div add exch	
+	translate		
+	rotate			
+	1 index 2 div neg	
+	1 index 2 div neg	
+	translate		
+	scale			
+	/h exch def /w exch def
+	/bitmapsave save def
+	FMLevel1 {	
+		colorsetup
+		/is w d wbytes string def
+		/cf currentfile def 
+		w h d [w 0 0 h neg 0 h] 
+		{cf is readhexstring pop} {is} {is} true 3 colorimage 
+	} {
+		colorSetup2
+		/is w d wbytes string def
+		/cf currentfile def 
+		7 dict dup begin
+			/ImageType 1 def
+			/Width w def
+			/Height h def
+			/ImageMatrix [w 0 0 h neg 0 h] def
+			/DataSource {cf is readhexstring pop} bind def
+			/BitsPerComponent d def
+			/Decode [0 255] def
+		end image	
+	} ifelse
+	bitmapsave restore 
+	grestore
+	} bind def
+/BITMAPCOLORc { 
+	/d 8 def
+	gsave
+	
+	3 index 2 div add exch	
+	4 index 2 div add exch	
+	translate		
+	rotate			
+	1 index 2 div neg	
+	1 index 2 div neg	
+	translate		
+	scale			
+	/h exch def /w exch def
+	/lb w d wbytes def 
+	sl lb lt {lb ms} if 
+	/bitmapsave save def 
+	FMLevel1 {	
+		colorsetup
+		/is im 0 lb getinterval def 
+		ws 0 lb getinterval is copy pop 
+		/cf currentfile def 
+		w h d [w 0 0 h neg 0 h] 
+		{ip} {is} {is} true 3 colorimage
+	} {
+		colorSetup2
+		/is im 0 lb getinterval def 
+		ws 0 lb getinterval is copy pop 
+		/cf currentfile def 
+		7 dict dup begin
+			/ImageType 1 def
+			/Width w def
+			/Height h def
+			/ImageMatrix [w 0 0 h neg 0 h] def
+			/DataSource {ip} bind def
+			/BitsPerComponent d def
+			/Decode [0 255] def
+		end image	
+	} ifelse
+	bitmapsave restore 
+	grestore
+	} bind def
+/BITMAPTRUECOLORc { 
+	/d 24 def
+        gsave
+ 	
+	3 index 2 div add exch	
+	4 index 2 div add exch	
+	translate		
+	rotate			
+	1 index 2 div neg	
+	1 index 2 div neg	
+	translate		
+	scale			
+	/h exch def /w exch def
+	/lb w d wbytes def 
+	sl lb lt {lb ms} if 
+        /bitmapsave save def 
+        
+	/is im 0 lb getinterval def	
+	/ris im 0 w getinterval def	
+	/gis im w w getinterval def	
+	/bis im w 2 mul w getinterval def 
+        
+        ws 0 lb getinterval is copy pop 
+        /cf currentfile def 
+        w h 8 [w 0 0 h neg 0 h] 
+        {w rip pop ris} {gis} {bis} true 3 colorimage
+        bitmapsave restore 
+        grestore
+        } bind def
+/BITMAPTRUECOLOR { 
+        gsave
+		
+		3 index 2 div add exch	
+		4 index 2 div add exch	
+		translate		
+		rotate			
+		1 index 2 div neg	
+		1 index 2 div neg	
+		translate		
+		scale			
+		/h exch def /w exch def
+        /bitmapsave save def 
+        /is w string def
+        /gis w string def
+        /bis w string def
+        /cf currentfile def 
+        w h 8 [w 0 0 h neg 0 h] 
+        { cf is readhexstring pop } 
+        { cf gis readhexstring pop } 
+        { cf bis readhexstring pop } 
+        true 3 colorimage 
+        bitmapsave restore 
+        grestore
+        } bind def
+/BITMAPTRUEGRAYc { 
+	/d 24 def
+        gsave
+	
+	3 index 2 div add exch	
+	4 index 2 div add exch	
+	translate		
+	rotate			
+	1 index 2 div neg	
+	1 index 2 div neg	
+	translate		
+	scale			
+	/h exch def /w exch def
+	/lb w d wbytes def 
+	sl lb lt {lb ms} if 
+        /bitmapsave save def 
+        
+	/is im 0 lb getinterval def	
+	/ris im 0 w getinterval def	
+	/gis im w w getinterval def	
+	/bis im w 2 mul w getinterval def 
+        ws 0 lb getinterval is copy pop 
+        /cf currentfile def 
+        w h 8 [w 0 0 h neg 0 h] 
+        {w rip pop ris gis bis w gray} image
+        bitmapsave restore 
+        grestore
+        } bind def
+/ww FMLOCAL
+/r FMLOCAL
+/g FMLOCAL
+/b FMLOCAL
+/i FMLOCAL
+/gray { 
+        /ww exch def
+        /b exch def
+        /g exch def
+        /r exch def
+        0 1 ww 1 sub { /i exch def r i get .299 mul g i get .587 mul
+			b i get .114 mul add add r i 3 -1 roll floor cvi put } for
+        r
+        } bind def
+/BITMAPTRUEGRAY { 
+        gsave
+		
+		3 index 2 div add exch	
+		4 index 2 div add exch	
+		translate		
+		rotate			
+		1 index 2 div neg	
+		1 index 2 div neg	
+		translate		
+		scale			
+		/h exch def /w exch def
+        /bitmapsave save def 
+        /is w string def
+        /gis w string def
+        /bis w string def
+        /cf currentfile def 
+        w h 8 [w 0 0 h neg 0 h] 
+        { cf is readhexstring pop 
+          cf gis readhexstring pop 
+          cf bis readhexstring pop w gray}  image
+        bitmapsave restore 
+        grestore
+        } bind def
+/BITMAPGRAY { 
+	8 {fakecolorsetup} COMMONBITMAP
+	} bind def
+/BITMAPGRAYc { 
+	8 {fakecolorsetup} COMMONBITMAPc
+	} bind def
+/ENDBITMAP {
+	} bind def
+end 
+	/ALDsave FMLOCAL
+	/ALDmatrix matrix def ALDmatrix currentmatrix pop
+/StartALD {
+	/ALDsave save def
+	 savematrix
+	 ALDmatrix setmatrix
+	} bind def
+/InALD {
+	 restorematrix
+	} bind def
+/DoneALD {
+	 ALDsave restore
+	} bind def
+/I { setdash } bind def
+/J { [] 0 setdash } bind def
+%%EndProlog
+%%BeginSetup
+(4.0) FMVERSION
+1 1 0 0 612 792 0 1 14 FMDOCUMENT
+0 0 /Times-Bold FMFONTDEFINE
+1 0 /Times-Roman FMFONTDEFINE
+2 0 /Times-Italic FMFONTDEFINE
+3 0 /Helvetica FMFONTDEFINE
+4 1 /Symbol FMFONTDEFINE
+5 0 /Times-BoldItalic FMFONTDEFINE
+32 FMFILLS
+0 0 FMFILL
+1 0.1 FMFILL
+2 0.3 FMFILL
+3 0.5 FMFILL
+4 0.7 FMFILL
+5 0.9 FMFILL
+6 0.97 FMFILL
+7 1 FMFILL
+8 <0f1e3c78f0e1c387> FMFILL
+9 <0f87c3e1f0783c1e> FMFILL
+10 <cccccccccccccccc> FMFILL
+11 <ffff0000ffff0000> FMFILL
+12 <8142241818244281> FMFILL
+13 <03060c183060c081> FMFILL
+14 <8040201008040201> FMFILL
+16 1 FMFILL
+17 0.9 FMFILL
+18 0.7 FMFILL
+19 0.5 FMFILL
+20 0.3 FMFILL
+21 0.1 FMFILL
+22 0.03 FMFILL
+23 0 FMFILL
+24 <f0e1c3870f1e3c78> FMFILL
+25 <f0783c1e0f87c3e1> FMFILL
+26 <3333333333333333> FMFILL
+27 <0000ffff0000ffff> FMFILL
+28 <7ebddbe7e7dbbd7e> FMFILL
+29 <fcf9f3e7cf9f3f7e> FMFILL
+30 <7fbfdfeff7fbfdfe> FMFILL
+%%EndSetup
+%%Page: "11" 1
+%%BeginPaperSize: Letter
+%%EndPaperSize
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+J
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 14 Q
+0 X
+0 0 0 1 0 0 0 K
+(Authors) 72 710.67 T
+0 10 Q
+(Henrik Frystyk Nielsen, frystyk@info.cern.ch:) 72 691.33 T
+0 0 0 1 0 0 0 K
+1 F
+0.79 (Joined the World-Wide Web Team at CERN, February 1994. He) 273.23 691.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.39 (completed his MSc degree as Engineer of Telecommunications at Aalborg University, Denmark, in august 1994. Hen-) 72 679.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.61 (rik is working in the CN division as a code developer in the World-Wide Web team. His research interests are enhanced) 72 667.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.04 (network protocols and communications systems. Henrik is currently responsible for the World-Wide Web Library of) 72 655.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Common Code and the Line Mode Browser.) 72 643.33 T
+0 0 0 1 0 0 0 K
+0 F
+(H\214kon W. Lie, howcome@info.cern.ch:) 72 625.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.14 (H\214kon is currently a Scientific Associate with the WWW project at CERN) 242.96 625.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.01 (while on leave from Norwegian Telecom Research where he holds a Research Scientist Position. At CERN he works) 72 613.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.14 (on the client side of the Library. He holds an MS from Massachusetts Institute of Technology where he worked in the) 72 601.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Electronic Publishing group of the MIT Media Lab.) 72 589.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Authors\325 present Address:) 72 571.33 T
+0 0 0 1 0 0 0 K
+1 F
+(CERN, 1211 Geneva 23, Switzerland) 187.82 571.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "11" 1
+%%Page: "10" 2
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 14 Q
+0 X
+0 0 0 1 0 0 0 K
+(9. Conclusions and Futur) 72 710.67 T
+(e Developments) 222.67 710.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0 (The Library of Common Code has recently gone through a phase of heavy code development and set of new features) 72 691.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.34 (are either being developed or is already available in the current version[1]. However, in order to have any effect on the) 72 679.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.34 (general evolution of the World-Wide Web project, much work must still be put into the development and maintenance) 72 667.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.31 (of the code. Furthermore it is vital that World-Wide Web developers see the Library as a powerful tool that offers a) 72 655.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.41 (wide spectrum of functionality relevant to World-Wide Web applications. The functionality must span fundamental) 72 643.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.06 (World-Wide Web features as well as experimental implementations such as gateways and format converters. We be-) 72 631.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.09 (lieve that the only way this can be achieved is by cooperation between the developers and the WWW-team at CERN) 72 619.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.05 (which has the responsibility of organizing and synchronizing development on the Library. Therefore, the goal of this) 72 607.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.39 (paper is to show the current state of the Library and at the same time to invite interested parties to join the working) 72 595.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(group for future developments.) 72 583.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Some of the plans for new features are) 72 565.33 T
+0 0 0 1 0 0 0 K
+(\245) 86.4 547.33 T
+(Security encryption and authentication) 93.6 547.33 T
+(\245) 86.4 529.33 T
+(New MIME-parser which replaces a lar) 93.6 529.33 T
+(ge number of small sub-parsers) 251.97 529.33 T
+(\245) 86.4 511.33 T
+(Implementing general support for Put and Post methods for HTTP) 93.6 511.33 T
+(, NNTP) 357.75 511.33 T
+(, and SMTP) 387.75 511.33 T
+(\245) 86.4 493.33 T
+(Implementation of forms support) 93.6 493.33 T
+(\245) 86.4 475.33 T
+(Integrating a WhoIs++ module as a new URI access scheme) 93.6 475.33 T
+(\245) 86.4 457.33 T
+(Gateway to a Hyper) 93.6 457.33 T
+(-G server as a new access scheme) 173.65 457.33 T
+0 14 Q
+(Acknowledgments) 72 428.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.4 (We would like to thank Tim Berners-Lee and the large group of contributors for having started the work on the World-) 72 409.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.22 (Wide Web Library of Common Code. We would also like to thank the current working group for inspiration and at-) 72 397.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(tributing code so that new features are integrated into the Library.) 72 385.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(This work has been partly sponsored by the Norwegian research Council.) 72 367.33 T
+0 0 0 1 0 0 0 K
+0 14 Q
+(Refer) 72 338.67 T
+(ences) 105.17 338.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+([1]) 72 319.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(http://info.cern.ch/hypertext/WWW/Library/Status.html,) 93.6 319.33 T
+0 0 0 1 0 0 0 K
+2 F
+(Status of the Library of Common Code) 322.75 319.33 T
+0 0 0 1 0 0 0 K
+1 F
+([2]) 72 307.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1.89 (http://info.cern.ch/hypertext/WWW/Library/Implementation/Overview.html,) 93.6 307.33 P
+0 0 0 1 0 0 0 K
+2 F
+1.89 (Library Internals and Program-) 405.73 307.33 P
+(mer\325s Guide) 93.6 295.33 T
+0 0 0 1 0 0 0 K
+1 F
+([3]) 72 283.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.7 (http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTTP2.html,) 93.6 283.33 P
+0 0 0 1 0 0 0 K
+2 F
+0.7 ( HTTP: A Protocol for Networked Informa-) 361.37 283.33 P
+(tion) 93.6 271.33 T
+0 0 0 1 0 0 0 K
+1 F
+([4]) 72 259.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+2.35 (http://info.cern.ch/hypertext/WWW/MarkUp/MarkUp.html,) 93.6 259.33 P
+0 0 0 1 0 0 0 K
+2 F
+2.35 (Hypertext Markup Language \050HTML\051: Working) 338.42 259.33 P
+(and background Material) 93.6 247.33 T
+0 0 0 1 0 0 0 K
+1 F
+([5]) 72 235.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.25 (http://info.cern.ch/hypertext/WWW/Addressing/Addressing.html,) 93.6 235.33 P
+0 0 0 1 0 0 0 K
+2 F
+0.25 (UR* and the Names and Addresses of WWW) 359.66 235.33 P
+(Objects) 93.6 223.33 T
+0 0 0 1 0 0 0 K
+1 F
+([6]) 72 211.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(http://info.internet.isi.edu/0/in-notes/rfc/files/rfc1521.txt) 93.6 211.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+([7]) 72 199.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(http://info.internet.isi.edu/0/in-notes/rfc/files/rfc765.txt) 93.6 199.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+([8]) 72 187.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(http://info.internet.isi.edu/0/in-notes/rfc/files/rfc977.txt) 93.6 187.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+([9]) 72 175.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(http://info.internet.isi.edu/0/in-notes/rfc/files/rfc1436.txt) 93.6 175.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+([10]) 72 163.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(http://server.wais.com/z3950.html,) 93.6 163.33 T
+0 0 0 1 0 0 0 K
+2 F
+(WAIS Network Publishing using Z3950) 235.54 163.33 T
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "10" 2
+%%Page: "9" 3
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1 10 Q
+0 X
+0 0 0 1 0 0 0 K
+-0.28 (ets are made blocking instead of non-blocking. The mode preserves compatibility with World-Wide Web applications) 72 713.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.13 (with a single-threaded approach. Currently this mode does not provide interruptible I/O as this is a integral part of the) 72 701.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(event-loop.) 72 689.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Active Mode:) 72 671.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.06 (In this mode the event-loop is placed in the Library. This mode is for dumb terminal clients which can) 131.98 671.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.22 (interrupt the execution through the keyboard. The client can, however, still be multi-threaded in the sense that it can) 72 659.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.02 (actively pre-fetch documents not yet requested by the user. If a key is hit, the Library calls a call-back function in the) 72 647.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.38 (client so the client can decide whether the current operation should be interrupted or not. If so, the Library stops all) 72 635.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.58 (I/O activity and handles the execution back to the client. The active mode should cause only minor changes to the client) 72 623.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(in order to obtain a simple form of multiple threads and interruptible I/O.) 72 611.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Passive mode:) 72 593.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.18 (This mode requires the most advanced clients, for example GUI clients. The event-loop is now placed) 134.77 593.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.26 (outside the Library. On every URI request from the client, the Library initiates the connection and as soon as it nor-) 72 581.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.13 (mally would block, it returns a list of active socket descriptors to the client. When the client is notified about an event) 72 569.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.32 (on a socket, it calls a Library socket-handler passing the socket number. Then the socket handler finds the correspond-) 72 557.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.53 (ing request and starts the thread. As soon as the thread would perform a blocking I/O operation, the socket handler) 72 545.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(stops the thread and returns the execution to the client event-loop.) 72 533.33 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(8.3 Contr) 72 508 T
+(ol Flow) 120.44 508 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.21 (A consequence of having multiple threads in the Library is that the control flow changes to be event driven where any) 72 492.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.06 (action is initiated by an event either caused by the client or the network interface. However, as the current implemen-) 72 480.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.23 (tation of multiple threads is valid for HTTP access only, the control flow of the Library from Figure 1 has been pre-) 72 468.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.28 (served but with the addition of an event-loop in the HTTP module. All other access schemes still use blocking I/O and) 72 456.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.34 (the user will not notice any difference from the current implementation. The result of this is that full multi-threaded) 72 444.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.44 (functionality is enabled only if the client uses consecutive HTTP requests. The internal event-loop is based on call-) 72 432.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(back functions and events on a set of registered socket descriptors as illustrated in Figure 7.) 72 420.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Figur) 206.38 213.17 T
+(e 7) 230.1 213.17 T
+1 F
+(Event-loop based on call-back functions) 244.54 213.17 T
+0 0 0 1 0 0 0 K
+0.02 (The event-loop handles two kinds of call back functions: Ones that are internal Library functions such as the specific) 72 196.17 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(protocol modules, and the ones that require an action taken by the client application.) 72 184.17 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(8.4 Interrupting a HTTP Request) 72 158.84 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.4 (The interrupt handler implemented for) 72 143.17 P
+0 0 0 1 0 0 0 K
+2 F
+-0.4 (active mode) 226.39 143.17 P
+0 0 0 1 0 0 0 K
+1 F
+-0.4 ( is non-eager as it is a part of the select function in the socket event-) 274.03 143.17 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.29 (loop. That is, an interrupt through standard input is caught when the executing thread is about to execute a blocking) 72 131.17 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.41 (I/O operation such as) 72 119.17 P
+0 0 0 1 0 0 0 K
+2 F
+-0.41 (read) 158.13 119.17 P
+0 0 0 1 0 0 0 K
+1 F
+-0.41 ( from the Internet and execution is handled back to the event-loop. The reason for this is that) 176.46 119.17 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.29 (the user is not blocked even though the interrupt does not get caught right away so it is not as critical as in a single-) 72 107.17 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.34 (threaded environment. In) 72 95.17 P
+0 0 0 1 0 0 0 K
+2 F
+-0.34 (passive mode) 174.3 95.17 P
+0 0 0 1 0 0 0 K
+1 F
+-0.34 ( the client has complete control over when to catch interrupts from the user and) 227.56 95.17 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(also how and when to handle them.) 72 83.17 T
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+128.44 227.84 483.56 417 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+272.05 319.97 284.01 319.05 273.38 313.49 272.71 316.73 4 Y
+0 X
+0 0 0 1 0 0 0 K
+V
+272.71 316.72 M
+ 246.33 311.41 242.6 312.18 209.6 319.05 D
+0.5 H
+2 Z
+N
+221.14 326.2 209.6 329.5 221.14 332.81 221.14 329.5 4 Y
+V
+284.01 326.02 278.7 326.02 246.81 326.02 252.12 329.5 221.14 329.5 5 L
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+333.61 313.49 322.98 319.05 334.94 319.97 334.27 316.73 4 Y
+V
+334.29 316.72 M
+ 360.67 311.41 364.4 312.18 397.4 319.05 D
+N
+385.86 332.81 397.4 329.5 385.86 326.2 385.86 329.5 4 Y
+V
+322.99 326.02 328.3 326.02 360.19 326.02 354.88 329.5 385.86 329.5 5 L
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+249.7 269.44 238.59 264.91 245.61 274.64 247.66 272.04 4 Y
+V
+282.8 304.7 279.41 302.04 259.09 286.06 265.68 286.21 247.66 272.03 5 L
+N
+278.16 290.18 287.55 297.65 283.54 286.34 280.85 288.26 4 Y
+V
+237.95 258.64 M
+ 265.27 270.54 269.21 272.26 280.86 288.25 D
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+245.61 370.2 238.59 379.93 249.7 375.4 247.65 372.8 4 Y
+V
+282.79 340.14 279.41 342.8 259.09 358.77 265.68 358.63 247.66 372.8 5 L
+N
+283.55 358.5 287.55 347.19 278.16 354.67 280.86 356.58 4 Y
+V
+237.95 386.2 M
+ 265.27 374.29 269.2 372.58 280.86 356.59 D
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+198.97 361.39 237.95 411 R
+7 X
+V
+0 X
+N
+170.63 297.62 209.6 347.22 R
+7 X
+V
+0 X
+N
+397.4 297.62 436.37 347.22 R
+7 X
+V
+0 X
+N
+284.01 297.62 322.99 347.22 R
+7 X
+V
+0 X
+N
+3 9 Q
+(Event-) 290.49 333.62 T
+(Protocol) 400.38 333.86 T
+(Module) 402.13 324.39 T
+(Interrupt) 201.7 397.64 T
+(Handler) 202.71 388.17 T
+(New) 181.11 333.86 T
+(Request) 173.36 324.39 T
+341.22 263.07 352.75 259.76 341.22 256.45 341.22 259.76 4 Y
+V
+312.36 255.56 315.24 255.56 332.55 255.56 329.67 259.76 341.22 259.76 5 L
+N
+342.8 274.4 352.75 267.69 340.76 268.1 341.78 271.25 4 Y
+V
+341.78 271.24 M
+ 331.55 274.18 328.04 272.99 312.36 267.68 D
+N
+(Information returned to loop) 354.88 267.7 T
+(Event has occurred) 354.88 255.62 T
+3 10 Q
+(Client) 134.44 321.06 T
+(Library) 447 321.06 T
+3 9 Q
+(Loop) 293.49 324.62 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+198.97 233.84 237.95 283.44 R
+7 X
+V
+0 X
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Put &) 207.45 269.27 T
+(Post) 209.46 260.27 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+319.45 368.48 404.48 382.65 R
+7 X
+V
+0 X
+N
+(Socket descriptors) 324.95 372.29 T
+333.77 341.85 322.98 336.59 329.35 346.77 331.56 344.31 4 Y
+V
+331.56 344.31 358.42 368.48 2 L
+N
+374.24 357.66 369.05 368.48 379.18 362.06 376.71 359.86 4 Y
+V
+376.71 359.86 397.4 336.59 2 L
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+0 -208 1000 792 C
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "9" 3
+%%Page: "8" 4
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1 10 Q
+0 X
+0 0 0 1 0 0 0 K
+-0.31 (However, the canonicalization does not recognize alias host names which would require that this information is stored) 72 713.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(in the cache.) 72 701.33 T
+0 0 0 1 0 0 0 K
+0 14 Q
+(8. Support for Multi-thr) 72 672.67 T
+(eaded I/O Operation) 216.41 672.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0.17 (In a single-process, single-threaded environment all requests to, e.g., the I/O interface traditionally block any further) 72 653.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.5 (processing. However, a combination of a multi-process or multi-threaded implementation makes provision for the user) 72 641.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.52 (to request several independent URIs at the same time without getting blocked by slow I/O operations. As a World-) 72 629.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.03 (Wide Web client is expected to use much of the execution time doing I/O operations such as \322connect\323 and \322read\323, a) 72 617.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.43 (high degree of optimization can be obtained if multiple threads can run at the same time. This section describes the) 72 605.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.08 (current implementation of multiple threads in the HTTP Module. Later it is expected that other protocol modules are) 72 593.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.34 (added. The NNTP, Gopher, and FTP module have all been rewritten as state machines so they can with minor changes) 72 581.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(be included in the event-loop.) 72 569.33 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(8.1 Platform Independent Implementation) 72 544 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.03 (The major concern in the design of the multi-threaded Library has been to make a platform independent implementa-) 72 528.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.87 (tion which excludes use of traditional thread packages like DECthreads. IEEE has publicized the POSIX standard) 72 516.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.31 (1003.4 for multi-threaded programming but even this will eventually limit the portability referring to the discussion in) 72 504.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.26 (Section 2. Instead, the multi-threaded functionality of the HTTP client has been designed to be used in a single-pro-) 72 492.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(cessor, single-threaded environment as illustrated in Figure 6) 72 480.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 F
+(Figur) 163.92 300.33 T
+(e 6) 187.63 300.33 T
+2 F
+(Left:) 202.07 300.33 T
+1 F
+( T) 220.96 300.33 T
+(raditional threads and) 229.22 300.33 T
+2 F
+(right:) 318.37 300.33 T
+1 F
+(Model used in the Library) 343.65 300.33 T
+0 0 0 1 0 0 0 K
+-0.32 (The difference between this technique and \322traditional\323 threads is that all information about a thread is stored in a data) 72 283.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.06 (object which exists throughout the lifetime of the thread. This implies that the following rules must be kept regarding) 72 271.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(memory management:) 72 259.33 T
+0 0 0 1 0 0 0 K
+(\245) 86.4 241.33 T
+(Global variables can be used only if they at all time are independent of the current state of the active thread.) 93.6 241.33 T
+(\245) 86.4 223.33 T
+-0.23 (Automatic variables can be used only if they are initialized on every entry to the function and stay state indepen-) 93.6 223.33 P
+(dent of the current thread throughout their lifetime.) 93.6 211.33 T
+(\245) 86.4 193.33 T
+(All information necessary for completing a thread must be kept in an autonomous data object that is passed) 93.6 193.33 T
+(round the control \337ow via the stack.) 93.6 181.33 T
+0 0 0 1 0 0 0 K
+0.29 (These rules makes it possible to imply a multi-threaded data model using only one stack without causing portability) 72 163.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(problems as it is all done in plain C.) 72 151.33 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(8.2 Modes of Operation) 72 126 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0.22 (In order to keep the functionality of the Library as general as possible, three different modes of operation are imple-) 72 110.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(mented:) 72 98.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Base Mode:) 72 80.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.44 (This mode is strictly single-threaded. The difference between this mode and the other two is that all sock-) 124.77 80.33 P
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+72 315 540 459 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+319.62 315 540 459 R
+7 X
+0 0 0 1 0 0 0 K
+V
+0.5 H
+2 Z
+0 X
+N
+433.27 377.3 438.47 374.3 433.27 371.3 433.27 374.3 4 Y
+V
+369.14 374.3 433.27 374.3 2 L
+1 H
+N
+383.12 391.92 388.95 393.36 387.28 387.59 385.2 389.75 4 Y
+V
+369.14 374.3 385.2 389.75 2 L
+N
+387.28 361 388.95 355.24 383.12 356.68 385.2 358.84 4 Y
+V
+369.14 374.3 385.2 358.84 2 L
+N
+72 315 292.38 459 R
+7 X
+V
+0.5 H
+0 X
+N
+237.9 334.06 282.47 454.77 R
+7 X
+V
+0 X
+N
+3 9 Q
+(Thread) 245.93 442.89 T
+188.38 334.06 232.95 454.77 R
+7 X
+V
+0 X
+N
+(Thread) 196.4 442.89 T
+138.85 334.06 183.42 454.77 R
+7 X
+V
+0 X
+N
+141.33 420.88 180.95 437.82 R
+7 X
+V
+0 X
+N
+141.33 336.18 180.95 412.41 R
+7 X
+V
+0 X
+N
+(Registers) 142.14 425.95 T
+(Stack) 149.88 370.89 T
+190.85 420.88 230.47 437.82 R
+7 X
+V
+0 X
+N
+190.85 336.18 230.47 412.41 R
+7 X
+V
+0 X
+N
+(Registers) 191.66 425.95 T
+(Stack) 199.41 370.89 T
+240.38 420.88 279.99 437.82 R
+7 X
+V
+0 X
+N
+240.38 336.18 279.99 412.41 R
+7 X
+V
+0 X
+N
+(Registers) 241.18 425.95 T
+(Stack) 248.93 370.89 T
+(Thread) 146.88 442.89 T
+81.9 365.83 121.52 382.77 R
+7 X
+V
+0 X
+N
+(Heap) 90.96 370.89 T
+81.9 391.24 121.52 408.18 R
+7 X
+V
+0 X
+N
+(Static) 90.46 396.3 T
+81.9 340.41 121.52 357.36 R
+7 X
+V
+0 X
+N
+(Code) 90.96 345.48 T
+J
+76.95 416.65 287.42 416.65 287.42 319.24 76.95 319.24 4 Y
+J
+76.95 415.9 76.95 416.65 77.7 416.65 3 L
+N
+[1.503 4.51] 1.503 I
+77.7 416.65 286.67 416.65 2 L
+N
+J
+286.67 416.65 287.42 416.65 287.42 415.9 3 L
+N
+[1.522 4.567] 1.522 I
+287.42 415.9 287.42 319.99 2 L
+N
+J
+287.42 319.99 287.42 319.24 286.67 319.24 3 L
+N
+[1.503 4.51] 1.503 I
+286.67 319.24 77.71 319.24 2 L
+N
+J
+77.71 319.24 76.95 319.24 76.95 319.99 3 L
+N
+[1.522 4.567] 1.522 I
+76.95 319.99 76.95 415.9 2 L
+N
+(Memory) 165.94 322.51 T
+J
+(Process) 79.43 446.89 T
+485.52 334.06 530.09 454.77 R
+7 X
+V
+0 X
+N
+(Thread) 493.55 442.89 T
+487.99 420.88 527.61 437.82 R
+7 X
+V
+0 X
+N
+487.99 336.18 527.61 412.41 R
+7 X
+V
+0 X
+N
+(Registers) 488.8 425.95 T
+(Stack) 496.55 370.89 T
+329.52 365.83 369.14 382.77 R
+7 X
+V
+0 X
+N
+(Heap) 338.58 370.89 T
+329.52 391.24 369.14 408.18 R
+7 X
+V
+0 X
+N
+(Static) 338.08 396.3 T
+329.52 340.41 369.14 357.36 R
+7 X
+V
+0 X
+N
+(Code) 338.58 345.48 T
+J
+324.57 416.65 535.04 416.65 535.04 319.24 324.57 319.24 4 Y
+J
+324.57 415.9 324.57 416.65 325.32 416.65 3 L
+N
+[1.503 4.51] 1.503 I
+325.32 416.65 534.29 416.65 2 L
+N
+J
+534.29 416.65 535.04 416.65 535.04 415.9 3 L
+N
+[1.522 4.567] 1.522 I
+535.04 415.9 535.04 319.99 2 L
+N
+J
+535.04 319.99 535.04 319.24 534.29 319.24 3 L
+N
+[1.503 4.51] 1.503 I
+534.29 319.24 325.32 319.24 2 L
+N
+J
+325.32 319.24 324.57 319.24 324.57 319.99 3 L
+N
+[1.522 4.567] 1.522 I
+324.57 319.99 324.57 415.9 2 L
+N
+(Memory) 413.55 322.51 T
+J
+(Process) 327.05 446.89 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+386.47 389.12 428.57 410.3 10.59 RR
+6 X
+V
+0 X
+N
+(Thread) 393.26 400.67 T
+(State) 397.01 393.49 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+437.23 363.71 479.33 384.89 10.59 RR
+6 X
+V
+0 X
+N
+(Thread) 444.02 375.25 T
+(State) 447.77 368.08 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+386.47 338.3 428.57 359.47 10.59 RR
+6 X
+V
+0 X
+N
+(Thread) 393.26 349.84 T
+(State) 397.01 342.67 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+0 0 612 792 C
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "8" 4
+%%Page: "7" 5
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1 10 Q
+0 X
+0 0 0 1 0 0 0 K
+(\245) 86.4 713.33 T
+2 F
+-0.23 (User) 93.6 713.33 P
+-0.23 (-Agent:) 112.84 713.33 P
+1 F
+-0.23 ( The user agent is by many clients currently generated in a somewhat verbose format. The goal is to) 142.83 713.33 P
+-0.08 (make this \336eld machine readable so it can be used on the server side to perform individual actions as a function) 93.6 701.33 P
+(of the client implementation. As a side ef) 93.6 689.33 T
+(fect it can also be used for statistics etc.) 258.4 689.33 T
+(\245) 86.4 671.33 T
+2 F
+(Authorization:) 93.6 671.33 T
+0 0 0 1 0 0 0 K
+1 F
+(If the user already has typed in a user ID and a password for access authorization in a previous) 154.44 671.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.37 (HTTP request the HTTP client also transmits the authorization MIME-header. However, this does not guarantee) 93.6 659.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(that the user ID and password are sufficient for actually accessing the requested resource.) 93.6 647.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Sent Request:) 72 629.33 T
+0 0 0 1 0 0 0 K
+1 F
+0.26 (The client waits until a response is given from the server or the connection is timed out in case of an) 133.66 629.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(error situation. The client is capable of differentiating HTTP 0.9 responses from HTTP 1.0 responses.) 72 617.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Need Access Authorization:) 72 599.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.29 (If a 401 Unauthorized status code is returned, the module prompts the user for a user ID) 192.81 599.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.41 (and a password. The connection is closed before the user is actually asked, so any new request initiated upon a 401) 72 587.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(status code causes a new connection to be established.) 72 575.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Redirection:) 72 557.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.35 (The module supports both a temporarily \050302\051 and a permanent \050301\051 redirection code returned from the) 127.82 557.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.54 (server. In both cases, the connection is closed and the Protocol Manager is called recursively until a document is found,) 72 545.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.05 (an error has occurred, or the maximum number of redirections has been reached. The URI returned in the redirection) 72 533.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.24 (response from the remote server is parsed back to the client via the Error and Information Manager. If it is a 301 code,) 72 521.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(an intelligent client can use this information to change the document in which the redirected URI originates.) 72 509.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Need Body:) 72 491.33 T
+0 0 0 1 0 0 0 K
+1 F
+0.6 (If a body is included in the response from the server, the module reads the data from the network and) 124.22 491.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(direct it to the Stream Manager which sets up a stream stack to handle the desired format conversion.) 72 479.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Got Data:) 72 461.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.5 (When the data object has been loaded from the Internet, the module terminates the request and handles con-) 116.99 461.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(trol back to the client.) 72 449.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Error or Failure:) 72 431.33 T
+0 0 0 1 0 0 0 K
+1 F
+0.77 (If at any point in the request handling an error occurs the request is aborted and the connection) 148.37 431.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.6 (closed. All information about the error is parsed back to the client via the Error and Information Manager. As the HTTP) 72 419.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.34 (protocol is stateless, all errors are fatal between the server and the client. If the erroneous request is to be corrected,) 72 407.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(the state machine jumps back to the initial state.) 72 395.33 T
+0 0 0 1 0 0 0 K
+0 14 Q
+(7. Cache of Host Names) 72 366.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.61 (As excessive communication with Domain Name Servers \050DNS\051 can produce a significant time-overhead, a new mem-) 72 347.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.12 (ory cache of host names have been implemented to limit the amount of requests to DNS. Once a host name has been) 72 335.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.37 (resolved into an IP-address, it is stored in the cache. The entry stays in the cache until an error occurs when connecting) 72 323.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(to the remote host or it is removed during garbage collection.) 72 311.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.37 (Multi-homed hosts are treated specially as all available IP-addresses returned from DNS are stored in the cache. Every) 72 293.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.22 (time a request is made to the host, the time-to-connect is measured and a weight function is calculated to indicate how) 72 281.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(fast the IP-address was. The weight function used is) 72 269.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.18 (where) 72 216.7 P
+4 F
+-0.18 (a) 98.75 216.7 P
+1 F
+-0.18 ( indicates the sensitivity of the function and) 105.06 216.7 P
+4 F
+-0.18 (D) 280.83 216.7 P
+1 F
+-0.18 ( is the connect time. If one IP-address is not reachable a penalty) 286.95 216.7 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.13 (of) 72 204.7 P
+0 0 0 1 0 0 0 K
+2 F
+0.13 (x) 82.96 204.7 P
+0 0 0 1 0 0 0 K
+1 F
+0.13 ( seconds is added to the weight where the penalty is a function of the error returned from the \322connect\323 call. The) 87.4 204.7 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(next time a request is initiated to the remote host, the IP-address with the smallest weight is used.) 72 192.7 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.24 (A problem with both the host cache and the document cache \050either on server side or client side\051 is to detect when two) 72 174.7 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.05 (URLs are equivalent. The only way this can be done internally in the Library is to canonicalize the URLs before they) 72 162.7 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.22 (are compared. This has for some time been done by looking at the path segment of the URLs and remove redundant) 72 150.7 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(information by converting URLs like) 72 138.7 T
+0 0 0 1 0 0 0 K
+3 9 Q
+(foo/./bar/ = foo/redundant/../bar/ = foo/bar/) 222.19 121.37 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.21 (The method is now optimized and expanded so that also host names are canonicalized. Hence the following URLs are) 72 104.7 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(all recognized to be identical:) 72 92.7 T
+0 0 0 1 0 0 0 K
+3 9 Q
+(http://info/ = http://info.cern.ch:80/ = http://INFO.CeRn.CH/ = http://info.cern.ch./ = http://info.cern.ch/) 107.14 75.37 T
+72 72 540 720 C
+197.57 231.37 414.43 266 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+2 9 Q
+0 X
+0 0 0 1 0 0 0 K
+(W) 198.57 245.78 T
+(n) 211.96 245.78 T
+1 F
+(1) 226.03 245.78 T
+(+) 218.7 245.78 T
+4 F
+(\050) 208.1 245.78 T
+(\051) 230.94 245.78 T
+2 F
+(W) 260.18 252.86 T
+(n) 273.57 252.86 T
+4 F
+(\050) 269.71 252.86 T
+(\051) 278.48 252.86 T
+1 F
+(1) 297.91 252.86 T
+4 F
+(a) 311.41 252.86 T
+1 F
+(\320) 304.66 252.86 T
+4 F
+(\050) 294.05 252.86 T
+(\051) 317.5 252.86 T
+(D) 328.74 252.86 T
+(\327) 324.24 252.86 T
+1 F
+(+) 285.23 252.86 T
+(i) 337.84 252.86 T
+(f) 340.35 252.86 T
+(a) 345.59 252.86 T
+(c) 349.59 252.86 T
+(t) 353.58 252.86 T
+(i) 356.09 252.86 T
+(v) 358.59 252.86 T
+(e) 363.09 252.86 T
+(I) 369.33 252.86 T
+(P) 372.33 252.86 T
+(-) 377.34 252.86 T
+(a) 380.33 252.86 T
+(d) 384.33 252.86 T
+(d) 388.83 252.86 T
+(r) 393.33 252.86 T
+(e) 396.33 252.86 T
+(s) 400.32 252.86 T
+(s) 403.82 252.86 T
+(0) 260.18 240.26 T
+(.) 264.68 240.26 T
+(9) 266.93 240.26 T
+2 F
+(W) 278.18 240.26 T
+(n) 291.57 240.26 T
+4 F
+(\050) 287.71 240.26 T
+(\051) 296.48 240.26 T
+(\327) 273.68 240.26 T
+1 F
+(e) 337.84 240.26 T
+(l) 341.84 240.26 T
+(s) 344.34 240.26 T
+(e) 347.84 240.26 T
+4 F
+(\356) 251 238.41 T
+(\355) 251 246.12 T
+(\354) 251 253.84 T
+1 F
+(=) 239.93 245.78 T
+72 72 540 720 C
+0 0 612 792 C
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "7" 5
+%%Page: "6" 6
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 14 Q
+0 X
+0 0 0 1 0 0 0 K
+(6. Implementation of the HTTP Module) 72 710.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.25 (The HTTP client is based on the HTTP 1.0 specification but is backwards compatible with version 0.9. The major dif-) 72 691.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.29 (ference between this and previous implementations is that this version is a state machine based on the state diagram) 72 679.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.45 (illustrated in Figure 5. As will be discussed in Section 8, the state-machine design has some inherent advantages which) 72 667.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(makes it suitable in a multi-threaded environment, even though the HTTP protocol is stateless by nature.) 72 655.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(.) 72 637.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Figur) 178.18 355.33 T
+(e 5) 201.9 355.33 T
+1 F
+(State Diagram of the Client part of the HTTP Protocol) 216.34 355.33 T
+0 0 0 1 0 0 0 K
+(The individual states and the transitions between them are explained below.) 72 338.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Begin:) 72 320.33 T
+0 0 0 1 0 0 0 K
+1 F
+0.19 (This state is the initial state where the HTTP module sets up the required data structures needed for handling) 102.28 320.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(the request.) 72 308.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Need Connection:) 72 290.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.15 (The HTTP client is ready for setting up a connection to the remote host. The connection is always) 150.88 290.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.25 (initiated by a) 72 278.33 P
+0 0 0 1 0 0 0 K
+2 F
+0.25 (connect) 127.47 278.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.25 ( system call. This procedure has been optimized by using a cache of visited host names as will) 158.57 278.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(be explained in Section 7.) 72 266.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Need Request:) 72 248.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.26 (After connection establishment, the module sends the HTTP request to the remote server. The request) 136.43 248.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.28 (consists of an HTTP header line, a set of MIME Headers, and possibly a data object to be posted to the server. Current) 72 236.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.41 (methods supported in the module are GET and HEAD, but support for PUT and POST is under development. The sup-) 72 224.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(ported MIME-headers are:) 72 212.33 T
+0 0 0 1 0 0 0 K
+(\245) 86.4 194.33 T
+2 F
+(Accept:) 93.6 194.33 T
+1 F
+( The current implementation uses one accept line for each MIME-type supported by the client. For) 124.14 194.33 T
+-0.16 (advanced clients this means that the \322Accept:\323 sequence is repeated 20-30 times which gives a overhead of 200-) 93.6 182.33 P
+(300 bytes per request \050including the CRLF telnet EOL-sequence\051. This should be changed so that either a) 93.6 170.33 T
+(comma separated list is transmitted instead or only the MIME content types without any subtypes.) 93.6 158.33 T
+(\245) 86.4 140.33 T
+2 F
+-0.14 (Refer) 93.6 140.33 P
+-0.14 (er:) 114.89 140.33 P
+1 F
+-0.14 ( If any parent anchor is known to the requested URI it is sent in the referer \336eld. This is to let the server) 126.55 140.33 P
+(know what link has led to the current request. Nothing is sent if the parent anchor is unknown or does not exist.) 93.6 128.33 T
+(\245) 86.4 110.33 T
+2 F
+-0.04 (Fr) 93.6 110.33 P
+-0.04 (om:) 103.23 110.33 P
+1 F
+-0.04 ( The full email address is sent along the request. It is meant as an informative service to the recipient and) 118.78 110.33 P
+(can be changed to any value the user wishes to sign the request with. As it is possible to manipulate the email) 93.6 98.33 T
+(address, this \336eld can not be used as identity veri\336cation for access authentication.) 93.6 86.33 T
+72 72 540 720 C
+84 370 528 634 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+383.14 408.2 380.14 403.01 377.15 408.2 380.14 408.2 4 Y
+0 X
+0 0 0 1 0 0 0 K
+V
+380.14 408.2 380.14 421 2 L
+0.5 H
+2 Z
+N
+314.42 566.5 309.22 569.5 314.42 572.5 314.42 569.5 4 Y
+V
+314.42 569.5 476.86 569.5 476.86 493 3 L
+N
+270.54 506.5 470.41 506.5 2 L
+N
+470.41 506.15 470.41 492.65 2 L
+N
+112.79 550.8 115.79 556 118.79 550.8 115.79 550.8 4 Y
+V
+115.79 434.5 115.79 550.8 2 L
+N
+115.79 434.5 141.58 434.5 2 L
+N
+154.48 434.5 257.64 434.5 2 L
+N
+329.82 437.5 335.01 434.5 329.82 431.5 329.82 434.5 4 Y
+V
+270.54 434.5 329.82 434.5 2 L
+N
+267.09 588.2 264.09 583 261.09 588.2 264.09 588.2 4 Y
+V
+264.09 601 264.09 588.2 2 L
+N
+267.09 543.2 264.09 538 261.09 543.2 264.09 543.2 4 Y
+V
+264.09 556 264.09 543.2 2 L
+N
+267.09 498.2 264.09 493 261.09 498.2 264.09 498.2 4 Y
+V
+264.09 511 264.09 498.2 2 L
+N
+267.09 408.2 264.09 403.01 261.09 408.2 264.09 408.2 4 Y
+V
+264.09 466 264.09 408.2 2 L
+N
+383.14 453.2 380.14 448 377.15 453.2 380.14 453.2 4 Y
+V
+309.22 475 380.14 475 380.14 453.2 3 L
+N
+185.46 566.5 180.27 569.5 185.46 572.5 185.46 569.5 4 Y
+V
+218.95 569.5 185.46 569.5 2 L
+N
+151.48 550.8 154.48 556 157.48 550.8 154.48 550.8 4 Y
+V
+218.95 524.5 154.48 524.5 154.48 550.8 3 L
+N
+125.69 550.8 128.69 556 131.69 550.8 128.69 550.8 4 Y
+V
+218.95 484 128.69 484 128.69 550.8 3 L
+N
+151.03 408.2 148.03 403.01 145.03 408.2 148.03 408.2 4 Y
+V
+218.95 475 148.03 475 148.03 408.2 3 L
+N
+426.53 487 431.73 484 426.53 481 426.53 484 4 Y
+V
+309.22 484 426.53 484 2 L
+N
+138.58 550.8 141.58 556 144.58 550.8 141.58 550.8 4 Y
+V
+141.58 506.5 141.58 550.8 2 L
+N
+141.58 506.5 257.64 506.5 2 L
+N
+90 556 180.27 583 13.5 RR
+7 X
+V
+0 X
+N
+218.95 376 309.22 403.01 13.5 RR
+7 X
+V
+0 X
+N
+102.89 376 193.16 403.01 13.5 RR
+7 X
+V
+0 X
+N
+218.95 601 309.22 628 R
+7 X
+V
+0 X
+N
+218.95 556 309.22 583 R
+7 X
+V
+0 X
+N
+218.95 466 309.22 493 R
+7 X
+V
+0 X
+N
+335.01 420.66 425.28 447.65 R
+7 X
+V
+0 X
+N
+3 10 Q
+(Begin) 251.3 610.79 T
+(Need) 252.14 570.42 T
+218.95 511 309.22 538 R
+7 X
+V
+0 X
+N
+(Need) 252.14 525.42 T
+(Error/) 122.63 570.42 T
+(Sent) 253.8 480.42 T
+(Need) 368.2 435.08 T
+(No Data) 246.29 385.79 T
+(Redirection) 122.21 385.79 T
+431.73 465.65 522 492.65 R
+7 X
+V
+0 X
+N
+(Need Access) 447.41 480.08 T
+3 9 Q
+(401) 362.97 487.13 T
+(Ok) 482.15 504.78 T
+(Error) 440.64 495.61 T
+(301, 302) 165.98 464.98 T
+(HTTP 0.9,) 330.55 463.05 T
+(204, 304) 224.77 455.64 T
+335.01 376 425.28 403.01 13.5 RR
+7 X
+V
+0 X
+N
+3 10 Q
+(Got Data) 360.67 385.79 T
+3 9 Q
+(Ok) 386.59 408.39 T
+(Error) 304.14 438.9 T
+(Error) 191.47 486.43 T
+(Error) 191.47 571.92 T
+(Ok) 270.54 543.38 T
+(Error) 191.47 526.93 T
+(Ok) 270.42 496.71 T
+3 10 Q
+(Request) 245.47 469.92 T
+(Failure) 119.85 559.92 T
+(Authorization) 447.68 469.58 T
+(Connection) 238.8 559.92 T
+(Request) 245.47 514.92 T
+(Body) 368.75 424.58 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+3 9 Q
+(200,203) 334.8 454.05 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+0 0 612 792 C
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "6" 6
+%%Page: "5" 7
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1 10 Q
+0 X
+0 0 0 1 0 0 0 K
+-0.19 (and the desired output format specified by the client. A converter is simply a stream which is registered as a converter) 72 713.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 (from a given input MIME-type to a output MIME-type. If more than one converter is capable of doing the same con-) 72 701.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.12 (version a quality factor is used to \050subjectively\051 distinguish which one is the best. Currently the stream stack module) 72 689.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.44 (only manages a single converter at the time, for example from) 72 677.33 P
+0 0 0 1 0 0 0 K
+2 F
+0.44 (text/plain) 327.86 677.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.44 ( to) 365.64 677.33 P
+0 0 0 1 0 0 0 K
+2 F
+0.44 (text/html) 379.3 677.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.44 (, that is, the size of the stack is) 414.3 677.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.58 (always 1. However, work is being done to expand the stack so that several converters can be cascaded in order to obtain) 72 665.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(the desired conversion.) 72 653.33 T
+0 0 0 1 0 0 0 K
+0 14 Q
+(5. Anchors) 72 624.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.44 (Anchors represent any references to graphic objects which may be the sources or destinations of hypertext links. There) 72 605.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.45 (are basically two types of anchors:) 72 593.33 P
+0 0 0 1 0 0 0 K
+2 F
+-0.45 (parent) 210.35 593.33 P
+0 0 0 1 0 0 0 K
+1 F
+-0.45 ( anchors which represent whole graphic objects and) 236.46 593.33 P
+0 0 0 1 0 0 0 K
+2 F
+-0.45 (child) 442.22 593.33 P
+0 0 0 1 0 0 0 K
+1 F
+-0.45 ( anchors which rep-) 462.22 593.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.09 (resent parts of a graphic object. As mentioned in Section 3, every request and hence every graphic object has a parent) 72 581.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.26 (anchor associated with it. Anchors exist throughout the lifetime of the client, but as this generally is not the case for) 72 569.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.06 (graphic objects, it is possible to have a parent anchor without a graphic object. If the data object is stored in the client) 72 557.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(cache, the parent anchor contains a link to it so that the client can access it through the Cache Manager.) 72 545.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.53 (Both types of anchors are subclasses of a generic anchor class which defines a set of outgoing links to where the anchor) 72 527.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(points. The relationship between parent anchors and child anchors is illustrated in Figure 4.) 72 515.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Figur) 193.1 197.33 T
+(e 4) 216.8 197.33 T
+1 F
+(Relationship between) 231.24 197.33 T
+2 F
+(par) 320.12 197.33 T
+(ent) 333.64 197.33 T
+1 F
+( and) 345.86 197.33 T
+2 F
+(child) 365.3 197.33 T
+1 F
+( anchors) 385.3 197.33 T
+0 0 0 1 0 0 0 K
+-0.16 (Every parent anchor points to a remote data object. In the case of posting an anchor to a remote server, the data object) 72 180.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.25 (is yet to be created. The client can assign a URI for the object but it might be overwritten \050or completely denied\051 by) 72 168.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.36 (the server. In Figure 4, parent) 72 156.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.36 (A) 195.24 156.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.36 ( has no associated graphic object. This can either be because the anchor has not yet) 202.46 156.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(been requested by the user or the graphic object has been discarded from memory.) 72 144.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.4 (When child) 72 126.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.4 (B1) 121.68 126.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.4 ( is created, pointing to parent) 133.35 126.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.4 (A) 254.89 126.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.4 (, parent) 262.11 126.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.4 (B) 295.4 126.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.4 ( is registered in parent) 302.07 126.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.4 (A) 395.43 126.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.4 ( as pointing to) 402.65 126.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.4 (A) 463.7 126.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.4 (. The same is the) 470.92 126.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.12 (case for the link between child) 72 114.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.12 (BL) 197.66 114.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.12 ( and) 211.01 114.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.12 (A2) 230.68 114.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.12 (, but parent) 242.9 114.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.12 (B) 291.01 114.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.12 ( is only registered once in parent) 297.68 114.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.12 (A) 431.52 114.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.12 ( \050this is marked with) 438.74 114.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.12 (b) 524.04 114.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.12 ( in) 529.6 114.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.15 (the figure\051. The same is the case for the links marked) 72 102.33 P
+0 0 0 1 0 0 0 K
+0 F
+-0.15 (a) 285.26 102.33 P
+0 0 0 1 0 0 0 K
+1 F
+-0.15 ( and) 290.26 102.33 P
+0 0 0 1 0 0 0 K
+0 F
+-0.15 (c) 309.39 102.33 P
+0 0 0 1 0 0 0 K
+1 F
+-0.15 (. A child can have more than one link to other anchors as) 313.83 102.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.56 (indicated in child) 72 90.33 P
+0 0 0 1 0 0 0 K
+0 F
+0.56 (BL) 145.61 90.33 P
+0 0 0 1 0 0 0 K
+1 F
+0.56 (. This is often the case using the POST method, where for example the same data object is to) 158.95 90.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(posted to a News group, a mailing list and a HTTP server.) 72 78.33 T
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+82.47 212 529.53 512 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+J
+393.36 271.45 393.36 250.66 2 L
+J
+393.36 271.45 393.36 270.95 2 L
+2 H
+2 Z
+0 X
+0 0 0 1 0 0 0 K
+N
+[0.86 4.301] 0.86 I
+393.36 270.95 393.36 251.16 2 L
+N
+J
+393.36 251.16 393.36 250.66 2 L
+N
+J
+254.77 333.8 254.77 321.92 2 L
+J
+254.77 333.8 254.77 330.05 2 L
+0.5 H
+N
+[5.049 4.376] 5.049 I
+254.77 330.05 254.77 325.67 2 L
+N
+J
+254.77 325.67 254.77 321.92 2 L
+N
+J
+247.84 333.8 247.84 321.92 2 L
+J
+247.84 333.8 247.84 330.05 2 L
+N
+[5.049 4.376] 5.049 I
+247.84 330.05 247.84 325.67 2 L
+N
+J
+247.84 325.67 247.84 321.92 2 L
+N
+J
+386.89 379.07 389.89 384.27 392.89 379.07 389.89 379.07 4 Y
+V
+J
+389.89 360.52 389.89 379.07 2 L
+J
+389.89 360.52 389.89 361.02 2 L
+1 H
+N
+[1.033 5.164] 1.033 I
+389.89 361.02 389.89 378.57 2 L
+N
+J
+389.89 378.57 389.89 379.07 2 L
+N
+J
+277.29 440.65 272.09 443.65 277.29 446.65 277.29 443.65 4 Y
+V
+369.1 330.83 320.6 330.83 320.6 443.65 277.29 443.65 4 L
+0.5 H
+N
+J
+280.76 482.28 285.95 479.28 280.76 476.28 280.76 479.28 4 Y
+V
+J
+254.77 467.4 254.77 479.28 280.76 479.28 3 L
+J
+254.77 467.4 254.77 468.9 2 L
+1 H
+N
+[2.048 3.414] 2.048 I
+254.77 468.9 254.77 477.78 2 L
+N
+J
+254.77 477.78 254.77 479.28 256.27 479.28 3 L
+N
+[3.284 5.473] 3.284 I
+256.27 479.28 279.26 479.28 2 L
+N
+J
+279.26 479.28 280.76 479.28 2 L
+N
+J
+221.85 476.28 216.66 479.28 221.85 482.28 221.85 479.28 4 Y
+V
+J
+247.84 467.4 247.84 479.28 221.85 479.28 3 L
+J
+247.84 467.4 247.84 467.9 2 L
+N
+[0.989 4.944] 0.989 I
+247.84 467.9 247.84 478.78 2 L
+N
+J
+247.84 478.78 247.84 479.28 247.34 479.28 3 L
+N
+[0.862 4.308] 0.862 I
+247.34 479.28 222.35 479.28 2 L
+N
+J
+222.35 479.28 221.85 479.28 2 L
+N
+J
+7 X
+90 450 27.72 17.81 188.94 479.28 G
+0.5 H
+0 X
+90 450 27.72 17.81 188.94 479.28 A
+418.47 320.39 410.68 324.89 418.47 329.39 418.47 324.89 4 Y
+V
+403.75 315.98 403.75 307.07 424.54 307.07 424.54 324.89 418.47 324.89 5 L
+2 H
+N
+279.89 427.27 272.09 431.77 279.89 436.27 279.89 431.77 4 Y
+V
+265.16 422.87 265.16 413.96 285.95 413.96 285.95 431.77 279.89 431.77 5 L
+N
+J
+254.77 384.27 254.77 354.58 2 L
+J
+254.77 384.27 254.77 383.77 2 L
+N
+[0.989 4.947] 0.989 I
+254.77 383.77 254.77 355.08 2 L
+N
+J
+254.77 355.08 254.77 354.58 2 L
+N
+J
+109.72 426.58 112.72 431.77 115.72 426.58 112.72 426.58 4 Y
+V
+J
+112.72 426.58 112.72 408.02 2 L
+J
+112.72 426.58 112.72 425.08 2 L
+1 H
+N
+[3.59 5.983] 3.59 I
+112.72 425.08 112.72 409.52 2 L
+N
+J
+112.72 409.52 112.72 408.02 2 L
+N
+J
+141.3 367.89 133.51 372.39 141.3 376.89 141.3 372.39 4 Y
+V
+126.58 363.49 126.58 354.58 147.37 354.58 147.37 372.39 141.3 372.39 5 L
+2 H
+N
+J
+116.18 274.41 116.18 247.69 2 L
+J
+116.18 274.41 116.18 273.91 2 L
+N
+[0.887 4.435] 0.887 I
+116.18 273.91 116.18 248.19 2 L
+N
+J
+116.18 248.19 116.18 247.69 2 L
+N
+J
+138.7 280.32 133.51 283.32 138.7 286.32 138.7 283.32 4 Y
+V
+J
+247.84 315.98 247.84 283.32 138.7 283.32 3 L
+J
+247.84 315.98 247.84 312.23 2 L
+0.5 H
+N
+[9.205 7.977] 9.205 I
+247.84 312.23 247.84 287.07 2 L
+N
+J
+247.84 287.07 247.84 283.32 244.09 283.32 3 L
+N
+[7.294 6.322] 7.294 I
+244.09 283.32 142.45 283.32 2 L
+N
+J
+142.45 283.32 138.7 283.32 2 L
+N
+J
+254.77 315.98 254.77 283.32 2 L
+J
+254.77 315.98 254.77 312.23 2 L
+N
+[9.205 7.977] 9.205 I
+254.77 312.23 254.77 287.07 2 L
+N
+J
+254.77 287.07 254.77 283.32 2 L
+N
+J
+363.91 286.32 369.1 283.32 363.91 280.32 363.91 283.32 4 Y
+V
+J
+254.77 283.32 363.91 283.32 2 L
+J
+254.77 283.32 258.52 283.32 2 L
+N
+[7.294 6.322] 7.294 I
+258.52 283.32 360.15 283.32 2 L
+N
+J
+360.15 283.32 363.91 283.32 2 L
+N
+J
+225.32 446.65 230.52 443.65 225.32 440.65 225.32 443.65 4 Y
+V
+225.32 443.65 175.08 443.65 175.08 396.14 133.51 396.14 4 L
+N
+138.7 381.27 133.51 384.27 138.7 387.27 138.7 384.27 4 Y
+V
+138.7 384.27 175.08 384.27 175.08 318.95 369.1 318.95 4 L
+N
+J
+433.2 339.76 438.39 336.76 433.2 333.76 433.2 336.76 4 Y
+V
+J
+410.68 336.76 433.2 336.76 2 L
+J
+410.68 336.76 412.18 336.76 2 L
+1 H
+N
+[2.789 4.648] 2.789 I
+412.18 336.76 431.7 336.76 2 L
+N
+J
+431.7 336.76 433.2 336.76 2 L
+N
+J
+138.7 387.21 133.51 390.21 138.7 393.21 138.7 390.21 4 Y
+V
+J
+138.7 390.21 230.52 390.21 2 L
+J
+138.7 390.21 142.45 390.21 2 L
+0.5 H
+N
+[6.987 6.056] 6.987 I
+142.45 390.21 226.77 390.21 2 L
+N
+J
+226.77 390.21 230.52 390.21 2 L
+N
+J
+138.7 238.75 133.51 241.75 138.7 244.75 138.7 241.75 4 Y
+V
+J
+138.7 241.75 147.37 241.75 147.37 277.38 133.51 277.38 4 L
+J
+138.7 241.75 142.45 241.75 2 L
+N
+[1.341 1.162] 1.341 I
+142.45 241.75 143.62 241.75 2 L
+N
+J
+143.62 241.75 147.37 241.75 147.37 245.5 3 L
+N
+[6.115 5.3] 6.115 I
+147.37 245.5 147.37 273.63 2 L
+N
+J
+147.37 273.63 147.37 277.38 143.62 277.38 3 L
+N
+[7.337 6.359] 7.337 I
+143.62 277.38 137.26 277.38 2 L
+N
+J
+137.26 277.38 133.51 277.38 2 L
+N
+J
+363.91 238.82 369.1 235.82 363.91 232.82 363.91 235.82 4 Y
+V
+J
+133.51 235.82 363.91 235.82 2 L
+J
+133.51 235.82 137.26 235.82 2 L
+N
+[7.722 6.692] 7.722 I
+137.26 235.82 360.15 235.82 2 L
+N
+J
+360.15 235.82 363.91 235.82 2 L
+N
+1 0 0 0 0 1 1 K
+J
+252.34 368.31 247.84 360.52 243.34 368.31 247.84 368.31 4 Y
+1 0 0 0 0 1 1 K
+V
+J
+247.84 381.3 247.84 368.31 2 L
+J
+247.84 381.3 247.84 380.8 2 L
+2 H
+N
+[1.09 5.45] 1.09 I
+247.84 380.8 247.84 368.81 2 L
+N
+J
+247.84 368.81 247.84 368.31 2 L
+N
+J
+247.84 419.9 247.84 390.21 2 L
+N
+J
+113.75 261.42 109.25 253.63 104.75 261.42 109.25 261.42 4 Y
+V
+J
+109.25 289.26 109.25 261.42 2 L
+J
+109.25 289.26 109.25 288.76 2 L
+N
+[0.925 4.627] 0.925 I
+109.25 288.76 109.25 261.92 2 L
+N
+J
+109.25 261.92 109.25 261.42 2 L
+N
+0 0 0 1 0 0 0 K
+J
+111.68 352.72 116.18 360.52 120.68 352.72 116.18 352.72 4 Y
+0 0 0 1 0 0 0 K
+V
+116.18 352.72 116.18 298.17 2 L
+N
+1 0 0 0 0 1 1 K
+109.25 363.49 109.25 295.2 2 L
+1 0 0 0 0 1 1 K
+N
+0 0 0 1 0 0 0 K
+91.93 313.01 133.51 348.64 R
+7 X
+0 0 0 1 0 0 0 K
+V
+0.5 H
+0 X
+N
+91.93 360.52 133.51 408.02 R
+7 X
+V
+0 X
+N
+250.27 412.1 254.77 419.9 259.27 412.1 254.77 412.1 4 Y
+V
+254.77 412.1 254.77 390.21 2 L
+2 H
+N
+1 0 0 0 0 1 1 K
+J
+390.92 261.42 386.42 253.63 381.93 261.42 386.42 261.42 4 Y
+1 0 0 0 0 1 1 K
+V
+J
+386.42 289.26 386.42 261.42 2 L
+J
+386.42 289.26 386.42 288.76 2 L
+N
+[0.925 4.627] 0.925 I
+386.42 288.76 386.42 261.92 2 L
+N
+J
+386.42 261.92 386.42 261.42 2 L
+N
+0 0 0 1 0 0 0 K
+J
+388.86 305.22 393.36 313.01 397.86 305.22 393.36 305.22 4 Y
+0 0 0 1 0 0 0 K
+V
+393.36 305.22 393.36 292.23 2 L
+N
+1 0 0 0 0 1 1 K
+386.42 298.17 386.42 327.86 2 L
+1 0 0 0 0 1 1 K
+N
+0 0 0 1 0 0 0 K
+343.57 490.48 371.29 490.48 2 L
+0.5 H
+0 0 0 1 0 0 0 K
+N
+J
+343.57 478.61 371.29 478.61 2 L
+J
+343.57 478.61 345.07 478.61 2 L
+1 H
+N
+[2.557 4.262] 2.557 I
+345.07 478.61 369.79 478.61 2 L
+N
+J
+369.79 478.61 371.29 478.61 2 L
+N
+1 0 0 0 0 1 1 K
+J
+343.57 466.73 371.29 466.73 2 L
+2 H
+1 0 0 0 0 1 1 K
+N
+0 0 0 1 0 0 0 K
+J
+343.57 454.85 371.29 454.85 2 L
+J
+343.57 454.85 347.32 454.85 2 L
+0.5 H
+0 0 0 1 0 0 0 K
+N
+[7.396 6.41] 7.396 I
+347.32 454.85 367.54 454.85 2 L
+N
+J
+367.54 454.85 371.29 454.85 2 L
+N
+J
+343.57 442.98 371.29 442.98 2 L
+2 H
+N
+3 9 Q
+(Parents of links to this anchor) 385.14 486.64 T
+(Destination of this Child anchor) 385.14 451.01 T
+(Parent) 99.46 390.15 T
+(Parent of this Child anchor) 385.14 439.13 T
+(List of Child anchors) 385.14 462.89 T
+(Address of this Parent anchor) 385.14 474.76 T
+(Child) 102.47 333.1 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+91.93 265.51 133.51 301.14 R
+7 X
+V
+0.5 H
+0 X
+N
+(Child) 102.47 285.6 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+91.93 218 133.51 253.63 R
+7 X
+V
+0 X
+N
+(Child) 102.47 238.09 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+369.1 265.51 410.68 301.14 R
+7 X
+V
+0 X
+N
+(Child) 379.64 285.6 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+369.1 218 410.68 253.63 R
+7 X
+V
+0 X
+N
+(Child) 379.64 238.09 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+230.52 372.39 272.09 408.02 R
+7 X
+V
+0 X
+N
+(Child) 241.05 392.48 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+230.52 324.89 272.09 360.52 R
+7 X
+V
+0 X
+N
+(Child) 241.05 344.98 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+230.52 419.9 272.09 467.4 R
+7 X
+V
+0 X
+N
+(Parent) 238.05 449.54 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+438.39 315.4 480.72 363.49 R
+4 X
+V
+0 X
+N
+441.11 313.01 483.44 360.52 R
+7 X
+V
+0 X
+N
+(Remote) 446.52 344.36 T
+(data) 453.52 334.3 T
+(object) 450.27 324.25 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+285.95 457.92 328.27 506 R
+4 X
+V
+0 X
+N
+288.67 455.53 330.99 503.03 R
+7 X
+V
+0 X
+N
+(Remote) 294.08 486.87 T
+(data) 301.07 476.82 T
+(object) 297.82 466.76 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+88.47 434.16 130.79 482.25 R
+4 X
+V
+0 X
+N
+91.18 431.77 133.51 479.28 R
+7 X
+V
+0 X
+N
+(Remote) 96.59 463.12 T
+(mainlink) 261.92 288.67 T
+(1) 110.22 323.05 T
+(2) 110.22 275.54 T
+(N) 109.47 228.04 T
+(A) 109.72 380.1 T
+(data) 103.59 454.74 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+369.1 313.01 410.68 360.52 R
+7 X
+V
+0 X
+N
+(Parent) 376.63 342.65 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Graphic) 173.19 483.01 T
+(Object) 175.94 470.44 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(object) 100.34 446.36 T
+7 X
+90 450 27.72 17.81 389.89 402.08 G
+0 X
+90 450 27.72 17.81 389.89 402.08 A
+(Graphic) 374.14 405.82 T
+(Object) 376.89 393.25 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(sublink) 211.69 288.67 T
+(a) 342.35 335.26 T
+(a) 342.35 288.89 T
+(b) 151.79 400.58 T
+(b) 151.79 287.75 T
+(b) 200.3 394.64 T
+(c) 342.6 240.07 T
+(c) 342.6 311.32 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+J
+(Pointer to Graphic Object) 385.14 426.88 T
+J
+371.29 430.43 343.57 430.43 2 L
+J
+371.29 430.43 370.79 430.43 2 L
+1 H
+N
+[0.921 4.606] 0.921 I
+370.79 430.43 344.07 430.43 2 L
+N
+J
+344.07 430.43 343.57 430.43 2 L
+N
+0 0 0 1 0 0 0 K
+J
+0 0 0 1 0 0 0 K
+(B) 248.3 439.54 T
+(C) 386.64 332.65 T
+(1) 387.39 275.6 T
+(M) 386.14 228.09 T
+(1) 248.8 382.48 T
+(L) 248.8 334.98 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+0 0 612 792 C
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "5" 7
+%%Page: "4" 8
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1 10 Q
+0 X
+0 0 0 1 0 0 0 K
+0.21 ([6], either found directly in the response code from the remote server or by guessing. This model makes it very easy) 72 713.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(to install new stream converters and protocol modules.) 72 701.33 T
+0 0 0 1 0 0 0 K
+0 14 Q
+(4. The Str) 72 672.67 T
+(eam Concept) 131.25 672.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.28 (Streams are the main method used in the Library for transporting data from the network to the client or vice versa, and) 72 653.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(they do therefore deserve a more thorough presentation.) 72 641.33 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(4.1 What is a Str) 72 616 T
+(eam) 157.45 616 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0.02 (A stream is an object which accepts sequences of characters. It is a destination of data which can be thought of much) 72 600.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.14 (like an output stream in C++ or an ANSI file stream for writing data to a disk or another pheripheral device. The Li-) 72 588.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.48 (brary defines a generic stream class with five methods as illustrated in Figure 2. The output is also a stream and is often) 72 576.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.1 (referred to as the \322target\323 or \322sink\323. This class is a superclass of all other stream classes in the Library and it provides) 72 564.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(a uniform interface to all stream objects regardless of what stream sub-class they originate from.) 72 552.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Figur) 237.63 465.64 T
+(e 2) 261.35 465.64 T
+1 F
+(The generic stream class) 275.79 465.64 T
+0 0 0 1 0 0 0 K
+0.09 (Streams can be cascaded so that one stream writes into another using one or more of the methods shown in Figure 2.) 72 448.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.46 (This means that a required processing of data, for example reading data from the Internet can be done as the total effect) 72 436.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.5 (of several cascaded streams. The Library currently includes a large set of specific stream modules for writing to an) 72 424.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.57 (ANSI C-file structure, writing to a socket, stripping Carriage Returns, splitting a stream into two \050used for caching\051 etc.) 72 412.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.2 (The stream-based architecture allows the Library \050and hence applications built on top of it\051 to be event-driven in the) 72 394.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.2 (sense that when input arrives, it is put into a stream, and any necessary actions then cascade off this event. An event) 72 382.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.05 (can either be data arriving from the Internet, or data arriving from the client application. The latter would be the case) 72 370.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(when the client is posting a data object to a remote server.) 72 358.64 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(4.2 Structur) 72 333.31 T
+(ed Str) 133.78 333.31 T
+(eams) 164.56 333.31 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0.05 (A structured stream is a subclass of a stream, but instead of just accepting data, it also accepts the SGML \322begin ele-) 72 317.64 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(ment\323, \322end element\323, and \322put entity\323 as illustrated in Figure 3) 72 305.64 T
+0 0 0 1 0 0 0 K
+0 F
+(Figur) 216.39 197.69 T
+(e 3) 240.1 197.69 T
+1 F
+(The generic structured stream class) 254.54 197.69 T
+0 0 0 1 0 0 0 K
+0.51 (A structured stream therefore represents a structured document and can be thought of as the output from an SGML) 72 180.69 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.25 (parser. It is more efficient for modules which generate hypertext objects to output a structured stream than to output) 72 168.69 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.17 (SGML which is then parsed. The elements and entities in the stream are referred to by numbers, rather than strings. A) 72 156.69 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.28 (DTD contains the mapping between element names and numbers, so each instance of a structured stream is associated) 72 144.69 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.33 (with a corresponding DTD. The only DTD which is currently in the Library is an extended version of the HTML DTD) 72 132.69 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(level 1, but current work is done to update this to comply with the emerging HTML level 2.) 72 120.69 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(4.3 Format Conversion Using the Str) 72 95.35 T
+(eam Stack) 260.44 95.35 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.17 (The stream stack is used to select the most appropriate converter from the input format given by the protocol modules) 72 79.69 P
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+188.2 480.31 423.8 549 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+292.13 538.91 297.33 535.91 292.13 532.91 292.13 535.91 4 Y
+0 X
+0 0 0 1 0 0 0 K
+V
+254.81 535.91 292.13 535.91 2 L
+0.5 H
+2 Z
+N
+292.13 528.28 297.33 525.28 292.13 522.28 292.13 525.28 4 Y
+V
+254.81 525.28 292.13 525.28 2 L
+N
+292.13 517.65 297.33 514.65 292.13 511.65 292.13 514.65 4 Y
+V
+254.81 514.65 292.13 514.65 2 L
+N
+380.71 496.39 385.91 493.39 380.71 490.39 380.71 493.39 4 Y
+V
+343.39 493.39 380.71 493.39 2 L
+N
+3 9 Q
+(Put character) 194.2 532.63 T
+(Put string) 209.71 522 T
+(Put block) 210.71 511.37 T
+(Output) 390.78 490.38 T
+292.13 507.02 297.33 504.02 292.13 501.02 292.13 504.02 4 Y
+V
+254.81 504.02 292.13 504.02 2 L
+N
+(Free) 229.22 500.74 T
+292.13 496.39 297.33 493.39 292.13 490.39 292.13 493.39 4 Y
+V
+254.81 493.39 292.13 493.39 2 L
+N
+(Abort) 226.46 490.11 T
+297.33 486.31 343.39 543 R
+7 X
+V
+0 X
+N
+(Generic) 302.83 525.81 T
+(Stream) 304.08 513.81 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+0 0 612 792 C
+72 72 540 720 C
+186.2 212.35 425.8 302.31 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+294.14 290.39 299.33 287.39 294.14 284.39 294.14 287.39 4 Y
+0 X
+0 0 0 1 0 0 0 K
+V
+256.81 287.39 294.14 287.39 2 L
+0.5 H
+2 Z
+N
+294.14 279.76 299.33 276.76 294.14 273.76 294.14 276.76 4 Y
+V
+256.81 276.76 294.14 276.76 2 L
+N
+294.14 269.13 299.33 266.13 294.14 263.13 294.14 266.13 4 Y
+V
+256.81 266.13 294.14 266.13 2 L
+N
+3 9 Q
+(Begin element) 192.2 284.11 T
+(End element) 199.2 273.47 T
+(Put Entity) 211.21 262.84 T
+299.33 257.33 345.39 296.31 R
+7 X
+V
+0 X
+N
+(Structured) 301.6 279.12 T
+(Part) 314.11 267.12 T
+382.72 228.44 387.91 225.44 382.72 222.44 382.72 225.44 4 Y
+V
+345.39 225.44 382.72 225.44 2 L
+N
+(Output) 392.79 222.42 T
+299.33 218.35 345.39 257.33 R
+7 X
+V
+0 X
+N
+(Generic) 306.61 240.14 T
+(Stream) 307.86 228.14 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+0 0 612 792 C
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "4" 8
+%%Page: "3" 9
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1 10 Q
+0 X
+0 0 0 1 0 0 0 K
+0.46 (client then has to present the information to the user. The main elements in the figure are explained below. A more) 72 713.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(detailed description of the implementation of the Library is given in [2].) 72 701.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Graphic Object:) 72 683.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.43 (A graphic object is a displayable entity handled and maintained by the client. It is built from the data) 144.77 683.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.11 (contained in a server response upon a successful request initiated by the user. The data can be of any format handled) 72 671.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.15 (by the client. The object can either be built directly from the data, e.g., if the data object returned is an HTML[4] doc-) 72 659.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.16 (ument, or it can be generated from a format converter within the Library. An example of the latter could be the gener-) 72 647.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.28 (ation of an HTML object from an FTP directory listing \0507-bit ASCII\051. Graphic objects are in general coded differently) 72 635.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.03 (on different GUI platforms. The graphic object is responsible for displaying itself, catching mouse clicks, and calling) 72 623.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.07 (the Anchor Manager, either directly or via the History and Navigation Manager. Often the more common term \322doc-) 72 611.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.13 (ument\323 is used to describe the logical entity which a graphics object represents and displays. The client can keep the) 72 599.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(latest generated documents in memory in order to speed up back-tracking through already visited documents.) 72 587.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Stream Manager:) 72 569.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.32 (The Stream Manager takes care of the transportation of streams of data from the Internet to the cli-) 150.31 569.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(ent and vice versa. This module is described in more detail in Section 4.) 72 557.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Anchor Manager:) 72 539.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.06 (When a request is passed from the client to the Library it always has an anchor associated with it.) 151.43 539.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.08 (An anchor is an object representing the URI of a either a graphic object or a fragment of a graphic object. It contains) 72 527.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.62 (all information known about the URI. The Anchor Manager registers all requested anchors together with anchors found) 72 515.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.14 (when parsing hypertext objects. The anchors are stored in a hash table so that multiple references to a URI all points) 72 503.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.42 (to the same graphic object. It furthermore binds all registered anchors together corresponding to the logical binding) 72 491.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.35 (between the related data objects. In other words, this module generates an internal model of the part of the Web the) 72 479.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(user has been in touch with. The actual bindings between anchors are described in more detail in Section 5.) 72 467.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Navigation and History:) 72 449.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.37 (This module keeps track of all) 177.84 449.33 P
+0 0 0 1 0 0 0 K
+2 F
+-0.37 (visited) 299.52 449.33 P
+0 0 0 1 0 0 0 K
+1 F
+-0.37 (anchors. The set of visited anchors is always less than) 327.77 449.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.05 (or equal to the total set of anchors registered in the Anchor Manager. Whereas the Anchor Manager manages a small) 72 437.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.08 (part of the Web, this module keeps an ordered list of all visited anchors so the user can do quick navigation through a) 72 425.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(history list.) 72 413.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Client Cache Manager:) 72 395.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.43 (This is a single-user disk cache module specifically for WWW Clients. It is used to save data) 174.48 395.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.27 (objects once they have been downloaded from the Internet. The difference between a graphic object stored in memory) 72 383.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.16 (and a cached data object is that the former is already parsed and can immediately be displayed to the user whereas the) 72 371.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.39 (cached object must be parsed into a graphic object. The CERN proxy server has its own cache manager to handle a) 72 359.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.08 (large scale cache that can serve hundreds of clients connected to it. The client cache is especially made for clients not) 72 347.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(using a proxy cache or having a very slow link but a large local temporary storage.) 72 335.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Protocol Manager:) 72 317.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.57 (The Protocol Manager is invoked by the Anchor Manager in order to access a document not found) 155.31 317.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.04 (in memory or in the cache \050for the proxy server it is the proxy cache\051. Each protocol module is responsible for estab-) 72 305.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.43 (lishing the connection to the remote server \050or the local file-system\051 and extract information using a specific access) 72 293.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.75 (method. Depending on the protocol, the Protocol Module either builds a hypertext object itself from the server re-) 72 281.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(sponse, or it passes a socket descriptor to the Stream Manager for parsing by one of the parser modules.) 72 269.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Error Manager:) 72 251.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.34 (This module manages an information stack which contains information of all errors occurred during) 144.2 251.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.22 (the communication with a remote server or simply information about the current state. Using a stack for this kind of) 72 239.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(information provides the possibility of nested error messages like:) 72 227.33 T
+0 0 0 1 0 0 0 K
+3 9 Q
+(Fatal Error 500) 108 210 T
+(Can\325t access document \050ftp://info.cern.ch/foo.bar\051) 108 199 T
+(Reason: FTP-server replies: foo.bar: No such file or directory) 108 188 T
+0 10 Q
+(Directory Listing Manager:) 72 171.33 T
+0 0 0 1 0 0 0 K
+1 F
+-0.42 (This module handles long directory listings with icons for HTTP and FTP, and local file) 192.81 171.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(access. Long directory listings are supported for Unix, VMS, and Window NT.) 72 159.33 T
+0 0 0 1 0 0 0 K
+0 12 Q
+(3.1 Modularity of the Library) 72 134 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0.2 (The Stream Manager and the Protocol Manager are both designed in a highly modular style in that they use pointers) 72 118.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.63 (to functions when they decide on what protocol or parser to use respectively. For the Protocol Manager, the actual) 72 106.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.57 (binding between an access scheme specified in the URL [5] and the protocol module used is done in a separate protocol) 72 94.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.43 (structure which can be setup at run-time. Likewise for the Stream Manager where the binding is based on MIME-types) 72 82.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "3" 9
+%%Page: "2" 10
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+1 10 Q
+0 X
+0 0 0 1 0 0 0 K
+(\245) 86.4 713.33 T
+(Whether to use ANSI C and Posix standards and the possible portability problems this might involve) 93.6 713.33 T
+0 0 0 1 0 0 0 K
+0.51 (Especially the last topic is a practical problem as many platforms do not fully support the standards as defined, but) 72 695.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.28 (only implements a subset of these. It is therefore a compromise between choosing the largest possible subset of the set) 72 683.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(of standardized functions with a minimal loss in portability. Unfortunately there is no simple answer to this problem.) 72 671.33 T
+0 0 0 1 0 0 0 K
+0 14 Q
+(3. Library Ar) 72 642.67 T
+(chitectur) 153.02 642.67 T
+(e) 206.41 642.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0.54 (The general architecture of the Library as viewed from a client is illustrated in Figure 1. Servers and proxy servers) 72 623.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(have a slightly different view of the Library, but the client view is the most descriptive.) 72 611.33 T
+0 0 0 1 0 0 0 K
+0 F
+(Figur) 184.99 99.19 T
+(e 1) 208.7 99.19 T
+1 F
+(Control \337ow of the Library viewed from the Client) 223.14 99.19 T
+0 0 0 1 0 0 0 K
+0.09 (The flow of the Library shows that all network communication and parsing of data objects is handled internally. The) 72 82.19 P
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+72 113.86 540 608 C
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+423.76 513.25 428.96 510.25 423.76 507.25 423.76 510.25 4 Y
+0 X
+0 0 0 1 0 0 0 K
+V
+423.76 510.25 382.9 510.25 2 L
+1 H
+2 Z
+N
+424.48 241.02 424.48 232.95 2 L
+N
+489.64 241.02 489.64 230.25 2 L
+N
+424.48 227.56 424.48 222.18 495.56 222.18 495.56 241.02 4 L
+N
+309.59 549.66 315.57 550.14 312.99 544.72 311.29 547.19 4 Y
+V
+258.88 511.16 311.29 547.19 2 L
+N
+1 0 1 0 0 1 0 K
+166.78 596.4 166.78 119.86 2 L
+3 H
+1 0 1 0 0 1 0 K
+N
+0 0 0 1 0 0 0 K
+192.54 523.67 195.1 518.25 189.12 518.74 190.83 521.2 4 Y
+0 0 0 1 0 0 0 K
+V
+149.04 550.13 190.83 521.2 2 L
+1 H
+N
+463.02 173.53 460.02 168.33 457.02 173.53 460.02 173.53 4 Y
+V
+460.02 222.18 460.02 173.53 2 L
+N
+320.81 445.63 320.81 434.86 2 L
+N
+362.27 402.56 362.27 343.33 2 L
+N
+154.21 197.64 149.01 200.64 154.21 203.64 154.21 200.64 4 Y
+V
+332.65 200.64 154.21 200.64 2 L
+N
+513.23 310.71 508.04 313.71 513.23 316.71 513.23 313.71 4 Y
+V
+388.93 558.71 540 558.71 540 313.71 513.23 313.71 4 L
+N
+425.2 316.71 430.4 313.71 425.2 310.71 425.2 313.71 4 Y
+V
+394.13 310.71 388.93 313.71 394.13 316.71 394.13 313.71 4 Y
+V
+425.2 313.71 394.13 313.71 2 L
+0 Z
+N
+208.25 230.25 489.64 230.25 2 L
+2 Z
+N
+208.25 241.02 208.25 230.25 2 L
+N
+279.34 241.02 279.34 230.25 2 L
+N
+350.43 241.02 350.43 230.25 2 L
+N
+418.55 241.02 418.55 230.25 2 L
+N
+365.27 216.6 362.27 211.41 359.27 216.6 362.27 216.6 4 Y
+V
+362.27 230.25 362.27 216.6 2 L
+N
+116.47 232.76 113.47 227.56 110.47 232.76 113.47 232.76 4 Y
+V
+113.47 539.86 113.47 232.76 2 L
+N
+306.72 561.71 311.92 558.71 306.72 555.71 306.72 558.71 4 Y
+V
+137.16 558.71 306.72 558.71 2 L
+N
+353.43 531.6 350.43 526.4 347.43 531.6 350.43 531.6 4 Y
+V
+350.43 542.55 350.43 531.6 2 L
+N
+196.4 480.63 510.37 480.63 2 L
+N
+350.43 494.09 350.43 480.63 2 L
+N
+199.4 472.37 196.4 467.17 193.4 472.37 196.4 472.37 4 Y
+V
+196.4 480.63 196.4 472.37 2 L
+N
+270.49 472.37 267.49 467.17 264.49 472.37 267.49 472.37 4 Y
+V
+267.49 480.63 267.49 472.37 2 L
+N
+323.81 472.37 320.81 467.17 317.81 472.37 320.81 472.37 4 Y
+V
+320.81 480.63 320.81 472.37 2 L
+N
+442.29 472.37 439.29 467.17 436.29 472.37 439.29 472.37 4 Y
+V
+439.29 480.63 439.29 472.37 2 L
+N
+513.37 472.37 510.37 467.17 507.37 472.37 510.37 472.37 4 Y
+V
+510.37 480.63 510.37 472.37 2 L
+N
+196.4 434.86 267.49 434.86 2 L
+N
+196.4 445.63 196.4 434.86 2 L
+N
+267.49 445.63 267.49 434.86 2 L
+N
+234.95 429.29 231.95 424.1 228.95 429.29 231.95 429.29 4 Y
+V
+231.95 434.86 231.95 429.29 2 L
+N
+320.81 434.86 510.37 434.86 2 L
+N
+380.05 445.63 380.05 434.86 2 L
+N
+439.29 445.63 439.29 434.86 2 L
+N
+510.37 445.63 510.37 434.86 2 L
+N
+365.27 429.29 362.27 424.1 359.27 429.29 362.27 429.29 4 Y
+V
+362.27 434.86 362.27 429.29 2 L
+N
+471.9 429.29 468.9 424.1 465.9 429.29 468.9 429.29 4 Y
+V
+468.9 434.86 468.9 429.29 2 L
+N
+231.95 343.33 468.9 343.33 2 L
+N
+418.59 348.52 415.59 343.33 412.59 348.52 415.59 348.52 4 Y
+V
+415.59 356.79 415.59 348.52 2 L
+N
+468.9 402.56 468.9 343.33 2 L
+N
+231.95 402.56 231.95 343.33 2 L
+N
+208.25 284.1 492.6 284.1 2 L
+N
+350.43 297.56 350.43 284.1 2 L
+N
+211.25 267.76 208.25 262.56 205.25 267.76 208.25 267.76 4 Y
+V
+208.25 284.1 208.25 267.76 2 L
+N
+282.34 267.76 279.34 262.56 276.34 267.76 279.34 267.76 4 Y
+V
+279.34 284.1 279.34 267.76 2 L
+N
+353.43 267.76 350.43 262.56 347.43 267.76 350.43 267.76 4 Y
+V
+350.43 284.1 350.43 267.76 2 L
+N
+424.51 267.76 421.51 262.56 418.51 267.76 421.51 267.76 4 Y
+V
+421.51 284.1 421.51 267.76 2 L
+N
+495.6 267.76 492.6 262.56 489.6 267.76 492.6 267.76 4 Y
+V
+492.6 284.1 492.6 267.76 2 L
+N
+202.33 402.56 261.57 424.1 10.77 RR
+7 X
+V
+0.5 H
+0 X
+N
+77.92 539.86 149.01 574.86 17.5 RR
+7 X
+V
+0 X
+N
+311.92 494.1 388.93 526.4 16.15 RR
+7 X
+V
+0 X
+N
+172.71 445.63 220.1 467.17 10.77 RR
+7 X
+V
+0 X
+N
+243.79 445.63 291.19 467.17 10.77 RR
+7 X
+V
+0 X
+N
+415.59 445.63 462.98 467.17 10.77 RR
+7 X
+V
+0 X
+N
+3 12 Q
+(Client) 95.7 593.25 T
+(Library) 329 591.73 T
+3 10 Q
+(HTTP) 183.35 452.66 T
+(NNTP) 253.88 452.66 T
+356.35 445.63 403.74 467.17 10.77 RR
+7 X
+V
+0 X
+N
+(W) 367.45 452.66 T
+(AIS) 376.52 452.66 T
+(Gopher) 422.61 452.66 T
+486.68 445.63 534.07 467.17 10.77 RR
+7 X
+V
+0 X
+N
+(FTP) 500.93 452.66 T
+(MIME) 218.89 409.58 T
+332.65 402.56 391.89 424.1 10.77 RR
+7 X
+V
+0 X
+N
+439.29 402.56 498.53 424.1 10.77 RR
+7 X
+V
+0 X
+N
+(Suf) 349.86 409.58 T
+(\336x) 364.69 409.58 T
+(Guess) 454.45 409.58 T
+311.92 297.56 388.93 329.87 16.15 RR
+7 X
+V
+0 X
+N
+(Stream) 334.31 315.31 T
+184.55 241.02 231.95 262.56 10.77 RR
+7 X
+V
+0 X
+N
+255.64 241.02 303.04 262.56 10.77 RR
+7 X
+V
+0 X
+N
+397.82 241.02 445.21 262.56 10.77 RR
+7 X
+V
+0 X
+N
+326.73 241.02 374.12 262.56 10.77 RR
+7 X
+V
+0 X
+N
+468.91 241.02 516.3 262.56 10.77 RR
+7 X
+V
+0 X
+N
+(Source) 263.5 248.05 T
+(Plain) 410.4 248.05 T
+(LaT) 194.08 248.05 T
+(eX) 210.2 248.05 T
+(HTML) 478.99 248.05 T
+(External) 332.09 247.78 T
+332.65 189.87 391.89 211.41 10.77 RR
+7 X
+V
+0 X
+N
+430.4 297.56 507.41 329.87 16.15 RR
+7 X
+V
+0 X
+N
+311.92 542.55 388.93 574.86 16.15 RR
+7 X
+V
+0 X
+N
+(Client Cache) 440.29 315.31 T
+(Access) 334.31 560.31 T
+(Local File) 340.88 196.9 T
+192.5 494.1 269.51 526.4 16.15 RR
+7 X
+V
+0 X
+N
+(Navigation) 207.39 512.05 T
+(and History) 205.72 502.94 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Protocol) 332.09 512.05 T
+(Manager) 330.7 502.94 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+77.92 184.48 149.01 219.48 17.5 RR
+7 X
+V
+0 X
+N
+J
+226.02 456.4 237.87 456.4 2 L
+J
+226.02 456.4 226.52 456.4 2 L
+3 H
+N
+[0.723 5.062] 0.723 I
+226.52 456.4 237.37 456.4 2 L
+N
+J
+237.37 456.4 237.87 456.4 2 L
+N
+J
+468.9 453.71 480.75 453.71 2 L
+J
+468.9 453.71 469.4 453.71 2 L
+N
+[0.723 5.062] 0.723 I
+469.4 453.71 480.25 453.71 2 L
+N
+J
+480.25 453.71 480.75 453.71 2 L
+N
+J
+380.05 251.79 391.89 251.79 2 L
+J
+380.05 251.79 380.55 251.79 2 L
+N
+[0.723 5.062] 0.723 I
+380.55 251.79 391.39 251.79 2 L
+N
+J
+391.39 251.79 391.89 251.79 2 L
+N
+J
+(Requested) 89.29 202.93 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+77.92 136.02 149.01 171.02 17.5 RR
+7 X
+V
+0.5 H
+0 X
+N
+(Graphic) 95.96 154.47 T
+(Object) 99.02 147.07 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Resource) 92.07 195.53 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+297.11 445.63 344.5 467.17 10.77 RR
+7 X
+V
+0 X
+N
+(Local) 308.86 452.66 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+383.05 472.37 380.05 467.17 377.05 472.37 380.05 472.37 4 Y
+V
+380.05 480.63 380.05 472.37 2 L
+1 H
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+377.08 356.79 454.1 389.1 16.15 RR
+7 X
+V
+0.5 H
+0 X
+N
+(Directory) 395.59 374.75 T
+(Listings) 398.64 365.63 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+418.59 394.29 415.59 389.1 412.59 394.29 415.59 394.29 4 Y
+V
+415.59 434.86 415.59 394.29 2 L
+1 H
+N
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(User Interface) 82.07 558.96 T
+(Manager) 93.74 549.85 T
+J
+154.21 149.18 149.01 152.18 154.21 155.18 154.21 152.18 4 Y
+V
+454.1 152.18 154.21 152.18 2 L
+N
+[2.982 4.971] 0 I
+72 130.64 157.9 227.56 18 RR
+N
+J
+353.43 335.06 350.43 329.87 347.43 335.06 350.43 335.06 4 Y
+V
+350.43 343.33 350.43 335.06 2 L
+N
+421.51 136.02 498.53 168.33 16.15 RR
+7 X
+V
+0.5 H
+0 X
+N
+(Presentation) 431.95 153.78 T
+(Manager) 440.29 144.66 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Manager) 330.7 306.2 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Manager) 449.17 306.2 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(Manager) 330.7 551.19 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+429.9 494.1 506.91 526.4 16.15 RR
+7 X
+V
+0 X
+N
+(Error & Info) 442.84 512.05 T
+(Manager) 448.68 502.94 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+72 72 540 720 C
+0 0 612 792 C
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "2" 10
+%%Page: "1" 11
+612 792 0 FMBEGINPAGE
+[0 0 0 1 0 0 0]
+[ 0 0 0 0 1 1 1]
+[ 0 1 1 0 1 0 0]
+[ 1 0 1 0 0 1 0]
+[ 1 1 0 0 0 0 1]
+[ 1 0 0 0 0 1 1]
+[ 0 1 0 0 1 0 1]
+[ 0 0 1 0 1 1 0]
+ 8 FrameSetSepColors
+FrameNoSep
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 18 Q
+0 X
+0 0 0 1 0 0 0 K
+(T) 128.34 708 T
+(owards a Uniform Library of Common Code) 138.69 708 T
+5 16 Q
+(A Presentation of the CERN W) 128.14 673.33 T
+(orld-W) 332.76 673.33 T
+(ide W) 378.39 673.33 T
+(eb Library) 414.98 673.33 T
+0 14 Q
+(Henrik Frystyk, H\214kon W) 191.14 635.67 T
+(. Lie, CERN) 347.76 635.67 T
+(Note:) 72 603.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+(This is a slightly revised version of the paper submitted for the WWW Chicago Conference.) 72 584.33 T
+0 0 0 1 0 0 0 K
+2 F
+(Henrik Frystyk, CERN October 24, 1994) 376.41 566.33 T
+0 14 Q
+(Abstract) 72 537.67 T
+2 10 Q
+-0.05 (This paper describes the curr) 72 518.33 P
+-0.05 (ent status of the W) 189.19 518.33 P
+-0.05 (orld-W) 261.94 518.33 P
+-0.05 (ide W) 289.72 518.33 P
+-0.05 (eb Library of Common Code and the work done in or) 311.8 518.33 P
+-0.05 (der) 524.22 518.33 P
+-0.01 (to start the conver) 72 506.33 P
+-0.01 (gence pr) 144.63 506.33 P
+-0.01 (ocess towar) 178.96 506.33 P
+-0.01 (ds a uniform Library) 226.07 506.33 P
+-0.01 (. Curr) 309.1 506.33 P
+-0.01 (ently many W) 333.17 506.33 P
+-0.01 (orld-W) 386.64 506.33 P
+-0.01 (ide W) 414.42 506.33 P
+-0.01 (eb applications ar) 436.54 506.33 P
+-0.01 (e using) 508.92 506.33 P
+(differ) 72 494.33 T
+(ent versions of the Library with a set of added functionality that is often either incompatible with the other ver-) 93.3 494.33 T
+(sions or r) 72 482.33 T
+(epr) 109.97 482.33 T
+(esents an overlap of code development. A new initiative has been taken at CERN in the context of the) 122.93 482.33 T
+(W3O collaboration with MIT in or) 72 470.33 T
+(der to conver) 210.25 470.33 T
+(ge the curr) 263.2 470.33 T
+(ent versions of the Library so that existing and futur) 306.71 470.33 T
+(e) 514.96 470.33 T
+(W) 72 458.33 T
+(orld-W) 79.41 458.33 T
+(ide W) 107.19 458.33 T
+(eb applications have a powerful and uniform interface to the Internet.) 129.32 458.33 T
+0 14 Q
+(1. Intr) 72 429.67 T
+(oduction) 109.86 429.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+-0.58 (The CERN World-Wide Web Library of Common Code is a general code base that can be used as the basis for building) 72 410.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0 (World-Wide Web clients and servers. It allows software suppliers and researchers to achieve the state of the art tech-) 72 398.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.85 (nology and derive their own resources to pushing forward that technology. As an example, the CERN Line Mode) 72 386.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.48 (Browser, the NeXTStep Editor and the HTTP Server \050including the CERN Proxy Server\051 are all built on top of the) 72 374.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.48 (Library. It contains code for accessing HTTP [3], FTP[7], Gopher[9], NNTP[8], and WAIS[10] servers, perform telnet) 72 362.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.4 (sessions and access the local file system. Furthermore it provides functionality for loading, parsing and caching graph-) 72 350.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(ic objects plus a wide spectrum of generic programming utilities.) 72 338.33 T
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.25 (The development of the World-Wide Web Library of Common Code was started by Tim Berners-Lee in 1990. Ever) 72 320.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.16 (since the code has been subject to changes due to modifications in the architectural model, additions of new features) 72 308.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.4 (etc. This paper describes the current architecture in the Library and some of the ongoing projects of implementing new) 72 296.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.6 (features and changing the architecture. The Library code is public domain together with the CERN Line Mode Browser) 72 284.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(and the CERN HTTP Server and it is available from [1].) 72 272.33 T
+0 0 0 1 0 0 0 K
+0 14 Q
+(2. Implementation and Portability Concerns) 72 243.67 T
+0 0 0 1 0 0 0 K
+1 10 Q
+0.04 (The Library is written in plain C and is especially designed to be used on a large set of different platforms. Currently) 72 224.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.38 (it supports more than 15 Unix flavors and VMS. A year ago it also supported the MS-DOS, Macintosh, VM/CMS, and) 72 212.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+-0.06 (other platforms but this was with a limited set of the current functionality. Recently a new initiative has been taken at) 72 200.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.04 (CERN as a result of the \322First International Conference on the World-Wide Web\323 held in Geneva, Switzerland, May) 72 188.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.29 (1994. It involves the development teams from Lynx, Spyglass, NCSA, OmniWeb and others with special interest in) 72 176.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+0.51 (the development of a uniform Library. The goal is to converge current versions of the Library into a single version) 72 164.33 P
+0 0 0 1 0 0 0 K
+0 0 0 1 0 0 0 K
+(which can support a broad spectrum of applications. Current topics of discussion and development involve:) 72 152.33 T
+0 0 0 1 0 0 0 K
+(\245) 86.4 134.33 T
+(Re-porting the Library to MS-DOS and Macintosh) 93.6 134.33 T
+(\245) 86.4 116.33 T
+(Enhancing the current architecture of the Library\321especially on de\336ning a client API) 93.6 116.33 T
+(\245) 86.4 98.33 T
+(Adding new features such as security) 93.6 98.33 T
+(, enhanced error handling, multiple threads, format converters, protocol) 242.08 98.33 T
+(modules.) 93.6 86.33 T
+0 0 0 1 0 0 0 K
+FMENDPAGE
+%%EndPage: "1" 11
+%%Trailer
+%%BoundingBox: 0 0 612 792
+%%PageOrder: Descend
+%%Pages: 11
+%%DocumentFonts: Times-Bold
+%%+ Times-Roman
+%%+ Times-Italic
+%%+ Helvetica
+%%+ Symbol
+%%+ Times-BoldItalic
+%%EOF

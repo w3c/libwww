@@ -1,0 +1,319 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen,  8-Apr-1996 -->
+  <META NAME="GENERATOR" CONTENT="Internet Assistant for Microsoft Word 2.0z">
+  <TITLE>Libwww API</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="http://www.w3.org"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C"></A>
+<A HREF="http://www.w3.org/pub/WWW/Library/"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x"
+    ALT="libwww"></A>
+<ADDRESS>
+  Henrik Frystyk Nielsen<BR>
+  World-Wide Web Consortium, MIT/LCS,<BR>
+  @(#) $Id$
+</ADDRESS>
+<H1>
+  W3C Reference Library
+</H1>
+<H2>
+  Abstract
+</H2>
+<P>
+This position paper discusses the API of the <A HREF="../../">W3C Reference
+Library</A>, a.k.a. "libwww". It introduces some of the basic concepts like
+<I>streams</I>, <I>call-out</I> functions, and <I>plug-in</I> modules. Libwww
+is freely available from the <A HREF="../../../">World-Wide Web Consortium's
+Web site </A>together with documentation and example applications.
+<H2>
+  Introduction
+</H2>
+<P>
+Most Web applications regardless of functionality share some commonalties
+such as protocol modules, transport interfaces, and other various low-level
+Internet related features. While many application programmers get around
+this by "reinventing the wheel" every time a new application is written,
+there is an obvious need for a basic Web API. The libwww was designed to
+provide such an API. In this paper we will discuss some of the experiences
+that we encountered doing so and what can be improved.
+<P>
+Libwww has been part of the World-Wide Web almost from the beginning. However,
+as the design criteria for Web applications in general have changed dramatically,
+the basic design of libwww has undergone several major revisions. The design
+ideas presented in this document are based on the most recent version 4.1
+which is to be released in June 1996. The current libwww API was designed
+with the following goals for a generic Web API in mind:
+<DL>
+  <DT>
+    Light-weight:
+  <DD>
+    The API should be a platform independent, medium level API with support for
+    an open-ended feature set rather than directly providing a full-fleshed feature
+    set by itself.
+  <DT>
+    Application independent:
+  <DD>
+    The API should impose no restrictions on the type of application using it.
+    It should be usable by all types of applications such as servers, clients,
+    robots, and proxies. To borrow a term from the <B>X</B> world: It should
+    provide a set of mechanisms for accessing the Web without imposing a special
+    policy on how to do it.
+  <DT>
+    Layered:
+  <DD>
+    The API should allow for easy integration with other APIs both below and
+    above the libwww itself in complexity and level of abstraction.
+</DL>
+<H2>
+  The libwww Core
+</H2>
+<P>
+The libwww API is a small, light-weight API based on a central registry called
+the <EM>core</EM>. The core provides a frame work for applications to register
+an open-ended set of modules that can provide the functionality and profile
+desired by that application. The core is itself divided into three layers
+described by each of their object:
+<DL>
+  <DT>
+    <I>Request Object</I>
+  <DD>
+    The <I>Request object</I> represents a request issued by the application.
+    All requests are associated with a URL representing the resource on which
+    an operation is to be performed. In most cases, a libwww request results
+    in some kind of network activity handled by a <I>protocol module</I>. All
+    protocol modules are application <I>plug-ins</I> so there is no limit to
+    the type of request libwww can perform. Each <I>Request object</I> has an
+    input and an output stream associated with them that can accept data from
+    and return data to the application respectively.
+  <DT>
+    <I>Net Object</I>
+  <DD>
+    The <I>Net object</I> represents a connection, for example to the Internet
+    or the local file system. Depending on the URL and the method specified by
+    the request, there can be multiple <I>Net objects</I> per request. As connections
+    are directly associated with system resources, the number of active <I>Net
+    objects</I> is limited by the core to a maximum number specified by the
+    application. Also, in handling <I>Net objects</I>, a considerable effort
+    is made to maximize use of persistent connections in that multiple requests
+    to the same remote host are serialized where possible.
+  <DT>
+    <I>Channel Object</I>
+  <DD>
+    Each open socket and file descriptor is associated with a <I>Channel
+    object</I>. The <I>Channel object</I> is associated with an input stream
+    and an output stream that are capable of reading and writing data to a transport
+    respectively. The channel streams are connected to the <I>Request object</I>
+    streams either directly or via stream chains as described later.
+</DL>
+<P>
+By itself, the <EM>core</EM> is not capable of performing any Web related
+tasks, they are all provided through <I>plug-ins</I> and <I>call-out</I>
+functions registered by the application. This model enables libwww to be
+application neutral in that the application feature set or profile is provided
+by the application and not by libwww. In the next two sections the concept
+of <I>plug-ins</I> and <I>call-out</I> functions are described.
+<H3>
+  Stream Objects
+</H3>
+<P>
+All data flow between the application layer and the transport layer is handled
+using streams. Streams are objects that accept sequences of characters. Streams
+do not require an output, but in most cases, they send data along after having
+performed a certain operation on the data. Examples can be to insert MIME
+headers, or strip out a HTTP response line. In case the output is itself
+a stream, stream objects can be cascaded into <I>stream chains</I>. As mentioned,
+<I>Channel objects</I> and <I>Request objects</I> both have two stream chains
+associated with them. The connection between the request streams and the
+channel streams is made using stream chains which can be setup at run-time
+using <I>Converters</I>.
+<P>
+The <I>Converter stream</I> class is sub-classed from the generic stream
+class. <I>Converters</I> are filters which can change the current representation
+(or media type) of a data object. Examples of conversions can be from one
+image format to another, or to "convert" an HTML document into presenting
+the document to the user in a widget. As <I>Converters</I> are in fact streams,
+there can be multiple <I>Converters</I> inserted into a single stream chain
+from the <I>Request object</I> to the <I>Channel object</I>, for example.
+<P>
+Input and output streams are responsible for reading and writing data to
+and from a transport, for example a BSD socket interface. By using a stream
+based interface to the transport layer, it is very easy to add special transport
+mechanisms, for example, using a multiplexed transport protocol. Also it
+gives a consistent interface for sending objects, as well as reading objects,
+which is a requisite for building interactive Web applications.
+<H3>
+  Plug-in Modules
+</H3>
+<P>
+<I>Plug-ins</I> are modules that can be registered by the application at
+run-time. <I>Plug-ins</I> are an open-ended method for adding new functionality
+to the application. Characteristic for the evolution of libwww is that the
+set of features that are handled through <I>plug-ins</I> are constantly
+increasing. In version 4.1 of the Library, the categories of <I>plug-ins</I>
+include:
+<UL>
+  <LI>
+    Client and server side protocol modules
+  <LI>
+    Low-level protocol transport modules
+  <LI>
+    User dependent modules
+  <LI>
+    Data format handlers
+</UL>
+<P>
+One of the main advantages of using <I>plug-ins</I> is that the feature set
+can change dynamically as required by the application. This allows the
+traditional boundaries between application types such as "clients" and "servers"
+to be broken down. In fact there is little difference between registering
+a server profile and a client feature set, or profile, or having an application
+change profile from a client to a server application at run-time.
+<H3>
+  Request Call-out Functions
+</H3>
+<P>
+Request <I>call-out</I> functions is another open-ended method for applications
+to add functionality to the core. An application registers a new feature
+simply by using a generic callback registration process. There are two main
+points where <I>call-out</I> functions are activated:
+<UL>
+  <LI>
+    Before a request is handed to the protocol module
+  <LI>
+    After the protocol module has terminated
+</UL>
+<P>
+At each of these points the list of registered <I>call-out</I> functions
+is traversed and each of the <I>call-out</I> functions are called. The Library
+comes with a set of standard <I>call-out</I> functions that cover some often-used
+features like:
+<UL>
+  <LI>
+    Cache validation
+  <LI>
+    Rule file matching
+  <LI>
+    Proxying requests
+  <LI>
+    Logging
+  <LI>
+    History List
+  <LI>
+    ...
+</UL>
+<P>
+Request <I>call-out</I> functions can be registered as being local to a specific
+request, or as being global to all requests. This mechanism allows existing
+applications to be extended with little or no modifications, New features
+can be inserted by sub-modules by registering independent <I>call-out</I>
+routines to be handled by libwww. The latest example of how this mechanism
+can be used is the implementation of a <A HREF="../../../PICS/">PICS
+</A>module, which is incorporated into any libwww client application by
+registering itself as <I>call-out</I> functions. Other functions like signature
+handling can be handed the same way.
+<H3>
+  Threads and Pseudo Threads
+</H3>
+<P>
+Threads are in many situations a great advantage, but in general can only
+be regarded as reliable if they are native to a specific platform, or as
+an integral part of the programming language used. Unfortunately, as this
+is not the case in ANSI C, libwww has a model for handling pseudo-threads
+based on interleaved I/O. This requires that the I/O descriptor can be handled
+non-preemptively, which is the case for BSD sockets and WinSock socket
+descriptors. As real threads, pseudo-threads impose certain programming
+techniques to be applied on the application programmer. For example,
+pseudo-threads are single stack, single process entities, and all state dependent
+variables must be stored in a "thread" object. The result of this is that
+all streams and protocol modules must keep local state of where they are.
+Real threads do not require non-preemptive I/O and hence, much of the state
+information can be kept as part of the thread environment.
+<H2>
+  Implementation Experience
+</H2>
+<P>
+Most of the libwww API has been designed using a large set of iterations
+based on trial and error. The library has been around for a considerable
+amount of time and represents a significant knowledge base for designing
+Web APIs. As a drawback on the history behind libwww, it can be noted that
+as libwww is based on ANSI C, it can not take advantage of many of the features
+that are now available in modern programming languages. In order to prove
+that libwww provides a consistent API that can be used by multiple types
+of applications, a small set of example applications was developed representing
+the most typical Web applications.<I> </I>
+<DL>
+  <DT>
+    <A HREF="http://www.w3.org/pub/WWW/ComLine/"><B>Command Line Tool</B></A>
+  <DD>
+    This application which shows how to use libwww for building simple batch
+    mode tools for accessing the Web. The tool supports HTTP, FTP, Gopher, NNTP,
+    Telnet, and WAIS. The HTTP support is consistent with the HTTP/1.0 specification
+    including the methods <I>PUT</I>, <I>POST</I>, and <I>DELETE</I>.
+  <DT>
+    <A HREF="http://www.w3.org/pub/WWW/Robot/"><B>Mini Robot</B></A>
+  <DD>
+    A simple application which shows how to use libwww for building robots. The
+    robot has no constraint model but uses pseudo-threads and interleaved I/O
+    which allows for a large number of outstanding requests. The robot supports
+    HTTP, NNTP, FTP and Gopher using either the <I>GET</I> or the <I>HEAD</I>
+    method.
+  <DT>
+    <A HREF="http://www.w3.org/pub/WWW/MiniServ/"><B>Mini Server</B></A>
+  <DD>
+    A small application showing how to implement a server or a proxy using libwww.
+    The Mini Server also uses pseudo-threads and interleaved I/O which makes
+    it highly portable and very fast. The server does only support <I>GET</I>.
+</DL>
+<P>
+In addition to this set we have much experience from real applications like
+the <B>Arena browser</B> and other Web GUI based clients. The Library is
+freely available from the <A HREF="../../">World-Wide Web Consortium</A>
+software distribution together with all the example applications as well
+as Arena.
+<H2>
+  Lessons Learned
+</H2>
+<P>
+A summarization of the lessons learned from developing the libwww API as
+it looks today is a follows:
+<DL>
+  <DT>
+    APIs <EM>must</EM> be layered
+  <DD>
+    No single API can provide the flexibility required to support different types
+    of applications. Medium level APIs can provide cross application functionality,
+    and high level APIs can provide support for specialized applications.
+  <DT>
+    APIs <EM>must</EM> support a dynamic, open-ended set of features
+  <DD>
+    No API, regardless of the complexity, should impose a limit on adding
+    functionality. The experience from developing libwww shows that no feature
+    can in fact be considered essential enough that it should not be dynamically
+    replaceable. The core registry mechanism in libwww is a step in that direction
+    but does still impose a set of assumptions on what is considered "essential".
+  <DT>
+    APIs must be thread safe
+  <DD>
+    As native kernel threads become increasingly common and programming languages
+    start supporting threads, more and more applications will take advantage
+    of threads and the flexibility they provide. This means that APIs need not
+    only to be thread aware but must actively support threads. Currently, libwww,
+    is thread aware via its pseudo thread model, but it is does not have full
+    thread support.
+  <DT>
+    Formalized APIs are <EM>required</EM>
+  <DD>
+    In practice, most APIs depend on their immediate environment such as the
+    features provided by a specific programming language. Examples of features
+    that do have a major impact on API design are garbage collection, class
+    inheritance and character sets. Better tools for describing API in a language
+    independent, formalized fashion, are required in order to supply truly language
+    independent, interoperable APIs.
+</DL>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen, <A HREF="mailto:frystyk@w3.org">frystyk@w3.org</A>
+</ADDRESS>
+</BODY></HTML>
