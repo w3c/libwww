@@ -1,0 +1,127 @@
+<HEADER>
+<TITLE>Installation_VMS -- /LineMode</TITLE>
+<NEXTID N="8">
+</HEADER>
+<BODY>
+<H1>Installation under VMS</H1>To install under VMS, get the files
+WWW.EXE and SETUP.COM from sources
+described below. To set up the commands,
+put the command
+<PRE>			$ @[...]SETUP
+
+</PRE>into your LOGIN.COM, or the system
+SYLOGIN.COM.  This command file assumes
+you have left all the distributed
+files  in the same directory as itself.
+<H2><A
+NAME=3>Customization using logical names</A></H2>Under VMS,  the home page may be
+defined using the logical name WWW_HOME.
+You should define this to be the
+full address of the document which
+you want to be displayed when www
+is invoked without parameters. For
+example,
+<PRE>        $ DEFINE/SYSTEM WWW_HOME "file://myvax/sys$library/default.html"
+
+</PRE>Note that the www address you must
+set it to is still in unix-like format
+(with slashes instead of :: : [.])Users
+may of course override the system
+logical name with their own. If no
+logical name is defined, the VMS
+browser will default to picking up
+the default page from our server,
+ document http://www.w3.org./default.html.<P>
+The other <A
+NAME=4 HREF="Customisation.html">customization variables</A>
+may be defined in the same way.<P>
+Accessing VMS files<P>
+If you are making you own home page,
+or any other documentation, you will
+probably want to store it on your
+VMS machine. The www program has
+the ability, if running under VMS,
+ to access VMS files. the document
+name for a VMS file is simply the
+filename, but:<P>
+The host name must be the name of
+the machine WITHOUT any domain name
+on it, e.g. //vxcrna/<P>
+The filename is written with each
+punctuation converted into a single
+slash. Examples are
+<PRE> Document identifier           			Filename
+
+ file://vxcrna/sys$www_home			vxcrna::sys$home
+
+</PRE>
+<H2><A
+NAME=1>Availability of .EXE files</A></H2>Versions are available for any of
+the following implementations of
+TCP/IP which you may have installed
+on your system: Digital's UCX, Wollongongs's
+WIN/TCP, or SRI's Multinet.  If you
+are on the High Energy Physics DECnet,
+the versions are currently (Jan 92)
+available compiled in directories
+as follows:
+<DL>
+<DT>Wollongong WIN_TCP
+<DD> none - see <A
+NAME=6 HREF="Installation_VMS_NewTCP.html#2">recompiling</A>
+.
+<DT>Multinet
+<DD> vxcrna::disk$oc1:[timbl.www.multinet.works]
+<DT>Digital's UCX
+<DD> vxcrna::disk$oc1:[timbl.www.ucx.works]
+<DT>CMU TCP
+<DD> none - see <A
+NAME=5 HREF="Installation_VMS_NewTCP.html#1">recompiling</A> .
+</DL>
+If you are not on HEPnet, but can
+pick up binary files from info.cern.ch
+using FTP,  then you will find executables
+in the /pub/www/bin/vms, as files
+www_ucx.exe or www_multinet.exe.
+Remember to transfer in binary mode.
+Pick one and rename it to www.exe
+<H2><A
+NAME=z7>Rebuilding from source</A></H2>You may have to do this if your sharable
+libraries are not compatible with
+those for which the .EXE file was
+built. If there is a version incompatability,
+then you get an explicit message
+about sharable library versions when
+you try to run www.<P>
+If you have utilities for uncompressing
+and untarring the main source file,
+then you could remake the distribution
+from source.<P>
+Another way of getting the sources
+up can be used if you happen to have
+access to an untrix machine on the
+same DECnet as your vax. FTP the
+source tar file over to the ultrix
+machine, uncompress it and untar
+it, then copy over the descrip.mms
+in LineMode/Implementation/vms. In
+there you'll find all the commands
+to copy the sources from a unix machine
+(PRIAM:: in that instance -- you'll
+have to edit it) and rebuild the
+.exe. <P>
+When you remake the exe, you must
+specifify
+<PRE>
+			MMS/MACRO=(MULTINET=1)
+		or
+
+			MMS/MACRO=(WIN_TCP=1)
+		or
+
+			MMS/MACRO=(UCX=1)
+
+</PRE>to get the right version for Multinet,
+Wollongong TCP or DEC/UCX respectively.
+<ADDRESS><A
+NAME=0 HREF="http://www.w3.org/hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>
