@@ -13,6 +13,7 @@
 #include "HTBind_glue.h"
 #include "HTHost_glue.h"
 #include "URLgen.h"
+#include "HTProt_glue.h"
 
 #define appname     "WWWtest"
 #define appversion  "1.0"
@@ -35,6 +36,7 @@ Tcl_HashTable   HTableCallback;
 Tcl_HashTable   HTableHost;
 Tcl_HashTable   HTableChannel;
 Tcl_HashTable   HTableChunk;
+Tcl_HashTable   HTableProt;
 
 typedef struct{
     char           *name;
@@ -468,6 +470,18 @@ static LibraryFunction www_commands[] = {
   { "HTCopyAnchor",           HTCopyAnchor_tcl,               NULL, 0 },
   { "HTUploadAnchor",         HTUploadAnchor_tcl,             NULL, 0 },
   { "HTUpload_callback",      HTUpload_callback_tcl,          NULL, 0 },
+
+/*HTProt */
+
+  { "HTProtocol_add",         HTProtocol_add_tcl,             NULL, 0 },
+  { "HTProtocol_delete",      HTProtocol_delete_tcl,          NULL, 0 },
+  { "HTProtocol_deleteAll",   HTProtocol_deleteAll_tcl,       NULL, 0 },
+  { "HTProtocol_find",        HTProtocol_find_tcl,            NULL, 0 },
+  { "HTProtocol_client",      HTProtocol_client_tcl,          NULL, 0 },
+  { "HTProtocol_server",      HTProtocol_server_tcl,          NULL, 0 },
+  { "HTProtocol_preemptive",  HTProtocol_preemptive_tcl,      NULL, 0 },
+  { "HTProtocol_setTransport",HTProtocol_setTransport_tcl,    NULL, 0 },
+  { "HTProtocol_transport",   HTProtocol_transport_tcl,       NULL, 0 },
   
     { 0 }
 };
@@ -487,6 +501,7 @@ int WWWLib_Init(Tcl_Interp *interp) {
   Tcl_InitHashTable(&HTableCallback, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableHost, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableChunk, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableProt,  TCL_STRING_KEYS);
 
   /*added by xing, not sure if needed? */
 
@@ -514,6 +529,7 @@ void WWWLib_Terminate() {
     Tcl_DeleteHashTable(&HTableHost);
     Tcl_DeleteHashTable(&HTableChannel);
     Tcl_DeleteHashTable(&HTableChunk);
+    Tcl_DeleteHashTable(&HTableProt);
 }
 
 /*=================================================*/

@@ -20,13 +20,13 @@ int HTHost_new_tcl(ClientData clientData, Tcl_Interp *interp,
 		   int argc, char **argv) {
   if (argc == 2) {
     char *name = argv[1];
-    char *keyname=malloc(max_keyname * sizeof(char));
+    char *keyname;
     int newPtr;
     if(name) {
       Tcl_HashEntry *host_entry;
       HTHost *host = HTHost_new(name);
-      keyname = name;
-      host_entry = Tcl_CreateHashEntry(&HTableHost, keyname, &newPtr);
+   
+      host_entry = CreateNewEntry(&HTableHost, name, &keyname);
 
       Tcl_SetHashValue(host_entry, host);
 
