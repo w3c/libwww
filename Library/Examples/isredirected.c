@@ -44,6 +44,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	time_t retry_after = HTResponse_retryTime(response);
 	HTPrint("The address `%s\' was redirected to `%s\'\n",
 		addr, re_addr ? re_addr : "<none>");
+	HT_FREE (re_addr);
 	if (retry_after >= 0)
 	    HTPrint("A retry after period of %d secs was given\n", retry_after);
     } else {
