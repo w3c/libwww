@@ -19,6 +19,16 @@
 #endif
 
 
+/* VMS stuff */
+#ifdef VMS
+#ifndef MULTINET
+#define FD_SETSIZE 32
+#else /* Multinet */
+#define FD_SETSIZE 256
+#endif /* Multinet */
+#endif /* VMS */
+
+
 /*	Module-Wide variables
 */
 
@@ -50,11 +60,11 @@ extern volatile noshare int socket_errno; /* socket VMS error info
 extern volatile noshare int vmserrno;	/* Deposit of VMS error info */
 extern volatile noshare int errno;  /* noshare to avoid PSECT conflict */
 #endif /* not DECC */
-#else /* VMS */
+#endif /* VMS */
+
 #ifndef errno
 extern int errno;
 #endif /* errno */
-#endif /* VMS */
 
 #ifndef VM
 #ifndef VMS
@@ -79,25 +89,12 @@ PUBLIC int HTInetStatus(where)
     char    *where;
 #endif
 {
-#ifdef VMS
-#ifdef MULTINET
-            socket_errno = vmserrno;
-#endif
-#endif 
-
+#ifndef VMS
     CTRACE(tfp, "TCP......... Error %d in `errno' after call to %s() failed.\n\t%s\n",
 	    errno,  where,
 
 #ifdef VM
 	    "(Error number not translated)");	/* What Is the VM equiv? */
-#define ER_NO_TRANS_DONE
-#endif
-#ifdef VMS
-#ifdef MULTINET
-            vms_errno_string());
-#else
-	    "(Error number not translated)");
-#endif
 #define ER_NO_TRANS_DONE
 #endif
 #ifdef NeXT
@@ -113,16 +110,17 @@ PUBLIC int HTInetStatus(where)
 	    errno < sys_nerr ? sys_errlist[errno] : "Unknown error" );
 #endif
 
-#ifdef VMS
-#ifndef MULTINET
-    CTRACE(tfp, "         Unix error number (uerrno) = %ld dec\n", uerrno);
-    CTRACE(tfp, "         VMS error (vmserrno)       = %lx hex\n", vmserrno);
-#endif
-#endif
+#else /* VMS */
+    CTRACE(tfp, "         Unix error number          = %ld dec\n", errno);
+    CTRACE(tfp, "         VMS error                  = %lx hex\n", vaxc$errno);
+#ifdef MULTINET
+    CTRACE(tfp, "         Multinet error             = %lx hex\n", socket_errno); 
+#endif /* MULTINET */
+#endif /* VMS */
 
 #ifdef VMS
-    /* uerrno and errno happen to be zero if vmserrno <> 0 */
-    return -vmserrno;
+    /* errno happen to be zero if vaxc$errno <> 0 */
+    return -vaxc$errno;
 #else
     return -errno;
 #endif

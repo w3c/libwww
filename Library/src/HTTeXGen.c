@@ -87,7 +87,7 @@ PRIVATE char *TeX_names[][2] = {
     { "",		""		},	/* HTML_HEAD		*/
     { "",		""		},	/* HTML_HR		*/
     { "",		""		}, 	/* HTML_HTML		*/
-    { ""		""		},    	/* HTML_HTMLPLUS	*/
+    { "",		""		},    	/* HTML_HTMLPLUS	*/
     { "{\\it ",		"}"		},	/* HTML_I		*/
     { "",		""		},	/* HTML_IMAGE		*/
     { "",		""		},	/* HTML_IMG		*/

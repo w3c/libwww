@@ -324,7 +324,7 @@ number, so we make the @@@ HORRIBLE
 will be greater than 10 but a unix
 file descriptor less than 10.  It
 works.
-<PRE>#ifdef vms
+<PRE>#ifdef VMS 
 #define CACHE_FILE_PREFIX  "SYS$LOGIN:Z_"
 
 #ifdef WIN_TCP
@@ -334,7 +334,7 @@ works.
 #define NETREAD(s,b,l)	((s)>10 ? netread((s),(b),(l)) : read((s),(b),(l)))
 #define NETWRITE(s,b,l)	((s)>10 ? netwrite((s),(b),(l)) : write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)>10 ? netclose(s) : close(s))
-#endif
+#endif /* WIN_TCP */
 
 #ifdef MULTINET
 #undef NETCLOSE
@@ -344,7 +344,7 @@ works.
 #define NETWRITE(s,b,l)	((s)>10 ? socket_write((s),(b),(l)) : \
 				write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)>10 ? socket_close(s) : close(s))
-#endif
+#endif /* MULTINET */
 
 #ifdef DECNET
 #undef SELECT  /* not supported */
@@ -359,14 +359,24 @@ works.
 /*	Certainly this works for UCX and Multinet; not tried for Wollongong
 */
 #ifdef MULTINET
+#ifdef __TIME_T
+#define __TYPES
+#define __TYPES_LOADED
+#endif /* __TIME_T */
 #include "multinet_root:[multinet.include.sys]types.h"
 #include "multinet_root:[multinet.include]errno.h"
+#ifdef __TYPES
+#define __TIME_T
+#endif /* __TYPE */
+#ifdef __TIME_LOADED
+#define __TIME
+#endif /* __TIME_LOADED */
 #include "multinet_root:[multinet.include.sys]time.h"
-#else
-#include types
-#include errno
-#include time
-#endif /* multinet */
+#else /* not MULTINET */
+#include &lt;types.h>
+#include &lt;errno.h>
+#include &lt;time.h>
+#endif /* not MULTINET */
 
 #include string
 
@@ -391,6 +401,7 @@ works.
 #include "multinet_root:[multinet.include.netinet]in.h"
 #include "multinet_root:[multinet.include.arpa]inet.h"
 #include "multinet_root:[multinet.include]netdb.h"
+#include "multinet_root:[multinet.include.sys]ioctl.h"
 
 #else  /* not multinet */
 #ifdef DECNET
@@ -401,10 +412,13 @@ works.
 /* #include "vms.h" */
 
 #else /* UCX or WIN */
-#include socket
-#include in
-#include inet
-#include netdb
+#ifdef CADDR_T
+#define __CADDR_T
+#endif /* problem with xlib.h inclusion */
+#include &lt;socket.h>
+#include &lt;in.h>
+#include &lt;inet.h>
+#include &lt;netdb.h>
 
 #endif  /* not DECNET */
 #endif  /* of Multinet or other TCP includes */

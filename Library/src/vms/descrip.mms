@@ -110,12 +110,14 @@ CFLAGS = $(DEBUGFLAGS)$(CQUALDECC)$(CLIST)/DEFINE=($(EXTRADEFINES),$(TCP))/INC=(
 .INCLUDE $(SRC)Version.make
 
 
-SETUP_FILES = $(LIB)www_lib.opt
+SETUP_FILES = $(LIB)wwwlib.opt
 
 VMS_FILES = $(VMS)COPYING.LIB $(VMS)descrip.mms -
-	    $(VMS)multinet.opt $(VMS)multinet.opt_alpha
+	    $(VMS)multinet.opt $(VMS)multinet.opt_alpha -
+	    $(VMS)ucx.opt $(VMS)ucx.opt_alpha
 
-HEADERS = $(SRC)HTParse.h, $(SRC)HTAccess.h, $(SRC)HTTP.h, $(SRC)HTFile.h, - 
+HEADERS = $(SRC)HTParse.h, $(SRC)HTAccess.h, $(SRC)HTTP.h, $(SRC)HTFile.h, -
+	$(SRC)HTMulti.h, - 
 	$(SRC)HTBTree.h, $(SRC)HTFTP.h, $(SRC)HTTCP.h, -
 	$(SRC)SGML.h, $(SRC)HTML.h, $(SRC)HTMLPDTD.h, $(SRC)HTChunk.h, -
 	$(SRC)HTPlain.h, $(SRC)HTWriter.h, -
@@ -131,13 +133,14 @@ HEADERS = $(SRC)HTParse.h, $(SRC)HTAccess.h, $(SRC)HTTP.h, $(SRC)HTFile.h, -
 	$(SRC)HTTelnet.h, -
 	$(SRC)HTWAIS.h, $(SRC)HTWSRC.h, -
         $(SRC)HTAAUtil.h, $(SRC)HTAABrow.h, $(SRC)HTAssoc.h, -
-	$(SRC)HTUU.h, -
+	$(SRC)HTUU.h, $(SRC)HTTeXGen.h -
 	$(VMS)HTVMSUtils.h, -
-	$(VMS)ufc-crypt.h, $(VMS)patchlevel.h
+	$(VMS)ufc-crypt.h, $(VMS)patchlevel.h -
+	$(VMS)dirent.h, $(VMS)sys_dirent.h
 
 .IFDEF DECNET  ! Strip FTP, Gopher, News, (WAIS)
 MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTTP.obj, -
-	HTFile=$(LIB)HTFile.obj, HTBTree=$(LIB)HTBTree.obj, HTTCP=$(LIB)HTTCP.obj, -
+	HTFile=$(LIB)HTFile.obj, HTMulti=$(LIB)HTMulti.obj, HTBTree=$(LIB)HTBTree.obj, HTTCP=$(LIB)HTTCP.obj, -
 	SGML=$(LIB)SGML.obj, HTML=$(LIB)HTML.obj, HTMLPDTD=$(LIB)HTMLPDTD.obj, HTChunk=$(LIB)HTChunk.obj, -
 	HTPlain=$(LIB)HTPlain.obj, HTWriter=$(LIB)HTWriter.obj, HTFwriter=$(LIB)HTFwriter.obj, -
 	HTMLGen=$(LIB)HTMLGen.obj, HTTee=$(LIB)HTTee.obj, -
@@ -147,13 +150,14 @@ MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTT
 	HTHistory=$(LIB)HTHistory.obj, -         
 	HTTelnet=$(LIB)HTTelnet.obj, HTWSRC=$(LIB)HTWSRC.obj, -
         HTAAUtil=$(LIB)HTAAUtil.obj, HTAABrow=$(LIB)HTAABrow.obj, HTAssoc=$(LIB)HTAssoc.obj, - 
-	HTUU=$(LIB)HTUU.obj, -
+	HTUU=$(LIB)HTUU.obj, HTTeXGen=$(LIB)HTTeXGen.obj, -
 	HTVMSUtils=$(LIB)HTVMSUtils.obj, -
  	getpass=$(LIB)getpass.obj, getline=$(LIB)getline.obj, -
-	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj
+	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj -
+        dirent=$(LIB)dirent.obj
 .ELSE                   
 MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTTP.obj, -
-	HTFile=$(LIB)HTFile.obj, HTBTree=$(LIB)HTBTree.obj, HTFTP=$(LIB)HTFTP.obj, HTTCP=$(LIB)HTTCP.obj, -
+	HTFile=$(LIB)HTFile.obj, HTMulti=$(LIB)HTMulti.obj, HTBTree=$(LIB)HTBTree.obj, HTFTP=$(LIB)HTFTP.obj, HTTCP=$(LIB)HTTCP.obj, -
 	SGML=$(LIB)SGML.obj, HTML=$(LIB)HTML.obj, HTMLPDTD=$(LIB)HTMLPDTD.obj, HTChunk=$(LIB)HTChunk.obj, -
 	HTPlain=$(LIB)HTPlain.obj, HTWriter=$(LIB)HTWriter.obj, HTFwriter=$(LIB)HTFwriter.obj, -
 	HTMLGen=$(LIB)HTMLGen.obj, HTTee=$(LIB)HTTee.obj, -
@@ -163,10 +167,11 @@ MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTT
 	HTHistory=$(LIB)HTHistory.obj, HTNews=$(LIB)HTNews.obj, HTGopher=$(LIB)HTGopher.obj, -         
 	HTTelnet=$(LIB)HTTelnet.obj, HTWSRC=$(LIB)HTWSRC.obj, -
         HTAAUtil=$(LIB)HTAAUtil.obj, HTAABrow=$(LIB)HTAABrow.obj, HTAssoc=$(LIB)HTAssoc.obj, - 
-	HTUU=$(LIB)HTUU.obj, -
+	HTUU=$(LIB)HTUU.obj, HTTeXGen=$(LIB)HTTeXGen.obj, -
 	HTVMSUtils=$(LIB)HTVMSUtils.obj, -
  	getpass=$(LIB)getpass.obj, getline=$(LIB)getline.obj, -
-	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj
+	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj -
+        dirent=$(LIB)dirent.obj
 .ENDIF
 
 !___________________________________________________________________
@@ -184,17 +189,17 @@ MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTT
 !___________________________________________________________________
 ! WWW Library
 
-lib : $(SRC)Version.make $(VMS_FILES) $(HEADERS) $(LIB)www_lib.opt $(LIB)wwwlib.olb($(MODULES)) $(VMS)build_$(TCP).com$(ALPHA_EXT)
+lib : $(SRC)Version.make $(VMS_FILES) $(HEADERS) $(LIB)wwwlib.opt $(LIB)wwwlib.olb($(MODULES)) $(VMS)build_$(TCP).com$(ALPHA_EXT)
  	@ continue
 
-lib_only : $(SRC)Version.make $(LIB)www_lib.opt $(LIB)wwwlib.olb($(MODULES))
+lib_only : $(SRC)Version.make $(LIB)wwwlib.opt $(LIB)wwwlib.olb($(MODULES))
  	@ continue
 
 $(VMS)build_$(TCP).com$(ALPHA_EXT) : $(VMS)descrip.mms
 	mms/noaction/from_sources/out=$(VMS)build_$(TCP).com$(ALPHA_EXT)/macro=($(TCP)=1,$(MACH)=1) lib_only
 
-$(LIB)www_lib.opt : $(VMS)$(TCP).opt$(ALPHA_EXT)
-	copy $(VMS)$(TCP).opt$(ALPHA_EXT) $(LIB)www_lib.opt
+$(LIB)wwwlib.opt : $(VMS)$(TCP).opt$(ALPHA_EXT)
+	copy $(VMS)$(TCP).opt$(ALPHA_EXT) $(LIB)wwwlib.opt
 !___________________________________________________________________
 ! BASIC modules
 
@@ -422,6 +427,18 @@ $(SRC)HTMLGen.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTML
 	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLGen.h" -
              $(SRC)HTMLGen.h
 .ENDIF
+!_____________________________	HTTeXGen
+
+$(LIB)HTTeXGen.obj   : $(SRC)HTTeXGen.c $(SRC)HTTeXGen.h $(SRC)HTUtils.h $(SRC)HTMLPDTD.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTTeXGen.c
+.IFDEF U
+$(SRC)HTTeXGen.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTeXGen.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTeXGen.c" - 
+             $(SRC)HTTeXGen.c
+$(SRC)HTTeXGen.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTeXGen.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTeXGen.h" -
+             $(SRC)HTTeXGen.h
+.ENDIF
 !_____________________________	HTMLPDTD
 
 $(LIB)HTMLPDTD.obj   : $(SRC)HTMLPDTD.c $(SRC)HTMLPDTD.h $(SRC)SGML.h
@@ -602,6 +619,18 @@ $(SRC)HTFile.h   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTF
 	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFile.h" -
              $(SRC)HTFile.h
 .ENDIF
+!_________________________________ HTMulti
+
+$(LIB)HTMulti.obj : $(SRC)HTMulti.c $(SRC)HTMulti.h $(SRC)HTUtils.h 
+         cc $(CFLAGS)/obj=$*.obj $(SRC)HTMulti.c
+.IFDEF U
+$(SRC)HTMulti.c   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMulti.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMulti.c" - 
+             $(SRC)HTMulti.c
+$(SRC)HTMulti.h   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMulti.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMulti.h" -
+             $(SRC)HTMulti.h
+.ENDIF
 !_____________________________	HTBTree
 
 $(LIB)HTBTree.obj   : $(SRC)HTBTree.c $(SRC)HTBTree.h $(SRC)HTUtils.h
@@ -708,6 +737,14 @@ $(VMS)multinet.opt_alpha : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementa
 	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/multinet.opt_alpha" -
 	$(VMS)multinet.opt_alpha
                     
+$(VMS)ucx.opt : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/ucx.opt"
+	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/ucx.opt" -
+	$(VMS)ucx.opt
+                    
+$(VMS)ucx.opt_alpha : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/ucx.opt_alpha"
+	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/ucx.opt_alpha" -
+	$(VMS)ucx.opt_alpha
+                    
 .ENDIF
 !_____________________________	VMS/HTVMSUTILS
 
@@ -758,6 +795,22 @@ $(VMS)CRYPT_UTIL.c : 	$(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/
 	            	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/crypt_util.c" - 
              		$(VMS)CRYPT_UTIL.c
 .ENDIF
+!_____________________________	VMS/DIRENT
+
+$(LIB)dirent.obj   : $(VMS)dirent.c $(VMS)dirent.h $(VMS)sys_dirent.h 
+        cc $(CFLAGS)/obj=$*.obj $(VMS)dirent.c
+.IFDEF U
+$(VMS)dirent.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/dirent.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/dirent.c" - 
+             $(VMS)dirent.c
+$(VMS)dirent.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/dirent.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/dirent.h" -
+             $(VMS)dirent.h
+$(VMS)sys_dirent.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/sys_dirent.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/sys_dirent.h" -
+             $(VMS)sys_dirent.h
+.ENDIF
+
 !_________________________________ VMS include files only:
 
 .IFDEF U

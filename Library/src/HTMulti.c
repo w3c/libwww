@@ -9,8 +9,16 @@
 **
 */
 
+#include "HTMulti.h"
 #include "HTFile.h"
 #include "HTList.h"
+
+#ifdef VMS
+#define USE_DIRENT
+#define GOT_READ_DIR
+#include "dirent.h"
+#define R_OK 3
+#endif
 
 #ifdef USE_DIRENT		/* Set this for Sys V systems */
 #define STRUCT_DIRENT struct dirent
@@ -34,14 +42,22 @@ PRIVATE BOOL multi_match ARGS4(char **, required,
     int c;
     int i,j;
 
+#ifdef VMS
+    for(c=0;  c<m && c<n && !strcasecomp(required[c], actual[c]);  c++);
+#else /* not VMS */
     for(c=0;  c<m && c<n && !strcmp(required[c], actual[c]);  c++);
+#endif /* not VMS */
 
     if (!c) return NO;		/* Names differ rigth from start */
 
     for(i=c; i<m; i++) {
 	BOOL found = NO;
 	for(j=c; j<n; j++) {
+#ifdef VMS
+	    if (!strcasecomp(required[i], actual[j])) {
+#else /* not VMS */
 	    if (!strcmp(required[i], actual[j])) {
+#endif /* not VMS */
 		found = YES;
 		break;
 	    }
@@ -85,7 +101,7 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     *basename++ = 0;
 
     multi = strrchr(basename, MULTI_SUFFIX[0]);
-    if (multi && !strcmp(multi, MULTI_SUFFIX))
+    if (multi && !strcasecomp(multi, MULTI_SUFFIX))
 	*multi = 0;
     baselen = strlen(basename);
 
@@ -200,6 +216,7 @@ PRIVATE char * HTGetBest ARGS2(HTRequest *,	req,
     return best_path;
 }
 
+#endif /* GOT_READ_DIR */
 
 
 /*
@@ -230,8 +247,9 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
     if (!req || !path || !stat_info)
 	return NULL;
 
+#ifdef GOT_READ_DIR
     multi = strrchr(path, MULTI_SUFFIX[0]);
-    if (multi && !strcmp(multi, MULTI_SUFFIX)) {
+    if (multi && !strcasecomp(multi, MULTI_SUFFIX)) {
 	CTRACE(stderr, "Multi....... by %s suffix\n", MULTI_SUFFIX);
 	if (!(new_path = HTGetBest(req, path))) {
 	    CTRACE(stderr, "Multi....... failed -- giving up\n");
@@ -252,6 +270,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 	    path = new_path;
 	}
     }
+#endif /* GOT_READ_DIR */
 
     if (stat_status == -1)
 	stat_status = stat(path, stat_info);
@@ -269,5 +288,4 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
     }
 }
 
-#endif /* GOT_READ_DIR */
 
