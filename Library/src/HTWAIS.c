@@ -44,7 +44,8 @@
 */
 
 
-#define DIRECTORY "/quake.think.com:210/directory-of-servers"
+#define DIRECTORY "/cnidr.org:210/directory-of-servers"
+/* define DIRECTORY "/quake.think.com:210/directory-of-servers" */
 
 #define BIG 1024	/* identifier size limit  @@@@@ */
 
@@ -634,11 +635,22 @@ PUBLIC int HTLoadWAIS ARGS4(
 	
 	START(HTML_ISINDEX);
 
+	{
+	    START(HTML_TITLE);
+	    PUTS(wais_database);
+	    PUTS(" index");
+	    END(HTML_TITLE);
+	    
+	    START(HTML_H1);
+	    PUTS(wais_database);
+	    END(HTML_H1);
+	    
+	}
 	/* If we have seen a source file for this database, use that:
 	*/
 
 #ifdef CACHE_FILE_PREFIX
-	sprintf(filename, "%sWSRC-%s:%s:%100s.txt",
+	sprintf(filename, "%sWSRC-%s:%s:%.100s.txt",
 		CACHE_FILE_PREFIX,
 		server_name, service, www_database);
 
@@ -654,19 +666,8 @@ PUBLIC int HTLoadWAIS ARGS4(
 	    while((c=getc(fp))!=EOF) PUTC(c);	/* Transfer file */
 	    END(HTML_PRE);
 	    fclose(fp);
-	} else
-#endif
-	{
-	    START(HTML_TITLE);
-	    PUTS(wais_database);
-	    PUTS(" index");
-	    END(HTML_TITLE);
-	    
-	    START(HTML_H1);
-	    PUTS(wais_database);
-	    END(HTML_H1);
-	    
 	}
+#endif
 	START(HTML_P);
 	PUTS("Specify search words.");
 	

@@ -899,7 +899,8 @@ forget_multi:
 			    continue;    /* skip those files whose name begins
 					    with '.' or ',' */
 
-			dirname = malloc(strlen(dirbuf->d_name) + 2);
+			dirname = (HTBTElement *)malloc(
+					strlen(dirbuf->d_name) + 2);
 			if (dirname == NULL) outofmem(__FILE__,"DirRead");
 			StrAllocCopy(tmpfilename,localname);
 			if (strcmp(localname,"/")) 

@@ -350,10 +350,11 @@ retry:
 		    char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
 		    char * message = (char*)malloc(
 			strlen(line_buffer)+strlen(p1) + 100);
+		    int status;
 		    if (!message) outofmem(__FILE__, "HTTP 5xx status");
 		    sprintf(message,
 		    "HTTP server at %s replies:\n%s", p1, line_buffer);
-		    HTLoadError(sink, server_status, message);
+		    status = HTLoadError(sink, server_status, message);
 		    free(message);
 		    free(p1);
 		    goto clean_up;
@@ -404,7 +405,7 @@ retry:
     }
     (*target->isa->end_document)(target);
     (*target->isa->free)(target);
-	
+    status = HT_LOADED;
 
 /*	Clean up
 */
@@ -415,7 +416,7 @@ clean_up:
     if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
     (void) NETCLOSE(s);
 
-    return HT_LOADED;			/* Good return */
+    return status;			/* Good return */
 
 }
 

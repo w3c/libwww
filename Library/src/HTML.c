@@ -453,11 +453,15 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_A:
 	{
 	    HTChildAnchor * source;
-	    if (present[HTML_A_HREF]) HTSimplify(value[HTML_A_HREF]);
+	    char * href = NULL;
+	    if (present[HTML_A_HREF]) {
+	    	StrAllocCopy(href, value[HTML_A_HREF]);
+		HTSimplify(href);
+	    }
 	    source = HTAnchor_findChildAndLink(
 		me->node_anchor,				/* parent */
 		present[HTML_A_NAME] ? value[HTML_A_NAME] : 0,	/* Tag */
-		present[HTML_A_HREF] ? value[HTML_A_HREF] : 0,	/* Addresss */
+		present[HTML_A_HREF] ? href : 0,		/* Addresss */
 		present[HTML_A_TYPE] && value[HTML_A_TYPE] ? 
 			(HTLinkType*)HTAtom_for(value[HTML_A_TYPE])
 			    			: 0);
@@ -820,11 +824,16 @@ PUBLIC HTStream* HTMLPresent ARGS3(
 **	it can be reloaded later.
 **	This implementation just throws up an error message
 **	and leaves the document unloaded.
+**	A smarter implementation would load an error document,
+**	marking at such so that it is retried on reload.
 **
 ** On entry,
 **	sink 	is a stream to the output device if any
 **	number	is the HTTP error number
 **	message	is the human readable message.
+**
+** On exit,
+**	returns	a negative number to indicate lack of success in the load.
 */
 
 PUBLIC int HTLoadError ARGS3(

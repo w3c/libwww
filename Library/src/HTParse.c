@@ -237,6 +237,7 @@ char * HTParse(aName, relatedName, wanted)
     return return_value;		/* exactly the right length */
 }
 
+
 /*	        Simplify a filename
 //		-------------------
 //
@@ -246,6 +247,11 @@ char * HTParse(aName, relatedName, wanted)
 //
 //	Thus, 	/etc/junk/../fred 	becomes	/etc/fred
 //		/etc/junk/./fred	becomes	/etc/junk/fred
+//
+//      but we should NOT change
+//		http://fred.xxx.edu/../..
+//
+//	or	../../albert.html
 */
 #ifdef __STDC__
 void HTSimplify(char * filename)
@@ -261,12 +267,13 @@ void HTSimplify(filename)
      for(p=filename+2; *p; p++) {
         if (*p=='/') {
 	    if ((p[1]=='.') && (p[2]=='.') && (p[3]=='/' || !p[3] )) {
-		for (q=p-1; (q>filename) && (*q!='/'); q--); /* prev slash */
-		if (q[0]=='/' && 0!=strncmp(q, "/../", 4)) {
+		for (q=p-1; (q>=filename) && (*q!='/'); q--); /* prev slash */
+		if (q[0]=='/' && 0!=strncmp(q, "/../", 4)
+			&&!(q-1>filename && q[-1]=='/')) {
 	            strcpy(q, p+3);	/* Remove  /xxx/..	*/
 		    if (!*filename) strcpy(filename, "/");
 		    p = q-1;		/* Start again with prev slash 	*/
-		} else {			/*   xxx/.. leve it!	*/
+		} else {			/*   xxx/.. leave it!	*/
 #ifdef BUG_CODE
 		    strcpy(filename, p[3] ? p+4 : p+3); /* rm  xxx/../	*/
 		    p = filename;		/* Start again */

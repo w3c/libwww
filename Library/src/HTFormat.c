@@ -102,7 +102,7 @@ PUBLIC void HTSetPresentation ARGS5(
 PUBLIC void HTSetConversion ARGS6(
 	CONST char *, representation_in,
 	CONST char *, representation_out,
-	HTConverter,	converter,
+	HTConverter*,	converter,
 	float,	quality,
 	float,	secs, 
 	float,	secs_per_byte

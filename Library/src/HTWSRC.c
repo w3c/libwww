@@ -5,6 +5,7 @@
 **	format information on it and creates a structured stream.
 **	That structured stream is then converted into whatever.
 **
+**	3 June 93	Bug fix: Won't crash if no description
 */
 
 #include "HTWSRC.h"
@@ -56,15 +57,18 @@ PRIVATE CONST char* par_name[] = {
 #define PAR_MAINTAINER 8
 	"maintainer", 	
 #define PAR_DESCRIPTION 9
-	"description", 	
+	"description",
+	"keyword-list", 	
 	"source",
+#define PAR_UNKNOWN 12
+	"unknown",
 	0,				/* Terminate list */
-#define PAR_COUNT 11
+#define PAR_COUNT 13
 } ;
 
 
 enum tokenstate { beginning, before_tag, colon, before_value,
-		value, quoted_value, done };
+		value, bracketed_value, quoted_value, escape_in_quoted, done };
 
 
 /*		Stream Object
@@ -146,9 +150,10 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 	    }
 	    if (!par_name[me->param_number]) {	/* Unknown field */
 	        if (TRACE) fprintf(stderr,
-		    "WAISGate: Unknown field `%s' in source file\n",
+		    "HTWSRC: Unknown field `%s' in source file\n",
 		    me->param);
-		me->state = before_tag;	/* Could be better ignore */
+		me->param_number = PAR_UNKNOWN;
+		me->state = before_value;	/* Could be better ignore */
 		return;
 	    }
 	    me->state = before_value;
@@ -168,7 +173,8 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 	    me->state = quoted_value;
 	    break;
 	}
-	me->state = (c=='"') ? quoted_value : value;
+	me->state = (c=='"') ? quoted_value : 
+		    (c=='(') ? bracketed_value : value;
 	me->param[me->param_count++] = c;	/* Don't miss first character */
 	break;
 
@@ -182,14 +188,32 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 	}
 	break;
 
+    case bracketed_value:
+        if (c==')') {
+	    me->param[me->param_count] = 0;
+	    StrAllocCopy(me->par_value[me->param_number], me->param);
+	    me->state = before_tag;
+	    break;
+	}
+        if (me->param_count < PARAM_MAX)  me->param[me->param_count++] = c;
+	break;
+	
     case quoted_value:
         if (c=='"') {
 	    me->param[me->param_count] = 0;
 	    StrAllocCopy(me->par_value[me->param_number], me->param);
 	    me->state = before_tag;
-	} else {
-	    if (me->param_count < PARAM_MAX)  me->param[me->param_count++] = c;
+	    break;
 	}
+	
+	if (c=='\\') {		/* Ignore escape but switch state */
+	    me->state = escape_in_quoted;
+	    break;
+	}
+	/* Fall through! */
+
+    case escape_in_quoted:
+        if (me->param_count < PARAM_MAX)  me->param[me->param_count++] = c;
 	break;
 	
     case done:				/* Ignore anything after EOF */
@@ -213,7 +237,7 @@ PRIVATE BOOL write_cache ARGS1(HTStream *, me)
     char cache_file_name[256];
     char * www_database;
     www_database = HTEscape(me->par_value[PAR_DATABASE_NAME], URL_XALPHAS);
-    sprintf(cache_file_name, "%sWSRC-%s:%s:%100s.txt",
+    sprintf(cache_file_name, "%sWSRC-%s:%s:%.100s.txt",
     	CACHE_FILE_PREFIX,
 	me->par_value[PAR_IP_NAME],
 	me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] : "210",
@@ -222,7 +246,10 @@ PRIVATE BOOL write_cache ARGS1(HTStream *, me)
     fp = fopen(cache_file_name, "w");
     if (!fp) return NO;
     
-    fputs(me->par_value[PAR_DESCRIPTION], fp);
+    if (me->par_value[PAR_DESCRIPTION])
+        fputs(me->par_value[PAR_DESCRIPTION], fp);
+    else 
+        fputs("Description not available\n", fp);
     fclose(fp);
     return YES;
 }
@@ -328,10 +355,12 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 
     END(HTML_DL);
 
-    START(HTML_PRE);		/* Preformatted description */
-    PUTS(me->par_value[PAR_DESCRIPTION]);
-    END(HTML_PRE);
-
+    if (me->par_value[PAR_DESCRIPTION]) {
+	START(HTML_PRE);		/* Preformatted description */
+	PUTS(me->par_value[PAR_DESCRIPTION]);
+	END(HTML_PRE);
+    }
+    
     (*me->target->isa->end_document)(me->target);
     (*me->target->isa->free)(me->target);
     

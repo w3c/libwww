@@ -101,6 +101,11 @@ static attr a_attr[] = {			/* Anchor attributes */
 	{ 0 }	/* Terminate list */
 };	
 
+static attr img_attr[] = {			/* Anchor attributes */
+	{ "SRC"},
+	{ 0 }	/* Terminate list */
+};	
+
 static attr list_attr[] = {
 	{ "COMPACT"},
 	{ 0 }	/* Terminate list */
@@ -137,6 +142,7 @@ static HTTag tags[] = {
     { "H5"	, no_attr,	0,		SGML_MIXED },
     { "H6"	, no_attr,	0,		SGML_MIXED },
     { "H7"	, no_attr,	0,		SGML_MIXED },
+    { "IMG"     , img_attr,	0,		SGML_EMPTY },
     { "ISINDEX", no_attr,	0,		SGML_EMPTY },
     { "LI"	, list_attr,	1,		SGML_EMPTY },
     { "LINK"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_EMPTY },

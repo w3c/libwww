@@ -1,6 +1,6 @@
 <HEADER>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="58">
+<NEXTID N="59">
 </HEADER>
 <BODY>
 <H1>Library Internals</H1>The <A
@@ -132,7 +132,12 @@ NAME=z31 HREF="HTML.html">HTML</A>
 by <A
 NAME=18 HREF="../../Architecture/../Implementation/HTML.c">HTML.c</A> which uses the simple SGML
 engine SGML.c as a basic tokeniser
-and element stack manager.
+and element stack manager.  This
+uses:
+<DT><A
+NAME=z58 HREF="HTMLDTD.html">HTMLDTD</A>
+<DD>The table defining some aspects
+of the HTML document type description.
 <DT><A
 NAME=z52 HREF="HTPlain.html">Plain text to HTML</A>
 <DD> Plain text can
@@ -207,8 +212,8 @@ Here are two structured stream modules:
 <DL>
 <DT><A
 NAME=z54 HREF="HTML.html">HTML</A>
-<DD>This module is an important one
-as it actually PRESENTS a hypertext
+<DD> This module is an important
+one as it actually PRESENTS a hypertext
 object to the user.  GUI writers
 replcae this module with your own,
 or use it and replaced the <A
@@ -216,11 +221,11 @@ NAME=z53 HREF="#12">HText</A>
 module which it feeds.
 <DT><A
 NAME=z55 HREF="HTMLGen.html">HTMLGen</A>
-<DD>This structured stream regenerates
+<DD> This structured stream regenerates
 a plain stream.  It makes reference
 to the HTML DTD to regenerate the
 names of enetities and elements.
- This is used by the server to pass
+This is used by the server to pass
 a hypertext document on to the client,
 and also by the client to save HTML.
 </DL>
@@ -279,5 +284,5 @@ for strings of charcters.
 </DL>
 
 <ADDRESS><A
-NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
+NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A>
 </ADDRESS></BODY>
