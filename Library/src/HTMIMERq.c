@@ -1,6 +1,10 @@
 /*								     HTMIMERq.c
 **	MIME ENTITY HEADERS GENERATION
 **
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
+**
 **	This module implements the output stream for MIME used for sending
 **	requests with a entity body to HTTP, NEWS, etc. or for generating
 **	responses
