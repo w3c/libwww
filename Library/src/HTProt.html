@@ -1,43 +1,56 @@
-<HTML>
-<HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 26-Mar-1996 -->
-  <NEXTID N="z11">
-  <TITLE>W3C Sample Code Library libwww Protocol Class</TITLE>
-</HEAD>
-<BODY>
-<H1>
-  The Protocol Class
-</H1>
-<PRE>
-/*
-**	(c) COPYRIGHT MIT 1995.
-**	Please first read the full copyright statement in the file COPYRIGH.
-*/
-</PRE>
-<P>
-The Protocol class defines an application level protocol (HTTP, FTP, Gopher,
-etc.) to be used by libwww. Please note that access to the local file system
-also is considered to be an appliaction level protocol treated identically
-to for example the HTTP protocol. The Protocol class does only know about
-the application layer protocol and it relies on the
-<A HREF="HTTrans.html">Transport Class</A> to do the actualt communication
-with the network, the local file system etc. The protocol class defines an
-access method for botg a client and a server. A typical client application
-would probably only want to use the client method and a server only the server
-method. However, any application can use both which allows it to seemlessly
-to change between server and client profile as needed.
-<P>
-<B>Note</B>: The library <B>core</B> does not define any default application
-layer protocols - they are all considered part of the application. The library
-comes with a default set of protocols including the ones mentioned above
-which can be initiated using the function <CODE>HTProtocolInit()</CODE> in
-<A HREF="HTInit.html">HTInit module</A>
-<P>
-This module is implemented by <A HREF="HTProt.c">HTProt.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
-Library</A>.
-<PRE>
-#ifndef HTPROT_H
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Mar-1996 -->
+<NEXTID N="z11"><title>W3C Sample Code Library libwww Protocol Class</title>
+</head>
+<body>
+
+<h1>The Protocol Class</h1>
+<pre>/*
+**        (c) COPYRIGHT MIT 1995.
+**        Please first read the full copyright statement in the file COPYRIGH.
+*/</pre>
+
+<p>The Protocol class defines an application level protocol (HTTP, FTP,
+Gopher, etc.) to be used by libwww. Note that access to the local file system
+also is considered to be an appliaction level protocol treated identically to
+for example the HTTP protocol.</p>
+
+<p>The Protocol class does only know about the application layer protocol and
+it relies on the <a href="HTTrans.html">Transport Class</a> to do the actualt
+communication with the network, the local file system etc. The protocol class
+defines an access method for both a client and a server. A typical client
+application would probably only want to use the client method and a server
+only the server method. However, any application can use both which allows it
+to seemlessly to change between server and client profile as needed.</p>
+
+<p>All protocol modules are dynamically bound to an access scheme. Take for
+example the address <code>http://www.w3.org</code> which has the access scheme
+<b>http</b> and if we have a protocol module capable of handling HTTP then we
+can make the binding between <b>http</b> and this module. As mentioned in the
+introduction to this chapter, the Library already comes with a large set of
+protocol module, including HTTP so all we have to do in this case is to
+register the HTTP module to the Library as being capable of handling
+<b>http</b> URLs.</p>
+
+<p>Libwww comes with a default set of protocols including the ones mentioned
+above which can be initiated using the function <code>HTProtocolInit()</code>
+in <a href="HTInit.html">HTInit module</a></p>
+
+<p>One special case is the support for access to WAIS
+databases. WAIS has its own code Library
+called <a href="http://www.cnidr.org/">freeWAIS</a> which is required in order
+to directly access wais URLs. We shall not describe in describe in detail here
+how this can be enabled as it is described in the <a
+href="/Gateways/WAISGate.html">WWW-WAIS gateway</a>.</p>
+
+<p>This module is implemented by <a href="HTProt.c">HTProt.c</a>, and it is a
+part of the <a href="http://www.w3.org/Library/"> W3C Sample Code
+Library</a>.</p>
+<pre>#ifndef HTPROT_H
 #define HTPROT_H
 
 typedef struct _HTProtocol HTProtocol;
@@ -46,119 +59,93 @@ typedef u_short HTProtocolId;
 #include "HTReq.h"
 #include "HTAnchor.h"
 #include "HTEvent.h"
-#include "HTTrans.h"
-</PRE>
-<P>
-An access scheme module takes as a parameter a socket (which is an invalid
-socket the first time the function is called), a
-<A HREF="HTReqMan.html">request structure</A> containing details of the request,
+#include "HTTrans.h"</pre>
+
+<p>An access scheme module takes as a parameter a socket (which is an invalid
+socket the first time the function is called), a <a
+href="HTReqMan.html">request structure</a> containing details of the request,
 and the action by which the (valid) socket was selected in the event loop.
 When the protocol class routine is called, the anchor element in the request
-is already valid (made valid by HTAccess).
-<H2>
-  Creation and Deletion Methods
-</H2>
-<H3>
-  Add an Protocol
-</H3>
-<P>
-This functions registers a protocol module and binds it to a specific access
-acheme (the part before the first colon in a URL). For example, the HTTP
-&nbsp;client module is bound to http URLs. The callback function is the function
-to be called for loading. 
-<PRE>
-typedef int HTProtCallback (SOCKET, HTRequest *);
+is already valid (made valid by HTAccess).</p>
 
-extern BOOL HTProtocol_add (const char *       	name,
-			    const char *	transport,
-			    HTProtocolId	port,
-			    BOOL		preemptive,
-			    HTProtCallback *	client,
-			    HTProtCallback *	server);
-</PRE>
-<H3>
-  Delete a Protocol
-</H3>
-<P>
-This functions deletes a registered protocol module so that it can not be
-used for accessing a resource anymore.
-<PRE>
-extern BOOL HTProtocol_delete (const char * name);
-</PRE>
-<H3>
-  Remove ALL Registered Protocols
-</H3>
-<P>
-This is the garbage collection function. It is called by
-<A HREF="HTLib.html">HTLibTerminate()</A>
-<PRE>
-extern BOOL HTProtocol_deleteAll (void);
-</PRE>
-<H2>
-  Protocol Class Methods
-</H2>
-<H3>
-  Find a Protocol Object
-</H3>
-<P>
-You can search the list of registered protocol objects as a function of the
-access acheme. If an access scheme is found then the protocol object is returned.
-<PRE>
-extern HTProtocol * HTProtocol_find (HTRequest * request, const char * access);
-</PRE>
-<H3>
-  Get the callback functions
-</H3>
-<P>
-You can get the callback functions registered together with a protocol object
-using the following methods.
-<PRE>
-extern HTProtCallback * HTProtocol_client (HTProtocol * protocol);
-extern HTProtCallback * HTProtocol_server (HTProtocol * protocol);
-</PRE>
-<H3>
-  Get the default Protocol ID
-</H3>
-<P>
-Each protocol is registered with a default protocol ID which is the default port number that this protocol is using. In the case of FTP it is 21, for HTTP, it is 80 and for NNTP it is 119.
-<PRE>
-extern HTProtocolId HTProtocol_id (HTProtocol * protocol);
-</PRE>
-<H3>
-  Get the Protocol Name
-</H3>
-<P>
-Get the protocol name that was registered when the protocol object was created
-<PRE>
-extern const char * HTProtocol_name (HTProtocol * protocol);
-</PRE>
-<H3>
-  Is Access Scheme Preemptive
-</H3>
-<P>
-Returns YES if the implementation of the access scheme supports preemptive
-access only.
-<PRE>
-extern BOOL HTProtocol_preemptive (HTProtocol * protocol);
-</PRE>
-<H3>
-  Binding to the Transport Class
-</H3>
-<P>
-An application protocol is registered together with a
-<A HREF="HTTrans.html">transport protocol </A>in order to communicate with
-the thansport layer.
-<PRE>
-extern BOOL HTProtocol_setTransport (HTProtocol * protoccol,
-				     const char * transport);
-extern const char * HTProtocol_transport (HTProtocol * protocol);
-</PRE>
-<PRE>
-#endif /* HTPROT_H */
-</PRE>
-<P>
-  <HR>
-<ADDRESS>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+<h2>Creation and Deletion Methods</h2>
+
+<h3>Add an Protocol</h3>
+
+<p>This functions registers a protocol module and binds it to a specific
+access acheme (the part before the first colon in a URL). For example, the
+HTTP &nbsp;client module is bound to http URLs. The callback function is the
+function to be called for loading.</p>
+<pre>typedef int HTProtCallback (SOCKET, HTRequest *);
+
+extern BOOL HTProtocol_add (const char *               name,
+                            const char *        transport,
+                            HTProtocolId        port,
+                            BOOL                preemptive,
+                            HTProtCallback *        client,
+                            HTProtCallback *        server);</pre>
+
+<h3>Delete a Protocol</h3>
+
+<p>This functions deletes a registered protocol module so that it can not be
+used for accessing a resource anymore.</p>
+<pre>extern BOOL HTProtocol_delete (const char * name);</pre>
+
+<h3>Remove ALL Registered Protocols</h3>
+
+<p>This is the garbage collection function. It is called by <a
+href="HTLib.html">HTLibTerminate()</a></p>
+<pre>extern BOOL HTProtocol_deleteAll (void);</pre>
+
+<h2>Protocol Class Methods</h2>
+
+<h3>Find a Protocol Object</h3>
+
+<p>You can search the list of registered protocol objects as a function of the
+access acheme. If an access scheme is found then the protocol object is
+returned.</p>
+<pre>extern HTProtocol * HTProtocol_find (HTRequest * request, const char * access);</pre>
+
+<h3>Get the callback functions</h3>
+
+<p>You can get the callback functions registered together with a protocol
+object using the following methods.</p>
+<pre>extern HTProtCallback * HTProtocol_client (HTProtocol * protocol);
+extern HTProtCallback * HTProtocol_server (HTProtocol * protocol);</pre>
+
+<h3>Get the default Protocol ID</h3>
+
+<p>Each protocol is registered with a default protocol ID which is the default
+port number that this protocol is using. In the case of FTP it is 21, for
+HTTP, it is 80 and for NNTP it is 119.</p>
+<pre>extern HTProtocolId HTProtocol_id (HTProtocol * protocol);</pre>
+
+<h3>Get the Protocol Name</h3>
+
+<p>Get the protocol name that was registered when the protocol object was
+created</p>
+<pre>extern const char * HTProtocol_name (HTProtocol * protocol);</pre>
+
+<h3>Is Access Scheme Preemptive</h3>
+
+<p>Returns YES if the implementation of the access scheme supports preemptive
+access only.</p>
+<pre>extern BOOL HTProtocol_preemptive (HTProtocol * protocol);</pre>
+
+<h3>Binding to the Transport Class</h3>
+
+<p>An application protocol is registered together with a <a
+href="HTTrans.html">transport protocol </a>in order to communicate with the
+thansport layer.</p>
+<pre>extern BOOL HTProtocol_setTransport (HTProtocol * protoccol,
+                                     const char * transport);
+extern const char * HTProtocol_transport (HTProtocol * protocol);</pre>
+<pre>#endif /* HTPROT_H */</pre>
+
+<p></p>
+<hr>
+
+<address>
+@(#) $Id$ </address>
+</body>
+</html>
