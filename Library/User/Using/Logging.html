@@ -1,41 +1,39 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
-  <TITLE>Request Log Filter</TITLE>
+  <TITLE>Request Log Filters</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C" WIDTH="72"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C"
+    WIDTH="72" HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww"
+    WIDTH="48" HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using"
+    WIDTH="48" HEIGHT="48" BORDER="0"></A>
 <H1>
-  Request Log Filter
+  Request Log Filters
 </H1>
 <P>
 It is possible to log the result of a libwww request regardless of what type
-of application is using it. The current implementation of the log manager
-is very simple but it is straight forward to replace the implementation with
-a more sofisticated one. The current log format is defined as follows:
-<PRE>
-	&lt;HOST&gt; &lt;DATE&gt; &lt;METHOD&gt; &lt;URI&gt; &lt;RESULT&gt; &lt;CONTENT LENGTH&gt;
-</PRE>
+of application is using it. You get a <A HREF="../../src/HTLog.html">set
+of different log filters</A> that can handle the Common Log File format,
+referer logs, arbitrary logs, and lately you can also use the
+<A HREF="../../src/HTSQLLog.html">SQL log filter</A> which allows you to
+log information in a <A HREF="http://www.tcx.se/">MySQL database</A>.
 <P>
-where the date and time stamp can be either in local time or GMT. Logging
-is turned off but the application can enable it at any time. However, it
-is also for the application to disable the logging in order to close any
-open file descriptors etc.
+Normally, logging is turned off but it can be enabled at any time - just
+register these log filters as any other <A HREF="Filters.html">AFTER
+filter</A>. You can see many examples of how to use the log filters in the
+<A HREF="../../../Robot/User/CommandLine.html#Logging">libwww webbot</A>.
 <P>
-<A HREF="../../src/HTLog.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
-    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors
-and Methods</A>
+<A HREF="../../src/HTLog.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors,
+Destructors and Methods</A>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
