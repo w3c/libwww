@@ -1,5 +1,11 @@
 Changes with libwww 5.3.2
 
+2000-12-14	Jose Kahan <jose@w3.org>
+	
+	* Bug fix: make dist didn't work because of a recurrent rule
+	  in the ComLine make file (it tried to use www to create a
+	  documentation file).
+ 
 2000-12-13	Jose Kahan <jose@w3.org>
 
 	* Bug fix: When objects were retrieved from the cache, the
