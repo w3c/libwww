@@ -1,7 +1,7 @@
 /*									HTDNS.c
 **	DOMAIN NAME SERVICE MANAGER
 **
-**	(c) COPYRIGHT MIT 1995.
+**	(c) COPYRIGHT MIT 1995-2003.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **	@(#) $Id$
 **
@@ -11,6 +11,7 @@
 **	pointers of type in_addr.
 **
 **	13 Sep 95  HFN	Spawned from HTTCP.c and rewritten
+**      23 Feb 03  MJD  Started working on IDN implementation
 */
 
 /* Library include files */
@@ -22,6 +23,10 @@
 #include "HTTrans.h"
 #include "HTHstMan.h"
 #include "HTDNS.h"					 /* Implemented here */
+
+#ifdef LIBWWW_USEIDN
+#include "idn/api.h"
+#endif
 
 #define DNS_TIMEOUT		1800L	     /* Default DNS timeout is 30 mn */
 
@@ -206,6 +211,74 @@ PUBLIC BOOL HTDNS_deleteAll (void)
     return YES;
 }
 
+/*	Decode one hex character
+*/
+/* copied from HTSRC.c, where it is not used */
+PRIVATE long from_hex (char c)
+{
+    return 		  (c>='0')&&(c<='9') ? c-'0'
+			: (c>='A')&&(c<='F') ? c-'A'+10
+			: (c>='a')&&(c<='f') ? c-'a'+10
+			:		       0;
+}
+
+#ifdef LIBWWW_USEIDN
+/*	HTDNSUTF8toACE
+**	--------------
+**	Convert Internationalized Domain Name in UTF-8 to
+**	Ascii Compatible Encoding (ACE, i.e. punycode).
+**      Parameters:
+**          In:     hostUTF8: host name in (potentially %-escaped) UTF-8
+**                  memory (allocated by caller) for punycode
+**                  length of punycode in punyLength
+**          Out:    result in punycode
+**	Returns:
+**	       	0	Success
+**	        !=0	Error
+*/
+PUBLIC int HTACEfromUTF8 (char *hostUTF8, char *punycode, size_t punyLength)
+{
+    idn_result_t result;
+    char *hostNoPercent = (char *) HT_MALLOC(strlen(hostUTF8)+1);
+    char *ptr, *ptr2;
+
+    /* unescape %-escapes from URI */
+    /* this code already exists elsewhere, replace HTEscape.c:HTUnEscape() */
+    for (ptr = hostUTF8, ptr2 = hostNoPercent; *ptr; ) {
+	if (*ptr=='%' && isxdigit(*(ptr+1)) && isxdigit(*(ptr+2))) {
+	    /* isxdigit() includes check for end of string */
+	    unsigned char unesc = (unsigned char) (from_hex(*(ptr+1)) * 16 + from_hex(*(ptr+2)));
+	    if (unesc=='.')  *ptr2++ = *ptr++;   /* just copy, because reserved, for security */
+	    else {
+		*ptr2++ = (char) unesc;
+		ptr += 3;
+	    }
+	} else *ptr2++ = *ptr++;   /* just copy */
+    }
+    *ptr2 = *ptr;
+
+    /* still to do? check for valid UTF-8 */
+    /* maybe check for ASCII-only (efficiency?) */
+
+    /* call ToASCII conversion (stringprep/nameprep) */
+    result = idn_encodename(IDN_ENCODE_QUERY & (~IDN_LOCALCONV),
+	                    hostNoPercent, punycode, punyLength);
+    if (result!=idn_success)
+        HTTRACE(PROT_TRACE, "IDN encoding not successful.\n");
+    HT_FREE(hostNoPercent);
+    return result;
+}
+#else
+PUBLIC int HTACEfromUTF8 (char *hostUTF8, char *punycode, size_t punyLength)
+{
+	int l = strlen(hostUTF8);
+	l = l<(punyLength-1) ? l : punyLength-1;
+	strncpy (punycode, hostUTF8, l);
+	punycode[l] = 0;
+	return 0;
+}
+#endif
+
 /*	HTGetHostByName
 **	---------------
 **	Resolve the host name using internal DNS cache. As we want to refer   
@@ -221,17 +294,24 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
     int homes = -1;
     HTList *list;				    /* Current list in cache */
     HTdns *pres = NULL;
+    char hostace[256]; /* check lengths!!! */
+
     if (!host || !hostname) {
 	HTTRACE(PROT_TRACE, "HostByName.. Bad argument\n");
 	return -1;
     }
-    HTHost_setHome(host, 0);
-    
+    if (HTACEfromUTF8 (hostname, hostace, 255)) {
+            /* HTRequest_addSystemError(request, ERR_FATAL, socerrno, NO,
+   			             "gethostbyname"); */
+	    return -1;
+    }
+    HTHost_setHome(host, 0); 
+
     /* Find a hash for this host */
     {
 	int hash = 0;
 	char *ptr;
-	for(ptr=hostname; *ptr; ptr++)
+	for(ptr=hostace; *ptr; ptr++)
 	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HT_M_HASH_SIZE);
 	if (!CacheTable) {
 	    if ((CacheTable = (HTList* *) HT_CALLOC(HT_M_HASH_SIZE, sizeof(HTList *))) == NULL)
@@ -245,7 +325,7 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
     {
 	HTList *cur = list;
 	while ((pres = (HTdns *) HTList_nextObject(cur))) {
-	    if (!strcmp(pres->hostname, hostname)) {
+	    if (!strcmp(pres->hostname, hostace)) {
 		if (time(NULL) > pres->ntime + DNSTimeout) {
 		    HTTRACE(PROT_TRACE, "HostByName.. Refreshing cache\n");
 		    delete_object(list, pres);
@@ -287,31 +367,31 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
         struct hostent_data hdata;
 #endif
 
-	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostname,NULL);
+	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostace,NULL);
 #ifdef HAVE_GETHOSTBYNAME_R_5
-	hostelement = gethostbyname_r(hostname, &result, buffer,
+	hostelement = gethostbyname_r(hostace, &result, buffer,
 				      HOSTENT_MAX, &thd_errno);
 #elif defined(HAVE_GETHOSTBYNAME_R_6)
-	gethostbyname_r(hostname, &result, buffer,
+	gethostbyname_r(hostace, &result, buffer,
 		        HOSTENT_MAX, &hostelement, &thd_errno);
 
 #elif defined(HAVE_GETHOSTBYNAME_R_3)
-        if (gethostbyname_r(hostname, &result, &hdata) == 0) {
+        if (gethostbyname_r(hostace, &result, &hdata) == 0) {
 	    hostelement = &result;
 	}
 	else {
 	    hostelement = NULL;
 	}
 #else
-	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostname,NULL);
-	hostelement = gethostbyname(hostname);
+	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostace,NULL);
+	hostelement = gethostbyname(hostace);
 #endif
 	if (!hostelement) {
             HTRequest_addSystemError(request, ERR_FATAL, socerrno, NO,
    			             "gethostbyname");
 	    return -1;
 	}	
-	host->dns = HTDNS_add(list, hostelement, hostname, &homes);
+	host->dns = HTDNS_add(list, hostelement, hostace, &homes);
 	memcpy((void *) &sin->sin_addr, *hostelement->h_addr_list,
 	       hostelement->h_length);
     }
