@@ -699,11 +699,12 @@ PUBLIC char * HTLocalToWWW (const char * local)
 {
     char * escaped = NULL;
     if (local && *local) {
+#ifdef VMS 
         char * unescaped = NULL;
         if ((unescaped = (char *) HT_MALLOC(strlen(local) + 10)) == NULL)
             HT_OUTOFMEM("HTLocalToWWW");
         strcpy(unescaped, "file:");	     /* We get an absolute file name */
-#ifdef VMS 
+
 	/* convert directory name to Unix-style syntax */
 	{
 	    char * disk = strchr (local, ':');
@@ -722,11 +723,15 @@ PUBLIC char * HTLocalToWWW (const char * local)
 		strcat(unescaped, dir);
 	    }
 	}
-        escaped = HTEscape(unescaped, URL_PATH);
+        escaped = HTEscape(unescaped, URL_DOSFILE);
         HT_FREE(unescaped);
 
 #else  /* not VMS */
 #ifdef WIN32
+        char * unescaped = NULL;
+        if ((unescaped = (char *) HT_MALLOC(strlen(local) + 10)) == NULL)
+            HT_OUTOFMEM("HTLocalToWWW");
+        strcpy(unescaped, "file:");	     /* We get an absolute file name */
         if (strchr(local, ':')) strcat(unescaped, "/");
         {
             const char *p = local;
@@ -744,9 +749,9 @@ PUBLIC char * HTLocalToWWW (const char * local)
         HT_FREE(unescaped);
 
 #else  /* Unix */
-        strcat(unescaped, local);
-        escaped = HTEscape(unescaped, URL_PATH);
-        HT_FREE(unescaped);
+        char * escaped_path = HTEscape(local, URL_PATH);
+	escaped = StrAllocMCopy(&escaped, "file:", escaped_path, NULL);
+        HT_FREE(escaped_path);
 
 #endif /* not WIN32 */
 #endif /* not VMS */

@@ -357,12 +357,17 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    default: 
 	        b++, l--;
 	        if (!l) {
-		    if (!me->haveToken)
-		        HTChunk_putb(me->token, start, end-start);
-		    else if (value)
+		    BOOL stop = NO;
+		    if (!me->haveToken) {
+			/* If empty header then prepare to stop */
+			if (end-start)
+			    HTChunk_putb(me->token, start, end-start);
+			else
+			    stop = YES;
+		    } else if (value)
 		        HTChunk_putb(me->value, value, end-value);
 		    HTHost_setConsumed(HTNet_host(me->net), length - l);
-		    return HT_OK;
+		    return stop ? pumpData(me) : HT_OK;
 		}
 	}
     }
