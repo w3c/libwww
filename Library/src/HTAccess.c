@@ -11,15 +11,18 @@
 **	 6 Oct 92 Moved HTClientHost and logfile into here. TBL
 **	17 Dec 92 Tn3270 added, bug fix. DD
 **	 4 Feb 93 Access registration, Search escapes bad chars TBL
-**		  PARAMETERS TO HTSEARCH AND HTLOAFRELATIVE CHANGED
+**		  PARAMETERS TO HTSEARCH AND HTLOADRELATIVE CHANGED
+**	28 May 93 WAIS gateway explicit if no WAIS library linked in.
 **
 ** Bugs
 **	This module assumes that that the graphic object is hypertext, as it
-**	needs to select it when it has been loaded.  A supercalss needs to be
+**	needs to select it when it has been loaded.  A superclass needs to be
 **	defined which accepts select and select_anchor.
 */
 
+#ifndef DEFAULT_WAIS_GATEWAY
 #define DEFAULT_WAIS_GATEWAY "http://info.cern.ch:8001/"
+#endif
 
 /* Implements:
 */
@@ -148,7 +151,7 @@ PRIVATE int get_physical ARGS2(
 #define USE_GATEWAYS
 #ifdef USE_GATEWAYS
     {
-	char * gateway_parameter, gateway;
+	char * gateway_parameter, *gateway;
 	gateway_parameter = (char *)malloc(strlen(access)+20);
 	if (gateway_parameter == NULL) outofmem(__FILE__, "HTLoad");
 	strcpy(gateway_parameter, "WWW_");
@@ -158,15 +161,20 @@ PRIVATE int get_physical ARGS2(
 	free(gateway_parameter);
 	
 #ifndef DIRECT_WAIS
-	if (!gateway && 0=strcmp(access, "wais")) {
+	if (!gateway && 0==strcmp(access, "wais")) {
 	    gateway = DEFAULT_WAIS_GATEWAY;
 	}
 #endif
 	if (gateway) {
-	    char * path = HTParse(addr, "", PARSE_PATH + PARSE_PUNCTUATION);
-	    char * gatewayed = HTParse(path, gateway, PARSE_ALL);
+	    char * path = HTParse(addr, "",
+	    	PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
+		/* Chop leading / off to make host into part of path */
+	    char * gatewayed = HTParse(path+1, gateway, PARSE_ALL);
+	    free(path);
             HTAnchor_setPhysical(anchor, gatewayed);
+	    free(gatewayed);
 	    free(access);
+	    
     	    access =  HTParse(HTAnchor_physical(anchor),
     		"http:", PARSE_ACCESS);
 	}
@@ -334,10 +342,14 @@ PRIVATE BOOL HTLoadDocument ARGS4(
 	HTLoadError(sink, 500, "Unable to access document.");
 	return NO;
     }
-    
+ 
+    /* If you get this, then please find which routine is returning
+       a positive unrecognised error code! */
+ 
     fprintf(stderr,
     "**** HTAccess: socket or file number returned by obsolete load routine!\n");
-    { char c = *(char*)0; } /* crash */
+    fprintf(stderr,
+    "**** HTAccess: Internal software error. Please mail www-bug@info.cern.ch!\n");
     exit(-6996);
 
 } /* HTLoadDocument */

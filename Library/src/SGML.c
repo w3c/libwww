@@ -221,7 +221,7 @@ PRIVATE void end_element(context, old_tag)
 	/* Syntax error path only */
 	
     }
-    fprintf(stderr,
+    if (TRACE) fprintf(stderr,
 	"SGML: Extra end tag </%s> found and ignored.\n", old_tag->name);
 }
 
@@ -497,7 +497,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
     case S_equals:			/* After attr = */ 
 	if (WHITE(c)) break;	/* Before attribute value */
 	if (c=='>') {		/* End of tag */
-	    fprintf(stderr, "SGML: found = but no value\n");
+	    if (TRACE) fprintf(stderr, "SGML: found = but no value\n");
 	    if (context->current_tag->name) start_element(context);
 	    context->state = S_text;
 	    break;

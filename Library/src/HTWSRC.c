@@ -30,10 +30,10 @@ struct _HTStructured {
 	/* ... */
 };
 
-#define PUTC(c) (*me->targetClass.put_character)(me->target, c)
-#define PUTS(s) (*me->targetClass.put_string)(me->target, s)
-#define START(e) (*me->targetClass.start_element)(me->target, e, 0, 0)
-#define END(e) (*me->targetClass.end_element)(me->target, e)
+#define PUTC(c) (*me->target->isa->put_character)(me->target, c)
+#define PUTS(s) (*me->target->isa->put_string)(me->target, s)
+#define START(e) (*me->target->isa->start_element)(me->target, e, 0, 0)
+#define END(e) (*me->target->isa->end_element)(me->target, e)
 
 
 /*	Here are the parameters which can be specified in a  source file
@@ -79,7 +79,6 @@ enum tokenstate { beginning, before_tag, colon, before_value,
 struct _HTStream {
 	CONST HTStreamClass *	isa;
 	HTStructured *		target;
-	HTStructuredClass	targetClass;
 	char *			par_value[PAR_COUNT];
 	enum tokenstate 	state;
 	char 			param[BIG+1];
@@ -200,6 +199,35 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 }
 
 
+/*			Open Cache file
+**			===============
+**
+**   Bugs: Maybe for filesystem-challenged platforms (MSDOS for example) we
+**   should make a hash code for the filename.
+*/
+
+#ifdef CACHE_FILE_PREFIX
+PRIVATE BOOL write_cache ARGS1(HTStream *, me)
+{
+    FILE * fp;
+    char cache_file_name[256];
+    char * www_database;
+    www_database = HTEscape(me->par_value[PAR_DATABASE_NAME], URL_XALPHAS);
+    sprintf(cache_file_name, "%sWSRC-%s:%s:%100s.txt",
+    	CACHE_FILE_PREFIX,
+	me->par_value[PAR_IP_NAME],
+	me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] : "210",
+	www_database);
+    free(www_database);
+    fp = fopen(cache_file_name, "w");
+    if (!fp) return NO;
+    
+    fputs(me->par_value[PAR_DESCRIPTION], fp);
+    fclose(fp);
+    return YES;
+}
+#endif
+
 /*			Output equivalent HTML
 **			----------------------
 **
@@ -221,7 +249,7 @@ void give_parameter ARGS2(HTStream *, me, int, p)
 /*			Generate Outout
 **			===============
 */
-void WSRC_gen_html ARGS1(HTStream *, me)
+PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 
 {
     if (me->par_value[PAR_DATABASE_NAME]) {
@@ -235,52 +263,58 @@ void WSRC_gen_html ARGS1(HTStream *, me)
 	
 	START(HTML_TITLE);
 	PUTS(shortname);
-	PUTS(" index");
+	PUTS(source_file ? " WAIS source file" : " index");
 	END(HTML_TITLE);
     
 	START(HTML_H1);
 	PUTS(shortname);
-	PUTS(" index");
+	PUTS(source_file ? " description" : " index");
 	END(HTML_H1);
     }
     
     START(HTML_DL);		/* Definition list of details */
     
-    START(HTML_DT);
-    PUTS("Access links");
-    START(HTML_DD);
-    if (me->par_value[PAR_IP_NAME] &&
-	me->par_value[PAR_DATABASE_NAME]) {
-
-	char WSRC_address[256];
-	char * www_database;
-	www_database = HTEscape(me->par_value[PAR_DATABASE_NAME], URL_XALPHAS);
-	sprintf(WSRC_address, "wais://%s:%s/%s",
-	    me->par_value[PAR_IP_NAME],
-	    me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] : "210",
-	    www_database);
+    if (source_file) {
+	START(HTML_DT);
+	PUTS("Access links");
+	START(HTML_DD);
+	if (me->par_value[PAR_IP_NAME] &&
+	    me->par_value[PAR_DATABASE_NAME]) {
     
-	HTStartAnchor(me->target, NULL, WSRC_address);
-	PUTS("Direct access");
-	END(HTML_A);
+	    char WSRC_address[256];
+	    char * www_database;
+	    www_database = HTEscape(me->par_value[PAR_DATABASE_NAME],
+	    	URL_XALPHAS);
+	    sprintf(WSRC_address, "wais://%s:%s/%s",
+		me->par_value[PAR_IP_NAME],
+		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT]
+			: "210",
+		www_database);
 	
-	PUTS(" or ");
-	
-	sprintf(WSRC_address, "http://info.cern.ch:8001/%s:%s/%s",
-	    me->par_value[PAR_IP_NAME],
-	    me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] : "210",
-	    www_database);
-	HTStartAnchor(me->target, NULL, WSRC_address);
-	PUTS("Through CERN gateway");
-	END(HTML_A);
-	
-	free(www_database);
-	
-    } else {
-        give_parameter(me, PAR_IP_NAME);
-        give_parameter(me, PAR_IP_NAME);
-    }
-
+	    HTStartAnchor(me->target, NULL, WSRC_address);
+	    PUTS("Direct access");
+	    END(HTML_A);
+	    
+	    PUTS(" or ");
+	    
+	    sprintf(WSRC_address, "http://info.cern.ch:8001/%s:%s/%s",
+		me->par_value[PAR_IP_NAME],
+		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT]
+		: "210",
+		www_database);
+	    HTStartAnchor(me->target, NULL, WSRC_address);
+	    PUTS("through CERN gateway");
+	    END(HTML_A);
+	    
+	    free(www_database);
+	    
+	} else {
+	    give_parameter(me, PAR_IP_NAME);
+	    give_parameter(me, PAR_IP_NAME);
+	}
+    
+    } /* end if source_file */
+    
     if (me->par_value[PAR_MAINTAINER]) {
 	START(HTML_DT);
 	PUTS("Maintainer");
@@ -298,8 +332,8 @@ void WSRC_gen_html ARGS1(HTStream *, me)
     PUTS(me->par_value[PAR_DESCRIPTION]);
     END(HTML_PRE);
 
-    (*me->targetClass.end_document)(me->target);
-    (*me->targetClass.free)(me->target);
+    (*me->target->isa->end_document)(me->target);
+    (*me->target->isa->free)(me->target);
     
     return;
 } /* generate html */
@@ -327,7 +361,8 @@ PRIVATE void WSRCParser_write ARGS3(
 
 PRIVATE void WSRCParser_free ARGS1(HTStream *, me)
 {
-    WSRC_gen_html(me);
+    WSRC_gen_html(me, YES);
+    write_cache(me);
     {
 	int p;
 	for(p=0; par_name[p]; p++) {	/* Clear out old values */
@@ -359,6 +394,7 @@ HTStreamClass WSRCParserClass = {
 
 };
 
+
 /*		Converter from WAIS Source to whatever
 **		--------------------------------------
 */
@@ -372,7 +408,6 @@ PUBLIC HTStream* HTWSRCConvert ARGS3(
 
     me->isa = &WSRCParserClass;
     me->target = HTML_new(anchor, pres->rep_out, sink);
-    me->targetClass = *me->target->isa;
 
     {
 	int p;
@@ -384,32 +419,4 @@ PUBLIC HTStream* HTWSRCConvert ARGS3(
 
     return me;
 }
-
-
-
-/*			Main Program    -- NOT USED -- HISTORICAL
-**			============
-**
-** Takes .src on stdin and makes cache file.
-*/
-
-#ifdef TEST
-PUBLIC int WWW_TraceFlag = 0;
-int main(int argc, char *argv[])
-{
-    char c;
-    
-    if (argc>1) 
-        WWW_TraceFlag = 0==strcmp(argv[1], "-v") ? 1 : 0;
-    
-    for(WSRC_init(); (c=getc(stdin)) != EOF; ) {
-	if (WSRC_treat(c)) break;
-        /* fprintf(stderr, "char '%c', state = %d\n", c, me->state); */
-    }
-    WSRC_gen_html();
-        
-    return 0;
-    
-} /* main */
-#endif
 

@@ -320,7 +320,7 @@ PUBLIC void HTCopy ARGS2(
 {
     HTStreamClass targetClass;    
     
-/*	Push the data, ignoring CRLF, down the stream
+/*	Push the data down the stream
 **
 */
     targetClass = *(sink->isa);	/* Copy pointers to procedures */

@@ -262,7 +262,7 @@ void HTSimplify(filename)
         if (*p=='/') {
 	    if ((p[1]=='.') && (p[2]=='.') && (p[3]=='/' || !p[3] )) {
 		for (q=p-1; (q>filename) && (*q!='/'); q--); /* prev slash */
-		if (*q=='/') {
+		if (q[0]=='/' && 0!=strncmp(q, "/../", 4)) {
 	            strcpy(q, p+3);	/* Remove  /xxx/..	*/
 		    if (!*filename) strcpy(filename, "/");
 		    p = q-1;		/* Start again with prev slash 	*/

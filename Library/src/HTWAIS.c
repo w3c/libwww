@@ -381,7 +381,7 @@ display_search_response ARGS4(
   
   BOOL archie =  strstr(database, "archie")!=0;	/* Specical handling */
   
-  if (TRACE) fprintf(stderr, "WAISGate: Displaying search response\n");
+  if (TRACE) fprintf(stderr, "HTWAIS: Displaying search response\n");
   sprintf(line,
   	"Index %s contains the following %d item%s relevant to '%s'.\n",
 	 database,
@@ -412,7 +412,7 @@ display_search_response ARGS4(
 /*	Make a printable string out of the document id.
 */
 	if (TRACE) fprintf(stderr, 
-		"WAISGate:  %2ld: Score: %4ld, lines:%4ld '%s'\n", 
+		"HTWAIS:  %2ld: Score: %4ld, lines:%4ld '%s'\n", 
 	       i,
 	       (long int)(info->DocHeaders[k]->Score),
 	       (long int)(info->DocHeaders[k]->Lines),
@@ -522,7 +522,7 @@ PUBLIC int HTLoadWAIS ARGS4(
 
 {
     static CONST char * error_header =
-"<h1>Access error</h1>\nThe WWW-WAIS gateway reports the following error:<P>\n";
+"<h1>Access error</h1>\nThe following error occured in accesing a WAIS server:<P>\n";
     char * key;			  /* pointer to keywords in URL */
     char* request_message = NULL; /* arbitrary message limit */
     char* response_message = NULL; /* arbitrary message limit */
@@ -593,7 +593,7 @@ PUBLIC int HTLoadWAIS ARGS4(
      if (!ok)
 	 return HTLoadError(sink, 500, "Syntax error in WAIS URL");
 
-     if (TRACE) fprintf(stderr, "WAISGate: Parsed OK\n");
+     if (TRACE) fprintf(stderr, "HTWAIS: Parsed OK\n");
      
      service = strchr(names, ':');
      if (service)  *service++ = 0;
@@ -626,7 +626,10 @@ PUBLIC int HTLoadWAIS ARGS4(
 
     if (key && !*key) {				/* I N D E X */
     
-	
+#ifdef CACHE_FILE_PREFIX
+	char filename[256];
+	FILE * fp;
+#endif
 	HTStructured * target = HTML_new(anAnchor, format_out, sink);
 	
 	START(HTML_ISINDEX);
@@ -634,23 +637,22 @@ PUBLIC int HTLoadWAIS ARGS4(
 	/* If we have seen a source file for this database, use that:
 	*/
 
-#ifdef CACHING			/* old code ... do it this way now? */
-
-	char filename[256];
-	FILE * fp;
-	sprintf(filename, "%s%s:%s:%s.html",
-		WAIS_CACHE_ROOT,
+#ifdef CACHE_FILE_PREFIX
+	sprintf(filename, "%sWSRC-%s:%s:%100s.txt",
+		CACHE_FILE_PREFIX,
 		server_name, service, www_database);
 
 	fp = fopen(filename, "r");	/* Have we found this already? */
 	if (TRACE) fprintf(stderr,
-		"WAISGate: Description of server %s %s.\n",
+		"HTWAIS: Description of server %s %s.\n",
 		filename,
 		fp ? "exists already" : "does NOT exist!");
 
 	if (fp) {
 	    char c;
-	    while((c=getc(fp))!=EOF) PUT(c);	/* Transfer file */
+	    START(HTML_PRE);		/* Preformatted description */
+	    while((c=getc(fp))!=EOF) PUTC(c);	/* Transfer file */
+	    END(HTML_PRE);
 	    fclose(fp);
 	} else
 #endif
@@ -665,6 +667,7 @@ PUBLIC int HTLoadWAIS ARGS4(
 	    END(HTML_H1);
 	    
 	}
+	START(HTML_P);
 	PUTS("Specify search words.");
 	
 	END_TARGET;
@@ -694,7 +697,7 @@ PUBLIC int HTLoadWAIS ARGS4(
 	END(HTML_H1);
 
 	request_buffer_length = MAX_MESSAGE_LEN; /* Amount left */
-	if (TRACE) fprintf(stderr, "WAISGate: Search for `%s' in `%s'\n",
+	if (TRACE) fprintf(stderr, "HTWAIS: Search for `%s' in `%s'\n",
 		keywords, wais_database);
 	if(NULL ==
 	generate_search_apdu(request_message + HEADER_LENGTH, 
@@ -736,7 +739,7 @@ PUBLIC int HTLoadWAIS ARGS4(
 	any   doc_chunk;
 	any * docid = &doc_chunk;
 	if (TRACE) printf(
-		"WAISGate: Retrieve document id `%s' type `%s' length %ld\n",
+		"HTWAIS: Retrieve document id `%s' type `%s' length %ld\n",
 		docname, doctype, document_length);
 		
 	format_in = 

@@ -1,6 +1,6 @@
 <HEADER>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="51">
+<NEXTID N="58">
 </HEADER>
 <BODY>
 <H1>Library Internals</H1>The <A
@@ -133,7 +133,8 @@ by <A
 NAME=18 HREF="../../Architecture/../Implementation/HTML.c">HTML.c</A> which uses the simple SGML
 engine SGML.c as a basic tokeniser
 and element stack manager.
-<DT>Plain text to HTML
+<DT><A
+NAME=z52 HREF="HTPlain.html">Plain text to HTML</A>
 <DD> Plain text can
 can be converted.
 </DL>
@@ -194,9 +195,36 @@ The only DTD which is currently in
 the library is the HTML DTD, in the<A
 NAME=z34 HREF="HTMLDTD.html">
 HTMLDTD</A> module.<P>
-The SGML parser uses a DTD to generate
-a structured stream from a stream
-of SGML.
+The SGML parser uses a DTD to ouput
+to a structured stream from a stream
+of SGML.  A hypertext editor will
+output to a structured stream when
+writing out a document.  Many <A
+NAME=z56 HREF="#2">protocol
+modules</A> output to a structures stream
+when generating their data structures.<P>
+Here are two structured stream modules:
+<DL>
+<DT><A
+NAME=z54 HREF="HTML.html">HTML</A>
+<DD>This module is an important one
+as it actually PRESENTS a hypertext
+object to the user.  GUI writers
+replcae this module with your own,
+or use it and replaced the <A
+NAME=z53 HREF="#12">HText</A>
+module which it feeds.
+<DT><A
+NAME=z55 HREF="HTMLGen.html">HTMLGen</A>
+<DD>This structured stream regenerates
+a plain stream.  It makes reference
+to the HTML DTD to regenerate the
+names of enetities and elements.
+ This is used by the server to pass
+a hypertext document on to the client,
+and also by the client to save HTML.
+</DL>
+
 <H2><A
 NAME=14>Graphic objects</A></H2>A graphic object is a (complex) displayable
 entity. It is built by a protocol
@@ -213,13 +241,13 @@ a graphics object represents and
 displays.
 <DL>
 <DT><A
-NAME=12>Hypertext</A>
+NAME=12 HREF="HText.html">HText</A>
 <DD> This object is window-system
 dependent. In the line mode browser,
 the <A
 NAME=17 HREF="../../Architecture/../LineMode/Internals.html#3">GridText</A> module is the hypertext
 object, providing the generic functionality
-of HText.h
+of this module. 
 </DL>
 
 <H2>General modules</H2>
@@ -241,13 +269,15 @@ NAME=z49 HREF="HTParse.html">URL parsing</A>
 utilities fo handling W3 addresses.
 <DT><A
 NAME=z50 HREF="HTChunk.html">Chunks</A>
-<DD>Chunks are variable length
+<DD> Chunks are variable length
 arrays, a sort of apology for real
 strings in C.
-<DT>Strings
-<DD>A few manipulation routines
+<DT><A
+NAME=z51 HREF="HTString.html">Strings</A>
+<DD> A few manipulation routines
 for strings of charcters.
 </DL>
 
 <ADDRESS><A
-NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>
+NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
+</ADDRESS></BODY>
