@@ -20,11 +20,7 @@
 #endif
 
 #define MAX_LINE	HTScreenWidth	/* No point in accumulating more */
-#ifdef THINK_C
-#define LOADED_LIMIT 3			/* For now, save last two texts */
-#else
 #define LOADED_LIMIT 6			/* For now, save last five texts */
-#endif
 
 #ifdef CURSES
 #define DISPLAY_LINES (HTScreenHeight)

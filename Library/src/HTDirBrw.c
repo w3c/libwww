@@ -47,11 +47,11 @@
 #include "HTVMSUtils.h"
 #endif
 
-#if defined(Mips) || (defined(VMS) && !defined(DECC))
+#ifdef NO_STRFTIME
 PRIVATE char * months[12] = {
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
 };
-#endif /* Mips || (VMS && !DECC) */
+#endif
 
 
 /* Macros and other defines */
@@ -1036,7 +1036,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    ItoA(file_info.st_nlink, bodyptr, HT_LENGTH_NLINK);
 		    bodyptr += HT_LENGTH_NLINK+HT_LENGTH_SPACE;
 		}
-#if ! defined(VMS) && ! defined(WINDOWS)
+#ifdef GOT_OWNER
 		if (HTDirShowMask & HT_DIR_SHOW_OWNER) {
 		    char *bp = bodyptr;
 		    char *pwptr;
@@ -1067,7 +1067,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    }
 		    bodyptr += HT_LENGTH_GROUP+HT_LENGTH_SPACE;
 		}
-#endif /* not VMS or WINDOWS */
+#endif /* GOT_OWNER */
 		*bodyptr = '\0';
 		if (HTDirDescriptions) {
 		    char * d = HTGetDescription(descriptions,

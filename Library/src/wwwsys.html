@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -94,49 +94,46 @@ If you want to use reentrant functions, for example
 Information below this line is specific for most platforms. See also
 <A NAME="z6" HREF="#z2">General Stuff</A>
 
-<H2>Macintosh - Think-C</H2>
+<H2>Macintosh - Metrowerks Codewarrior 6</H2>
 
-Think-C is one development environment on the Mac.<P>
-
-We recommend that you compile with 4-byte ints to be compatible with
-MPW C. We used Tom Milligan's s_socket library which was written for 4 byte
-int, and the MacTCP library assumes 4-byte int.
-
+Metrowerks Codewarrior is one development environment on the Mac. We
+are using GUSI (1.5.9) by Matthias Neeracher
+&lt;neeri@iis.ee.ethz.ch&gt; for our socket lib. <P>
+   
+Compiles on PPC. Should compile on 68K. <P>
+   
+August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
+   
 <PRE>
-#ifdef THINK_C
-#undef GOT_SYSTEM
-#define DEBUG			/* Can't put it on the CC command line	*/
-#define NO_UNIX_IO		/* getuid() missing			*/
-#define NO_GETPID		/* getpid() does not exist 		*/
-#define NO_GETWD		/* getwd() does not exist 		*/
+#ifdef __MWERKS__
+#include &lt;gusi.h&gt;
+#include &lt;dirent.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;sys/errno.h&gt;
+#include &lt;sioux.h&lt;
 
-#define NETCLOSE s_close    /* Routine to close a TCP-IP socket		*/
-#define NETREAD  s_read	    /* Routine to read from a TCP-IP socket	*/
-#define NETWRITE s_write    /* Routine to write to a TCP-IP socket	*/
+#define INCLUDES_DONE
+#define TCP_INCLUDES_DONE
 
-#define bind s_bind	    /* Funny names presumably to prevent clashes */
-#define connect s_connect
-#define accept s_accept
-#define listen s_listen
-#define socket s_socket
-#define getsockname s_getsockname
+#define GUSI			/* Identifies changes made for GUSI */
+#define NO_GETDOMAINNAME	/* STR */
+#define NO_PASSWD		/* STR */
 
-/* The function prototype checking is better than the include files */
+#define NO_GETWD
+#define HAS_GETCWD
+#define USE_DIRENT
+#define NO_GROUPS
+#define GOT_READ_DIR
 
-extern s_close(int s);
-extern s_read(int s, char *buffer, int buflen);
-extern s_write(int s, const char *buffer, int buflen);
+#define NO_TIMEZONE		/* STR */
+#define NO_GMTOFF
+#define HAVE_STRERROR
 
-extern bind(int s, struct sockaddr *name, int namelen);
-extern accept(int s, struct sockaddr *addr, int *addrlen);
-extern listen(int s, int qlen);
-extern connect(int s, struct sockaddr *addr, int addrlen);
+#define STRUCT_DIRENT	struct dirent
+#define SLEEP(n)	GUSIDefaultSpin( SP_SLEEP, n/60)
 
-extern s_socket(int domain, int type, int protocol);
-extern s_getsockname(int s, struct sockaddr *name, int *namelen);
-extern struct hostent *gethostent(const char * name);
-extern unsigned long inet_addr(const char * name);
-#endif /* THINK_C */
+#define MKDIR(a,b)      mkdir(a)
+#endif
 </PRE>
 
 <H2>Macintosh - MPW</H2>
@@ -178,7 +175,7 @@ define NO_SOCKET_DEFS on top. This is a temporary hack.
 
 <H2>Big Blue - the world of incompatibility</H2>
 
-<H2>IBM RS6000</H2>
+<H3>IBM RS6000</H3>
 
 On the IBM RS-6000, AIX is almost Unix. <P>
 
@@ -201,7 +198,7 @@ On the IBM RS-6000, AIX is almost Unix. <P>
 #endif
 </PRE>
 
-<H2>IBM VM-CMS, VM-XA Mainframes</H2>
+<H3>IBM VM-CMS, VM-XA Mainframes</H3>
 
 MVS is compiled as for VM. MVS has no unix-style I/O.  The command line
 compile options seem to come across in lower case.
@@ -985,8 +982,9 @@ These are a default unix where not already defined specifically.
 #if defined(unix) || defined(__unix__)   /* If UNIX (thanks to Rainer Klute) */
 
 #define GOT_PIPE				        /* We do have a pipe */
-
 #define GOT_READ_DIR         /* if directory reading functions are available */
+#define GOT_OWNER			  /* If a file has owner permissions */
+
 #include &lt;pwd.h&gt;
 #include &lt;grp.h&gt;
 

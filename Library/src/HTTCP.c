@@ -107,7 +107,7 @@ PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
     return (errornumber < sys_nerr ? sys_errlist[errornumber]:"Unknown error");
 #endif  /* WINDOWS */
 #endif /* VMS */
-#endif /* Next of THINK_C */
+#endif /* HAVE_STRERROR */
 }
 
 
@@ -649,7 +649,11 @@ PUBLIC int HTParseInet ARGS4(HTRequest *, request,
 	    ++strptr;
 	}
 	if (numeric) {
+#ifdef GUSI
+	    sin->sin_addr = inet_addr(host); 		 /* See netinet/in.h */
+#else
 	    sin->sin_addr.s_addr = inet_addr(host);	  /* See arpa/inet.h */
+#endif
 	} else {
 	    if ((status = HTGetHostByName(request, host, sin, use_cur)) < 0) {
 		free(host);
@@ -897,13 +901,16 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
     if ((login = (char *) cuserid(NULL)) == NULL) {
         if (PROT_TRACE) fprintf(TDEST, "MailAddress. cuserid returns NULL\n");
     }
-
 #else
 #ifdef WIN32 
     login = getenv("USERNAME") ;
 #else 
 #ifdef _WINDOWS
     login = "PCUSER";				  /* @@@ COULD BE BETTER @@@ */
+#else
+#ifdef GUSI
+    if ((login = getenv("LOGNAME")) == NULL) 
+	login = "MACUSER";
 #else /* Unix like... */
 #ifdef HT_REENTRANT
     if ((login = (char *) getlogin_r(name, LOGNAME_MAX)) == NULL) {
@@ -927,9 +934,10 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 	} else
 	    login = pw_info->pw_name;
     }
-#endif /* WINDOWS 3.1 */
-#endif  /* Unix like */
-#endif  /* VMS */
+#endif /* GUSI */
+#endif /* _WINDOWS */
+#endif /* WIN32 */
+#endif /* VMS */
 
     if (login) {
 	StrAllocCopy(mailaddress, login);

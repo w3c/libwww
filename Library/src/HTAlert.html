@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -117,7 +117,7 @@ This function simply puts out the message passed.
 extern void HTAlert	PARAMS((HTRequest *request, CONST char * Msg));
 </PRE>
 
-<H3>Display a Status Message on what's going on</H3>
+<H3>Progress Notification</H3>
 
 This function can be used to indicate the current status of a certain
 action. In order to avoid having strings directly in the core parts of
@@ -131,8 +131,7 @@ typedef enum _HTProgressState {
     HT_PROG_CONNECT,
     HT_PROG_READ,
     HT_PROG_WRITE,
-    HT_PROG_DONE,
-    HT_PROG_MAX					   /* Must be the last entry */
+    HT_PROG_DONE
 } HTProgressState;
 
 extern void HTProgress	PARAMS((HTRequest *request, HTProgressState state,

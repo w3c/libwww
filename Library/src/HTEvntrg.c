@@ -39,8 +39,6 @@ PRIVATE void __DumpFDSet( fd_set *, CONST char *);
 
 typedef unsigned long DWORD;
 
-enum { false = 0, true = 1 } ;
-
 /*
  * our internal structure to hold a socket, it's request 
  * and our action. For version 1, we allow one action per socket
@@ -301,7 +299,7 @@ PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq, SockOps ops, H
 {
     if (THD_TRACE) 
     	fprintf(TDEST, "Req Update.. updating for socket %u\n", s) ;
-    rqp->unregister = (ops & FD_UNREGISTER) ? TRUE : FALSE ;
+    rqp->unregister = (ops & FD_UNREGISTER) ? YES : NO;
     rqp->actions[0].rq = rq ;
     rqp->actions[0].ops = ops ;
     rqp->actions[0].cbf = cbf ;
@@ -460,7 +458,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
     int maxfds ;
     int readings, writings, exceptions ;
     SOCKET s ;
-    BOOL consoleReady = FALSE ;
+    BOOL consoleReady = NO;
     int status = 0 ;
     unsigned ui ;
 
@@ -471,7 +469,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
         texceptset = except_fds ;  
         maxfds = max_sock ; 
         readings = writings = exceptions = 0; 
-	consoleReady = FALSE ;
+	consoleReady = NO;
 	t.tv_sec = SecondsToWait  ;
 	t.tv_usec = 0 ;
 
@@ -501,7 +499,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 		    break ; 
 
 		case WAIT_OBJECT_0:
-		    consoleReady = true ;
+		    consoleReady = YES;
 		    t.tv_sec = 0 ;	 /* just poll the sockets */
 		    break;
 	     } /* switch */

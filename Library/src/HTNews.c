@@ -136,8 +136,11 @@ PRIVATE BOOL initialize NOARGS
 #endif
 
     if (*HTNewsHost>='0' && *HTNewsHost<='9') {   /* Numeric node address: */
-	sin->sin_addr.s_addr = inet_addr((char *)HTNewsHost); /* See arpa/inet.h */
-
+#ifdef GUSI
+	sin->sin_addr = inet_addr((char *)HTNewsHost);	  /* STR (GUSI) */
+#else
+	sin->sin_addr.s_addr = inet_addr((char *)HTNewsHost); /* arpa/inet.h */
+#endif
     } else {		    /* Alphanumeric node name: */
 	phost=gethostbyname((char*)HTNewsHost);	/* See netdb.h */
 	if (!phost) {

@@ -454,8 +454,8 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     HTStructured* me = (HTStructured*)calloc(1,sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "PlainToHTML");
     
-    memset(present, '\0', MAX_ATTRIBUTES);
-    memset((char *) value, '\0', MAX_ATTRIBUTES*sizeof(char *));
+    memset((void *) present, '\0', MAX_ATTRIBUTES);
+    memset((void *) value, '\0', MAX_ATTRIBUTES*sizeof(char *));
     
     me->isa = (HTStructuredClass*) &PlainToHTMLConversion;
     me->dtd = &HTMLP_dtd;

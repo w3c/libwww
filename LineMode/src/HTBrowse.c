@@ -988,6 +988,22 @@ int main ARGS2(int, argc, char **, argv)
     HTStdIconInit(NULL);				 /* Initialize icons */
     HTProxy_getEnvVar();		   /* Read the environment variables */
 
+#ifdef GUSI				   /* Starts Mac GUSI socket library */
+    GUSISetup(GUSIwithSIOUXSockets);
+    GUSISetup(GUSIwithInternetSockets);
+#endif
+
+#ifdef __MWERKS__ /* STR */
+    InitGraf((Ptr) &qd.thePort); 
+    InitFonts(); 
+    InitWindows(); 
+    InitMenus(); TEInit(); 
+    InitDialogs(nil); 
+    InitCursor();
+    SIOUXSettings.asktosaveonclose = false;
+    argc=ccommand(&argv);
+#endif
+
     /* HWL 18/7/94: patch from agl@glas2.glas.apc.org (Anton Tropashko) */
 #ifdef CYRILLIC
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
