@@ -435,7 +435,6 @@ PICS-client/Makefile PICS-client/User/Makefile PICS-client/src/Makefile PICS-cli
 LineMode/Makefile LineMode/User/Makefile
 LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
 Robot/Makefile Robot/User/Makefile Robot/src/Makefile Robot/src/windows/Makefile
-MiniServ/Makefile MiniServ/User/Makefile MiniServ/src/Makefile
 ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile
 Listen/Makefile Listen/User/Makefile Listen/src/Makefile
 Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile Icons/internal/Makefile

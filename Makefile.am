@@ -23,8 +23,12 @@ legal : $(BUILT_SOURCES)
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
+	WELCOME.html \
+	README.html \
 	INSTALL.html \
-	README.html
+	COPYRIGHT.html \
+	PATCHES.html \
+	CERN.html
 
 #
 #	We do not have _all_ GNU files so add this to avoid warnings
