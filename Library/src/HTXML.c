@@ -234,7 +234,7 @@ PUBLIC BOOL HTXMLCallback_registerNew (HTXMLCallback_new * me, void * context)
 
 #ifdef HT_STRUCT_XML_STREAM
 
-PUBLIC HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured * starget)
+PRIVATE HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured * starget)
 {
     HTStream * me = NULL;
     if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
@@ -263,7 +263,7 @@ PUBLIC HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured * star
     return me;
 }
 
-PUBLIC BOOL HTXMLStructured_setHandlers (HTStream *			me,
+PRIVATE BOOL HTXMLStructured_setHandlers (HTStream *			me,
 					 XML_StartElementHandler	start,
 					 XML_EndElementHandler		end, 
 					 XML_CharacterDataHandler	char_data,
@@ -282,7 +282,7 @@ PUBLIC BOOL HTXMLStructured_setHandlers (HTStream *			me,
     return NO;
 }
 			
-PUBLIC BOOL HTXMLStructured_setUserData(HTStream *me, void *user_data)
+PRIVATE BOOL HTXMLStructured_setUserData(HTStream *me, void *user_data)
 {
     if(me) {
 	me->xml_user_data = user_data;
