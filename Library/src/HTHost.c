@@ -1096,15 +1096,19 @@ PRIVATE BOOL HTHost_free (HTHost * host, int status)
 		    HTTRACE(CORE_TRACE, "%d requests made, %d in pipe, max %d requests pr connection\n" _ 
 				host->reqsMade _ piped _ host->reqsPerConnection);
 		    host->do_recover = YES;
-		    if (HTChannel_delete(host->channel, status))
-		      host->channel = NULL;
+		    /* @@ JK: not clear yet if I need or not to set the channel to NULL. I think not */
+		    /* HTChannel_delete(host->channel, status);  */
+		    if (HTChannel_delete(host->channel, status)) {
+			HTTRACE(CORE_TRACE, "Host Event.. clearing channel on host %p (%s)\n" _ host _ host->hostname);
+			host->channel = NULL;
+		    }
 		} else {
 		    HTChannel_setSemaphore(host->channel, 0);
 		    HTHost_clearChannel(host, status);
 		}
 	    } else if (piped<=1 && host->reqsMade==host->reqsPerConnection) {
                 HTTRACE(CORE_TRACE, "Host Object. closing persistent socket %d\n" _ 
-					HTChannel_socket(host->channel));
+			HTChannel_socket(host->channel));
                 
                 /* 
                 **  By lowering the semaphore we make sure that the channel
@@ -1115,7 +1119,7 @@ PRIVATE BOOL HTHost_free (HTHost * host, int status)
 
             } else {
                 HTTRACE(CORE_TRACE, "Host Object. keeping persistent socket %d\n" _ 
-					HTChannel_socket(host->channel));
+			HTChannel_socket(host->channel));
                 if (HTChannel_delete(host->channel, status)) {
 		    HTDEBUGBREAK("Host Event.. Channel unexpected deleted from host %p (%s)\n" _ host _ host->hostname);
 		    host->channel = NULL;
