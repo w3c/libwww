@@ -1,38 +1,31 @@
-<HTML>
-<HEAD>
-<TITLE>The HTML PLUS DTD -- software interface in libwww</TITLE>
-<NEXTID N="z4">
-</HEAD>
-<BODY>
-<H1>HTML Plus DTD - Software Interface</H1>SGML purists should excuse the use
-of the term "DTD" in this file to
-represent DTD-related information
-which is not exactly a DTD itself.<P>
-The C modular structure doesn't work
-very well here, as the dtd is partly
-in the .h and partly in the .c which
-are not very independent.  Tant pis.<P>
-There are a couple of HTML-specific
-utility routines also defined.
-<PRE>#ifndef HTMLDTD_H
+<HTML><HEAD><TITLE>The HTML PLUS DTD -- software interface in libwww
+</TITLE><NEXTID N="z4"></HEAD><HEAD></HEAD><BODY><H1>
+HTML Plus DTD - Software Interface</H1>SGML purists should excuse the use of
+the term "DTD" in this file to represent DTD-related information which is not
+exactly a DTD itself.<P>The C modular structure doesn't work very well here,
+as the dtd is partly in the .h and partly in the .c which are not very
+independent.
+Tant pis.<P>There are a couple of HTML-specific utility routines also defined.
+<PRE>
+#ifndef HTMLDTD_H
 #define HTMLDTD_H
 
 #include "HTUtils.h"
-#include <A
-NAME="z3" HREF="SGML.html">"SGML.h"</A>
+#include <A HREF="SGML.html" NAME="z3">"SGML.h"</A>
 
-</PRE>
-<H2>Element Numbers</H2>
-<PRE>
-</PRE>Must Match all tables by element!
-These include tables in <A
-NAME="z1" HREF="HTMLPDTD.c">HTMLPDTD.c</A>
-and code in <A
-NAME="z0" HREF="HTML.c">HTML.c</A> . <P>
-Differences from Internet Draft 00:
-HTML, H7,PLAINTEXT LISTINGand XMP
-left in.
-<PRE>typedef enum _HTMLElement {
+</PRE><H2>Entity numbers</H2></BODY><BODY>
+The entity names are defined in the C file.  This gives the number of them.
+</BODY><BODY><PRE>
+#define HTML_ENTITIES 66
+
+
+
+</PRE></BODY><BODY><H2>Element Numbers</H2>Must Match all tables by element!
+These include tables in <A HREF="HTMLPDTD.c" NAME="z1">HTMLPDTD.c</A> and code
+in <A HREF="HTML.c" NAME="z0">HTML.c</A> .
+<P>Differences from Internet Draft 00:
+HTML, H7,PLAINTEXT LISTINGand XMP left in. <PRE>
+typedef enum _HTMLElement {
 	HTML_A, 
 	HTML_ABBREV,
 	HTML_ABSTRACT,
@@ -122,14 +115,10 @@ HTMLElement;
 
 #define HTMLP_ELEMENTS 85
 
-</PRE>
-<H2>Attribute numbers</H2>
-<PRE>
-</PRE>Identifier is HTML_&lt;element>_&lt;attribute>.
-These must match the tables in <A
-NAME="z2" HREF="HTMLPDTD.c">HTMLPDTD.c</A>
-!
-<PRE>#define HTML_A_EFFECT 		0
+</PRE><H2>Attribute numbers</H2>Identifier is
+HTML_&lt;element>_&lt;attribute>. These must match the tables in <A
+HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
+#define HTML_A_EFFECT 		0
 #define HTML_A_HREF		1
 #define HTML_A_ID		2
 #define HTML_A_METHODS		3
@@ -214,45 +203,31 @@ NAME="z2" HREF="HTMLPDTD.c">HTMLPDTD.c</A>
 extern CONST SGML_dtd HTMLP_dtd;
 
 
-</PRE>
-<H2>Start anchor element</H2>It is kinda convenient to have a
-particular routine for starting an
-anchor element, as everything else
-for HTML is simple anyway.
-<H3>On entry</H3>targetstream poinst to a structured
-stream object.<P>
-name and href point to attribute
-strings or are NULL if the attribute
-is to be omitted.
-<PRE>extern void HTStartAnchor PARAMS((
+</PRE><H2>Start anchor element</H2>It is kinda convenient to have a particular
+routine for starting an anchor element,
+as everything else for HTML is simple anyway. <H3>On entry</H3>targetstream
+poinst to a structured stream object.<P>name and href point to attribute
+strings or are NULL if the attribute is to be omitted. <PRE>
+extern void HTStartAnchor PARAMS((
 		HTStructured * targetstream,
 		CONST char *  	name,
 		CONST char *  	href));
-</PRE>
 
-<H2>Put image element</H2>
-Hopefully as useful as HTStartAnchor.
-<H3>On entry</H3>
-targetstream point to a structured stream object.<P>
-src, alt and align are omitted if they are set to NULL.
-<PRE>
+
+</PRE><H2>Put image element</H2>Hopefully as useful as HTStartAnchor. <H3>
+On entry</H3>targetstream point to a structured stream object.<P>src,
+alt and align are omitted if they are set to NULL. <PRE>
 extern void HTMLPutImg PARAMS((HTStructured *obj,
 		 	       CONST char *src,
 			       CONST char *alt,
 			       CONST char *align));
-</PRE>
 
-<H2>Specify next ID to be used</H2>This is another convenience routine,
-for specifying the next ID to be
-used by an editor in the series z1.
-z2,...
-<PRE>extern void HTNextID PARAMS((HTStructured * targetStream,
+</PRE><H2>Specify next ID to be used</H2>This is another convenience routine,
+for specifying the next ID to be used by an editor in the series z1. z2,...
+<PRE>
+extern void HTNextID PARAMS((HTStructured * targetStream,
 			CONST char * s));
 
 #endif /* HTMLDTD_H */
 
-</PRE>End of module definition</BODY>
-</HTML>
-
-
-
+</PRE>End of module definition </BODY></HTML>

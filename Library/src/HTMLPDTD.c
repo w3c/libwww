@@ -15,7 +15,7 @@
 **
 **	This table must be matched exactly with ALL the translation tables
 */
-#define HTML_ENTITIES 66
+
 static CONST char* entities[HTML_ENTITIES] = {
   "AElig",	/* capital AE diphthong (ligature) */ 
   "Aacute",	/* capital A, acute accent */ 

@@ -1097,7 +1097,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    FREE_TARGET;
 	}
 
-#if 0 /* Not used for the moment */
+#ifndef VMS /* Not used for VMS */
 cleanup:
 #endif
 	if (descriptions)
