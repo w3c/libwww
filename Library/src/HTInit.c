@@ -40,6 +40,13 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"*/*",			"www/debug",	HTBlackHoleConverter,	1.0, 0.0, 0.0);
 
     /*
+    **  Set our own local file save stream for the MIME parser so that 
+    **  we know how to dump to local disk in case we get content type
+    **  application/octect stream, or an encoding that we don't know.
+    */
+    HTMIME_setSaveStream (HTSaveLocally);
+
+    /*
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */
@@ -108,6 +115,12 @@ PUBLIC void HTConverterInit (HTList * c)
 */
 PUBLIC void HTPresenterInit (HTList * c)
 {
+    /*
+    **  First we set the special "presenter" stream that writes to a
+    **  temporary file before executing the external presenter
+    */
+    HTPresentation_setConverter(HTSaveAndExecute);
+
 #ifdef NeXT
     HTPresentation_add(c,"application/postscript", "open %s",	NULL, 1.0, 2.0, 0.0);
     /* The following needs the GIF previewer -- you might not have it. */
