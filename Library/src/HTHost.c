@@ -1439,7 +1439,7 @@ PUBLIC int HTHost_register (HTHost * host, HTNet * net, HTEventType type)
 
 	return YES;
     }
-    if ("HTHost req.. Bad arguments\n");
+    HTTRACE(CORE_TRACE, "HTHost...... Don't register event with bad arguments\n");
     return NO;
 }
 
