@@ -182,16 +182,6 @@ extern HTStyleSheet * styleSheet;
 
 #ifndef MAXPATHLEN
 #define NO_GETWD                      /* Assume no  getwd() if no MAXPATHLEN */
-#else
-extern char * getwd();
-#endif
-
-#ifdef HAS_GETCWD	               	   /* May be defined on command line */
-extern char * getcwd();
-#endif
-
-#ifndef NO_GETPID			 /* May be defined from command line */
-extern int getpid();
 #endif
 
 /*	Public Variables
@@ -402,7 +392,7 @@ int main
 #else   /* has getwd */
 	{
       	    char wd[MAXPATHLEN];
-      	    char * result = getwd(wd);
+      	    char * result = (char *) getwd(wd);
 	    if (result) {
 	        StrAllocCat(default_default, wd);
 	    } else {
@@ -695,7 +685,7 @@ int main
 #ifdef NO_GETPID
 	sprintf(log_file_name, "%s", logfile_root);  /* No getpid() */
 #else
-	sprintf(log_file_name, "%s-%d", logfile_root, getpid());
+	sprintf(log_file_name, "%s-%d", logfile_root, (int) getpid());
 #endif
 	HTlogfile = fopen(log_file_name, "a");
 	if (!HTlogfile)
@@ -750,7 +740,6 @@ int main
 /* 	Main "Event Loop"
 **	----------------
 */
-    HTRequest_clear(request);      		     /* We wan't to reuse it */
     if (interactive) {
 	while (Selection_Prompt());
 	
@@ -912,10 +901,11 @@ BOOL Select_Reference ARGS1(int,reference_num) {
     
     if (!source) return NO; /* No anchor */
     destination = HTAnchor_followMainLink((HTAnchor*) source);
+    request->parentAnchor = HTAnchor_parent((HTAnchor *) source);
     if (!HTLoadAnchor(destination, request)) return NO;	/* No link */
     HTHistory_leavingFrom((HTAnchor*) source);
     HTHistory_record(destination);
-    
+    request->parentAnchor = NULL;
     return YES;
     
 } /* Select_Reference*/
@@ -1289,7 +1279,8 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 		    ErrMsg("This platform does not support getwd() or getcwd()", NULL);
 #endif	/* has no getcwd */
 #else   /* has getwd */
-		    printf("\nLocal directory is now:\n %s\n", getwd (choice));
+		    printf("\nLocal directory is now:\n %s\n",
+			   (char *) getwd (choice));
 #endif  /* has getwd */
 		    /* End AS Sep 93 */
 		}
@@ -1519,7 +1510,6 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	}
 
 ret:
-	HTRequest_clear(request);      		     /* We wan't to reuse it */
 	free (the_choice);
 	return YES;
 
