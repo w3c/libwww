@@ -592,19 +592,35 @@ PUBLIC time_t HTGetTimeZoneOffset (void)
 */
 PUBLIC char * HTGetTmpFileName (const char * abs_dir)
 {
+    char * result = NULL;
 #ifdef HAVE_TEMPNAM
+    static char * envtmpdir = NULL;
+    size_t len = 0;
+    if (abs_dir && *abs_dir) {
+      char * tmpdir = getenv("TMPDIR");
+      if (tmpdir)
+          len = strlen(tmpdir);
+      if (len) {
+          if (!(envtmpdir = (char *) HT_REALLOC(envtmpdir, len + 8)))
+              HT_OUTOFMEM("HTGetTmpFileName");
+          strcpy(envtmpdir, "TMPDIR=");
+          strcpy(envtmpdir + 7, tmpdir);
+          putenv("TMPDIR=");
+      }
+    }
 #ifdef __CYGWIN__
-    return tempnam(abs_dir, "");
+    result = tempnam(abs_dir, "");
 #else
-    return tempnam(abs_dir, NULL);
+    result = tempnam(abs_dir, NULL);
 #endif /* __CYGWIN__ */
+    if (len)
+      putenv(envtmpdir);
 #else
     /*
     **  This is only approx. as we don't know if this file exists or not.
     **  Hopefully, tempnam() exists on enough platforms so that this is not
     **  a problem.
     */
-    char * result = NULL;
     char * offset = NULL;
     if (!(result = (char *) HT_MALLOC((abs_dir ? strlen(abs_dir) : 0) +
 				      HT_MAX_TMPNAM + 2)))
@@ -639,8 +655,8 @@ PUBLIC char * HTGetTmpFileName (const char * abs_dir)
 #endif
 	offset = result;
     }
-    return result;
 #endif /* HAVE_TEMPNAM */
+    return result;
 }
 
 /*
