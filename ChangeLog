@@ -1,5 +1,11 @@
 Changes with libwww 5.3.2
 
+2001-02-26	Jose Kahan <jose@w3.org>
+
+	* Cache bug. An HTResponse object was being freed repetively inside
+	  a while loop, when reading a cached metadata in meta_read(). I 
+	  moved the delete to outside this function.
+
 2000-12-19	Jose Kahan <jose@w3.org>
 
 	* Compilation fix: two prototypes in HTResponse.html were declared

@@ -1686,8 +1686,6 @@ PRIVATE BOOL meta_read (FILE * fp, HTRequest * request, HTStream * target)
 	    /* Send the data down the pipe */
 	    status = (*target->isa->put_block)(target, buffer, status);
 
-	    /* Delete the response headers */ 
-	    HTRequest_setResponse(request, NULL);
 	    if (status == HT_LOADED) {
 		(*target->isa->flush)(target);
 		return YES;
@@ -1731,6 +1729,11 @@ PRIVATE BOOL HTCache_readMeta (HTCache * cache, HTRequest * request)
 	    HTResponse_setCachable(HTRequest_response(request), HT_CACHE_ALL);
 	    status = meta_read(fp, request, target);
 	    (*target->isa->_free)(target);
+	    /* JK: Moved the delete outside of meta_read, because it was being
+	       deleted multiple times. 
+	       Delete the response headers. In principle, they are
+	       already available in the anchor */ 
+	    HTRequest_setResponse(request, NULL);
 	    fclose(fp);
 	    HT_FREE(name);
 	    return status;
