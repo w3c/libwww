@@ -61,6 +61,7 @@
 #include "GridText.h"				     /* Hypertext definition */
 #include "HTBrowse.h"			     /* Things exported, short names */
 #include "CSLApp.h" /* the PICApp library should provide everything the app needs */
+#include "CSLL.h"
 #include "CSUser.h"
 #include "CSUsrLst.h"
 
@@ -83,6 +84,7 @@
 #define DEFAULT_OUTPUT_FILE	"www.out"
 #define DEFAULT_RULE_FILE	"www.conf"
 #define DEFAULT_LOG_FILE       	"www.log"
+#define DEFAULT_USERLIST_FILE	"PICSusrs.html"
 
 #define PROMPT			"%s"
 #define REF_MARK		"[%d]"
@@ -152,6 +154,7 @@ struct _LineMode {
     HTFormat		format;		        /* Input format from console */
     LMFlags		flags;
     HTView *		pView;
+    char *		userList;
     CSUser_t * 		pCSUser;
 };
 
@@ -211,6 +214,7 @@ PUBLIC LineMode * Context_getLineMode(HTRequest * request)
 **  This function creates a new request object and adds it to the global
 **  list of active threads
 */
+CSApp_callback PICSCallback;
 PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
 {
     HTRequest * newreq = HTRequest_new();
@@ -219,6 +223,8 @@ PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
     if (Interactive) HTRequest_setConversion(newreq, lm->presenters, NO);
     if (lm->flags & LM_PREEMTIVE) HTRequest_setPreemptive(newreq, YES);
     HTRequest_addRqHd(newreq, HT_C_HOST);
+    CSApp_registerReq(newreq, lm->pCSUser, PICSCallback, 
+		      CSApp_callOnBad, (void *)lm);
     return newreq;
 }
 
@@ -338,6 +344,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
 {
     if (HTAlert_interactive())	   /* Terminate with a LF if not interactive */
 	OutputData(me->pView, "\n");
+    CSLoadedUser_deleteAll();
     LineMode_delete(me);
 
     HTAuthInfo_deleteAll();
@@ -741,6 +748,43 @@ PRIVATE BOOL ShowPICSUsers(LineMode * lm)
     return YES;
 }
 
+PRIVATE int PICS_userCallback(CSUser_t * pCSUser, void * pVoid)
+{
+    LineMode * lm = (LineMode *)pVoid;
+    char * userName;
+    char * password = NULL;
+    HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
+    int ret;
+    HTAlertPar * reply;
+
+    if (!cbf)
+        return -1;
+    reply = HTAlert_newReply();
+    userName = CSUser_name(pCSUser);
+    if ((ret = (*cbf)(lm->console, HT_A_USER_PW, 
+		      HT_MSG_NULL, userName, NULL, reply))) {
+        userName = HTAlert_replyMessage(reply);
+        password = HTAlert_replySecret(reply);
+    }
+    HTAlert_deleteReply(reply);
+    if (!ret) {
+        HTTrace("PICS set user *canceled*.\n");
+	return -1;
+    }
+    ret = -1;
+    if (!userName)
+	HTTrace("PICS cannot set to no name.\n");
+    else if (CSUser_checkPassword(pCSUser, password) == NO)
+        HTTrace("PICS password was not valid.\n");
+    else {
+        ret = 0;
+	lm->pCSUser = pCSUser;
+    }
+    HT_FREE(userName);
+    HT_FREE(password);
+    return ret;
+}
+
 PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
 {
     char * password = NULL;
@@ -761,9 +805,10 @@ PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
         HTTrace("PICS set user *canceled*.\n");
 	return NO;
     }
+    ret = NO;
     if (!userName)
 	HTTrace("Canceled.\n");
-    else if ((ret = CSApp_registerDefaultUserByName(userName, password)) == NO) {
+    else if (!(lm->pCSUser = CSApp_registerUserByName(userName, password))) {
         char * url;
         if ((url = CSUserList_findURL(userName)) == NULL)
 	    HTTrace("PICS user \"%s\" is unknown.\n", userName);
@@ -771,8 +816,9 @@ PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
 	    HTTrace("Can't load PICS user \"%s\".\n", userName);
 	else if ((CSLoadedUser_find(userName)) == NO)
 	    HTTrace("PICS user \"%s\" not found in \"%s\".\n", userName, url);
-	else if ((ret = CSApp_registerDefaultUserByName(userName, password)) == NO)
+	else if (!(lm->pCSUser = CSApp_registerUserByName(userName, password)))
 	    HTTrace("Failed to set PICS user to \"%s\".\n", userName);
+	ret = YES;
 	HT_FREE(url);
     }
     HT_FREE(userName);
@@ -785,25 +831,42 @@ PRIVATE BOOL LoadPICSUser(LineMode * lm, char * url)
     CSUser_t * pCSUser;
     if (!(pCSUser = CSLoadedUser_load(url, lm->cwd)))
         return NO;
-    return SetPICSUser(lm, CSUser_name(pCSUser));
+    lm->pCSUser = pCSUser;
+    return YES;
 }
 
-CSApp_callback CSApp_appCallback;
-CSError_t CSApp_appCallback(HTRequest* pReq, CSError_t disposition, void * pVoid)
+CSError_t PICSCallback(HTRequest* pReq, CSLabel_t * pCSLabel, 
+		       CSUser_t * pCSUser, CSError_t disposition, void * pVoid)
 {
     LineMode * lm = (LineMode *)pVoid;
+    char * mesg;
     switch (disposition) {
-        case CSError_OK:break;
-        case CSError_BUREAU_NONE:OutputData(lm->pView, "CSError_BUREAU_NONE\n");break;
-        case CSError_RATING_VALUE:OutputData(lm->pView, "CSError_RATING_VALUE\n");break;
-        case CSError_RATING_RANGE:OutputData(lm->pView, "CSError_RATING_RANGE\n");break;
-        case CSError_RATING_MISSING:OutputData(lm->pView, "CSError_RATING_MISSING\n");break;
-        case CSError_SERVICE_MISSING:OutputData(lm->pView, "CSError_SERVICE_MISSING\n");break;
-        case CSError_SERVICE_NONE:OutputData(lm->pView, "CSError_SERVICE_NONE\n");break;
-        case CSError_RATING_NONE:OutputData(lm->pView, "CSError_RATING_NONE\n");break;
-        case CSError_BAD_DATE:OutputData(lm->pView, "CSError_BAD_DATE\n");break;
-        default:HTTrace("CSApp_appCallback default : odd error code\n");break;
+        case CSError_RATING_RANGE:
+            {
+	    char * labelStr = CSLabel_getRatingStr(pCSLabel);
+	    char * userStr = CSUser_getRatingStr(pCSUser);
+            OutputData(lm->pView, "PICS user %s is not allowed to see document: %s\n", 
+		       CSUser_name(pCSUser), 
+		       HTAnchor_address((HTAnchor*)HTRequest_anchor(pReq)));
+            OutputData(lm->pView, "  %s's \"%s\" rating for service %s (%s) did not include %s\n", 
+		       CSUser_name(pCSUser), 
+		       CSLabel_getRatingName(pCSLabel),
+		       CSLabel_getServiceName(pCSLabel), 
+		       userStr, labelStr);
+	    HT_FREE(userStr);
+	    HT_FREE(labelStr);
+	    }
+	    return disposition;
+        case CSError_BUREAU_NONE: mesg="label bureau was not contacted"; break;
+        case CSError_RATING_VALUE:mesg="value"; break;
+        case CSError_RATING_MISSING: mesg="rating not found"; break;
+        case CSError_SERVICE_MISSING: mesg="service not available";break;
+        case CSError_SERVICE_NONE: mesg="no services available for document"; break;
+        case CSError_RATING_NONE: mesg="no ratings in a service"; break;
+        case CSError_BAD_DATE: mesg="labels were out of date"; break;
+        default:HTTrace("PICSCallback: odd error code: %d\n", disposition); return disposition;
     }
+    OutputData(lm->pView, "PICS disallowed document: %s\n", mesg);
     return disposition;
 }
 
@@ -1048,7 +1111,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    int result;
 	    
 	    if (!tmplate) tmplate = "www -n -na -p66 '%s' | lpr";
-	    if ((command = (char  *) HT_MALLOC(strlen(address)+strlen(tmplate)+20)) == NULL)
+	    if ((command = (char *) HT_MALLOC(strlen(address)+strlen(tmplate)+20)) == NULL)
 	        HT_OUTOFMEM("command");
 	    sprintf(command, tmplate, address);
 	    result = system(command);
@@ -1482,6 +1545,8 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
     if (!context)
         return HT_OK; /* not a LineMode request */
     lm = context->lm;
+    if (CSApp_unregisterReq(request) == NO)
+        HTTrace("PICS request not found\n");
     is_index = HTAnchor_isIndex(HTMainAnchor);
     if (status == HT_LOADED) {
 
@@ -1550,7 +1615,7 @@ int main (int argc, char ** argv)
     HTRequest *	request = NULL;
     LineMode *	lm;
     char *      picsUser = NULL;
-    char *      picsUserList = NULL;
+/*    char *      picsUserList = NULL; */
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -1720,11 +1785,20 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-u")) {
 		picsUser = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : "user";
-
+#if 0 /* old version of user list file, still works when enabeled here */
 	    /* PICS user list */
 	    } else if (!strcmp(argv[arg], "-ul")) {
 		picsUserList = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : "users.url";
+#endif
+	    /* PICS user list */
+	    } else if (!strcmp(argv[arg], "-ul")) {
+		lm->userList = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_USERLIST_FILE;
+
+	    /* PICS mode */
+	    } else if (!strcmp(argv[arg], "-pics")) {
+		lm->userList = DEFAULT_USERLIST_FILE;
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
@@ -1807,6 +1881,7 @@ int main (int argc, char ** argv)
 		      case 'c': WWWTRACE |= SHOW_CACHE_TRACE; break;
 		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
 		      case 'h': WWWTRACE |= SHOW_AUTH_TRACE; break;
+		      case 'i': WWWTRACE |= SHOW_PICS_TRACE; break;
 		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
 		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
 		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;
@@ -1977,11 +2052,22 @@ int main (int argc, char ** argv)
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
 
-    CSApp_registerApp(CSApp_appCallback, CSApp_callOnBad|CSApp_callOnGood, (void *)lm);
-    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))
-        HTTrace("Unable to load PICS user list \"%s\".\n", picsUserList);
+    CSApp_registerApp(PICSCallback, CSApp_callOnBad, PICS_userCallback, 
+		      (void *)lm);
+/*    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))
+        HTTrace("Unable to load PICS user list \"%s\".\n", picsUserList); */
     if (picsUser && !LoadPICSUser(lm, picsUser))
         HTTrace("Unable to load PICS user \"%s\".\n", picsUser);
+
+    /* PICS user list specified? */
+    if (lm->userList)
+        LoadPICSUser(lm, lm->userList);
+
+    /* request was registered in Thread_new before command line parsing
+       loaded the PICS user, so re-register to give it the correct user */
+    CSApp_unregisterReq(request);
+    CSApp_registerReq(request, lm->pCSUser, PICSCallback, 
+		      CSApp_callOnBad, (void *)lm);
 
     /* Start the request */
     if (keywords)
