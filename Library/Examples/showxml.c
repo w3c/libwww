@@ -126,11 +126,11 @@ PRIVATE void XML_notationDecl (void * userData,
 ** error.
 ** Note that unlike other handlers the first argument is the parser, not userData.
 */
-PRIVATE void XML_externalEntityRef (XML_Parser parser,
-				    const XML_Char * openEntityNames,
-				    const XML_Char * base,
-				    const XML_Char * systemId,
-				    const XML_Char * publicId)
+PRIVATE int XML_externalEntityRef (XML_Parser parser,
+				   const XML_Char * openEntityNames,
+				   const XML_Char * base,
+				   const XML_Char * systemId,
+				   const XML_Char * publicId)
 {
     return;
 }
