@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Command Line Syntax for the Line Mode browser</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
 <NEXTID N="z29">
 </HEAD>
 
@@ -78,7 +79,6 @@ number of the WWW library, and exits.
 <DL>
 
 <DT><B>-</B>
-
 <DD>A minus sign with no trailing characters indicates that the
 program will accept<A HREF="../../MarkUp/MarkUp.html"> HTML format</A>
 input from the standard input. This allows www to be used as a filter
@@ -87,19 +87,24 @@ parsed as though the address of the document was that of the home page
 (or docaddress if specified). Implies non-interactive mode.
 
 <DT><B>-h</B> host
-
 <DD>Establish a telnet connection to the remote host specified. This
 implies a "secure mode" execution where all references to the local
 file system are canceled.
 
-<DT><B>-n</B>
+<DT><B>-listrefs</B>
+<DD>Adds a list of the addresses of all documents references to the
+end of the HTML file. This mode forces non-interactive mode.
 
+<DT><B>-n</B>
 <DD>Non-interactive mode. Outputs the formatted document to the
 standard output, then exits. Pages are delimited with form feed (FF)
 characters.
 
-<DT><A NAME="single"><B>-single</B></A>
+<DT><B>-o</B> [ file ]
+<DD>Redirects output to specified file. The default value is
+"www-out". This mode forced non-interactive mode
 
+<DT><A NAME="single"><B>-single</B></A>
 <DD>Singlethreaded mode. If this flag is set then the browser uses
 blocking, non interruptible I/O in interactive mode. Non-interactive
 mode always uses blocking I/O.
@@ -247,7 +252,7 @@ makes selective directory listings and places a README file at the top
 
 </DL>
 
-<H3>Fancy Features</H3>
+<H3>Configuration Options</H3>
 
 <DL>
 
@@ -259,13 +264,6 @@ generated. The default cache is "/tmp".
 <DT><B>-l</B> [ file ]
 <DD>Specifies a log file with a list of visited documents. The default
 value is "www-log"
-
-<DT><B>-listrefs</B>
-<DD>Adds a list of the addresses of all documents references to the
-end of the HTML file.
-
-<DT><B>-o</B> [ file ]
-<DD>Redirects output to specified file. The default value is "www-out"
 
 <DT><B>-r</B> &lt;file&gt;
 <DD>Rule file (configuration file). If this is specified, a rule file

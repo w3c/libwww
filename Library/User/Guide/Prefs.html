@@ -1,0 +1,70 @@
+<HTML>
+<HEAD>
+<TITLE>Internals - Application Preferences</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Guide.html"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Application Preferences</H1>
+
+These modules handles all the modules that can be registered either
+dynamically (using static binding) or statically by the application. 
+
+<H2>Default Initializations</H2>
+
+The <A HREF="../../Implementation/HTInit.html">HTInit module</A>
+defines a <A HREF="../../Implementation/HTInit.c">standard set of
+initializations</A> where all protocol modules and converters are
+setup at startup time of the application in the <A
+HREF="../../Implementation/HTAccess.html#Library">HTLibInit()</A>. Often
+you can take this module and just override it with your own
+preferences.
+
+<H2>Handling a Configuration File</H2>
+
+Bindings can also be set up by a rule file that is handled by the <A
+HREF="../../Implementation/HTRules.html">Configuration File
+Manager</A>. The format of the rule file is yet to be specified and it
+does still need some work.
+
+<H2>Bindings to the local file system</H2>
+
+The <A HREF="../../Implementation/HTBind.html">Bind Module</A> makes
+bindings between file suffixes and content-type, content-language,
+charset etc. As an application this is used when talking to, for
+example FTP servers that do not support media types, and servers use
+it when performing format negotiation between multiple representations
+of a document.
+
+<H2>Registering of Methods</H2>
+
+The idea behind this module is to allow dynamic registration of HTTP
+methods, for example PUT, POST, GET etc. and then also allow new
+methods to be registered. This has not yet been implemented but the
+structure is there :-)
+
+<H2>Registration of Access Schemes</H2>
+
+Access schemes like HTTP, FTP etc. can be registered dynamically
+(using static binding) and the <A
+HREF="../../Implementation/HTProt.html">HTProt module</A> provides the
+support for this.
+
+
+<H2>Registration of Proxies and Gateways</H2>
+
+The <A HREF="../../Implementation/HTProxy.html">HTProxy Module</A>
+provides functionality for registering proxies and gateways
+dynamically. This has traditionally been handled by environment
+variables, but is now a registration module just like the registration
+of access schemes.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,45 @@
+<HTML>
+<HEAD>
+<TITLE>Internals - Thread Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Guide.html"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Thread Modules</H1>
+
+From version 3.0 (unreleased) of the W3C Reference Library, support
+for <A HREF="../Architecture/HTThreads.html">libwww threads</A> and
+other thread models has been implemented multi threaded functionality
+has been added as an extra set of modules. For the moment, only the
+HTTP module can take full advantage of libwww threads but both FTP and
+Gopher are foreseen for the same functionality. The modules included
+are: <P>
+
+<H2>Thread Manager</H2>
+
+The <A HREF="../../Implementation/HTThread.html">HTThread</A> module
+registers sockets as ready for read or write (this includes the
+connect statement that is basically a write request). It is an
+internal module to the Library.
+
+<H2>Internal Event Loop</H2>
+
+The <A HREF="../../Implementation/HTEvntrg.html">HTEvent module</A> is
+the Library's own version of the event-loop serving the HTTP client,
+and it is the application interface to the multi threaded
+Library. Clients can either use this module as is or they can
+overwrite it with their own even-loop. Note, that GUI-clients
+<EM>can</EM> use the current implementation! <P> The module is now
+ported to Windows NT thanks to <A
+HREF="mailto:cbrooks@osf.org">Charlie Brooks</A>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

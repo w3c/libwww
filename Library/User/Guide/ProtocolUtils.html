@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<TITLE>Internals - Protocol Utility Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Guide.html"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Protocol Utility Modules</H1>
+
+The protocol modules themselves can be registered dynamically (using
+static binding) but some of the functionality used by the modules are
+kept in a set of protocol utility modules that are described in this
+section.
+
+<H2>Access Authorization</H2>
+
+In order to prevent unauthorized access on a Web server, a basic
+authorization scheme has been developed, see <A
+HREF="../../../AccessAuthorization/Overview.html"> Access
+Authorization</A> for more details on the scheme. The access
+authorization is implemented in the following modules:
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTAABrow.html">HTAABrow</A>
+
+<DD>This module contains WWW Browser specific code, that is composing
+the <A HREF="../../../Protocols/HTTP/HTRQ_Headers.html#9"> HTTP
+Authorization Header</A>, recording users information etc.
+
+<DT><A HREF="../../Implementation/HTAAUtil.html">HTAAUtil</A>
+
+<DD>This module contains the authorization code that is common to both the
+servers and clients, e.g., handling information on different authentication
+etc.
+
+<DT><A HREF="../../Implementation/HTUU.html">UU Encoding and Decoding</A>
+
+<DD>Provides functions to encode and decode a data buffer according to
+the <A
+HREF="http://info.internet.isi.edu/in-notes/rfc/files/rfc1421.txt">RFC
+1421</A> "Privacy Enhancement for Internet Electronic Mail".
+
+</DL>
+
+<H2>Presenting Directory Listings and other Listings</H2>
+
+When listings return from the protocol modules they are converted into HTML
+and parsed to the client. Listings might be HTTP directory listings, Gopher
+menus, FTP directory listings, CSO Name server etc. The modules providing this
+functionality are:
+
+<DL>
+
+<DT><A HREF="../../Implementation/HTDirBrw.html">HTDirBrw</A>
+
+<DD>This is a very configurable module to actually present the listings
+
+<DT><A HREF="../../Implementation/HTDescpt.html">HTDescript</A>
+
+<DD>This module handles the description field in a HTTP directory listing.
+For a HTML file, the default action is to peek the title of the document.
+
+<DT><A HREF="../../Implementation/HTIcons.html">HTIcons</A>
+
+<DD>This module handles the set of icons used in the listings (HTTP, Gopher,
+FTP etc.).
+
+</DL>
+
+<H2>Logging Requests</H2>
+
+The <A HREF="../../Implementation/HTLog.html">HTLog Module</A> is a
+simple log manager that can log the result of a request to the access
+manager.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

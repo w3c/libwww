@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>W3 Library Internals Guide</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif">
+
+<H1>Internals and Programmer's Guide</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif"> Any suggestions or
+ideas are welcome at <EM>libwww@w3.org</EM>. <P>
+
+This guide describes the modules and their internal relations in the
+<A HREF="../../">W3C Reference Library</A>. Every module in the
+Library has a HTML document associated with it containing a detailed
+description of the functionality and interface to other modules. This
+page is the top node for the implementation specific documentation and
+contains links to all the modules in the Library.  The documentation
+is dynamically kept up to date as the actual include files (.h) are
+generated from the HTML documents using the <A
+HREF="../../../LineMode/">Line Mode Browser</A>. This document is the
+last of three documents that each describes different aspects of the
+Library:
+
+<DL>
+
+<DT><A HREF="../Architecture/"><IMG ALT="Architecture" SRC="../../../Icons/WWW/Spec48x.gif"></A> <B>The Architecture</B>
+
+<DD>The current document is the first in the series and it describes
+the architecture of the Library without referring directly to the code
+itself. This is the "designer view" where bugs are a unknown
+phenomenon.
+
+<DT><A HREF="../Using/"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A> <B>The User's Guide</B>
+
+<DD>The second document introduces the "official" API of the
+Library. This document represents the "User's view" and should be
+sufficient to use the Library without being aware of what's going on
+underneath the interface. It is also the API that is least exposed to
+changes. The description contains a set of examples.
+
+<DT><A HREF="Overview.html"><IMG ALT="Internals" SRC="../../../Icons/WWW/Tang48x.gif"></A> <B>The Internals and Programmer's Guide</B>
+
+<DD>The last document in the series presents all modules in the Library
+regardless if they are part of the API described in the User's Guide or
+not. This is also known as the "hacker's view" of the Library.
+
+</UL>
+
+<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
+Each part of the documentation is also available as <A
+HREF="choppy.html"><B>one big HTML file</B></A> intended for
+printout. As a result, the relative links in this document do not
+work!<P>
+
+<H2>Table of Contents</H2> 
+
+<OL>
+
+<LI><A HREF="Core.html">Core Modules</A>
+<LI><A HREF="Prefs.html">Application Preferences</A>
+<LI><A HREF="App.html">Application Specific Implementations</A><P>
+
+<LI><A HREF="Network.html">Network Specific Modules</A>
+<LI><A HREF="Protocol.html">Protocol Modules</A>
+<LI><A HREF="ProtocolUtils.html">Protocol Utility Modules</A>
+<LI><A HREF="Threads.html">Libwww Thread Modules</A><P>
+
+<LI><A HREF="Central.html">Central Data Structures</A>
+<LI><A HREF="Streams.html">Generic Streams</A>
+<LI><A HREF="StrucStreams.html">Structured Streams</A>
+<LI><A HREF="Presentation.html">HTML Presentation Modules</A>
+<LI><A HREF="Styles.html">Style Sheets</A><P>
+
+<LI><A HREF="URI.html">URI Management</A>
+<LI><A HREF="Utils.html">Generic Programming Utilities</A>
+
+</OL>
+
+When compiling the Library please make sure that you have a relatively
+new version of the <A HREF="../../../LineMode/">Line Mode Browser</A>
+that parses the HTML documents correctly (2.13 and newer
+versions). Find out what version of the Line Mode Browser you are
+using by typing
+
+<PRE>
+	./www -version
+</PRE>
+
+Also remember that when editing the module interfaces or adding
+functionality then always use the HTML files and not the .h
+files! <P>
+
+<HR>
+
+<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>, <A
+HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+
+</BODY>
+</HTML>

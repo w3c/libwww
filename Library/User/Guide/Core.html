@@ -1,0 +1,87 @@
+<HTML>
+<HEAD>
+<TITLE>Internals - Core Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Guide.html"><IMG SRC="../../../Icons/WWW/Tang48x.gif" ALT="Internals"></A>
+
+<H1>Core Modules</H1>
+
+The "<A HREF="../Architecture/DesignModel.html">core modules</A>" are
+the fundamental part of the Library. The core entity contains hooks
+for the dynamic modules and provides the major access points for
+applications issuing requests, for example to access a data object.
+
+<DL>
+
+<DT><A HREF="../../Implementation/WWWLib.html">WWWLib Include</A>
+<DD>This is not really a core module, but an important part as this is
+the only include file you need to use the Library.
+
+<DT><A HREF="../../Implementation/HTAccess.html">Access Manager</A>
+<DD>The access manager is the main entry point for requesting a data
+object pointed to by a URI. It has a set of methods that allows the
+application to request different services, for example to get a URI,
+post a URI, or to search a URI.
+
+<DT><A HREF="../../Implementation/HTProt.html">Protocol Manager</A>
+<DD>The protocol manager is invoked by the access manager in order to
+access a document not found in memory or in file cache. The manager
+consists of a set of protocol modules handling the access schemes
+HTTP, FTP, NNTP, Gopher, WAIS, Telnet, and access to the local file
+system. The protocol modules are registered dynamically (using static
+linking) and the <A HREF="../Using/">User's Guide</A> describes how
+modules can be registered. Each protocol module is responsible for
+establishing the connection to the remote server (or the local
+file-system) and extract information using a specific access
+method. When data arrives from the network, it is passed on to the
+format manager.
+
+<DT><A HREF="../../Implementation/HTFormat.html">Format Manager</A>
+<DD>The stream format manager takes care of data format conversion
+requested based on a set of registered format converters and a simple
+algorithm for selecting the best conversion.
+
+<DT><A HREF="../../Implementation/HTFWrite.html#z3">Cache Manager</A>
+<DD>The cache manager is used to save data objects once they have been
+down loaded from the network. The cache uses the hierarchy indicated
+in the URLs as a way to identify items in the cache but is still under
+construction and requires a lot of work to be a highly efficient cache
+manager!
+
+<DT><A HREF="../../Implementation/HTError.html">Error Manager</A>
+<DD>This module manages an information stack which contains
+information of all errors occurred during the communication with a
+remote server or simply information about the current state. Using a
+stack for this kind of information provides the possibility of nested
+error messages where each message can be classified and filtered
+according to its impact on the current request, for example "Fatal",
+"Non-Fatal", "Warning" etc. The filtering can be used to decide which
+level of messages will be passed back to the user.
+ 
+<DT><A HREF="../../Implementation/HTEvent.html">Event Manager</A>
+<DD>The event manager is a "session layer" handling which thread
+should be the active thread. A thread can either be an internal libwww
+thread or an external thread, for example a Posix thread, and the
+event manager can itself be either the internal Library manager or an
+external event manager. Currently the internal event manager uses a
+select function call to decide which thread should be made the active
+one, however an external event manager can use another decision
+model. The event manager is described together with the internal
+thread model in the section "<A
+HREF="../Architecture/Threads.html">Libwww Threads</A>", and more
+modules are described in the section <A HREF="Threads.html">Libwww
+thread Modules</A>
+
+</DL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

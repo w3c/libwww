@@ -1,0 +1,54 @@
+<HTML>
+<HEAD>
+<TITLE>Internals - Network Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Guide.html"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+
+<H1>Network Modules</H1>
+
+Network modules handles all the network access including DNS access,
+reading and writing to the and from the network etc. Most of these
+modules are internal to the Library, however some applications might
+use some of them directly.
+
+<H2>TCP Communication</H2>
+
+The functionality of the <A HREF="../../Implementation/HTTCP.html">
+HTTCP Module</A> covers several topics but they are all related to
+TCP/IP communication. All active and passive connection establishment
+from the <A HREF="Protocol.html">Protocol Modules</A> goes through
+this module. Furthermore, the module manages a local host cache of
+visited hosts so that the Domain Name Server is only consulted when
+necessary.<P>
+
+Other topics includes:
+
+<UL>
+<LI>I/O status indication (errno etc.)
+<LI>Information on remote hosts
+<LI>Information on local host (domain name etc.)
+<LI>Information on current user (mail address)
+</UL>
+
+<H2>Reading Data from a Socket</H2>
+
+The <A HREF="../../Implementation/HTSocket.html">HTSocket Module</A>
+controls all the functionality for reading information from a socket
+and from the local file system using either a socket or a ANSI C file
+descriptor. <P>
+
+The module is currently being transformed into a completely reentrant
+version, but the old non-reentrant interface is still needed for some
+functions. However, it will be taken out as soon as possible.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML>

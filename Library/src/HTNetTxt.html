@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Network Telnet To Internal Character Text</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -17,7 +18,12 @@
 This is a filter stream suitable for taking text from a socket and
 passing it into a stream which expects text in the local C
 representation.  It does newline conversion.  As usual, pass its
-output stream to it when creating it.
+output stream to it when creating it. <P>
+
+This module is implemented by <A HREF="HTNetTxt.c">HTNetTxt.c</A>, and it is
+a part of the <A
+HREF="http://www.w3.org/hypertext/WWW/Library/">
+W3C Reference Library</A>.
 
 <PRE>
 #ifndef HTNETTXT_H
