@@ -105,8 +105,9 @@ PUBLIC BOOL HTRule_add (HTList * list, HTRuleOp op,
 	    if (APP_TRACE)
 		HTTrace("Rule Add.... For `%s\' op %d `%s\'\n",
 			 pattern, op, replace);
-	} else
-	    HTTrace("Rule Add.... For `%s\' op %d\n", pattern, op);
+	} else {
+	    if (APP_TRACE) HTTrace("Rule Add.... For `%s\' op %d\n", pattern, op);
+	}
 	return HTList_appendObject(list, (void *) me);
     }
     return NO;
@@ -200,6 +201,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, const char * config)
     char * ptr;
     char * word1, * word2, * word3;
     int status;
+    if (!config) return NO;
     if ((ptr = strchr(config, '#'))) *ptr = '\0';
     StrAllocCopy(line, config);				 /* Get our own copy */
     ptr = line;
