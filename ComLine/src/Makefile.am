@@ -2,10 +2,10 @@
 
 bin_PROGRAMS = w3c
 
-w3c_LDADD = ../../Library/src/libwww.a -lm
+w3c_LDADD = ../../Library/src/libwww.la -lm
 
 w3c_DEPENDENCIES = \
-	../../Library/src/libwww.a
+	../../Library/src/libwww.la
 
 SUBDIRS = windows
 

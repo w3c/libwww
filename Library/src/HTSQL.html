@@ -1,0 +1,159 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww SQL API</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Simple SQL API
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module interacts with the MYSQL C client library to perform SQL operations.
+It is not intended as a complete SQL API but handles most of the typical
+error situations talking to an SQL server so that the caller doesn't have
+to think about it.
+<P>
+This requires that you have linked against a <A href="http://www.tcx.se/">MySQL
+library</A>. See the <A href="../../INSTALL.html">installation instructions</A>
+for details.
+<P>
+This module is implemented by <A HREF="HTSQL.c">HTSQL.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
+<PRE>
+#ifndef HTSQL_H
+#define HTSQL_H
+
+#include &lt;mysql/mysql.h&gt;
+</PRE>
+<H2>
+  The HTSQL Object
+</H2>
+<PRE>
+typedef struct _HTSQL HTSQL;
+
+extern HTSQL * HTSQL_new (const char * host,
+			  const char * user, const char * pw,
+			  int flags);
+extern BOOL HTSQL_delete (HTSQL * me);
+</PRE>
+<H2>
+  Handling the link to the Server
+</H2>
+<H3>
+  Open a connection to the SQL server
+</H3>
+<PRE>
+extern BOOL HTSQL_connect (HTSQL * me);
+</PRE>
+<H3>
+  Close the link to the database
+</H3>
+<PRE>
+extern BOOL HTSQL_close (HTSQL * me);
+</PRE>
+<H3>
+  You can get information about whom we are talking to by calling this function:
+</H3>
+<PRE>
+extern BOOL HTSQL_version (HTSQL *		me,
+			   char **		server,
+			   unsigned int * 	protocol_version,
+			   char **		server_version,
+			   char **		client_version);
+</PRE>
+<H3>
+  Selecting the current database
+</H3>
+<PRE>
+extern BOOL HTSQL_selectDB (HTSQL * me, const char * db);
+</PRE>
+<H3>
+  Getting the raw MYSQL object
+</H3>
+<P>
+After you have connected you can get the raw <CODE>MYSQL</CODE> object by
+calling this function
+<PRE>
+extern MYSQL * HTSQL_getMysql (HTSQL * me);
+</PRE>
+<H2>
+  SQL printf
+</H2>
+<P>
+When creating queries to send to the SQL server you need to generate a lot
+of SQL specific strings. This function knows most of the commonly used SQL
+ways of handling date and time string, escaping and quoting strings and how
+to write integers as strings. The function works pretty much as fprintf with
+the following possible format arguments:
+<DL COMPACT>
+  <DT>
+    <B>%s</B>
+  <DD>
+    Writes a string as is. No quotation or escaping is performed. NULL is written
+    as "<CODE>null</CODE>".
+  <DT>
+    <B>%S</B>
+  <DD>
+    Writes a string in quotes and escapes any special SQL characters. NULL is
+    written as "<CODE>null</CODE>".
+  <DT>
+    <B>%T</B>
+  <DD>
+    Creates an SQL datetime stamp from a <CODE>time_t</CODE> variable looking
+    like this <CODE>YYYY-MM-DD HH:MM:SS</CODE>. -1 is written as
+    "<CODE>null</CODE>"
+  <DT>
+    <B>%u</B>
+  <DD>
+    Unsigned integer
+  <DT>
+    <B>%l</B>
+  <DD>
+    Unsigned long integer
+</DL>
+<PRE>
+extern char * HTSQL_printf (char * buf, int length, char * fmt, ...);
+</PRE>
+<H2>
+  Issuing a Query
+</H2>
+<P>
+You can issue a query using this function. If the connection to the server
+was dropped then it automatically tries to reconnect
+<PRE>
+extern BOOL HTSQL_query (HTSQL * me, const char * query);
+</PRE>
+<P>
+Get information about the last inserted row's unique ID or how many rows
+were affected by the last query:
+<PRE>
+extern int HTSQL_getLastInsertId (HTSQL * me);
+extern int HTSQL_GetAffectedRows (HTSQL * me);
+</PRE>
+<H2>
+  Handle Query Results
+</H2>
+<P>
+Call this funciton to store the SQL query result
+<PRE>
+extern MYSQL_RES * HTSQL_storeResult (HTSQL * me);
+</PRE>
+<P>
+When you are done with a query result then call this to clean up
+<PRE>
+extern BOOL HTSQL_freeResult (MYSQL_RES * me);
+</PRE>
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

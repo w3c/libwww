@@ -16,14 +16,15 @@
 This SQL based log class generates a SQL database and a set of tables storing
 the results of a request. The result is stored in different tables depending
 on whether it is information about the request or the resource returned.
+The module uses the simple <A HREF="HTSQL.html">libwww SQL interface</A>
 <P>
 This requires that you have linked against a <A href="http://www.tcx.se/">MySQL
 library</A>. See the <A href="../../INSTALL.html">installation instructions</A>
 for details.
 <P>
 This module is implemented by <A HREF="HTSQLLog.c">HTSQLLog.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample
-Code Library</A>.
+is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
+Library</A>.
 <PRE>
 #ifndef HTSQLLOG_H
 #define HTSQLLOG_H
@@ -33,32 +34,11 @@ Code Library</A>.
 <H2>
   Open and Close the Logs
 </H2>
-<H3>
-  Connect to the SQL Server
-</H3>
 <P>
 Create a new SQLLog object and connect to the SQL server.
 <PRE>
 typedef struct _HTSQLLog HTSQLLog;
 
-extern HTSQLLog * HTSQLLog_connect (const char * host,
-                                    const char * user, const char * pw);
-</PRE>
-<H3>
-  Close Connection to the SQL Server
-</H3>
-<P>
-Close the log file and delete the log object
-<PRE>
-extern BOOL HTSQLLog_close (HTSQLLog * me);
-</PRE>
-<H3>
-  Open the Log Database
-</H3>
-<P>
-This module creates its own database with a set of tables. If the database
-already exists then open it and make sure i has the right tables.
-<PRE>
 typedef enum _HTSQLLogFlags {
     HTSQLLOG_CLEAR_URIS_TABLE 		= 0x1,
     HTSQLLOG_CLEAR_LINKS_TABLE		= 0x2,
@@ -70,7 +50,19 @@ typedef enum _HTSQLLogFlags {
     HTSQLLOG_DROP_RESOURCES_TABLE	= 0x80
 } HTSQLLogFlags; 
 
-extern BOOL HTSQLLog_openDB (HTSQLLog * me, const char * db, HTSQLLogFlags flags);
+extern HTSQLLog * HTSQLLog_open (const char * 	host,
+				 const char * 	user,
+				 const char * 	pw,
+				 const char * 	db,
+				 HTSQLLogFlags 	flags);
+</PRE>
+<H2>
+  Close Connection to the SQL Server
+</H2>
+<P>
+Close the log file and delete the log object
+<PRE>
+extern BOOL HTSQLLog_close (HTSQLLog * me);
 </PRE>
 <H2>
   Write Logdata to the Database

@@ -47,9 +47,9 @@ struct _HTStream {
 	char			buffer[ SAMPLE_SIZE + 1 ];
 };
 
-#define PUT_CHAR(c)		(*me->target->isa->put_character)(me->target,c)
-#define PUT_STRING(s)		(*me->target->isa->put_string)(me->target,s)
-#define PUT_BLOCK(b,l)		(*me->target->isa->put_block)(me->target,b,l)
+#define PUT_CHAR(c)		(*me->target->isa->put_character)(me->target,(c))
+#define PUT_STRING(s)		(*me->target->isa->put_string)(me->target,(s))
+#define PUT_BLOCK(b,l)		(*me->target->isa->put_block)(me->target,(b),(l))
 
 /* ------------------------------------------------------------------------- */
 
@@ -180,8 +180,9 @@ PRIVATE int HTGuess_flush (HTStream * me)
 	    me->target = HTErrorStream();
 	}
 	me->transparent = YES;
+	return PUT_BLOCK(me->buffer, me->cnt);
     }
-    return PUT_BLOCK(me->buffer, me->cnt);
+    return HT_OK;
 }
 
 

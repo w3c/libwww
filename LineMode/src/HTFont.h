@@ -8,8 +8,6 @@
 */
 /*
 
-   This is the Line mode browser version
-   
  */
 #ifndef HTFONT_H
 #define HTFONT_H
@@ -31,4 +29,4 @@ typedef long int HTLMFont;      /* For now */
 #endif /* HTFONT_H */
 /*
 
-   End of HTFont*/
+   */

@@ -2,6 +2,9 @@
 #include "WWWHTTP.h"
 #include "WWWInit.h"
 
+#ifdef LIBWWW_SHARED
+#include "HTextImp.h"
+#endif
 
 int main()
 {

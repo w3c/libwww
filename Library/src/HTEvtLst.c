@@ -426,7 +426,7 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 #else
 	sockp->timeouts[HTEvent_INDEX(type)] =
 	    HTTimer_new(sockp->timeouts[HTEvent_INDEX(type)],
-			EventListTimerHandler, sockp, event->millis, YES);
+			EventListTimerHandler, sockp, event->millis, YES, YES);
 #endif
     }
 

@@ -162,6 +162,7 @@ PRIVATE FTPDataCon FTPMode = FTP_DATA_PASV;
 
 /* Added by Neil Griffin */
 PRIVATE FTPTransferMode g_FTPTransferMode = FTP_DEFAULT_TRANSFER_MODE;
+PRIVATE FTPControlMode 	g_FTPControlMode = FTP_DEFAULT_CONTROL_MODE;
 
 /* ------------------------------------------------------------------------- */
 /* 			    FTP Status Line Stream			     */
@@ -408,9 +409,14 @@ PRIVATE BOOL HTFTPParseURL (HTRequest * request,
 	}
 	HTUnEscape(login);
 	StrAllocCopy(ctrl->uid, login);
-    } else {						    /* Use anonymous */
+    } else if (g_FTPControlMode & FTP_ALWAYS_ASK_UID_PW) {
+/* Added by Marek Nagy. */
+	ctrl->uid=NULL;
+	ctrl->passwd=NULL;
+/* End of adding. */
+    } else {				    /* Use anonymous */
 	HTUserProfile * up = HTRequest_userProfile(request);
-	const char * mailaddress = HTUserProfile_email(up);
+        const char * mailaddress = HTUserProfile_email(up);
 	StrAllocCopy(ctrl->uid, "anonymous");
 	if (mailaddress)
 	    StrAllocCopy(ctrl->passwd, mailaddress);
@@ -420,11 +426,11 @@ PRIVATE BOOL HTFTPParseURL (HTRequest * request,
 /* begin _GM_ */
 /* Note: libwww bug ID: GM6 */
     {
-	char tempParams[512];
+/*	char tempParams[512];
 	sprintf(tempParams, "Username='%s', Password='%s'", ctrl->uid, ctrl->passwd);
 	HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
 			   tempParams, strlen(tempParams), "HTFTPParseURL");
-    }
+*/  }
 /* end _GM_ */
     if (PROT_TRACE)
 	HTTrace("FTPParse.... uid `%s\' pw `%s\'\n",
@@ -1344,6 +1350,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request)
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * url = HTAnchor_physical(anchor);
 
+
     /*
     ** Initiate a new FTP ctrl and data structure and bind to request structure
     ** This is actually state FTP_BEGIN, but it can't be in the state
@@ -1361,6 +1368,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request)
     HTNet_setContext(cnet, ctrl);
     HTNet_setEventCallback(cnet, FTPEvent);
     HTNet_setEventParam(cnet, ctrl);
+
 
     /* for now, the dnet comes back to the same place
     ** - vestigial from when the callback was from the request object
@@ -1381,6 +1389,9 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * url = HTAnchor_physical(anchor);
 
+    HTHost *host = HTNet_host(cnet);
+
+
     if (type == HTEvent_CLOSE) {			      /* Interrupted */
 	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
 	    FTPCleanup(request, HT_IGNORE);
@@ -1398,6 +1409,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	  case FTP_BEGIN:
 	      if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_BEGIN\n");
 	      HTFTPParseURL(request, url, ctrl, data);
+
 
 	      /* The following is added by Neil Griffin, GAIN Software */
 
@@ -1436,9 +1448,9 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 	case FTP_NEED_CCON:
 	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_NEED_CONN\n");
-	    status = HTDoConnect(cnet, url, FTP_PORT);
+	    status = HTHost_connect(host, cnet, url, FTP_PORT);
+	    host = HTNet_host(cnet);
 	    if (status == HT_OK) {
-		HTHost * host = HTNet_host(cnet);
 
 		/*
 		** Check the protocol class to see if we have connected to a
@@ -1566,4 +1578,14 @@ PUBLIC void HTFTP_setTransferMode(FTPTransferMode mode)
 PUBLIC FTPTransferMode HTFTP_transferMode (void)
 {
     return g_FTPTransferMode;
+}
+
+PUBLIC void HTFTP_setControlMode (FTPControlMode mode)
+{
+    g_FTPControlMode = mode;
+}
+
+PUBLIC FTPControlMode HTFTP_controlMode (void)
+{
+    return g_FTPControlMode;
 }

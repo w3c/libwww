@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
   <TITLE>W3C Sample Code Library libwww Timer Class</TITLE>
 </HEAD>
 <BODY>
@@ -35,39 +34,49 @@ typedef int HTTimerCallback (HTTimer *, void *, HTEventType type);
 </H3>
 <PRE>
 extern HTTimer * HTTimer_new (HTTimer *, HTTimerCallback *, 
-			      void *, ms_t millis, BOOL relative);
-extern BOOL HTTimer_refresh(HTTimer * timer, ms_t now);
+			      void *, ms_t millis,
+                              BOOL relative, BOOL repetitive);
 extern BOOL HTTimer_delete (HTTimer * timer);
 extern BOOL HTTimer_deleteAll (void);
 extern int HTTimer_dispatch (HTTimer * timer);
 extern ms_t HTTimer_getTime(HTTimer * timer);
 </PRE>
-
 <H3>
-Platform Specific Timers
+  Reset an already existing Repetitive Timer
 </H3>
-
+<PRE>
+extern BOOL HTTimer_refresh(HTTimer * timer, ms_t now);
+</PRE>
+<H3>
+  Has this timer Expired?
+</H3>
+<P>
+If so then it's time to call the dispatcher!
+<PRE>
+extern BOOL HTTimer_hasTimerExpired (HTTimer * timer);
+</PRE>
+<H3>
+  Platform Specific Timers
+</H3>
+<P>
 On some platform, timers are supported via events or other OS specific
-mechanisms. You can make libwww can support these by registering a
-platform specific timer add and timer delete method.
-
+mechanisms. You can make libwww can support these by registering a platform
+specific timer add and timer delete method.
 <PRE>
 typedef BOOL HTTimerSetCallback (HTTimer * timer);
 
 extern BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf);
 extern BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf);
 </PRE>
-
 <H3>
   Get the next timer in line
 </H3>
 <P>
-Dispatches all expired timers and optionally returns the time till the
-next one.
+Dispatches all expired timers and optionally returns the time till the next
+one.
 <PRE>
 extern int HTTimer_next (ms_t * pSoonest);
 </PRE>
-
 <PRE>
 #endif /* HTTIMER_H */
 </PRE>

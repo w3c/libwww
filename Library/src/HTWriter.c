@@ -19,6 +19,8 @@
 #include "HTNetMan.h"
 #include "HTWriter.h"					 /* Implemented here */
 
+#include "HTHstMan.h"
+
 struct _HTStream {
     const HTStreamClass *	isa;
     /* ... */
@@ -90,6 +92,13 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
     char * wrtp;
     const char *limit = buf+len;
 
+    /* If we don't have a Net object then return right away */
+    if (!net) {
+	if (STREAM_TRACE)
+	    HTTrace("Write Socket WOULD BLOCK %d (offset %d)\n",soc, me->offset);
+	return HT_ERROR;
+    }
+
 #ifdef NOT_ASCII
     if (len && !me->ascbuf) {			      /* Generate new buffer */
 	const char *orig = buf;
@@ -126,7 +135,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	    {
 		HTHost_register(host, net, HTEvent_WRITE);
 		me->offset = wrtp - buf;
-		if (PROT_TRACE)
+		if (STREAM_TRACE)
 		    HTTrace("Write Socket WOULD BLOCK %d (offset %d)\n",soc, me->offset);
 		return HT_WOULD_BLOCK;
 #ifdef EINTR
@@ -135,15 +144,16 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		**	EINTR	A signal was caught during the  write  opera-
 		**		tion and no data was transferred.
 		*/
-		if (PROT_TRACE)
+		if (STREAM_TRACE)
 		    HTTrace("Write Socket call interruted - try again\n");
 		continue;
 #endif
 	    } else {
 #ifdef EPIPE
 		if (socerrno == EPIPE)
-		    if (PROT_TRACE) HTTrace("Write Socket got EPIPE\n");
+		    if (STREAM_TRACE) HTTrace("Write Socket got EPIPE\n");
 #endif /* EPIPE */
+		host->broken_pipe = YES;
 		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 					 "NETWRITE");
 		return HT_ERROR;
@@ -151,10 +161,10 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	}
 
 	/* We do this unconditionally, should we check to see if we ever blocked? */
-	HTTraceData(wrtp, b_write, "HTWriter.... Writing");
+	HTTraceData(wrtp, b_write, "Writing to socket %d", soc);
 	wrtp += b_write;
 	len -= b_write;
-	if (PROT_TRACE) HTTrace("Write Socket %d bytes written to %d\n", b_write, soc);
+	if (STREAM_TRACE) HTTrace("Write Socket %d bytes written to %d\n", b_write, soc);
 	{
 	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
 	    if (cbf) (*cbf)(net->request, HT_PROG_WRITE,
@@ -192,7 +202,7 @@ PRIVATE int HTWriter_put_string (HTOutputStream * me, const char * s)
 */
 PRIVATE int HTWriter_close (HTOutputStream * me)
 {
-    if (PROT_TRACE) HTTrace("Socket write FREEING....\n");
+    if (STREAM_TRACE) HTTrace("Socket write FREEING....\n");
     HT_FREE(me);
     return HT_OK;
 }

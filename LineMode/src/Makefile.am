@@ -3,10 +3,10 @@
 bin_PROGRAMS = www
 
 www_LDADD = \
-	../../Library/src/libwww.a ../../PICS-client/src/libpics.a -lm
+	../../Library/src/libwww.la ../../PICS-client/src/libpics.a -lm
 
 www_DEPENDENCIES = \
-	../../Library/src/libwww.a ../../PICS-client/src/libpics.a
+	../../Library/src/libwww.la ../../PICS-client/src/libpics.a
 
 SUBDIRS = windows vms
 

@@ -78,6 +78,7 @@ struct _HTHost {
     BOOL                do_recover;         /* If we are supposed to recover */
     int                 recovered;        /* How many times had we recovered */
     BOOL                close_notification;        /* Got a hint about close */
+    BOOL                broken_pipe;
 
     /* Support for transports */
     HTChannel *		channel;			     /* data channel */

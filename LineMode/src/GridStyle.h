@@ -8,9 +8,6 @@
 */
 /*
 
-   Styles allow the translation between a logical property of a piece of text and its
-   physical representation.
-   
    A StyleSheet is a collection of styles, defining the translation necessary to represent
    a document. It is a linked list of styles.
    
@@ -124,13 +121,8 @@ STYLE CREATION
 
   HtStyleModify
   
-   This routine is passed the style for a particular SGML nesting state, and the element
-   number of a new element whithin that state. The routine returns a suitable style for
-   text within the new element. It is passed a popinter tothe nesting state so that it can
-   link the style back to the nesting state for later manipulation of the SGML nesting
-   tree.
-   
  */
+
 extern HTStyle * HTStyleModify PARAMS((
                 HTStyle *       style,
                 HTNesting*      nesting,
@@ -178,7 +170,3 @@ extern HTStyleSheet * HTStyleSheetWrite PARAMS((HTStyleSheet * self,
 #endif /* NOT IN GRIDSTYLE */
 #endif /* GRIDSTYLE_H */
 
-
-/*
-
-   */

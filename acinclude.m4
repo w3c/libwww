@@ -624,16 +624,16 @@ AC_DEFUN(AC_STRUCT_DIRENT_INO,
   [ AC_TRY_COMPILE([#if HAVE_DIRENT_H
 #include <dirent.h>
 #else
-# define dirent direct
-# if HAVE_SYS_NDIR_H
-#  include <sys/ndir.h>
-# endif
-# if HAVE_SYS_DIR_H
-#  include <sys/dir.h>
-# endif
-# if HAVE_DIR_H
-#  include <ndir.h>
-# endif
+#define dirent direct
+#if HAVE_SYS_NDIR_H
+#include <sys/ndir.h>
+#endif
+#if HAVE_SYS_DIR_H
+#include <sys/dir.h>
+#endif
+#if HAVE_DIR_H
+#include <ndir.h>
+#endif
 #endif
 ],  [struct dirent foo; foo.d_ino;], 
     ac_cv_struct_dirent_ino=yes, ac_cv_struct_dirent_ino=no)])
@@ -646,15 +646,14 @@ AC_DEFUN(AC_STRUCT_DIRENT_INO,
 dnl AC_STRUCT_WINSIZE
 AC_DEFUN(AC_STRUCT_WINSIZE, 
 [ AC_CACHE_CHECK(for winsize structure, ac_cv_struct_winsize,
-  [ AC_TRY_COMPILE(
-    [ #ifdef HAVE_TERMIOS_H
-      #include <termios.h>
-      #else
-      #ifdef HAVE_SYS_IOCTL_H
-      #include <sys/ioctl.h>
-      #endif
-      #endif
-    ], [struct winsize foo;], 
+  [ AC_TRY_COMPILE([
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>
+#endif
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
+], [struct winsize foo;], 
     ac_cv_struct_winsize=yes, ac_cv_struct_winsize=no)])
   if test $ac_cv_struct_winsize = yes ; then
     AC_DEFINE(HAVE_WINSIZE)

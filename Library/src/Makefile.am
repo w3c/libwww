@@ -1,6 +1,7 @@
 ## Process this file with Automake to create Makefile.in.
 
-lib_LIBRARIES = libwww.a
+lib_LTLIBRARIES = libwww.la
+libwww_la_LDFLAGS = -version-info 1:0:1
 
 SUBDIRS = windows vms
 
@@ -16,7 +17,7 @@ CPPFLAGS := $(CPPFLAGS) -DW3C_ICONS=\"$(icondir)\"
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
-libwww_a_SOURCES = \
+libwww_la_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \
 	HTMethod.c 	HTProt.c 	HTCache.c \
 	HTReqMan.c 	HTDNS.c 	HTArray.c \
@@ -54,14 +55,15 @@ libwww_a_SOURCES = \
 	HTMuxCh.c	HTTimer.c	HTTrace.c \
 	HTMemLog.c
 
-libwww_a_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@
+libwww_la_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@
 
-EXTRA_libwww_a_SOURCES = \
+EXTRA_libwww_la_SOURCES = \
 	HTWAIS.c \
 	HTZip.c \
+	HTSQL.c \
 	HTSQLLog.c
 
-libwww_a_DEPENDENCIES = @HTWAIS@ @HTZLIB@ @HTSQL@
+libwww_la_DEPENDENCIES = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@
 
 INCLUDES = -I/usr/local/include
 
@@ -113,7 +115,7 @@ BUILT_SOURCES = wwwsys.h \
 	HTMux.h		HTDemux.h	HTMuxTx.h \
 	HTMuxCh.h 	HTHstMan.h	HTMemLog.h \
 	HTTimer.h	HTWAIS.h	HTZip.h \
-	HTSQLLog.h
+	HTSQL.h		HTSQLLog.h	HTextImp.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 

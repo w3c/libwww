@@ -2,10 +2,10 @@
 
 bin_PROGRAMS = webbot
 
-webbot_LDADD = ../../Library/src/libwww.a -lm
+webbot_LDADD = ../../Library/src/libwww.la -lm
 
 webbot_DEPENDENCIES = \
-	../../Library/src/libwww.a
+	../../Library/src/libwww.la
 
 SUBDIRS = windows
 
@@ -36,4 +36,5 @@ PURIFY_CACHE = @PURIFY_CACHE@
 purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(CC) $(LDFLAGS) -o purify $(webbot_OBJECTS) $(webbot_LDADD) $(LIBS)
+	$(CC) $(LDFLAGS) -o purify $(webbot_OBJECTS) \
+	../../Library/src/.libs/libwww.a -lm $(LIBS)

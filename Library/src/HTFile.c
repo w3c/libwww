@@ -541,8 +541,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		if (HTNet_preemptive(net)) {
 		    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
 		    if (!file->timer) {
-			ms_t exp = HTGetTimeInMillis() + 1;
-			file->timer = HTTimer_new(NULL, ReturnEvent, file, exp, NO);
+			file->timer = HTTimer_new(NULL, ReturnEvent, file, 1, YES, NO);
 		    }
 		    return HT_OK;
 		} else {

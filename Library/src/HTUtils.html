@@ -73,6 +73,7 @@ typedef enum _HTTraceFlags {
     SHOW_PICS_TRACE	= 0x1000,
     SHOW_CORE_TRACE	= 0x2000,
     SHOW_MUX_TRACE      = 0x4000,
+    SHOW_SQL_TRACE      = 0x8000,
     SHOW_ALL_TRACE	= 0xFFFFFFFF
 } HTTraceFlags;
 </PRE>
@@ -95,6 +96,7 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 #define PICS_TRACE	(WWWTRACE &amp; SHOW_PICS_TRACE)
 #define CORE_TRACE	(WWWTRACE &amp; SHOW_CORE_TRACE)
 #define MUX_TRACE	(WWWTRACE &amp; SHOW_MUX_TRACE)
+#define SQL_TRACE	(WWWTRACE &amp; SHOW_SQL_TRACE)
 </PRE>
 <H3>
   Destination for Trace Messages

@@ -81,9 +81,6 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
     int delay;
 
     if (me->read <= me->data) {
-#if 0
-	fprintf(stderr, "nothing to flush\n");
-#endif
 	return HT_OK;			/* nothing to flush */
     }
     /*
@@ -98,7 +95,7 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
     */
     if (!delay) {
 	int status;
-	if (PROT_TRACE) HTTrace("Buffer...... Flushing %p\n", me);
+	if (STREAM_TRACE) HTTrace("Buffer...... Flushing %p\n", me);
 	if ((status = HTBufferWriter_flush(me)) && me->timer) {
 	    HTTimer_delete(me->timer);
 	    me->timer = NULL;
@@ -108,14 +105,26 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
 
     /*
     **	Set a timer and tell the host we've done the write if
-    **  we have not already started a timer earlier.
+    **  we have not already started a timer earlier. If a timer
+    **  does already exist then make sure that it hasn't expired.
+    **  This can be the case if we have a really slow client that
+    **  can't parse the data fast enough.
     */
     if (!me->timer) {
-	ms_t exp = HTGetTimeInMillis() + delay;
 	net = HTHost_getWriteNet(me->host);
-	me->timer = HTTimer_new(NULL, FlushEvent, me, exp, NO);
+	me->timer = HTTimer_new(NULL, FlushEvent, me, delay, YES, NO);
 	HTHost_unregister(me->host, net, HTEvent_WRITE);
-	if (PROT_TRACE) HTTrace("Buffer...... Waiting %p\n", me);
+	if (STREAM_TRACE) HTTrace("Buffer...... Waiting %dms on %p\n", delay, me);
+    } else {
+	if (HTTimer_hasTimerExpired(me->timer)) {
+	    if (STREAM_TRACE)
+		HTTrace("Buffer...... Dispatching old timer %p\n", me->timer);
+	    HTTimer_dispatch(me->timer);
+	    me->timer = NULL;
+	} else {
+	    if (STREAM_TRACE)
+		HTTrace("Buffer...... Waiting on unexpired timer %p\n", me->timer);
+	}
     }
     return HT_OK;
 }
@@ -130,7 +139,7 @@ PRIVATE BOOL HTBufferWriter_addBuffer(HTOutputStream * me, int addthis)
     if (me) {
         me->allocated += (addthis - addthis%me->growby + (me->growby*me->expo));
 	me->expo *= 2;
-	if (PROT_TRACE) HTTrace("Buffer...... Increasing buffer to %d bytes\n", me->allocated);
+	if (STREAM_TRACE) HTTrace("Buffer...... Increasing buffer to %d bytes\n", me->allocated);
         if (me->data) {
             int size = me->read-me->data;
             if ((me->data = (char *) HT_REALLOC(me->data, me->allocated)) == NULL)
@@ -148,7 +157,7 @@ PRIVATE BOOL HTBufferWriter_addBuffer(HTOutputStream * me, int addthis)
 
 PRIVATE int HTBufferWriter_abort (HTOutputStream * me, HTList * e)
 {
-    if (PROT_TRACE) HTTrace("Buffer...... ABORTING...\n");
+    if (STREAM_TRACE) HTTrace("Buffer...... ABORTING...\n");
     if (me->target) (*me->target->isa->abort)(me->target, e);
     if (me->timer) {
 	HTTimer_delete(me->timer);
@@ -270,10 +279,10 @@ PUBLIC HTOutputStream * HTBufferWriter_new (HTHost * host, HTChannel * ch,
 		int status = getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF,
 					(void *) &tcpbufsize, &size);
 		if (status == -1) {
-		    if (PROT_TRACE)
+		    if (STREAM_TRACE)
 			HTTrace("Socket...... Could not get TCP send buffer size for socket %d\n", sockfd);
 		} else {
-		    if (PROT_TRACE) 		    
+		    if (STREAM_TRACE) 		    
 			HTTrace("Socket...... TCP send buffer size is %d for socket %d\n", tcpbufsize, sockfd);
 		}		
 	    }

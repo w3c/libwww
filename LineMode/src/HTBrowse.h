@@ -8,8 +8,7 @@
 */
 /*
 
-   This module defines the global variables etc. for the Line Mode Browser. The module is
-   implemented by HTBrowse.c, and it is a part of the Line Mode Browser.
+   HTBrowse.c, and it is a part of the Line Mode Browser.
    
  */
 #ifndef HTBROWSE_H
@@ -42,4 +41,4 @@ extern HTView * HTView_create(char* name, int rows, int cols, LineMode * pLm);
 extern BOOL HTView_destroy(HTView * pView);
 /*
 
-   End of HTBrowse Declaration*/
+   */

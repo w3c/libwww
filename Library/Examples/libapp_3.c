@@ -2,6 +2,10 @@
 #include "WWWStream.h"
 #include "WWWInit.h"
 
+#ifdef LIBWWW_SHARED
+#include "HTextImp.h"
+#endif
+
 /*
 **	Loads a URL and count the content length
 */

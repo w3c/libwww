@@ -26,6 +26,10 @@
 
 #include "HTLine.h"			     		 /* Implemented here */
 
+#ifdef LIBWWW_SHARED
+#include "HTextImp.h"
+#endif
+
 #ifndef W3C_VERSION
 #define W3C_VERSION		"unspecified"
 #endif

@@ -42,6 +42,7 @@
 #define HTTP_DUMP
 #ifdef HTTP_DUMP
 #define HTTP_OUTPUT     "w3chttp.out"
+PRIVATE FILE * htfp = NULL;
 #endif
 
 /* Type definitions and global variables etc. local to this module */
@@ -1041,10 +1042,10 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		
 #ifdef HTTP_DUMP
 		if (PROT_TRACE) {
-		    FILE * htfp = NULL;
-		    if ((htfp = fopen(HTTP_OUTPUT, "ab")) != NULL) {
+		    if (!htfp) htfp = fopen(HTTP_OUTPUT, "ab");
+		    if (htfp) {
 			output = (HTOutputStream *)
-			    HTTee((HTStream *) output, HTFWriter_new(request, htfp, NO), NULL);
+			    HTTee((HTStream *) output, HTFWriter_new(request, htfp, YES), NULL);
 			HTTrace("HTTP........ Dumping request to `%s\'\n", HTTP_OUTPUT);
 		    }
 		}	
@@ -1089,8 +1090,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			  int retrys = HTRequest_retrys(request);
 			  ms_t delay = retrys > 3 ? 3000 : 2000;
 			  if (!http->timer) {
-			      ms_t exp = HTGetTimeInMillis() + delay;
-			      http->timer = HTTimer_new(NULL, FlushPutEvent, http, exp, NO);
+			      http->timer = HTTimer_new(NULL, FlushPutEvent,
+							http, delay, YES, NO);
 			      if (PROT_TRACE)
 				  HTTrace("Uploading... Holding %p request for %lu ms\n",
 					  request, delay);
@@ -1170,8 +1171,11 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		  if (host == NULL) return HT_ERROR;
 		  HTRequest_setFlush(request, YES);
 		  HTHost_recoverPipe(host);
+#if 0
+		  /* Is handled from within HTHost_recoverPipe */
 		  http->state = HTTP_BEGIN;
 		  HTHost_launchPending(host);
+#endif
 		  return HT_OK;
 	      } else
 		  http->state = HTTP_OK;

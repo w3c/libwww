@@ -671,12 +671,14 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
             /* Sort after link relations */
 #ifdef HT_MYSQL
             if (mr->relfile || mr->sqllog) {
+#else
+            if (mr->relfile) {
+#endif
 		if (mr->relfile && SHOW_REAL_QUIET(mr))
 		    HTTrace("\tLogged link relationship distribution in file `%s\'\n",
 			    mr->relfile);
 		calculate_linkRelations(mr, array);
 	    }
-#endif
 
             /* Sort after modified date */
             if (mr->lmfile) {
@@ -1152,8 +1154,11 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	}
 
 #ifdef HT_POSIX_REGEX
-	/* Check for any regular expression */
-	if (match && mr->include) {
+	/*
+	**  Check for any regular expression. The include may override
+	**  the prefix matching
+	*/
+	if (mr->include) {
 	    match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
 	}
 	if (match && mr->exclude) {
@@ -1692,11 +1697,11 @@ int main (int argc, char ** argv)
 #ifdef HT_MYSQL
     if (mr->sqlserver) {
 	if ((mr->sqllog =
-	     HTSQLLog_connect(mr->sqlserver,
-			      mr->sqluser ? mr->sqluser : DEFAULT_SQL_USER,
-			      mr->sqlpw ? mr->sqlpw : DEFAULT_SQL_PW)) != NULL) {
-	    HTSQLLog_openDB(mr->sqllog, mr->sqldb ? mr->sqldb : DEFAULT_SQL_DB,
-			    mr->sqlflags);
+	     HTSQLLog_open(mr->sqlserver,
+			   mr->sqluser ? mr->sqluser : DEFAULT_SQL_USER,
+			   mr->sqlpw ? mr->sqlpw : DEFAULT_SQL_PW,
+			   mr->sqldb ? mr->sqldb : DEFAULT_SQL_DB,
+			   mr->sqlflags)) != NULL) {
 	    if (mr->sqlrelative) HTSQLLog_makeRelativeTo(mr->sqllog, mr->sqlrelative);
 	}
     }

@@ -32,6 +32,7 @@ What's wrong on our web site and where to find it :)
     <OPTION>Architecture
     <OPTION>ComLine
     <OPTION>DesignIssues
+    <OPTION>International
     <OPTION>Jigsaw
     <OPTION>Library
     <OPTION>LineMode

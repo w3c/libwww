@@ -8,8 +8,7 @@
 */
 /*
 
-   This module defines the HText functions referenced from the HTML module in the W3C
-   Sample Code Library.
+   W3C Sample Code Library.
    
  */
 #include "WWWLib.h"
@@ -43,10 +42,8 @@ extern int HText_getLines (HText * text);
 
 DELETE ALL DOCUMENTS IN MEMORY
 
-   This is typically called at clean up time just before exiting the application.
-   
  */
 extern BOOL HText_freeAll (void);
 /*
 
-   End of declaration */
+   */

@@ -644,6 +644,7 @@ PUBLIC HTAssocList * HTResponse_handOverHeader (HTResponse * me)
     if (me) {
 	headers = me->headers;
 	me->headers = NULL;
+	me->type_parameters = NULL;	/* @@@ */
     }
     return headers;
 }

@@ -1,3 +1,6 @@
+/* Define to enable linking libwww as shared library. */
+#undef LIBWWW_SHARED
+
 /* Define to enable direct WAIS access. */
 #undef HT_DIRECT_WAIS
 

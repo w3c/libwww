@@ -27,6 +27,7 @@ struct _HTTimer {
     ms_t	millis;		/* Relative value in millis */
     ms_t	expires;	/* Absolute value in millis */
     BOOL	relative;
+    BOOL	repetitive;
     void *	param;		/* Client supplied context */
     HTTimerCallback * cbf;
 };
@@ -105,7 +106,8 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 }
 
 PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
-			      void * param, ms_t millis, BOOL relative)
+			      void * param, ms_t millis, BOOL relative,
+			      BOOL repetitive)
 {
     HTList * last;
     HTList * cur;
@@ -145,8 +147,10 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	    HT_OUTOFMEM("HTTimer_new");
 	last = Timers;
 	if (THD_TRACE)
-	    HTTrace("Timer....... Created timer %p with callback %p, context %p, and %s timeout %d\n",
-		    timer, cbf, param, relative ? "relative" : "absolute", millis);
+	    HTTrace("Timer....... Created %s timer %p with callback %p, context %p, and %s timeout %d\n",
+		    repetitive ? "repetitive" : "one shot",
+		    timer, cbf, param,
+		    relative ? "relative" : "absolute", millis);
     }
 
     /*
@@ -166,6 +170,7 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     timer->param = param;
     timer->millis = millis;
     timer->relative = relative;
+    timer->repetitive = repetitive;
     SETME(timer);
 
     /*
@@ -198,9 +203,9 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 
 PUBLIC BOOL HTTimer_refresh (HTTimer * timer, ms_t now)
 {
-    if (timer == NULL || timer->relative == NO)
+    if (timer == NULL || timer->repetitive == NO)
 	return NO;
-    if (HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES) == NULL)
+    if (HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES, YES) == NULL)
 	return NO;
     return YES;
 }
@@ -232,8 +237,7 @@ PUBLIC BOOL HTTimer_deleteAll (void)
 PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
 {
     HTTimer * timer;
-    int ret;
-    BOOL relative;
+    int ret = HT_ERROR;
 
     timer = (HTTimer *)HTList_objectOf(cur);
     if (timer == NULL) {
@@ -241,20 +245,19 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
 	CLEARME(timer);
 	return HT_ERROR;
     }
-    relative = timer->relative;
-    if (relative)
-	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES);
+    if (timer->repetitive)
+	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES, YES);
     else
 	HTList_quickRemoveElement(cur, last);
     if (THD_TRACE) HTTrace("Timer....... Dispatch timer %p\n", timer);
     ret = (*timer->cbf) (timer, timer->param, HTEvent_TIMEOUT);
-    if (!relative) {
 
-	/*
-	**  Call any platform specific timer handler
-	*/
+    /*
+    ** If not repetitive then call any platform specific timer handler
+    ** and delete the timer
+    */
+    if (!timer->repetitive) {
 	if (DeletePlatformTimer) DeletePlatformTimer(timer);
-
 	HT_FREE(timer);
     }
     return ret;
@@ -268,6 +271,14 @@ PUBLIC int HTTimer_dispatch (HTTimer * timer)
 
     cur = HTList_elementOf(Timers, (void *)timer, &last);
     return Timer_dispatch(cur, last, now);
+}
+
+/*
+**  Check if the timer object has already expired
+*/
+PUBLIC BOOL HTTimer_hasTimerExpired (HTTimer * timer)
+{
+    return (timer && timer->expires <= HTGetTimeInMillis());
 }
 
 PUBLIC int HTTimer_next (ms_t * pSoonest)

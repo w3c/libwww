@@ -30,7 +30,7 @@
 #define TCP_TTL 		600L	     /* Timeout on a busy connection */
 #define TCP_IDLE_TTL 		60L	    /* Timeout on an idle connection */
 
-#define MAX_PIPES		100  /* maximum number of pipelined requests */
+#define MAX_PIPES		50   /* maximum number of pipelined requests */
 #define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
 #define DEFAULT_DELAY		30	  /* Default write flush delay in ms */
 
@@ -57,6 +57,8 @@ PRIVATE BOOL DoPendingReqLaunch = YES; /* controls automatic activation
 PRIVATE int EventTimeout = -1;		        /* Global Host event timeout */
 
 PRIVATE ms_t WriteDelay = DEFAULT_DELAY;		      /* Delay in ms */
+
+PRIVATE int MaxPipelinedRequests = MAX_PIPES;
 
 /* ------------------------------------------------------------------------- */
 
@@ -475,7 +477,6 @@ PUBLIC int HTHost_reqsMade (HTHost * host)
     return host ? host->reqsMade : -1;
 }
 
-
 /*
 **	Public methods for this host
 */
@@ -717,13 +718,14 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 	    host->persistent = NO;
 	}
 	host->close_notification = NO;
+	host->broken_pipe = NO;
        	host->mode = HT_TP_SINGLE;
 
 	if (CORE_TRACE) HTTrace("Host info... removed host %p as persistent\n", host);
 
 	if (!HTList_isEmpty(host->pending)) {
 	    if (CORE_TRACE)
-		HTTrace("Host has %d object pending - attempting launch\n", HTList_count(host->pending));
+		HTTrace("Host has %d object(s) pending - attempting launch\n", HTList_count(host->pending));
 	    HTHost_launchPending(host);
 	}
 	return YES;
@@ -857,14 +859,14 @@ PRIVATE BOOL _roomInPipe (HTHost * host)
     int count;
     if (!host ||
 	(host->reqsPerConnection && host->reqsMade >= host->reqsPerConnection) ||
-	HTHost_closeNotification(host))
+	HTHost_closeNotification(host) || host->broken_pipe)
 	return NO;
     count = HTList_count(host->pipeline);
     switch (host->mode) {
     case HT_TP_SINGLE:
 	return count <= 0;
     case HT_TP_PIPELINE:
-	return count < MAX_PIPES;
+	return count < MaxPipelinedRequests;
     case HT_TP_INTERLEAVE:
 	return YES;
     }
@@ -895,34 +897,39 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	    status = HT_PENDING;
 	}
 
+#if 0
 	/*
-	 * First check whether the net object is already on either queue.
-	 * Do NOT add extra copies of the HTNet object to
-	 * the pipeline or pending list (if it's already on the list).
-	 */
-	if (HTList_indexOf(host->pipeline, net) >= 0)
-	  {
-           if (CORE_TRACE)
-	     HTTrace("Host info... The Net %p (request %p) is already on pipe,"
-		     " %d requests made, %d requests in pipe, %d pending\n",
-		     net, net->request, host->reqsMade,
-		     HTList_count(host->pipeline),
-		     HTList_count(host->pending));
+	** First check whether the net object is already on either queue.
+	** Do NOT add extra copies of the HTNet object to
+	** the pipeline or pending list (if it's already on the list).
+	*/
+	if (HTList_indexOf(host->pipeline, net) >= 0) {
+	    if (CORE_TRACE)
+		HTTrace("Host info... The Net %p (request %p) is already in pipe,"
+			" %d requests made, %d requests in pipe, %d pending\n",
+			net, net->request, host->reqsMade,
+			HTList_count(host->pipeline),
+			HTList_count(host->pending));
+	    HTDebugBreak(__FILE__, __LINE__,
+			 "Net object %p registered multiple times in pipeline\n",
+			 net);
+	    return HT_OK;
+	}
 
-	   return HT_OK;
-	  }
+	if (HTList_indexOf(host->pending,  net) >= 0) {
+	    if (CORE_TRACE)
+		HTTrace("Host info... The Net %p (request %p) already pending,"
+			" %d requests made, %d requests in pipe, %d pending\n",
+			net, net->request, host->reqsMade,
+			HTList_count(host->pipeline),
+			HTList_count(host->pending));
+	    HTDebugBreak(__FILE__, __LINE__,
+			 "Net object %p registered multiple times in pending queue\n",
+			 net);
 
-	if (HTList_indexOf(host->pending,  net) >= 0)
-	  {
-	   if (CORE_TRACE)
-	     HTTrace("Host info... The Net %p (request %p) already pending,"
-		     " %d requests made, %d requests in pipe, %d pending\n",
-		     net, net->request, host->reqsMade,
-		     HTList_count(host->pipeline),
-		     HTList_count(host->pending));
-
-	   return HT_PENDING;
-	  }
+	    return HT_PENDING;
+	}
+#endif
 
 	/*
 	**  Add net object to either active or pending queue.
@@ -1011,7 +1018,8 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
                 **  connection if idle too long
                 */
                 if (HTHost_isIdle(host) && HTList_isEmpty(host->pending) && !host->timer) {
-                    host->timer = HTTimer_new(NULL, TimeoutEvent, host, TCP_IDLE_TTL, YES);
+                    host->timer = HTTimer_new(NULL, TimeoutEvent,
+					      host, TCP_IDLE_TTL, YES, YES);
                     if (PROT_TRACE) HTTrace("Host........ Object %p going idle...\n", host);
                 }
             }
@@ -1187,7 +1195,7 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
     if (!host) {
 	HTProtocol * protocol = HTNet_protocol(net);
 	if ((host = HTHost_newWParse(request, url, HTProtocol_id(protocol))) == NULL)
-	    return NO;
+	    return HT_ERROR;
 	if (!host->channel) {
 	    host->forceWriteFlush = YES;
 	    host->lock = net;
@@ -1296,6 +1304,9 @@ PUBLIC BOOL HTHost_setRemainingRead (HTHost * host, size_t remaining)
     if (host == NULL) return NO;
     host->remainingRead = remaining;
     if (PROT_TRACE) HTTrace("Host........ %d bytes remaining \n", remaining);
+    if (host->broken_pipe && remaining == 0) {
+	if (PROT_TRACE) HTTrace("Host........ Emtied out connection\n");
+    }
     return YES;
 }
 
@@ -1527,35 +1538,45 @@ PUBLIC void HTHost_setEventTimeout (int millis)
     if (CORE_TRACE) HTTrace("Host........ Setting event timeout to %d ms\n", millis);
 }
 
-
-PUBLIC void HTHost_setActivateRequestCallback (HTHost_ActivateRequestCallback *
-cbf)
+PUBLIC BOOL HTHost_setMaxPipelinedRequests (int max)
 {
-    if (CORE_TRACE) HTTrace("HTHost....... registering %p\n", cbf);
+    if (max > 1) {
+	MaxPipelinedRequests = max;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC int HTHost_maxPipelinedRequests (void)
+{
+    return MaxPipelinedRequests;
+}
+
+PUBLIC void HTHost_setActivateRequestCallback (HTHost_ActivateRequestCallback * cbf)
+{
+    if (CORE_TRACE) HTTrace("HTHost...... Registering %p\n", cbf);
     ActivateReqCBF = cbf;
 }
 
-PRIVATE int HTHost_ActivateRequest (HTNet *net)
+PRIVATE int HTHost_ActivateRequest (HTNet * net)
 {
-  HTRequest *request;
-
-  if (!ActivateReqCBF) {
-    if (CORE_TRACE) HTTrace("HTHost....... No ActivateRequest "
-                            "callback handler registered\n");
-    return -1;
-  }
-
-  request = HTNet_request (net);
-  return (*ActivateReqCBF) (request);
+    HTRequest * request = NULL;
+    if (!ActivateReqCBF) {
+	if (CORE_TRACE)
+	    HTTrace("HTHost...... No ActivateRequest callback handler registered\n");
+	return HT_ERROR;
+    }
+    request = HTNet_request(net);
+    return (*ActivateReqCBF)(request);
 }
 
 PUBLIC void HTHost_disable_PendingReqLaunch (void)
 {
-  DoPendingReqLaunch = NO;
+    DoPendingReqLaunch = NO;
 }
 
 PUBLIC void HTHost_enable_PendingReqLaunch (void)
 {
-  DoPendingReqLaunch = YES;
+    DoPendingReqLaunch = YES;
 }
 

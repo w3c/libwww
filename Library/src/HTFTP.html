@@ -66,6 +66,23 @@ extern FTPTransferMode HTFTP_transferMode (void);
 extern void HTFTP_setTransferMode (FTPTransferMode mode);
 </PRE>
 
+<H2>
+  Global Control Mode
+</H2>
+
+Can be used to set the default control modes for various FTP settings
+like always aski for user name and password, etc.
+
+<PRE>
+typedef enum _FTPControlMode {
+    FTP_DEFAULT_CONTROL_MODE   = 0,
+    FTP_ALWAYS_ASK_UID_PW      = 1
+} FTPControlMode;
+
+extern FTPControlMode HTFTP_controlMode (void);
+extern void HTFTP_setControlMode (FTPControlMode mode);
+</PRE>
+
 <PRE>
 #endif
 </PRE>

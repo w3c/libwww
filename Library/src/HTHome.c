@@ -235,6 +235,7 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	    case 's': WWWTRACE |= SHOW_STREAM_TRACE; 	break;
 	    case 'p': WWWTRACE |= SHOW_PROTOCOL_TRACE; 	break;
 	    case 'm': WWWTRACE |= SHOW_MEM_TRACE; 	break;
+	    case 'q': WWWTRACE |= SHOW_SQL_TRACE; 	break;
 	    case 'u': WWWTRACE |= SHOW_URI_TRACE; 	break;
 	    case 'h': WWWTRACE |= SHOW_AUTH_TRACE; 	break;
 	    case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; 	break;

@@ -62,7 +62,7 @@ PUBLIC int HTMemLog_open (char * logName, size_t size, BOOL keepOpen)
     LogLen = 0;
 #endif /* !USE_SYSLOG */
     HTTraceData_setCallback(HTMemLog_callback);
-    Timer = HTTimer_new(NULL, MemLogTimeout, NULL, 10000, YES);
+    Timer = HTTimer_new(NULL, MemLogTimeout, NULL, 10000, YES, YES);
     return HT_OK;
 }
 

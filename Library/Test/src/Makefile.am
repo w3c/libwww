@@ -10,11 +10,11 @@ tclinclude = @tclinclude@
 
 w3clib_LDADD = \
 	$(libtcl) \
-	../../src/libwww.a -lm
+	../../src/libwww.la -lm
 
 w3clib_DEPENDENCIES = \
 	$(libtcl) \
-	../../src/libwww.a
+	../../src/libwww.la
 
 #	For easier use - NOT THE DEFAULT!
 AUTOMAKE_OPTIONS = foreign

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Library Alert Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
 </HEAD>
 <BODY>
 <H1>
@@ -181,6 +181,14 @@ Unregister a call back function from a list
 extern BOOL HTAlertCall_delete (HTList * list, HTAlertCallback * cbf);
 </PRE>
 <H3>
+  Delete all Callbacks With this Opcode
+</H3>
+<P>
+Unregister all handlers registered for a given opcode.
+<PRE>
+extern BOOL HTAlertCall_deleteOpcode (HTList * list, HTAlertOpcode opcode);
+</PRE>
+<H3>
   Delete a list of Callback Functions
 </H3>
 <P>
@@ -238,19 +246,45 @@ extern BOOL HTAlert_setReplyOutput	(HTAlertPar * me, void * output);
 </H2>
 <P>
 A list can be assigned as being active in which case it is <I>visible</I>
-for libwww. The Library does not know about inactive lists of methods.
+for libwww by assigning the list as the <I>global alert list</I>. Libwww
+does not know about inactive lists of alert handlers.
 <PRE>
 extern void HTAlert_setGlobal	(HTList * list);
 extern HTList * HTAlert_global	(void);
 </PRE>
+<H3>
+  Global Alert List Methods
+</H3>
 <P>
-You can also assign a callback directly to the global list. In this case
-you do not need to worry about creating the list - it will be created
-automatically.
+You can assign a callback directly to the global list in which case it becomes
+immediately available to libwww. In this case you do not need to worry about
+creating the list - it will be created as well as deleted automatically.
+<H4>
+  Add an Alert Handler
+</H4>
 <PRE>
-extern BOOL HTAlert_add	      (HTAlertCallback * cbf, HTAlertOpcode opcode);
-extern BOOL HTAlert_delete    (HTAlertCallback * cbf);
+extern BOOL HTAlert_add	(HTAlertCallback * cbf, HTAlertOpcode opcode);
+</PRE>
+<H4>
+  Delete an Alert Handler
+</H4>
+<P>
+You can either delete a handler by referring to its address or to the opcode
+that it has been registered for.
+<PRE>
+extern BOOL HTAlert_delete (HTAlertCallback * cbf);
+extern BOOL HTAlert_deleteOpcode (HTAlertOpcode opcode);
+</PRE>
+<H4>
+  Delete all Alert Handlers
+</H4>
+<PRE>
 extern BOOL HTAlert_deleteAll (void);
+</PRE>
+<H4>
+  Find an Alert Handler
+</H4>
+<PRE>
 extern HTAlertCallback * HTAlert_find (HTAlertOpcode opcode);
 </PRE>
 <PRE>

@@ -35,6 +35,7 @@ Select the area that you are interested in.<P>
     <OPTION>Architecture
     <OPTION>ComLine
     <OPTION>DesignIssues
+    <OPTION>International
     <OPTION>Jigsaw
     <OPTION>Library
     <OPTION>LineMode
@@ -98,6 +99,7 @@ Select the area that you are interested in.<P>
     <OPTION>Architecture
     <OPTION>ComLine
     <OPTION>DesignIssues
+    <OPTION>International
     <OPTION>Jigsaw
     <OPTION>Library
     <OPTION>LineMode
@@ -161,6 +163,7 @@ Select the area that you are interested in.<P>
     <OPTION>Architecture
     <OPTION>ComLine
     <OPTION>DesignIssues
+    <OPTION>International
     <OPTION>Jigsaw
     <OPTION>Library
     <OPTION>LineMode
@@ -225,6 +228,7 @@ Select the area that you are interested in.<P>
     <OPTION>Architecture
     <OPTION>ComLine
     <OPTION>DesignIssues
+    <OPTION>International
     <OPTION>Jigsaw
     <OPTION>Library
     <OPTION>LineMode

@@ -389,7 +389,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
 */
 PRIVATE void scrsize (int * p_height, int * p_width)
 {
-#if defined(HAVE_IOCTL) && defined(HAVE_WINSIZE)
+#if defined(HAVE_IOCTL) && defined(HAVE_WINSIZE) && defined(TIOCGWINSZ)
     register char *s;
     /* int ioctl(); - henrik */
     struct winsize w;
@@ -1637,7 +1637,7 @@ int main (int argc, char ** argv)
     HTProfile_newClient(APP_NAME, APP_VERSION);
     
     /* It's confusing to have progress notofications in linemode browser */
-    HTAlert_delete(HTProgress);
+    HTAlert_deleteOpcode(HT_A_PROGRESS);
 
     /* Add the default HTML parser to the set of converters */
     {

@@ -54,7 +54,7 @@ PRIVATE void scan (char * name, HTURI * parts)
 	** Look for any whitespace. This is very bad for pipelining as it
 	** makes the request invalid
 	*/
-	if (isspace(*p)) {
+	if (isspace((int) *p)) {
 	    char *orig=p, *dest=p+1;
 	    while ((*orig++ = *dest++));
 	    p = p-1;
