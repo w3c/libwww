@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -817,6 +817,28 @@ version can come from the local disk cache.
     HTReload reload;
 </PRE>
 
+<H5><A NAME="z9">Context Swapping</A></H5>
+
+In multi threaded applications it is often required to keep track of
+the context of a request so that when the Library returns a result of
+a request, it can be put into the context it was in before the request
+was first passed to the Library. This call back function allows the
+application to do this.
+
+<PRE>
+    BOOL (*callback) PARAMS((struct _HTRequest* request, void *param));
+</PRE>
+
+A function to be called back in the event that a file has been saved
+to disk by HTSaveAndCallBack for example.
+
+<PRE>
+    void *	context;
+</PRE>
+
+An arbitrary pointer passed to HTAccess and passed back as a parameter
+to the <A NAME="z10" HREF="#z9">callback</A>.
+
 <H5>Other Flags</H5>
 
 <PRE>
@@ -829,21 +851,6 @@ registered as using non-blocking IO, <CODE>reload</CODE> will
 cancel any cached element, and <CODE>ContentNegotioation</CODE> will
 force content negotiation when looking for a local file. This is the
 default!
-
-<PRE>
-    BOOL (*<A NAME="z9"> callback</A> ) PARAMS((struct _HTRequest* request,
-						void *param));
-</PRE>
-
-A function to be called back in the event that a file has been saved
-to disk by HTSaveAndCallBack for example.
-
-<PRE>
-    void *	context;
-</PRE>
-
-An arbitrary pointer passed to HTAccess and passed back as a parameter
-to the <A NAME="z10" HREF="#z9">callback</A>.
 
 <H4>Library Dependent - Set by Library</H4>
 

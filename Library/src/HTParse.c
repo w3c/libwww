@@ -530,7 +530,7 @@ PUBLIC BOOL HTCleanTelnetString ARGS1(char *, str)
     if (!str) return NO;
 
     while (*cur) {
-	int a = TOASCII(*cur);
+	int a = TOASCII((unsigned char) *cur);
 	if (a != 0x9 && (a < 0x20 || (a > 0x7E && a < 0xA0) ||  a > 0xFE)) {
 	    if (URI_TRACE)
 		fprintf(TDEST, "Illegal..... character in URL: \"%s\"\n",str);

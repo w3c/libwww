@@ -330,7 +330,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     HTStream* me;
     
     if (HTSecure) {
-        HTAlert("Can't save data to file -- please run WWW locally");
+        HTAlert(request, "Can't save data to file -- please run WWW locally");
 	return HTBlackHole();
     }
     
@@ -346,7 +346,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 			    suffix);
 	FREE(suffix);
 	if (!fnam) {
-	    HTAlert("Can't find a suitable file name");
+	    HTAlert(request, "Can't find a suitable file name");
 	    return HTBlackHole();
 	}
     }
@@ -357,7 +357,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     me->request = request;	/* won't be freed */    
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
-	HTAlert("Can't open temporary file!");
+	HTAlert(request, "Can't open temporary file!");
         free(fnam);
 	free(me);
 	return HTBlackHole();
@@ -397,7 +397,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     HTStream* me;
     
     if (HTSecure) {
-        HTAlert("Can't save data to file -- please run WWW locally");
+        HTAlert(request, "Can't save data to file -- please run WWW locally");
 	return HTBlackHole();
     }
 
@@ -411,7 +411,8 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 	char *suffix = HTBind_getSuffix(request->anchor);
 	fnam = get_filename(HTTmpRoot, HTAnchor_physical(request->anchor),
 			    suffix);
-	answer = HTPrompt("Give name of file to save in", fnam ? fnam : "");
+	answer = HTPrompt(request, "Give name of file to save in",
+			  fnam ? fnam : "");
 	if (!answer) {
 	    FREE(fnam);
 	    return HTBlackHole();
@@ -427,7 +428,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     
     me->fp = fopen (answer, "w");
     if (!me->fp) {
-	HTAlert("Can't open local file to write into.");
+	HTAlert(request, "Can't open local file to write into.");
         FREE(answer);
 	free(me);
 	return HTBlackHole();

@@ -145,7 +145,7 @@ PRIVATE BOOL initialize NOARGS
 	    sprintf(message, 
 	    "HTNews: Can't find news host `%s'.\n%s",HTNewsHost,
 	    "Please define your NNTP server");
-	    HTAlert(message);
+/*	    HTAlert(message); */
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTNews: Can't find news host `%s'.\n",HTNewsHost);
 	    return NO;  /* Fail */

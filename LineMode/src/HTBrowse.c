@@ -78,13 +78,14 @@
 #define REF_MARK		"[%d]"
 #define END_MARK		"[END]"
 
-#define SCREEN_WIDTH		79  /* Default width of the screen */ 
+#define SCREEN_WIDTH		79  	      /* Default width of the screen */
 #define MIN_SCREEN_WIDTH	10 
 #define MAX_SCREEN_WIDTH	150	 
-#define SCREEN_HEIGHT		24 /* Default number of lines to the screen */
+#define SCREEN_HEIGHT		24 		  /* Default number of lines */
 #define MIN_SCREEN_HEIGHT	5 
 #define MAX_SCREEN_HEIGHT	200	 
-#define MAX_HISTORY		20
+
+#define MAX_HISTORY		20	/* Don't list more than this in list */
 
 #define ADDRESS_LENGTH		512	   /* Maximum address length of node */
 #define RESPONSE_LENGTH		1024     /* Maximum length of users response */
@@ -136,7 +137,11 @@ PRIVATE FILE *	        output = stdout;	   /* Destination for output */
 
 /* History Management */
 PRIVATE HTHistory *	hist = NULL;			     /* History list */
-PRIVATE HTHistState	hist_state;			 /* State of history */
+
+/* Context Swapping */
+typedef struct _HTContext {
+    HTHistState	history;				 /* State of history */
+} HTContext;
 
 #ifdef VMS
 #ifdef __DECC
@@ -153,6 +158,30 @@ PUBLIC char *HTSearchScript;
 /*				THREAD FUNCTIONS			     */
 /* ------------------------------------------------------------------------- */
 
+/*  Create a new context structure
+**  ------------------------------
+**  Creates a new context structure for keeping track of the context related
+**  to a specific request.
+*/
+PRIVATE HTContext *HTContext_new NOARGS
+{
+    HTContext *me = (HTContext *) calloc(1, sizeof (HTContext));
+    if (!me) outofmem(__FILE__, "HTContext_new");
+    me->history = HT_HIST_UPDATE;		      /* Add to history list */
+    return me;
+}
+
+/*  Delete a context structure
+**  --------------------------
+**  Creates a new context structure for keeping track of the context related
+**  to a specific request.
+*/
+PRIVATE BOOL HTContext_delete ARGS1(HTContext *, old)
+{
+    FREE(old);
+    return YES;
+}
+
 /*
 **  This function creates a new request structure and adds it to the global
 **  list of active threads
@@ -160,12 +189,10 @@ PUBLIC char *HTSearchScript;
 PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
 {
     HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
-    if (!reqlist)
-	reqlist = HTList_new();
-    
+    if (!reqlist) reqlist = HTList_new();
+    newreq->context = HTContext_new();		      /* Context for request */
     if (Interactive)
 	HTPresenterInit(newreq->conversions);		/* Set up local list */
-
     if (Blocking)
 	newreq->BlockingIO = YES;			 /* Use blocking I/O */
     HTList_addObject(reqlist, (void *) newreq);
@@ -180,6 +207,7 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
 PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
 {
     if (oldreq) {
+	HTContext_delete((HTContext *) oldreq->context);
 	if (reqlist)
 	    HTList_removeObject(reqlist, (void *) oldreq);
 	HTRequest_delete(oldreq);
@@ -382,8 +410,8 @@ PRIVATE int Upload ARGS2(HTRequest *, req, HTMethod, method)
     char *this_addr = HTAnchor_address((HTAnchor*) HTMainAnchor);
     char *sc, *de;
     int status = HT_INTERNAL;
-    if ((sc = HTPrompt("Source:", this_addr)) != NULL &&
-	(de = HTPrompt("Destination:", NULL)) != NULL) {
+    if ((sc = HTPrompt(req, "Source:", this_addr)) != NULL &&
+	(de = HTPrompt(req, "Destination:", NULL)) != NULL) {
 	BOOL confirm = YES;
 	char *fd=HTParse(HTStrip(de), this_addr,
 			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
@@ -400,7 +428,7 @@ PRIVATE int Upload ARGS2(HTRequest *, req, HTMethod, method)
 	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
 		    HTMethod_name(HTAnchor_linkMethod(link)),
 		    HTAnchor_linkResult(link));
-	    confirm = HTConfirm(msg);
+	    confirm = HTConfirm(req, msg);
 	    free(msg);
 	} else
 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
@@ -494,7 +522,6 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 
     if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
 	return EVENT_QUIT;				      /* Exit if EOF */
-    hist_state = HT_HIST_UPDATE;		      /* Add to history list */
     
     StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
     if (the_choice[strlen(the_choice)-1] == '\n')            /* The final \n */
@@ -550,7 +577,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	if (CHECK_INPUT("BACK", token)) {	  /* Return to previous node */
 	    if (HTHistory_canBacktrack(hist)) {
 		req = Thread_new(YES);
-		hist_state = HT_HIST_NO_UPDATE;
+		((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
 		loadstat = HTLoadAnchor(HTHistory_back(hist), req);
 	    } else {
 		printf("\nThis is the first document in history list\n");
@@ -605,7 +632,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	} else if (CHECK_INPUT("FORWARD", token)) {
 	    if (HTHistory_canForward(hist)) {
 		req = Thread_new(YES);
-		hist_state = HT_HIST_NO_UPDATE;
+		((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
 		loadstat = HTLoadAnchor(HTHistory_forward(hist), req);
 	    } else {
 		printf("\nThis is the last document in history list.\n");
@@ -640,7 +667,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 		HText_scrollTop(HTMainText);
 	    } else {
 		req = Thread_new(YES);
-		hist_state = HT_HIST_NO_UPDATE;
+		((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
 		loadstat = HTLoadAnchor(HTHistory_find(hist, 1), req);
 	    }
 	} else
@@ -768,7 +795,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 		    int cnt;
 		    if ((cnt = atoi(next_word)) > 0) {
 			req = Thread_new(YES);
-			hist_state = HT_HIST_NO_UPDATE;
+			((HTContext *)req->context)->history=HT_HIST_NO_UPDATE;
 			loadstat = HTLoadAnchor(HTHistory_find(hist,cnt), req);
 		    } else {
 			if (SHOW_MSG)
@@ -784,7 +811,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	} else if (CHECK_INPUT("RELOAD", token)) {
 	    req = Thread_new(YES);
 	    req->reload = HT_FORCE_RELOAD;	/* Force full reload */
-	    hist_state = HT_HIST_NO_UPDATE;
+	    ((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
 	    loadstat = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	} else
 	    found = NO;
@@ -914,7 +941,7 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
     if (status == HT_LOADED) {
 
 	/* Record new history if we have not moved around in the old one */
-	if (hist_state != HT_HIST_NO_UPDATE)
+	if (((HTContext *) actreq->context)->history != HT_HIST_NO_UPDATE)
 	    HTHistory_replace(hist, (HTAnchor *) HTMainAnchor);
 
 	/* Now generate the new prompt line as a function of the result */
@@ -966,8 +993,9 @@ int main ARGS2(int, argc, char **, argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
-    /* Create the first request structure used for the first request */
+    /* Create the first request structure and the first context structure */
     request =  HTRequest_new();
+    
 
     for (arg=1; arg<argc ; arg++) {	   /* Check for command line options */
 	if (*argv[arg] == '-') {

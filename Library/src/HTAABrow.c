@@ -617,7 +617,7 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
 	    sprintf(msg, "%s %s `%s'",
 		    "This client doesn't know how to compose authentication",
 		    "information for scheme", HTAAScheme_name(req->scheme));
-	    HTAlert(msg);
+	    HTAlert(req, msg);
 	    auth_string = NULL;
 	}
     } /* switch scheme */
@@ -668,17 +668,18 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
 PUBLIC BOOL HTPasswordDialog ARGS1(HTRequest *,	req)
 {
     if (!req || !req->setup || !req->realm || !req->dialog_msg) {
-	HTAlert("HTPasswordDialog() called with an illegal parameter");
+	if (PROT_TRACE)
+	    fprintf(TDEST, "Access...... called with an illegal parameter");
 	return NO;
     }
     if (req->setup->reprompt &&
-	HTConfirm("Authorization failed. Retry?") != YES) {
+	HTConfirm(req, "Authorization failed. Retry?") != YES) {
 	return NO;
     } else {
 	char *username = req->realm->username;
 	char *password = NULL;
 
-	HTPromptUsernameAndPassword(req->dialog_msg, &username, &password);
+	HTPromptUsernameAndPassword(req,req->dialog_msg, &username, &password);
 
 	if (req->realm->username) free(req->realm->username);
 	if (req->realm->password) free(req->realm->password);
@@ -777,7 +778,7 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS1(HTRequest *,	req)
 	    server = HTAAServer_new(hostname, portnumber);
 	}
 	else {
-	    HTAlert("Access without authorization denied -- retrying");
+	    HTAlert(req, "Access without authorization denied -- retrying");
 	}
 
 	if (!req->prot_template)

@@ -729,7 +729,7 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 		if (HTExpMode != HT_EXPIRES_IGNORE) {
 		    if (!HTCache_isValid(request->anchor)) {
 			if (HTExpMode == HT_EXPIRES_NOTIFY)
-			    HTAlert(HTExpNotify);
+			    HTAlert(request, HTExpNotify);
 			else {
 			    use_object = NO;
 			    if (PROT_TRACE)
@@ -1192,7 +1192,7 @@ PUBLIC int HTUploadAnchor ARGS3(HTAnchor *,		src_anchor,
     if (!(dest_anchor->methods & dest_req->method)) {
 	char buf[80];
 	sprintf(buf, "It might not be allowed to %s to this destination, continue?", HTMethod_name(dest_req->method));
-	if (!HTConfirm(buf))
+	if (!HTConfirm(dest_req, buf))
 	    return HT_ERROR;
     }
 

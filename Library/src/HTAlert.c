@@ -33,13 +33,13 @@ PUBLIC BOOL HTPrompt_interactive NOARGS
     return HTInteractive;
 }
 
-PUBLIC void HTProgress ARGS1(CONST char *, Msg)
+PUBLIC void HTProgress ARGS2(HTRequest *, request, CONST char *, Msg)
 {
     fprintf(TDEST, "   %s ...\n", Msg ? Msg : "UNKNWON");
 }
 
 
-PUBLIC void HTAlert ARGS1(CONST char *, Msg)
+PUBLIC void HTAlert ARGS2(HTRequest *, request, CONST char *, Msg)
 {
 #ifdef NeXTStep
     NXRunAlertPanel(NULL, "%s", NULL, NULL, NULL, Msg);
@@ -48,7 +48,7 @@ PUBLIC void HTAlert ARGS1(CONST char *, Msg)
 #endif
 }
 
-PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
+PUBLIC BOOL HTConfirm ARGS2(HTRequest *, request, CONST char *, Msg)
 {
   char Reply[4];	/* One more for terminating NULL -- AL */
   char *URep;
@@ -79,7 +79,8 @@ PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
 /*	Prompt for answer and get text back. Reply text is either NULL on
 **	error or a dynamic string which the caller must free.
 */
-PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
+PUBLIC char * HTPrompt ARGS3(HTRequest *, request, CONST char *, Msg,
+			     CONST char *, deflt)
 {
     char buffer[200];
     char *reply = NULL;
@@ -105,7 +106,7 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
 /*	Prompt for password without echoing the reply. Reply text is
 **	either NULL on error or a dynamic string which the caller must free.
 */
-PUBLIC char * HTPromptPassword ARGS1(CONST char *, Msg)
+PUBLIC char * HTPromptPassword ARGS2(HTRequest *, request, CONST char *, Msg)
 {
     char *reply = NULL;
     if (HTInteractive) {
@@ -138,13 +139,14 @@ PUBLIC char * HTPromptPassword ARGS1(CONST char *, Msg)
 **	are NOT freed.
 **	
 */
-PUBLIC void HTPromptUsernameAndPassword ARGS3(CONST char *,	Msg,
+PUBLIC void HTPromptUsernameAndPassword ARGS4(HTRequest *,	request,
+					      CONST char *,	Msg,
 					      char **,		username,
 					      char **,		password)
 {
     fprintf(TDEST, "%s\n", Msg ? Msg : "UNKNOWN");
-    *username = HTPrompt("Username:", *username);
-    *password = HTPromptPassword("Password: ");
+    *username = HTPrompt(request, "Username:", *username);
+    *password = HTPromptPassword(request, "Password: ");
 }
 
 
@@ -257,7 +259,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
     HTChunkPutc(chunk,  '\n');
     HTChunkTerminate(chunk);
     if (HTChunkSize(chunk) > 2)
-	HTAlert(HTChunkData(chunk));
+	HTAlert(request, HTChunkData(chunk));
     HTChunkFree(chunk);
     return;
 }

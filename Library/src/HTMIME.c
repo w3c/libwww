@@ -461,7 +461,7 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    time_t cur = time(NULL);
 	    if (anchor->expires>0 && cur>0 && anchor->expires<cur) {
 		if (expire_mode == HT_EXPIRES_NOTIFY)
-		    HTAlert(msg);
+		    HTAlert(request, msg);
 		else if (request->reloads < HTAccess_maxReload()-1) {
 		    if (PROT_TRACE)
 			fprintf(TDEST, "MIMEParser.. Expired - auto reload\n");

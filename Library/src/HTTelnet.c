@@ -68,7 +68,7 @@ PRIVATE void make_system_secure ARGS1(char *, str)
 /*	Telnet or "rlogin" access
 **	-------------------------
 */
-PRIVATE int remote_session ARGS1(char *, url)
+PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 {
     int status = HT_NO_DATA;
     HTChunk *cmd = HTChunkCreate(64);
@@ -121,7 +121,7 @@ PRIVATE int remote_session ARGS1(char *, url)
 		HTChunkPuts(msg, passwd);
 	    }
 	}
-	HTAlert(msg->data);
+	HTAlert(request, msg->data);
 	HTChunkFree(msg);
 	free(access);
 	free(host);
@@ -230,7 +230,7 @@ PRIVATE int remote_session ARGS1(char *, url)
 	    HTChunkPuts(msg, passwd);
 	    HTChunkPutc(msg, '>');
 	}
-	HTAlert(msg->data);
+	HTAlert(request, msg->data);
 	HTChunkFree(msg);
     }
     system(cmd->data);
@@ -260,12 +260,12 @@ PRIVATE int HTLoadTelnet ARGS1(HTRequest *, request)
 
     /* We must be in interactive mode */
     if (!HTPrompt_interactive()) {
-        HTAlert("Can't output a live session -- it has to be interactive");
+        HTAlert(request, "Can't output live session, it must be interactive");
 	return HT_ERROR;
     }
     url = HTAnchor_physical(request->anchor);
     HTCleanTelnetString(url);
-    return remote_session(url);
+    return remote_session(request, url);
 }
 
 

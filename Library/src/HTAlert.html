@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -66,7 +66,7 @@ passed as a parameter. If the user reacts in the affirmative, returns
 <EM>TRUE</EM>, returns <EM>FALSE</EM> otherwise.
 
 <PRE>
-extern BOOL HTConfirm	PARAMS((CONST char * Msg));
+extern BOOL HTConfirm	PARAMS((HTRequest *request, CONST char * Msg));
 </PRE>
 
 <H3>Prompt the User a Question</H3>
@@ -75,7 +75,8 @@ Prompt for answer and get text back. Reply text is either NULL on
 error or a dynamic string which the caller must free.
 
 <PRE>		
-extern char * HTPrompt PARAMS((CONST char * Msg, CONST char * deflt));
+extern char * HTPrompt	PARAMS((HTRequest *request, CONST char * Msg,
+				CONST char * deflt));
 </PRE>
 
 <H3>Prompt for a Password</H3>
@@ -87,7 +88,7 @@ NULL on error or a dynamic string which the caller must free. <P>
 systems returns a string of 8 or 16 bytes.
 
 <PRE>
-extern char * HTPromptPassword PARAMS((CONST char * Msg));
+extern char * HTPromptPassword PARAMS((HTRequest *request, CONST char * Msg));
 </PRE>
 
 <H3>Prompt for a UserID and a Password</H3>
@@ -97,7 +98,8 @@ This is just a composite function using <EM>HTPrompt</EM> and
 caller.
 
 <PRE>
-extern void HTPromptUsernameAndPassword PARAMS((CONST char *	Msg,
+extern void HTPromptUsernameAndPassword PARAMS((HTRequest *request,
+						CONST char *	Msg,
 						char **		username,
 						char **		password));
 </PRE>
@@ -112,7 +114,7 @@ no response form the user.
 This function simply puts out the message passed.
 
 <PRE>
-extern void HTAlert PARAMS((CONST char * Msg));
+extern void HTAlert	PARAMS((HTRequest *request, CONST char * Msg));
 </PRE>
 
 <H3>Display a Status Message on what's going on</H3>
@@ -121,7 +123,7 @@ This function can be used to indicate the current status of a certain
 action.
 
 <PRE>
-extern void HTProgress PARAMS((CONST char * Msg));
+extern void HTProgress	PARAMS((HTRequest *request, CONST char * Msg));
 </PRE>
 
 <H3>Generating an Error Message of a request</H3>
@@ -138,7 +140,7 @@ set to YES. This indicates that it is NOT possible any more to use the
 stream as output for the message.
 
 <PRE>
-extern void HTErrorMsg    PARAMS((HTRequest * request));
+extern void HTErrorMsg	PARAMS((HTRequest * request));
 
 #endif
 </PRE>

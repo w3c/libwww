@@ -1633,7 +1633,8 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 		StrAllocCat(prompt, "@");
 		StrAllocCat(prompt, ctrl->user->domain);
 		StrAllocCat(prompt, ": ");
-		if ((ctrl->user->passwd = HTPromptPassword(prompt)) == NULL) {
+		if ((ctrl->user->passwd =
+		     HTPromptPassword(ctrl->request, prompt)) == NULL) {
 		    state = P_ERROR;
 		    free(prompt);
 		    break;
@@ -1677,7 +1678,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 		StrAllocCat(prompt, ctrl->user->domain);
 		StrAllocCat(prompt, "@");
 		StrAllocCat(prompt, ctrl->user->id);
-		if ((account = HTPrompt(prompt, NULL)) != NULL &&
+		if ((account = HTPrompt(ctrl->request,prompt, NULL)) != NULL &&
 		    !HTFTP_send_cmd(ctrl, "ACCT", account)) {
 		    state = SENT_ACCOUNT;
 		} else {
@@ -1706,8 +1707,9 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 		StrAllocCat(prompt, ctrl->user->domain);
 		FREE(ctrl->user->id);
 		FREE(ctrl->user->passwd);
-		HTPromptUsernameAndPassword(prompt, &ctrl->user->id,
-					     &ctrl->user->passwd);
+		HTPromptUsernameAndPassword(ctrl->request, prompt,
+					    &ctrl->user->id,
+					    &ctrl->user->passwd);
 		if (ctrl->user->id && ctrl->user->passwd &&
 		    !HTFTP_send_cmd(ctrl, "USER", ctrl->user->id))
 		    state = SENT_UID;

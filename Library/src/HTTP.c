@@ -212,7 +212,8 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
 	break;
 	
       case 303:							   /* Method */
-	HTAlert("This client doesn't support automatic redirection of type `Method'");
+	HTAlert(me->request,
+		"This client doesn't support automatic redirection of type `Method'");
 	me->http->next = HTTP_ERROR;
 	break;
 
@@ -685,7 +686,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 				HTRequest_isDestination(request) ?
 				"destination" : "source", request->redirect,
 				HTMethod_name(request->method));
-			if (HTConfirm(msg)) {
+			if (HTConfirm(request, msg)) {
 			    free(msg);
 
 			    /* The new anchor inherits the Post Web */

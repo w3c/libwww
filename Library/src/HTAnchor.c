@@ -929,7 +929,7 @@ PUBLIC void HTAnchor_setExpires ARGS2(HTParentAnchor *, me,
 /*
 **	Last Modified
 */
-PUBLIC void HTAnchor_setLastModofied ARGS2(HTParentAnchor *, me,
+PUBLIC void HTAnchor_setLastModified ARGS2(HTParentAnchor *, me,
 					   CONST time_t *, lm)
 {
     if (me) me->last_modified = *lm;
