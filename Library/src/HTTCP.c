@@ -155,7 +155,7 @@ PUBLIC unsigned int HTCardinal (int *		pstatus,
 /*	       		        SIGNAL HANDLING 			     */
 /* ------------------------------------------------------------------------- */
 
-#ifdef WWWLIB_SIG
+#if defined(WWWLIB_SIG) || defined(WWW_WIN_DLL)
 /*								    HTSetSignal
 **  This function sets up signal handlers. This might not be necessary to
 **  call if the application has its own handlers.
@@ -977,7 +977,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 				    
 #ifdef WWW_WIN_ASYNC
 		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
-		    rv = WSAAsyncSelect(net->sockfd, request->hwnd, 
+		    rv = WSAAsyncSelect(net->sockfd, net->request->hwnd, 
 					net->request->winMsg, levents);
 		    if (rv == SOCKET_ERROR) {
 			status = -1 ;

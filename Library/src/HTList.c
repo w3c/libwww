@@ -70,9 +70,9 @@ PUBLIC BOOL HTList_removeObject (HTList *  me, void *  oldObject)
 	while (me->next) {
 	    previous = me;
 	    me = me->next;
-	    if (me->object == oldObject) { /* HWL: sigbus error */
+	    if (me->object == oldObject) {
 		previous->next = me->next;
-		free (me);
+		FREE(me);
 		return YES;	/* Success */
 	    }
 	}

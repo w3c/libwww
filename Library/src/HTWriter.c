@@ -211,10 +211,10 @@ PUBLIC HTStream* HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size)
 /*	Subclass-specific Methods
 **	-------------------------
 */
-#ifdef NOT_ASCII
-PUBLIC HTStream* HTASCIIWriter (HTNet *net, BOOL leave_open)
+#if defined (NOT_ASCII) || defined (WWW_WIN_DLL)
+PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
 {
-    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
+    HTStream * me = (HTStream *) calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTASCIIWriter_new");
     me->isa = &HTWriter;       
     me->leave_open = leave_open;

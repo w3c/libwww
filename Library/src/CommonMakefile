@@ -163,8 +163,9 @@ SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
-	$(EXP)/*.c
+	$(WIN)/Makefile \
 	$(WIN)/*.pl \
+	$(EXP)/*.c
 	$(WIN)/*.mak \
 	$(WIN)/*.def \
 	$(WIN)/*.c \
