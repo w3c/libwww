@@ -27,7 +27,7 @@ etc. The main topics of functions in this module are:
 
 This module is implemented by <A HREF="HTTCP.c">HTTCP.c</A>, and it is
 a part of the <A
-HREF="http://www.w3.org/hypertext/WWW/Library/">
+HREF="http://www.w3.org/pub/WWW/Library/">
 W3C Reference Library</A>.
 
 <PRE>
@@ -46,7 +46,7 @@ This makes an active connect to the specified host. The <A
 HREF="HTAccess.html#HTNetInfo">HTNetInfo structure</A> is parsed in
 order to handle errors. Default port might be overwritten by any port
 indication in the <A
-HREF="http://www.w3.org/hypertext/WWW/Addressing/URL/Overview.html">URL</A>
+HREF="http://www.w3.org/pub/WWW/Addressing/URL/Overview.html">URL</A>
 specified as &lt;host&gt;:&lt;port&gt; If it is a multihomed host then
 HTDoConnect measures the time to do the connection and updates the
 calculated weights in the cache of visited hosts.
@@ -259,7 +259,7 @@ extern CONST char * HTGetMailAddress NOPARAMS;
 <H3>Set User Mail Address</H3>
 
 This function overwrites any other value of current mail address. This might
-be set by the user to change the value in the  <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A> in the <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTTP2.html">HTTP Protocol</A>.
+be set by the user to change the value in the  <A HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A> in the <A HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTTP2.html">HTTP Protocol</A>.
 
 <PRE>
 extern void HTSetMailAddress PARAMS((char * address));

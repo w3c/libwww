@@ -19,12 +19,12 @@ sockets currently in use by the multithreaded clients. It is an
 internal module to the Library, the application interface is
 implemented in the <A HREF="HTEvntrg.html">Event Module</A>. Look for
 more information in the <A
-HREF="http://www.w3.org/hypertext/WWW/Library/User/Architecture/Threads.html">
+HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/Threads.html">
 Multithread Specifications</A>. <P>
 
 This module is implemented by <A HREF="HTThread.c">HTThread.c</A>, and
 it is a part of the <A NAME="z10"
-HREF="http://www.w3.org/hypertext/WWW/Library/">
+HREF="http://www.w3.org/pub/WWW/Library/">
 W3C Reference Library</A>.
 
 <PRE>
@@ -43,7 +43,7 @@ extern BOOL HTThreadInit	NOPARAMS;
 </PRE>
 
 <IMG ALT="NOTE"
-SRC="http://www.w3.org/hypertext/WWW/Icons/32x32/caution.gif"> It is
+SRC="http://www.w3.org/pub/WWW/Icons/32x32/caution.gif"> It is
 <B>VERY</B> important that this one is called before the first
 request, as otherwise the socket bit arrays are uninitialized.
 
