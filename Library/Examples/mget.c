@@ -42,7 +42,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
     /* Check for status */
-    HTTrace("Load %d resulted in status %d\n", remaining, status);
+    HTPrint("Load %d resulted in status %d\n", remaining, status);
 	
     /* We are done with this request */
     HTRequest_delete(request);
@@ -77,7 +77,7 @@ int main (int argc, char ** argv)
 
     /* Turn on tracing */
 #if 0
-    HTSetTraceMessageMask("op");
+    HTSetTraceMessageMask("sop");
 #endif
 
     /* Handle command line args */
