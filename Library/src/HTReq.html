@@ -1012,7 +1012,7 @@ extern char * HTRequest_proxy     (HTRequest * request);
 extern BOOL HTRequest_deleteProxy (HTRequest * request);
 </PRE>
 <H2>
-  Bytes Read or Written in a Request
+  Enity Bytes Read or Written in a Request
 </H2>
 <P>
 This function returns the bytes read in the current request. For a deeper
@@ -1021,8 +1021,16 @@ This function can be used in for example the <A HREF="HTAlert.html">HTAlert
 module</A> to give the number of bytes read or written in a progress message.
 <PRE>
 extern long HTRequest_bodyRead (HTRequest * request);
+extern long HTRequest_bodyWritten (HTRequest * request);
+</PRE>
+
+You can also get the total number of bytes read or written including the headers
+
+<PRE>
+extern long HTRequest_bytesRead (HTRequest * request);
 extern long HTRequest_bytesWritten (HTRequest * request);
 </PRE>
+
 <H2>
   Internal Request Objects
 </H2>

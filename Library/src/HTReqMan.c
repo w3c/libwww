@@ -1226,7 +1226,23 @@ PUBLIC BOOL HTRequest_outputConnected (HTRequest * me)
 */
 PUBLIC long HTRequest_bodyRead(HTRequest * me)
 {
-    return me ? HTNet_bytesRead(me->net) - HTNet_headerLength(me->net) : -1;
+    return me ? HTNet_bytesRead(me->net) - HTNet_headerBytesRead(me->net) : -1;
+}
+
+/*
+**	Bytes written in this request
+*/
+PUBLIC long HTRequest_bodyWritten(HTRequest * me)
+{
+    return me ? HTNet_bytesWritten(me->net) - HTNet_headerBytesWritten(me->net) : -1;
+}
+
+/*
+**	Total Bytes read in this request
+*/
+PUBLIC long HTRequest_bytesRead (HTRequest * me)
+{
+    return me ? HTNet_bytesRead(me->net) : -1;
 }
 
 /*
