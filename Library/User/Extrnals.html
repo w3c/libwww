@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Sample Code Library libwww external symbol list</TITLE>
+  <TITLE>W3C Reference Library libwww external symbol list</TITLE>
 </HEAD>
 <BODY>
 <H1>
@@ -104,6 +104,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_md5</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_parent</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_physical</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_removeEncoding</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setAge</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setAllow</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setBase</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -222,6 +223,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTChannl.html">HTChannel_input</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_new</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_output</A>
+  <LI><A HREF="./../src/HTChannl.html">HTChannel_setFile</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_setHost</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_setInput</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_setOutput</A>
@@ -421,9 +423,12 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_class</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_clearChannel</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_connect</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_decreaseRetry</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_defaultWriteDelay</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_deleteNet</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_eventTimeout</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_find</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_findWriteDelay</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_firstNet</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_forceFlush</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_free</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -434,7 +439,6 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_getWriteNet</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_hash</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_home</A> --- <A HREF="#WWWCore">WWWCore</A>
-  <LI><A HREF="./../src/HTHost.html">HTHost_isIdle</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isIdle</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isPersistent</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isRangeUnitAcceptable</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -451,13 +455,16 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_publicMethods</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_rangeUnits</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_read</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_recoverPipe</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_register</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsMade</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsPerConnection</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_retry</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_server</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setChannel</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setClass</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setConsumed</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setDefaultWriteDelay</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setEventTimeout</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setHome</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setMode</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -469,9 +476,11 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_setRemainingRead</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setReqsMade</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setReqsPerConnection</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setRetry</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setServer</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setUserAgent</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setVersion</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setWriteDelay</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_tickleFirstNet</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_unregister</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_userAgent</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -584,11 +593,11 @@ The functions are sorted by
   <LI><A HREF="./../src/HText.html">HTMainAnchor</A>
   <LI><A HREF="./../src/HText.html">HTMainText</A>
   <LI><A HREF="./../src/HTWAIS.html">HTMaxWAISLines</A> --- <A HREF="#WWWWAIS">WWWWAIS</A>
-  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_add</A>
-  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_callback</A>
-  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_close</A>
-  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_flush</A>
-  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_open</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_add</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_callback</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_close</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_flush</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_open</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTFilter.html">HTMemoryCacheFilter</A> --- <A HREF="#WWWApp">WWWApp</A>
   <LI><A HREF="./../src/HTMemory.html#Memory">HTMemoryCall_add</A> --- <A HREF="#WWWUtil">WWWUtil</A>
   <LI><A HREF="./../src/HTMemory.html#Memory">HTMemoryCall_delete</A> --- <A HREF="#WWWUtil">WWWUtil</A>
@@ -661,7 +670,10 @@ The functions are sorted by
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_deleteBefore</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_dns</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_dup</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTNet.html#Global">HTNet_event</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_eventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_eventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_eventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_eventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_eventPriority</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_execute</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -669,7 +681,6 @@ The functions are sorted by
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_executeBeforeAll</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_getInput</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_getOutput</A> --- <A HREF="#WWWCore">WWWCore</A>
-  <LI><A HREF="./../src/HTNet.html#Global">HTNet_home</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_host</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_idle</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_idle</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -685,6 +696,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_newServer</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_pendingQueue</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_persistent</A> --- <A HREF="#WWWCore">WWWCore</A>
+  <LI><A HREF="./../src/HTNet.html#Global">HTNet_preemptive</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_priority</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_protocol</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_readStream</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -695,6 +707,8 @@ The functions are sorted by
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_setContext</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_setDns</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventPriority</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_setHost</A> --- <A HREF="#WWWCore">WWWCore</A>
@@ -1033,6 +1047,8 @@ The functions are sorted by
   <LI><A HREF="./../src/HTTPReq.html">HTTPRequest_new</A> --- <A HREF="#WWWHTTP">WWWHTTP</A>
   <LI><A HREF="./../src/HTTPRes.html">HTTPResponse_new</A> --- <A HREF="#WWWHTTP">WWWHTTP</A>
   <LI><A HREF="./../src/HTTP.html">HTTPStatus_new</A> --- <A HREF="#WWWHTTP">WWWHTTP</A>
+  <LI><A HREF="./../src/HTTP.html">HTTP_connectionMode</A> --- <A HREF="#WWWHTTP">WWWHTTP</A>
+  <LI><A HREF="./../src/HTTP.html">HTTP_setConnectionMode</A> --- <A HREF="#WWWHTTP">WWWHTTP</A>
   <LI><A HREF="./../src/HTTee.html">HTTee</A> --- <A HREF="#WWWStream">WWWStream</A>
   <LI><A HREF="./../src/HTFormat.html#type">HTThroughLine</A> --- <A HREF="#WWWCore">WWWCore</A>
   <LI><A HREF="./../src/HTTimer.html">HTTimer_delete</A>
@@ -1367,6 +1383,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_md5</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_parent</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_physical</A>
+  <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_removeEncoding</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setAge</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setAllow</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setBase</A>
@@ -1488,9 +1505,12 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_class</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_clearChannel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_connect</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_decreaseRetry</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_defaultWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_deleteNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_eventTimeout</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_find</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_findWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_firstNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_forceFlush</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_free</A>
@@ -1501,7 +1521,6 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_getWriteNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_hash</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_home</A>
-  <LI><A HREF="./../src/HTHost.html">HTHost_isIdle</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isIdle</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isPersistent</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isRangeUnitAcceptable</A>
@@ -1518,13 +1537,16 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_publicMethods</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_rangeUnits</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_read</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_recoverPipe</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_register</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsMade</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsPerConnection</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_retry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_server</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setChannel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setClass</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setConsumed</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setDefaultWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setEventTimeout</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setHome</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setMode</A>
@@ -1536,9 +1558,11 @@ The functions are sorted by
   <LI><A HREF="./../src/HTHost.html">HTHost_setRemainingRead</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setReqsMade</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setReqsPerConnection</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setRetry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setServer</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setUserAgent</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setVersion</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_tickleFirstNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_unregister</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_userAgent</A>
@@ -1572,6 +1596,11 @@ The functions are sorted by
   <LI><A HREF="./../src/HTLink.html">HTLink_setType</A>
   <LI><A HREF="./../src/HTLink.html">HTLink_type</A>
   <LI><A HREF="./../src/HTReq.html">HTLoad</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_add</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_callback</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_close</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_flush</A>
+  <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_open</A>
   <LI><A HREF="./../src/HTMethod.html">HTMethod_enum</A>
   <LI><A HREF="./../src/HTMethod.html">HTMethod_name</A>
   <LI><A HREF="./../src/HTNet.html#callout">HTNetCall_addAfter</A>
@@ -1602,12 +1631,12 @@ The functions are sorted by
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_deleteBefore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_dns</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_dup</A>
+  <LI><A HREF="./../src/HTNet.html#Global">HTNet_event</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_execute</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_executeAfterAll</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_executeBeforeAll</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_getInput</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_getOutput</A>
-  <LI><A HREF="./../src/HTNet.html#Global">HTNet_home</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_host</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_idle</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_idle</A>
@@ -1623,6 +1652,7 @@ The functions are sorted by
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_newServer</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_pendingQueue</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_persistent</A>
+  <LI><A HREF="./../src/HTNet.html#Global">HTNet_preemptive</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_priority</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_protocol</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_readStream</A>
@@ -1915,6 +1945,8 @@ The functions are sorted by
   <LI><A HREF="./../src/HTTPReq.html">HTTPRequest_new</A>
   <LI><A HREF="./../src/HTTPRes.html">HTTPResponse_new</A>
   <LI><A HREF="./../src/HTTP.html">HTTPStatus_new</A>
+  <LI><A HREF="./../src/HTTP.html">HTTP_connectionMode</A>
+  <LI><A HREF="./../src/HTTP.html">HTTP_setConnectionMode</A>
 </UL>
 <P>
 <A NAME="WWWInit"><A HREF="./../src/WWWInit.html"><H3>WWWInit</H3></A></A>
@@ -2296,6 +2328,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_md5</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_parent</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_physical</A>
+  <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_removeEncoding</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setAge</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setAllow</A>
   <LI><A HREF="./../src/HTAnchor.html#links">HTAnchor_setBase</A>
@@ -2462,6 +2495,7 @@ from the <A HREF="#WWWCache">WWWCache</A> module
   <LI><A HREF="./../src/HTChannl.html">HTChannel_input</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_new</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_output</A>
+  <LI><A HREF="./../src/HTChannl.html">HTChannel_setFile</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_setHost</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_setInput</A>
   <LI><A HREF="./../src/HTChannl.html">HTChannel_setOutput</A>
@@ -2818,9 +2852,12 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTHost.html">HTHost_class</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_clearChannel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_connect</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_decreaseRetry</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_defaultWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_deleteNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_eventTimeout</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_find</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_findWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_firstNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_forceFlush</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_free</A>
@@ -2831,7 +2868,6 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTHost.html">HTHost_getWriteNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_hash</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_home</A>
-  <LI><A HREF="./../src/HTHost.html">HTHost_isIdle</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isIdle</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isPersistent</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_isRangeUnitAcceptable</A>
@@ -2848,13 +2884,16 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTHost.html">HTHost_publicMethods</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_rangeUnits</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_read</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_recoverPipe</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_register</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsMade</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_reqsPerConnection</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_retry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_server</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setChannel</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setClass</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setConsumed</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setDefaultWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setEventTimeout</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setHome</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setMode</A>
@@ -2866,9 +2905,11 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTHost.html">HTHost_setRemainingRead</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setReqsMade</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setReqsPerConnection</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setRetry</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setServer</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setUserAgent</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_setVersion</A>
+  <LI><A HREF="./../src/HTHost.html">HTHost_setWriteDelay</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_tickleFirstNet</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_unregister</A>
   <LI><A HREF="./../src/HTHost.html">HTHost_userAgent</A>
@@ -3091,6 +3132,7 @@ from the <A HREF="#WWWHTML">WWWHTML</A> module
 </UL>
 <P>
 <A NAME="HTMemLog.html"><H3>HTMemLog.html</H3></A>
+from the <A HREF="#WWWCore">WWWCore</A> module
 
 <UL>
   <LI><A HREF="./../src/HTMemLog.html#all">HTMemLog_add</A>
@@ -3236,12 +3278,12 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_deleteBefore</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_dns</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_dup</A>
+  <LI><A HREF="./../src/HTNet.html#Global">HTNet_event</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_execute</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_executeAfterAll</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_executeBeforeAll</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_getInput</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_getOutput</A>
-  <LI><A HREF="./../src/HTNet.html#Global">HTNet_home</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_host</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_idle</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_idle</A>
@@ -3257,6 +3299,7 @@ from the <A HREF="#WWWCore">WWWCore</A> module
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_newServer</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_pendingQueue</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_persistent</A>
+  <LI><A HREF="./../src/HTNet.html#Global">HTNet_preemptive</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_priority</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_protocol</A>
   <LI><A HREF="./../src/HTNet.html#Global">HTNet_readStream</A>
@@ -3284,9 +3327,13 @@ from the <A HREF="#WWWCore">WWWCore</A> module
 
 <UL>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_eventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_eventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_eventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_eventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_eventPriority</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventCallback</A>
+  <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventParam</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_setEventPriority</A>
   <LI><A HREF="./../src/HTNetMan.html">HTNet_socket</A>
@@ -3718,6 +3765,8 @@ from the <A HREF="#WWWHTTP">WWWHTTP</A> module
 <UL>
   <LI><A HREF="./../src/HTTP.html">HTLoadHTTP</A>
   <LI><A HREF="./../src/HTTP.html">HTTPStatus_new</A>
+  <LI><A HREF="./../src/HTTP.html">HTTP_connectionMode</A>
+  <LI><A HREF="./../src/HTTP.html">HTTP_setConnectionMode</A>
 </UL>
 <P>
 <A NAME="HTTPGen.html"><H3>HTTPGen.html</H3></A>
