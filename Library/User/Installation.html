@@ -1,0 +1,112 @@
+<HTML>
+<HEAD>
+<TITLE>Installation Guide for W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Jul-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../"><IMG ALT="LIB" SRC="../../Icons/WWW/Lib48x.gif"></A>
+
+<H1>Installation Guide</H1>
+
+This section describes how to install <A HREF="../">W3C Reference
+Library</A> called "libwww".
+
+<H2>Getting the Library</H2>
+
+The latest version of the sorce code is available in the following
+formats:
+
+<UL>
+<LI><A HREF="../../../Dist/src/WWWLibrary.tar.Z">compressed tar file</A>
+<LI><A HREF="../../../Dist/src/WWWLibrary.tar.gz">gzip'ed tar file</A>
+<LI><A HREF="../../../Dist/src/WWWLibrary.zip">zip file</A>
+</UL>
+
+from our <A HREF="../../../Dist">Destribution archives</A>.<P>
+
+<H2>Unpacking</H2>
+
+Unpacking the destributions file depends on which source destribution
+file you got (compressed tar file, gzip'ed tar file, or a zip
+file).
+
+<H3>compressed tar file</H3>
+
+<PRE>
+        uncompress WWWLibrary.tar.Z
+        tar xvf WWWLibrary.tar
+</PRE>
+
+<H3>gzip'ed tar file</H3>
+
+<PRE>
+        gunzip WWWLibrary.tar.gz
+        tar xvf WWWLibrary.tar
+</PRE>
+
+<H3>zip file</H3>
+
+<PRE>
+        unzip WWWLibrary.zip
+</PRE>
+
+<H2>Compilation</H2>
+
+Compilation on most platforms is done using the <A
+HREF="Platform/Porting.html">BUILD script</A> which figures out what
+platform you are using. However, there are special instructions for
+installation on <A
+HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">VMS</A>
+and <A HREF="../../README-WinNT">Windows NT</A>. <P>
+
+If you have build earlier versions of the W3C software and you already
+have a <CODE>WWW</CODE> directory then it is <EM>very</EM> important
+that you do the following:
+
+<PRE>
+	cd WWW
+	make clobber
+	./BUILD library
+</PRE>
+
+in order to make sure that all new code is built. If not then go to
+newly-created <CODE>WWW</CODE> directory, and type:
+
+<PRE>
+        ./BUILD library
+</PRE>
+
+If you encounter problems during compilation or your don't have the
+compiler which the <EM>BUILD</EM> script uses then then please read
+the section on <A HREF="Platform/Porting.html">how to modify the
+<EM>BUILD</EM> script</A>. <P>
+
+The compiled Library, called "libwww" appears in the directory
+
+<PRE>
+	../WWW/Library/&lt;your.platform&gt;
+</PRE>
+
+As an example, in case your platform is SunOs, the directory is
+"sun4".
+
+<H2>Further Reading</H2>
+
+Now you are ready to start using the Library! You can get more
+information on the Library by reading the documentation:
+
+<UL>
+<LI><A HREF="Architecture/">Libwww Architecture</A> - the <B>Overview</B>
+<LI><A HREF="Using/" NAME="z62">User's Guide</A> - the <B>API</B>
+<LI><A HREF="Guide/" NAME="z62">Internals and Programmer's Guide</A> - the <B>Details</B>
+</UL>
+
+Have fun!
+
+<P>
+<HR>
+<ADDRESS><A HREF="../../People.html#Frystyk">Henrik Frystyk</A>, July 1995</ADDRESS>
+</BODY>
+</HTML>
