@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Platforms supported by the Library, HTTP Server and Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1995 -->
 <NEXTID N="z10">
 </HEAD>
 
@@ -19,8 +19,8 @@ HREF="../../">W3C Reference Library</A>, the <A
 HREF="../../../Daemon/">HTTP Server</A>, and the <A
 HREF="../../../LineMode/">Line Mode Browser</A> are known to
 compile. The Server and Line Mode Browser are both available in <A
-HREF="../../../../Dist/bin">precompiled binaries</A> for all the platforms marked
-<CODE>binary=YES</CODE>. <P>
+HREF="../../../../Dist/bin">precompiled binaries</A> for all the
+platforms marked <CODE>binary=YES</CODE>. <P>
 
 Thanks a lot to the big group of creative contributors for the long
 list of hints, patches and additions to the make files and system
@@ -28,38 +28,42 @@ dependent code! <P>
 
 <IMG SRC="../../../Icons/32x32/caution.gif" ALT="NOTE"> If your
 platform is <EM>not</EM> mentioned below then have a look at how to <A
-HREF="Porting.html">port the source code to your platform</A>.
+HREF="Porting.html">port the source code to your platform</A>. You can
+also have a look at the <A
+HREF="http://www.yahoo.com/Computers/Operating_Systems/">YAHOO
+overview of operating systems</A>. <P>
 
 <PRE>
 Platform	OS		Version	       Binary	Note
 <HR>
-* NeXT		NeXTStep	3.2		YES
-* NeXT-386	NeXTStep	3.2		YES
-* Sun		<A HREF="SunOS.html">SunOS</A>		4.1.3		YES	Includes a resolver and a <A HREF="../../../../Products/WAIS/Overview.html">WAIS</A> version
-* Sun		<A HREF="Solaris.html">Solaris</A>		2.3		YES	Includes a <A HREF="../../../../Products/WAIS/Overview.html">WAIS</A> version
-* HP		<A HREF="HP.html">HP-UX/Snake</A>	9.0		YES
-* SGI		IRIX		5.2		YES
-* DEC		ULTRIX		4.3		YES
 * IBM		AIX		3.2		YES
-* DEC		<A HREF="OSF.html">OSF/1</A>		2.0/3.0		YES
-* PC		Linux		1.2.8		YES	Includes a <A HREF="../../../../Products/WAIS/Overview.html">WAIS</A> version
+* HP		HP-UX/Snake	9.0		YES	<A HREF="HP.html">Shared Libraries, UserID, and GroupID</A>
+* SGI		IRIX		5.2		YES
+* PC		Linux		1.2.10		YES
+* PC		NetBSD		-		NO
+* NeXT, PC, HP	NeXTSTEP	3.3		YES
+* DEC		OSF/1		3.0		YES	<A HREF="OSF.html">Integration into inetd</A>
+* Sun		Solaris		2.3		YES	<A HREF="Solaris.html">TCP Optimizations</A>
+* Sun		SunOS		4.1.3		YES	<A HREF="SunOS.html">DNS Resolution using resolver</A>
+* DEC		ULTRIX		4.3		YES
+* PC		Windows NT	-		NO	<A HREF="WindowsNT.html">Available for Library and Line Mode</A>
 
-  Apple		A/UX		3.1		NO
-  Pyramid	DC/OSx		1.1		NO
-  NCR 3000	NCR		2.01.01		NO
-  Amdahl UTS	UTS		2.1 and 4.2	NO
-  Unisys	Unisys		SVR4		NO
-  Intergraph	<A HREF="Clipper.html">Clipper</A>		C300/C400	YES
-
-  DEC		<A HREF="http://delonline.cern.ch/DISK$USER/duns/doc/vms/distribution.html">VMS</A>					Independent Distribution
-
-  PC		<A HREF="http://www.freebsd.org/">FreeBSD</A>		?		NO
-  PC		<A HREF="http://www.bsdi.com">BSDI BSD/386</A>	?		NO
   PC		DELL		SVR4.0 Rev 2	NO
-  PC		<A HREF="SCO.html">SCO</A>		3.0/3.2		YES
+  PC		FreeBSD		-		NO
+  PC		BSDI BSD/386	-		NO
+  PC		SCO		3.0/3.2		YES	<A HREF="SCO.html">Port provided by SCO</A>
 
-  PC		<A HREF="Windows.html">Windows</A>		3.1		NO	For testing
-  PC		<A HREF="WindowsNT.html">Windows NT</A>			NO	For testing
+  PC		Windows		3.1		NO	<A HREF="Windows.html">For testing only</A>
+
+  Amdahl UTS	UTS		2.1 and 4.2	NO
+  Apple		A/UX		3.1		NO
+  Intergraph	Clipper		C300/C400	YES
+  NCR 3000	NCR		2.01.01		NO
+  Pyramid	DC/OSx		1.1		NO
+  Unisys	Unisys		SVR4		NO
+
+  DEC		VMS		-		-	<A HREF="http://delonline.cern.ch/DISK$USER/duns/doc/vms/distribution.html">Independent Distribution</A>
+
 <HR>
 </PRE>
 
@@ -72,11 +76,8 @@ distribution.<P>
 If you have any additional information on other platforms, or problems
 on the ones listed, please contact <EM>libwww@w3.org</EM> <P>
 
+<P>
 <HR>
-
-<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
-libwww@w3.org, May 1995</ADDRESS>
-
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
 </BODY>
 </HTML>
-		

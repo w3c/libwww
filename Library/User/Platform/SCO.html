@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Notes about SCO Unix</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1995 -->
 <NEXTID N="z10">
 </HEAD>
 <BODY>
@@ -12,29 +13,117 @@
 
 <H1>Notes About SCO</H1>
 
-These are the installation and user notes for the <A
-HREF="../../../Daemon/Status.html">CERN HTTP Server</A>, the <A
-HREF="../../Status.html">W3C Reference Library</A> and the <A
-HREF="../../../LineMode/Status.html">Line Mode Browser</A>. Any
-comments and suggestions are welcome at
-<EM>libwww@w3.org</EM>. <P>
+This binary release of httpd 3.0 is provided by SCO as a Technical
+Library Supplement (TLS).  The httpd software was written by Ari
+Luotonen, Henrik Frystyk, Tim Berners-Lee.  Source code and complete
+online documentation is freely available from W3C: <P>
 
-<DL>
+<PRE>
+	http://www.w3.org/hypertext/WWW/Daemon/
+</PRE>
 
-<DT>Compilation
+TO INSTALL THIS SUPPLEMENT, extract the cpio archive as user 'root' from
+any directory: <P>
 
-<DD>Before compiling the CERN server version 3.0 you will need to
-apply two patches if you are using the native C compiler on you SCO
-platform. See more information on the <A
-HREF="../../../Daemon/Bugs.html#SCO">Bugs Page</A>.
+<PRE>
+	# cpio -idum -I ARCHIVE
+</PRE>
 
-</DL>
+where "ARCHIVE" is the filename of the cpio archive or the device node
+where the archive can be found (e.g. /tmp/tls070.cpio, or /dev/install). <P>
 
+<ADDRESS>Kamal A. Mostafa <A HREF="mailto:kamalm@sco.com">&lt;kamalm@sco.com&gt;</A>,
+SCO Product Development, January 24, 1995
+</ADDRESS>
 
 <HR>
 
-<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
-libwww@w3.org, November 1994</ADDRESS>
+<H2>SOFTWARE NOTES:  W3C httpd for SCO</H2>
 
+<H3>Making documents publicly available</H3>
+
+httpd is configured by default to make public all documents in the
+"directory" /var/opt/cern_httpd/htdocs.  That "directory" is actually
+a symbolic-link which points to a real directory. <P>
+
+As provided, the /var/opt/cern_httpd/htdocs symbolic-link points
+to a sample document directory containing one "Welcome" document. <P>
+	
+In order to allow the server to provide access to your own direc-
+tory of documents, you must replace that symbolic-link with one
+which points to your own public directory.  To do so, execute
+these commands as user 'root':
+
+<PRE>
+	# cd /var/opt/cern_httpd
+	# rm htdocs
+	# ln -s /your/pub/dir htdocs
+</PRE>
+
+Users of SCO's Global Access 1.0 product may wish to form a
+symbolic-link which points to their existing public directory
+(e.g. /var/opt/httpd/htdocs). <P>
+
+Alternately, advanced users may wish to configure different direc-
+tories in the httpd.conf file.
+
+<H3>Running httpd</H3>
+
+To run httpd, execute this shell-script as user 'root':
+
+<PRE>
+	# /opt/cern_httpd/bin/cern_httpd  [ -v ]
+</PRE>
+
+Normally, the server will place itself into the background after
+starting up, returning you to a prompt.  The optional -v argument
+forces the server to run in the foreground and provide verbose
+debugging output.  See the online documentation at W3C for more
+information about other command-line options. <P>
+
+Note that if you are already running any httpd daemon on port 80
+(e.g. from Global Access 1.0), you will need to kill the httpd process
+before starting up httpd on port 80. <P>
+
+You may wish have the server start up automatically at boot-time.
+To do so, add a script to the /etc/rc2.d directory (or modify an
+existing 'http' script) to run the command-line above (without
+the -v option). <P>
+
+
+<H3>Configuring httpd.conf</H3>
+
+httpd relies on the single configuration file
+
+<PRE>
+	/var/opt/cern_httpd/httpd.conf
+</PRE>
+
+In order to use certain features of the server (proxy, caching),
+you must make changes this file, but it is provided "ready to use"
+for basic configurations. <P>
+
+See the online documentation at W3C for information about con-
+figuring the server.  Also note that the original example config-
+uration files from the httpd 3.0 distribution are available in the
+directory /opt/cern_httpd/sample-config.  See the README file in that
+directory for more details. <P>
+
+<H3>Log Files</H3>
+
+httpd is configured to store its log files in the directory:
+
+<PRE>
+	/var/opt/cern_httpd/logs
+</PRE>
+
+The default configuration provided has logging enabled, so be sure
+to clean out the logs periodically.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+</BODY>
+</HTML>
 
 

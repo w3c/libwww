@@ -1,41 +1,59 @@
-<TITLE>Installation_VMS_NewTCP -- /Defaults</TITLE>
-<NEXTID 4>
-<H1>Recompiling  for VMS</H1>This is how to get the sources for <A NAME=3 HREF="QuickGuide.html">www</A> and recompile them.  You need
-to do this if you have a shareable library incompatibility with the
-distributed executable. The tar file is, on w3.org, /pub/www/src/WWWLineMode_v.vv.tar.Z,
- v.vv being the version - get the latest.  If you are on the HEP DECnet,
-then the files can be found under
-<XMP>			vxcrna::disk$oc1:[timbl.www.*]
+<HTML>
+<HEAD>
+<TITLE>Installation for VMS</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1995 -->
+</HEAD>
+<BODY>
 
-</XMP>
-<H2><A NAME=1>Changing to a new TCP/IP version</A></H2>Do this bit if your TCP/IP system is not  SRI/Multinet, DEC/UCX or
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+
+<H1>Installation Guide for VMS</H1>
+
+This is how to get the sources for <A HREF="../">www</A> and recompile
+them. You need to do this if you have a shareable library
+incompatibility with the distributed executable.
+
+<H2>Changing to a new TCP/IP version</H2>
+
+Do this bit if your TCP/IP system is not  SRI/Multinet, DEC/UCX or
 whatever they call it now, or Wollongong TCP/IP.<P>
+
 You might need to change something in tcp.h which is the system specific
 include file, and in descrip.mms, the makefile. If you do, please
 mail me the changes.<P>
+
 Look for all occurences of "MULTINET", "UCX" or "WIN_TCP" and add
 a "CMU_TEK" or whatever where necessary.  The same goes for decsrip.mms.
 This will need to pass the CMU_TEK option onto the c compiler in the
 CFLAGS macro, and also use different libraries for the link. Changes
 to other files will probably not be necessary.<P>
-[The program uses the socket library in a very standard way - no tricks.
-You just have to get the include files from the right place and fix
-the macros for NETREAD etc to whatever CMU-TEK calls the socket read()
-function. It can't call it read() because that's in the VMS unix library
-already for file access. You notice that under some systems the read
-does a socket_read or a real read depending on whether the socket
-number is small (unix) or large (VMS channel=socket).  I don't know
-what CMU-TEK does but I'm interested to know  If you don't know either,
-try compiling for say WIN_TCP and see what's undefined and mail me]<P>
-If you do this, let me know how you get on, please!
-<H2><A NAME=2>Compiling</A></H2>One way, if you have a unix (sultrix?) system with DECnet is to unwrap
+
+[The program uses the socket library in a very standard way - no
+tricks.  You just have to get the include files from the right place
+and fix the macros for NETREAD etc to whatever CMU-TEK calls the
+socket read() function. It can't call it read() because that's in the
+VMS unix library already for file access. You notice that under some
+systems the read does a socket_read or a real read depending on
+whether the socket number is small (unix) or large (VMS
+channel=socket).  I don't know what CMU-TEK does but I'm interested to
+know If you don't know either, try compiling for say WIN_TCP and see
+what's undefined and mail me] If you do this, let me know how you get
+on, please!<P>
+
+<H2>Compiling</H2>
+
+One way, if you have a unix (sultrix?) system with DECnet is to unwrap
 the tar file on that system.<P>
+
 Then copy WWW/LineMode/Implementation/vms/descrip.mms across to VMS.
-Edit descrip.mms so that all the references to $(U)"/userd/tbl/hypertext
-are changed to point to the decnet address of the files you have unwrapped
-on the unix system. Then run mms with /macro=(u=HOST::, cmu_tek=1)
--- whatever your unix HOST is -- and it will pickup all the files
-from your unix system.<P>
-The other way is to uncompress/untar it on under VMS, if you have
-a tool to do that, and just run mms/macro=(cmu_tek=1).
+Edit descrip.mms so that all the references to
+$(U)"/userd/tbl/hypertext are changed to point to the decnet address
+of the files you have unwrapped on the unix system. Then run mms with
+/macro=(u=HOST::, cmu_tek=1) -- whatever your unix HOST is -- and it
+will pickup all the files from your unix system.<P>
+
+The other way is to uncompress/untar it on under VMS, if you have a
+tool to do that, and just run mms/macro=(cmu_tek=1).
+
 <ADDRESS><A HREF="../../TBL_Disclaimer.html">Tim BL</A>
