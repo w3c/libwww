@@ -411,7 +411,8 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTS("If-Unmodified-Since: ");
 	    PUTS(HTDateTimeStr(&lm, NO));
 	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE) HTTrace("HTTP........ If-Unmodified-Since\n");
+	    if (PROT_TRACE)
+		HTTrace("HTTP........ If-Unmodified-Since `%s\'\n", HTDateTimeStr(&lm, NO));
 	}
     }
 
@@ -437,7 +438,8 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTS("If-Modified-Since: ");
 	    PUTS(HTDateTimeStr(&lm, NO));
 	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE) HTTrace("HTTP........ If-Modified-Since\n");
+	    if (PROT_TRACE)
+		HTTrace("HTTP........ If-Modified-Since `%s\'\n",HTDateTimeStr(&lm, NO));
 	}
     }
 
