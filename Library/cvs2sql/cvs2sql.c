@@ -137,7 +137,7 @@ PRIVATE BOOL createTables (HTSQL * sql, SQLFlags flags)
 
 	/* Create Log table */
 	query = HTSQL_printf(buf, 1024,
-			     "create table %s (location %s, username %s, primary key(location, username), date datetime, operation char(32), title text)",
+			     "create table %s (location %s, username %s, primary key(location, username), date datetime, operation char(32), comment text)",
 			     DEFAULT_SQL_LOG_TABLE,
 			     DEFAULT_SQL_KEY_TYPE,
 			     DEFAULT_SQL_KEY_TYPE);
