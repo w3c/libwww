@@ -64,8 +64,8 @@ in the Library, for example the HTTP module which is explained later:
 The main reason for keeping the Net object separate from the Request object
 is that some requests require more than one Net object, for example FTP which
 has a Net object for the control TCP connection and a Net object for each
-data TCP connection. In the case of HTTP/1.0 and HTTP/1.1, there is a 1:1
-correspondence between a Net object and a request object. In HTTP/1.2 a Net
+data TCP connection. In the case of HTTP/0.9 and HTTP/1.0, there is a 1:1
+correspondence between a Net object and a request object. In HTTP/1.1 a Net
 object can live longer than a single request as persistent connections might
 handle a set of requests over the same TCP socket. Net objects can be used
 in three different ways:
