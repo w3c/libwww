@@ -2221,6 +2221,12 @@ PRIVATE int CacheCleanup (HTRequest * req, int status)
         HT_FREE(cache->local);
         HT_FREE(cache);
     }
+
+    /* if the object was cached, we copy the pertinent HTTP headers
+       from the anchor object (where they are stored) to the
+       response object */
+    if (status == HT_NOT_MODIFIED)
+      HTMIME_anchor2response (req);
     HTNet_delete(net, status);
     return YES;
 }

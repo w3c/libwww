@@ -232,17 +232,52 @@ PRIVATE int pumpData (HTStream * me)
     return HT_OK;
 }
 
-/* _dispatchParsers - call request's MIME header parser.
-** Use global parser if no appropriate one is found for request.
+/* _dispatchParsers
+ * call request's MIME header parser. Use global parser if no 
+ * appropriate one is found for request.
 */
-PRIVATE int _dispatchParsers (HTStream * me)
+PRIVATE int _dispatchParsers (HTRequest * req, char * token, char * value)
 {
     int status;
-    char * token = HTChunk_data(me->token);
-    char * value = HTChunk_data(me->value);
     BOOL found = NO;
     BOOL local = NO;
     HTMIMEParseSet * parseSet;
+
+    /* In case we get an empty header consisting of a CRLF, we fall thru */
+    HTTRACE(STREAM_TRACE, "MIME header. %s: %s\n" _ 
+			      token ? token : "<null>" _ 
+			      value ? value : "<null>");
+    if (!token) return HT_OK;			    /* Ignore noop token */
+
+    /*
+    ** Search the local set of MIME parsers
+    */
+    if ((parseSet = HTRequest_MIMEParseSet(req, &local)) != NULL) {
+        status = HTMIMEParseSet_dispatch(parseSet, req, 
+					 token, value, &found);
+	if (found) return status;
+    }
+
+    /*
+    ** Search the global set of MIME parsers
+    */
+    if (local==NO && (parseSet = HTHeader_MIMEParseSet()) != NULL) {
+	status = HTMIMEParseSet_dispatch(parseSet, req, 
+					 token, value, &found);
+	if (found) return status;
+    }
+
+    return HT_OK;
+}
+
+/* _stream2dispatchParsers - extracts the arguments from a
+ * MIME stream before calling the generic _dispatchParser
+ * function.
+ */
+PRIVATE int _stream2dispatchParsers (HTStream * me)
+{
+    char * token = HTChunk_data(me->token);
+    char * value = HTChunk_data(me->value);
 
     /* In case we get an empty header consisting of a CRLF, we fall thru */
     HTTRACE(STREAM_TRACE, "MIME header. %s: %s\n" _ 
@@ -255,25 +290,8 @@ PRIVATE int _dispatchParsers (HTStream * me)
     */
     HTResponse_addHeader(me->response, token, value);
 
-    /*
-    ** Search the local set of MIME parsers
-    */
-    if ((parseSet = HTRequest_MIMEParseSet(me->request, &local)) != NULL) {
-        status = HTMIMEParseSet_dispatch(parseSet, me->request, 
-					 token, value, &found);
-	if (found) return status;
-    }
-
-    /*
-    ** Search the global set of MIME parsers
-    */
-    if (local==NO && (parseSet = HTHeader_MIMEParseSet()) != NULL) {
-	status = HTMIMEParseSet_dispatch(parseSet, me->request, 
-					 token, value, &found);
-	if (found) return status;
-    }
-
-    return HT_OK;
+    /* call the parsers to set the headers */
+    return (_dispatchParsers (me->request, token, value));
 }
 
 /*
@@ -340,7 +358,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		int ret = HT_ERROR;
 		HTChunk_putb(me->value, value, end-value);
 		HTChunk_putc(me->value, '\0');
-		ret = _dispatchParsers(me);
+		ret =  _stream2dispatchParsers(me);
 		HTNet_addBytesRead(me->net, b-start);
 		start=b, end=b;
 		if (me->EOLstate == EOL_END) {		/* EOL_END */
@@ -474,7 +492,7 @@ PRIVATE int HTMIME_free (HTStream * me)
 {
     int status = HT_OK;
     if (!me->transparent)
-        if (_dispatchParsers(me) == HT_OK)
+        if (_stream2dispatchParsers(me) == HT_OK)
 	    pumpData(me);
     if (me->target) {
 	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
@@ -761,3 +779,38 @@ PUBLIC HTConverter * HTMIME_saveStream (void)
 {
     return LocalSaveStream;
 }
+
+/* HTMIME_anchor2response
+ * Copies the anchor HTTP headers into a response object by means
+ * of the generic _dispatchParsers function. Written so that we can
+ * copy the HTTP headers stored in the cache to the response object.
+ */
+PUBLIC void HTMIME_anchor2response (HTRequest * req)
+{
+  char * token;
+  char * value;
+  HTAssocList * header;
+  HTAssoc * pres;
+  HTResponse * res;
+  HTParentAnchor * anchor;
+
+  if (!req)
+    return;
+  
+  anchor = HTRequest_anchor (req);
+  header = HTAnchor_header (anchor);
+  while ((pres = (HTAssoc *) HTAssocList_nextObject (header)))
+    {
+      token = HTAssoc_name (pres);
+      value = HTAssoc_value (pres);
+      _dispatchParsers (req, token, value);
+    }
+  
+  /*
+  **  Notify the response object not to delete the lists that we
+  **  have inherited from the anchor object
+  */
+  res = HTRequest_response (req);
+  HTResponse_isCached (res, YES);  
+}
+

@@ -1,3 +1,16 @@
+2000-13-12	Jose Kahan <jose@w3.org>
+
+	* Bug fix: When objects were retrieved from the cache, the
+	  response object didn't have a copy of the request headers.
+	  These headers were only found in the anchor associated to
+	  the request. In order to make a coherent behavior, I made
+	  a new function HTMIME.c:HTMIME_anchor2response() that copies
+	  the headers from one object to the other. Well, more than a 
+	  copy, it adds a link to the headers. I call this function in
+	  HTCache:CacheCleanup when it succesfully retrieved an object
+          from the cache. Result, you can now use the response object 
+          in both cases.
+
 2000-30-10	Jose Kahan <jose@w3.org>
 	
 	* Enhancement, added a new field to the HTResponse object to

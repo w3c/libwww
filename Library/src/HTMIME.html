@@ -118,6 +118,16 @@ course.
 <PRE>
 extern HTConverter HTMIMEPartial;
 </PRE>
+<H2>
+ HTMIME_anchor2response
+</H2>
+<P>
+Copies the anchor HTTP headers into a response object by means
+of the generic _dispatchParsers function. Written so that we can
+copy the HTTP headers stored in the cache to the response object.
+<PRE>
+extern void HTMIME_anchor2response (HTRequest * req);
+</PRE>
 <PRE>
 #endif
 </PRE>
