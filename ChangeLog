@@ -1,6 +1,12 @@
 Changes with libwww 5.3.3
- 
-2002-06-29      Manuele Kirsch <mkirsch@terra.com.br>
+
+2002-06-04      Thurog <thurog@gmx.de>
+
+	* Patched configure.in to avoid a broken configure error in
+	  autoconf 2.5.3. 
+	  See http://lists.w3.org/Archives/Public/www-lib/2002AprJun/0034.html.
+	
+2002-05-29      Manuele Kirsch <mkirsch@terra.com.br>
 
 	* Fixes for windows plataform concerning WebDAV and Extension
 	  methods. In HTMethod and HTRequest, functions defined for 
@@ -10,12 +16,12 @@ Changes with libwww 5.3.3
 	  have been added. These files and modifications were needed 
 	  to produce the correct "*.def" files, for windows plataform.
 
-2002-06-29      Jose Kahan <jose@w3.org>
+2002-05-29      Jose Kahan <jose@w3.org>
 
 	* Created the necessary makefiles and changed the windows 
 	  project files for WebDAV and Extension methods.
 
-2002-06-28      Manuele Kirsch <mkirsch@terra.com.br>
+2002-05-28      Manuele Kirsch <mkirsch@terra.com.br>
 
 	* Minor fixes concerning WebDAV module and Extension methods. At 
 	  src/HTTP.c source file, the 207 status codes has now the result 
