@@ -159,6 +159,33 @@ PRIVATE int HTWatch_logAdd(char * buf, size_t len)
     return HT_OK;
 }
 
+#include <sys/time.h>
+#include <unistd.h>
+
+PRIVATE int _adjustGMT(long theTime)
+{
+    static long adjustment = -1;
+    if (adjustment == -1) {
+        tzset();
+        adjustment = timezone;
+    }
+    return theTime-adjustment;
+}
+
+PRIVATE int HTWatch_logTime(void)
+{
+    char buff[20];
+    int len;
+    struct timeval tp;
+    struct timezone tz = {300, DST_USA};
+
+    gettimeofday(&tp, &tz);
+    tp.tv_sec = _adjustGMT(tp.tv_sec)%(24*60*60);
+    len = sprintf(buff, "%02d:%02d:%02d.%d ", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
+    HTWatch_logAdd(buff, len);
+    return tp.tv_sec;
+}
+
 PUBLIC void HTWatch_logClose (void)
 {
 #ifdef USE_SYSLOG
@@ -177,8 +204,8 @@ PUBLIC int HTWatch_logData (char * data, size_t len, const char * fmt, ...)
 {
     char buff[8200];
     va_list pArgs;
-    char * tptr;
-    time_t now;
+    /*    char * tptr;
+    time_t now; */
     int ret;
     va_start(pArgs, fmt);
     ret = vsprintf(buff, fmt, pArgs);
@@ -190,9 +217,12 @@ PUBLIC int HTWatch_logData (char * data, size_t len, const char * fmt, ...)
     buff[len] = 0;
     syslog(LOG_DEBUG, "%s\n", buff);
 #else /* USE_SYSLOG */
+    /*
     time(&now);
     tptr = ctime(&now);
     HTWatch_logAdd(tptr, strlen(tptr));
+    */
+    HTWatch_logTime();
     HTWatch_logAdd(buff, ret);
     HTWatch_logAdd("\n", 1);
     HTWatch_logAdd(data, len);
