@@ -67,9 +67,9 @@ done
 ])
 LIBTCL=""
 ac_path_tcl=$ac_cv_path_tcl
-test -z $ac_path_tcl && ac_path_tcl=missing
+test -z "$ac_path_tcl" && ac_path_tcl=missing
 AC_MSG_RESULT($ac_path_tcl)
-if test -n $ac_cv_path_tcl; then
+if test -n "$ac_cv_path_tcl"; then
   LIBTCL="$ac_path_tcl"
   ifelse([$1], , :, [$1])
 ifelse([$2], , , [else
