@@ -150,6 +150,10 @@ int main (int argc, char ** argv)
     /* Initiate libwww */
     HTProfile_newNoCacheClient(APP_NAME, APP_VERSION);
 
+#if 0
+    HTSetTraceMessageMask("ot");
+#endif
+
     /* Add our own request terminate handler */
     HTNet_addAfter(request_terminater, NULL, app, HT_ALL, HT_FILTER_LAST);
 
