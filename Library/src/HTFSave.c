@@ -131,10 +131,10 @@ PRIVATE char * get_filename (char * base, const char * uri,
 	    BOOL slash = (base && *(base+strlen(base)-1)=='/'); 
 	    if (last_segment && *(last_segment+1)) {
 		StrAllocMCopy(&path, base ? base : "",
-			      slash ? "" : "/", ++last_segment, NULL);
+			      slash ? "" : DIR_SEPARATOR_STR, ++last_segment, NULL);
 	    } else {
 		StrAllocMCopy(&path, base ? base : "",
-			      slash ? "" : "/", DEFAULT_LAST_SEGMENT,
+			      slash ? "" : DIR_SEPARATOR_STR, DEFAULT_LAST_SEGMENT,
 			      suffix ? suffix : "", NULL);
 	    }
 	}

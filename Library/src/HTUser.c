@@ -18,7 +18,11 @@
 
 /* The default directory for "save locally" and "save and execute" files: */
 #ifndef HT_TMP_ROOT
-#define HT_TMP_ROOT		"/tmp/"	      /* URL format - not local file */
+#ifdef WWW_MSWINDOWS
+#define HT_TMP_ROOT		"C:\\Temp\\"
+#else
+#define HT_TMP_ROOT		"/tmp/"
+#endif /* WWW_MSWINDOWS */
 #endif
 
 struct _HTUserProfile {
@@ -77,8 +81,8 @@ PUBLIC BOOL HTUserProfile_localize (HTUserProfile * up)
 
 	/* Find the default location for temporary files */
 	StrAllocCopy(up->tmp, HT_TMP_ROOT);
-	if (*(up->tmp+strlen(up->tmp)-1) != '/')
-	    StrAllocCat(up->tmp, "/");
+	if (*(up->tmp+strlen(up->tmp)-1) != DIR_SEPARATOR_CHAR)
+	    StrAllocCat(up->tmp, DIR_SEPARATOR_STR);
 
 	return YES;
     }
@@ -153,8 +157,8 @@ PUBLIC BOOL HTUserProfile_setTmp (HTUserProfile * up, const char * tmp)
 {
     if (up && tmp) {
 	StrAllocCopy(up->tmp, tmp);
-	if (*(up->tmp+strlen(up->tmp)-1) != '/')
-	    StrAllocCat(up->tmp, "/");
+	if (*(up->tmp+strlen(up->tmp)-1) != DIR_SEPARATOR_CHAR)
+	    StrAllocCat(up->tmp, DIR_SEPARATOR_STR);
 	return YES;
     }
     return NO;
