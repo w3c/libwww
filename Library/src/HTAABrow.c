@@ -576,7 +576,6 @@ PRIVATE HTAAScheme HTAA_selectScheme ARGS1(HTAASetup *, setup)
 **
 ** ON ENTRY:
 **	req		request, which contains
-**	req->argument	document, that we're trying to access.
 **	req->setup	protection setup info on browser.
 **	req->scheme	selected authentication scheme.
 **	req->realm	for Basic scheme the username and password.
@@ -598,41 +597,24 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     int portnumber;
     char *colon;
     char *gate = NULL;	/* Obsolite? */
-
-#ifdef OLD_CODE
-    /*
-    ** Make gateway httpds pass authorization field as it was received.
-    ** (This still doesn't really work because Authenticate: headers
-    **  from remote server are not forwarded to client yet so it cannot
-    **  really know that it should send authorization;  I will not
-    **  implement it yet because I feel we will soon change radically
-    **  the way requests are represented to allow multithreading
-    **  on server-side.  Life is hard.)
-    */
-    if (HTAAForwardAuth) {
-	if (TRACE) fprintf(stderr, "HTAA_composeAuth: %s\n",
-			   "Forwarding received authorization");
-	StrAllocCopy(result, HTAAForwardAuth);
-	HTAAForwardAuth_reset();	/* Just a precaution */
-	return result;
-    }
-#endif
+    char *arg = NULL;
 
     FREE(hostname);	/* From previous call */
     FREE(docname);	/*	- " -	      */
 
-    if (!req  ||  !req->argument)
+    if (!req  ||  !req->anchor)
 	return NO;
 
     if (req->authorization) {
-	CTRACE(stderr, "HTAA_composeAuth: forwarding auth.info from client\n\
-Authorization: %s\n",
+	CTRACE(stderr,
+"HTAA_composeAuth: forwarding auth.info from client\nAuthorization: %s\n",
 	       req->authorization);
 	return YES;
     }
 
-    docname = HTParse(req->argument, "", PARSE_PATH);
-    hostname = HTParse((gate ? gate : req->argument), "", PARSE_HOST);
+    arg = HTAnchor_physical(req->anchor);
+    docname = HTParse(arg, "", PARSE_PATH);
+    hostname = HTParse((gate ? gate : arg), "", PARSE_HOST);
     if (hostname &&
 	NULL != (colon = strchr(hostname, ':'))) {
 	*(colon++) = '\0';	/* Chop off port number */
@@ -799,12 +781,15 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS2(HTRequest *,	  req,
 {
     int len;
     char *realmname;
+    char *arg = NULL;
 
-    if (!req || !req->argument ||
+    if (!req || !req->anchor ||
 	!req->valid_schemes || HTList_count(req->valid_schemes) == 0) {
 	req->setup = NULL;
 	return NO;
     }
+
+    arg = HTAnchor_physical(req->anchor);
 
     if (req->setup && req->setup->server) {
 	/* So we have already tried with authorization.	*/
@@ -831,8 +816,8 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS2(HTRequest *,	  req,
 	FREE(hostname);	/* From previous call */
 	FREE(docname);	/*	- " -	      */
 
-	docname = HTParse(req->argument, "", PARSE_PATH);
-	hostname = HTParse(req->argument, "", PARSE_HOST);
+	docname = HTParse(arg, "", PARSE_PATH);
+	hostname = HTParse(arg, "", PARSE_HOST);
 	if (hostname &&
 	    NULL != (colon = strchr(hostname, ':'))) {
 	    *(colon++) = '\0';	/* Chop off port number */

@@ -50,7 +50,9 @@ extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
 PUBLIC BOOL HTCacheHTTP = YES;	/* Enable caching of HTTP-retrieved files */
-
+PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
+extern BOOL using_proxy;	/* are we using a proxy gateway? */
+PUBLIC char * HTProxyHeaders = NULL;	/* Headers to pass as-is */
 
 PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 				     HTInputSocket *,	isoc)
@@ -149,42 +151,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     SockA soc_address;			/* Binary network address */
     SockA * sin = &soc_address;
     BOOL extensions = YES;		/* Assume good HTTP server */
-    char * cache_file_name = NULL;
 
-    HTCacheHTTP = YES;			/* Be sure, that cache is on per default */
+    if (HTImProxy) HTProxyBytes = 0;
 
-    if (request->reason == HTAA_OK_GATEWAY) {
-	arg = request->translated;
-
-	/*
-	** Cache lookup
-	*/
-#ifdef NOT_USED_YET
-	if (request->method == METHOD_GET &&
-	    !request->authorization &&
-	    !request->arg_keywords) {
-
-	    if (HTCacheLookupOrCreate(arg, &cache_file_name)) {
-
-		FILE * cache_file = fopen(cache_file_name, "r");
-
-		if (cache_file) {
-		    HTFileCopy(cache_file, request->output_stream);
-		    fclose(cache_file);
-		    free(cache_file_name);
-		    (*request->output_stream->isa->free)(request->output_stream);
-		    return HT_LOADED;
-		}
-		free(cache_file_name);
-		cache_file_name = NULL;
-	    } /* Cache lookup */
-	} /* Can use cache? */
-#endif /* NOT_USED_YET */
-    } /* I'm a gateway */
-    else {
-	arg = HTAnchor_physical(request->anchor);
-	/* No more StrAllocCopy here - moved to HTLoad(). Henrik 14/01-94 */
-    }
+    arg = HTAnchor_physical(request->anchor);
 
     if (!arg) return -3;		/* Bad if no name sepcified	*/
     if (!*arg) return -2;		/* Bad if name had zero length	*/
@@ -261,7 +231,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 /*	Ask that node for the document,
 **	omitting the host name & anchor if not gatewayed.
 */        
-	if (gate) {
+	if (gate) { /* This is no longer used, and could be thrown away */
 	    command = malloc(4 + strlen(arg)+ 2 + 31);
 	    if (command == NULL) outofmem(__FILE__, "HTLoadHTTP");
 	    strcpy(command, "GET ");
@@ -277,7 +247,16 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    else {
 		strcpy(command, "GET ");
 	    }
-	    strcat(command, p1);
+	    /* if we are using a proxy gateway don't copy in the first slash
+	    ** of say: /gopher://a;lkdjfl;ajdf;lkj/;aldk/adflj
+	    ** so that just gohper://.... is sent.
+	    */
+	    if (using_proxy)
+		strcat(command, p1+1);
+	    else
+		strcat(command, p1);
+fprintf(stderr, " ** DEBUG: arg=\"%s\" p1=\"%s\" command=\"%s\"\n",
+	arg, p1, command);
 	    free(p1);
 	}
 #ifdef HTTP2
@@ -289,7 +268,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     
 	strcat(command, crlf);	/* CR LF, as in rfc 977 */
     
-	if (extensions) {
+	if (extensions && HTImProxy && HTProxyHeaders) {
+	    StrAllocCat(command, HTProxyHeaders);
+	}
+	else if (extensions) {
 
 	    int i;
 	    HTAtom * present = WWW_PRESENT;
@@ -324,42 +306,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		}
 	    }
 
-	    sprintf(line, "User-Agent: %s%s %s/%s  libwww/%s%c%c",
-		    request->user_agent ? request->user_agent : "",
-		    request->user_agent ? "  VIA Gateway" : "",
+	    sprintf(line, "User-Agent: %s/%s  libwww/%s%c%c",
 		    HTAppName ? HTAppName : "unknown",
 		    HTAppVersion ? HTAppVersion : "0.0",
 		    HTLibraryVersion, CR, LF);
-		    StrAllocCat(command, line);
-    
-	    if (request->from) {
-		sprintf(line, "From: %s%c%c", request->from, CR, LF);
-		StrAllocCat(command, line);
-	    }
-
-#ifdef ACCESS_AUTH
-	    if (request->authorization != NULL) {
-		sprintf(line, "Authorization: %s%c%c",
-			request->authorization, CR, LF);
-		StrAllocCat(command, line);
-	    }
-#endif /* ACCESS_AUTH */
-
-	    if (request->content_type) {
-		sprintf(line, "Content-Type: %s%c%c",
-			HTAtom_name(request->content_type), CR, LF);
-		StrAllocCat(command, line);
-	    }
-
-	    if (request->content_length > 0) {
-		sprintf(line, "Content-Length: %d%c%c",
-			request->content_length, CR, LF);
-		StrAllocCat(command, line);
-	    }
-
-
+	    StrAllocCat(command, line);
 	}
-    
+
 	StrAllocCat(command, crlf);	/* Blank line means "end" */
     
 	if (TRACE) fprintf(stderr, "HTTP Tx: %s\n", command);
@@ -401,7 +354,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 **	out that we want the binary original.
 */
 
-    if (request->reason == HTAA_OK_GATEWAY) {
+    if (HTImProxy) {
 
 	/*
 	** Server as a gateway -- send body of the message
@@ -425,39 +378,11 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	}
 
 	/*
-	** Cache the document if it a GET request,
-	** not protected and not a search request.
-	*/
-	if (cache_file_name) {
-	    FILE * cache_file = fopen(cache_file_name, "w");
-
-	    if (cache_file) {
-		request->output_stream = HTTee(request->output_stream,
-					       HTFWriter_new(cache_file, NO));
-		CTRACE(stderr, "Gateway..... writing to cache file\n");
-	    }
-	    else {
-#ifdef NOT_USED_YET
-		HTCacheCancel(arg);
-#endif /* NOT_USED_YET */
-		free(cache_file_name);
-		cache_file_name = NULL;
-		CTRACE(stderr, "Gateway..... couldn't create cache file\n");
-	    }
-	}
-	else CTRACE(stderr, "Gateway..... not caching\n");
-
-	/*
 	** Load results directly to client
 	*/
-	HTCopy(s, request->output_stream);
+	HTProxyBytes = HTCopy(s, request->output_stream);
 	(*request->output_stream->isa->free)(request->output_stream);
-	if (cache_file_name) {
-#ifdef NOT_USED_YET
-	    HTCacheCreated(arg, (time_t)0);
-#endif /* NOT_USED_YET */
-	    free(cache_file_name);
-	}
+
 	return HT_LOADED;
     }
     else {	/* read response */

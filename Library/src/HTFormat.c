@@ -809,14 +809,17 @@ PUBLIC float HTStackValue ARGS5(
 **   CRLF at the end of lines which need to be stripped to LF for unix
 **   when the format is textual.
 **
+**   RETURNS the number of bytes transferred.
+**
 */
-PUBLIC void HTCopy ARGS2(
+PUBLIC int HTCopy ARGS2(
 	int,			file_number,
 	HTStream*,		sink)
 {
     HTStreamClass targetClass;    
     HTInputSocket * isoc;
-    
+    int cnt = 0;
+
 /*	Push the data down the stream
 **
 */
@@ -837,7 +840,7 @@ PUBLIC void HTCopy ARGS2(
 		status, errno);
 	    break;
 	}
-	
+
 #ifdef NOT_ASCII
 	{
 	    char * p;
@@ -848,8 +851,12 @@ PUBLIC void HTCopy ARGS2(
 #endif
 
 	(*targetClass.put_block)(sink, isoc->input_buffer, status);
+	cnt += status;
     } /* next bufferload */
+
     HTInputSocket_free(isoc);
+
+    return cnt;
 }
 
 
@@ -970,6 +977,9 @@ PUBLIC int HTParseSocket ARGS3(
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
     if (rep_in == WWW_BINARY || HTOutputSource
+	|| (request->content_encoding &&
+	    request->content_encoding != HTAtom_for("8bit") &&
+	    request->content_encoding != HTAtom_for("7bit"))
         || strstr(HTAtom_name(rep_in), "image/")
 	|| strstr(HTAtom_name(rep_in), "video/")) { /* @@@@@@ */
         HTCopy(file_number, stream);

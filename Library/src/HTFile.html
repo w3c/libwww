@@ -45,16 +45,9 @@ extern int HTDirReadme;		/* Include readme files in listing? */
 
 <H2>Do Multiformat Handling</H2>
 <PRE>
-PUBLIC BOOL HTMulti PARAMS((HTRequest * req));
-
-</PRE>
-
-<H2>Get and set attributes for request</H2>
-This sets Content-Length and Last-Modified fields to
-request by doing a <CODE>stat()</CODE> for
-<CODE>req-&gt;translated</CODE>
-<PRE>
-PUBLIC BOOL HTGetAttributes PARAMS((HTRequest * req));
+PUBLIC char * HTMulti PARAMS((HTRequest *	req,
+			      char *		path,
+			      struct stat *	stat_info));
 
 </PRE>
 
@@ -152,11 +145,14 @@ the file is in
 <DD> The encoding (binary,
 7bit, etc). See <A
 NAME="z2" HREF="#z1">HTSetSuffix</A> .
+<DT>*pLanguage
+<DD> The language.
 </DL>
 
 <PRE>extern HTFormat HTFileFormat PARAMS((
 		CONST char * 	filename,
-		HTAtom ** 	pEncoding));
+		HTAtom ** 	pEncoding,
+		HTAtom **	pLanguage));
 
 
 </PRE>

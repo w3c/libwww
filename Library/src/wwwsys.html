@@ -450,8 +450,9 @@ extern int errno;
 
 </PRE>
 <H2>Solaris</H2>
+(And Linux, thanks to Rainer Klute)
 <PRE>
-#ifdef __svr4__
+#if defined(__svr4__) || defined(_POSIX_SOURCE)
 #include &lt;unistd.h>
 #endif
 </PRE>

@@ -183,7 +183,6 @@ NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 .
 <PRE>struct _HTRequest {
 
-
 </PRE>The elements of the request structure
 are as follows.
 <H3>Set by the caller of HTaccess:</H3>
@@ -238,10 +237,6 @@ generic format such as www/present
 
 </PRE>Email format address of person responible
 for request
-<PRE>	char *		user_agent;
-
-</PRE>The name of the client software package
-in use.
 <H3>Set by HTAccess</H3>None of the bits below may be looked
 at by a client application except
 in the callback routine, when the
@@ -264,56 +259,17 @@ Set by HTAccess.
 
 </PRE>pointer to cache element if cache
 hit
-<PRE>	int		status_code;
-
-</PRE>HTTP-style status code in case of
-error.  Initialised by AA code to
-200, overwritten with something else
-if error.
-<PRE>	char *		reason_line;
-
-</PRE>Reason for failing if any. Human
-readable.
-<H3>Server side</H3>
-<PRE>	int		soc;		/* Socket from which request came */
-	HTInputSocket *	isoc;		/* InputSocket object for reading */
-	char *		request;	/* First request line as received */
-	char *		argument;	/* Arg to HTTP method as given	  */
-	char *		arg_path;	/* Pathinfo part of argument	  */
-	char *		arg_keywords;	/* Keyword part of URL		  */
-	char *		translated;
-
-</PRE>Translated filename (set by function
-HTTranslateReq(). NULL, if this is
-a script execution request
-<PRE>	char *		script;
-
-</PRE>Executable script name (set by HTTranslateReq().
-NULL if not a script request.
-<PRE>	char *		script_pathinfo;/* Path info after script name	  */
-	char *		script_pathtrans;/* Path info translated	  */
+<H3>Server Side</H3>
+<PRE>
+	HTAtom *	content_type;	/* Content-Type:		  */
 	HTAtom *	content_language;/* Language			  */
 	HTAtom *	content_encoding;/* Encoding			  */
-	char *		location;	/* Location for redirection	  */
-	HTAtom *	content_type;	/* Content-Type:		  */
 	int		content_length;	/* Content-Length:		  */
-	char *		last_modified;	/* Last-Modified:		  */
-	char *		expires;	/* Expires:			  */
-	char *		uri;		/* Uri:				  */
-	char *		message_id;	/* Message-Id:			  */
-	HTList *	allowed;	/* Allowed: (list of HTAtoms)	  */
-	HTList *	public;		/* Public: (list of HTAtoms)	  */
-	char *		meta_file;	/* File for meta information	  */
+	HTInputSocket *	isoc;		/* InputSocket object for reading */
 	char *		authorization;	/* Authorization: field		  */
 	HTAAScheme	scheme;		/* Authentication scheme used	  */
-	char *		auth_string;	/* Authentication string	  */
-	char *		www_authenticate;/*WWW-Authenticate: (should be a */
-	                                /* a HTList *)			  */
-	HTAAFailReason	reason;		/* Reason for failing		  */
-
-
 </PRE>
-<H3>Client side AA</H3>
+<H3>Client Side</H3>
 <PRE>
 	HTList *	valid_schemes;	/* Valid auth.schemes		  */
 	HTAssocList **	scheme_specifics;/* Scheme-specific parameters	  */
@@ -351,7 +307,8 @@ this module</H2>
 extern char * HTClientHost;		/* Name or number of telnetting host */
 extern FILE * logfile;			/* File to output one-liners to */
 extern BOOL HTSecure;			/* Disable security holes? */
-
+extern BOOL HTImServer;			/* If I'm cern_httpd */
+extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
 
 
 </PRE>

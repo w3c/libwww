@@ -52,6 +52,9 @@
 PUBLIC char * HTClientHost = 0;	/* Name of remote login host if any */
 PUBLIC FILE * logfile = 0;	/* File to which to output one-liners */
 PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
+PUBLIC BOOL using_proxy = NO;	/* are we using a proxy gateway? */
+PUBLIC BOOL HTImServer = NO;	/* cern_httpd sets this */
+PUBLIC BOOL HTImProxy = NO;	/* cern_httpd as a proxy? */
 
 /*	To generate other things, play with these:
 */
@@ -79,7 +82,6 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     
     me->conversions	= HTList_new();	/* No conversions registerd yet */
     me->output_format	= WWW_PRESENT;	/* default it to present to user */
-    me->scheme		= HTAA_NONE;
 
     return me;
 }
@@ -101,23 +103,6 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 	    }
 	    HTList_delete(req->conversions);	/* Leak fixed AL 6 Feb 1994 */
 	}
-
-	FREE(req->request);
-	FREE(req->argument);
-	FREE(req->arg_path);
-	FREE(req->translated);
-	FREE(req->script);
-	FREE(req->location);
-	FREE(req->last_modified);
-	FREE(req->expires);
-	FREE(req->uri);
-	FREE(req->message_id);
-	if (req->allowed) HTList_delete(req->allowed);
-	if (req->public) HTList_delete(req->public);
-	FREE(req->meta_file);
-	FREE(req->authorization);
-	FREE(req->auth_string);
-	FREE(req->www_authenticate);
 	free(req);
     }
 }
@@ -255,14 +240,13 @@ GLOBALREF  HTProtocol HTWAIS;
 PRIVATE int get_physical ARGS1(HTRequest *, req)
 {    
     char * access=0;	/* Name of access method */
-    char * physical = 0;
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
-    
+
 #ifndef NO_RULES
-    if (req->translated)
-	HTAnchor_setPhysical(req->anchor, req->translated);
+    if (HTImServer)	/* cern_httpd has already done its own translations */
+	HTAnchor_setPhysical(req->anchor, addr);
     else {
-	physical = HTTranslate(addr);
+	char * physical = HTTranslate(addr);
 	if (!physical) {
 	    free(addr);
 	    return HT_FORBIDDEN;
@@ -275,7 +259,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 #endif
 
     access =  HTParse(HTAnchor_physical(req->anchor),
-    		"file:", PARSE_ACCESS);
+		      "file:", PARSE_ACCESS);
 
 /*	Check whether gateway access has been set up for this
 **
@@ -284,21 +268,51 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 #define USE_GATEWAYS
 #ifdef USE_GATEWAYS
     {
-	char * gateway_parameter, *gateway;
+	char * gateway_parameter, *gateway, *proxy;
+
 	gateway_parameter = (char *)malloc(strlen(access)+20);
 	if (gateway_parameter == NULL) outofmem(__FILE__, "HTLoad");
+
+	/* search for proxy gateways */
 	strcpy(gateway_parameter, "WWW_");
 	strcat(gateway_parameter, access);
 	strcat(gateway_parameter, "_GATEWAY");
 	gateway = (char *)getenv(gateway_parameter); /* coerce for decstation */
+
+	/* search for proxy servers */
+	strcpy(gateway_parameter, access);
+	strcat(gateway_parameter, "_proxy");
+	proxy = (char *)getenv(gateway_parameter);
+
 	free(gateway_parameter);
-	
+
+	if (TRACE && gateway)
+	    fprintf(stderr,"Gateway found: %s\n",gateway);
+	if (TRACE && proxy)
+	    fprintf(stderr,"Proxy server found: %s\n",proxy);
+
 #ifndef DIRECT_WAIS
 	if (!gateway && 0==strcmp(access, "wais")) {
 	    gateway = DEFAULT_WAIS_GATEWAY;
 	}
 #endif
-	if (gateway) {
+	/* make sure the using_proxy variable is false */
+	using_proxy = NO;
+
+	/* proxy servers have precedence over gateway servers */
+	if (proxy) {
+	    char * gatewayed=0;
+
+            StrAllocCopy(gatewayed,proxy);
+	    StrAllocCat(gatewayed,addr);
+	    using_proxy = YES;
+	    HTAnchor_setPhysical(req->anchor, gatewayed);
+	    free(gatewayed);
+	    free(access);
+
+	    access =  HTParse(HTAnchor_physical(req->anchor),
+			      "http:", PARSE_ACCESS);
+	} else if (gateway) {
 	    char * path = HTParse(addr, "",
 	    	PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
 		/* Chop leading / off to make host into part of path */
@@ -377,12 +391,9 @@ PRIVATE int HTLoad ARGS2(
     }
     if (status < 0) return status;	/* Can't resolve or forbidden */
 
-    /* THIS HAS BEEN MOVED FROM HTTP.C HTLoadHTTP() BECAUSE OF NON-COSISTENCE
-       BETWEEN request->anchor and request->argument. Henrik 14/02-94 */       
     if(!(arg = HTAnchor_physical(request->anchor)) || !*arg) 
     	return (-1);
-    StrAllocCopy(request->argument, arg);
-    
+
     p = HTAnchor_protocol(request->anchor);
     return (*(p->load))(request);
 }

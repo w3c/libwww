@@ -853,14 +853,16 @@ ARGS6 (
     {
         char *filename = HTParse(name, "", PARSE_PATH + PARSE_PUNCTUATION);
 	char command[LINE_LENGTH+1];
-	BOOL binary;
-	HTAtom * encoding;
+	BOOL binary = NO;
+
 	if (!*filename) StrAllocCopy(filename, "/");
 	HTUnEscape(filename);	/* Fix 25.1.94 -- thanks to Lou Montulli */
 	if (TRACE) fprintf(stderr, "FTP: UnEscaped %s\n", filename);
-	format = HTFileFormat(filename, &encoding);
-	binary = (encoding != HTAtom_for("8bit")
-		  && encoding != HTAtom_for("7bit"));
+	format = HTFileFormat(filename,
+			      &request->content_encoding,
+			      &request->content_language);
+	binary = (request->content_encoding != HTAtom_for("8bit")
+		  && request->content_encoding != HTAtom_for("7bit"));
         if (binary != control->binary) {
 	    char * mode = binary ? "I" : "A";
 	    sprintf(command, "TYPE %s%c%c", mode, CR, LF);

@@ -41,11 +41,13 @@ PRIVATE void HTTee_free ARGS1(HTStream *, me)
 {
     (*me->s1->isa->free)(me->s1);
     (*me->s2->isa->free)(me->s2);
+    free(me);
 }
 PRIVATE void HTTee_abort ARGS2(HTStream *, me, HTError, e)
 {
     (*me->s1->isa->abort)(me->s1, e);
     (*me->s2->isa->abort)(me->s2, e);
+    free(me);
 }
 
 

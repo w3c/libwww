@@ -4,6 +4,7 @@
 ** History:
 **	26 Sep 90	Written TBL
 **	29 Nov 91	Downgraded to C, for portable implementation.
+**	16 Feb 94	Added Lou Montulli's Lynx & LIST NEWSGROUPS diffs.
 */
 /* Implements:
 */
@@ -294,6 +295,32 @@ PRIVATE void start_anchor ARGS1(CONST char *,  href)
 
 }
 
+
+/*      Start link element
+**      --------------------
+*/
+PRIVATE void start_link ARGS2(CONST char *,  href, CONST char *, rev)
+{
+#ifdef WHEN_WE_HAVE_HTMLPLUS
+
+    BOOL                present[HTML_LINK_ATTRIBUTES];
+    CONST char*         value[HTML_LINK_ATTRIBUTES];
+   
+    {
+        int i;
+        for(i=0; i<HTML_LINK_ATTRIBUTES; i++)
+            present[i] = (i==HTML_LINK_HREF || i==HTML_LINK_REV);
+    }
+    value[HTML_LINK_HREF] = href;
+    value[HTML_LINK_REV]  = rev;
+    (*targetClass.start_element)(target, HTML_LINK , present, value);
+
+#endif
+}
+
+
+
+
 /*	Paste in an Anchor
 **	------------------
 **
@@ -346,6 +373,7 @@ PRIVATE void write_anchors ARGS1 (char *,text)
 	c = *end;
 	*end = 0;
 	write_anchor(start, start);
+	START(HTML_BR);
 	*end = c;
 	start = end;			/* Point to next one */
     }
@@ -412,21 +440,52 @@ PRIVATE void read_article NOARGS
 		
 		} else if (line[0]<' ') {
 		    break;		/* End of Header? */
+
 		} else if (match(line, "SUBJECT:")) {
 		    END(HTML_ADDRESS);
 		    START(HTML_TITLE);			/** Uuugh! @@@ */
-		    PUTS(line+8);
+		    PUTS(line+9);
 		    END(HTML_TITLE);
-		    START(HTML_ADDRESS);
-		    (*targetClass.start_element)(target, HTML_H1 , 0, 0);
+		    START(HTML_H1);
 		    PUTS(line+8);
-		    (*targetClass.end_element)(target, HTML_H1);
-		    (*targetClass.start_element)(target, HTML_ADDRESS , 0, 0);
+		    END(HTML_H1);
+		    START(HTML_ADDRESS);
+
 		} else if (match(line, "DATE:")
-			|| match(line, "FROM:")
 			|| match(line, "ORGANIZATION:")) {
-		    strcat(line, "\n");
-		    PUTS(strchr(line,':')+1);
+		    PUTS(strchr(line,':')+2);
+		    START(HTML_BR);
+
+		} else if(match(line, "FROM:")) {
+		   char * temp=0;
+		   char * href=0;
+		   char *cp1, *cp2;
+
+		   /* copy into temporary storage */
+		   StrAllocCopy(temp, strchr(line,':')+1);
+
+		   cp1=temp;
+		   while(isspace(*cp1)) cp1++;
+		   /* remove space and stuff after */
+		   if((cp2 = strchr(cp1,' ')) != NULL)
+		      *cp2 = '\0';
+
+		   StrAllocCopy(href,"mailto:");
+		   StrAllocCat(href,cp1);
+
+		   start_anchor(href);
+		   PUTS("Reply to ");
+    		   PUTS(strchr(line,':')+1);
+     		   END(HTML_A);
+		   START(HTML_BR);
+
+		   /* put in the owner as a link rel. as well */
+		   start_link(href, "made");
+		
+		   /* free of temp vars */
+  		   free(temp);
+		   free(href);
+
 		} else if (match(line, "NEWSGROUPS:")) {
 		    StrAllocCopy(newsgroups, HTStrip(strchr(line,':')+1));
 		    
@@ -437,16 +496,30 @@ PRIVATE void read_article NOARGS
 		p = line;			/* Restart at beginning */
 	    } /* if end of line */
 	} /* Loop over characters */
-	(*targetClass.end_element)(target, HTML_ADDRESS);
+	END(HTML_ADDRESS);
     
 	if (newsgroups || references) {
-	    (*targetClass.start_element)(target, HTML_DL , 0, 0);
-	    	/* @@@@@@@@@@ SHOULD BE COMPACT */
+	    START(HTML_DL);
 	    if (newsgroups) {
+#ifdef POSTING
+		char *href=0;
+#endif
+
 	        (*targetClass.start_element)(target, HTML_DT , 0, 0);
 		PUTS("Newsgroups:");
 	        (*targetClass.start_element)(target, HTML_DD , 0, 0);
 		write_anchors(newsgroups);
+
+#ifdef POSTING
+		/* make posting possible */
+		StrAllocCopy(href,"newspost:");
+		StrAllocCat(href,newsgroups);
+		START(HTML_DT);
+                start_anchor(href);
+                PUTS("Reply to newsgroup(s)");
+                END(HTML_A);
+#endif
+
 		free(newsgroups);
 	    }
 	    
@@ -457,7 +530,11 @@ PRIVATE void read_article NOARGS
 		write_anchors(references);
 		free(references);
 	    }
+#ifdef WHEN_WE_HAVE_HTMLPLUS
+	    (*targetClass.end_element)(target, HTML_DLC);
+#else
 	    (*targetClass.end_element)(target, HTML_DL);
+#endif
 	}
 	PUTS("\n\n\n");
 	
@@ -543,7 +620,7 @@ PRIVATE void read_list NOARGS
     PUTS( "Newsgroups");
     (*targetClass.end_element)(target, HTML_PRE);
     p = line;
-    (*targetClass.start_element)(target, HTML_MENU , 0, 0);
+    (*targetClass.start_element)(target, HTML_DL, 0, 0);
     while(!done){
 	char ch = *p++ = NEXT_CHAR;
 	if (ch==(char)EOF) {
@@ -553,7 +630,7 @@ PRIVATE void read_list NOARGS
 	if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
 	    if (TRACE) fprintf(stderr, "B %s", line);
-    	    (*targetClass.start_element)(target, HTML_LI , 0, 0);
+    	    (*targetClass.start_element)(target, HTML_DT , 0, 0);
 	    if (line[0]=='.') {
 		if (line[1]<' ') {		/* End of article? */
 		    done = YES;
@@ -565,6 +642,22 @@ PRIVATE void read_list NOARGS
 
 /*	Normal lines are scanned for references to newsgroups.
 */
+		int i=0;
+
+		/* find whitespace if it exits */
+		for(; line[i] != '\0' && !WHITE(line[i]); i++)
+		    ;  /* null body */
+	
+		if(line[i] != '\0') {
+		    line[i] = '\0';
+		    write_anchor(line, line);
+    	            (*targetClass.start_element)(target, HTML_DD , 0, 0);
+		    PUTS(&line[i+1]); /* put description */
+		} else {
+		    write_anchor(line, line);
+		}
+
+#ifdef OLD_CODE
 		char group[LINE_LENGTH];
 		int first, last;
 		char postable;
@@ -572,11 +665,13 @@ PRIVATE void read_list NOARGS
 		    write_anchor(line, group);
 		else
 		    PUTS(line);
+#endif /*OLD_CODE*/
+
 	    } /* if not dot */
 	    p = line;			/* Restart at beginning */
 	} /* if end of line */
     } /* Loop over characters */
-    (*targetClass.end_element)(target, HTML_MENU);
+    (*targetClass.end_element)(target, HTML_DL);
 }
 
 
@@ -605,10 +700,14 @@ PRIVATE void read_group ARGS3(
 					/* count is only an upper limit */
 
     sscanf(response_text, " %d %d %d %d", &status, &count, &first, &last);
-    if(TRACE) printf("Newsgroup status=%d, count=%d, (%d-%d) required:(%d-%d)\n",
-    			status, count, first, last, first_required, last_required);
+    if(TRACE) fprintf(fprintf,
+		 "Newsgroup status=%d, count=%d, (%d-%d) required:(%d-%d)\n",
+		 status, count, first, last, first_required, last_required);
     if (last==0) {
         PUTS( "\nNo articles in this group.\n");
+#ifdef POSTING
+	goto add_post;
+#endif
 	return;
     }
     
@@ -620,14 +719,17 @@ PRIVATE void read_group ARGS3(
     
     if (last_required<=first_required) {
         PUTS( "\nNo articles in this range.\n");
+#ifdef POSTING
+	goto add_post;
+#endif
 	return;
     }
 
     if (last_required-first_required+1 > MAX_CHUNK) {	/* Trim this block */
         first_required = last_required-CHUNK_SIZE+1;
     }
-    if (TRACE) printf (
-    "    Chunk will be (%d-%d)\n", first_required, last_required);
+    if (TRACE) printf (stderr, "    Chunk will be (%d-%d)\n",
+		       first_required, last_required);
 
 /*	Set window title
 */
@@ -824,6 +926,21 @@ PRIVATE void read_group ARGS3(
 	END(HTML_A);
 	PUTS( "...)\n");
     }
+
+add_post:
+    {
+	char *href=0;
+	START(HTML_HR);
+	
+	StrAllocCopy(href,"newspost:");
+	StrAllocCat(href,groupName);
+	start_anchor(href);
+	PUTS("Post to ");
+	PUTS(groupName);
+	END(HTML_A);
+
+	free(href);
+    }
     
 
 }
@@ -871,7 +988,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
  	if (!strncasecomp (arg, "news:", 5))
 	  p1 = arg + 5;  /* Skip "news:" prefix */
 	if (list_wanted) {
-	    strcpy(command, "LIST ");
+	    strcpy(command, "LIST NEWSGROUPS");
 	} else if (group_wanted) {
 	    char * slash = strchr(p1, '/');
 	    strcpy(command, "GROUP ");
