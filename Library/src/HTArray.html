@@ -82,10 +82,10 @@ extern BOOL HTArray_addObject (HTArray * array, void * object);
 Fast macros to traverse a macro ending in a NULL element.
 
 <PRE>
-#define HTArray_firstObject(me, data) \
-	((me) &amp;&amp; ((data)=(me)-&gt;data) ? *(data)++ : NULL)
-#define HTArray_nextObject(me, data) \
-	((me) &amp;&amp; (data) ? *(data)++ : NULL)
+#define HTArray_firstObject(me, dp) \
+	((me) &amp;&amp; ((dp)=(me)-&gt;data) ? *(dp)++ : NULL)
+#define HTArray_nextObject(me, dp) \
+	((me) &amp;&amp; (dp) ? *(dp)++ : NULL)
 </PRE>
 
 <H2>Sort an Array</H2>
