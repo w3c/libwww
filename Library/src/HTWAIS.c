@@ -82,7 +82,7 @@
 extern int WWW_TraceFlag;	/* Control diagnostic output */
 extern FILE * logfile;		/* Log file output */
 
-PUBLIC int HTMaxWAISLines = 100;/* Max number of entries from a search */
+PUBLIC int HTMaxWAISLines = 250;/* Max number of entries from a search */
 
 PRIVATE BOOL	as_gate;	/* Client is using us as gateway */
 
@@ -103,7 +103,7 @@ PRIVATE char	line[2048];	/* For building strings to display */
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
 #define END(e) (*target->isa->end_element)(target, e)
-#define FREE_TARGET (*target->isa->free)(target)
+#define FREE_TARGET (*target->isa->_free)(target)
 
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
@@ -529,7 +529,7 @@ display_search_response ARGS4(
 	sprintf(line, "%4ld  %4ld  ",
 	    head->Score,
 	    head->Lines);
-	PUTS( line);
+	PUTS(line);
 
 	if (archie) {
 	    char * www_name = WWW_from_archie(headline);
@@ -839,12 +839,16 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	
 	target = HTML_new(request, NULL, WWW_HTML, format_out, sink);
 	
+	START(HTML_HTML);
+	START(HTML_HEAD);
 	START(HTML_TITLE);
 	PUTS(keywords);
 	PUTS(" in ");
 	PUTS(basetitle);
 	END(HTML_TITLE);
+	END(HTML_HEAD);
 	
+	START(HTML_BODY);
 	START(HTML_H1);
 	PUTS("WAIS Search of \"");
 	PUTS(keywords);
@@ -861,8 +865,13 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 				&request_buffer_length, 
 				keywords, wais_database, NULL,
 				HTMaxWAISLines) == NULL) {
+	    if (TRACE)
+		fprintf(stderr, "WAIS Search. Too many lines in response\n");
+	    PUTS("WAIS server replies: too many lines in response");
+#if 0
 	    HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
+#endif
 	}
 
 	if(!interpret_message(request_message, 
@@ -872,8 +881,13 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 				connection,
 				false	/* true verbose */
 				)) {
+	    if (TRACE)
+		fprintf(stderr, "WAIS Search. Too many lines in response\n");
+	    PUTS("WAIS server replies: too many lines in response");
+#if 0
 	    HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
+#endif
         } else {	/* returned message ok */
 	    SearchResponseAPDU  *query_response = 0;
 	    readSearchResponseAPDU(&query_response,
@@ -886,6 +900,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	    freeSearchResponseAPDU( query_response);
 	}	/* returned message not too large */
     
+	END(HTML_BODY);
+	END(HTML_HTML);
 	FREE_TARGET;
 
     } else {			/* D O C U M E N T    F E T C H */
@@ -902,7 +918,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 		
 	format_in = 
 	  !strcmp(doctype, "WSRC") ? HTAtom_for("application/x-wais-source") :
-	  !strcmp(doctype, "TEXT") ? HTAtom_for("text/plain") :
+	  !strcmp(doctype, "TEXT") ? WWW_UNKNOWN :
 	  !strcmp(doctype, "HTML") ? HTAtom_for("text/html") :
 	  !strcmp(doctype, "GIF")  ? HTAtom_for("image/gif") :
 	   		             HTAtom_for("application/octet-stream");
@@ -911,7 +927,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	  0 != strcmp(doctype, "TEXT") &&
 	  0 != strcmp(doctype, "HTML") ;
 
-	if ((target = HTStreamStack(format_in, request, NO)) == NULL) {
+	/* Guess on TEXT format as it might be HTML */
+	if ((target = HTStreamStack(format_in, request, YES)) == NULL) {
 	    status = -1;
 	    goto cleanup;
 	}
@@ -966,7 +983,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 			HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_MODULE,
 				   NULL, 0, "HTLoadWAIS");
 		    }
-		    (*target->isa->free)(target);
+		    (*target->isa->_free)(target);
 		    free (docid->bytes);
 		    freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
 		    freeSearchResponseAPDU( retrieval_response);
@@ -981,7 +998,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	    
 	} /* Loop over slices */
 
-	(*target->isa->free)(target);
+	(*target->isa->_free)(target);
 	free (docid->bytes);
 
     } /* If document rather than search */
