@@ -310,6 +310,15 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    HTAppVersion ? HTAppVersion : "0.0",
 		    HTLibraryVersion, CR, LF);
 	    StrAllocCat(command, line);
+
+#ifdef ACCESS_AUTH
+	    if (request->authorization != NULL) {
+		sprintf(line, "Authorization: %s%c%c",
+			request->authorization, CR, LF);
+		StrAllocCat(command, line);
+	    }
+#endif /* ACCESS_AUTH */
+
 	}
 
 	StrAllocCat(command, crlf);	/* Blank line means "end" */

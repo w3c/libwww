@@ -225,6 +225,87 @@ GLOBALREF  HTProtocol HTWAIS;
 #endif
 
 
+
+/*							override_proxy()
+**
+**	Check the no_proxy environment variable to get the list
+**	of hosts for which proxy server is not consulted.
+**
+**	no_proxy is a comma- or space-separated list of machine
+**	or domain names, with optional :port part.  If no :port
+**	part is present, it applies to all ports on that domain.
+**
+**	Example:
+**		no_proxy="cern.ch,some.domain:8001"
+**
+*/
+PRIVATE BOOL override_proxy ARGS1(CONST char *, addr)
+{
+    CONST char * no_proxy = getenv("no_proxy");
+    char * p = NULL;
+    char * host = NULL;
+    int port = 0;
+    int h_len = 0;
+
+    if (!no_proxy || !addr || !(host = HTParse(addr, "", PARSE_HOST)))
+	return NO;
+    if (!*host) { free(host); return NO; }
+
+    if (p = strchr(host, ':')) {	/* Port specified */
+	*p++ = 0;			/* Chop off port */
+	port = atoi(p);
+    }
+    else {				/* Use default port */
+	char * access = HTParse(addr, "", PARSE_ACCESS);
+	if (access) {
+	    if	    (!strcmp(access,"http"))	port = 80;
+	    else if (!strcmp(access,"gopher"))	port = 70;
+	    else if (!strcmp(access,"ftp"))	port = 21;
+	    free(access);
+	}
+    }
+    if (!port) port = 80;		/* Default */
+    h_len = strlen(host);
+
+    while (*no_proxy) {
+	CONST char * end;
+	CONST char * colon = NULL;
+	int templ_port = 0;
+	int t_len;
+
+	while (*no_proxy && (WHITE(*no_proxy) || *no_proxy==','))
+	    no_proxy++;			/* Skip whitespace and separators */
+
+	end = no_proxy;
+	while (*end && !WHITE(*end) && *end != ',') {	/* Find separator */
+	    if (*end==':') colon = end;			/* Port number given */
+	    end++;
+	}
+
+	if (colon) {
+	    templ_port = atoi(colon+1);
+	    t_len = colon - no_proxy;
+	}
+	else {
+	    t_len = end - no_proxy;
+	}
+
+	if ((!templ_port || templ_port == port)  &&
+	    (t_len > 0  &&  t_len <= h_len  &&
+	     !strncmp(host + h_len - t_len, no_proxy, t_len))) {
+	    free(host);
+	    return YES;
+	}
+	if (*end) no_proxy = end+1;
+	else break;
+    }
+
+    free(host);
+    return NO;
+}
+
+
+
 /*		Find physical name and access protocol
 **		--------------------------------------
 **
@@ -268,7 +349,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 */
 #define USE_GATEWAYS
 #ifdef USE_GATEWAYS
-    {
+    if (!override_proxy(addr)) {
 	char * gateway_parameter, *gateway, *proxy;
 
 	gateway_parameter = (char *)malloc(strlen(access)+20);

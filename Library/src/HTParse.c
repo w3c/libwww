@@ -416,7 +416,7 @@ PRIVATE CONST unsigned char isAcceptable[96] =
 
 /*	Bit 0		xalpha		-- see HTFile.h
 **	Bit 1		xpalpha		-- as xalpha but with plus.
-**	Bit 3 ...	path		-- as xpalphas but with /
+**	Bit 2 ...	path		-- as xpalphas but with /
 */
     /*   0 1 2 3 4 5 6 7 8 9 A B C D E F */
     {    0,0,0,0,0,0,0,0,0,0,7,6,0,7,7,4,	/* 2x   !"#$%&'()*+,-./	 */

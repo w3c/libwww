@@ -78,7 +78,8 @@ PUBLIC int HTUU_encode ARGS3(unsigned char *,	bufin,
 
    register char *outptr = bufcoded;
    unsigned int i;
-   /* This doesn't seem to be needed (AL):   register unsigned char *inptr  = bufin; */
+
+   fprintf(stderr, " ** DEBUG bufin: \"%s\"\n", bufin);
 
    for (i=0; i<nbytes; i += 3) {
       *(outptr++) = ENC(*bufin >> 2);            /* c1 */

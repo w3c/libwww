@@ -67,48 +67,6 @@
 
 PRIVATE HTList *server_table	= NULL;	/* Browser's info about servers	     */
 
-#ifdef OLD_CODE
-PRIVATE char *secret_key	= NULL;	/* Browser's latest secret key       */
-PRIVATE HTAASetup *current_setup= NULL;	/* The server setup we are currently */
-                                        /* talking to			     */
-PRIVATE char *current_hostname	= NULL;	/* The server's name and portnumber  */
-PRIVATE int current_portnumber	= 80;	/* where we are currently trying to  */
-                                        /* connect.			     */
-PRIVATE char *current_docname	= NULL;	/* The document's name we are        */
-                                        /* trying to access.		     */
-PRIVATE char *HTAAForwardAuth	= NULL;	/* Authorization: line to forward    */
-                                        /* (used by gateway httpds)	     */
-
-
-/*** HTAAForwardAuth for enabling gateway-httpds to forward Authorization ***/
-
-PUBLIC void HTAAForwardAuth_set ARGS2(CONST char *, scheme_name,
-				      CONST char *, scheme_specifics)
-{
-    int len = 20 + (scheme_name      ? strlen(scheme_name)      : 0) 
-	         + (scheme_specifics ? strlen(scheme_specifics) : 0);
-
-    FREE(HTAAForwardAuth);
-    if (!(HTAAForwardAuth = (char*)malloc(len)))
-	outofmem(__FILE__, "HTAAForwardAuth_set");
-
-    strcpy(HTAAForwardAuth, "Authorization: ");
-    if (scheme_name) {
-	strcat(HTAAForwardAuth, scheme_name);
-	strcat(HTAAForwardAuth, " ");
-	if (scheme_specifics) {
-	    strcat(HTAAForwardAuth, scheme_specifics);
-	}
-    }
-}
-
-
-PUBLIC void HTAAForwardAuth_reset NOARGS
-{
-    FREE(HTAAForwardAuth);
-}
-#endif /*OLD_CODE*/
-
 
 /**************************** HTAAServer ***********************************/
 
@@ -605,12 +563,14 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     if (!req  ||  !req->anchor)
 	return NO;
 
+#ifdef OLD_CODE
     if (req->authorization) {
 	CTRACE(stderr,
 "HTAA_composeAuth: forwarding auth.info from client\nAuthorization: %s\n",
 	       req->authorization);
 	return YES;
     }
+#endif
 
     arg = HTAnchor_physical(req->anchor);
     docname = HTParse(arg, "", PARSE_PATH);

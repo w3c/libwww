@@ -27,6 +27,25 @@
 #endif
 
 
+PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
+
+
+/*
+**	Set default file name for welcome page on each directory.
+*/
+PUBLIC void HTAddWelcome ARGS1(char *, name)
+{
+    if (name) {
+	char * mycopy = NULL;
+	StrAllocCopy(mycopy,name);
+
+	if (!welcome_names)
+	    welcome_names = HTList_new();
+	HTList_addObject(welcome_names, (void*)mycopy);
+    }
+}
+
+
 #ifdef GOT_READ_DIR
 
 /* PRIVATE						multi_match()
@@ -117,6 +136,10 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     matches = HTList_new();
     while ((dirbuf = readdir(dp))) {
 	if (!dirbuf->d_ino) continue;	/* Not in use */
+	if (!strcmp(dirbuf->d_name,".") ||
+	    !strcmp(dirbuf->d_name,"..") ||
+	    !strcmp(dirbuf->d_name,".www_browsable"))
+	    continue;
 	if ((int)(dirbuf->d_namlen) >= baselen) {
 	    n = HTSplitFilename(dirbuf->d_name, actual);
 	    if (multi_match(required, m, actual, n)) {
@@ -216,6 +239,72 @@ PRIVATE char * HTGetBest ARGS2(HTRequest *,	req,
     return best_path;
 }
 
+
+
+PRIVATE int welcome_value ARGS1(char *, name)
+{
+    HTList * cur = welcome_names;
+    char * welcome;
+    int v = 0;
+
+    while ((welcome = (char*)HTList_nextObject(cur))) {
+	v++;
+	if (!strcmp(welcome,name)) return v;
+    }
+    return 0;
+}
+
+
+
+PRIVATE char * get_best_welcome ARGS1(char *, path)
+{
+    char * best_welcome = NULL;
+    int best_value = 0;
+    DIR * dp;
+    STRUCT_DIRENT * dirbuf;
+    char * last = strrchr(path, '/');
+
+    if (last) *last = 0;
+
+    if (!welcome_names) {
+	HTAddWelcome("Welcome.html");
+	HTAddWelcome("welcome.html");
+	HTAddWelcome("Index.html");
+	HTAddWelcome("index.html");
+    }
+
+    dp = opendir(path);
+    if (!dp) {
+	CTRACE(stderr, "Warning..... Can't open directory %s\n",path);
+	return NULL;
+    }
+    while ((dirbuf = readdir(dp))) {
+	if (!dirbuf->d_ino ||
+	    !strcmp(dirbuf->d_name,".") ||
+	    !strcmp(dirbuf->d_name,"..") ||
+	    !strcmp(dirbuf->d_name,".www_browsable"))
+	    continue;
+	else {
+	    int v = welcome_value(dirbuf->d_name);
+	    if (v > best_value) {
+		best_value = v;
+		StrAllocCopy(best_welcome, dirbuf->d_name);
+	    }
+	}
+    }
+    closedir(dp);
+
+    if (best_welcome) {
+	char * welcome = (char*)malloc(strlen(path) + strlen(best_welcome)+2);
+	if (!welcome) outofmem(__FILE__, "get_best_welcome");
+	sprintf(welcome, "%s/%s", path, best_welcome);
+	free(best_welcome);
+	CTRACE(stderr,"Welcome..... \"%s\"\n",welcome);
+	return welcome;
+    }
+    return NULL;
+}
+
 #endif /* GOT_READ_DIR */
 
 
@@ -240,34 +329,41 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 			    char *,		path,
 			    struct stat *,	stat_info)
 {
-    char * multi;
     char * new_path = NULL;
     int stat_status = -1;
+    int len;
 
-    if (!req || !path || !stat_info)
+    if (!req || !path || !*path || !stat_info)
 	return NULL;
 
 #ifdef GOT_READ_DIR
-    multi = strrchr(path, MULTI_SUFFIX[0]);
-    if (multi && !strcasecomp(multi, MULTI_SUFFIX)) {
-	CTRACE(stderr, "Multi....... by %s suffix\n", MULTI_SUFFIX);
-	if (!(new_path = HTGetBest(req, path))) {
-	    CTRACE(stderr, "Multi....... failed -- giving up\n");
-	    return NULL;
-	}
-	path = new_path;
+    len = strlen(path);
+    if (path[len-1] == '/') {	/* Find welcome page */
+	new_path = get_best_welcome(path);
+	if (new_path) path = new_path;
     }
-    else {
-	stat_status = stat(path, stat_info);
-	if (stat_status == -1) {
-	    CTRACE(stderr,
-		   "AutoMulti... because couldn't stat \"%s\" (errno %d)\n",
-		   path, errno);
+    else{
+	char * multi = strrchr(path, MULTI_SUFFIX[0]);
+	if (multi && !strcasecomp(multi, MULTI_SUFFIX)) {
+	    CTRACE(stderr, "Multi....... by %s suffix\n", MULTI_SUFFIX);
 	    if (!(new_path = HTGetBest(req, path))) {
-		CTRACE(stderr, "AutoMulti... failed -- giving up\n");
+		CTRACE(stderr, "Multi....... failed -- giving up\n");
 		return NULL;
 	    }
 	    path = new_path;
+	}
+	else {
+	    stat_status = stat(path, stat_info);
+	    if (stat_status == -1) {
+		CTRACE(stderr,
+		       "AutoMulti... because can't stat \"%s\" (errno %d)\n",
+		       path, errno);
+		if (!(new_path = HTGetBest(req, path))) {
+		    CTRACE(stderr, "AutoMulti... failed -- giving up\n");
+		    return NULL;
+		}
+		path = new_path;
+	    }
 	}
     }
 #endif /* GOT_READ_DIR */

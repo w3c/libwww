@@ -981,13 +981,13 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		STRUCT_DIRENT * dirbuf;
 		
 		char * logical;
-		char * tail;
-		
+		static char * tail = NULL;
+
 		BOOL present[HTML_A_ATTRIBUTES];
 		
 		char * tmpfilename = NULL;
 		struct stat file_info;
-		
+
 		if (TRACE)
 		    fprintf(stderr,"%s is a directory\n",localname);
 			
@@ -1028,6 +1028,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
  /*	Directory access is allowed and possible
  */
 		logical = HTAnchor_address((HTAnchor*)request->anchor);
+		FREE(tail);	/* From previous call */
 		tail = strrchr(logical, '/') +1;	/* last part or "" */
 
 		/*
@@ -1035,6 +1036,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		** there is a trailing slash:
 		*/
 		if (!*tail) tail = ".";
+		tail = HTEscape(tail, URL_XALPHAS);
 
 		target = HTML_new(request, NULL, WWW_HTML, 
 			request->output_format, request->output_stream);
