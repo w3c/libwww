@@ -8,3 +8,10 @@ EXTRA_DIST = \
 	$(DOCS)
 
 SUBDIRS = Patch Architecture Using Guide
+
+BUILT_SOURCES = \
+	Extrnals.html
+
+Extrnals.html:
+	../../config/makeindx.pl ../src ../src/windows/*.docs >Extrnals.html
+

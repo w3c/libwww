@@ -4,7 +4,7 @@ SUFFIXES = .files .def
 
 SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
-PL  := $(wildcard *.pl)
+# PL  := $(wildcard *.pl) I don't think we need this anymore - EGP
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -15,18 +15,16 @@ BUILT_SOURCES = \
 	wwwstream.def	wwwhtml.def	wwwhttp.def \
 	wwwmime.def	wwwnews.def	wwwrules.def \
 	wwwtelnt.def	wwwutils.def	wwwwais.def \
-	wwwtrans.def	wwwlist.txt
+	wwwtrans.def
 
 EXTRA_DIST = \
 	wwwdll.def \
 	$(SRC) \
-	$(MAK) \
-	$(PL)
+	$(MAK)
+#	$(PL) - EGP
 
 .files.def:
 	../../../config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
-wwwlist.txt:
-	ls -1 ../*.c | sed -e s=\.\./==1 | ../../../config/makedefs.pl @ > wwwlist.txt
 
 
