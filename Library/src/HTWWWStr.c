@@ -106,7 +106,7 @@ PUBLIC const char *HTMessageIdStr (void)
 #endif /* HAVE_GETPID */
     if (!address) address = tmpnam(NULL);
     if ((!address || !*address) && sectime < 0) {
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("MessageID...  Can't make a unique MessageID\n");
 	return "";
     }
@@ -168,7 +168,7 @@ PUBLIC long HTGetTimeZoneOffset (void)
 	    HTTimeZone = timezone;
 	}
 	HTTimeZone = -HTTimeZone;
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
 		    (int) HTTimeZone/3600);
     }
@@ -183,12 +183,12 @@ PUBLIC long HTGetTimeZoneOffset (void)
 	struct tm * local = localtime(&cur_t);
 #endif /* HT_REENTRANT */
 	HTTimeZone = local->tm_gmtoff;
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("TimeZone.... GMT + (%02d) hours (including DST)\n",
 		    (int)local->tm_gmtoff / 3600);
     }
 #else
-    if (WWWTRACE) HTTrace("TimeZone.... Not defined\n");
+    if (CORE_TRACE) HTTrace("TimeZone.... Not defined\n");
 #endif /* HAVE_TM_GMTOFF */
 #endif /* HAVE_TIMEZONE */
     return HTTimeZone;
@@ -215,10 +215,10 @@ PUBLIC time_t HTParseTime (const char *  str)
 	s++;				/* or: Thu, 10 Jan 1993 01:29:59 GMT */
 	while (*s && *s==' ') s++;
 	if (strchr(s,'-')) {				     /* First format */
-	    if (WWWTRACE)
+	    if (CORE_TRACE)
 		HTTrace("Format...... Weekday, 00-Mon-00 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 18) {
-		if (WWWTRACE)
+		if (CORE_TRACE)
 		    HTTrace(
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
@@ -230,10 +230,10 @@ PUBLIC time_t HTParseTime (const char *  str)
 	    tm.tm_min = make_num(s+13);
 	    tm.tm_sec = make_num(s+16);
 	} else {					    /* Second format */
-	    if (WWWTRACE)
+	    if (CORE_TRACE)
 		HTTrace("Format...... Wkd, 00 Mon 0000 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 20) {
-		if (WWWTRACE)
+		if (CORE_TRACE)
 		    HTTrace(
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
@@ -248,7 +248,7 @@ PUBLIC time_t HTParseTime (const char *  str)
 	}
     } else if (isdigit(*str)) {				    /* delta seconds */
 	t = time(NULL) + atol(str);	      /* Current local calendar time */
-	if (WWWTRACE) {
+	if (CORE_TRACE) {
 #ifdef HT_REENTRANT
 	    char buffer[CTIME_MAX];
 	    HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
@@ -259,14 +259,14 @@ PUBLIC time_t HTParseTime (const char *  str)
 	return t;
 
     } else {	      /* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
 	s = str;
 	while (*s && *s==' ') s++;
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("Trying...... The Wrong time format: %s\n", s);
 	if ((int)strlen(s) < 24) {
-	    if (WWWTRACE)
+	    if (CORE_TRACE)
 		HTTrace("ERROR....... Not a valid time format \"%s\"\n",s);
 	    return 0;
 	}
@@ -283,7 +283,7 @@ PUBLIC time_t HTParseTime (const char *  str)
 	tm.tm_mday < 1  ||  tm.tm_mday > 31  ||
 	tm.tm_mon  < 0  ||  tm.tm_mon  > 11  ||
 	tm.tm_year <70  ||  tm.tm_year >120) {
-	if (WWWTRACE) HTTrace(
+	if (CORE_TRACE) HTTrace(
 	"ERROR....... Parsed illegal time: %02d.%02d.%02d %02d:%02d:%02d\n",
 	       tm.tm_mday, tm.tm_mon+1, tm.tm_year,
 	       tm.tm_hour, tm.tm_min, tm.tm_sec);
@@ -307,7 +307,7 @@ PUBLIC time_t HTParseTime (const char *  str)
 #endif /* HAVE_TIMEGM */
 #endif /* HAVE_MKTIME */
 
-    if (WWWTRACE)
+    if (CORE_TRACE)
 	HTTrace(
 		"Time string. %s parsed to %ld seconds, or in local time: %s",
 		str, (long) t, ctime(&t));

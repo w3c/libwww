@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww REQUEST OBJECT</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen, 20-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 21-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -76,6 +77,12 @@ struct _HTRequest {
 
     HTList *		charsets;
     BOOL		char_local;
+
+    HTList *		befores;
+    BOOL		befores_local;
+
+    HTList *		afters;
+    BOOL		afters_local;
 </PRE>
 
 <H3>Headers and header information</H3>

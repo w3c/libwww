@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww Public REQUEST OBJECT PUBLIC</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen, 19-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 21-Mar-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -519,6 +520,19 @@ unconverted data etc. from the library. The default value if
 <PRE>
 extern void HTRequest_setDebugFormat (HTRequest *request, HTFormat format);
 extern HTFormat HTRequest_debugFormat (HTRequest *request);
+</PRE>
+
+<A NAME="before">Net before and after calls</A>
+
+The request object may have it's own before and after callbacks. These may 
+override or suplement the global set in <A HREF="HTNet.html">HTNet</A>.
+<PRE>
+extern void HTRequest_setBefore (HTRequest *request, HTList *befores, 
+				 BOOL override);
+extern HTList * HTRequest_before (HTRequest *request, BOOL *override);
+extern void HTRequest_setAfter (HTRequest *request, HTList *afters,
+			        BOOL override);
+extern HTList * HTRequest_after (HTRequest *request, BOOL *override);
 </PRE>
 
 <H2><A NAME="context">Context Swapping</A></H2>

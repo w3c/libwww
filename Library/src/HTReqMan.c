@@ -461,6 +461,45 @@ PUBLIC HTFormat HTRequest_debugFormat (HTRequest *request)
 }
 
 /*
+**	Net before and after callbacks. list can be NULL
+*/
+PUBLIC void HTRequest_setBefore (HTRequest *request, HTList *befores,
+				 BOOL override)
+{
+    if (request) {
+	request->befores = befores;
+	request->befores_local = override;
+    }
+}
+
+PUBLIC HTList * HTRequest_before (HTRequest *request, BOOL *override)
+{
+    if (request) {
+	*override = request->befores_local;
+	return request->befores;
+    }
+    return NULL;
+}
+
+PUBLIC void HTRequest_setAfter (HTRequest *request, HTList *afters,
+				BOOL override)
+{
+    if (request) {
+	request->afters = afters;
+	request->afters_local = override;
+    }
+}
+
+PUBLIC HTList * HTRequest_after (HTRequest *request, BOOL *override)
+{
+    if (request) {
+	*override = request->afters_local;
+	return request->afters;
+    }
+    return NULL;
+}
+
+/*
 **	Call back function for context swapping
 */
 PUBLIC void HTRequest_setCallback (HTRequest *request, HTRequestCallback *cbf)

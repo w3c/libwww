@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww LINKED LIST</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  8-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 23-Mar-1996 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -36,6 +37,8 @@ struct _HTList {
 };
 </PRE>
 
+<A NAME="new"></A>
+<A NAME="delete"></A>
 <H2>Creation and Deletion Methods</H2>
 
 These two functions create and deletes a list
@@ -54,6 +57,7 @@ first element just after the head element.
 extern BOOL	HTList_addObject (HTList *me, void *newObject);
 </PRE>
 
+<A NAME="appendObject"></A>
 You can also append an element to the end of the list (the end is the
 first entered object) by using the following function:
 
@@ -61,6 +65,8 @@ first entered object) by using the following function:
 extern BOOL HTList_appendObject (HTList * me, void * newObject);
 </PRE>
 
+<A NAME="removeObject"></A>
+<A NAME="removeLastObject"></A>
 <H2>Remove List Elements</H2>
 
 <PRE>
@@ -69,6 +75,7 @@ extern void *	HTList_removeLastObject		(HTList *me);
 extern void *	HTList_removeFirstObject	(HTList *me);
 </PRE>
 
+<A NAME="count"></A>
 <H2>Size of a List</H2>
 
 Two small function to ask for the size

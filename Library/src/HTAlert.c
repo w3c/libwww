@@ -60,7 +60,7 @@ PUBLIC BOOL HTAlert_interactive (void)
 PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
 			     HTAlertOpcode opcode)
 {
-    if (WWWTRACE) 
+    if (CORE_TRACE) 
 	HTTrace("Alert Add... HTAlertCallback %p\n", (void *) cbf);
     if (list && cbf) {
 	HTAlert *me;
@@ -79,7 +79,7 @@ PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
 */
 PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
 {
-    if (WWWTRACE) 
+    if (CORE_TRACE) 
 	HTTrace("Call delete HTAlertCallback %p\n", (void *) cbf);
     if (list && cbf) {
 	HTList *cur = list;
@@ -101,7 +101,7 @@ PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
 */
 PUBLIC BOOL HTAlertCall_deleteAll (HTList * list)
 {
-    if (WWWTRACE) 
+    if (CORE_TRACE) 
 	HTTrace("Call delete All callback functions\n");
     if (list) {
 	HTList *cur = list;
@@ -129,7 +129,7 @@ PUBLIC HTAlertCallback * HTAlertCall_find (HTList * list, HTAlertOpcode opcode)
 	    if (pres->opcode & opcode)
 		return pres->cbf;
 	}
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("Alert Find.. No entry found for opcode %d\n",opcode);
     }
     return NULL;

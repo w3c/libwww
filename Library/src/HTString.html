@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww DYNAMIC STRINGS</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen, 18-Dec-1995 -->
+<!-- Changed by: Eric Prud'hommeaux, 23-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -37,6 +38,7 @@ the <EM>last</EM> string created has to be freed by the user. If
 <CODE>StrAllocCat</CODE> is called with a NULL pointer as destination
 then it is equivalent to <CODE>StrAllocCopy</CODE>.
 
+<A NAME="HTSACopy"></A>
 <PRE>
 #define StrAllocCopy(dest, src) HTSACopy (&amp;(dest), src)
 #define StrAllocCat(dest, src)  HTSACat  (&amp;(dest), src)
@@ -45,6 +47,8 @@ extern char * HTSACopy (char **dest, const char *src);
 extern char * HTSACat  (char **dest, const char *src);
 </PRE>
 
+<A NAME="strcasecomp"></A>
+<A NAME="strncasecomp"></A>
 <H2><A NAME="utils">Case-insensitive String Comparison</A></H2>
 
 The usual routines (comp instead of cmp) had some problem.

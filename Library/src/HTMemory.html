@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww DYNAMIC MEMORY</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen, 10-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 28-Mar-1996 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -33,6 +34,10 @@ Reference Library</A>.
 #define HTMEMORY_H
 </PRE>
 
+<A NAME="malloc"></A>
+<A NAME="calloc"></A>
+<A NAME="realloc"></A>
+<A NAME="free"></A>
 <A NAME="d"><H2>Dynamic Memory Allocation and Deallocation</H2></A>
 
 These are the functions for handling dynamic allocation and deallcation.
@@ -125,6 +130,7 @@ application has registered it's own panic handler then this is called
 diretly from this function. Otherwise, the default behavior is to
 write a small message to stderr and then exit.
 
+<A NAME="outofmem"></A>
 <PRE>
 #define outofmem(file, name)	HT_OUTOFMEM(name)
 #define HT_OUTOFMEM(name)	HTMemory_outofmem((name), __FILE__, __LINE__)

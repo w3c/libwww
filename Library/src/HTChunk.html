@@ -2,7 +2,7 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww Dynamic Array Class</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  5-Feb-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 18-Mar-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 28-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -51,6 +51,7 @@ typedef struct {
 } HTChunk;
 </PRE>
 
+<A NAME="new"></A>
 <H2>Create new chunk</H2>
 
 Create a new chunk and specify the number of bytes to allocate at a
@@ -62,6 +63,7 @@ trade-off time vs. memory
 extern HTChunk * HTChunk_new (int growby);
 </PRE>
 
+<A NAME="delete"></A>
 <H2>Free a chunk</H2>
 
 Free a chunk created by <CODE>HTChunkCreate</CODE>from memory
@@ -71,6 +73,7 @@ Free a chunk created by <CODE>HTChunkCreate</CODE>from memory
 extern void HTChunk_delete (HTChunk * ch);
 </PRE>
 
+<A NAME="clear"></A>
 <H2>Clear a chunk</H2>
 
 Keep the chunk in memory but clear all data kept inside.
@@ -110,6 +113,7 @@ the string (without the trailing zero)
 extern void HTChunk_puts (HTChunk * ch, const char *str);
 </PRE>
 
+<A NAME="putb"></A>
 <H2>Append a block to a chunk</H2>
 
 Add the block and increment the size of the chunk by the len
@@ -118,6 +122,7 @@ Add the block and increment the size of the chunk by the len
 extern void HTChunk_putb (HTChunk * ch, const char *block, int len);
 </PRE>
 
+<A NAME="putc"></A>
 <A NAME="Terminate"><H2>Zero Terminate a chunk</H2></A>
 
 As a chunk often is a dynamic string, it needs to be terminated by a
