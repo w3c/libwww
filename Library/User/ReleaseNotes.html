@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -9,7 +9,7 @@
 <A HREF="../"><IMG ALT="Lib" SRC="../../Icons/WWW/Lib48x.gif"></A>
 <IMG SRC="../../Icons/WWW/relnotes48x.gif" ALT="RELEASE"></A>
 
-<H1>Library 4.0 Release Notes, December 1 1995</H1>
+<H1>Library 4.0 Release Notes</H1>
 
 <IMG SRC="../../Icons/32x32/caution.gif"> Thanks to all the good work done by the alpha testers:
 
@@ -30,6 +30,45 @@
 <LI>WEI, John
 <LI>WOODWARD, Jennifer
 </UL>
+
+<H2>Release 4.0A December 11 1995</H2>
+
+<UL>
+<LI>Created the include HTTPUtil.html - a C file may follow
+<LI>Changed HTDoAccept so that it automatically inserts the new socket descriptor in the Net object.
+<LI>HTLoad_terminate moved from HTReqMan to HTHome. It is not
+  automatically set up in HTLibInit anymore 
+<LI>Made HTAnchor and HTLink opaque data objects
+<LI>changed HTAnchor_linkResult to HTLink_result
+<LI>changed HTAnchor_linkMethod to HTLink_method
+<LI>Changed HyperDoc to simply a void pointer. This makes it more
+  generic and the application does not have to actually treat it as a
+  document anyway
+<LI>Introduced the WWW_DEBUG internal format that can be used to
+  redirect debug information, for example from a HTTP redirection
+  message etc.
+<LI>Request object added to HText_new methods
+<LI>changed HTExtParse to HTXParse throughout - H&kon
+<LI>HTXParse now null-terminates buffer - H&kon
+<LI>return codes from HTTee changed - H&kon
+<LI>content-length initialized to -1 - H&kon
+<LI>Fixed bug for handling HEAD in HTTP and MIME streams
+<LI>Handles of persistent connection is now a semaphore and not a bool
+<LI>Changes the event loop so that a timeout handler can return HT_OK or
+  HT_ERROR. If the code is not HT_OK then stop the event loop
+<LI>Changed request of header enumeration:
+<UL>
+<LI>General headers have the prefic HT_G_
+<LI>Request headers have the prefic HT_C_
+<LI>Server headers have the prefic HT_S_
+<LI>Entity headers have the prefic HT_E_
+</UL>
+<LI>Separated file suffix initialization into HTBInit
+<LI>Changed the names in HTChunk to be consistent with the Module_method scheme
+<LI>Introduced HTBInit.c for setup of file suffixes
+</UL>
+
+<H2>Release 4.0 December 1 1995</H2>
 
 <H2>Alpha Release 7, November 28 1995</H2>
 
@@ -483,6 +522,6 @@ a number to a string using prefixes. This can be used in the progress notificati
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, libwww@w3.org, November 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, libwww@w3.org, December 1995</ADDRESS>
 </BODY>
 </HTML>

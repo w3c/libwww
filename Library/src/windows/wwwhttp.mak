@@ -68,7 +68,9 @@ BSC32_SBRS= \
 	$(INTDIR)/HTAABrow.sbr \
 	$(INTDIR)/HTAlert.sbr \
 	$(INTDIR)/HTAAUtil.sbr \
-	$(INTDIR)/HTTPReq.sbr
+	$(INTDIR)/HTTPReq.sbr \
+	$(INTDIR)/HTTPServ.sbr \
+	$(INTDIR)/HTTPRes.sbr
 
 $(OUTDIR)/wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -93,7 +95,9 @@ LINK32_OBJS= \
 	$(INTDIR)/HTAABrow.obj \
 	$(INTDIR)/HTAlert.obj \
 	$(INTDIR)/HTAAUtil.obj \
-	$(INTDIR)/HTTPReq.obj
+	$(INTDIR)/HTTPReq.obj \
+	$(INTDIR)/HTTPServ.obj \
+	$(INTDIR)/HTTPRes.obj
 
 $(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -139,7 +143,9 @@ BSC32_SBRS= \
 	$(INTDIR)/HTAABrow.sbr \
 	$(INTDIR)/HTAlert.sbr \
 	$(INTDIR)/HTAAUtil.sbr \
-	$(INTDIR)/HTTPReq.sbr
+	$(INTDIR)/HTTPReq.sbr \
+	$(INTDIR)/HTTPServ.sbr \
+	$(INTDIR)/HTTPRes.sbr
 
 $(OUTDIR)/wwwhttp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -164,7 +170,9 @@ LINK32_OBJS= \
 	$(INTDIR)/HTAABrow.obj \
 	$(INTDIR)/HTAlert.obj \
 	$(INTDIR)/HTAAUtil.obj \
-	$(INTDIR)/HTTPReq.obj
+	$(INTDIR)/HTTPReq.obj \
+	$(INTDIR)/HTTPServ.obj \
+	$(INTDIR)/HTTPRes.obj
 
 $(OUTDIR)/wwwhttp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -268,8 +276,20 @@ $(INTDIR)/HTTPReq.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 # End Source File
-# End Group
-# End Project
+################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPServ.c
+
+$(INTDIR)/HTTPServ.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPServ.h
+# End Source File
 ################################################################################
 # Begin Source File
 
@@ -279,16 +299,10 @@ $(INTDIR)/HTTPRes.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 # End Source File
-# End Group
-# End Project
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPServ.c
-
-$(INTDIR)/HTTPServ.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
+SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPRes.h
 # End Source File
 # End Group
 # End Project
