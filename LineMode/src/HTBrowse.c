@@ -696,8 +696,8 @@ int main
 #else
 	sprintf(log_file_name, "%s-%d", logfile_root, getpid());
 #endif
-	logfile = fopen(log_file_name, "a");
-	if (!logfile)
+	HTlogfile = fopen(log_file_name, "a");
+	if (!HTlogfile)
 	    ErrMsg("Can't open log file", log_file_name);
     };
 
