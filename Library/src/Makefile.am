@@ -51,9 +51,8 @@ libwww_la_SOURCES = \
 	HTMIMImp.c	HTSChunk.c	HTLib.c \
 	HTLink.c 	HTFilter.c	HTUTree.c \
 	HTPEP.c		HTProfil.c	HTMerge.c \
-	HTMux.c		HTDemux.c	HTMuxTx.c \
-	HTMuxCh.c	HTTimer.c	HTTrace.c \
-	HTMemLog.c
+	HTDemux.c	HTMuxTx.c	HTMuxCh.c \
+	HTTimer.c	HTTrace.c	HTMemLog.c
 
 libwww_la_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@
 
@@ -112,10 +111,10 @@ BUILT_SOURCES = wwwsys.h \
 	HTLib.h		HTLink.h	HTFilter.h \
 	HTUTree.h	HTPEP.h		HTProfil.h \
 	HTMerge.h	HTResponse.h 	HTMuxHeader.h \
-	HTMux.h		HTDemux.h	HTMuxTx.h \
-	HTMuxCh.h 	HTHstMan.h	HTMemLog.h \
-	HTTimer.h	HTWAIS.h	HTZip.h \
-	HTSQL.h		HTSQLLog.h	HTextImp.h
+	HTDemux.h	HTMuxTx.h	HTMuxCh.h \
+	HTHstMan.h	HTMemLog.h	HTTimer.h \
+	HTWAIS.h	HTZip.h		HTSQL.h \
+	HTSQLLog.h	HTextImp.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 
