@@ -246,7 +246,6 @@ PUBLIC int HTCacheLoadFilter (HTRequest * request, void * param, int mode)
 	**  Start request directly from the cache. As with the redirection
 	**  filter we reuse the same request object which means that we must
 	**  keep this around until the cache load request has terminated
-	**  In the case of a 
 	*/
 	{
 	    HTLoad(request, NO);

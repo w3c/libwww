@@ -606,7 +606,7 @@ PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 	/*
 	**  Inherit all the unparsed headers - we may need them later!
 	*/
-	me->headers = HTResponse_header(response);
+	me->headers = HTResponse_handOverHeader(response);
 
 	/*
 	**  Notifify the response object not to delete the lists that we

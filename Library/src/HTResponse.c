@@ -613,5 +613,15 @@ PUBLIC HTAssocList * HTResponse_header (HTResponse * me)
     return (me ? me->headers : NULL);
 }
 
+PUBLIC HTAssocList * HTResponse_handOverHeader (HTResponse * me)
+{
+    HTAssocList * headers = NULL;
+    if (me) {
+	headers = me->headers;
+	me->headers = NULL;
+    }
+    return headers;
+}
+
 
 

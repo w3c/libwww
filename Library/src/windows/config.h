@@ -8,10 +8,10 @@
 #define W3C_PACKAGE "w3c-libwww"
 
 /* Define to be the version. */
-#define W3C_VERSION "5.1"
+#define W3C_VERSION "5.1c"
 
 /* Define to enable HT_ZLIB compression / decompression support. */
-/* #undef HT_ZLIB */
+#define HT_ZLIB
 
 /* Define to enable support for enabling a rules file w/o user interaction. */
 /* #undef HT_AUTOMATIC_RULES */

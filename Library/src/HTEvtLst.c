@@ -365,6 +365,16 @@ PRIVATE void __ResetMaxSock (void)
 }  
 #endif /* !WWW_WIN_ASYNC */
 
+PRIVATE int EventList_remaining(SockEvents * pres)
+{
+    int ret = 0;
+    int i;
+    for (i = 0; i < HTEvent_TYPES; i++)
+	if (pres->events[i] != NULL)
+	    ret |= 1<<i;
+    return ret;
+}
+
 /*
 **  For a given socket, reqister a request structure, a set of operations, 
 **  a HTEventCallback function, and a priority. For this implementation, 
@@ -373,6 +383,7 @@ PRIVATE void __ResetMaxSock (void)
 */
 PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 {
+    int newset = 0;
     SockEvents * sockp;
     if (THD_TRACE) 
 	HTTrace("Event....... Register socket %d, request %p handler %p type %s at priority %d\n",
@@ -390,9 +401,12 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     sockp = SockEvents_get(s, SockEvents_mayCreate);
     sockp->s = s;
     sockp->events[HTEvent_INDEX(type)] = event;
+    newset = EventList_remaining(sockp);
 #ifdef WWW_WIN_ASYNC
-    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, HTEvent_BITS(type)) < 0)
+    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, HTEvent_BITS(newset)) < 0) {
+        if (THD_TRACE) HTTrace("Event....... WSAAsyncSelect returned error!");
 	return HT_ERROR;
+    }
 #else /* WWW_WIN_ASYNC */
     FD_SET(s, FdArray+HTEvent_INDEX(type));
     if (s > MaxSock) {
@@ -419,16 +433,6 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     return HT_OK;
 }
 
-PRIVATE int EventList_remaining(SockEvents * pres)
-{
-    int ret = 0;
-    int i;
-    for (i = 0; i < HTEvent_TYPES; i++)
-	if (pres->events[i] != NULL)
-	    ret |= 1<<i;
-    return ret;
-}
-
 /*
 ** Remove the registered information for the specified socket for the actions 
 ** specified in ops. if no actions remain after the unregister, the registered
@@ -445,12 +449,13 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 
     while (cur && (pres = (SockEvents *) HTList_nextObject(cur))) {
         if (pres->s == s) {
-	    int		remaining;
+	    int	remaining = 0;
 
 	    /*
 	    **  Unregister the event from this action
 	    */
 	    pres->events[HTEvent_INDEX(type)] = NULL;
+            remaining = EventList_remaining(pres);
 
 	    /*
 	    **  Check to see of there was a timeout connected with the event.
@@ -459,10 +464,14 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    {
 #ifdef IN_EVENT
 		HTTimer * timer = pres->events[HTEvent_INDEX(type)]->timer;
+                if (timer) HTTimer_delete(timer);
+                pres->events[HTEvent_INDEX(type)]->timer = NULL;
 #else
 		HTTimer * timer = pres->timeouts[HTEvent_INDEX(type)];
+                if (timer) HTTimer_delete(timer);
+                pres->timeouts[HTEvent_INDEX(type)] = NULL;
 #endif
-		if (timer) HTTimer_delete(timer);
+		
 	    }
 	    
 #ifdef WWW_WIN_ASYNC
@@ -477,7 +486,7 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    **  Check to see if we can delete the action completely. We do this
 	    **  if there are no more events registered.
 	    */
-	    if ((remaining = EventList_remaining(pres)) == 0) {
+	    if (remaining == 0) {
 		HTList * doomed = cur;
 		if (THD_TRACE)
 		    HTTrace("Event....... No more events registered for socket %d\n", s);
@@ -504,7 +513,8 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	}
 	last = cur;
     }
-    if (ret == HT_ERROR && THD_TRACE) HTTrace("Event....... Couldn't find socket %d.\n", s);
+    if (ret == HT_ERROR && THD_TRACE) HTTrace("Event....... Couldn't find socket %d. Can't unregister type %s\n",
+        s, HTEvent_type2str(type));
     return ret;
 }
 
@@ -676,6 +686,9 @@ PUBLIC BOOL HTEventInit (void)
 
 PUBLIC BOOL HTEventTerminate (void)
 {
+#ifdef _WINSOCKAPI_
+    WSACleanup();
+#endif /* _WINSOCKAPI_ */
     return YES;
 }
 

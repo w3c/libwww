@@ -324,6 +324,8 @@ extern BOOL HTResponse_addHeader       (HTResponse * response,
                                         char * token, char * value);
 extern BOOL HTResponse_deleteHeaderAll (HTResponse * response);
 extern HTAssocList * HTResponse_header (HTResponse * response);
+
+extern HTAssocList * HTResponse_handOverHeader (HTResponse * me);
 </PRE>
 <PRE>
 #endif /* HTRESPONSE_H */

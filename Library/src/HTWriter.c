@@ -105,15 +105,14 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	limit = me->ascbuf+len;
     }
 #else
-    if (!me->write)
-	me->write = (char *) buf;
-    else
-	len -= (me->write - buf);
+    me->write = (char *) buf;
 #endif
 
     /* Write data to the network */
     while (me->write < limit) {
-	if ((b_write = NETWRITE(soc, me->write, len)) < 0) {
+        b_write = NETWRITE(soc, me->write, len);
+        if (b_write < 0) {
+
 #ifdef EAGAIN
 	    if (socerrno == EAGAIN || socerrno == EWOULDBLOCK)/* POSIX, SVR4 */
 #else
@@ -144,19 +143,14 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		return HT_ERROR;
 	    }
 	}
+
 	/* We do this unconditionally, should we check to see if we ever blocked? */
-#if 0
-	HTHost_unregister(host, net, HTEvent_WRITE);
-#endif
 	HTTraceData(me->write, b_write, "HTWriter.... Writing");
-	me->write += b_write;
+        me->write += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
 	    HTTrace("Write Socket %d bytes written to socket %d\n",
 		    b_write, soc);
-#if 0
-	net->bytes_written += b_write;
-#endif
 	{
 	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
 	    if (cbf) (*cbf)(net->request, HT_PROG_WRITE,
@@ -165,8 +159,6 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
     }
 #ifdef NOT_ASCII
     HT_FREE(me->ascbuf);
-#else
-    me->write = NULL;
 #endif
     return HT_OK;
 }
@@ -225,7 +217,7 @@ PUBLIC HTOutputStream * HTWriter_new (HTHost * host, HTChannel * ch,
 	    me->ch = ch;
 	    me->host = host;
 	}
-	return me;
+        return me;
     }
     return NULL;
 }
