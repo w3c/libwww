@@ -566,7 +566,7 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     }
 
     if (rep_out == WWW_SOURCE || rep_out == rep_in) {
-	return output_stream;
+	return output_stream ? output_stream : HTBlackHole();
     }
 
     conversion[0] = request->conversions;

@@ -246,10 +246,15 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    HTChunkPuts(header, linebuf);
 	}
     }
-    if (request->EntityMask & HT_ORIG_URI) {
+    if (request->RequestMask & HT_HOST) {
 	char *orig = HTAnchor_address((HTAnchor *) request->anchor);
-	sprintf(linebuf, "Orig-URI: %s%c%c", orig, CR, LF);
+	char *host = HTParse(orig, "", PARSE_HOST);
+	char *ptr = strchr(host, ':');		     /* Chop off port number */
+	if (ptr) *ptr = '\0';
+	sprintf(linebuf, "Host: %s%c%c", host, CR, LF);
+	HTChunkPuts(header, linebuf);
 	free(orig);
+	free(host);
     }
     if (request->RequestMask & HT_REFERER && request->parentAnchor) {
 	char *act = HTAnchor_address((HTAnchor *) request->anchor);

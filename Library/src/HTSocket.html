@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket I/O Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Sep-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -77,7 +77,7 @@ typedef enum _HTSocketEOL {
     EOL_SLF
 } HTSocketEOL;
 
-extern int HTSocketRead	PARAMS((HTRequest * request, HTStream * target));
+extern int HTSocketRead	(HTRequest * request, HTNet * net);
 </PRE>
 
 <H2>Read from an ANSI file Descriptor</H2>
@@ -86,8 +86,7 @@ This function has replaced the HTParseFile() and HTFileCopy functions
 for read from an ANSI file descriptor.
 
 <PRE>
-extern int HTFileRead	PARAMS((FILE * fp, HTRequest * request,
-				HTStream * target));
+extern int HTFileRead	(HTRequest * request, HTNet * net, FILE * fp);
 </PRE>
 
 <HR>

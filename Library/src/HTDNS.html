@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Domain Name Service Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -102,20 +102,23 @@ versions of the server class, for example HTTP/0.9, HTTP/1.1 etc. The
 server version is a bit flag that the protocol module can define on
 its own. That way we don't have to change this module when registering
 a new protocol module. The <EM>server type</EM> is a description of
-whether we can keep the connection persistsent or not.
+whether we can keep the connection persistent or not.
 
 <PRE>
+extern char * HTDNS_serverClass		(HTdns * dns);
+extern void HTDNS_setServerClass	(HTdns * dns, char * s_class);
+
+extern int  HTDNS_serverVersion		(HTdns * dns);
+extern void HTDNS_setServerVersion	(HTdns * dns, int version);
+
 typedef enum _HTTCPType {
-    HT_TCP_SINGLE = 0,				  /* Plain old TCP one timer */
-    HT_TCP_MULTI,			      /* Multiple requests pr socket */
-    HT_TCP_INTERLEAVE		  	      /* Can we interleave requests? */
+    HT_TCP_PLAIN	= 0x0,			    /* One request at a time */
+    HT_TCP_BATCH	= 0x1,			       /* Use batch requests */
+    HT_TCP_INTERLEAVE	= 0x2	  	      /* Can we interleave requests? */
 } HTTCPType;
 
-extern char *HTDNS_serverClass		(HTdns *dns);
-extern void HTDNS_setServerClass	(HTdns *dns, char *s_class);
-
-extern int HTDNS_serverVersion (HTdns *dns);
-extern void HTDNS_setServerVersion (HTdns *dns, int version, HTTCPType type);
+extern HTTCPType HTDNS_connection	(HTdns * dns);
+extern void HTDNS_setConnection		(HTdns * dns, HTTCPType type);
 </PRE>
 
 <H3>Recalculating the Time-Weights on Multihomed Hosts</H3>

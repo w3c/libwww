@@ -506,10 +506,10 @@ PRIVATE int HTParseFile ARGS3(
 **	      	HT_ERROR	if error,
 **     		HT_WOULD_BLOCK	if read would block
 */
-PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
+PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 {
-    HTNet *net = request->net;
     HTInputSocket *isoc = net->isoc;
+    HTStream *target = net->target;
     int b_read = isoc->read - isoc->buffer;
     int status;
     if (!isoc || isoc->sockfd==INVSOC) {
@@ -581,6 +581,7 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. Target returns %d\n", status);
+		isoc->write = isoc->buffer + b_read;
 		return status;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
@@ -589,9 +590,9 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 	    }
 	}
 	isoc->write = isoc->buffer + b_read;
-        HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
-			 net->cbf, net->priority);
     } while (net->preemtive);
+    HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
+		     net->cbf, net->priority);
     return HT_WOULD_BLOCK;
 }
 
@@ -608,10 +609,10 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 **   Returns    HT_LOADED	if finished reading
 **	      	HT_ERROR	if error,
 */
-PUBLIC int HTFileRead ARGS3(FILE *, fp, HTRequest *, request,
-			    HTStream *, target)
+PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
 {
-    HTInputSocket *isoc = request->net->isoc;
+    HTInputSocket *isoc = net->isoc;
+    HTStream *target = net->target;
     int b_read;
     int status;
     if (!fp) {

@@ -322,11 +322,14 @@ PUBLIC BOOL HTBind_getBindings ARGS1(HTParentAnchor *, anchor)
     if (anchor) {
 	char *addr = HTAnchor_physical(anchor);
 	char *path = HTParse(addr, "", PARSE_PATH+PARSE_PUNCTUATION);
-	char *file = strrchr(path, '/');
-	if (!file) {
-	    if (BIND_TRACE)
-		fprintf(TDEST,"Get Binding. No file name found `%s\'\n", path);
-	} else {
+	char *file;
+	char *end;
+	if ((end = strchr(path, ';')) || (end = strchr(path, '?')) ||
+	    (end = strchr(path, '#')))
+	    *end = '\0';
+	if ((file = strrchr(path, '/'))) {
+ 	    if (BIND_TRACE)
+		fprintf(TDEST,"Get Binding. for file: `%s\'\n", path);
 	    status = HTBind_getFormat(file, &anchor->content_type,
 				      &anchor->content_encoding,
 				      &anchor->content_language,

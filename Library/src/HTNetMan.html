@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -49,7 +49,9 @@ typedef enum _TCPState {
     TCP_BEGIN		= 0,
     TCP_DNS,
     TCP_NEED_SOCKET,
-    TCP_NEED_CONNECTION
+    TCP_NEED_BIND,
+    TCP_NEED_LISTEN,
+    TCP_NEED_CONNECT
 } TCPState;
 
 struct _HTNet {

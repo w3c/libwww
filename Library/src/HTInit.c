@@ -30,9 +30,7 @@
 /* Protocol Modules */
 #include "HTTP.h"
 #include "HTFile.h"
-#if 0
 #include "HTFTP.h"
-#endif
 #include "HTGopher.h"
 #include "HTTelnet.h"
 #include "HTNews.h"
@@ -63,7 +61,7 @@ PUBLIC void HTConverterInit ARGS1(HTList *, c)
 {
     /*
     ** This set of converters uses the HTML/HText interface.
-    ** If you do not want this interface then disable them!
+    ** If you do not want this interface then replace them!
     */
     HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
@@ -71,6 +69,14 @@ PUBLIC void HTConverterInit ARGS1(HTList *, c)
     HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
 
+    /*
+    ** A set of converters that converts from Gopher, news,
+    ** and FTP listings, menues etc. to HTML
+    */
+#if 0
+    HTSetConversion(c,"text/x-ftplist",		"www/present",	HTFTPLongList,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/x-ftpnlst",		"www/present",	HTFTPShortList,	1.0, 0.0, 0.0);
+#endif
     /*
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
@@ -80,10 +86,9 @@ PUBLIC void HTConverterInit ARGS1(HTList *, c)
     HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
 
     /*
-    ** This set dumps the following formats to local disk withour any further
+    ** This dumps all other formats to local disk without any further
     ** action taken
     */
-    HTSetConversion(c,"application/octet-stream","www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
     HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
 }
 
@@ -142,9 +147,7 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 PUBLIC void HTAccessInit (void)
 {
 #ifndef DECNET
-#if 0
-    HTProtocol_add("ftp", YES, HTLoadFTP);
-#endif
+    HTProtocol_add("ftp", NO, HTLoadFTP);
     HTProtocol_add("nntp", YES, HTLoadNews);
     HTProtocol_add("gopher", NO, HTLoadGopher);
 #ifdef HT_DIRECT_WAIS

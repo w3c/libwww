@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -62,7 +62,15 @@ This function makes a non-blocking accept on a port and polls every second
 until MAX_ACCEPT_POLL is reached.
 
 <PRE>
-extern int HTDoAccept PARAMS((HTNet *net));
+extern int HTDoAccept (HTNet * net, SOCKFD * newfd);
+</PRE>
+
+<H3>Listen on a Socket</H3>
+
+Listens on the specified port. 0 means that we chose it here
+
+<PRE>
+extern int HTDoListen (HTNet * net, u_short port, SOCKFD master);
 </PRE>
 
 <A NAME="errormsg"><H2>System Description of Error Message</H2></A>
@@ -120,7 +128,7 @@ This function returns a CONET char pointer to a static location containing
 the name of this host or NULL if not available.
 
 <PRE>
-extern CONST char * HTGetHostName NOPARAMS;
+extern CONST char * HTGetHostName (void);
 </PRE>
 
 
@@ -141,7 +149,7 @@ extern void HTSetHostName PARAMS((char * host));
 Called from <A HREF="HTReq.html#Library">HTLibTerminate</A>
 
 <PRE>
-extern void HTFreeHostName NOPARAMS;
+extern void HTFreeHostName (void);
 </PRE>
 
 <H3>Get Domain Name of This Machine</H3>
@@ -151,7 +159,7 @@ HTGetHostName() function. Changing the domain name requires a call to
 HTSetHostname().
 
 <PRE>
-extern CONST char *HTGetDomainName NOPARAMS;
+extern CONST char *HTGetDomainName (void);
 </PRE>
 
 
@@ -163,7 +171,7 @@ one of the current host name so different values can be assigned. The default
 value is &lt;USER&gt;@hostname where hostname is as returned by HTGetHostName().
 
 <PRE>
-extern CONST char * HTGetMailAddress NOPARAMS;
+extern CONST char * HTGetMailAddress (void);
 </PRE>
 
 
@@ -181,7 +189,7 @@ extern void HTSetMailAddress PARAMS((char * address));
 Called by <A HREF="HTReq.html#Library">HTLibTerminate</A>
 
 <PRE>
-extern void HTFreeMailAddress NOPARAMS;
+extern void HTFreeMailAddress (void);
 </PRE>
 
 <H2>Signal Handling</H2>
@@ -195,7 +203,7 @@ refused</EM>.
 
 <PRE>
 #ifdef WWWLIB_SIG
-extern void HTSetSignal NOPARAMS;
+extern void HTSetSignal (void);
 #endif
 
 #endif   /* HTTCP_H */

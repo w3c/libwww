@@ -650,7 +650,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	gopher->type = GT_MENU;
 	gopher->state = GOPHER_BEGIN;
 	net->context = gopher;
-    } if (ops == FD_CLOSE) {				      /* Interrupted */
+    } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	GopherCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
@@ -767,7 +767,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case GOPHER_NEED_RESPONSE:
-	    status = HTSocketRead(request, net->target);
+	    status = HTSocketRead(request, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED)

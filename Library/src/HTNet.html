@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -156,6 +156,15 @@ NO
 
 <PRE>
 extern BOOL HTNet_new (HTRequest * request, HTPriority priority);
+</PRE>
+
+<H3>Duplicate an Existing Object</H3>
+
+Creates a new HTNet object as a duplicate of the same request.
+Returns YES if OK, else NO.
+
+<PRE>
+extern BOOL HTNet_dup (HTNet *src, HTNet **dest);
 </PRE>
 
 <H2>Make an Object Wait</H2>

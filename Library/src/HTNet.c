@@ -207,6 +207,22 @@ PUBLIC HTList *HTNet_pendingQueue (void)
 /*			  Creation and deletion methods  		     */
 /* ------------------------------------------------------------------------- */
 
+/*	HTNet_duplicate
+**	---------------
+**	Creates a new HTNet object as a duplicate of the same request.
+**	Returns YES if OK, else NO
+**	BUG: We do not check if we have a socket free!
+*/
+PUBLIC BOOL HTNet_dup (HTNet *src, HTNet **dest)
+{
+    *dest = NULL;
+    if (!src) return NO;
+    if ((*dest = (HTNet *) calloc(1, sizeof(HTNet))) == NULL)
+	outofmem(__FILE__, "HTNet_dup");
+    memcpy(*dest, src, sizeof(HTNet));
+    return YES;
+}
+
 /*							     	   HTNet_new
 **
 **	Create a new HTNet object as a new request to be handled. If we have
@@ -219,7 +235,7 @@ PUBLIC BOOL HTNet_new (HTRequest * request, HTPriority priority)
 {
     HTNet *me;
     HTProtocol *prot;
-    if (!request) return HT_ERROR;
+    if (!request) return NO;
     if (!HTNetActive) HTNetActive = HTList_new();
     prot = (HTProtocol *) HTAnchor_protocol(request->anchor);
 
@@ -294,6 +310,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 		    fprintf(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
 		HTDNS_clearActive(net->dns);
 		/* Here we should probably use a low priority */
+		HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 		HTEvent_Register(net->sockfd, net->request, (SockOps) FD_READ,
 				 HTDNS_closeSocket, net->priority);
 	    }

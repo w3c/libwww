@@ -198,6 +198,7 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
     if (Blocking)
 	newreq->preemtive = YES;			 /* Use blocking I/O */
     HTList_addObject(reqlist, (void *) newreq);
+    HTRequest_addRqHd(newreq, HT_HOST);
     return newreq;
 }
 

@@ -56,6 +56,10 @@ PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
 	fprintf(TDEST, "Contacting host...\n");
 	break;
 
+      case HT_PROG_ACCEPT:
+	fprintf(TDEST, "Waiting for connection...\n");
+	break;
+
       case HT_PROG_READ:
 	{
 	    long cl = HTAnchor_length(HTRequest_anchor(request));

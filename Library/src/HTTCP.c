@@ -55,6 +55,12 @@
 #define RESOLV_CONF "/etc/resolv.conf"
 #endif
 
+#ifdef __svr4__
+#define HT_BACKLOG 32		 /* Number of pending connect requests (TCP) */
+#else
+#define HT_BACKLOG 5		 /* Number of pending connect requests (TCP) */
+#endif /* __svr4__ */
+
 PRIVATE char *hostname = NULL;			    /* The name of this host */
 
 PRIVATE char *mailaddress = NULL;		     /* Current mail address */
@@ -169,7 +175,7 @@ PUBLIC unsigned int HTCardinal ARGS3
 **  call if the application has its own handlers.
 */
 #include <signal.h>
-PUBLIC void HTSetSignal NOARGS
+PUBLIC void HTSetSignal (void)
 {
     /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
     ** when attemting to connect to a remote host where you normally should
@@ -280,7 +286,7 @@ PRIVATE int HTParseInet (HTNet * net, char * host)
 **
 **	Returns NULL on error, "" if domain name is not found
 */
-PUBLIC CONST char *HTGetDomainName NOARGS
+PUBLIC CONST char *HTGetDomainName (void)
 {
     CONST char *host = HTGetHostName();
     char *domain;
@@ -334,7 +340,7 @@ PUBLIC void HTSetHostName ARGS1(char *, host)
 **
 **	Return: hostname on success else NULL
 */
-PUBLIC CONST char * HTGetHostName NOARGS
+PUBLIC CONST char * HTGetHostName (void)
 {
     BOOL got_it = NO;
     FILE *fp;
@@ -430,7 +436,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 /*
 **	Free the host name. Called from HTLibTerminate
 */
-PUBLIC void HTFreeHostName NOARGS
+PUBLIC void HTFreeHostName (void)
 {
     FREE(hostname);
 }
@@ -471,7 +477,7 @@ PUBLIC void HTSetMailAddress ARGS1(char *, address)
 **
 **	Returns NULL if error else pointer to static string
 */
-PUBLIC CONST char * HTGetMailAddress NOARGS
+PUBLIC CONST char * HTGetMailAddress (void)
 {
 #ifdef HT_REENTRANT
     char name[LOGNAME_MAX+1];				   /* For getlogin_r */
@@ -546,7 +552,7 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 /*
 **	Free the mail address. Called from HTLibTerminate
 */
-PUBLIC void HTFreeMailAddress NOARGS
+PUBLIC void HTFreeMailAddress (void)
 {
     FREE(mailaddress);
 }
@@ -630,7 +636,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    ** that the socket hasn't been closed in the meantime
 	    */
 	    if (!status) {
-		net->tcpstate = TCP_NEED_CONNECTION;
+		net->tcpstate = TCP_NEED_CONNECT;
 		free(fullhost);
 		HTNet_wait(net);
 		return HT_PERSISTENT;
@@ -713,18 +719,20 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #endif /* WINDOW */
 		if (PROT_TRACE) {
 		    if (status == -1)
-			fprintf(TDEST, "HTDoConnect. Blocking socket\n");
+			fprintf(TDEST, "HTDoConnect. Only blocking works\n");
 		    else
 			fprintf(TDEST, "HTDoConnect. Non-blocking socket\n");
 		}
-	    }
+	    } else
+		fprintf(TDEST, "HTDoConnect. Blocking socket\n");
+
 	    /* If multi-homed host then start timer on connection */
 	    if (net->retry) net->connecttime = time(NULL);
 	    HTProgress(net->request, HT_PROG_CONNECT, NULL);
-	    net->tcpstate = TCP_NEED_CONNECTION;
+	    net->tcpstate = TCP_NEED_CONNECT;
 	    break;
 
-	  case TCP_NEED_CONNECTION:
+	  case TCP_NEED_CONNECT:
 	    status = connect(net->sockfd, (struct sockaddr *) &net->sock_addr,
 			     sizeof(net->sock_addr));
 	    /*
@@ -812,6 +820,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    return HT_OK;
 	    break;
 
+	  case TCP_NEED_BIND:
+	  case TCP_NEED_LISTEN:
 	  case TCP_ERROR:
 	    if (PROT_TRACE) fprintf(TDEST, "HTDoConnect. Connect failed\n");
 	    if (net->sockfd != INVSOC) {
@@ -843,64 +853,222 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
     }
 }
 
-/*								HTDoAccept()
-**
-**	This function makes a non-blocking accept on a port and polls every
-**	second until MAX_ACCEPT_POLL or interrupted by user.
-**
-**	BUGS Interrupted is not yet implemented!!!
-**
-**	Returns  HT_WOULD_BLOCK 	if waiting
-**		 0		if OK,
-**		 -1		on error
+/*	HTDoAccept()
+**	------------
+**	This function makes a non-blocking accept which will turn up as ready
+**	read in the select.
+**	Returns
+**		HT_ERROR	Error has occured or interrupted
+**		HT_OK		if connected
+**		HT_WOULD_BLOCK  if operation would have blocked
 */
-PUBLIC int HTDoAccept ARGS1(HTNet *, net)
+PUBLIC int HTDoAccept (HTNet * net, SOCKFD * newfd)
 {
-    SockA soc_address;				/* SockA is defined in tcp.h */
     int status;
-    int cnt;
-    int soc_addrlen = sizeof(soc_address);
+    int size = sizeof(net->sock_addr);
     if (net->sockfd==INVSOC) {
-	if (PROT_TRACE) fprintf(TDEST, "HTDoAccept.. Bad socket number\n");
-	return -1;
+	if (PROT_TRACE) fprintf(TDEST, "HTDoAccept.. Invalid socket\n");
+	return HT_ERROR;
     }
-
-    /* First make the socket non-blocking */
-#if defined(_WINDOWS) || defined(VMS)
-    {
-	int enable = 1;		/* Need the variable! */
-	status = IOCTL(net->sockfd, FIONBIO, enable);
-    }
+    HTProgress(net->request, HT_PROG_ACCEPT, NULL);
+    status = accept(net->sockfd, (struct sockaddr *) &net->sock_addr, &size);
+#ifdef _WINSOCKAPI_
+    if (status == SOCKET_ERROR)
 #else
-    if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
-	status |= O_NONBLOCK;	/* POSIX */
-	status = FCNTL(net->sockfd, F_SETFL, status);
-    }
+    if (status < 0) 
 #endif
-    if (status == -1) {
-	HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "IOCTL");
-	return -1;
+    {
+#ifdef EAGAIN
+	if (socerrno==EINPROGRESS || socerrno==EAGAIN)
+#else 
+#ifdef _WINSOCKAPI_
+        if (socerrno==WSAEWOULDBLOCK)
+#else
+	if (socerrno==EINPROGRESS)
+#endif /* _WINSOCKAPI_ */
+#endif /* EAGAIN */
+	{
+	    if (PROT_TRACE)
+		fprintf(TDEST,"HTDoAccept.. WOULD BLOCK %d\n", net->sockfd);
+	    HTEvent_Register(net->sockfd, net->request, (SockOps) FD_ACCEPT,
+			     net->cbf, net->priority);
+	    return HT_WOULD_BLOCK;
+	}
+	HTErrorSysAdd(net->request, ERR_WARN, socerrno, YES, "accept");
+	if (PROT_TRACE) fprintf(TDEST, "HTDoAccept.. Accept failed\n");
+	if (HTDNS_socket(net->dns) != INVSOC) {	 	 /* Inherited socket */
+	    HTDNS_setSocket(net->dns, INVSOC);
+	}
+	return HT_ERROR;
     }
-
-    /* Now poll every sekund */
-    for(cnt=0; cnt<MAX_ACCEPT_POLL; cnt++) {
-	if ((status = accept(net->sockfd, (struct sockaddr*) &soc_address,
-			     &soc_addrlen)) != INVSOC) {
-	    if (PROT_TRACE) fprintf(TDEST,
-			       "HTDoAccept.. Accepted new socket %d\n",	
-			       status);
-	    return status;
-	} else
-	    HTErrorSysAdd(net->request, ERR_WARN, socerrno, YES, "accept");
-	SLEEP(1);
-    }
-    
-    /* If nothing has happened */    
-    if (PROT_TRACE)
-	fprintf(TDEST, "HTDoAccept.. Timed out, no connection!\n");
-    HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_TIME_OUT, NULL, 0,
-	       "HTDoAccept");
-    return -1;
+    *newfd = status;
+    HTEvent_UnRegister(status, (SockOps) FD_ACCEPT);
+    return HT_OK;
 }
 
+
+/*	HTDoListen
+**	----------
+**	Listens on the specified port. 0 means that we chose it here
+**	If master==INVSOC then we listen on all local interfaces (using a 
+**	wildcard). If !INVSOC then use this as the local interface
+**	returns		HT_ERROR	Error has occured or interrupted
+**			HT_OK		if connected
+*/
+PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
+{
+    int status;
+
+    /* Jump into the state machine */
+    while (1) {
+	switch (net->tcpstate) {
+	  case TCP_BEGIN:
+	    {
+		SockA *sin = &net->sock_addr;
+		memset((void *) sin, '\0', sizeof(SockA));
+#ifdef DECNET
+		sin->sdn_family = AF_DECnet;
+		sin->sdn_objnum = port;
+#else
+		sin->sin_family = AF_INET;
+		if (master != INVSOC) {
+		    int len = sizeof(SockA);
+		    if (getsockname(master, (struct sockaddr *) sin, &len)<0) {
+			HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
+				      "getsockname");
+			net->tcpstate = TCP_ERROR;
+			break;
+		    }
+		} else
+		    sin->sin_addr.s_addr = INADDR_ANY;
+		sin->sin_port = htons(port);
+#endif
+	    }
+	    if (PROT_TRACE)
+		fprintf(TDEST, "HTDoListen.. Listen on port %d\n", port);
+	    net->tcpstate = TCP_NEED_SOCKET;
+	    break;
+
+	  case TCP_NEED_SOCKET:
+#ifdef DECNET
+	    if ((net->sockfd=socket(AF_DECnet, SOCK_STREAM, 0))==INVSOC)
+#else
+	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
+#endif
+	    {
+		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "socket");
+		net->tcpstate = TCP_ERROR;
+		break;
+	    }
+	    if (PROT_TRACE)
+		fprintf(TDEST, "HTDoListen.. Created socket %d\n",net->sockfd);
+
+	    /* If non-blocking protocol then change socket status
+	    ** I use FCNTL so that I can ask the status before I set it.
+	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
+	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
+	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
+	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
+	    */
+	    if (!net->preemtive) {
+#ifdef _WINDOWS 
+		{		/* begin windows scope  */
+		    HTRequest * rq = net->request;
+		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
+			FD_CONNECT | FD_CLOSE ;
+		    int rv = 0 ;
+				    
+#ifndef _WIN32 		
+		    if (net->request->hwnd == 0) {
+					
+		    }
+#endif 
+		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
+
+		    if (net->request->hwnd != 0) {
+			rv = WSAAsyncSelect( net->sockfd, rq->hwnd, 
+					    rq->winMsg, levents);
+			if (rv == SOCKET_ERROR) {
+			    status = -1 ;
+			    if (PROT_TRACE) 
+				fprintf(TDEST, 
+					"HTDoListen.. WSAAsyncSelect() fails: %d\n", 
+					WSAGetLastError());
+			} /* error returns */
+		    } else {
+			int enable = 1 ;
+			status = IOCTL(net->sockfd, FIONBIO, &enable);
+		    }
+		} /* end scope */
+#else 
+#if defined(VMS)
+		{
+		    int enable = 1;
+		    status = IOCTL(net->sockfd, FIONBIO, &enable);
+		}
+#else
+		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
+		    status |= O_NONBLOCK;			    /* POSIX */
+		    status = FCNTL(net->sockfd, F_SETFL, status);
+		}
+#endif /* VMS */
+#endif /* WINDOW */
+		if (PROT_TRACE) {
+		    if (status == -1)
+			fprintf(TDEST, "HTDoListen.. Blocking socket\n");
+		    else
+			fprintf(TDEST, "HTDoListen.. Non-blocking socket\n");
+		}
+	    }
+	    net->tcpstate = TCP_NEED_BIND;
+	    break;
+
+	  case TCP_NEED_BIND:
+	    status = bind(net->sockfd, (struct sockaddr *) &net->sock_addr,
+			  sizeof(net->sock_addr));
+#ifdef _WINSOCKAPI_
+	    if (status == SOCKET_ERROR)
+#else
+	    if (status < 0) 
+#endif
+	    {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Bind........ failed %d\n", socerrno);
+		net->tcpstate = TCP_ERROR;		
+	    } else
+		net->tcpstate = TCP_NEED_LISTEN;
+	    break;
+
+	  case TCP_NEED_LISTEN:
+	    status = listen(net->sockfd, HT_BACKLOG);
+#ifdef _WINSOCKAPI_
+	    if (status == SOCKET_ERROR)
+#else
+	    if (status < 0) 
+#endif
+		net->tcpstate = TCP_ERROR;		
+	    else
+		net->tcpstate = TCP_CONNECTED;
+	    break;
+
+	  case TCP_CONNECTED:
+	    net->tcpstate = TCP_BEGIN;
+	    if (PROT_TRACE)
+		fprintf(TDEST, "HTDoListen.. Bind and listen port %d on %s\n",
+			(int) ntohs(net->sock_addr.sin_port),
+			HTInetString(&net->sock_addr));
+	    return HT_OK;
+	    break;
+
+	  case TCP_NEED_CONNECT:
+	  case TCP_DNS:
+	  case TCP_ERROR:
+	    if (PROT_TRACE) fprintf(TDEST, "HTDoListen.. Connect failed\n");
+	    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "HTDoListen");
+	    net->tcpstate = TCP_BEGIN;
+	    return HT_ERROR;
+	    break;
+	}
+    }
+}
 

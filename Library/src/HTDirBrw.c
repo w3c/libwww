@@ -1164,7 +1164,8 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
     char *tail = NULL;
     
     if (TRACE) fprintf(TDEST, "HTFTPBrowse. Browsing `%s\'\n", directory);
-        
+
+#if 0        
     /* Set up the offset string of the anchor reference */
     {
 	char *tptr = strrchr(directory, '/');
@@ -1399,5 +1400,8 @@ cleanup:
 	/* TEMPORARY */
 	HTDirDescriptions = old_descr;
     } /* End of two big loops */
+
+#endif
+
     return status ? status : HT_LOADED;
 } /* End of FTP directory listing */

@@ -365,19 +365,6 @@ PUBLIC char *HTSimplify ARGS1(char **, url)
 	      (end = strchr(path, '#'))))
 	    end = path+strlen(path);
 
-#if 0
-	/* Parse string first time to find number of `real' tokens */
-	int segments = 0;
-	while (p<end) {
-	    if (*p=='/' || p==path) {
-		if (!((*(p+1)=='/' || !*(p+1)) ||
-		      (*(p+1)=='.' && (*(p+2)=='/' || !*(p+2))) ||
-		      (*(p+1)=='.' && *(p+2)=='.' &&(*(p+3)=='/' || !*(p+3)))))
-		    segments++;
-	    }
-	    p++;
-	}
-#endif	
 	/* Parse string second time to simplify */
 	p = path;
 	while(p<end) {

@@ -332,14 +332,14 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 	me->http->next = HTTP_GOT_DATA;
 	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
 	    me->transparent = YES;
-	HTDNS_setServerVersion(net->dns, HTTP_09, HT_TCP_SINGLE);
+	HTDNS_setServerVersion(net->dns, HTTP_09);
 	return status;
     } else {
 	char *ptr = me->buffer+5;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
 
 	/* here we want to find out when to use persistent connection */
-	HTDNS_setServerVersion(net->dns, HTTP_10, HT_TCP_SINGLE);
+	HTDNS_setServerVersion(net->dns, HTTP_10);
 
 	me->status = atoi(HTNextField(&ptr));
 	me->reason = ptr;
@@ -516,7 +516,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	http->state = HTTP_BEGIN;
 	http->next = HTTP_ERROR;
 	net->context = http;
-    } if (ops == FD_CLOSE) {				      /* Interrupted */
+    } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
 	    HTTPCleanup(request, HT_IGNORE);
 	else
@@ -612,7 +612,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		else
 		    ops = FD_READ;	  /* Trick to ensure that we do READ */
 	    } else if (ops == FD_READ) {
-		status = HTSocketRead(request, net->target);
+		status = HTSocketRead(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED)

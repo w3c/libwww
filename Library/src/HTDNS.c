@@ -138,12 +138,22 @@ PUBLIC int HTDNS_serverVersion (HTdns *dns)
      return dns ? dns->version : 0;
 }
 
-PUBLIC void HTDNS_setServerVersion (HTdns * dns, int version, HTTCPType type)
+PUBLIC void HTDNS_setServerVersion (HTdns * dns, int version)
 {
-    if (dns) {
-	dns->version = version;
-	dns->type = type;
-    }
+    if (dns) dns->version = version;
+}
+
+/*	HTDNS_connection
+**	----------------
+*/
+PUBLIC HTTCPType HTDNS_connection (HTdns *dns)
+{
+     return dns ? dns->type : 0;
+}
+
+PUBLIC void HTDNS_setConnection (HTdns * dns, HTTCPType type)
+{
+    if (dns) dns->type = type;
 }
 
 /*	Persistent Connections
@@ -428,7 +438,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	if (pres->sockfd != INVSOC) {
 	    if (pres->active) {			   /* Warm connection in use */
 		net->sockfd = pres->sockfd;		    /* Assign always */
-		if (!(pres->type & HT_TCP_INTERLEAVE)) {
+		if (pres->type == HT_TCP_INTERLEAVE) {
 		    if (PROT_TRACE)
 			fprintf(TDEST, "HostByName.. waiting for socket\n");
 		    return 0;			/* Wait for clear connection */

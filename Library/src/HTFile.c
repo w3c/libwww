@@ -547,9 +547,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case FS_FILE_NEED_BODY:
 #ifndef NO_UNIX_IO
-	    status = HTSocketRead(request, net->target);
+	    status = HTSocketRead(request, net);
 #else
-	    status = HTFileRead(file->fp, request, net->target);
+	    status = HTFileRead(request, net, file->fp);
 #endif
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;

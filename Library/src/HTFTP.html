@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>FTP Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Sep-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -29,61 +29,30 @@ FTP-servers. <P>
 </UL>
 
 This module is implemented by <A HREF="HTFTP.c">HTFTP.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTFTP_H
 #define HTFTP_H
-
-#include "HTChunk.h"
+#include "HTFormat.h"
 #include "HTEvntrg.h"
-#include "HTNet.h"
-</PRE>
 
-<H2>Public Functions</H2>
-
-Theese are the public functions...
-
-<H3>Accessing FTP-Server</H3>
-
-<PRE>
 extern HTEventCallBack HTLoadFTP;
+
+#if 0
+extern HTConcerter HTFTPLongList, HTFTPShortList;
+#endif
 </PRE>
 
-<H3>Various Functions to parse information</H3>
-
-Theese functions are necessary in order to keep the internal data structures
-hidden.
-
 <PRE>
+#if 0
+#include "HTNet.h"
+#include "HTChunk.h"
 extern HTChunk *HTFTPWelcomeMsg (HTNet *data);
 extern BOOL HTFTUseList		(HTNet *data);
+#endif
 </PRE>
-
-<H2>Flags for FTP connections</H2>
-
-Those are the flags for configuring the FTP client.
-
-<PRE>
-extern long HTFTPTimeOut;
-</PRE>
-
-In addition, the following defines are available in the module: <P>
-
-<DL>
-<DT>LISTEN 
-<DD>This defines makes it possible to use PORT and hence do an passive
-open for the data connection. Though, if defined, this is only used AFTER
-an active open has been tried using PASV.
-<DT>REPEAT_PORT
-<DD>If LISTEN is defined, then when we have found a passive port, then reuse
-it for the next time, else we ask the system to get a new one.
-<DT>POLL_PORTS
-<DD>If the system doesn't support finding a new port, then let's try it
-ourselves.
-</DL>
 
 <PRE>
 #endif
