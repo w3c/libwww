@@ -1,3 +1,9 @@
+2000-08-10 	Wayne Davison <wayne@clari.net>
+
+	* Since "cvs update" was complaining about a bunch of generated files
+	  in the Library/src dir, I tweaked it to ignore the *.la files and
+	  the .libs dir.
+
 2000-08-10	Jose Kahan <jose@w3.org>
 
 	* Because (IMO) a very imbricated protocol stack, the Robot

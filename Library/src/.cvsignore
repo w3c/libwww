@@ -1,1 +1,1 @@
-HT*.h WWW*.h SGML.h wwwsys.h *.lo .deps Makefile.in Makefile
+HT*.h WWW*.h SGML.h wwwsys.h *.lo *.la .libs .deps Makefile.in Makefile
