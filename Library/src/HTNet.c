@@ -503,6 +503,7 @@ PRIVATE HTNet * create_object (void)
     HTNetCount++;
     if (CORE_TRACE)
 	HTTrace("Net Object.. %p created with hash %d\n",me, me->hash);
+    HTTrace("%d total number of net objects (new)\n", HTNetCount);
     return me;
 }
 
@@ -531,9 +532,9 @@ PUBLIC BOOL HTNet_execute (HTNet * net, HTEventType type)
 {
     if (net && net->event.cbf && net->request) {
 	if (CORE_TRACE)
-	    HTTrace("Net Object.. Call %p with event type %d and context %p\n",
-		    net->event.cbf, type, net->context);
-	(*(net->event.cbf))(HTNet_socket(net), net->context, type);
+	    HTTrace("Net Object.. %p calling %p with event type %d and context %p\n",
+		    net, net->event.cbf, type, net->event.param);
+	(*(net->event.cbf))(HTNet_socket(net), net->event.param, type);
 	return YES;
     }
     return NO;
@@ -812,6 +813,9 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 
         /* Remove object from the table of Net Objects */
 	remove_net(net);
+	HTTrace("%d total number of net objects (delete)\n", HTNetCount);
+
+
 #if 0
 	if (NetTable) {
 	    HTList * list = NetTable[net->hash];

@@ -209,8 +209,13 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	      ** host is idle then we can start the request right away,
 	      ** otherwise we must wait until it is free. 
 	      */
+#if 1
 	      if (HTHost_addNet(net->host, net) == HT_PENDING)
 		  if (PROT_TRACE) HTTrace("HTDoConnect. Pending...\n");
+#else
+	      if ((status = HTHost_addNet(net->host, net)) == HT_PENDING)
+		  if (PROT_TRACE) HTTrace("HTDoConnect. Pending...\n");
+#endif
 
 	      /*
 	      ** If we are pending then return here, otherwise go to next state

@@ -132,7 +132,8 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    } else if (!me->b_read) {
 #endif
 	    socketClosed:
-		HTTrace("Read Socket. FIN received on socket %d\n", soc);
+		if (PROT_TRACE)
+		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
 		if (request) {
 		    HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
 		    if (PROT_TRACE)

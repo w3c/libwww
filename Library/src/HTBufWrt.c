@@ -108,8 +108,12 @@ PRIVATE int HTBufferWriter_free (HTOutputStream * me)
 
 PRIVATE int HTBufferWriter_abort (HTOutputStream * me, HTList * e)
 {
-    if (me->target) (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE) HTTrace("Buffer...... ABORTING...\n");
+    if (me->target) (*me->target->isa->abort)(me->target, e);
+    if (me->timer) {
+	HTTimer_delete(me->timer);
+	me->timer = NULL;
+    }
     return HT_ERROR;
 }
 

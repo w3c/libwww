@@ -117,12 +117,14 @@ PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
 	if (name) {
 	    if (!strcasecomp(name, "close")) {			 /* HTTP/1.1 */
 		HTNet * net = HTRequest_net(request);
+#if 0
 #ifndef HT_MUX
 		HTNet_setPersistent(net, NO, HT_TP_INTERLEAVE);
 #else
 		HTNet_setPersistent(net, NO, HT_TP_PIPELINE);
 #endif
-		if (STREAM_TRACE) HTTrace("MIMEParser.. Close negotiated\n");
+#endif
+		if (STREAM_TRACE) HTTrace("MIMEParser.. Close received...\n");
 	    } else if (!strcasecomp(name, "keep-alive")) {       /* HTTP/1.0 */
 		HTNet * net = HTRequest_net(request);
 		HTHost * host = HTNet_host(net);

@@ -60,7 +60,7 @@ struct _HTNet {
     void *		context;		/* Protocol Specific context */
 
     /* Eric's sleezoid cheat - should go to extra pipeline object */
-    int			registeredFor;
+    HTEventType		registeredFor;
 };
 
 extern SOCKET HTNet_socket(HTNet * me);

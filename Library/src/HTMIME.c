@@ -267,24 +267,24 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    case EOL_LINE:
 	    case EOL_END:
 	    {
-	        int status;
+	        int ret;
 		HTChunk_putb(me->value, value, end-value);
 		HTChunk_putc(me->value, '\0');
-		status = _dispatchParsers(me);
+		ret = _dispatchParsers(me);
 		HTNet_addBytesRead(me->net, b-start);
 		start=b, end=b;
 		if (me->EOLstate == EOL_END) {		/* EOL_END */
-		    if (status == HT_OK) {
+		    if (ret == HT_OK) {
 			b++, l--;
-		        status = pumpData(me);
+		        ret = pumpData(me);
 			HTNet_addBytesRead(me->net, 1);
 			if (me->mode & HT_MIME_FOOTER) {
 			    HTHost_setConsumed(HTNet_host(me->net), length - l);
-			    return status;
+			    return ret;
 			}
 			else {
 			    HTNet_setHeaderLength(me->net, HTNet_bytesRead(me->net));
-			    if (status == HT_LOADED)
+			    if (ret == HT_LOADED)
 				HTHost_setConsumed(HTNet_host(me->net), length - l);
 			}
 		    }
@@ -296,7 +296,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		    value = NULL;
 		}
 		me->EOLstate = EOL_BEGIN;
-		if (status != HT_OK) return status;
+		if (ret != HT_OK) return ret;
 		break;
 	    }
 	    case EOL_FOLD:
