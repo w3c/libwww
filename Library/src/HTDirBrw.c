@@ -444,7 +444,7 @@ PRIVATE void HTDirOutReadme ARGS2(HTStructured *, target,
     
     if ((fp = fopen(readme_file_name, "r")) != NULL) {
 	START(HTML_PRE);
-	while ((ch = fgetc(fp)) > 0)
+	while ((ch = fgetc(fp)) >= 0)
 	    PUTC(ch);
 	END(HTML_PRE);
 	fclose(fp);

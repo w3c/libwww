@@ -1,0 +1,114 @@
+<HTML>
+<HEAD>
+<TITLE>Error message module for libwww</TITLE>
+<NEXTID N="z1">
+</HEAD>
+<BODY>
+<H1>Error reporting functions</H1>
+
+<PRE>
+#ifndef HTERROR_H
+#define HTERROR_H
+</PRE>
+
+<PRE>
+typedef enum _HTErrorShow {
+    HT_ERR_SHOW_WARNING   = 0x1,
+    HT_ERR_SHOW_NON_FATAL = 0x2,
+    HT_ERR_SHOW_FATAL     = 0x4,
+    HT_ERR_SHOW_PARS	  = 0x8,
+    HT_ERR_SHOW_LOCATION  = 0x10,
+    HT_ERR_SHOW_IGNORE    = 0x20,
+    HT_ERR_SHOW_FIRST     = 0x40,
+    HT_ERR_SHOW_ALL	  = 0x3F
+} HTErrorShow;
+
+typedef enum _HTErrSeverity {
+    WARNING 		  = 0x1,
+    NON_FATAL		  = 0x2,
+    FATAL		  = 0x4
+} HTErrSeverity;
+</PRE>
+
+<H2>Error Numbers</H2>
+
+<B>Note:</B> All non-HTTP error codes have index numbers &gt; HTERR_HTTP_CODES, and they will not be shown in the error-message generated.
+<PRE>
+typedef enum _HTErrorElement {
+	HTERR_OK = 0,						/* 200 */
+	HTERR_CREATED,						/* 201 */
+	HTERR_ACCEPTED,						/* 202 */
+	HTERR_PARTIAL,						/* 203 */
+	HTERR_NO_RESPONSE,					/* 204 */
+	HTERR_MOVED,						/* 301 */
+	HTERR_FOUND,						/* 302 */
+	HTERR_METHOD,						/* 303 */
+	HTERR_NOT_MODIFIED,					/* 304 */
+	HTERR_BAD_REQUEST,					/* 400 */
+	HTERR_UNAUTHORIZED,					/* 401 */
+	HTERR_PAYMENT_REQUIRED,					/* 402 */
+	HTERR_FORBIDDEN,					/* 403 */
+	HTERR_NOT_FOUND,					/* 404 */
+	HTERR_INTERNAL,						/* 500 */
+	HTERR_NOT_IMPLEMENTED,					/* 501 */
+	HTERR_HTTP_CODES_END,    /* Put all non-HTTP status codes after this */
+	HTERR_NO_REMOTE_HOST,
+	HTERR_FTP_SERVER,
+	HTERR_FTP_NO_RESPONSE,
+	HTERR_TIME_OUT,
+	HTERR_ELEMENTS		            /* This MUST be the last element */
+} HTErrorElement;
+</PRE>
+
+<H2>Public Error Functions</H2>
+
+<H3>Initializing Help Pages</H3>
+
+In order to initialize the help pages, that refer to any further explanation of the error or warning, a path must be given.
+<PRE>
+extern void HTErrorHelpInit PARAMS((char * pathname));
+</PRE>
+
+<H3>Add an Error Message</H3>
+
+This function adds an error message to the error_stack list in the HTRequest
+structure.
+<PRE>
+extern void HTErrorAdd PARAMS((	HTRequest * 	request,
+			    	HTErrSeverity 	severity,
+			    	BOOL		ignore,
+			     	int		element,
+			     	void *		par,
+			     	unsigned int	par_length,
+			     	char *		where));
+</PRE>
+
+<H3>Ignoring an Error Message</H3>
+
+If an error message is not to be send to the user, e.g., output to the stream, then the ignore flag must be turn on. This function turns it on for the latest error appended to the list.
+<PRE>
+extern void HTErrorIgnore PARAMS((HTRequest * request));
+</PRE>
+
+<H3>Generating an Error Message</H3>
+
+This function writes to the outpu stream for the request.
+<PRE>
+extern void HTErrorMsg    PARAMS((HTRequest * request));
+</PRE>
+
+<H3>Freeing an Error List</H3>
+
+This is normally done when the HTRequest structure is freed but it might be done at any other time in order to ignore a whole series of errors.
+<PRE>
+extern void HTErrorFree   PARAMS((HTRequest * request));
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+end
+</BODY>
+</HTML>
+
+

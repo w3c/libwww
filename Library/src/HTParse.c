@@ -580,6 +580,12 @@ PUBLIC char * HTUnEscape ARGS1( char *, str)
 {
     char * p = str;
     char * q = str;
+
+    if (!str) {					      /* Just for safety ;-) */
+	if (TRACE)
+	    fprintf(stderr, "HTUnEscape.. Called with NULL argument.\n");
+	return "";
+    }
     while(*p) {
         if (*p == HEX_ESCAPE) {
 	    p++;
