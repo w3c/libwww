@@ -157,11 +157,12 @@ PRIVATE void EventList_dump (void)
     int v = 0;
     HTList* cur;
     SockEvents * pres;
-
+#if 0
     if (HashTable[v] == NULL) {
 	HTTrace("Event....... No sockets registered\n");
 	return;
     }
+#endif
     HTTrace("Event....... Dumping socket events\n");
     HTTrace("soc ");
     HTEvent_traceHead();
@@ -176,7 +177,7 @@ PRIVATE void EventList_dump (void)
 	    for (i = 0; i < HTEvent_TYPES; i++)
 		if (pres->events[i]) {
 		    static char * names[HTEvent_TYPES] = {"read", "writ", "xcpt"};
-		    HTTrace("%s", names[i]);
+		    HTTrace("%s ", names[i]);
 		    HTEvent_trace(pres->events[i]);
 		    HTTrace(" ");
 #ifndef IN_EVENT
