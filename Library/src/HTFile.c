@@ -1047,17 +1047,21 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
 PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
 {
-    CONST char * addr = HTAnchor_physical(request->anchor);
+    CONST char * addr;
     char * filename;
     HTFormat format;
     static char * nodename = 0;
     char * newname=0;	/* Simplified name of file */
     HTAtom * encoding;	/* @@ not used yet */
 
+    if (!request  ||  !request->anchor)
+	return HT_INTERNAL;
+
     FREE(nodename);	/* From prev call - Leak fixed AL 6 Feb 1994 */
     
 /*	Reduce the filename to a basic form (hopefully unique!)
 */
+    addr = HTAnchor_physical(request->anchor);
     StrAllocCopy(newname, addr);
     filename=HTParse(newname, "", PARSE_PATH|PARSE_PUNCTUATION);
     nodename=HTParse(newname, "", PARSE_HOST);
@@ -1157,7 +1161,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
 	}  else {		/* Stat was OK */
 		
-
 	    if (((dir_info.st_mode) & S_IFMT) == S_IFDIR) {
 		/* if request->translated is a directory */	
 
