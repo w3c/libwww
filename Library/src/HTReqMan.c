@@ -1508,7 +1508,7 @@ PUBLIC BOOL HTLoad (HTRequest * me, BOOL recursive)
     }
 
     /* Make sure that we don't carry over any old physical address */
-    HTAnchor_clearPhysical(me->anchor);
+    if (!recursive) HTAnchor_clearPhysical(me->anchor);
 
     /* Set the default method if not already done */
     if (me->method == METHOD_INVALID) me->method = METHOD_GET;

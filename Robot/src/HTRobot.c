@@ -638,6 +638,9 @@ int main (int argc, char ** argv)
     /* Should we use persistent cache? */
     if (cache) {
 	HTCacheInit(NULL, 20);
+	HTNet_addBefore(HTCacheFilter, "http://*", NULL, HT_FILTER_MIDDLE);
+	HTNet_addAfter(HTCacheUpdateFilter, "http://*", NULL,
+		       HT_NOT_MODIFIED, HT_FILTER_MIDDLE);
 
 	/* Should we start by flushing? */
 	if (flush) HTCache_flushAll();

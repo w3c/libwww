@@ -460,6 +460,7 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    cur = NULL; /* we don't have to finish list to look for MaxSock in WWW_WIN_ASYNC */
 #else /* WWW_WIN_ASYNC */
 	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
+	    HTTraceData((char*)FdArray+HTEvent_INDEX(type), 8, "HTEventList_unregister: (s:%d)", s);
 #endif /* !WWW_WIN_ASYNC */
       	    if (THD_TRACE)
 		HTTrace("Event....... Socket %d unregisterd for %s\n", s, HTEvent_type2str(type));

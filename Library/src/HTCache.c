@@ -27,6 +27,7 @@
 #define HT_CACHE_ROOT	"/tmp/w3c-lib"
 #define HT_CACHE_INDEX	".index"
 #define HT_CACHE_META	".meta"
+#define HT_CACHE_ETAG	"@w3c@"
 
 /* Default heuristics cache expirations - thanks to Jeff Mogul for good comments! */
 #define NO_LM_EXPIRATION	24*3600		/* 24 hours */
@@ -56,8 +57,6 @@ typedef enum _CacheState {
     CL_NO_DATA		= -2,
     CL_GOT_DATA		= -1,
     CL_BEGIN		= 0,
-    CL_NEED_INDEX,
-    CL_NEED_HEAD,
     CL_NEED_BODY,
     CL_NEED_OPEN_FILE,
     CL_NEED_CONTENT
@@ -67,7 +66,6 @@ typedef enum _CacheState {
 typedef struct _cache_info {
     CacheState		state;		  /* Current state of the connection */
     char *		local;		/* Local representation of file name */
-    BOOL		meta;		  /* Are we reading metainformation? */
     struct stat		stat_info;	      /* Contains actual file chosen */
     HTNet *		net;
 } cache_info;
@@ -85,6 +83,8 @@ struct _HTCache {
     long		size;		       /* Size of cached entity body */
     BOOL		range;	      /* Is this the full part or a subpart? */
     int			hits;				       /* Hit counts */
+    char *		etag;
+    time_t		lm;				    /* Last modified */
     time_t		freshness_lifetime;
     time_t		response_time;
     time_t		corrected_initial_age;
@@ -285,9 +285,11 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 		if ((cur = CacheTable[cnt])) { 
 		    HTCache * pres;
 		    while ((pres = (HTCache *) HTList_nextObject(cur))) {
-			if (fprintf(fp, "%s %s %ld %ld %c %d %d %ld %ld %ld %c\r\n",
+			if (fprintf(fp, "%s %s %s %ld %ld %ld %c %d %d %ld %ld %ld %c\r\n",
 				    pres->url,
 				    pres->cachename,
+				    pres->etag ? pres->etag : HT_CACHE_ETAG,
+				    pres->lm,
 				    pres->expires,
 				    pres->size,
 				    pres->range+0x30,
@@ -332,10 +334,13 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	{
 	    char * url = HTNextField(&line);
 	    char * cachename = HTNextField(&line);
+	    char * etag = HTNextField(&line);
 	    StrAllocCopy(cache->url, url);
 	    StrAllocCopy(cache->cachename, cachename);
+	    if (strcmp(etag, HT_CACHE_ETAG)) StrAllocCopy(cache->etag, etag);
 	}
-	if (sscanf(line, "%ld %ld %c %d %d %ld %ld %ld %c",
+	if (sscanf(line, "%ld %ld %ld %c %d %d %ld %ld %ld %c",
+		   &cache->lm,
 		   &cache->expires,
 		   &cache->size,
 		   &range,
@@ -358,7 +363,9 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	if (cache) {
 	    HTAnchor * anchor = HTAnchor_findAddress(cache->url);
 	    HTParentAnchor * parent = HTAnchor_parent(anchor);
-	    HTAnchor_setExpires(parent, cache->expires);
+	    HTAnchor_setExpires(parent, cache->expires);	    
+	    HTAnchor_setLastModified(parent, cache->lm);
+	    if (cache->etag) HTAnchor_setEtag(parent, cache->etag);
 	}
 
 	/*
@@ -513,12 +520,13 @@ PUBLIC BOOL HTCacheIndex_read (const char * cache_root)
 	BOOL wasInteractive;
 	char * file = cache_index_name(cache_root);
 	char * index = HTParse(file, "cache:", PARSE_ALL);
-	HTAnchor * anchor = HTAnchor_findAddress(index);
+	HTAnchor * anchor = HTAnchor_findAddress(index);	
 	HTRequest * request = HTRequest_new();
 	HTRequest_setPreemptive(request, YES);
 	HTRequest_setOutputFormat(request, WWW_SOURCE);
 	HTRequest_setOutputStream(request, HTCacheIndexReader(request));
 	HTRequest_setAnchor(request, anchor);
+	HTAnchor_setFormat((HTParentAnchor *) anchor, HTAtom_for("www/cache-index"));
 	wasInteractive = HTAlert_interactive();
 	HTAlert_setInteractive(NO);
 	status = HTLoad(request, NO);
@@ -725,6 +733,7 @@ PRIVATE BOOL free_object (HTCache * me)
 {
     HT_FREE(me->url);
     HT_FREE(me->cachename);
+    HT_FREE(me->etag);
     HT_FREE(me);
     return YES;
 }
@@ -905,6 +914,13 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
     /* Calculate the various times */
     calculate_time(pres, request, response);
 
+    /* Get the last-modified and etag values if any */
+    {
+	char * etag = HTAnchor_etag(anchor);
+	if (etag) StrAllocCopy(pres->etag, etag);
+	pres->lm = HTAnchor_lastModified(anchor);
+    }
+
     /* Must we revalidate this every time? */
     pres->must_revalidate = HTResponse_mustRevalidate(response);
     return pres;
@@ -1050,6 +1066,182 @@ PRIVATE char * HTCache_location (HTCache * cache, BOOL meta)
 }
 
 /*
+**  Walk through the set of headers and write those out that we are allowed
+**  to store in the cache. We look into the connection header to see what the 
+**  hop-by-hop headers are and also into the cache-control directive to see what
+**  headers should not be cached.
+*/
+PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
+{
+    if (fp && request && response) {
+	HTAssocList * headers = HTResponse_header(response);
+	HTAssocList * connection = HTResponse_connection(response);
+	char * nocache = HTResponse_noCache(response);
+
+	/*
+	**  If we don't have any headers then just return now.
+	*/
+	if (!headers) return NO;
+
+	/*
+	**  Check whether either the connection header or the cache control
+	**  header includes header names that we should not cache
+	*/
+	if (connection || nocache) {
+
+	    /*
+	    **  Walk though the cache control no-cache directive
+	    */
+	    if (nocache) {
+		char * line = NULL;
+		char * ptr = NULL;
+		char * field = NULL;
+		StrAllocCopy(line, nocache);		 /* Get our own copy */
+		ptr = line;
+		while ((field = HTNextField(&ptr)) != NULL)
+		    HTAssocList_removeObject(headers, field);
+		HT_FREE(line);
+	    }
+
+	    /*
+	    **  Walk though the connection header
+	    */
+	    if (connection) {
+		HTAssoc * pres;
+		while ((pres=(HTAssoc *) HTAssocList_nextObject(connection))) {
+		    char * field = HTAssoc_name(pres);
+		    HTAssocList_removeObject(headers, field);
+		}
+	    }
+	}
+
+	/*
+	**  Write out the remaining list of headers that we not already store
+	**  in the index file.
+	*/
+	{
+	    HTAssocList * cur = headers;
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+		if (fprintf(fp, "%s: %s\n", HTAssoc_name(pres), HTAssoc_value(pres))<0) {
+		    if (CACHE_TRACE) HTTrace("Cache....... Error writing metainfo\n");
+		    return NO;
+		}
+	    }
+	}
+
+	/*
+	**  Terminate the header with a newline
+	*/
+	if (fprintf(fp, "\n") < 0) {
+	    if (CACHE_TRACE) HTTrace("Cache....... Error writing metainfo\n");
+	    return NO;
+	}
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**  Save the metainformation for the data object. If no headers
+**  are available then the meta file is empty
+*/
+PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request,
+			       HTResponse * response)
+{
+    if (cache && request && response) {
+	BOOL status;
+	FILE * fp;
+	char * name = HTCache_location(cache, YES);
+	if (!name) return NO;
+	if ((fp = fopen(name, "wb")) == NULL) {
+	    if (CACHE_TRACE)
+		HTTrace("Cache....... Can't open `%s\' for writing\n", name);
+	    HTCache_remove(cache);
+	    HT_FREE(name);	    
+	    return NO;
+	}
+	status = meta_write(fp, request, response);
+	fclose(fp);
+	HT_FREE(name);
+	return status;
+    }
+    return NO;
+}
+
+PRIVATE BOOL meta_read (FILE * fp, HTRequest * request, HTStream * target)
+{
+    if (fp && request && target) {
+	int status;
+	char buffer[512];
+	while (1) {
+	    if ((status = fread(buffer, 1, 512, fp)) <= 0) {
+		if (PROT_TRACE) HTTrace("Cache....... Meta information loaded\n");
+		return YES;
+	    }
+	
+	    /* Send the data down the pipe */
+	    status = (*target->isa->put_block)(target, buffer, status);
+	    if (status == HT_LOADED) {
+		(*target->isa->flush)(target);
+		return YES;
+	    }
+	    if (status < 0) {
+		if (PROT_TRACE) HTTrace("Cache....... Target ERROR %d\n", status);
+		break;
+	    }
+	}
+    }
+    return NO;
+}
+
+/*
+**  Read the metainformation for the data object. If no headers are
+**  available then the meta file is empty
+*/
+PRIVATE BOOL HTCache_readMeta (HTCache * cache, HTRequest * request)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if (cache && request && anchor) {
+	BOOL status;
+	FILE * fp;
+	char * name = HTCache_location(cache, YES);
+	if (!name) return NO;
+	if (CACHE_TRACE) HTTrace("Cache....... Looking for `%s\'\n", name);
+	if ((fp = fopen(name, "rb")) == NULL) {
+	    if (CACHE_TRACE)
+		HTTrace("Cache....... Can't open `%s\' for reading\n", name);
+	    HTCache_remove(cache);
+	    HT_FREE(name);	    
+	} else {
+	    HTStream * target = HTStreamStack(WWW_MIME_HEAD, WWW_DEBUG,
+					      HTBlackHole(), request, NO);
+	    status = meta_read(fp, request, target);
+	    (*target->isa->_free)(target);
+	    fclose(fp);
+	    HT_FREE(name);
+	    return status;
+	}
+    }
+    return NO;
+}
+
+/*
+**  Merge metainformation with existing version. This means that we have had a
+**  successful validation and hence a true cache hit. We only regard the
+**  following headers: Date, content-location, expires, cache-control, and vary.
+*/
+PUBLIC BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
+				HTResponse * response)
+{
+    if (cache && request && response) {
+	cache->hits++;
+	return calculate_time(cache, request, response);
+    }
+    return NO;
+}
+
+/*
 **  Remove from disk. You must explicitly remove a lock
 **  before this operation can succeed
 */
@@ -1114,6 +1306,13 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 	time_t max_age = -1;
 	time_t max_stale = -1;
 	time_t min_fresh = -1;
+
+	/*
+	**  Make sure that we have the metainformation loaded from the
+	**  persistent cache
+	*/
+	HTParentAnchor * anchor = HTRequest_anchor(request);
+	if (!HTAnchor_headerParsed(anchor)) HTCache_readMeta(cache, request);
 
 	/*
 	**  If we only have a part of this request then make a range request
@@ -1247,120 +1446,6 @@ PUBLIC BOOL HTCache_remove (HTCache * cache)
     return flush_object(cache) && HTCache_delete(cache);
 }
 
-/*
-**  Walk through the set of headers and write those out that we are allowed
-**  to store in the cache. We look into the connection header to see what the 
-**  hop-by-hop headers are and also into the cache-control directive to see what
-**  headers should not be cached.
-*/
-PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
-{
-    if (fp && request && response) {
-	HTAssocList * headers = HTResponse_header(response);
-	HTAssocList * connection = HTResponse_connection(response);
-	char * nocache = HTResponse_noCache(response);
-
-	/*
-	**  If we don't have any headers then just return now.
-	*/
-	if (!headers) return NO;
-
-	/*
-	**  Check whether either the connection header or the cache control
-	**  header includes header names that we should not cache
-	*/
-	if (connection || nocache) {
-
-	    /*
-	    **  Walk though the cache control no-cache directive
-	    */
-	    if (nocache) {
-		char * line = NULL;
-		char * ptr = NULL;
-		char * field = NULL;
-		StrAllocCopy(line, nocache);		 /* Get our own copy */
-		ptr = line;
-		while ((field = HTNextField(&ptr)) != NULL)
-		    HTAssocList_removeObject(headers, field);
-		HT_FREE(line);
-	    }
-
-	    /*
-	    **  Walk though the connection header
-	    */
-	    if (connection) {
-		HTAssoc * pres;
-		while ((pres=(HTAssoc *) HTAssocList_nextObject(connection))) {
-		    char * field = HTAssoc_name(pres);
-		    HTAssocList_removeObject(headers, field);
-		}
-	    }
-	}
-
-	/*
-	**  Write out the remaining list of headers that we not already store
-	**  in the index file.
-	*/
-	{
-	    HTAssocList * cur = headers;
-	    HTAssoc * pres;
-	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
-		if (fprintf(fp, "%s: %s\n", HTAssoc_name(pres), HTAssoc_value(pres))<0) {
-		    if (CACHE_TRACE) HTTrace("Cache....... Error writing metainfo\n");
-		    return NO;
-		}
-	    }
-	}
-	return YES;
-    }
-    return NO;
-}
-
-/* ------------------------------------------------------------------------- */
-/*  			        CACHE WRITER				     */
-/* ------------------------------------------------------------------------- */
-
-/*
-**  Save the metainformation along with the data object. If no headers
-**  are available then the meta file is empty
-*/
-PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request,
-			       HTResponse * response)
-{
-    if (cache && request && response) {
-	BOOL status;
-	FILE * fp;
-	char * name = HTCache_location(cache, YES);
-	if ((fp = fopen(name, "wb")) == NULL) {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... Can't open `%s\' for writing\n", name);
-	    HTCache_remove(cache);
-	    HT_FREE(name);	    
-	    return NO;
-	}
-	status = meta_write(fp, request, response);
-	fclose(fp);
-	HT_FREE(name);
-	return status;
-    }
-    return NO;
-}
-
-/*
-**  Merge metainformation with existing version. This means that we have had a
-**  successful validation and hence a true cache hit. We only regard the
-**  following headers: Date, content-location, expires, cache-control, and vary.
-*/
-PUBLIC BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
-				HTResponse * response)
-{
-    if (cache && request && response) {
-	cache->hits++;
-	return calculate_time(cache, request, response);
-    }
-    return NO;
-}
-
 PUBLIC BOOL HTCache_addHit (HTCache * cache)
 {
     if (cache) {
@@ -1372,30 +1457,9 @@ PUBLIC BOOL HTCache_addHit (HTCache * cache)
     return NO;
 }
 
-PRIVATE int HTCache_flush (HTStream * me)
-{
-    return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
-}
-
-PRIVATE int HTCache_putBlock (HTStream * me, const char * s, int  l)
-{
-    int status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK;
-    if (l > 1 && status == HT_OK) {
-	HTCache_flush(me);
-	me->bytes_written += l;
-    }
-    return status;
-}
-
-PRIVATE int HTCache_putChar (HTStream * me, char c)
-{
-    return HTCache_putBlock(me, &c, 1);
-}
-
-PRIVATE int HTCache_putString (HTStream * me, const char * s)
-{
-    return HTCache_putBlock(me, s, (int) strlen(s));
-}
+/* ------------------------------------------------------------------------- */
+/*  			        CACHE WRITER				     */
+/* ------------------------------------------------------------------------- */
 
 PRIVATE BOOL free_stream (HTStream * me, BOOL abort)
 {
@@ -1451,13 +1515,39 @@ PRIVATE BOOL free_stream (HTStream * me, BOOL abort)
 
 PRIVATE int HTCache_free (HTStream * me)
 {
-    return free_stream(me, NO);
+    return free_stream(me, NO) ? HT_OK : HT_ERROR;
 }
 
 PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 {
     if (CACHE_TRACE) HTTrace("Cache....... ABORTING\n");
-    return free_stream(me, YES);
+    free_stream(me, YES);
+    return HT_ERROR;
+}
+
+PRIVATE int HTCache_flush (HTStream * me)
+{
+    return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
+}
+
+PRIVATE int HTCache_putBlock (HTStream * me, const char * s, int  l)
+{
+    int status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK;
+    if (l > 1 && status == HT_OK) {
+	HTCache_flush(me);
+	me->bytes_written += l;
+    }
+    return status;
+}
+
+PRIVATE int HTCache_putChar (HTStream * me, char c)
+{
+    return HTCache_putBlock(me, &c, 1);
+}
+
+PRIVATE int HTCache_putString (HTStream * me, const char * s)
+{
+    return HTCache_putBlock(me, s, (int) strlen(s));
 }
 
 PRIVATE const HTStreamClass HTCacheClass =
@@ -1574,10 +1664,12 @@ PRIVATE int CacheCleanup (HTRequest * req, int status)
 	HTRequest_setInputStream(req, NULL);
     }
 
-    HTNet_delete(net, status);
-    if (cache) {
-	HT_FREE(cache->local);
-	HT_FREE(cache);
+    if (status != HT_IGNORE) {
+	HTNet_delete(net, status);
+	if (cache) {
+	    HT_FREE(cache->local);
+	    HT_FREE(cache);
+	}
     }
     return YES;
 }
@@ -1644,6 +1736,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
 	switch (cache->state) {
+
 	case CL_BEGIN:
 	    if (HTLib_secure()) {
 		if (PROT_TRACE)
@@ -1651,53 +1744,13 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		cache->state = CL_ERROR;
 		break;
 	    }
-	    cache->state = CacheTable ?
-		(HTAnchor_headerParsed(anchor) ? CL_NEED_BODY : CL_NEED_HEAD) :
-		    CL_NEED_INDEX;
-
 	    if ((net->host = HTHost_new("<local access>", 0)) == NULL)
 		return NO;
 	    if (HTHost_addNet(net->host, net) == HT_PENDING)
 		if (PROT_TRACE) HTTrace("HTLoadCache. Pending...\n");
-
+	    cache->state = CL_NEED_BODY;
 	    break;
 
-	case CL_NEED_HEAD:
-	{	    
-	    char * meta = NULL;
-	    HTResponse * response = HTRequest_response(request);
-	    HTResponse_setCachable(response, YES);
-	    StrAllocCopy(meta, HTAnchor_physical(anchor));
-	    StrAllocCat(meta, HT_CACHE_META);
-	    cache->meta = YES;
-	    cache->local = HTWWWToLocal(meta, "",
-					HTRequest_userProfile(request));
-	    HT_FREE(meta);
-	    if (cache->local) {
-		if (HT_STAT(cache->local, &cache->stat_info) == -1) {
-		    if (PROT_TRACE)
-			HTTrace("Load Cache.. Not found `%s\'\n",cache->local);
-		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
-				       NULL, 0, "HTLoadCache");
-		    cache->state = CL_ERROR;
-		    break;
-		}
-
-		/*
-		**  The cache entry may be empty in which case we just return
-		*/
-		if (!cache->stat_info.st_size) {
-		    HTRequest_addError(request, ERR_FATAL, NO,HTERR_NO_CONTENT,
-				       NULL, 0, "HTLoadCache");
-		    cache->state = CL_GOT_DATA;
-		} else
-		    cache->state = CL_NEED_OPEN_FILE;
-	    } else 
-		cache->state = CL_ERROR;
-	    break;
-	}
-
-	case CL_NEED_INDEX:
 	case CL_NEED_BODY:
 	    cache->local = HTWWWToLocal(HTAnchor_physical(anchor), "",
 					HTRequest_userProfile(request));
@@ -1732,46 +1785,40 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		if (cache->meta) {
-		    net->readStream = HTStreamStack(WWW_MIME_HEAD,
-						    HTRequest_debugFormat(request),
-						    HTRequest_debugStream(request),
-						    request, NO), 
-		    cache->state = CL_NEED_CONTENT;
-		} else {
-		    net->readStream = HTStreamStack(HTAnchor_format(anchor),
-						    HTRequest_outputFormat(request),
-						    HTRequest_outputStream(request),
-						    request, YES);
-		    HTRequest_setOutputConnected(request, YES);
+		net->readStream = HTStreamStack(HTAnchor_format(anchor),
+						HTRequest_outputFormat(request),
+						HTRequest_outputStream(request),
+						request, YES);
+		HTRequest_setOutputConnected(request, YES);
 
-		    /*
-		    ** Create the stream pipe TO the channel from the application
-		    ** and hook it up to the request object
-		    */
-		    {
-			HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
-			HTRequest_setInputStream(request, (HTStream *) output);
-		    }
+		/*
+		** Create the stream pipe TO the channel from the application
+		** and hook it up to the request object
+		*/
+		{
+		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+		    HTRequest_setInputStream(request, (HTStream *) output);
+		}
 		    
-		    HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
-				       NULL, 0, "HTLoadCache");
-		    cache->state = CL_NEED_CONTENT;
+		HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
+				   NULL, 0, "HTLoadCache");
+		cache->state = CL_NEED_CONTENT;
 
 #ifndef NO_UNIX_IO
-		    /* If we are _not_ using preemptive mode and we are Unix fd's
-		    ** then return here to get the same effect as when we are
-		    ** connecting to a socket. That way, HTCache acts just like any
-		    ** other protocol module even though we are in fact doing
-		    ** blocking connect
-		    */
-		    if (!net->preemptive) {
-			if (PROT_TRACE) HTTrace("Load Cache.. returning\n");
-			HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
-			return HT_OK;
-		    }
-#endif
+		/* If we are _not_ using preemptive mode and we are Unix fd's
+		** then return here to get the same effect as when we are
+		** connecting to a socket. That way, HTCache acts just like any
+		** other protocol module even though we are in fact doing
+		** blocking connect
+		*/
+#if 0
+		if (!net->preemptive) {
+		    if (PROT_TRACE) HTTrace("Load Cache.. returning\n");
+		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
+		    return HT_OK;
 		}
+#endif
+#endif
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else {
@@ -1795,14 +1842,8 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	case CL_GOT_DATA:
-	    if (cache->meta) {
-		CacheCleanup(request, HT_IGNORE);
-		cache->state = CL_NEED_BODY;
-		cache->meta = NO;
-	    } else {
-		CacheCleanup(request, HT_LOADED);
-		return HT_OK;
-	    }
+	    CacheCleanup(request, HT_LOADED);
+	    return HT_OK;
 	    break;
 
 	case CL_NO_DATA:

@@ -347,35 +347,45 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTCache * cache = HTCache_find(anchor);
+    if (cache) {
 
-    /*
-    **  If this request resulted in a "304 Not Modified" response then
-    **  we merge the new metainformation with the old.
-    */
-    if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
+	/*
+	**  It may in fact be that the information in the 304 response
+	**  told us that we can't cache the entity anymore. If this is the
+	**  case then flush it now. Otherwise prepare for a cache read
+	*/
+	if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
+	if (HTResponse_isCachable(response) == NO) {
+	    HTCache_remove(cache);
+	} else {
+	    char * name = HTCache_name(cache);
+	    HTAnchor_setPhysical(anchor, name);
+	    HTCache_addHit(cache);
+	    HT_FREE(name);
+	    HTCache_updateMeta(cache, request, response);
+	}
 
-    /*
-    **  It may in fact be that the information in the 304 response
-    **  told us that we can't cache the entity anymore. If this is the
-    **  case then flush it now. Otherwise prepare for a cache read
-    */
-    if (HTResponse_isCachable(response) == NO) {
-	HTCache_remove(cache);
-    } else {
-	HTCache_updateMeta(cache, request, response);
-	HTRequest_setReloadMode(request, HT_CACHE_OK);
-    }
-
-    /*
-    **  Start request directly from the cache. As with the redirection filter
-    **  we reuse the same request object which means that we must
-    **  keep this around until the cache load request has terminated
-    **  In the case of a 
-    */
-    {
-	HTLoad(request, NO);
+	/*
+	**  Start request directly from the cache. As with the redirection filter
+	**  we reuse the same request object which means that we must
+	**  keep this around until the cache load request has terminated
+	**  In the case of a 
+	*/
+#if 1 /* FIX ME!!! */
+	{
+	    static BOOL done = NO;
+	    if (!done) {	
+		HTLoad(request, YES);
+		done = YES;
+		return HT_ERROR;
+	    }
+	}
+#else
+	HTLoad(request, YES);
 	return HT_ERROR;
+#endif
     }
+    return HT_OK;
 }
 
 /*

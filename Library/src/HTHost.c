@@ -845,8 +845,14 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 PUBLIC BOOL HTHost_free (HTHost * host, int status)
 {
     if (host->channel == NULL) return NO;
+#if 0
     if (host->persistent && !(host->reqsMade >= host->reqsPerConnection && HTList_count(host->pipeline) <= 1))
-/*    if (host->persistent) */
+#else
+    /* Check this with FTP as well */
+    if (host->persistent &&
+	(!host->reqsPerConnection ||
+	 (host->reqsPerConnection && host->reqsMade < host->reqsPerConnection)))
+#endif
     {
 	if (CORE_TRACE)
 	    HTTrace("Host Object. keeping socket %d\n", HTChannel_socket(host->channel));

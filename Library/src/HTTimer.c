@@ -150,7 +150,10 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     for (cur = last; 
 	 (pres = (HTTimer *) HTList_nextObject(cur)) != NULL && pres->expires < expires; 
 	 last = cur);
-    if (!millis) return timer;
+    if (!millis) {
+	if (THD_TRACE) HTTrace("Timer....... Timeout is 0 - returning\n");
+	return timer;
+    }
     timer->expires = expires;
     timer->cbf = cbf;
     timer->param = param;
