@@ -42,7 +42,7 @@
 
 #define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
 
-#define DEFAULT_TIMEOUT		10		       /* timeout in seconds */
+#define DEFAULT_TIMEOUT		10000		       /* timeout in millis */
 
 #define DEFAULT_HOPS		0
 
@@ -61,7 +61,7 @@ typedef struct _ComLine {
     HTRequest *		request;
     HTParentAnchor *	anchor;
     HTParentAnchor *	dest;			 /* Destination for PUT etc. */
-    struct timeval *	tv;				/* Timeout on socket */
+    int 		timer;				/* Timeout on socket */
     char *		cwd;				  /* Current dir URL */
     char *		rules;
     char *		logfile;
@@ -94,10 +94,9 @@ PUBLIC int OutputData(const char  * fmt, ...)
 PRIVATE ComLine * ComLine_new (void)
 {
     ComLine * me;
-    if ((me = (ComLine *) HT_CALLOC(1, sizeof(ComLine))) == NULL ||
-	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
+    if ((me = (ComLine *) HT_CALLOC(1, sizeof(ComLine))) == NULL)
 	HT_OUTOFMEM("ComLine_new");
-    me->tv->tv_sec = DEFAULT_TIMEOUT;
+    me->timer = DEFAULT_TIMEOUT;
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
 
@@ -118,7 +117,6 @@ PRIVATE BOOL ComLine_delete (ComLine * me)
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	HT_FREE(me->cwd);
-	HT_FREE(me->tv);
 	HT_FREE(me);
 	return YES;
     }
@@ -187,19 +185,6 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     }
     Cleanup(cl, status == HT_LOADED ? 0 : -1);
     return HT_OK;
-}
-
-/*	timeout_handler
-**	---------------
-**	This function is registered to handle timeout in select eventloop
-*/
-PRIVATE int timeout_handler (HTRequest * request)
-{
-    ComLine * cl = (ComLine *) HTRequest_context(request);
-    if (SHOW_MSG) HTTrace("Request timeout...\n");
-    HTRequest_kill(request);
-    Cleanup(cl, -1);
-    return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -312,7 +297,7 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-timeout")) {
 		int timeout = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
-		if (timeout > 0) cl->tv->tv_sec = timeout;
+		if (timeout > 0) cl->timer = timeout;
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
@@ -420,6 +405,9 @@ int main (int argc, char ** argv)
     HTRequest_setOutputStream(cl->request,
 			      HTFWriter_new(cl->request, cl->output, YES));
 
+    /* Setting event timeout */
+    HTHost_setEventTimeout(cl->timer);
+
     /* Log file specifed? */
     if (cl->logfile) HTLog_open(cl->logfile, YES, YES);
 
@@ -428,7 +416,7 @@ int main (int argc, char ** argv)
 #ifdef STDIN_FILENO
 	HTRequest_setAnchor(cl->request, (HTAnchor *) cl->anchor);
 	HTRequest_setPreemptive(cl->request, YES);
-	HTLoadSocket(STDIN_FILENO, cl->request, FD_NONE);
+	HTLoadSocket(STDIN_FILENO, cl->request);
 #endif
 	Cleanup(cl, 0);
     }
@@ -447,9 +435,6 @@ int main (int argc, char ** argv)
 	    if (SHOW_MSG) HTTrace("Can't access rules\n");
 	HT_FREE(rules);
     }
-
-    /* Set timeout on sockets */
-    HTEventrg_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
 
     /* Start the request */
     switch (method) {
@@ -522,7 +507,7 @@ int main (int argc, char ** argv)
     }
 
     /* Go into the event loop... */
-    HTEventrg_loop(cl->request);
+    HTEventList_loop(cl->request);
 
     /* Only gets here if event loop fails */
     Cleanup(cl, 0);

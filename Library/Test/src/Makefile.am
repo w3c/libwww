@@ -3,14 +3,14 @@
 ## This is not up-to-date with the latest API so we skip it for now
 ##
 
-# bin_PROGRAMS = w3clib
+check_PROGRAMS = w3clib
 
-w3clibLDADD = \
-	@LIBTCL@ \
+w3clib_LDADD = \
+	@libtcl@ \
 	../../src/libwww.a -lm
 
-w3clibDEPENDENCIES = \
-	@LIBTCL@ \
+w3clib_DEPENDENCIES = \
+	@libtcl@ \
 	../../src/libwww.a
 
 #	For easier use - NOT THE DEFAULT!
@@ -18,7 +18,7 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I$(srcdir)/../../src
 
-w3clibSOURCES = \
+w3clib_SOURCES = \
 	HTAnchor_glue.c 	HTAnchor_glue.h \
 	HTReq_glue.c 		HTReq_glue.h \
 	HTList_glue.c		HTList_glue.h \

@@ -48,6 +48,16 @@ case "$target" in
 	;;
 esac
 
+dnl Default location of icons
+icondir="/usr/local/share/w3c-icons"
+AC_SUBST(icondir)
+AC_DEFINE_UNQUOTED(W3C_ICONS, "$icondir")
+
+dnl Default location of TcL library
+libtcl="/usr/local/lib/libtcl7.5.a"
+AC_SUBST(libtcl)
+AC_DEFINE_UNQUOTED(W3C_TCL, "$libtcl")
+
 dnl Checks for configuration arguments
 AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
   AC_PATH_WAIS(
@@ -62,23 +72,101 @@ AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
 AC_SUBST(HTWAIS)
 AC_SUBST(WAISINCLUDE)
 
-AC_ARG_WITH(socks, [  --with-socks            build in the firewall-breaching SOCKS code],
-  AC_PATH_SOCKS(
-    AC_DEFINE(SOCKS),
-    AC_MSG_WARN(Cannot find SOCKS; code will be built without it)
-  ),
+# borrowed from SSH - thanks!
+AC_MSG_CHECKING(whether to support SOCKS)
+AC_ARG_WITH(socks,
+[  --with-socks            Compile with SOCKS firewall traversal support.],
+[ case "$withval" in
+  no)
+    AC_MSG_RESULT(no)
+    ;;
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_CHECK_LIB(socks5, SOCKSconnect, [
+	    socks=5
+	    LIBS="-lsocks5 $LIBS"], [
+	AC_CHECK_LIB(socks, Rconnect, [
+	    socks=4
+	    LIBS="-lsocks $LIBS"], [
+		AC_MSG_ERROR(Could not find socks library.  You must first install socks.) ] ) ] )
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
 )
 
-AC_ARG_ENABLE(cyrillic, [  --enable-cyrillic       build Cyrillic version],
-  AC_DEFINE(CYRILLIC)
-  A_STDIO="a_stdio.o", A_STDIO="")
-AC_SUBST(A_STDIO)
+if test "x$socks" = "x"; then
+	AC_MSG_CHECKING(whether to support SOCKS5)
+	AC_ARG_WITH(socks5,
+	[  --with-socks5[=PATH]    Compile with SOCKS5 firewall traversal support.],
+	[ case "$withval" in
+	  no)
+	    AC_MSG_RESULT(no)
+	    ;;
+	  *)
+	    AC_MSG_RESULT(yes)
+	    socks=5
+	    if test "x$withval" = "xyes"; then
+	      withval="-lsocks5"
+	    fi
+	    LIBS="$withval $LIBS"
+	    AC_TRY_LINK([],
+	                [ SOCKSconnect(); ],
+			[],
+			[ AC_MSG_ERROR(Could not find the $withval library.  You must first install socks5.) ])
+	    ;;
+	  esac ],
+	  AC_MSG_RESULT(no)
+	)
+fi
+
+if test "x$socks" = "x"; then
+	AC_MSG_CHECKING(whether to support SOCKS4)
+	AC_ARG_WITH(socks4,
+	[  --with-socks4[=PATH]    Compile with SOCKS4 firewall traversal support.],
+	[ case "$withval" in
+	  no)
+	    AC_MSG_RESULT(no)
+	    ;;
+	  *)
+	    AC_MSG_RESULT(yes)
+	    socks=4
+	    if test "x$withval" = "xyes"; then
+	      withval="-lsocks"
+	    fi
+	    LIBS="$withval $LIBS"
+	    AC_TRY_LINK([],
+	                [ Rconnect(); ],
+			[],
+			[ AC_MSG_ERROR(Could not find the $withval library.  You must first install socks.) ])
+	    ;;
+	  esac ],
+	  AC_MSG_RESULT(no)
+	)
+fi
+
+if test "x$socks" = "x4"; then
+    AC_DEFINE(SOCKS)
+    AC_DEFINE(SOCKS4)
+fi
+
+if test "x$socks" = "x5"; then
+    AC_DEFINE(SOCKS)
+    AC_DEFINE(SOCKS5)
+fi
+
+AC_ARG_ENABLE(signals, [  --enable-signals        use internal libwww signal handler],
+  AC_DEFINE(WWWLIB_SIG),)
+
+AC_ARG_ENABLE(reentrant, [  --enable-reentrant      define _REENTRANT to enable reentrant system calls],
+  AC_DEFINE(HT_REENTRANT) [CFLAGS="$CFLAGS -D_REENTRANT"],)
 
 AC_ARG_ENABLE(posix, [  --enable-posix          define _POSIX_SOURCE],
   AC_DEFINE(_POSIX_SOURCE) [CFLAGS="$CFLAGS -D_POSIX_SOURCE"],)
 
-AC_ARG_ENABLE(reentrant, [  --enable-reentrant      define _REENTRANT to enable reentrant system calls],
-  AC_DEFINE(HT_REENTRANT) [CFLAGS="$CFLAGS -D_REENTRANT"],)
+AC_ARG_ENABLE(cyrillic, [  --enable-cyrillic       include support for Cyrillic in line mode browser],
+  AC_DEFINE(CYRILLIC)
+  A_STDIO="a_stdio.o", A_STDIO="")
+AC_SUBST(A_STDIO)
 
 dnl Checks for programs.
 AC_PROG_INSTALL
@@ -125,26 +213,12 @@ if test -n "$have_resolv_conf" ; then
   AC_DEFINE_UNQUOTED(RESOLV_CONF, "$have_resolv_conf")
 fi
 
-dnl Name the default location of icons
-icondir=wwwicons
-AC_SUBST(icondir)
-
 dnl Checks for libraries:
 AC_CHECK_LIB(ICE, IceConnectionNumber)
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(inet, connect)
 AC_CHECK_LIB(nsl, t_accept)
 AC_CHECK_LIB(dl, dlopen)
-
-dnl Checks for TcL Library
-AC_PATH_TCL(
-	[AC_DEFINE(TCL)
-	 W3CLIB="w3clib"],
-	[AC_MSG_WARN(Cannot find TCL; code will be built without it)
-	 W3CLIB=""]
-)
-AC_SUBST(W3CLIB)
-AC_SUBST(LIBTCL)
 
 dnl Checks for header files:
 AC_CHECK_HEADERS(stdio.h)

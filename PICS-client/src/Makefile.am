@@ -32,6 +32,8 @@ BUILT_SOURCES = \
 	CSUser.h	CSUserSt.h \
 	CSParse.h	CSUsrLst.h
 
+DOCS :=	$(wildcard *.html)
+
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
 	$(DOCS)

@@ -1,4 +1,5 @@
 #include "WWWLib.h"
+#include "WWWInit.h"
 #include "WWWHTTP.h"
 #include "WWWTrans.h"
 
@@ -10,10 +11,10 @@ int main()
     HTLibInit("TestApp", "1.0");
 
     /* Register TCP as the transport */
-    HTTransport_add("tcp", HT_TP_SINGLE, HTReader_new, HTWriter_new);
+    HTTransport_add("buffered_tcp", HT_TP_SINGLE, HTReader_new, HTBufferWriter_new);
 
     /* Register the HTTP Module */
-    HTProtocol_add("http", "tcp", YES, HTLoadHTTP, NULL);
+    HTProtocol_add("http", "buffered_tcp", HTTP_PORT, YES, HTLoadHTTP, NULL);
 
     /* Add a conversion to our empty list */
     HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);

@@ -37,7 +37,7 @@
 
 #define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
 
-#define DEFAULT_TIMEOUT		10		       /* timeout in seconds */
+#define DEFAULT_TIMEOUT		10000		       /* timeout in millis */
 
 #if defined(__svr4__)
 #define CATCH_SIG
@@ -56,7 +56,7 @@ typedef struct _Robot {
     HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
     HTList *		htext;			/* List of our HText Objects */
     HTList *		fingers;
-    struct timeval *	tv;				/* Timeout on socket */
+    int 		timer;
     char *		cwd;				  /* Current dir URL */
     char *		rules;
     char *		logfile;
@@ -163,7 +163,7 @@ PRIVATE Robot * Robot_new (void)
 	HT_OUTOFMEM("Robot_new");
     me->hyperdoc = HTList_new();
     me->htext = HTList_new();
-    me->tv->tv_sec = DEFAULT_TIMEOUT;
+    me->timer = DEFAULT_TIMEOUT;
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
     me->cnt = 0;
@@ -313,28 +313,6 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", robot->cnt, robot->cnt == 1 ? "" : "s");
     return HT_OK;
 }
-
-#if 0
-/*	timeout_handler
-**	---------------
-**	This function is registered to handle timeout in select eventloop
-**
-**	BUG: This doesn't work as we don't get the right request object
-**	back from the event loop
-*/
-PRIVATE int timeout_handler (HTRequest * request)
-{
-#if 0
-    Finger * finger = (Finger *) HTRequest_context(request);
-#endif
-    if (SHOW_MSG) HTTrace("Robot....... We don't know how to handle timeout...\n");
-#if 0
-    HTRequest_kill(request);
-    Finger_delete(finger);
-#endif
-    return HT_OK;
-}
-#endif
 
 /* ------------------------------------------------------------------------- */
 /*				HTEXT INTERFACE				     */
@@ -514,7 +492,7 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-timeout")) {
 		int timeout = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
-		if (timeout > 0) mr->tv->tv_sec = timeout;
+		if (timeout > 0) mr->timer = timeout;
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
@@ -603,6 +581,9 @@ int main (int argc, char ** argv)
 
     /* Register our own someterminater filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+
+    /* Setting event timeout */
+    HTHost_setEventTimeout(mr->timer);
 
     /* Start the request */
     finger = Finger_new(mr, startAnchor, METHOD_GET);

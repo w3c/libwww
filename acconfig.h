@@ -3,12 +3,17 @@
 
 /* Define to enable SOCKS firewall-breaching code. */
 #undef SOCKS
+#undef SOCKS4
+#undef SOCKS5
 
 /* Define to enable TcL testing code. */
 #undef LIBTCL
 
 /* Define to build Cyrillic version. */
 #undef CYRILLIC
+
+/* Define to use internal signal handler */
+#undef WWWLIB_SIG
 
 /* Define to build using reentrant system calls. */
 #undef HT_REENTRANT
@@ -23,7 +28,7 @@
 #undef W3C_ICONS
 
 /* Define to be the location of the TCL Library */
-#undef TCL
+#undef W3C_TCL
 
 /* Define this to be the prefix for cache files. */
 #undef CACHE_FILE_PREFIX

@@ -2,6 +2,6 @@
 
 AUTOMAKE_OPTIONS = foreign dejagnu
 
-SUBDIRS = src User
-
 DEJATOOL=w3clib
+
+SUBDIRS = src User

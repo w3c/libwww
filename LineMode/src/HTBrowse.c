@@ -108,8 +108,8 @@
 #define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
 #define CHECK_INPUT(a, b)	(!strncasecomp ((a), (b), strlen((b))))
 
-#define DEFAULT_I_TIMEOUT	1          /* Interactive timeout in seconds */
-#define DEFAULT_NI_TIMEOUT	10     /* Non-interactive timeout in seconds */
+#define DEFAULT_I_TIMEOUT	1000       /* Interactive timeout in millies */
+#define DEFAULT_NI_TIMEOUT	10000  /* Non-interactive timeout in millies */
 
 #define DEFAULT_FORMAT		WWW_PRESENT
 
@@ -144,7 +144,6 @@ typedef enum _LMFlags {
 struct _LineMode {
     HTRequest *		console;			   /* For user input */
     HTParentAnchor *	anchor;
-    struct timeval *	tv;				/* Timeout on socket */
     HTList *		active;			  /* List of acitve contexts */
     HTList *		presenters;
     HTHistory *		history;    			     /* History list */
@@ -154,6 +153,7 @@ struct _LineMode {
     char *		outputfile;
     char *		host;
     int			trace;
+    int			timer;
     HTFormat		format;		        /* Input format from console */
     LMFlags		flags;
     HTView *		pView;
@@ -294,15 +294,14 @@ PRIVATE void Thread_deleteAll (LineMode * lm)
 PRIVATE LineMode * LineMode_new (void)
 {
     LineMode * me;
-    if ((me = (LineMode *) HT_CALLOC(1, sizeof(LineMode))) == NULL ||
-	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
+    if ((me = (LineMode *) HT_CALLOC(1, sizeof(LineMode))) == NULL)	
 	HT_OUTOFMEM("LineMode_new");
-    me->tv->tv_sec = -1;
     me->cwd = HTGetCurrentDirectoryURL();
     me->active = HTList_new();
     me->console = HTRequest_new();
     Context_new(me, me->console, LM_UPDATE);
     me->trace = SHOW_ALL_TRACE;
+    me->timer = -1;
     me->pCSUser = 0;
     if (!(me->pView = HTView_create("'nother Window", 25, 80, me)))
     	return 0;
@@ -315,7 +314,6 @@ PRIVATE LineMode * LineMode_new (void)
 PRIVATE BOOL LineMode_delete (LineMode * lm)
 {
     if (lm) {
-	HT_FREE(lm->tv);
 	Thread_deleteAll(lm);
 	HTPresentation_deleteAll(lm->presenters);
 	HTHistory_delete(lm->history);
@@ -1723,7 +1721,7 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-timeout")) {
 		int timeout = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : -1;
-		if (timeout > 0) lm->tv->tv_sec = timeout;
+		if (timeout > 0) lm->timer = timeout;
 
 	    /* PICS user */
 	    } else if (!strcmp(argv[arg], "-u")) {
@@ -1906,8 +1904,8 @@ int main (int argc, char ** argv)
     }
 
     /* Set timeout on sockets */
-    if (lm->tv->tv_sec < 0) {
-	lm->tv->tv_sec = HTAlert_interactive() ?
+    if (lm->timer < 0) {
+	lm->timer = HTAlert_interactive() ?
 	    DEFAULT_I_TIMEOUT : DEFAULT_NI_TIMEOUT;
     }
     /* Set the DNS cache timeout */
@@ -1927,10 +1925,7 @@ int main (int argc, char ** argv)
      /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
-#if 0
-    HTEventList_registerTimeout(lm->tv, request, timeout_handler, NO);
-#endif
-
+    /* Should we load a PICS user profile? */
     if (picsUser && !LoadPICSUser(lm, picsUser))
         HTTrace("Unable to load PICS user \"%s\".\n", picsUser);
 
@@ -1968,7 +1963,7 @@ int main (int argc, char ** argv)
 	** Register STDIN as the user socket IF not STDIN is connected to
 	** /dev/null or other non-terminal devices
 	*/
-	ConsoleEvent = HTEvent_new(scan_command, lm->console, HT_PRIORITY_MAX, 1000);
+	ConsoleEvent = HTEvent_new(scan_command, lm->console, HT_PRIORITY_MAX, lm->timer);
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
 	    HTEventList_register(STDIN_FILENO, HTEvent_READ, ConsoleEvent);

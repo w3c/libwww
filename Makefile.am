@@ -86,34 +86,34 @@ inc:
 #
 #	Hypertext supplied in text format
 #
-$(top_srcdir)/WELCOME : /afs/w3.org/pub/WWW/WELCOME.html
-	www -p -na /afs/w3.org/pub/WWW/WELCOME.html \
+$(top_srcdir)/WELCOME : $(top_srcdir)/WELCOME.html
+	www -p -na $(top_srcdir)/WELCOME.html \
 		-o $(top_srcdir)/WELCOME
 
-$(top_srcdir)/README : /afs/w3.org/pub/WWW/README.html
-	www -p -na /afs/w3.org/pub/WWW/README.html \
+$(top_srcdir)/README : $(top_srcdir)/README.html
+	www -p -na $(top_srcdir)/README.html \
 		-o $(top_srcdir)/README
 
-$(top_srcdir)/INSTALL : /afs/w3.org/pub/WWW/INSTALL.html
-	www -p -na /afs/w3.org/pub/WWW/INSTALL.html \
+$(top_srcdir)/INSTALL : $(top_srcdir)/INSTALL.html
+	www -p -na $(top_srcdir)/INSTALL.html \
 		-o $(top_srcdir)/INSTALL
 
-$(top_srcdir)/TODO : /afs/w3.org/pub/WWW/Library/User/ToDo.html
-	www -p -na /afs/w3.org/pub/WWW/Library/User/ToDo.html \
+$(top_srcdir)/TODO : $(top_srcdir)/Library/User/ToDo.html
+	www -p -na $(top_srcdir)/Library/User/ToDo.html \
 		-o $(top_srcdir)/TODO
 
-$(top_srcdir)/NEWS : /afs/w3.org/pub/WWW/Library/User/ReleaseNotes.html
-	www -p -na /afs/w3.org/pub/WWW/Library/User/ReleaseNotes.html \
+$(top_srcdir)/NEWS : $(top_srcdir)/Library/User/ReleaseNotes.html
+	www -p -na $(top_srcdir)/Library/User/ReleaseNotes.html \
 		-o $(top_srcdir)/NEWS
 
-$(top_srcdir)/COPYRIGH : /afs/w3.org/pub/WWW/COPYRIGHT.html
-	www -p -na /afs/w3.org/pub/WWW/COPYRIGHT.html \
+$(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
+	www -p -na $(top_srcdir)/COPYRIGHT.html \
 		-o $(top_srcdir)/COPYRIGH
 
-$(top_srcdir)/PATCHES : /afs/w3.org/pub/WWW/PATCHES.html
-	www -p -na /afs/w3.org/pub/WWW/PATCHES.html \
+$(top_srcdir)/PATCHES : $(top_srcdir)/PATCHES.html
+	www -p -na $(top_srcdir)/PATCHES.html \
 		-o $(top_srcdir)/PATCHES
 
-$(top_srcdir)/CERN : /afs/w3.org/pub/WWW/CERN.html
-	www -p -na /afs/w3.org/pub/WWW/CERN.html \
+$(top_srcdir)/CERN : $(top_srcdir)/CERN.html
+	www -p -na $(top_srcdir)/CERN.html \
 		-o $(top_srcdir)/CERN
