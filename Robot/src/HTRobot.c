@@ -51,7 +51,6 @@ typedef enum _MRFlags {
 } MRFlags;
 
 typedef struct _Robot {
-    HTRequest *		timeout;	  /* Until we get a server eventloop */
     int			depth;			     /* How deep is our tree */
     int			cnt;				/* Count of requests */
     HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
@@ -267,11 +266,6 @@ PRIVATE Robot * Robot_new (void)
     me->output = OUTPUT;
     me->cnt = 0;
     me->fingers = HTList_new();
-
-    /* We keep an extra timeout request object for the timeout_handler */
-    me->timeout = HTRequest_new();
-    HTRequest_setContext (me->timeout, me);
-
     return me;
 }
 
@@ -336,8 +330,18 @@ PRIVATE int Finger_delete (Finger * me)
 {
     HTList_removeObject(me->robot->fingers, (void *)me);
     me->robot->cnt--;
-    if (me->request)
+
+    /*
+    **  If we are down at one request then flush the output buffer
+    */
+    if (me->request) {
+	if (me->robot->cnt == 1) HTRequest_forceFlush(me->request);
 	HTRequest_delete(me->request);
+    }
+
+    /*
+    **  Delete the request and free myself
+    */
     HT_FREE(me);
     return YES;
 }
@@ -395,23 +399,20 @@ PRIVATE void VersionInfo (void)
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
-  /*    int count = HTNet_count(); */
     Finger * finger = (Finger *) HTRequest_context(request);
     Robot * robot = finger->robot;
     if (SHOW_MSG) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
     Finger_delete(finger);
-    switch (robot->cnt) {
-    case 0:
+    if (robot->cnt <= 0) {
 	if (SHOW_MSG) HTTrace("             Everything is finished...\n");
-	Cleanup(robot, 0);
-    case 1:
-	HTRequest_forceFlush(request);
-    default:
-	if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", robot->cnt, robot->cnt == 1 ? "" : "s");
+	Cleanup(robot, 0);			/* No way back from here */
     }
+
+    if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", robot->cnt, robot->cnt == 1 ? "" : "s");
     return HT_OK;
 }
 
+#if 0
 /*	timeout_handler
 **	---------------
 **	This function is registered to handle timeout in select eventloop
@@ -431,6 +432,7 @@ PRIVATE int timeout_handler (HTRequest * request)
 #endif
     return HT_OK;
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 /*				HTEXT INTERFACE				     */
@@ -698,10 +700,7 @@ int main (int argc, char ** argv)
 
     /* Register our own someterminater filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-#if 0    
-    /* Set timeout on sockets */
-    HTEventList_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
-#endif
+
     /* Start the request */
     finger = Finger_new(mr, startAnchor, METHOD_GET);
     if (mr->flags & MR_PREEMPTIVE)

@@ -36,4 +36,4 @@ inc: $(BUILT_SOURCES)
 
 purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(LINK) $(webbot_OBJECTS) $(webbot_LDADD) $(LIBS)
+	$(CC) $(LDFLAGS) -o purify $(webbot_OBJECTS) $(webbot_LDADD) $(LIBS)
