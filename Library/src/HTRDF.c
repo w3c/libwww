@@ -95,6 +95,45 @@ PRIVATE void HTRDF_checkAttributes (HTRDF *me,HTElement *Element);
 PRIVATE BOOL HTRDF_expandAttributes (HTRDF *me, HTElement *parent, HTElement *ele);
 PRIVATE char * HTRDF_reificate (HTRDF *me, char * sPredicate, char * sSubject,
 			       char * sObject, char * sNodeID);
+/* ------------------------------------------------------------------------- */
+
+/*
+** Append the markup for the given element and its attribute to the
+** parser's "Literal" buffer.  This buffer is filled in when parseType="Literal".
+*/
+PRIVATE void addMarkupStart (HTRDF *rdfp, const char *name, const char **atts)
+{
+    int i=0;
+
+    if (!rdfp || !name) return;
+
+    StrAllocCat(rdfp->m_sLiteral, "<");
+    StrAllocCat(rdfp->m_sLiteral, name);
+
+    while (atts[i]) {
+        StrAllocCat(rdfp->m_sLiteral, " ");
+        StrAllocCat(rdfp->m_sLiteral, atts[i]);
+        StrAllocCat(rdfp->m_sLiteral, "=\"");
+        StrAllocCat(rdfp->m_sLiteral, atts[i+1]);
+        StrAllocCat(rdfp->m_sLiteral, "\"");
+        i+=2;
+    }
+
+    StrAllocCat(rdfp->m_sLiteral, ">");
+}
+
+/*
+** Terminate this element's "Literal" buffer.  This buffer is filled in when 
+** parseType="Literal".
+*/
+PRIVATE void addMarkupEnd (HTRDF *rdfp, const char *name)
+{
+    if (!rdfp || !name) return;
+
+    StrAllocCat(rdfp->m_sLiteral, "</");
+    StrAllocCat(rdfp->m_sLiteral, name);
+    StrAllocCat(rdfp->m_sLiteral, ">");
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -326,7 +365,6 @@ PRIVATE void XML_startElement (void * userData,
      * (I think this approach is only useful for RDF which uses
      * attributes as an abbreviated syntax for element names)
      */
-
     if (atts) {
 	while (atts[i]) {
 	    char * aName = (char * ) atts[i];
@@ -490,6 +528,7 @@ PRIVATE void XML_startElement (void * userData,
 	 */
 	if (HTRDF_parseLiteral(rdfp)) {
 	    char * fName = NULL;
+
 	    if (!sPrefix2) {
 		if (sNamespace)
 		    HTAssocList_addObject(newAL, "xmlns:gen", sNamespace);
@@ -518,7 +557,7 @@ PRIVATE void XML_startElement (void * userData,
 	HT_FREE(sElementName);
 	HT_FREE(sNamespace);
 	HTRDF_checkAttributes(rdfp, newElement);
-	
+
 	/*
 	** Check parseType
 	*/
@@ -556,6 +595,9 @@ PRIVATE void XML_startElement (void * userData,
 		 * This is the management of any element nested within
 		 * a parseType="Literal" declaration
 		 */
+                /* Add the element to the parser's literal buffer */
+                addMarkupStart (rdfp, name, atts);
+
 		HTList_addObject(rdfp->m_elementStack, newElement);
 		return;
 	    }
@@ -620,10 +662,12 @@ PRIVATE void XML_endElement (void * userData,
 	HTElement *pe = (HTElement *)
 	    HTList_lastObject(rdfp->m_parseElementStack);
 	if (pe != rdfp->m_root) {
-	    /* do nothing */
+            /* Terminate the literal */
+            addMarkupEnd (rdfp, name);
 	} else {
 	    HTElement *de = HTElement_new2(rdfp->m_sLiteral);
 	    HTElement_addChild(pe, de);
+
 	    HT_FREE(rdfp->m_sLiteral);	
 	    StrAllocCopy(rdfp->m_sLiteral, "");
 	    HTList_removeLastObject(rdfp->m_parseElementStack);
@@ -637,7 +681,6 @@ PRIVATE void XML_endElement (void * userData,
 	 * we remove it as well (remember, there's an
 	 * extra Description element to be removed)
 	 */
-	
 	if (!HTList_isEmpty(rdfp->m_elementStack)) {
 	    HTElement *pe = (HTElement *)
 		HTList_lastObject(rdfp->m_parseElementStack);
@@ -2140,6 +2183,7 @@ PRIVATE BOOL HTRDF_expandAttributes (HTRDF * me, HTElement * parent, HTElement *
 	int latt;
 	sAttribute = HTAssoc_name(assoc);
 	sValue = HTAssoc_value(assoc);
+
 	latt = strlen(sAttribute);
 	if (!strncmp(sAttribute, XMLSCHEMA, lxmlschema))
 	    continue;	
