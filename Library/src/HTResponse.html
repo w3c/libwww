@@ -15,10 +15,22 @@
 <P>
 The response object is created as a placeholder for the response received
 by the remote server. All filters can then use the information passed in
-the response and act appropriately. The response objetc is deleted automatically
+the response and act appropriately. The response object is deleted automatically
 when the corresponding request object is deleted. We try and do some fancy
 tricks in order to do lazy parsing and reusing parsed values so that we can
 optimize the code.
+
+<p>The Response object is created automatically when we start to receive
+metainformation (for example <a href="HTMIME.html">MIME headers</a>) and is
+linked to the <a href="../User/Using/Request.html">Request</a> object. The
+Response object is also deleted automatically when the corresponding request
+object is deleted but it can of course be deleted before if this is
+desired.</p>
+
+<p>Note that if you are using <em>non-blocking</em> sockets then libwww
+behaves asynchronously as you may issue multiple requests and get back the
+responses in the order they appear on the net interface.</p>
+
 <P>
 This module is implemented by <A HREF="HTResponse.c">HTResponse.c</A>, and
 it is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
