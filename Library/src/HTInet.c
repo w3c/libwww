@@ -586,7 +586,11 @@ PUBLIC time_t HTGetTimeZoneOffset (void)
 PUBLIC char * HTGetTmpFileName (const char * abs_dir)
 {
 #ifdef HAVE_TEMPNAM
+#ifdef __CYGWIN__
+    return tempnam(abs_dir, "");
+#else
     return tempnam(abs_dir, NULL);
+#endif /* __CYGWIN__ */
 #else
     /*
     **  This is only approx. as we don't know if this file exists or not.
