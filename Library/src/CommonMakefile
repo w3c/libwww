@@ -208,11 +208,11 @@ $(FTP)/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
 #	---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -n -na -p http://info.cern.ch/hypertext/README.html \
+	www -n -p -na http://info.cern.ch/hypertext/README.html \
 		> $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-	www -n -na -p http://info.cern.ch/hypertext/COPYRIGHT.html \
+	www -n -p -na http://info.cern.ch/hypertext/COPYRIGHT.html \
 		> $(WWW)/COPYRIGH
 
 # 			Common code
