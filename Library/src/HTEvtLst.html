@@ -14,27 +14,28 @@
 */
 </PRE>
 <P>
-This module provides an event registry and a multi-threaded event
-loop. An application may use this module for:
+This module provides a default event registry and an eventloop which may
+be used by an application if desired. See also the libwww timers defined
+in the <A HREF="HTTimer.html">HTTimer module</A>. An application may use
+this module for:
 <UL>
-<LI>event loop and registry - Application registers <A
-HREF="#registry">HTEvntrg_register and HTEvntrg_unregister</A> and
-calls <A HREF="#eventLoop">HTEventList_loop</A> to dispatch events as
-they occur.<P>
-
-<LI>event registry - Application just registers its own <A
-HREF="HTEvent.html#eventHandlers">event handlers</A> and chains them
-to <A HREF="#registry">HTEvntrg_register and
-HTEvntrg_unregister</A>. When the application's event loop gets
-activity on a socket, it calls <A
-HREF="#dispatch">HTEvent_dispatch</A> to handle it.<P>
-
-<LI>nothing - Application registers its own <A
-HREF="HTEvent.html#eventHandlers">event handler</A> uses its own event
-loop to dispatch those events.<P>
+  <LI>
+    <STRONG>Eventloop and registry</STRONG> - Application registers
+    <A HREF="#registry">HTEvntrg_register and HTEvntrg_unregister</A> and calls
+    <A HREF="#eventLoop">HTEventList_loop</A> to dispatch events as they occur.
+  <LI>
+    <STRONG>Event registry</STRONG> - Application just registers its own
+    <A HREF="HTEvent.html#eventHandlers">event handlers</A> and chains them to
+    <A HREF="#registry">HTEvntrg_register and HTEvntrg_unregister</A>. When the
+    application's eventloop gets activity on a socket, it calls
+    <A HREF="#dispatch">HTEvent_dispatch</A> to handle it.
+  <LI>
+    <STRONG>Nothing</STRONG> - Application registers its own
+    <A HREF="HTEvent.html#eventHandlers">event handler</A> uses its own eventloop
+    to dispatch those events.
 </UL>
-
-This module is implemented by <A HREF="HTEvntrg.c">HTEvntrg.c</A>, and it
+<P>
+This module is implemented by <A HREF="HTEvtLst.c">HTEvtLst.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
 Library</A>.
 <PRE>
@@ -59,9 +60,10 @@ extern LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 <H2>
   <A NAME="registry">Event Registry</A>
 </H2>
-The libwww's event registry binds a socket and operation (FD_READ,
-FD_WRITE...) to a callback function. Event are registered,
-unregistered, and dispatched.
+<P>
+The libwww event registry binds a socket and operation (<TT>FD_READ</TT>,
+<TT>FD_WRITE</TT>, ...) to a callback function. Events are registered,
+unregistered, and dispatched as they come in.
 <H3>
   Register an Event Handler
 </H3>
@@ -94,38 +96,21 @@ structures: it is up to the application to actually close the socket.
 extern int HTEventList_unregisterAll (void);
 </PRE>
 <H3>
-  <A NAME="dispatch">HTEventList_lookup/dispatch</A>
+  <A NAME="dispatch">Lookup and Dispatch Event Handlers</A>
 </H3>
 <P>
-Callbacks can be looked up or dispatched based on the socket and operation 
+Callbacks can be looked up or dispatched based on the socket and operation
 (read/write/oob)
 <PRE>
 extern int HTEventList_dispatch (SOCKET s, HTEventType type, ms_t now);
 extern HTEvent * HTEventList_lookup (SOCKET s, HTEventType type);
 </PRE>
 <H2>
-  Handler for Timeout on Sockets
+  <A NAME="eventLoop">Libwww Default EventLoop</A>
 </H2>
 <P>
-This function sets the timeout for sockets in the <CODE>select()</CODE> call
-and registers a timeout function that is called if select times out. This
-does only works on NON windows platforms as we need to poll for the console
-on windows If <CODE>tv = NULL</CODE> then timeout is disabled. Default is
-no timeout. If <EM>always=YES</EM> then the callback is called at all times,
-if NO then only when Library sockets are active. Returns YES if OK else NO.
-<PRE>
-#if 0
-typedef int HTEventTimeout (HTRequest *);
-
-extern BOOL HTEventList_registerTimeout (struct timeval *tp, HTRequest * request,
-				     HTEventTimeout *tcbf, BOOL always);
-#endif
-</PRE>
-<H2>
-  <A NAME="eventLoop">Event Loop</A>
-</H2>
-The libwww's default event loop dispatches events to the <A
-HREF="#registry">event registry</A>.
+The libwww default eventloop dispatches events to the <A HREF="#registry">event
+registry</A>.
 <H3>
   Start and Stop the Event Manager
 </H3>
@@ -134,21 +119,29 @@ extern BOOL HTEventInit (void);
 extern BOOL HTEventTerminate (void);
 </PRE>
 <H3>
-  Start the Event Loop
+  Start the Eventloop
 </H3>
 <P>
 That is, we wait for activity from one of our registered channels, and dispatch
 on that. Under Windows/NT, we must treat the console and sockets as distinct.
 That means we can't avoid a busy wait, but we do our best.
 <PRE>
+extern int HTEventList_newLoop (void);
+</PRE>
+<P>
+The next version is an old version of the eventloop start. The request is
+not used for anything and can be NULL.
+<PRE>
 extern int HTEventList_loop (HTRequest * request);
 </PRE>
 <H3>
-  Stop the Event Loop
+  Stop the Eventloop
 </H3>
 <P>
-Stops the (select based) event loop. The function does not guarantee that
-all requests have terminated. This is for the app to do
+Stops the (select based) eventloop immediately. The function does not guarantee
+that all requests have terminated so it is important that the application
+does this before this function is called. This can be done using the
+<TT>HTNet_isIdle()</TT> function in the <A HREF="HTNet.html">HTNet Module</A>
 <PRE>
 extern void HTEventList_stopLoop (void);
 </PRE>

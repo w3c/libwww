@@ -745,17 +745,34 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     return (0);
 }
 
+PUBLIC int HTEventList_newLoop (void)
+{
+    return HTEventList_loop (NULL);
+}
+
 PUBLIC int HTEventList_loop (HTRequest * theRequest )
 {
     MSG msg;
+    int status;
     while (GetMessage(&msg,0,0,0)) {
 	    TranslateMessage(&msg);
 	    DispatchMessage(&msg);
     }
-    return (HTEndLoop == 1 ? HT_OK : HT_ERROR);
+
+    status = HTEndLoop;
+    
+    /* Reset HTEndLoop in case we want to start again */
+    HTEndLoop = 0;
+    
+    return (status == 1 ? HT_OK : HT_ERROR);
 }
 
 #else /* WWW_WIN_ASYNC */
+
+PUBLIC int HTEventList_newLoop (void)
+{
+    return HTEventList_loop (NULL);
+}
 
 /*
 **  We wait for activity from one of our registered 
@@ -843,15 +860,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 		continue;
 	    }
 #endif /* EINTR */
-#if 0
-	    /*
-	    **  We should not use a request but simply a list which can show
-	    **  the errors which occured in select
-	    */
-	    HTRequest_addSystemError(theRequest, ERR_FATAL, socerrno, NO, "select");
-#else
 	    if (THD_TRACE) HTTrace("Event Loop.. select returned error %d\n", socerrno);
-#endif
 	    EventList_dump();
 	    return HT_ERROR;
         }
@@ -887,6 +896,9 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	    return status;
 #endif /* HT_EVENT_ORDER */
     } while (!HTEndLoop);
+
+    /* Reset HTEndLoop in case we want to start again */
+    HTEndLoop = 0;
 
     return HT_OK;
 }
