@@ -117,8 +117,8 @@ int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 
     if (THD_TRACE) 
 	fprintf(TDEST, 
-	"HTEvent_RegisterTTY: socket %d, request %p HTEventCallBack %p SockOps %x at priority %d\n",
-		fd, (void *)rq,  (void *)cbf, ops, p) ;
+		"RegisterTTY. socket %d, request %p HTEventCallBack %p SockOps %x at priority %d\n",
+		fd, (void *)rq,  (void *)cbf, (unsigned int) ops, p) ;
 	
 #ifdef TTY_IS_SELECTABLE 
 
@@ -132,7 +132,7 @@ int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
    if (rq->hwnd != 0)  /* Windows GUI processing requested */
     	return 0;
    if (THD_TRACE) 
-   	fprintf(TDEST, "HTEvent_RegisterTTY: Windows, and no handle given\n");
+   	fprintf(TDEST, "RegisterTTY. Windows, and no handle given\n");
 
    console_handle = GetStdHandle( STD_INPUT_HANDLE) ;
  
@@ -150,7 +150,7 @@ int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops) 
 {
     if (THD_TRACE)
-	fprintf(TDEST, "HTEvent_UnregisterTTY on channel %d\n", s) ;
+	fprintf(TDEST, "UnregisterTTY on channel %d\n", s) ;
 
 
     if (! console_in_use) 
@@ -158,7 +158,7 @@ int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops)
     
     console_in_use = 0 ;
 
-#ifdef WINDOWS
+#ifdef _WINDOWS
     s = (SOCKET)console_handle ;
 #endif
     return HTEvent_UnRegister(s, ops) ;	/* no harm in unregistering...*/
@@ -176,7 +176,7 @@ int HTEvent_Register( SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf
 {
 
     if (THD_TRACE) 
-	fprintf(TDEST, "HTEvent_Register: socket %d, request %p HTEventCallBack %p SockOps %x at priority %d\n",
+	fprintf(TDEST, "Register.... socket %d, request %p HTEventCallBack %p SockOps %x at priority %d\n",
 		s, (void *)rq,  (void *)cbf, ops, p) ;
 
 
@@ -195,24 +195,28 @@ int HTEvent_Register( SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf
         /* insert socket into appropriate file descriptor set */
 
     if (ops & ReadBits)	{
-	FD_SET(s, &read_fds) ;
+	if (! FD_ISSET(s, &read_fds))
+	    FD_SET(s, &read_fds) ;
 	if (THD_TRACE)
-	   fprintf(TDEST, "HTEventRegister: Registering socket as readable\n");
+	   fprintf(TDEST, "Register.... Registering socket as readable\n");
     }
 
     if (ops & WriteBits) {
-	FD_SET(s, &write_fds);
+	if (! FD_ISSET(s, &write_fds))
+	    FD_SET(s, &write_fds);
 	if (THD_TRACE) 
-	   fprintf(TDEST, "HTEventRegister: Registering socket as writeable\n");
+	   fprintf(TDEST, "Register.... Registering socket as writeable\n");
     }
 
     if (ops & ExceptBits) { 
-        FD_SET(s, &except_fds);
+	if (! FD_ISSET(s, &except_fds))
+	    FD_SET(s, &except_fds);
 	if (THD_TRACE) 
-	    fprintf(TDEST, "HTEventRegister: Registering socket for exceptions\n");
+	    fprintf(TDEST, "Register.... Registering socket for exceptions\n");
     }
 
-    FD_SET(s, &all_fds) ;
+    if (! FD_ISSET(s, &all_fds))
+	FD_SET(s, &all_fds) ;
 
     if (s > max_sock) 
         max_sock = s ;
@@ -244,7 +248,7 @@ static int __HTEvent_addRequest( SOCKET s, HTRequest * rq, SockOps ops,
     }  
     
     if (THD_TRACE)
-    	fprintf(TDEST, "HTEvent_addRequest: %s socket %d\n", found ? "found" : "Did NOT find" , s) ;          
+    	fprintf(TDEST, "AddRequest.. %s socket %d\n", found ? "found" : "Did NOT find" , s) ;          
 
     if (! found) { 
         *rqpp = rqp = (RQ *)calloc( sizeof ( RQ ), 1);
@@ -265,7 +269,7 @@ static void __RequestInit( RQ * rqp, SOCKET s, HTRequest * rq,
                    SockOps ops, HTEventCallBack cbf, Priority p) 
 {
     if( THD_TRACE)
-    	fprintf(TDEST, "__RequestInit: initializing RQ entry for socket %d\n", s); 
+    	fprintf(TDEST, "RequestInit. initializing RQ entry for socket %d\n", s); 
 
     rqp->s = s; 
     __RequestUpdate( rqp, s, rq, ops, cbf, p) ;
@@ -283,7 +287,7 @@ static void __RequestInit( RQ * rqp, SOCKET s, HTRequest * rq,
 static void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq, SockOps ops, HTEventCallBack cbf, Priority p)
 {
     if (THD_TRACE) 
-    	fprintf(TDEST, "__RequestUpdate: updating for socket %u\n", s) ;
+    	fprintf(TDEST, "Req Update.. updating for socket %u\n", s) ;
     rqp->unregister = (ops & FD_UNREGISTER) ? TRUE : FALSE ;
     rqp->actions[0].rq = rq ;
     rqp->actions[0].ops = ops ;
@@ -316,7 +320,7 @@ int HTEvent_UnRegister( SOCKET s, SockOps ops)
     }
 
     if (THD_TRACE)
-    	fprintf(TDEST, "HTEvent_UnRegister: %s entry for socket %d\n", (found)? "Found" : "Didn't find", s);
+    	fprintf(TDEST, "UnRegister.. %s entry for socket %d\n", (found)? "Found" : "Didn't find", s);
     if (! found) 
         return 0;
 
@@ -350,7 +354,7 @@ HTEventCallBack HTEvent_Retrieve( SOCKET s, SockOps ops, HTRequest **arp)
     }
 
     if (THD_TRACE) 
-    	fprintf(TDEST, "HTEvent_Retrieve: %s socket %d\n", found ? "Found" : "Didn't find", s) ;
+    	fprintf(TDEST, "Retrieve.... %s socket %d\n", found ? "Found" : "Didn't find", s) ;
 
     if (! found) 
         return (HTEventCallBack)0;
@@ -374,7 +378,7 @@ int HTEvent_UnregisterAll( void )
 
     /* begin */
     if (THD_TRACE)
-	fprintf(stderr, "HTEvent_Unregister: all sockets\n");
+	fprintf(stderr, "Unregister.. all sockets\n");
 
     for (i = 0 ; i < PRIME_TABLE_SIZE; i++) {
 	if (table[i] != 0) { 
@@ -417,7 +421,7 @@ int HTEvent_SocketIsRegistered( SOCKET sockfd)
     }
 
     if (THD_TRACE)
-    	fprintf(TDEST, "HTEvent_SocketIsRegistered: socket %d %s registered\n", sockfd, found ? "is" : "ISN'T");
+    	fprintf(TDEST, "IsRegistered socket %d %s registered\n", sockfd, found ? "is" : "ISN'T");
 
     return found;
 }
@@ -439,7 +443,7 @@ int HTEvent_Loop( HTRequest * theRequest )
 {
     fd_set treadset, twriteset, texceptset ;    
     int active_sockets ; 
-    struct timeval t ;
+    struct timeval t , *timep = &t ;
     int maxfds ;
     int readings, writings, exceptions ;
     SOCKET s ;
@@ -475,7 +479,7 @@ int HTEvent_Loop( HTRequest * theRequest )
 		time2wait = 1000;	   /* this is a poll - one second */
 
 	    if (THD_TRACE)
-		fprintf(TDEST, "HTEvent_Loop: console in use: waiting %s\n", (time2wait == 1000) ? 
+		fprintf(TDEST, "Event Loop. console in use: waiting %s\n", (time2wait == 1000) ? 
 		  "1 second" : "forever" ) ;
 
 	    switch( result = WaitForSingleObject( console_handle, time2wait)) {
@@ -494,9 +498,12 @@ int HTEvent_Loop( HTRequest * theRequest )
 		    break;
 	     } /* switch */
 	     if (THD_TRACE)
-		fprintf(TDEST, "Console %s ready for input\n", consoleReady ? "is" : "ISN'T" );
+		fprintf(TDEST, "Console..... %s ready for input\n", consoleReady ? "is" : "ISN'T" );
 #else 
-
+#ifdef TTY_IS_SELECTABLE 
+	    timep = 0 ;
+#else
+#endif /* TTY_IS_SELECTABLE */
 #endif /* _WIN32 */
 
 	} /* if tty in use */
@@ -506,17 +513,18 @@ int HTEvent_Loop( HTRequest * theRequest )
 	 */
 
 	if(THD_TRACE)
-	    fprintf(TDEST,"HTEvent_Loop: calling select: maxfds is %d\n", maxfds) ;
+	    fprintf(TDEST,"Event Loop.. calling select: maxfds is %d\n", maxfds) ;
 
 #ifdef hpux 
         active_sockets = select( maxfds + 1, (int *)&treadset, (int *)&twriteset, (int *)&texceptset,
-                        (struct timeval *)&t) ;
+                        (struct timeval *)timep) ;
 
 #else
         active_sockets = select( maxfds + 1, &treadset, &twriteset, &texceptset,
-                        (struct timeval *)&t) ;
+                        (struct timeval *)timep) ;
 
 #endif
+
         switch(active_sockets)  {
             case 0:         /* no activity - timeout - allowed */
                 break;
@@ -547,7 +555,7 @@ int HTEvent_Loop( HTRequest * theRequest )
 	
 	if (console_in_use && consoleReady) {
 	    if (THD_TRACE) 
-	    	fprintf(TDEST, "HTEventLoop: console ready: invoking callback\n") ;
+	    	fprintf(TDEST, "Event Loop.. console ready: invoking callback\n") ;
 
 		status = __DoUserCallBack( (SOCKET)console_handle, FD_READ) ;
 		if (status != HT_WOULD_BLOCK)
@@ -562,7 +570,7 @@ int HTEvent_Loop( HTRequest * theRequest )
 	 */
 
 	if (THD_TRACE)
-	    fprintf(TDEST, "HTEventLoop: %d sockets active\n", active_sockets);
+	    fprintf(TDEST, "Event Loop.. %d sockets active\n", active_sockets);
 #ifdef _WINSOCKAPI_ 
 	for (ui = 0 ; ui < all_fds.fd_count; ui++) { 
             s = all_fds.fd_array[ui]; 
@@ -605,23 +613,25 @@ int HTEvent_Loop( HTRequest * theRequest )
 static int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str) 
 {
     unsigned ui ;
-    int status;
+    int status =-1;
     SOCKET s ;
 
     if (THD_TRACE)
-	fprintf(TDEST, "Processing %s socket set. max_sock is %d\n", str, max_sock);
+	fprintf(TDEST, "Processing.. %s socket set. max_sock is %d\n", str, max_sock);
     
- #ifdef _WINSOCKAPI_ 
- 	for (ui = 0 ; ui < fdsp->fd_count; ui++) { s = fdsp->fd_array[ui] ;
- #else
+#ifdef _WINSOCKAPI_ 
+    for (ui = 0 ; ui < fdsp->fd_count; ui++) {
+	s = fdsp->fd_array[ui] ;
+#else
     for (s = 0 ; s <= max_sock; s++) {
         if (FD_ISSET( s, fdsp)) 
- #endif 
+#endif 
  	{
-	   status = __DoCallBack( s, ops) ;
-           return status ;	   
-        }  /* if set */
-   } /* for */
+	    status = __DoCallBack( s, ops) ;
+	    return status ;	   
+	}  /* if set */
+    } /* for */
+    return status;			   /* Henrik */
 }
 
 /*
@@ -687,7 +697,7 @@ int HTEventLoop( HTRequest * homerequest, HTParentAnchor * homeanchor,
 
     if (status != HT_WOULD_BLOCK ) {
         if (THD_TRACE)
-	    fprintf(TDEST, "HTEventLoop: calling HTEventRequestTerminate\n") ;
+	    fprintf(TDEST, "Event Loop.. calling HTEventRequestTerminate\n") ;
 
         htstate = HTEventRequestTerminate( homerequest, status ) ;
         if (! HTEventCheckState( homerequest, htstate))
@@ -711,7 +721,7 @@ static void __ResetMaxSock( void )
     SOCKET t_max = 0; 
 
     if (THD_TRACE)
-    	fprintf(TDEST, "__ResetMaxSock: max socket is %u\n", max_sock);
+    	fprintf(TDEST, "ResetMaxSock max socket is %u\n", max_sock);
 
 #ifdef _WINSOCKAPI_ 
     for (ui = 0 ; ui < all_fds.fd_count; ui++) { 
@@ -728,7 +738,7 @@ static void __ResetMaxSock( void )
 
     max_sock = t_max ;
     if (THD_TRACE)
-    	fprintf(TDEST,"__ResetMaxSock: new max is %u\n", max_sock);
+    	fprintf(TDEST,"ResetMaxSock new max is %u\n", max_sock);
     return;
 }  
 
@@ -746,7 +756,7 @@ static int __EventUnregister( register RQ *rqp, register RQ ** rqpp, SockOps ops
     ap->ops &= ~ops ;      /* get rid of 'em */
 
     if (THD_TRACE)
-    	fprintf(TDEST, "__EventUnregister: operations set for socket is %x\n", ap->ops);
+    	fprintf(TDEST, "Unregister.. operations set for socket is %x\n", ap->ops);
 
     /* do we need to delete the socket from it's set as well? */
 
@@ -772,13 +782,13 @@ static int __EventUnregister( register RQ *rqp, register RQ ** rqpp, SockOps ops
 		(void)WSAAsyncSelect( rqp->s, ap->rq->hwnd, 0, 0);	/* */
 #endif
         *rqpp = rqp->next ;
-        free(rqp) ;
+
 	/* NB we only count network sockets, _not_ the console/display socket */
 	if (console_in_use && rqp->s != (SOCKET)console_handle) { 
 	    if (socketsInUse-- == 0)
 	    	socketsInUse = 0;
 	}
-	
+        free(rqp) ;
     }  /* if all unregistered */
     else { 
 #ifdef _WINSOCKAPI_
@@ -824,7 +834,7 @@ BOOL HTEventCheckState ARGS2(HTRequest *, request, HTEventState, ret)
 	
       default:
 		if (THD_TRACE)
-		    fprintf(TDEST, "HTEventLoop. Invalid return code %d\n",ret);
+		    fprintf(TDEST, "Event Loop.. Invalid return code %d\n",ret);
     }  /* switch */
 
     return YES;
@@ -836,18 +846,21 @@ static void __DumpFDSet( fd_set * fdp, const char * str)
     unsigned ui ;
 
     
-    fprintf(TDEST, "Dumping %s file descriptor set\n", str );
+    if (THD_TRACE) {
+	
+	fprintf(TDEST, "Dumping..... %s file descriptor set\n", str );
 #ifdef _WINSOCKAPI_ 
-    for (ui = 0 ; ui < fdp->fd_count; ui++) { 
-        s = all_fds.fd_array[ui] ;
+        for (ui = 0 ; ui < fdp->fd_count; ui++) { 
+            s = all_fds.fd_array[ui] ;
 #else 
-    for (s = 0 ; s <= max_sock; s++) { 
-        if (FD_ISSET(s, &all_fds))
+        for (s = 0 ; s <= max_sock; s++) { 
+            if (FD_ISSET(s, &all_fds))
 #endif
-	{
-	    fprintf(TDEST, "%4d\n", s);
-	}
-    }	
+	    {
+	        fprintf(TDEST, "%4d\n", s);
+	    }
+        }	/* for */
+    }           /* if */
     return ;
 }
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -75,6 +75,7 @@ system-specific sections later on. There is also a bunch of
 #define SELECT			/* Can handle &gt;1 channel */
 #define GOT_SYSTEM		/* Can call shell with string */
 #define GOT_PASSWD		/* Can we use getpass() command */
+#define TTY_IS_SELECTABLE       /* TTY can be passed to select() call */
 </PRE>
 
 <HR>
@@ -290,6 +291,10 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 #define REMOVE(a)	remove((a))
 #define DEFAULT_SUFFIXES	"."
 
+#ifdef TTY_IS_SELECTABLE 
+#undef TTY_IS_SELECTABLE 
+#endif 
+
 #include &lt;io.h&gt;
 #include &lt;string.h&gt;
 #include &lt;process.h&gt;
@@ -305,6 +310,7 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 
 #define NO_PASSWD
 #define NO_GETWD
+#define NO_FCNTL
 #define HAS_GETCWD
 #define NO_GETPASSWD
 #define NO_GETDOMAINNAME
@@ -448,7 +454,7 @@ Some special things for the 32 bit version...
 #define NETREAD(s,b,l)  ((s) >= 10) ? recv((s),(b),(l),0) : read((s), (b), (l))
 #define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s), (b), (l))
  
-#undef NO_UNIX_IO	/* CLB NT has some Unix IO - must be more specific */
+/* #undef NO_UNIX_IO */	/* CLB NT has some Unix IO - must be more specific */
 
 /* Some compilers do only define WIN32 and NOT _WINDOWS */
 #undef  MKDIR
@@ -1081,6 +1087,23 @@ This is necessary in order to support Windows NT...
 #define INVSOC -1		/* Unix invalid socket */
 #endif
 </PRE>
+
+<H3>Additional Network variables for SOCKET, file access bits</h3>
+
+<PRE>
+ #ifndef _WINSOCKAPI_
+#define FD_READ         0x01
+#define FD_WRITE        0x02
+#define FD_OOB          0x04
+#define FD_ACCEPT       0x08
+#define FD_CONNECT      0x10
+#define FD_CLOSE        0x20
+
+typedef unsigned int SOCKET ;
+
+#endif /* _WINSOCKAPI_ */
+</PRE>
+
 
 <H3>Rough estimate of max path length</H3>
 

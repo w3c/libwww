@@ -482,6 +482,7 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
 /* 	A safe version for making 7-bit restricted HTML
 **	Beware that thsi makes it horrible for the Scandinavians
 **	to actually read it.
+**	ehh - not horrible - THIS REALLY PISSES THEM OFF - Henrik ;-)
 */
 
 PUBLIC HTStream* HTPlainTo7BitHTML ARGS5(

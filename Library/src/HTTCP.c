@@ -1167,7 +1167,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	{
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. WOULD BLOCK `%s'\n", host);
-	    HTThreadState(net->sockfd, THD_SET_WRITE);
+	    HTThreadState(net->sockfd, THD_SET_CONNECT);
 	    free(p1);
 	    return HT_WOULD_BLOCK;
 	}
@@ -1177,7 +1177,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    net->connecttime = time((long *)0) - net->connecttime;
 	    if (status < 0) {					 /* multi PB */
 		if (socerrno == EISCONN) { /* connect multi after would block*/
-		    HTThreadState(net->sockfd, THD_CLR_WRITE);
+		    HTThreadState(net->sockfd, THD_CLR_CONNECT);
 		    HTTCPAddrWeights(host, net->connecttime);
 		    free(p1);
 		    net->addressCount = 0;
@@ -1218,7 +1218,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    }
         } else if (status < 0) {				/* single PB */
 	    if (socerrno==EISCONN) { 	 /* Connect single after would block */
-		HTThreadState(net->sockfd, THD_CLR_WRITE);
+		HTThreadState(net->sockfd, THD_CLR_CONNECT);
 		net->addressCount = 0;
 		free(p1);
 		return HT_OK;

@@ -200,6 +200,7 @@ PUBLIC char *HTSearchScript;
 #endif /* DECC */
 #endif /* not VMS */ 
 
+int NewEventHandler PARAMS((SOCKET, HTRequest *, SockOps )) ;
 
 /* ------------------------------------------------------------------------- */
 /*				THREAD FUNCTIONS			     */
@@ -767,8 +768,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 #ifdef unix
 	if (Check_User_Input("CD")) {   /* Change working directory ? */
 	    goto lcd;
-#endif
 	} else
+#endif
 	    found = NO;
 	break;
 	
@@ -1168,7 +1169,9 @@ int main ARGS2(int, argc, char **, argv)
     BOOL	first_keyword = YES;
     char *	default_default = HTFindRelatedName();
     HTFormat	input_format = WWW_HTML;	         /* Used with filter */
+#if 0
     HTEventCallBack user;		/* To register STDIN for user events */
+#endif
     BOOL       	listrefs_option = NO;	  	  /* -listrefs option used?  */
 
     /* Start up Library of Common Code */
@@ -1561,10 +1564,18 @@ int main ARGS2(int, argc, char **, argv)
 
     /* Test of putting non-interactive mode into the event loop as well */
     reqlist = HTList_new();
+#if 0
     user.sockfd = STDIN_FILENO;
     user.callback = EventHandler;
+#endif 
     HTList_addObject(reqlist, (void *) request);
+
+#if 0
     HTEventRegister(&user);				   /* Register STDIN */
+#endif
+
+    HTEvent_RegisterTTY( STDIN_FILENO, request, (SockOps)FD_READ,
+			NewEventHandler, 1) ;
     HTHistory_record((HTAnchor *) home_anchor);	    	    /* Setup history */
     return_status = HTEventLoop(request, home_anchor,
 				(keywords && *keywords) ? keywords : NULL);
@@ -1593,6 +1604,27 @@ endproc:
     return return_status ? return_status : 0;
 #endif
 }
+
+int NewEventHandler( SOCKET s, HTRequest * rqp, SockOps ops) 
+{
+#if 0
+    int eventState ;
+#endif
+    HTRequest * newrqp = 0;
+    HTEventState theEventState ;
+
+    if (THD_TRACE)
+        fprintf(TDEST, "Calling EventHandler...\n");
+
+    theEventState = EventHandler( &newrqp);
+    if (theEventState == EVENT_TERM)
+    	theEventState = HTEventRequestTerminate( newrqp, theEventState) ;
+    if (!HTEventCheckState( newrqp, theEventState))   /* returned EVENT_QUIT */
+  	return HT_OK;
+    else 
+    	return HT_WOULD_BLOCK; 
+}
+
 
 /* End HTBrowse.c */
 

@@ -43,7 +43,7 @@
 #include "HTSocket.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
 #include "HTThread.h"
-#include "HTEvent.h"
+#include "HTEvntrg.h"
 #include "HTBind.h"
 #include "HTProt.h"
 #include "HTInit.h"

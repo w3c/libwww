@@ -45,16 +45,16 @@
 
 /* This is the local definition of HTRequest->net_info */
 typedef enum _FileState {
-    FILE_RETRY		= -4,
-    FILE_ERROR		= -3,
-    FILE_NO_DATA	= -2,
-    FILE_GOT_DATA	= -1,
-    FILE_BEGIN		= 0,
-    FILE_NEED_OPEN_FILE,
-    FILE_NEED_TARGET,
-    FILE_NEED_BODY,
-    FILE_PARSE_DIR,
-    FILE_TRY_FTP
+    FS_FILE_RETRY		= -4,
+    FS_FILE_ERROR		= -3,
+    FS_FILE_NO_DATA	= -2,
+    FS_FILE_GOT_DATA	= -1,
+    FS_FILE_BEGIN		= 0,
+    FS_FILE_NEED_OPEN_FILE,
+    FS_FILE_NEED_TARGET,
+    FS_FILE_NEED_BODY,
+    FS_FILE_PARSE_DIR,
+    FS_FILE_TRY_FTP
 } FileState;
 
 typedef struct _file_info {
@@ -400,7 +400,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    outofmem(__FILE__, "HTLoadFILE");
 	file->sockfd = INVSOC;			    /* Invalid socket number */
 	file->request = request;
-	file->state = FILE_BEGIN;
+	file->state = FS_FILE_BEGIN;
 	request->net_info = (HTNetInfo *) file;
 	HTThread_new((HTNetInfo *) file);
     } else {
@@ -416,19 +416,19 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
 	switch (file->state) {
-	  case FILE_BEGIN:
+	  case FS_FILE_BEGIN:
 	    if (HTSecure) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "LoadFile.... No access to local file system\n");
-		file->state = FILE_TRY_FTP;
+		file->state = FS_FILE_TRY_FTP;
 		break;
 	    }
 	    if ((status = HTLocalName(HTAnchor_physical(request->anchor),
 				      &file->localname)) == -1) {
-		file->state = FILE_ERROR;
+		file->state = FS_FILE_ERROR;
 		break;
 	    } else if (status == 0) {
-		file->state = FILE_TRY_FTP;
+		file->state = FS_FILE_TRY_FTP;
 		break;
 	    }
 	    /*
@@ -449,7 +449,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 			file->localname = new_path;
 			HTAnchor_setPhysical(request->anchor, new_path);
 		    } else {
-			file->state = FILE_ERROR;
+			file->state = FS_FILE_ERROR;
 			break;
 		    }
 		} else {
@@ -459,13 +459,13 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 				    file->localname);
 			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				   NULL, 0, "HTLoadFile");
-			file->state = FILE_ERROR;
+			file->state = FS_FILE_ERROR;
 			break;
 		    }
 		}
 		/* Check to see if the 'localname' is in fact a directory */
 		if (((stat_info.st_mode) & S_IFMT) == S_IFDIR)
-		    file->state = FILE_PARSE_DIR;
+		    file->state = FS_FILE_PARSE_DIR;
 		else {
 		    /*
 		    ** If empty file then only serve it if it is editable
@@ -483,14 +483,14 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    if (!editable && !stat_info.st_size) {
 			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
 				   NULL, 0, "HTLoadFile");
-			file->state = FILE_NO_DATA;
+			file->state = FS_FILE_NO_DATA;
 		    } else
-			file->state = FILE_NEED_OPEN_FILE;
+			file->state = FS_FILE_NEED_OPEN_FILE;
 		}
 	    }
 	    break;
 
-	  case FILE_NEED_OPEN_FILE:
+	  case FS_FILE_NEED_OPEN_FILE:
 	    /*
 	    ** If we have unix file descriptors then use this otherwise use
 	    ** the ANSI C file descriptors
@@ -498,7 +498,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 #ifndef NO_UNIX_IO
 	    if ((file->sockfd = open(file->localname, O_RDONLY)) == -1) {
 		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "open");
-		file->state = FILE_ERROR;
+		file->state = FS_FILE_ERROR;
 		break;
 	    }
 	    if (PROT_TRACE)
@@ -512,6 +512,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
 	    ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
+#ifndef NO_FCNTL
 	    if (!HTProtocol_isBlocking(request)) {
 		if ((status = FCNTL(file->sockfd, F_GETFL, 0)) != -1) {
 		    status |= O_NONBLOCK;			    /* POSIX */
@@ -524,6 +525,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 			fprintf(TDEST,"HTLoadFile.. Using NON_BLOCKING I/O\n");
 		}
 	    }
+#endif /* NO_FCNTL */
 #else
 #ifdef VMS	
 	    if (!(file->fp = fopen(file->localname,"r","shr=put","shr=upd"))) {
@@ -531,17 +533,17 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    if ((file->fp = fopen(file->localname,"r")) == NULL) {
 #endif /* !VMS */
 		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
-		file->state = FILE_ERROR;
+		file->state = FS_FILE_ERROR;
 		break;
 	    }
 	    if (PROT_TRACE)
 		fprintf(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
 			file->localname, file->fp);
 #endif /* !NO_UNIX_IO */
-	    file->state = FILE_NEED_TARGET;
+	    file->state = FS_FILE_NEED_TARGET;
 	    break;
 
-	  case FILE_NEED_TARGET:
+	  case FS_FILE_NEED_TARGET:
 	    /*
 	    ** We need to wait for the destinations to get ready
 	    */
@@ -563,10 +565,10 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    file->target = HTStreamStack(HTAnchor_format(request->anchor),
 					 request->output_format,
 					 request->output_stream, request, YES);
-	    file->state = file->target ? FILE_NEED_BODY : FILE_ERROR;
+	    file->state = file->target ? FS_FILE_NEED_BODY : FS_FILE_ERROR;
 	    break;
 
-	  case FILE_NEED_BODY:
+	  case FS_FILE_NEED_BODY:
 #ifndef NO_UNIX_IO
 	    status = HTSocketRead(request, file->target);
 #else
@@ -575,23 +577,23 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_INTERRUPTED)
-		file->state = FILE_ERROR;
+		file->state = FS_FILE_ERROR;
 	    else if (status == HT_LOADED) {
-		file->state = FILE_GOT_DATA;
+		file->state = FS_FILE_GOT_DATA;
 	    } else
-		file->state = FILE_ERROR;
+		file->state = FS_FILE_ERROR;
 	    break;
 
-	  case FILE_PARSE_DIR:
+	  case FS_FILE_PARSE_DIR:
 #ifdef GOT_READ_DIR
 	    file->state = HTBrowseDirectory(request, file->localname) < 0 ?
-		FILE_ERROR : FILE_GOT_DATA;
+		FS_FILE_ERROR : FS_FILE_GOT_DATA;
 #else
-	    file->state = FILE_ERROR;
+	    file->state = FS_FILE_ERROR;
 #endif
 	    break;
 
-	  case FILE_TRY_FTP:
+	  case FS_FILE_TRY_FTP:
 	    {
 		char *url = HTAnchor_physical(request->anchor);
 		HTAnchor *anchor;
@@ -608,7 +610,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    }
 	    break;
 
-	  case FILE_GOT_DATA:
+	  case FS_FILE_GOT_DATA:
 	    FileCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
@@ -618,7 +620,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    return HT_LOADED;
 	    break;
 
-	  case FILE_NO_DATA:
+	  case FS_FILE_NO_DATA:
 	    FileCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
@@ -628,7 +630,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    return HT_NO_DATA;
 	    break;
 
-	  case FILE_RETRY:
+	  case FS_FILE_RETRY:
 	    if (HTRequest_isPostWeb(request))
 		HTRequest_killPostWeb(request);
 	    else
@@ -641,7 +643,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    return HT_RETRY;
 	    break;
 
-	  case FILE_ERROR:
+	  case FS_FILE_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
 		if (file->sockfd == INVSOC)

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Multithreaded Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -17,7 +17,7 @@
 This module contains the routines for handling the set of active
 sockets currently in use by the multithreaded clients. It is an
 internal module to the Library, the application interface is
-implemented in the <A HREF="HTEvent.html">Event Module</A>. Look for
+implemented in the <A HREF="HTEvntrg.html">Event Module</A>. Look for
 more information in the <A
 HREF="http://www.w3.org/hypertext/WWW/Library/User/Architecture/Threads.html">
 Multithread Specifications</A>. <P>
@@ -107,7 +107,9 @@ typedef enum _HTThreadAction {
     THD_CLR_READ,
     THD_SET_INTR,
     THD_CLR_INTR,
-    THD_CLOSE
+    THD_CLOSE,
+    THD_SET_CONNECT,
+    THD_CLR_CONNECT
 } HTThreadAction;
 </PRE>
 

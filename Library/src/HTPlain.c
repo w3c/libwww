@@ -1,4 +1,4 @@
-/*								      HTWrite.c
+/*								      HTPlain.c
 **	PLAIN TEXT OBJECT
 **
 **	(c) COPYRIGHT MIT 1995.
