@@ -448,18 +448,18 @@ int main
 	    
 	    /* Page size */
 	    } else if (!strncmp(argv[arg], "-p", 2)) {
-		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    if (sscanf(argv[++arg], "%d", &HTScreenHeight) < 1)
-			HTScreenHeight = -1;
+		if (*(argv[arg]+2)) {
+		    if (sscanf(argv[arg]+2, "%d", &HTScreenHeight) < 1)
+			HTScreenHeight = -1;		
 		    else {
 			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
 			    HTScreenHeight = MIN_SCREEN_HEIGHT;
 			if(HTScreenHeight > MAX_SCREEN_HEIGHT)
 			    HTScreenHeight = MAX_SCREEN_HEIGHT;
 		    }
-		} else {
-		    if (sscanf(argv[arg]+2, "%d", &HTScreenHeight) < 1)
-			HTScreenHeight = -1;		
+		} else if (arg+1 < argc && *argv[arg+1] != '-') {
+		    if (sscanf(argv[++arg], "%d", &HTScreenHeight) < 1)
+			HTScreenHeight = -1;
 		    else {
 			if(HTScreenHeight < MIN_SCREEN_HEIGHT)
 			    HTScreenHeight = MIN_SCREEN_HEIGHT;
@@ -470,13 +470,13 @@ int main
 
 	    /* Page width */
 	    } else if (!strncmp(argv[arg], "-w", 2)) {
-		if (arg+1 < argc && *argv[arg+1] != '-') {
+		if (*(argv[arg]+2)) {
+		    if (sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1)
+			HTScreenWidth = SCREEN_WIDTH;
+		} else if (arg+1 < argc && *argv[arg+1] != '-') {
 		    if (sscanf(argv[++arg], "%d", &HTScreenWidth) < 1)
 			HTScreenWidth = SCREEN_WIDTH;
-		} else {
-		    if (sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1)
-		    HTScreenWidth = SCREEN_WIDTH;
-		}		    
+		}
 		if(HTScreenWidth < MIN_SCREEN_WIDTH)
 		    HTScreenWidth = MIN_SCREEN_WIDTH;
 		if(HTScreenWidth > MAX_SCREEN_WIDTH)

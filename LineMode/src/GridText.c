@@ -780,14 +780,10 @@ PUBLIC void HText_appendImage ARGS5(
 	HText *,		text,
 	HTChildAnchor *,	anc,
 	CONST char *,		alt,
-	/* int,			alignment, */
-	/* HENRIK */
-	CONST char*, 		alignment,
+	CONST char *, 		alignment,
 	BOOL,			isMap)
 {
-    /* HText_beginAnchor(text, anc); */
-    HText_appendText(text, alt? alt: "<IMAGE>");
-    /* HText_endAnchor(text) */
+    HText_appendText(text, alt? alt : "[IMAGE]");
 }
 	
 PUBLIC void HText_appendText ARGS2(HText *,text, CONST char *,str)
