@@ -2,6 +2,11 @@
 #include "WWWHTTP.h"
 #include "WWWInit.h"
 
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 int main (int argc, char ** argv)
 {
     HTRequest * request = HTRequest_new();
@@ -10,6 +15,9 @@ int main (int argc, char ** argv)
 
     /* Initialize libwww core */
     HTProfile_newPreemptiveClient("TestApp", "1.0");
+
+    /* Gotta set up our own traces */
+    HTTrace_setCallback(tracer);
 
     /* Turn on TRACE so we can see what is going on */
 #if 0

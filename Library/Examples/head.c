@@ -21,6 +21,11 @@
 #include "WWWApp.h"
 #include "WWWInit.h"
 
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 int main (int argc, char ** argv)
 {
     HTRequest * request;
@@ -31,6 +36,9 @@ int main (int argc, char ** argv)
 
 	/* Turn on TRACE so we can see what is going on */
 	if (argc == 3) HTSetTraceMessageMask(argv[2]);
+
+        /* Gotta set up our own traces */
+        HTTrace_setCallback(tracer);
 
 	/* We don't wany any progress notification or other user stuff */
 	HTAlert_setInteractive(NO);

@@ -2,6 +2,11 @@
 #include "WWWHTTP.h"
 #include "WWWInit.h"
 
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 int main (int argc, char ** argv)
 {
     HTRequest * request = HTRequest_new();
@@ -13,11 +18,19 @@ int main (int argc, char ** argv)
     /* Initialize libwww core */
     HTLibInit("TestApp", "1.0");
 
+    /* Gotta set up our own traces */
+    HTTrace_setCallback(tracer);
+
     /* Turn on TRACE so we can see what is going on */
 #if 0
-    WWWTRACE = SHOW_CORE_TRACE + SHOW_STREAM_TRACE + SHOW_PROTOCOL_TRACE;
+    HTSetTraceMessageMask("sop");
 #endif
 
+    /* On windows we must always set up the eventloop */
+#ifdef WWW_WIN_ASYNC
+    HTEventInit();
+#endif
+    
     /* Register the default set of transport protocols */
     HTTransportInit();
 
@@ -63,6 +76,11 @@ int main (int argc, char ** argv)
     HTRequest_delete(request);
     HTFormat_deleteAll();
 
+    /* On windows, shut down eventloop as well */
+#ifdef WWW_WIN_ASYNC
+    HTEventTerminate();
+#endif
+   
     /* Terminate the Library */
     HTLibTerminate();
     return 0;
