@@ -364,8 +364,10 @@ PRIVATE int HTLoad ARGS2(
 	CONST char *,		addr,	/* not used */
 	HTRequest *,		request)
 {
-    HTProtocol* p;
-    int status;
+    char	*arg = NULL;
+    HTProtocol	*p;
+    int 	status;
+
     if (request->method == METHOD_INVALID)
 	request->method = METHOD_GET;
     status = get_physical(request);
@@ -374,6 +376,12 @@ PRIVATE int HTLoad ARGS2(
 			   "Access forbidden by rule");
     }
     if (status < 0) return status;	/* Can't resolve or forbidden */
+
+    /* THIS HAS BEEN MOVED FROM HTTP.C HTLoadHTTP() BECAUSE OF NON-COSISTENCE
+       BETWEEN request->anchor and request->argument. Henrik 14/02-94 */       
+    if(!(arg = HTAnchor_physical(request->anchor)) || !*arg) 
+    	return (-1);
+    StrAllocCopy(request->argument, arg);
     
     p = HTAnchor_protocol(request->anchor);
     return (*(p->load))(request);
@@ -440,7 +448,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     request->using_cache = NULL;
     
     if (!request->output_format) request->output_format = WWW_PRESENT;
-    
+
     if ((text=(HText *)HTAnchor_document(request->anchor)))
     {	/* Already loaded */
         if (TRACE) fprintf(stderr, "HTAccess: Document already in memory.\n");
@@ -862,5 +870,3 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
     free(ref);
     return anchor;
 }
-
-

@@ -151,6 +151,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     BOOL extensions = YES;		/* Assume good HTTP server */
     char * cache_file_name = NULL;
 
+    HTCacheHTTP = YES;			/* Be sure, that cache is on per default */
+
     if (request->reason == HTAA_OK_GATEWAY) {
 	arg = request->translated;
 
@@ -181,7 +183,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     } /* I'm a gateway */
     else {
 	arg = HTAnchor_physical(request->anchor);
-	StrAllocCopy(request->argument, arg);
+	/* No more StrAllocCopy here - moved to HTLoad(). Henrik 14/01-94 */
     }
 
     if (!arg) return -3;		/* Bad if no name sepcified	*/
@@ -476,13 +478,16 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 **	An HTTP 0.9 server returning a binary document with
 **	characters < 128 will be read as ASCII.
 */
-	if (!status_line) {	/* HTTP0 response */
+
+	/* If HTTP 0 response, then DO NOT CACHE (Henrik 14/02-94) */
+	if (!status_line) {	
 	    if (HTInputSocket_seemsBinary(isoc)) {
 		format_in = HTAtom_for("www/unknown");
 	    }
 	    else {
 		format_in = WWW_HTML;
 	    }
+	    HTCacheHTTP = NO;	/* Do not cache */
 	    goto copy;
 	} /* end kludge */
 
@@ -637,7 +642,6 @@ copy:
 clean_up: 
 	if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
 	(void) NETCLOSE(s);
-    
 	return status;			/* Good return */
     
     } /* read response */

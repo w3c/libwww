@@ -144,8 +144,9 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 	/* Actually, ought to use draft ANSI-C difftime() */
 	/* But that I bet is more portable in real life  (@@?) */
     }
-    /* Must not close stdout! (HENRIK) */
+
     if (me->leave_open != YES) fclose(me->fp);
+
     if (me->end_command) {		/* Temp file */
         HTProgress(me->end_command);	/* Tell user what's happening */
 	system(me->end_command);
@@ -167,8 +168,7 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 
 PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
-    /* Must not close stdout! (HENRIK) */
-    if (me->filename && me->leave_open != YES) fclose(me->fp);
+    if (me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
 	if (TRACE) fprintf(stderr,
 		"HTFWriter: Aborting: file %s not executed.\n",
