@@ -25,8 +25,8 @@
 **	defined which accepts select and select_anchor.
 */
 
-#ifndef DEFAULT_WAIS_GATEWAY
-#define DEFAULT_WAIS_GATEWAY "http://www.w3.org:8001/"
+#if !defined(HT_DIRECT_WAIS) && !defined(HT_DEFAULT_WAIS_GATEWAY)
+#define HT_DEFAULT_WAIS_GATEWAY "http://www.w3.org:8001/"
 #endif
 
 /* Library include files */
@@ -267,7 +267,7 @@ PRIVATE void HTAccessInit NOARGS
     GLOBALREF  HTProtocol HTFTP, HTNews, HTNNTP, HTGopher;
 #endif
     GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
-#ifdef DIRECT_WAIS
+#ifdef HT_DIRECT_WAIS
     GLOBALREF  HTProtocol HTWAIS;
 #endif
 
@@ -278,7 +278,7 @@ PRIVATE void HTAccessInit NOARGS
 #endif
     HTRegisterProtocol(&HTGopher);
 
-#ifdef DIRECT_WAIS
+#ifdef HT_DIRECT_WAIS
     HTRegisterProtocol(&HTWAIS);
 #endif
 
@@ -542,7 +542,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	if (TRACE && proxy)
 	    fprintf(TDEST,"Proxy....... Found: `%s\'\n", proxy);
 
-#ifndef DIRECT_WAIS
+#ifndef HT_DIRECT_WAIS
 	if (!gateway && 0==strcmp(access, "wais")) {
 	    gateway = DEFAULT_WAIS_GATEWAY;
 	}

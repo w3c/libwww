@@ -634,6 +634,16 @@ extern volatile noshare int errno;  /* noshare to avoid PSECT conflict */
 #endif
 </PRE>
 
+<H2>BSDi BSD/386 Unix</H2>
+
+Specific stuff for BSDi BSD/386
+
+<PRE>
+#ifdef bsdi
+#define NO_GETDOMAINNAME
+#endif
+</PRE>
+
 <H2>MIPS unix</H2>
 Mips hack (bsd4.3/sysV mixture...)
 
