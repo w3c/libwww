@@ -551,7 +551,7 @@ PUBLIC HTArray * HTAnchor_getArray (int growby)
     if (!adult_table) return NULL;
 
     /* Allocate an array for the anchors */
-    if (!growby) growby = PARENT_HASH_SIZE;
+    if (growby <= 0) growby = PARENT_HASH_SIZE;
     array = HTArray_new(growby);
 
     /* Traverse anchor structure */
