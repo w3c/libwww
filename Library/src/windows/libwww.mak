@@ -3128,7 +3128,6 @@ ALL : "wwwtrans - Win32 Release" "wwwstream - Win32 Release"\
 
 CLEAN : 
 	-@erase "$(INTDIR)\HTDemux.obj"
-	-@erase "$(INTDIR)\HTMux.obj"
 	-@erase "$(INTDIR)\HTMuxCh.obj"
 	-@erase "$(INTDIR)\HTMuxTx.obj"
 	-@erase "$(INTDIR)\windll.obj"
@@ -3171,7 +3170,6 @@ DEF_FILE= \
 	".\wwwmux.def"
 LINK32_OBJS= \
 	"$(INTDIR)\HTDemux.obj" \
-	"$(INTDIR)\HTMux.obj" \
 	"$(INTDIR)\HTMuxCh.obj" \
 	"$(INTDIR)\HTMuxTx.obj" \
 	"$(INTDIR)\windll.obj" \
@@ -3206,7 +3204,6 @@ ALL : "wwwtrans - Win32 Debug" "wwwstream - Win32 Debug" "wwwdll - Win32 Debug"\
 
 CLEAN : 
 	-@erase "$(INTDIR)\HTDemux.obj"
-	-@erase "$(INTDIR)\HTMux.obj"
 	-@erase "$(INTDIR)\HTMuxCh.obj"
 	-@erase "$(INTDIR)\HTMuxTx.obj"
 	-@erase "$(INTDIR)\vc40.idb"
@@ -3253,7 +3250,6 @@ DEF_FILE= \
 	".\wwwmux.def"
 LINK32_OBJS= \
 	"$(INTDIR)\HTDemux.obj" \
-	"$(INTDIR)\HTMux.obj" \
 	"$(INTDIR)\HTMuxCh.obj" \
 	"$(INTDIR)\HTMuxTx.obj" \
 	"$(INTDIR)\windll.obj" \
@@ -6625,7 +6621,6 @@ DEP_CPP_HTTCP=\
 	".\..\HTMemory.h"\
 	".\..\HTMethod.h"\
 	".\..\HTMIMPrs.h"\
-	".\..\HTMux.h"\
 	".\..\HTMuxCh.h"\
 	".\..\HTMuxHeader.h"\
 	".\..\HTMuxTx.h"\
@@ -6692,7 +6687,6 @@ DEP_CPP_HTTCP=\
 	".\..\HTMemory.h"\
 	".\..\HTMethod.h"\
 	".\..\HTMIMPrs.h"\
-	".\..\HTMux.h"\
 	".\..\HTMuxCh.h"\
 	".\..\HTMuxHeader.h"\
 	".\..\HTMuxTx.h"\
@@ -12526,68 +12520,6 @@ NODEP_CPP_HTMUXC=\
 	
 
 "$(INTDIR)\HTMuxCh.obj" : $(SOURCE) $(DEP_CPP_HTMUXC) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTMux.c
-DEP_CPP_HTMUX_=\
-	".\..\HTAlert.h"\
-	".\..\HTAnchor.h"\
-	".\..\HTArray.h"\
-	".\..\HTAssoc.h"\
-	".\..\HTAtom.h"\
-	".\..\HTBind.h"\
-	".\..\HTChannl.h"\
-	".\..\HTChunk.h"\
-	".\..\HTDNS.h"\
-	".\..\HTError.h"\
-	".\..\HTEscape.h"\
-	".\..\HTEvent.h"\
-	".\..\HTFormat.h"\
-	".\..\HTFWrite.h"\
-	".\..\HTHost.h"\
-	".\..\HTHstMan.h"\
-	".\..\HTInet.h"\
-	".\..\HTIOStream.h"\
-	".\..\HTLib.h"\
-	".\..\HTLink.h"\
-	".\..\HTList.h"\
-	".\..\HTMemory.h"\
-	".\..\HTMethod.h"\
-	".\..\HTMux.h"\
-	".\..\HTMuxCh.h"\
-	".\..\HTMuxHeader.h"\
-	".\..\HTNet.h"\
-	".\..\HTNetMan.h"\
-	".\..\HTParse.h"\
-	".\..\HTProt.h"\
-	".\..\HTReq.h"\
-	".\..\HTResponse.h"\
-	".\..\HTStream.h"\
-	".\..\HTString.h"\
-	".\..\HTStruct.h"\
-	".\..\HTTrans.h"\
-	".\..\HTUser.h"\
-	".\..\HTUtils.h"\
-	".\..\HTUTree.h"\
-	".\..\HTUU.h"\
-	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
-	".\..\WWWCore.h"\
-	".\..\WWWUtil.h"\
-	".\config.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTMUX_=\
-	".\..\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTMux.obj" : $(SOURCE) $(DEP_CPP_HTMUX_) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
