@@ -260,6 +260,10 @@ These next defintions are because the UNIX stuff is not supplied with BC4
 #define		S_IXOTH	0000001	/* execute/search permission, other */
 
 #define	S_ISREG(m)	(((m)&amp;_IFMT) == _IFREG)
+
+#define DIR_SEPARATOR
+#define DIR_SEPARATOR_CHAR	'\\'
+#define DIR_SEPARATOR_STR	"\\"
 </PRE>
 <H3>
   Errno and Return Codes
@@ -1276,6 +1280,11 @@ This is necessary in order to support Windows NT...
 
 #ifndef DEFAULT_SUFFIXES
 #define DEFAULT_SUFFIXES	".,_"
+#endif
+
+#ifndef DIR_SEPARATOR
+#define DIR_SEPARATOR_CHAR	'/'
+#define DIR_SEPARATOR_STR	"/"
 #endif
 
 #ifndef F_OK
