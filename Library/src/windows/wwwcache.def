@@ -7,7 +7,7 @@ HTCache_disable		@ 104
 HTCache_isEnabled	@ 105
 HTCache_setRoot		@ 106
 HTCache_getRoot		@ 107
-HTCache_freeRoot	@ 108
+HTCache_HT_FREERoot	@ 108
 HTMemoryCache_register	@ 109
 HTMemoryCache_unRegister @ 110
 HTMemoryCache_check	@ 111

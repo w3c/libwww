@@ -1,17 +1,21 @@
 EXPORTS
 ;HTAABrow.c		@ 100
-HTAA_composeAuth	@ 101
-HTPasswordDialog	@ 102
-HTAA_retryWithAuth	@ 103
-HTAA_authentication	@ 104
+HTBasic_generate	@ 101
+HTBasic_parse		@ 102
+HTBasic_delete		@ 103
+HTDigest_generate	@ 104
+HTDigest_parse		@ 105
+HTDigest_delete		@ 106
 
 ;HTAAUtil.c		@ 200
-HTAAScheme_enum		@ 201
-HTAAScheme_name		@ 202
-HTAA_templateMatch	@ 203
-HTAA_templateCaseMatch	@ 204
-HTAA_makeProtectionTemplate @ 205
-HTAA_parseArgList	@ 206
+HTAuthCall_add		@ 201
+HTAuthCall_delete	@ 202
+HTAuthCall_deleteAll	@ 203
+HTAuthInfo_add		@ 204
+HTAuthInfo_deleteAll	@ 205
+HTAuth_parse		@ 206
+HTAuth_generate		@ 207
+HTAuth_cleanup		@ 208
 
 ;HTTPGen.c		@ 300
 HTTPGen_new		@ 301

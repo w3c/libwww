@@ -10,14 +10,10 @@ SGMLFindTag		@ 202
 SGML_flush		@ 203
 SGML_free		@ 204
 SGML_abort		@ 205
-SGML_callerData		@ 206
-SGML_setCallerData	@ 207
-SGML_callerData		@ 208
-SGML_setCallerData	@ 209
-SGML_character		@ 210
-SGML_string		@ 211
-SGML_write		@ 212
-SGML_new		@ 213
+SGML_character		@ 206
+SGML_string		@ 207
+SGML_write		@ 208
+SGML_new		@ 209
 
 ;HTMLGen.c		@ 300
 HTMLGenerator		@ 301
