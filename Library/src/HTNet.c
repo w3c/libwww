@@ -751,9 +751,10 @@ PRIVATE BOOL delete_object (HTNet * net)
 	*/
 /*	(*net->input->isa->consumed)(net->input, net->header_length + net->bytes_read);
  */
-	HTHost_launchPending(net->host);
 
-	/*
+        HTHost_launchPending(net->host);
+
+        /*
 	**  Break the link to the request and free the Net object
 	*/
 	HTRequest_setNet(net->request, NULL);
@@ -827,8 +828,8 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 		return YES;
 	    }
 	    HTHost_free(net->host, status);
-	    HTHost_deleteNet(net->host, net);
-	}
+            HTHost_deleteNet(net->host, net);
+        }
 
         /* Remove object from the table of Net Objects */
 	remove_net(net);

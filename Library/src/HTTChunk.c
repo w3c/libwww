@@ -67,8 +67,8 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
 
 PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 {
-    int length = l;
     while (l > 0) {
+	int length = l;
 	if (me->left <= 0 && !me->lastchunk) {
 	    while (l > 0) {
 		if (me->state == EOL_FLF) {
@@ -90,11 +90,26 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 	}
 
 	/*
-	** If we have to read trailers
+	** Account for the parts we read in the chunk header +
+	** the chunk that we are reading.
 	*/
-	if (me->trailer)
-	    me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
-				       me->target, me->request, NO);
+	if (length != l) {
+	    if (me->lastchunk) l -= 2;
+	    HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
+	}
+
+	/*
+	** If we have to read trailers. Otherwise we are done.
+	*/
+	if (me->lastchunk) {
+	    if (me->trailer)
+		me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
+					   me->target, me->request, NO);
+	    else {
+		me->status = HT_LOADED;
+		break;
+	    }
+	}
 
 	/*
 	**  Handle the rest of the data including trailers
@@ -102,26 +117,12 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 	if (l > 0) {
 	    int bytes = me->left ? HTMIN(l, me->left) : l;
 	    int status;
-	    HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
-	    length = l;
-	    if ((status = (*me->target->isa->put_block)(me->target, b, bytes)) < 0)
+	    if ((status = (*me->target->isa->put_block)(me->target, b, bytes)) != HT_OK)
 		return status;
-	    me->status = HT_LOADED;
+	    HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), bytes);
 	    me->left -= bytes;
 	    l -= bytes, b+= bytes;
-
-	    /*
-	    **	If we are processing tailers, the consumed is taken care of
-	    **  downstream
-	    */
-	    if (me->trailer) length = l;
 	}
-
-	/*
-	**	account for the bytes used
-	*/
-	HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
-	length = l;
     }
     return me->lastchunk ? me->status : HT_OK;
 }
@@ -145,7 +146,12 @@ PRIVATE int HTChunkDecode_free (HTStream * me)
 {
     int status = HT_OK;
     HTParentAnchor * anchor = HTRequest_anchor(me->request);
+
+    /*
+    **  Update the amount of data that we read in all.
+    */
     HTAnchor_setLength(anchor, me->total);
+
     if (me->target) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
@@ -192,7 +198,7 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
     me->request = request;
     me->state = EOL_BEGIN;
     me->buf = HTChunk_new(64);
-    me->status = HT_OK;
+    me->status = HT_ERROR;
     
     /* Adjust information in anchor */
     HTAnchor_setLength(anchor, -1);
@@ -301,6 +307,7 @@ PUBLIC HTStream * HTChunkedEncoder   (HTRequest *	request,
     me->request = request;
     me->param = (char *) param;
     me->state = EOL_BEGIN;
+    me->status = HT_ERROR;
     {
 	int length = me->param ? strlen(me->param)+20 : 20;
 	me->buf = HTChunk_new(length);

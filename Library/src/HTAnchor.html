@@ -150,6 +150,24 @@ if OK, else NO.
 <PRE>
 extern BOOL HTAnchor_deleteAll	(HTList * objects);
 </PRE>
+
+<H3>
+  Flatten all anchors into Array
+</H3>
+
+Flattens the anchor web structure into an array.  This is useful for
+calculating statistics, sorting the parent anchors etc.<P>
+
+The caller can indicate the size of the array (total number of anchors
+if known - otherwise 0).<P>
+
+Return an array that must be freed by the caller or NULL if no
+anchors.<P>
+
+<PRE>
+extern HTArray * HTAnchor_getArray (int growby);
+</PRE>
+
 <H2>
   <A NAME="links">Links and Anchors</A>
 </H2>

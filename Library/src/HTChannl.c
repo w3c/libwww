@@ -218,7 +218,7 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 	*/
 	if (status != HT_IGNORE) {
 	    if (channel->input) {
-		if (status == HT_INTERRUPTED)
+                if (status == HT_INTERRUPTED)
 		    (*channel->input->isa->abort)(channel->input, NULL);
 		else
 		    (*channel->input->isa->_free)(channel->input);
@@ -236,7 +236,7 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 	**  delete it and free memory.
 	*/
 	if (channel->semaphore <= 0 && channels && channel->sockfd != INVSOC) {
-	    int hash = HASH(channel->sockfd);
+            int hash = HASH(channel->sockfd);
 	    HTList * list = channels[hash];
 	    if (list) {
 		HTList_removeObject(list, (void *) channel);

@@ -1,8 +1,6 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww LOG FILES</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z1">
+<TITLE>W3C Sample Code Library libwww Log Class</TITLE>
 </HEAD>
 <BODY>
 
@@ -15,7 +13,7 @@
 */
 </PRE>
 
-This module maintaines logs of request to a file.<P>
+This is a generic log object which can be used to log events to a file.<P>
 
 This module is implemented by <A HREF="HTLog.c">HTLog.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
@@ -28,36 +26,44 @@ Sample Code Library</A>.
 #include "HTReq.h"
 </PRE>
 
-<H2>Enable the log</H2>
+<H2>Create a new Log Object</H2>
 
-Open the log file and start doing log. The time used in the log file
+Create a new object and open the log file. The time used in the log file
 is either GMT or local dependent on <CODE>local</CODE>.
 
 <PRE>
-extern BOOL HTLog_open (const char * filename, BOOL local, BOOL append);
+typedef struct _HTLog HTLog;
+
+extern HTLog * HTLog_open (const char * filename, BOOL local, BOOL append);
 </PRE>
 
-<H2>Disable the log</H2>
+<H2>Delete a Log Object</H2>
 
-Close the log file and do more log
+Close the log file and delete the object
 
 <PRE>
-extern BOOL HTLog_close (void);
+extern BOOL HTLog_close (HTLog * log);
 </PRE>
 
-<H2>In log Enabled?</H2>
+<H2>Log a Client Request in CLF</H2>
+
+This functions logs the result of a request in what's close to CLF. It can 
+be used on client side to track user behavior.
 
 <PRE>
-extern BOOL HTLog_isOpen (void);
+extern BOOL HTLog_addCLF (HTLog * log, HTRequest * request, int status);
 </PRE>
 
-<H2>Log a Request</H2>
+<H2>Log the following line</H2>
 
-This functions logs the result of a request.
+A generic logger - logs whatever you put in as the line. The caller
+is responsible for adding a line feed if desired.
 
 <PRE>
-extern BOOL HTLog_add (HTRequest * request, int status);
+extern BOOL HTLog_addLine (HTLog * log, const char * line);
+</PRE>
 
+<PRE>
 #endif
 </PRE>
 

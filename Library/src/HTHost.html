@@ -288,7 +288,10 @@ multiplexing and pipelining.
 extern int HTHost_register(HTHost * host, HTNet * net, HTEventType type);
 extern int HTHost_unregister(HTHost * host, HTNet * net, HTEventType type);
 extern int HTHost_tickleFirstNet(HTHost * host, HTEventType type);
+
 extern BOOL HTHost_setRemainingRead(HTHost * host, size_t remainaing);
+extern size_t HTHost_remainingRead (HTHost * host);
+
 extern SockA * HTHost_getSockAddr(HTHost * host);
 </PRE>
 <H3>

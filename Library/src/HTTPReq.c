@@ -50,7 +50,8 @@ PRIVATE int HTTP09Request (HTStream * me, HTRequest * request)
     char * addr = HTAnchor_physical(anchor);
     if (!me->url) me->url = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
     if (me->state == 0) {
-	PUTS("GET ");
+	int status = PUTS("GET ");
+	if (status != HT_OK) return status;
 	me->state++;
     }
     if (me->state == 1) {

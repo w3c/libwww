@@ -126,7 +126,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     ** Remove the request object and our own context structure for http.
     */
     if (status != HT_RECOVER_PIPE) {
-	HTNet_delete(net, status);
+        HTNet_delete(net, status);
 	HT_FREE(http);
     }
     return YES;
@@ -553,7 +553,15 @@ PRIVATE int stream_pipe (HTStream * me)
 	*/
 	return HT_WOULD_BLOCK;
     }
-	
+
+#if 0
+    {
+	char * uri = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
+	fprintf(stderr, "HTTP header: %s for '%s'\n", me->buffer, uri);
+	HT_FREE(uri);
+    }
+#endif
+    
     /*
     ** Just check for HTTP and not HTTP/ as NCSA server chokes on 1.1 replies
     ** Thanks to Markku Savela <msa@msa.tte.vtt.fi>
@@ -580,7 +588,6 @@ PRIVATE int stream_pipe (HTStream * me)
 	HTResponse * response = HTRequest_response(request);
 	char *ptr = me->buffer+4;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
-	HTHost_setConsumed(HTNet_host(net), me->buflen - me->startLen);
 
 	/* Here we want to find out when to use persistent connection */
 	if (!strncasecomp(me->version, "/1.0", 4)) {
@@ -709,6 +716,7 @@ PRIVATE int stream_pipe (HTStream * me)
 PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 {
     int status = HT_OK;
+    int length = l;
     me->startLen = me->buflen;
     while (!me->transparent && l-- > 0) {
 	if (me->target) {
@@ -754,6 +762,10 @@ PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 	    b++;
 	}
     }
+
+    if (length != l)
+	HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
+
     if (l > 0) return PUTBLOCK(b, l);
     return status;
 }
@@ -903,7 +915,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	case HTTP_BEGIN:
 	    status = HTHost_connect(host, net, HTAnchor_physical(anchor), HTTP_PORT);
 	    host = HTNet_host(net);
-	    if (status == HT_OK) {
+            if (status == HT_OK) {
 
 		/*
 		**  Check the protocol class to see if we have connected to a
@@ -947,16 +959,12 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    
 	case HTTP_NEED_STREAM:
 
-#if 0
-	    HTChannel_upSemaphore(host->channel);
-#endif
-
 	    /* 
 	    ** Create the stream pipe FROM the channel to the application.
 	    ** The target for the input stream pipe is set up using the
 	    ** stream stack.
 	    */
-	    {
+            {
 		HTStream *me=HTStreamStack(WWW_HTTP,
 					   HTRequest_outputFormat(request),
 					   HTRequest_outputStream(request),

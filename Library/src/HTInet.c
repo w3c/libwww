@@ -635,8 +635,12 @@ PUBLIC ms_t HTGetTimeInMillis (void)
 #ifdef WWW_MSWINDOWS
     return GetTickCount();
 #else /* WWW_MSWINDOWS */
+#ifdef HAVE_GETTIMEOFDAY
     struct timeval tp;
     gettimeofday(&tp, NULL);
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
+#else
+    return((ms_t) 0);
+#endif
 #endif /* !WWW_MSWINDOWS */
 }

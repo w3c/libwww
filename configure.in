@@ -15,7 +15,7 @@ PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED(W3C_PACKAGE, "$PACKAGE")
  
-VERSION=5.1c
+VERSION=5.1d
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
 
@@ -446,9 +446,11 @@ dnl Checks for library functions:
 AC_TYPE_SIGNAL
 AC_FUNC_VPRINTF
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS(getcwd gethostname getdomainname getwd mktime timegm \
+AC_CHECK_FUNCS(getcwd gethostname getdomainname getwd  \
 		select socket strerror strtol opendir getpid strchr memcpy \
-		getlogin getpass fcntl readdir sysinfo ioctl chdir tempnam)
+		getlogin getpass fcntl readdir sysinfo ioctl chdir tempnam \
+		getsockopt setsockopt \
+		gettimeofday mktime timegm)
 AC_CHECK_FUNC(unlink, , AC_CHECK_FUNC(remove, AC_DEFINE(unlink, remove)))
 
 dnl Checks for external globals.

@@ -102,7 +102,7 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
     **  If we have compiled without Nagle's algorithm then try and turn
     **  it off now
     */
-#ifdef HT_NO_NAGLE
+#if defined(HT_NO_NAGLE) && defined(HAVE_SETSOCKOPT) && defined(TCP_NODELAY)
     {
 	int disable = 1;
 	status = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
@@ -165,7 +165,7 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
     */
     HTHost_setChannel(host, HTChannel_new(sockfd, NULL, YES));
     HTHost_getInput(host, transport, NULL, 0);
-    HTHost_getOutput(host, transport, NULL, 1024);
+    HTHost_getOutput(host, transport, NULL, 0);
 
     return status == -1 ? 1 : 0;
 }

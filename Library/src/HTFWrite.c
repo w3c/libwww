@@ -75,7 +75,10 @@ PRIVATE int HTFWriter_write (HTStream * me, const char* s, int l)
 PRIVATE int HTFWriter_free (HTStream * me)
 {
     if (me) {
-	if (me->leave_open != YES) fclose(me->fp);
+	if (me->leave_open != YES)
+	    fclose(me->fp);
+	else
+	    HTFWriter_flush(me);
 #ifdef HAVE_SYSTEM
 	if (me->end_command) system(me->end_command);    /* SECURITY HOLE!!! */
 #endif

@@ -207,7 +207,7 @@ PUBLIC int HTMIME_contentType (HTRequest * request, HTResponse * response,
     return HT_OK;
 }
 
-PUBLIC int HTFindInt(char * haystack, char * needle, int deflt)
+PRIVATE int HTFindInt(char * haystack, char * needle, int deflt)
 {
     char * start = strstr(haystack, needle);
     int value = deflt;
@@ -227,19 +227,23 @@ PUBLIC int HTFindInt(char * haystack, char * needle, int deflt)
     return value;
 }
 
-/* Keep-Alive: timeout=100, max=50
- */
 PUBLIC int HTMIME_keepAlive (HTRequest * request, HTResponse * response,
 			     char * token, char * value)
 {
-    if (value) {
-	HTNet * net = HTRequest_net(request);
-	HTHost * host = HTNet_host(net);
-	HTHost_setReqsPerConnection(host, HTFindInt(value, "max=", 0));
-	/* Should one of these be set? Neither are called in Library.
-	**  PUBLIC void HTHost_setPersistTimeout (time_t timeout)
-	**  PUBLIC void HTHost_setPersistExpires (HTHost * host, time_t expires)
-	*/
+    char * name_val;
+    HTNet * net = HTRequest_net(request);
+    HTHost * host = HTNet_host(net);
+    while ((name_val = HTNextPair(&value)) != NULL) {
+	char * name = HTNextField(&name_val);
+	char * val = HTNextField(&name_val);
+	if (!strcasecomp(name, "max") && val) {
+	    int max = atoi(val);
+	    if (STREAM_TRACE) HTTrace("MIMEParser.. Max %d requests pr connection\n", max);
+	    HTHost_setReqsPerConnection(host, max);
+	} else if (!strcasecomp(name, "timeout") && val) {
+	    int timeout = atoi(val);
+	    if (STREAM_TRACE) HTTrace("MIMEParser.. Timeout after %d secs\n", timeout);
+	}
     }
     return HT_OK;
 }

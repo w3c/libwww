@@ -625,7 +625,8 @@ PUBLIC int HTLogFilter (HTRequest * request, HTResponse * response,
 			void * param, int status)
 {
     if (request) {
-	if (HTLog_isOpen()) HTLog_add(request, status);
+	HTLog * log = (HTLog *) param;
+	if (log) HTLog_addCLF(log, request, status);
 	return HT_OK;
     }
     return HT_ERROR;

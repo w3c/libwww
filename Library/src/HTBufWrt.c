@@ -27,6 +27,7 @@ struct _HTOutputStream {
 
     int				allocated;  	    /* Allocated Buffer size */
     int                         growby;
+    int				expo;
 
     char *			read;		       /* Position in 'data' */
     char *			data;				   /* buffer */
@@ -47,9 +48,9 @@ PRIVATE int HTBufferWriter_flush (HTOutputStream * me)
 {
     int status = HT_ERROR;
     if (me && me->read > me->data) {
-	if ((status = PUTBLOCK(me->data, me->read - me->data))==HT_WOULD_BLOCK)
-	    return HT_WOULD_BLOCK;
 	me->lastFlushTime = HTGetTimeInMillis();
+        if ((status = PUTBLOCK(me->data, me->read - me->data))==HT_WOULD_BLOCK)
+	    return HT_WOULD_BLOCK;
 	me->read = me->data;
     }
     return status;
@@ -122,8 +123,9 @@ PRIVATE int HTBufferWriter_free (HTOutputStream * me)
 PRIVATE BOOL HTBufferWriter_addBuffer(HTOutputStream * me, int addthis)
 {
     if (me) {
-        me->allocated += (addthis - addthis%me->growby + me->growby);
-        HTTrace("Buffer...... Increasing buffer to %d bytes\n", me->allocated);
+	me->expo += me->expo;
+        me->allocated += (addthis - addthis%me->growby + (me->growby*me->expo));
+	if (PROT_TRACE) HTTrace("Buffer...... Increasing buffer to %d bytes\n", me->allocated);
         if (me->data) {
             int size = me->read-me->data;
             if ((me->data = (char *) HT_REALLOC(me->data, me->allocated)) == NULL)
@@ -154,74 +156,49 @@ PRIVATE int HTBufferWriter_write (HTOutputStream * me, const char * buf, int len
 {
     HTNet * net = HTHost_getWriteNet(me->host);
     int status;
-    int available = me->data + me->allocated - me->read;
-    
-    /* Still room in buffer */
-    if (len <= available) {
-        int size = 0;
-        memcpy(me->read, buf, len);
-        me->read += len;
-        
-        /* If we have accumulated data then flush */
-        size = me->read - me->data;
-        if (size > me->growby) {
-            status = PUTBLOCK(me->data, size);
-            me->lastFlushTime = HTGetTimeInMillis();
-            if (status == HT_OK) {
-                HTNet_addBytesWritten(net, size);
-                me->read = me->data;
-            } else {
-                return (status == HT_WOULD_BLOCK) ? HT_OK : HT_ERROR;
-            }
-        }
-        return HT_OK;
-    }
-    
-    /* If already data in buffer then fill it and flush */
-    if (me->read > me->data) {
-        if (available) {
-            memcpy(me->read, buf, available);
-            buf += available;
-            len -= available;
-            me->read += available;
-        }
-        status = PUTBLOCK(me->data, me->allocated);
-        me->lastFlushTime = HTGetTimeInMillis();
-        if (status == HT_OK) {
-            HTNet_addBytesWritten(net, me->allocated);
-            me->read = me->data;
-        } else if (status == HT_WOULD_BLOCK) {
-            HTBufferWriter_addBuffer(me, len);
-            memcpy(me->read, buf, len);
-            me->read += len;
-            return HT_OK;
-        }
-    }
+    while (1) {
+	int available = me->data + me->allocated - me->read;
 
-    /*
-    ** If more than a new full buffer of data remains then
-    ** write it. Otherwise carry it over to the next write
-    */
-    if (len > me->allocated) {
-        status = PUTBLOCK(buf, len);
-        me->lastFlushTime = HTGetTimeInMillis();
-        if (status == HT_OK) {
-            HTNet_addBytesWritten(net, len);
-            me->read = me->data;
-        } else {
-            if (status == HT_WOULD_BLOCK) {
-                HTBufferWriter_addBuffer(me, len);
-                memcpy(me->read, buf, len);
-                me->read += len;
-                return HT_OK;
-            }
-            return status;
-        }
-    } else {
-        memcpy(me->data, buf, len);
-        me->read += len;
+	/* If we have enough buffer space */
+	if (len <= available) {
+	    int size = 0;
+	    memcpy(me->read, buf, len);
+	    me->read += len;
+        
+	    /* If we have accumulated enough data then flush */
+	    if ((size = me->read - me->data) > me->growby) {
+		me->lastFlushTime = HTGetTimeInMillis();
+		status = PUTBLOCK(me->data, size);
+		if (status == HT_OK) {
+		    HTNet_addBytesWritten(net, size);
+		    me->read = me->data;
+		} else {
+		    return (status == HT_WOULD_BLOCK) ? HT_OK : HT_ERROR;
+		}
+	    }
+	    return HT_OK;
+	} else {
+
+	    /* Fill the existing buffer (if not already) and flush */
+	    if (available) {
+		memcpy(me->read, buf, available);
+		buf += available;
+		len -= available;
+		me->read += available;
+	    }
+	    me->lastFlushTime = HTGetTimeInMillis();
+	    status = PUTBLOCK(me->data, me->allocated);
+	    if (status == HT_OK) {
+		HTNet_addBytesWritten(net, me->allocated);
+		me->read = me->data;
+	    } else if (status == HT_WOULD_BLOCK) {
+		HTBufferWriter_addBuffer(me, len);
+		memcpy(me->read, buf, len);
+		me->read += len;
+		return HT_OK;
+	    }
+	}
     }
-    return HT_OK;
 }
 
 /*	Character handling
@@ -276,7 +253,28 @@ PUBLIC HTOutputStream * HTBufferWriter_new (HTHost * host, HTChannel * ch,
 	HTOutputStream * me = HTChannel_output(ch);
 	if (!me) {
 	    HTOutputStream * me;
-	    if (bufsize <= 0) bufsize = OUTPUT_BUFFER_SIZE;
+	    int tcpbufsize = 0;
+
+#if defined(HAVE_GETSOCKOPT) && defined(SO_SNDBUF)
+	    /*
+	    ** Get the TCP socket buffer size
+	    */
+	    {
+		SOCKET sockfd = HTChannel_socket(ch);
+		int size = sizeof(int);
+		int status = getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF,
+					(void *) &tcpbufsize, &size);
+		if (status == -1) {
+		    if (PROT_TRACE)
+			HTTrace("Socket...... Could not get TCP send buffer size for socket %d\n", sockfd);
+		} else {
+		    if (PROT_TRACE) 		    
+			HTTrace("Socket...... TCP send buffer size is %d for socket %d\n", tcpbufsize, sockfd);
+		}		
+	    }
+#endif
+	    if (bufsize <= 0) bufsize = tcpbufsize ? tcpbufsize>>1 : OUTPUT_BUFFER_SIZE;
+	    if (PROT_TRACE) HTTrace("Socket...... We use buffer size %d\n", bufsize);
 	    if ((me = (HTOutputStream *) HT_CALLOC(1, sizeof(HTOutputStream)))==NULL ||
 		(me->data = (char *) HT_MALLOC(bufsize)) == NULL)
 		HT_OUTOFMEM("HTBufferWriter_new");
@@ -284,6 +282,7 @@ PUBLIC HTOutputStream * HTBufferWriter_new (HTHost * host, HTChannel * ch,
 	    me->read = me->data;
 	    me->allocated = bufsize;
             me->growby = bufsize;
+	    me->expo = 1;
 	    me->target = HTWriter_new(host, ch, param, 0);
 	    me->host = host;
            return me;

@@ -31,15 +31,12 @@
 
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
 
-/*
-** After the connection management draft by Jim Gettys, we have changed this
-** to 60 secs instead of an hour
-*/
-#define TCP_TIMEOUT		60L	       /* Default TCP timeout is 60s */
+#define TCP_TTL 		600L	     /* Timeout on a busy connection */
+#define TCP_IDLE_TTL 		60L	    /* Timeout on an idle connection */
 
-#define MAX_PIPES		50   /* maximum number of pipelined requests */
+#define MAX_PIPES		100  /* maximum number of pipelined requests */
 #define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
-#define DEFAULT_DELAY		50	  /* Default write flush delay in ms */
+#define DEFAULT_DELAY		30	  /* Default write flush delay in ms */
 
 struct _HTInputStream {
     const HTInputStreamClass *	isa;
@@ -49,7 +46,7 @@ PRIVATE int HostEvent(SOCKET soc, void * pVoid, HTEventType type);
 
 /* Type definitions and global variables etc. local to this module */
 PRIVATE time_t	HostTimeout = HOST_TIMEOUT;	  /* Timeout on host entries */
-PRIVATE time_t	TCPTimeout = TCP_TIMEOUT;  /* Timeout on persistent channels */
+PRIVATE time_t	TcpTtl = TCP_TTL;          /* Timeout on persistent channels */
 
 PRIVATE HTList	** HostTable = NULL;
 PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
@@ -208,7 +205,6 @@ PRIVATE int TimeoutEvent (HTTimer * timer, void * param, HTEventType type)
 **	Returns Host object or NULL if error. You may get back an already
 **	existing host object - you're not guaranteed a new one each time.
 */
-
 PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
 {
     HTList * list = NULL;			    /* Current list in cache */
@@ -252,16 +248,25 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
     /* If not found then create new Host object, else use existing one */
     if (pres) {
 	if (pres->channel) {
-	    if (pres->expires && pres->expires < time(NULL)) {	   /* Cached channel is cold */
-		if (CORE_TRACE)
-		    HTTrace("Host info... Persistent channel %p gotten cold\n",
-			    pres->channel);
-		HTChannel_delete(pres->channel, HT_OK);
-		pres->channel = NULL;
-	    } else {
-		if (CORE_TRACE)
-		    HTTrace("Host info... REUSING CHANNEL %p\n",pres->channel);
-	    }
+
+            /*
+            **  If we have a TTL for this TCP connection then
+            **  check that we haven't passed it.
+            */
+            if (pres->expires > 0) {
+                time_t t = time(NULL);
+                if (pres->expires < t) {	   /* Cached channel is cold */
+                    if (CORE_TRACE)
+                        HTTrace("Host info... Persistent channel %p gotten cold\n",
+                        pres->channel);
+                    HTChannel_delete(pres->channel, HT_OK);
+                    pres->channel = NULL;
+                } else {
+                    pres->expires = t + TcpTtl;
+                    if (CORE_TRACE)
+                        HTTrace("Host info... REUSING CHANNEL %p\n",pres->channel);
+                }
+            }
 	}
     } else {
 	if ((pres = (HTHost *) HT_CALLOC(1, sizeof(HTHost))) == NULL)
@@ -287,55 +292,55 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
 
 PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_port)
 {
-	      char * port;
-	      char * fullhost = NULL;
-	      char * parsedHost = NULL;
-	      SockA * sin;
-	      HTHost * me;
-	      char * proxy = HTRequest_proxy(request);
+    char * port;
+    char * fullhost = NULL;
+    char * parsedHost = NULL;
+    SockA * sin;
+    HTHost * me;
+    char * proxy = HTRequest_proxy(request);
 
-	      fullhost = HTParse(proxy ? proxy : url, "", PARSE_HOST);
+    fullhost = HTParse(proxy ? proxy : url, "", PARSE_HOST);
 
 	      /* If there's an @ then use the stuff after it as a hostname */
-	      if (fullhost) {
-		  char * at_sign;
-		  if ((at_sign = strchr(fullhost, '@')) != NULL)
-		      parsedHost = at_sign+1;
-		  else
-		      parsedHost = fullhost;
-	      }
-	      if (!parsedHost || !*parsedHost) {
-		  HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
-				     NULL, 0, "HTDoConnect");
-		  HT_FREE(fullhost);
-		  return NULL;
-	      }
-	      port = strchr(parsedHost, ':');
-	      if (PROT_TRACE)
-		  HTTrace("HTDoConnect. Looking up `%s\'\n", parsedHost);
-	      if (port) {
-		  *port++ = '\0';
-		  if (!*port || !isdigit(*port))
-		      port = 0;
-		  u_port = (u_short) atol(port);
-	      }
-	      /* Find information about this host */
-	      if ((me = HTHost_new(parsedHost, u_port)) == NULL) {
-		  if (PROT_TRACE)HTTrace("HTDoConnect. Can't get host info\n");
-		  me->tcpstate = TCP_ERROR;
-		  return NULL;
-	      }
-	      sin = &me->sock_addr;
-	      memset((void *) sin, '\0', sizeof(SockA));
+    if (fullhost) {
+	char * at_sign;
+	if ((at_sign = strchr(fullhost, '@')) != NULL)
+	    parsedHost = at_sign+1;
+	else
+	    parsedHost = fullhost;
+    }
+    if (!parsedHost || !*parsedHost) {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
+			   NULL, 0, "HTDoConnect");
+	HT_FREE(fullhost);
+	return NULL;
+    }
+    port = strchr(parsedHost, ':');
+    if (PROT_TRACE)
+	HTTrace("HTDoConnect. Looking up `%s\'\n", parsedHost);
+    if (port) {
+	*port++ = '\0';
+	if (!*port || !isdigit(*port))
+	    port = 0;
+	u_port = (u_short) atol(port);
+    }
+    /* Find information about this host */
+    if ((me = HTHost_new(parsedHost, u_port)) == NULL) {
+	if (PROT_TRACE)HTTrace("HTDoConnect. Can't get host info\n");
+	me->tcpstate = TCP_ERROR;
+	return NULL;
+    }
+    sin = &me->sock_addr;
+    memset((void *) sin, '\0', sizeof(SockA));
 #ifdef DECNET
-	      sin->sdn_family = AF_DECnet;
-	      net->sock_addr.sdn_objnum = port ? (unsigned char)(strtol(port, (char **) 0, 10)) : DNP_OBJ;
+    sin->sdn_family = AF_DECnet;
+    net->sock_addr.sdn_objnum = port ? (unsigned char)(strtol(port, (char **) 0, 10)) : DNP_OBJ;
 #else  /* Internet */
-	      sin->sin_family = AF_INET;
-	      sin->sin_port = htons(u_port);
+    sin->sin_family = AF_INET;
+    sin->sin_port = htons(u_port);
 #endif
-	      HT_FREE(fullhost);	/* parsedHost points into fullhost */
-	      return me;
+    HT_FREE(fullhost);	/* parsedHost points into fullhost */
+    return me;
 }
 
 /*
@@ -425,12 +430,12 @@ PUBLIC void HTHost_setVersion (HTHost * host, int version)
 */
 PUBLIC void HTHost_setPersistTimeout (time_t timeout)
 {
-    TCPTimeout = timeout;
+    TcpTtl = timeout;
 }
 
 PUBLIC time_t HTHost_persistTimeout (time_t timeout)
 {
-    return TCPTimeout;
+    return TcpTtl;
 }
 
 /*	Persistent Connection Expiration
@@ -627,7 +632,7 @@ PUBLIC BOOL HTHost_setPersistent (HTHost *		host,
 	SOCKET sockfd = HTChannel_socket(host->channel);
 	if (sockfd != INVSOC && HTNet_availablePersistentSockets() > 0) {
 	    host->persistent = YES;
-	    host->expires = time(NULL) + TCPTimeout;	  /* Default timeout */
+	    host->expires = time(NULL) + TcpTtl;     /* Default timeout */
 	    HTChannel_setHost(host->channel, host);
 	    HTNet_increasePersistentSocket();
 	    if (CORE_TRACE)
@@ -704,8 +709,20 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 	host->channel = NULL;
 	host->tcpstate = TCP_BEGIN;
 	host->reqsMade = 0;
-	if (HTHost_isPersistent(host)) HTNet_decreasePersistentSocket();
+	if (HTHost_isPersistent(host)) {
+	    HTNet_decreasePersistentSocket();
+	    host->persistent = NO;
+	}
+	host->close_notification = NO;
+       	host->mode = HT_TP_SINGLE;
+
 	if (CORE_TRACE) HTTrace("Host info... removed host %p as persistent\n", host);
+
+	if (!HTList_isEmpty(host->pending)) {
+	    if (CORE_TRACE)
+		HTTrace("Host has %d object pending - attempting launch\n", HTList_count(host->pending));
+	    HTHost_launchPending(host);
+	}
 	return YES;
     }
     return NO;
@@ -752,14 +769,7 @@ PUBLIC BOOL HTHost_recoverPipe (HTHost * host)
 	    HTChannel_setSemaphore(host->channel, 0);
 	    HTHost_clearChannel(host, HT_INTERRUPTED);
 	}
-#if 0
-	/*
-	**  We don't wanna change state here
-	*/
-	return HTHost_launchPending(host);
-#else
 	return YES;
-#endif
     }
     return NO;
 }
@@ -829,15 +839,14 @@ PUBLIC BOOL HTHost_setMode (HTHost * host, HTTransportMode mode)
 */
 PUBLIC BOOL HTHost_isIdle (HTHost * host)
 {
-    return (host && HTList_count(host->pipeline) <= 0);
+    return (host && HTList_isEmpty(host->pipeline));
 }
 
 PRIVATE BOOL _roomInPipe (HTHost * host)
 {
     int count;
-    if (!host) return NO;
-    if (host->reqsPerConnection && host->reqsMade >= host->reqsPerConnection)
-	return 0;
+    if (!host || host->reqsPerConnection && host->reqsMade >= host->reqsPerConnection)
+	return NO;
     count = HTList_count(host->pipeline);
     switch (host->mode) {
     case HT_TP_SINGLE:
@@ -860,6 +869,7 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 {
     if (host && net) {
 	int status = HT_OK;
+	BOOL doit = (host->doit==net);
 
 	/*
 	**  If we don't have a socket already then check to see if we can get
@@ -876,11 +886,14 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	/*
 	**  Add net object to either active or pending queue.
 	*/
-	if (_roomInPipe(host)) {
-	    if (CORE_TRACE)
-		HTTrace("Host info... Add Net %p to pipeline of host %p\n", net, host);
+	if (_roomInPipe(host) && (HTList_isEmpty(host->pending) || doit)) {
+	    if (doit) host->doit = NULL;
 	    if (!host->pipeline) host->pipeline = HTList_new();
 	    HTList_addObject(host->pipeline, net);
+	    host->reqsMade++;
+            if (CORE_TRACE)
+		HTTrace("Host info... Add Net %p (request %p) to pipe, %d requests made, %d requests in pipe, %d pending\n",
+			net, net->request, host->reqsMade, HTList_count(host->pipeline), HTList_count(host->pending));
 
 	    /*
 	    **  If we have been idle then make sure we delete the timer
@@ -891,9 +904,11 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	    }
 
 	} else {
-	    if (CORE_TRACE) HTTrace("Host info... Add Net %p as pending\n", net);
 	    if (!host->pending) host->pending = HTList_new();
 	    HTList_addObject(host->pending, net);
+	    if (CORE_TRACE)
+		HTTrace("Host info... Add Net %p (request %p) to pending, %d requests made, %d requests in pipe, %d pending\n",
+			net, net->request, host->reqsMade, HTList_count(host->pipeline), HTList_count(host->pending));
 	    status = HT_PENDING;
 	}
 	return status;
@@ -903,60 +918,57 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 
 PUBLIC BOOL HTHost_free (HTHost * host, int status)
 {
-    if (host->channel == NULL) return NO;
-#if 0
-    if (host->persistent && !(host->reqsMade >= host->reqsPerConnection && HTList_count(host->pipeline) <= 1))
-#else
-    /* Check this with FTP as well */
-	if (host->persistent && !host->close_notification &&
-	(!host->reqsPerConnection ||
-	 (host->reqsPerConnection && host->reqsMade < host->reqsPerConnection)))
-#endif
-    {
-	if (CORE_TRACE)
-	    HTTrace("Host Object. keeping socket %d\n", HTChannel_socket(host->channel));
-	HTChannel_delete(host->channel, status);
-    } else {
-	if (CORE_TRACE)
-	    HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
+    if (host->channel) {
 
-	/* 
-	**  By lowering the semaphore we make sure that the channel
-	**  is gonna be deleted
-	*/
-#if 1
-	HTChannel_downSemaphore(host->channel);
-	HTHost_clearChannel(host, status);
-#else
-	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
-	HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
-	host->registeredFor = 0;
-	HTChannel_downSemaphore(host->channel);
-	HTChannel_delete(host->channel, status);
-	host->channel = NULL;
-	host->tcpstate = TCP_BEGIN;
-#endif
+	/* Check if we should keep the socket open */
+        if (HTHost_isPersistent(host)) {
+            if (HTHost_closeNotification(host) ||
+                (HTList_count(host->pipeline)<=1 && host->reqsMade==host->reqsPerConnection)) {
+                if (CORE_TRACE) HTTrace("Host Object. closing persistent socket %d\n", HTChannel_socket(host->channel));
+                
+                /* 
+                **  By lowering the semaphore we make sure that the channel
+                **  is gonna be deleted
+                */
+                HTChannel_setSemaphore(host->channel, 0);
+                HTHost_clearChannel(host, status);
+
+                /* Force a write next time we open the socket */
+                host->forceWriteFlush = YES;
+            } else {
+                if (CORE_TRACE) HTTrace("Host Object. keeping persistent socket %d\n", HTChannel_socket(host->channel));
+                HTChannel_delete(host->channel, status);
+                
+                /*
+                **  If connection is idle then set a timer so that we close the 
+                **  connection if idle too long
+                */
+                if (HTHost_isIdle(host) && HTList_isEmpty(host->pending) && !host->timer) {
+                    host->timer = HTTimer_new(NULL, TimeoutEvent, host, TCP_IDLE_TTL, YES);
+                    if (PROT_TRACE) HTTrace("Host........ Object %p going idle...\n", host);
+                }
+            }
+            return YES;
+        } else {
+            HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
+            
+            /* 
+            **  By lowering the semaphore we make sure that the channel
+            **  is gonna be deleted
+            */
+            HTChannel_setSemaphore(host->channel, 0);
+            HTHost_clearChannel(host, status);
+        }
     }
-    return YES;
+    return NO;
 }
 
 PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
 {
     if (host && net) {
-	if (CORE_TRACE)
-	    HTTrace("Host info... Remove Net %p from pipe line\n", net);
+        if (CORE_TRACE) HTTrace("Host info... Remove %p from pipe\n", net);
 	HTList_removeObject(host->pipeline, net);
-	HTList_removeObject(host->pending, net);
-
-	/*
-	**  If connection is idle then set a timer so that we close the 
-	**  connection if idle too long
-	*/
-	if (HTHost_isPersistent(host) && HTList_isEmpty(host->pipeline)
-	    && !host->timer) {
-	    host->timer = HTTimer_new(NULL, TimeoutEvent, host, TCPTimeout*1000, YES);
-	    if (PROT_TRACE) HTTrace("Host........ Object %p going idle...\n", host);
-	}
+	HTList_removeObject(host->pending, net); /* just to make sure */
 	return YES;
     }
     return NO;
@@ -979,14 +991,14 @@ PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
 PUBLIC HTNet * HTHost_nextPendingNet (HTHost * host)
 {
     HTNet * net = NULL;
-    if (host && host->pending && host->pipeline) {
+    if (host && host->pending) {
 	/*JK 23/Sep/96 Bug correction. Associated the following lines to the
 	**above if. There was a missing pair of brackets. 
 	*/
 	if ((net = (HTNet *) HTList_removeFirstObject(host->pending)) != NULL) {
-	  if (PROT_TRACE)
-	      HTTrace("Host info... Popping %p from pending net queue\n", net);
-/*	  HTList_addObject(host->pipeline, net); */
+	    if (CORE_TRACE)
+		HTTrace("Host info... Popping %p from pending net queue\n", net);
+	    host->doit = net;
 	}
     }
     return net;
@@ -1001,7 +1013,7 @@ PUBLIC HTHost * HTHost_nextPendingHost (void)
     if (PendHost) {
 	if ((host = (HTHost *) HTList_removeFirstObject(PendHost)) != NULL)
 	    if (PROT_TRACE)
-		HTTrace("Host info... Poping %p from pending host queue\n",
+		HTTrace("Host info... Popping %p from pending host queue\n",
 			host);
     }
     return host;
@@ -1045,10 +1057,15 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
 	**  Send out as many as will fit in pipe.
 	*/
 	while (_roomInPipe(host) && (net = HTHost_nextPendingNet(host))) {
-	    int status = HTNet_execute(net, HTEvent_WRITE);
+	    int status;
+	    if (CORE_TRACE)
+		HTTrace("Launch pending net object %p with %d reqs in pipe (%d reqs made)\n",
+			net, HTList_count(host->pipeline), host->reqsMade);
+	    status = HTNet_execute(net, HTEvent_WRITE);
 	    if (status != HT_OK)
 		return status;
-	}
+
+        }
 
 	/*
 	**  Check for other pending Host objects
@@ -1079,14 +1096,8 @@ PUBLIC HTNet * HTHost_firstNet (HTHost * host)
 PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId port)
 {
     int status;
-/*    if (host && host->connecttime)
-	return HT_OK;
-*/
     status = HTDoConnect(net, url, port);
-    if (status == HT_OK) {
-	HTNet_host(net)->reqsMade++;	/* @@@ - what if there's a connect but no req sent? */
-	return HT_OK;
-    }
+    if (status == HT_OK) return HT_OK;
     if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 	return HT_WOULD_BLOCK;
     return HT_ERROR; /* @@@ - some more deletion and stuff here? */
@@ -1164,6 +1175,11 @@ PUBLIC BOOL HTHost_setRemainingRead (HTHost * host, size_t remaining)
     return YES;
 }
 
+PUBLIC size_t HTHost_remainingRead (HTHost * host)
+{
+    return host ? host->remainingRead : -1;
+}
+
 PUBLIC SockA * HTHost_getSockAddr (HTHost * host)
 {
     if (!host) return NULL;
@@ -1230,7 +1246,7 @@ PUBLIC HTNet * HTHost_getReadNet(HTHost * host)
 	    return HTMuxChannel_net(muxch);
 #endif
 	}
-	return (HTNet *) HTList_firstObject(host->pipeline);
+        return (HTNet *) HTList_firstObject(host->pipeline);
     }
     return NULL;
 }
@@ -1314,7 +1330,7 @@ PUBLIC BOOL HTHost_setConsumed(HTHost * host, size_t bytes)
     if (!host || !host->channel) return NO;
     if ((input = HTChannel_input(host->channel)) == NULL)
 	return NO;
-    if (PROT_TRACE)
+    if (CORE_TRACE)
 	HTTrace("Host........ passing %d bytes as consumed to %p\n", bytes, input);
     return (*input->isa->consumed)(input, bytes);
 }

@@ -19,8 +19,10 @@
 #include "WWWLib.h"
 #include "HTLog.h"					 /* Implemented here */
 
-PRIVATE FILE *HTLogFile = NULL;          /* Log of requests in common format */
-PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
+struct _HTLog {
+    FILE *		fp;
+    BOOL		localtime;
+};
 
 /* ------------------------------------------------------------------------- */
 
@@ -31,28 +33,26 @@ PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
 **	file or overwriting an exsisting file.
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_open (const char * filename, BOOL local, BOOL append)
+PUBLIC HTLog * HTLog_open (const char * filename, BOOL local, BOOL append)
 {
+    HTLog * log;
     if (!filename || !*filename) {
 	if (WWWTRACE) HTTrace("Log......... No log file given\n");
-	return NO;
+	return NULL;
     }
-    if (WWWTRACE)
-	HTTrace("Log......... Open log file `%s\'\n", filename);
-    if (HTLogFile) {
-	if (WWWTRACE)
-	    HTTrace("Log......... Already open\n");
-	return NO;
+
+    if ((log = (HTLog *) HT_CALLOC(1, sizeof(HTLog))) == NULL)
+        HT_OUTOFMEM("HTLog_open");
+
+    if (WWWTRACE) HTTrace("Log......... Open log file `%s\'\n", filename);
+    log->fp = fopen(filename, append ? "a" : "w");
+    if (!log->fp) {
+	if (WWWTRACE) HTTrace("Log......... Can't open log file `%s\'\n", filename);
+	HT_FREE(log);
+	return NULL;
     }
-    HTLogFile = fopen(filename, append ? "a" : "w");
-    if (!HTLogFile) {
-	if (WWWTRACE)
-	    HTTrace("Log......... Can't open log file `%s\'\n",
-		    filename);
-	return NO;
-    }
-    HTloglocal = local;					   /* remember state */
-    return YES;
+    log->localtime = local;
+    return log;
 }
 
 
@@ -60,21 +60,16 @@ PUBLIC BOOL HTLog_open (const char * filename, BOOL local, BOOL append)
 **	------------------
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_close (void)
+PUBLIC BOOL HTLog_close (HTLog * log)
 {
-    if (WWWTRACE)
-	HTTrace("Log......... Closing log file\n");
-    if (HTLogFile) {
-	int status = fclose(HTLogFile);
-	HTLogFile = NULL;
-	return (status!=EOF);
+    if (log && log->fp) {
+	int status;
+	if (WWWTRACE) HTTrace("Log......... Closing log file %p\n", log->fp);
+	status = fclose(log->fp);
+	HT_FREE(log);
+	return (status != EOF);
     }
     return NO;
-}
-
-PUBLIC BOOL HTLog_isOpen (void)
-{
-    return HTLogFile ? YES : NO;
 }
 
 /*	Add entry to the log file
@@ -87,21 +82,34 @@ PUBLIC BOOL HTLog_isOpen (void)
 **
 **	BUG: No result code is produced :-( Should be taken from HTError.c
 */
-PUBLIC BOOL HTLog_add (HTRequest * request, int status)
+PUBLIC BOOL HTLog_addCLF (HTLog * log, HTRequest * request, int status)
 {
-    if (HTLogFile) {
+    if (log && log->fp) {
 	time_t now = time(NULL);	
-	HTParentAnchor *anchor = HTRequest_anchor(request);
+	HTParentAnchor * anchor = HTRequest_anchor(request);
 	char * uri = HTAnchor_address((HTAnchor *) anchor);
 	if (WWWTRACE) HTTrace("Log......... Writing log\n");
-	fprintf(HTLogFile, "localhost - - [%s] %s %s %d %ld\n",
-		HTDateTimeStr(&now, HTloglocal),
+	fprintf(log->fp, "localhost - - [%s] %s %s %d %ld\n",
+		HTDateTimeStr(&now, log->localtime),
 		HTMethod_name(HTRequest_method(request)),
 		uri ? uri : "<null>",			/* Bill Rizzi */
 		status,
 		HTAnchor_length(anchor));
 	HT_FREE(uri);
-	return (fflush(HTLogFile)!=EOF);       /* Actually update it on disk */
+	return (fflush(log->fp) != EOF); /* Actually update it on disk */
+    }
+    return NO;
+}
+
+/*
+**	A generic logger - logs whatever you put in as the line.
+**	Caller should add a line feed if needed.
+*/
+PUBLIC BOOL HTLog_addLine (HTLog * log, const char * line)
+{
+    if (log && log->fp && line) {
+	fprintf(log->fp, line);
+	return (fflush(log->fp) != EOF); /* Actually update it on disk */
     }
     return NO;
 }

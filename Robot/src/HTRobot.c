@@ -32,7 +32,9 @@
 #define DEFAULT_OUTPUT_FILE	"robot.out"
 #define DEFAULT_RULE_FILE	"robot.conf"
 #define DEFAULT_LOG_FILE       	"robot.log"
+#define DEFAULT_HIT_FILE       	"robot.hit"
 #define DEFAULT_MEMLOG		"robot.mem"
+#define DEFAULT_PREFIX		""
 #define DEFAULT_DEPTH		0
 #define DEFAULT_DELAY		50			/* Write delay in ms */
 
@@ -69,10 +71,17 @@ typedef struct _Robot {
     int 		timer;
     char *		cwd;				  /* Current dir URL */
     char *		rules;
+    char *		prefix;
     char *		logfile;
+    HTLog *             log;
     char *		outputfile;
     FILE *	        output;
+    char *		hitfile;
     MRFlags		flags;
+
+    long		total_bytes;	/* Total number of bytes processed */
+    long                total_docs;     /* Total number of documents processed */
+    time_t		time;		/* Time of run */
 } Robot;
 
 typedef struct _Finger {
@@ -96,6 +105,7 @@ typedef struct _HyperDoc {
     HTParentAnchor * 	anchor;
     LoadState		state;
     int			depth;
+    int                 hits;
 } HyperDoc;
 
 /*
@@ -109,6 +119,8 @@ struct _HText {
 PUBLIC HText * HTMainText = NULL;
 PUBLIC HTParentAnchor * HTMainAnchor = NULL;
 PUBLIC HTStyleSheet * styleSheet = NULL;
+
+PRIVATE HTComparer HitSort;
 
 /* ------------------------------------------------------------------------- */
 
@@ -139,6 +151,7 @@ PRIVATE HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
 	HT_OUTOFMEM("HyperDoc_new");
     hd->state = L_INVALID;
     hd->depth = depth;
+    hd->hits = 1;
  
     /* Bind the HyperDoc object together with the Anchor Object */
     hd->anchor = anchor;
@@ -160,6 +173,84 @@ PRIVATE BOOL HyperDoc_delete (HyperDoc * hd)
 	return YES;
     }
     return NO;
+}
+
+/*
+**  Sort the anchor array and log reference count
+*/
+PRIVATE BOOL calculate_hits (Robot * mr, HTArray * array)
+{
+    if (mr && array) {
+        HTLog * log = HTLog_open(mr->hitfile, YES, YES);
+        if (log) {
+            void ** data = NULL;
+            HTParentAnchor * anchor = NULL;
+            HTArray_sort(array, HitSort);
+            anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
+	    while (anchor) {
+                char * str = NULL;
+                char * uri = HTAnchor_address((HTAnchor *) anchor);
+                HyperDoc * hd = (HyperDoc *) HTAnchor_document(anchor);
+                if (uri && hd) {
+                    if ((str = (char *) HT_MALLOC(strlen(uri) + 50)) == NULL)
+        	         HT_OUTOFMEM("calculate_hits");
+                    sprintf(str, "%8d %s\n", hd->hits, uri);
+                    HTLog_addLine(log, str);
+                    HT_FREE(str);
+                }
+                HT_FREE(uri);
+                anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
+            }
+	}
+        HTLog_close(log);
+        return YES;
+    }
+    return NO;
+}
+
+PRIVATE int HitSort (const void * a, const void * b)
+{
+    HyperDoc * aa = HTAnchor_document(*(HTParentAnchor **) a);
+    HyperDoc * bb = HTAnchor_document(*(HTParentAnchor **) b);
+    if (aa && bb) return (bb->hits - aa->hits);
+    return bb - aa;
+}
+
+/*	Statistics
+**	----------
+**	Calculates a bunch of statistics for the anchors traversed
+*/
+PRIVATE BOOL calculate_statistics (Robot * mr)
+{
+    if (!mr) return NO;
+
+    /* Calculate efficiency */
+    {
+	time_t t = time(NULL) - mr->time;
+	if (t > 0.0) {
+	    double loadfactor = mr->total_bytes / t;
+            char bytes[50];
+            HTNumToStr(mr->total_bytes, bytes, 50);
+	    HTTrace("Downloaded %s bytes in %ld document bodies in %ld seconds (%2.1f bytes/sec)\n",
+		    bytes, mr->total_docs, t, loadfactor);
+	}
+    }
+
+    /* Create an array of existing anchors */
+    if (mr->total_docs > 1) {
+	HTArray * array = HTAnchor_getArray(mr->total_docs);
+        if (array) {
+
+            /* Sort after hit counts */
+            if (mr->hitfile) calculate_hits(mr, array);
+
+
+            /* Add as may other stats here as you like */
+
+            HTArray_delete(array);
+        }
+    }
+    return YES;
 }
 
 /*	Create a Command Line Object
@@ -187,7 +278,11 @@ PRIVATE BOOL Robot_delete (Robot * me)
 {
     if (me) {
 	HTList_delete(me->fingers);
-	if (me->hyperdoc) {
+
+       	/* Calculate statistics */
+	calculate_statistics(me);
+
+        if (me->hyperdoc) {
 	    HTList * cur = me->hyperdoc;
 	    HyperDoc * pres;
 	    while ((pres = (HyperDoc *) HTList_nextObject(cur)))
@@ -201,13 +296,15 @@ PRIVATE BOOL Robot_delete (Robot * me)
 		HText_free(pres);
 	    HTList_delete(me->htext);
 	}
-	if (me->logfile) HTLog_close();
+	if (me->log) HTLog_close(me->log);
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	if (me->flags & MR_TIME) {
 	    time_t local = time(NULL);
 	    HTTrace("Robot terminated %s\n",HTDateTimeStr(&local,YES));
 	}
+
 	HT_FREE(me->cwd);
+	HT_FREE(me->prefix);
 	HT_FREE(me);
 	return YES;
     }
@@ -332,12 +429,23 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     Finger * finger = (Finger *) HTRequest_context(request);
     Robot * mr = finger->robot;
     if (SHOW_MSG) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
+
+    /* Count the amount of body data that we have read */
+    if (status == HT_LOADED && HTRequest_method(request) == METHOD_GET) {
+        mr->total_bytes += HTAnchor_length(HTRequest_anchor(request));
+    }
+
+    /* Count the number of documents that we have processed */
+    mr->total_docs++;
+
+    /* Delete this thread */
     Finger_delete(finger);
+
+    /* Should we stop? */
     if (mr->cnt <= 0) {
 	if (SHOW_MSG) HTTrace("             Everything is finished...\n");
 	Cleanup(mr, 0);			/* No way back from here */
     }
-
     if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
     return HT_OK;
 }
@@ -377,11 +485,19 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	HTParentAnchor * dest_parent = HTAnchor_parent(dest);
 	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
 	HyperDoc * hd = HTAnchor_document(dest_parent);
+	BOOL prefix_match = YES;
 
-	if (SHOW_MSG) HTTrace("Robot....... Found `%s\' - ", uri ? uri : "NULL");
+	if (!uri) return;
+	if (SHOW_MSG) HTTrace("Robot....... Found `%s\' - ", uri ? uri : "NULL\n");
+
+	/* Check for prefix match */
+	if (mr->prefix) prefix_match = HTStrMatch(mr->prefix, uri) ? YES : NO;
 	
 	/* Test whether we already have a hyperdoc for this document */
-	if (mr->flags & MR_LINK && dest_parent && !hd) {
+        if (hd) {
+	    if (SHOW_MSG) HTTrace("Already checked\n");
+            hd->hits++;
+        } else if (mr->flags & MR_LINK && prefix_match && dest_parent) {
 	    HTParentAnchor * parent = HTRequest_parent(text->request);
 	    HyperDoc * last = HTAnchor_document(parent);
 	    int depth = last ? last->depth+1 : 0;
@@ -402,7 +518,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 		Finger_delete(newfinger);
 	    }
 	} else {
-	    if (SHOW_MSG) HTTrace("duplicate or max depth reached\n");
+	    if (SHOW_MSG) HTTrace("does not fulfill constraints\n");
 	}
 	HT_FREE(uri);
     }
@@ -514,12 +630,17 @@ int main (int argc, char ** argv)
 	    if (!strcmp(argv[arg], "-n")) {
 		HTAlert_setInteractive(NO);
 
-	    /* log file */
+  	    /* log file */
 	    } else if (!strcmp(argv[arg], "-l")) {
 		mr->logfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_LOG_FILE;
 
-	    /* rule file */
+  	    /* hit file */
+	    } else if (!strcmp(argv[arg], "-hit")) {
+		mr->hitfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_HIT_FILE;
+
+            /* rule file */
 	    } else if (!strcmp(argv[arg], "-r")) {
 		mr->rules = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_RULE_FILE;
@@ -528,6 +649,16 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-o")) { 
 		mr->outputfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_OUTPUT_FILE;
+
+	    /* URI prefix */
+	    } else if (!strcmp(argv[arg], "-prefix")) {
+		char * prefix = NULL;
+		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_PREFIX;
+		if (*prefix) {
+		    StrAllocCopy(mr->prefix, prefix);
+		    StrAllocCat(mr->prefix, "*");
+		}
 
 	    /* timeout -- Change the default request timeout */
 	    } else if (!strcmp(argv[arg], "-timeout")) {
@@ -668,13 +799,18 @@ int main (int argc, char ** argv)
     }
 
     /* Log file specifed? */
-    if (mr->logfile) HTLog_open(mr->logfile, YES, YES);
+    if (mr->logfile) {
+        mr->log = HTLog_open(mr->logfile, YES, YES);
+        if (mr->log) HTNet_addAfter(HTLogFilter, NULL, mr->log, HT_ALL, HT_FILTER_LATE);
+    }
 
     /* Register our own someterminater filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Setting event timeout */
     HTHost_setEventTimeout(mr->timer);
+
+    mr->time = time(NULL);
 
     /* Start the request */
     finger = Finger_new(mr, startAnchor, METHOD_GET);

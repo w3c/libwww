@@ -184,7 +184,6 @@ PUBLIC void HTAfterInit (void)
     HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);
     HTNet_addAfter(HTUseProxyFilter, 	"http://*",	NULL, HT_USE_PROXY, 	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTCacheUpdateFilter, "http://*",	NULL, HT_NOT_MODIFIED, 	HT_FILTER_MIDDLE);
-    HTNet_addAfter(HTLogFilter, 	NULL,		NULL, HT_ALL, 		HT_FILTER_LATE);
     HTNet_addAfter(HTInfoFilter, 	NULL,		NULL, HT_ALL,		HT_FILTER_LATE);
 }
 

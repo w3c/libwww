@@ -140,7 +140,6 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
     /* Register some default set of BEFORE and AFTER filters */
     HTNet_addBefore(HTRuleFilter, NULL, NULL, HT_FILTER_MIDDLE); 
     HTNet_addBefore(HTProxyFilter, NULL, NULL, HT_FILTER_MIDDLE); 
-    HTNet_addAfter(HTLogFilter, NULL, NULL, HT_ALL, HT_FILTER_LATE); 
     HTNet_addAfter(HTInfoFilter, NULL, NULL, HT_ALL, HT_FILTER_LATE); 
 
     /* Get any proxy or gateway environment variables */

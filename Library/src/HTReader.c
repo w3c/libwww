@@ -44,7 +44,7 @@ PRIVATE int HTReader_free (HTInputStream * me)
     HTNet * net = HTHost_getReadNet(me->host);
     if (net && net->readStream) {
 	int status = (*net->readStream->isa->_free)(net->readStream);
-	if (status == HT_OK) net->readStream = NULL;
+        if (status == HT_OK) net->readStream = NULL;
 	return status;
     }
     return HT_OK;
@@ -104,7 +104,11 @@ PRIVATE int HTReader_read (HTInputStream * me)
     HTNet * net = HTHost_getReadNet(host);
     HTRequest * request = HTNet_request(net);
     int status;
-
+    if (!net->readStream) {
+	if (PROT_TRACE) HTTrace("Read Socket. No read stream for net object %p\n", net);
+        return HT_ERROR;
+    }
+        
     /*    me->b_read = me->read - me->data; */
     /* Read from socket if we got rid of all the data previously read */
     do {
@@ -188,7 +192,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    }
 #endif /* NOT_ASCII */
 
-	    if (PROT_TRACE) 
+	    if (PROT_TRACE)
 		HTTrace("Read Socket. %d bytes read from socket %d\n",
 			me->b_read, soc);
 	    if (request) {
@@ -228,7 +232,13 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    }
 	}
 	me->write = me->read;
-	HTHost_setRemainingRead(host, 0);
+	{
+	    int remaining = HTHost_remainingRead(host);
+	    if (remaining > 0) {
+		HTTrace("Read Socket. DIDN'T CONSUME %d BYTES\n", remaining);
+		HTHost_setConsumed(host, remaining);
+	    }
+	}
     } while (net->preemptive);
     HTHost_register(host, net, HTEvent_READ);
     return HT_WOULD_BLOCK;

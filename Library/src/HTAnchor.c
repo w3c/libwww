@@ -487,6 +487,46 @@ PUBLIC BOOL HTAnchor_delete (HTParentAnchor * me)
 #endif
 }
 
+/*	FLATTEN ALL ANCHORS
+**	-------------------
+**	Flattens the anchor web structure into an array.
+**	This is useful for calculating statistics, sorting
+**	the parent anchors etc.
+**
+**      The caller can indicate the size of the array (total
+**      number of anchors if known - otherwise 0).
+**
+**	Return an array that must be freed by the caller or
+**      NULL if no anchors.
+*/
+PUBLIC HTArray * HTAnchor_getArray (int growby)
+{
+    int cnt;
+    HTArray * array = NULL;
+    HTList * cur = NULL;
+    if (!adult_table) return NULL;
+
+    /* Allocate an array for the anchors */
+    if (!growby) growby = HASH_SIZE;
+    array = HTArray_new(growby);
+
+    /* Traverse anchor structure */
+    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	if ((cur = adult_table[cnt])) { 
+	    HTParentAnchor * pres = NULL;
+	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur)) != NULL) {
+                if (HTArray_addObject(array, pres) == NO) {
+                    if (ANCH_TRACE)
+                        HTTrace("Anchor...... Can't add object %p to array %p\n",
+				pres, array);
+                    break;
+                }
+	    }
+	}
+    }
+    return array;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				Data Access Methods			     */
 /* ------------------------------------------------------------------------- */
