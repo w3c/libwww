@@ -562,10 +562,6 @@ PRIVATE void HTML_start_element ARGS4(
     	    HText_appendText(me->text, me->comment_end);
 	break;
 
-    case HTML_HTML:			/* Ignore these altogether */
-    case HTML_HEAD:
-    case HTML_BODY:
-    
     case HTML_IMG:			/* Images */
 	{
 	    HTChildAnchor *source;
@@ -581,12 +577,17 @@ PRIVATE void HTML_start_element ARGS4(
 					       0);
 	    UPDATE_STYLE;
 	    HText_appendImage(me->text, source,
-		      present[HTML_IMG_ALT] ? value[HTML_IMG_ALT] : '\0',
-		      present[HTML_IMG_ALIGN] ? value[HTML_IMG_ALIGN] : '\0',
-		      present[HTML_IMG_ISMAP] ? value[HTML_IMG_ISMAP] : '\0');
+		      present[HTML_IMG_ALT] ? value[HTML_IMG_ALT] : NULL,
+		      present[HTML_IMG_ALIGN] ? value[HTML_IMG_ALIGN] : NULL,
+		      present[HTML_IMG_ISMAP] ? YES : NO);
 	    free(src);
-	    break;
-	}
+	}	
+	break;
+
+    case HTML_HTML:			/* Ignore these altogether */
+    case HTML_HEAD:
+    case HTML_BODY:
+    
     case HTML_TT:			/* Physical character highlighting */
     case HTML_B:			/* Currently ignored */
     case HTML_I:
