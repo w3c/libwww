@@ -1,3 +1,4 @@
+
 /*		Manage different file formats			HTFormat.c
 **		=============================
 **
@@ -204,7 +205,7 @@ PUBLIC int HTOutputBinary ARGS2( int, 		input,
 /*		Create a filter stack
 **		---------------------
 **
-**	If a widlcard match is made, a temporary HTPresentation
+**	If a wildcard match is made, a temporary HTPresentation
 **	structure is made to hold the destination format while the
 **	new stack is generated. This is just to pass the out format to
 **	MIME so far.  Storing the format of a stream in the stream might
@@ -342,6 +343,45 @@ PUBLIC void HTCopy ARGS2(
 }
 
 
+
+/*	Push data from a file pointer down a stream
+**	-------------------------------------
+**
+**   This routine is responsible for creating and PRESENTING any
+**   graphic (or other) objects described by the file.
+**
+**
+*/
+PUBLIC void HTFileCopy ARGS2(
+	FILE *,			fp,
+	HTStream*,		sink)
+{
+    HTStreamClass targetClass;    
+    
+/*	Push the data down the stream
+**
+*/
+    targetClass = *(sink->isa);	/* Copy pointers to procedures */
+    
+    /*	Push binary from socket down sink
+    */
+    for(;;) {
+	int status = fread(
+	       input_buffer, 1, INPUT_BUFFER_SIZE, fp);
+	if (status == 0) { /* EOF or error */
+	    if (ferror(fp) == 0) break;
+	    if (TRACE) fprintf(stderr,
+		"HTFormat: Read error, read returns %d\n", ferror(fp));
+	    break;
+	}
+	(*targetClass.put_block)(sink, input_buffer, status);
+    } /* next bufferload */
+	
+}
+
+
+
+
 /*	Push data from a socket down a stream STRIPPING CR
 **	--------------------------------------------------
 **
@@ -377,6 +417,7 @@ PUBLIC void HTCopyNoCR ARGS2(
 	(*targetClass.put_character)(sink, character);           
     }
 }
+
 
 
 /*	Parse a socket given format and file number
@@ -426,6 +467,55 @@ PUBLIC int HTParseSocket ARGS5(
     } else {   /* ascii text with CRLFs :-( */
         HTCopyNoCR(file_number, stream);
     }
+    (*targetClass.end_document)(stream);
+    (*targetClass.free)(stream);
+    
+    return HT_LOADED;
+}
+
+
+
+/*	Parse a file given format and file pointer
+**
+**   This routine is responsible for creating and PRESENTING any
+**   graphic (or other) objects described by the file.
+**
+**   The file number given is assumed to be a TELNET stream ie containing
+**   CRLF at the end of lines which need to be stripped to LF for unix
+**   when the format is textual.
+**
+*/
+PUBLIC int HTParseFile ARGS5(
+	HTFormat,		format_in,
+	HTFormat,		format_out,
+	HTParentAnchor *,	anchor,
+	FILE *,			fp,
+	HTStream*,		sink)
+{
+    HTStream * stream;
+    HTStreamClass targetClass;    
+
+    stream = HTStreamStack(format_in,
+			format_out,
+	 		sink , anchor);
+    
+    if (!stream) {
+        char buffer[1024];	/* @@@@@@@@ */
+	sprintf(buffer, "Sorry, can't convert from %s to %s.",
+		HTAtom_name(format_in), HTAtom_name(format_out));
+	if (TRACE) fprintf(stderr, "HTFormat(in HTParseFile): %s\n", buffer);
+        return HTLoadError(sink, 501, buffer);
+    }
+    
+/*	Push the data, ignoring CRLF if necessary, down the stream
+**
+**
+**   @@  Bug:  This decision ought to be made based on "encoding"
+**   rather than on format.  @@@  When we handle encoding.
+**   The current method smells anyway.
+*/
+    targetClass = *(stream->isa);	/* Copy pointers to procedures */
+    HTFileCopy(fp, stream);
     (*targetClass.end_document)(stream);
     (*targetClass.free)(stream);
     

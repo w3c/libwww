@@ -681,7 +681,7 @@ PUBLIC int HTLoadFile ARGS4 (
     
     format = HTFileFormat(filename);
 
-    
+
 #ifdef vms
 /* Assume that the file is in Unix-style syntax if it contains a '/'
    after the leading one @@ */
@@ -974,6 +974,7 @@ forget_multi:
 			else
 			    END(HTML_DIR);
 		    }
+
 		        /* end while directory entries left to read */
 		    closedir(dp);
 		    free(logical);
@@ -996,47 +997,46 @@ forget_multi:
 */
 #endif
 open_file:
-	fd = open(localname, O_RDONLY, 0);
-	if(TRACE) printf ("HTAccess: Opening `%s' gives %d\n",
-			    localname, fd);
-	if (fd>=0) {		/* Good! */
-	    if (HTEditable(localname)) {
-	        HTAtom * put = HTAtom_for("PUT");
-		HTList * methods = HTAnchor_methods(anchor);
-		if (HTList_indexOf(methods, put) == (-1)) {
-		    HTList_addObject(methods, put);
+	{
+	    FILE * fp = fopen(localname,"r");
+	    if(TRACE) printf ("HTAccess: Opening `%s' gives %x\n",
+				localname, fp);
+	    if (fp) {		/* Good! */
+		if (HTEditable(localname)) {
+		    HTAtom * put = HTAtom_for("PUT");
+		    HTList * methods = HTAnchor_methods(anchor);
+		    if (HTList_indexOf(methods, put) == (-1)) {
+			HTList_addObject(methods, put);
+		    }
 		}
-	    }
-	free(localname);
-	}
-    }  /* local unix file system */
+		free(localname);
+		HTParseFile(format, format_out, anchor, fp, sink);
+		fclose(fp);
+		return HT_LOADED;
+	    }  /* If succesfull open */
+	}    /* scope of fp */
+    }  /* local unix file system */    
 #endif
 #endif
 
 #ifndef DECNET
 /*	Now, as transparently mounted access has failed, we try FTP.
 */
-    if (fd<0) {
-	if (strcmp(nodename, HTHostName())!=0) {
-	    fd = HTFTPLoad(addr, anchor, format_out, sink);
-	    if (fd<0) return HTInetStatus("FTP file load");
-	    return fd;
-        }
+    {
+	if (strcmp(nodename, HTHostName())!=0)
+	    return HTFTPLoad(addr, anchor, format_out, sink);
     }
 #endif
 
-/*	All attempts have failed if fd<0.
+/*	All attempts have failed.
 */
-    if (fd<0) {
+    {
     	if (TRACE)
     	printf("Can't open `%s', errno=%d\n", addr, errno);
 	return HTLoadError(sink, 403, "Can't access requested file.");
     }
     
-    HTParseSocket(format, format_out, anchor, fd, sink);
-    NETCLOSE(fd);
-    return HT_LOADED;
-
+ 
 }
 
 /*		Protocol descriptors
