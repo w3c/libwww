@@ -178,7 +178,7 @@ define NO_SOCKET_DEFS on top. This is a temporary hack.
 
 <H2>Big Blue - the world of incompatibility</H2>
 
-<H2>IBM RS600</H2>
+<H2>IBM RS6000</H2>
 
 On the IBM RS-6000, AIX is almost Unix. <P>
 
@@ -188,6 +188,7 @@ On the IBM RS-6000, AIX is almost Unix. <P>
 #endif
 #ifdef AIX
 #define NO_ALTZONE
+#define RLOGIN_USER
 #define unix
 #endif
 

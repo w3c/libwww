@@ -179,9 +179,8 @@ PRIVATE int remote_session ARGS1(char *, url)
 	HTChunkPuts(cmd, "rlogin ");
 	HTChunkPuts(cmd, hostname);
 	if (user) {
-	    HTChunkPuts(cmd, "-l ");
+	    HTChunkPuts(cmd, " -l ");
 	    HTChunkPuts(cmd, user);
-	    HTChunkPutc(cmd, ' ');
 	}
 #else					       /* format: "-l user hostname" */
 	HTChunkPuts(cmd, "rlogin ");
