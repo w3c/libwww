@@ -2,11 +2,11 @@
 <HEAD>
   <TITLE>Libwww Quick Overview</TITLE>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
-<A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG SRC="../../Icons/WWW/doc48x"></A>
+<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48" ALT="W3C" BORDER="0"></A>
+<A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../../Icons/WWW/doc48x" ALT="Documentation" BORDER="0"></A>
 <H1>
   Libwww Quick Overview
 </H1>
@@ -41,7 +41,6 @@ a robot.
 The <A HREF="../src/HTProf.html#Client">Client profile</A> initializes a
 large set of features often used in client applications. These include features
 like:
-<P>
 <UL>
   <LI>
     HTTP, FTP, Gopher, News, Telnet Access , local file access and optionally
@@ -63,6 +62,9 @@ like:
   Robot Profile
 </H3>
 <P>
+The <A HREF="../src/HTProf.html#Robot">Robot profile</A> initializes a large
+set of features often used in client applications. These include features
+like:
 <UL>
   <LI>
     HTTP, FTP, Gopher, News, Telnet Access , local file access and optionally
@@ -126,13 +128,13 @@ proceeds.
 </H2>
 <P>
 One thing filters can not do is to add a document to the request- for example
-if you are using a PUT method in order to send a document &nbsp;to a remote
-HTTP server. Instead, the Library uses streams to transport data objects
-from the application over the network, or&nbsp;the other way. Streams are
-advantageous as they handle data as&nbsp;soon as it arrives and they can
-be cascaded into stream pipes. Each stream element in a stream pipe can do
-some operation on the data object. Streams can be used for many things: they
-can convert data object from one data type to another, or they can apply
+if you are using a <TT>PUT</TT> method in order to send a document &nbsp;to
+a remote HTTP server. Instead, the Library uses streams to transport data
+objects from the application over the network, or&nbsp;the other way. Streams
+are advantageous as they handle data as&nbsp;soon as it arrives and they
+can be cascaded into stream pipes. Each stream element in a stream pipe can
+do some operation on the data object. Streams can be used for many things:
+they can convert data object from one data type to another, or they can apply
 a compression algorithm or a transport encoding, for example base 64.
 However,streams can also be used for calculating the content length, or to
 generate an MD5 hash of the data object.
