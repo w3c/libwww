@@ -207,12 +207,10 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 			    chunk->data);
 		gtype = *strptr++;
 
-#if 0
 		if (gtype == GOPHER_ERROR) {
 		    StrAllocCat(message, chunk->data+1);
-		    break;
+		    continue;
 		}
-#endif
 		/* If information then add it to the info string */
 		if (gtype == GOPHER_INFO) {
 		    if ((errptr = strchr(chunk->data, '\t')) != NULL)
