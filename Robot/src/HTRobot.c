@@ -1147,7 +1147,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    HT_FREE(uri);
 	    return;
 	}
-	    
+
 	/* Check for prefix match */
 	if (match && mr->prefix) {
 	    match = HTStrMatch(mr->prefix, uri) ? YES : NO;

@@ -487,14 +487,24 @@ PUBLIC char * HTRelative (const char * aName, const char * relatedName)
 	if ((result = (char  *) HT_MALLOC(3*levels + strlen(last_slash) + 4)) == NULL)
 	    HT_OUTOFMEM("HTRelative");
 	*result = '\0';
-	if (!levels) strcat(result, "/");
+	if (!levels) strcat(result, "./");
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);
 	if (!*result) strcat(result, "./");
     }
     if (URI_TRACE)
-	HTTrace("HTRelative.. `%s' expressed relative to `%s' is `%s'\n",
+	HTTrace("HTRelative.. `%s' expressed relative to  `%s' is `%s'\n",
 		aName, relatedName, result);
+#if 0
+    {
+	char * absstr = HTParse(result, relatedName, PARSE_ALL);
+	HTSimplify(&absstr);
+	HTTrace("HTRelative.. `%s' made absolute based on `%s' is `%s'\n",
+		result, relatedName, absstr);
+	if (strcmp(absstr, aName) != 0) HTTrace("THEY DIFFER!!!\n");
+	HT_FREE(absstr);
+    }
+#endif
     return result;
 }
 
