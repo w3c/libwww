@@ -74,19 +74,19 @@ and child anchors is illustrated in the figure.
 
 <OL>
 
-<LI>All child anchors have a pointer to their parent as only the
-parent anchors keep information about the data object itself. Parent
-anchors simply have a pointer to themselves.
-
 <LI>Parent anchors keep a list of its children which is used to avoid
 having multiple example of the same child and in the garbage
 collection of anchors.
+
+<LI>All child anchors have a pointer to their parent as only the
+parent anchors keep information about the data object itself. Parent
+anchors simply have a pointer to themselves.
 
 <LI>Every parent anchor have an address which is a URL pointing to a
 resource that may or may not exist.
 
 <LI>Parents can have a data object associated using the HyperDoc
-structure. In this case anchors <B>B</B> and <B>C</B> has a data
+structure. In this case anchor <B>B</B> and <B>C</B> has a data
 object but <B>A</B> hasn't which can either be because the anchor has
 not yet been requested or the data object has been discarded from
 memory by the application.
@@ -100,8 +100,8 @@ server.
 will be the one selected.
 
 <LI>Parent anchors keep a list of other anchors pointing to it. This
-information is required if a single parent anchor and its children) is
-removed from the sub-web.
+information is required if a single parent anchor (and its children)
+is removed from the sub-web.
 
 </OL>
 

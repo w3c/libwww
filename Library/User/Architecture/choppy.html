@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Libwww Architecture</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Jun-1995 -->
 </HEAD>
 <BODY>
 
@@ -607,69 +607,96 @@ structure but this is not required.
 
 <A HREF="../../../Terms.html#anchor">Anchors</A> represent any
 references to data objects which may be the sources or destinations of
-hypertext links. Here follows a general description of their
-implementation in the <A HREF="../../">W3C Reference
-Library</A>. Anchors normally exist throughout the execution time of
-the application, but as this generally is not the case for data
-objects, it is possible to have a parent anchor without a data
-object. There are two types of anchors in the Library:<P>
-
-<DL>
-<DT><EM>parent anchors</EM></DT>
-
-<DD>Represents whole data objects. That is, the target of a link
-pointing to a parent anchor is the full contents of the data
-object.  A parent anchor is made the target of a link by making a
-HREF without any # appended to the URI.</DD>
-
-<DT><EM>child anchors</EM></DT>
-
-<DD>Represents subparts of a data object. A subpart is declared by
-making a NAME tag in the anchor declaration. A child
-anchor is the target of a link if the HREF link
-declaration contains a # appended to the URI.</DD>
-
-</DL>
+hypertext links. This section contains a general description of the
+model used to bind anchors together in an internal representation in
+the <A HREF="../../">W3C Reference Library</A>.
 
 The anchors are organized into a <EM>sub-web</EM> which represents the
-part of the web that the application (often through user interaction)
-has been in touch with. In this sub-web, any anchor can be the source
-of zero, one, or many links and it may be the target of zero, one, or
-many links. That is, any anchor can point to and be pointed to by any
+part of the web that the application (often the user) has been in
+touch with. In this sub-web, any anchor can be the source of zero,
+one, or many links and it may be the destination of zero, one, or many
+links. That is, any anchor can point to and be pointed to by any
 number of links. Having an anchor being the source of many links is
 often used in the POST method, where for example the same data object
-is to posted to a News group, a mailing list and a HTTP server. <P>
+is to posted to a News group, a mailing list and a HTTP server. This
+is explained in the section "<A HREF="PostWeb.html">Building a POST
+Web, an API for PUT and POST</A>"<P>
 
-Every request and hence every data object has a parent anchor
-associated with it. Anchors exist throughout the lifetime of the
-application, but as this generally is not the case for data objects,
-it is possible to have a parent anchor without a data object. If the
-data object is stored in the client cache, the parent anchor contains
-a link to it so that the client can access it through the <A
-HREF="Overview.html#ClientCache">Cache Manager</A>. <P>
+Every request and hence every data object has an anchor associated
+with it. Anchors exist throughout the lifetime of the application, but
+as this generally is not the case for data objects, it is possible to
+have an anchor without a data object. If the data object is stored in
+the file cache or in memory, the parent anchor contains a link to it
+so the applications can access it either directly or through the <A
+HREF="Overview.html#ClientCache">file cache manager</A>. There are two
+types of anchors in the Library:<P>
+
+<DL>
+<DT><EM>parent anchors</EM>
+
+<DD>Represents whole data objects. That is, the destination of a link
+pointing to a parent anchor is the full contents of the data object.
+A parent anchor is made the destination of a link by making a HREF
+without any "#" and a tag appended to the URI. Parent anchors are used
+to store all information about a data object, for example the content
+type, language, and length.
+
+<DT><EM>child anchors</EM>
+
+<DD>Represents subparts of a data object. A subpart is declared by
+making a NAME tag in the anchor declaration. A child anchor is the
+destination of a link if the HREF link declaration contains a "#" and
+a tag appended to the URI. Child anchors do not contain any
+information about the data object itself. They only keep a handle (or
+a "tag") pointing into the data object kept by the corresponding
+parent anchor.
+
+</DL>
 
 Both types of anchors are subclasses of a <A
 HREF="../../Implementation/HTAnchor.html#Generic">generic anchor
 class</A> which defines a set of outgoing links to where the anchor
-points. The relationship between parent anchors and child anchors is
-illustrated in the figure.
+points. Every parent anchor points to an address which may or may not
+exist. In the case of posting an anchor to a remote server, the
+address pointed to is yet to be created. The client can assign an
+address for the object but it might be overridden (or completely
+denied) by the remote server. The relationship between parent anchors
+and child anchors is illustrated in the figure.
 
-<P><A NAME="Anchors"><IMG ALT="Anchors" SRC="anchor.gif"></A><P>
+<P><A NAME="Anchors"><IMG ALT="Anchors" SRC="Anchors.gif"></A><P>
 
-Every parent anchor points to a remote data object. In the case of
-posting an anchor to a remote server, the data object is yet to be
-created. The client can assign a URI for the object but it might be
-overridden (or completely denied) by the remote server. In the figure,
-parent <B>A</B> has no associated data object. This can either be
-because the anchor has not yet been requested by the user or the data
-object has been discarded from memory. <P>
+<OL>
 
-When child <B>B1</B> is created, pointing to parent <B>A</B>, parent
-<B>B</B> is registered in parent <B>A</B> as pointing to <B>A</B>. The
-same is the case for the link between child <B>BL</B> and <B>A2</B>,
-but parent <B>B</B> is only registered once in parent <B>A</B> (this
-is marked with <EM>b</EM> in the figure). The same is the case for the
-links marked <EM>a</EM> and <EM>c</EM>.  <P>
+<LI>All child anchors have a pointer to their parent as only the
+parent anchors keep information about the data object itself. Parent
+anchors simply have a pointer to themselves.
+
+<LI>Parent anchors keep a list of its children which is used to avoid
+having multiple example of the same child and in the garbage
+collection of anchors.
+
+<LI>Every parent anchor have an address which is a URL pointing to a
+resource that may or may not exist.
+
+<LI>Parents can have a data object associated using the HyperDoc
+structure. In this case anchors <B>B</B> and <B>C</B> has a data
+object but <B>A</B> hasn't which can either be because the anchor has
+not yet been requested or the data object has been discarded from
+memory by the application.
+
+<LI>Any anchor can have any number of links pointing to a set of
+destinations. In most situations there is only one destination, but
+multiple destinations is typical when posting data objects to a remote
+server.
+
+<LI>This anchor has two destinations. By default the main destination
+will be the one selected.
+
+<LI>Parent anchors keep a list of other anchors pointing to it. This
+information is required if a single parent anchor and its children) is
+removed from the sub-web.
+
+</OL>
 
 <H1>The Stream Concept</H1>
 
@@ -1384,33 +1411,6 @@ HTTP but when using SMTP, the result might be delayed several days. In
 practice there is no way that the client can await a response for that
 amount of time.
 
-
-
-
-
-<DL>
-
-<DT> http://remote.server/local/location/foo.bar
-
-<DD> The syntax of the generated HTTP URL as a result of a succeeded
-posting is identical to any other HTTP URL
-
-<DT> news:messageid@news.host 
-
-<DD> The message ID is a unique string generated by the Library NNTP Module.
-
-<DT> sentto:recipient@host.name
-
-<DD> As the success of a mail posting can not be guaranteed, the access
-scheme has changed from "mailto" to "sentto". Then it is for the user
-or client to decide what to do with the URL. One solution could be to
-keep a copy of the posted document in a local cache for a limited time
-period.  Though it is not foreseen that the World-Wide Web client can
-actually handle delayed return codes from the SMTP protocol, as the
-client can in fact be a HTTP Proxy server.
-
-</DL>
-
 In the figure, postings using SMTP are still rounded because it is not
 possible for the user to actually access the document using the URL
 returned from the Library. As the NNTP posting failed in the figure,
@@ -1424,24 +1424,6 @@ subset of the requested recipients as only postings which terminated
 successfully are registered. Using this set, the client must determine
 what to do with failed postings. One possibility would be to try again
 using the failed part of the Post Web, or simply to discard it.
-
-
-<H2>Conclusion</H2>
-
-This document describes the posting interface between the client
-application and the World-Wide Web Library. The user first builds a
-"Post Web" where logical links are created between the document to be
-posted and the set of desired recipients. On commit of the posting the
-Post Web and a request structure is parsed to the general posting
-routine within the Library. The posting routine groups the postings
-and recursively calls the NNTP, SMTP and or the HTTP module of the
-Library until the Post Web is traversed. The NNTP module is only done
-once due to the NNTP protocol implementation of posting.<P>
-
-As mentioned in the introduction this document doesn't describe how
-the HTTP protocol should handle POST as this is all handled internally
-in the Library. However, the interface between the Library and the
-client stays the same regardless of the HTTP POST Implementation.
 
 <H1>DNS Cache and Host Name Canonicalization</H1>
 

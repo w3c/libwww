@@ -1,186 +1,220 @@
 <HTML>
 <HEAD>
-<TITLE>Overview of the Library</TITLE>
+<TITLE>Architecture - Control and Data Flow</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
 
 <A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="Guide.html"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
 
-<H1>Overview of the Library</H1>
+<H1>Control and Data Flow</H1>
 
-The World-Wide Web Library of Common Code is a general code base which
-can be used as the basis for building World-Wide Web applications, not
-only clients but also servers, and proxy servers. As an example, the
-<A HREF="../../../LineMode/Status.html">Line Mode Browser</A>, the <A
-HREF="../../../NextStep/Status.html">NeXTStep Editor</A>, the <A
-HREF="../../../Arena/Status.html">Arena Browser</A> and the <A
-HREF="../../../Daemon/Status.html">HTTP Server</A> (including the <A
-HREF="../../../Daemon/Proxies/Proxies.html">Proxy Server</A>) are
-all built on top of the Library. It contains code for accessing <A
-HREF="../../../Protocols/HTTP/HTTP2.html">HTTP</A>, <A
-HREF="http://info.internet.isi.edu/0/in-notes/rfc/files/rfc765.txt">FTP</A>,
-<A
-HREF="http://info.internet.isi.edu/0/in-notes/rfc/files/rfc1436.txt">Gopher</A>,
-<A
-HREF="http://info.internet.isi.edu/0/in-notes/rfc/files/rfc977.txt">NNTP</A>,
-and <A HREF="http://server.wais.com/z3950.html, WAIS Network
-Publishing using Z3950">WAIS</A> servers, perform telnet sessions and
-access the local file system. Furthermore it provides functionality
-for loading, parsing and caching graphic objects plus a wide spectrum
-of generic programming utilities.
+The main concept in the Library is a "request/response" model where an
+application issues a request for a URI (URL). The Library then tries
+to fulfill the request as efficient as possible either by requesting
+the URL at the origin server, a proxy server, a gateway, directly from
+the local file system, or a locally cached version. Data is delivered
+back to the application as soon as it gets ready which guarantees
+minimum access delay for the application. From version 3.0, the
+Library supports threads including its own platform independent thread
+model called "<A HREF="Threads.html">libwww threads</A>". This allows
+multiple requests to be handled simultaneously without blocking the
+application while waiting on data. <P>
 
-The Library is written in plain C and is especially designed to be
-used on a large set of different platforms. Currently it supports more
-than 15 Unix flavors, VMS, and PC and Macintosh support is foreseen
-before the end of 1994. <P>
+<H2>Requests and Responses</H2>
 
-The main application module is a platform dependent module called by
-the operating system, and it manages the overall running of the
-program.  In the <A HREF="../../../LineMode/Status.html">Line Mode
-Browser</A>, it is <A
-HREF="../../../LineMode/Implementation/HTBrowse.c"> HTBrowse</A>.  In
-the <A HREF="../../../Daemon/Status.html">CERN HTTP Server</A>, it is
-<A HREF="../../../Daemon/Implementation/HTDaemon.c"> HTDaemon</A>.
-<P>
+The "request/response" model is illustrated in the control/data
+diagram shown below. The diagram shows only the core modules - the
+other modules are "pasted in" later. Note, that the Library code is to
+the right of the thick vertical line (green), and the application to
+the left can be any type of application, for example a proxy or a
+client. The architecture of the Library does support clients and
+proxies in pretty much the same way as it makes little difference to
+the Library: a client has a user interface whereas a server has a
+network interface. It is a good idea to study the <A
+HREF="../../../LineMode/">Line Mode Browser</A> and the <A
+HREF="../../../Daemon/">httpd</A> as reference implementations using
+the Library to see this duality.<P>
 
-To get a quick overview of the Library and the capabilities, the best
-thing is to study the control flow of the Library. The figure below
-shows the module interface to a WWW Browser. In the diagram, the
-Library code is to the right of the green line, and the client to the
-left is the Line Mode Browser.<P>
+Another thing to note is that the Library from version 3.1 supports
+large scale data flow from the application to the network as well as
+from the network to the application. This has an important impact on
+the functionality that can be put into applications, for example
+allowing collaborative authoring possibilities via the Web. The
+architecture behind this is described in the section <A
+HREF="PostWeb.html">"Post Webs - an API for PUT and POST"</A>.
 
-<P><A NAME="Architecture"><IMG SRC="../Architecture/Library.gif"></A><P>
+<P><IMG SRC="LibCore.gif" ALT="Flow"><P>
 
-On behalf of the user, the client parses a request to the <A
-HREF="../../Implementation/HTAccess.html">access manager</A> that is
-the main entry node to the library. When the request has been
-fulfilled and data has been received through the network, the data is
-parsed back to the client either through the <A
-HREF="../../Implementation/SGML.html"></A>, or the <A
-HREF="../../Implementation/HText.html">HText module</A> depending on
-the interface used by the client. See more on this in <A
-HREF="Presentation.html">Information on presentation modules</A>.<P>
+The thin lines (red) is control flow, the thick lines (blue) is data
+flow and the "lightning" (magenta) is control flow as a result of
+events handled by the Library. Let's see what happens when an
+application issues a request. The description is based on having an
+event loop - this can either be the one provided by the Library or an
+external event loop provided by the application. The section on <A
+HREF="Threads.html">libwww threads</A> explains more on how this can
+be set up. The numbers refer to the figure above.
+
+<OL>
+
+<LI>The event manager is waiting for an event from the application.
+This can for example be a user clicking the mouse on a link or types a
+number on the keyboard.
+
+<LI>When an event arrives, the event manager calls the user event
+handler provided by the application.
+
+<LI>The user event handler issues a request by calling the access
+manager.
+
+<LI>The access manager contacts the cache manager to see if the object
+is already cached. If data is to be sent <EM>to</EM> the network (for
+example using the HTTP PUT method) then the cache manager is not
+requested.
+
+<LI>If the cache manager says "no" then the protocol manager is
+contacted to down load the object. If "yes" then the cache file is
+accessed.
+
+<LI>The cache manager can also contact the protocol manager directly
+if the cached object turns out to be stale or a reload has explicit
+requested by the application.
+
+<LI>If the protocol manager successfully can access the data object
+then the cache manager is contacted in order to cache or refresh the
+object.
+
+<LI>When data is arriving, either from the cache manager or the
+protocol manager it is passed to the format manager that handles any
+data format conversion as requested by the application.
+
+<LI>The protocol can recursively call the access manager in case of
+redirections and inadequate access authentication for the request
+(after prompting the user).
+
+<LI>The converted data is either handed from the network to the
+application <EM>or</EM> from the application to the network as it gets
+ready. If no data is ready, control is given back to the event
+manager.
+
+<LI>When data is ready to be sent or received from the network, the
+event manager calls the protocol manager directly to handle the data.
+
+<LI>When the request is terminated the application is called with the
+result of the request so that it for example can update a history list
+of visited documents.
+
+</OL>
+
+This description is the "macro" description of how the core modules
+interact and in the rest of this document we shall see more of the
+details of what is going on inside the core modules and what data
+structures are involved. Note that by using a threaded model, the
+Library can handle multiple requests simultaneously. An example on how
+to do this is described in the section "<A HREF="Threads.html">Libwww
+Threads</A>".
 
 <DL>
 
-<DT><A NAME="GraphicObject"
-HREF="../../Implementation/HText.html">Graphic Object</A>
+<DT>Access Manager
+<DD>
 
-<DD>A graphic object is a displayable entity defined and maintained by
-the client. It is built from the data contained in a server response
-upon a successful request initiated by the user. The data can be of
-any format handled by the client. The object can either be built
-directly from the data, e.g., if the data object returned is an <A
-HREF="../../../MarkUp/MarkUp.html">HTML</A> document, or it can be
-generated from a format converter within the Library. An example of
-the latter could be the generation of an HTML object from an FTP
-directory listing (7-bit ASCII). Graphic objects are in general coded
-differently on different platforms. The graphic object is responsible
-for displaying itself, catching mouse clicks, and calling the
-<CODE>anchor module</CODE>, either directly or via the <CODE>history
-and navigation manager</CODE>. Often the more common term "document"
-is used to describe the logical entity which a graphics object
-represents and displays. The client can keep the latest generated
-documents in memory in order to speed up back-tracking through already
-visited documents. <P>
+The access manager is the main entry point for requesting a data
+object pointed to by a URI. It has a set of methods that allows the
+application to request different services, for example to get a URI,
+post a URI, or to search a URI. When the application issues a request,
+the access manager does the following:
 
-<DT><A HREF="../../Implementation/HTAccess.html">Access Manager</A>
+<OL>
 
-<DD>All requests from the client goes to the <A
-HREF="../../Implementation/HTAccess.html">Access Manager</A>. It can
-either be passed a URI or an anchor. An <A
-HREF="../../../Architecture/Anchors.html">anchor</A> is an object
-representing the URI of either a graphic object or a fragment of a
-graphic object. It contains all information known about the URI. The
-<A HREF="../../Implementation/HTAnchor.html">anchor module</A>
-registers all requested anchors together with anchors found when
-parsing hypertext objects. The anchors are stored in a hash table so
-that multiple references to a URI all points to the same graphic
-object. It furthermore binds all registered anchors together
-corresponding to the logical binding between the related data objects.
-In other words, the <CODE>anchor module</CODE> generates an internal
-model of the part of the Web the user has been in touch with. The
-actual bindings between anchors are described in more detail in <A
-HREF="../../../Architecture/Anchors.html">Anchor Definition</A>. <P>
+<LI>Translates the URI according to the rules given, for example by a
+rule file. It also looks for gateways or proxies that should be
+contacted for a specific access method. Rules can be registered
+dynamically as described in the <A HREF="../Using/">User's Guide</A>.
 
-<DT><A HREF="../../Implementation/HTAccess.html#ProtReg">Protocol
-Manager</A>
+<LI>If the request is on the local file system, the access manager
+verifies that access to local files is allowed. This might not always
+be the case, as is the case when the <A HREF="../../../LineMode/">Line
+Mode Browser</A> is used as a login shell for telnet sessions.
 
-<DD>The <CODE>protocol manager</CODE> is invoked by the <CODE>access
-manager</CODE> in order to access a document not found in memory or in
-the cache (for the proxy server it is the proxy cache). Each protocol
-module is responsible for establishing the connection to the remote
-server (or the local file-system) and extract information using a
-specific access method.  Depending on the protocol, the <CODE>protocol
-manager</CODE> either builds a hypertext object itself from the server
-response, or it passes a socket descriptor to the <A
-HREF="Stream.html">stream manager</A> for parsing by one of the parser
-modules. <P>
+<LI>Then the file cache manager is contacted to see if the object
+already has been accessed. The application might administer a memory
+cache in which cache this is consulted before the file cache.
 
-<DT><A HREF="../../Implementation/HTFormat.html">Stream Format
-Manager</A>
+<LI>If the data object is not cached then the protocol module is
+called to actually perform the access to the network.
 
-<DD>The <CODE>stream format manager</CODE> takes care of the
-transportation of streams of data from the network to the client and
-vice versa. This module is described in more detail in the <A
-HREF="Stream.html">Stream description</A>. <P>
+<LI>When a request is to be terminated, the access manager can log the
+result of the request to a local file so that the "browse route" can
+be reconstructed.
 
-<DT><A HREF="../../Implementation/HTHist.html">Navigation and
-History</A>
+</OL>
 
-<DD>This module keeps track of all visited anchors. The set of visited
-anchors is always less than or equal to the total set of anchors
-registered in the <A HREF="../../Implementation/HTAnchor.html">anchor
-module</A>. Whereas the <CODE>anchor module</CODE> manages a small
-part of the Web, this module keeps an ordered list of all visited
-anchors so the user can do quick navigation through a history
-list. <P>
+<DT>Protocol Manager
 
-<DT><A NAME="ClientCache"
-HREF="../../Implementation/HTFWrite.html#z3">Client Cache Manager</A>
+<DD>The protocol manager is invoked by the access manager in order to
+access a document not found in memory or in file cache. The manager
+consists of a set of protocol modules handling the access schemes
+HTTP, FTP, NNTP, Gopher, WAIS, Telnet, and access to the local file
+system. The protocol modules are registered dynamically (using static
+linking) and the <A HREF="../Using/">User's Guide</A> describes how
+modules can be registered. Each protocol module is responsible for
+establishing the connection to the remote server (or the local
+file-system) and extract information using a specific access
+method. When data arrives from the network, it is passed on to the
+format manager.
 
-<DD>This is a single-user disk cache manager specifically for WWW
-client applications.  It is used to save data objects once they have
-been downloaded from the Internet. The difference between a graphic
-object stored in memory and a cached data object is that the former is
-already parsed and can immediately be displayed to the user whereas
-the cached object must be parsed into a graphic object. The <A
-HREF="../../../Daemon/Proxies/Proxies.html">CERN proxy</A> server has
-its own cache manager to handle a large scale cache that can serve
-hundreds of clients connected to it. The client cache is especially
-made for clients not using a proxy cache or having a very slow link
-but a large local temporary storage. <P>
+<DT>Format Manager
 
-<DT><A HREF="../../Implementation/HTError.html">Error Manager</A>
+<DD>The stream format manager takes care of the transportation of
+streams of data from the network to the application and vice versa. It
+also performs any parsing and data format conversion requested based
+on a set of registered format converters and a simple algorithm for
+selecting the best conversion. As the protocol modules, data format
+converters can be registered dynamically, and the current set of
+streams includes among others: MIME, SGML, HTML, and LaTeX.
+
+<DT>File Cache Manager
+
+<DD>The cache manager is used to save data objects once they have been
+down loaded from the network. The cache uses the hierarchy indicated
+in the URLs as a way to identify items in the cache but is still under
+construction and requires a lot of work to be a highly efficient cache
+manager!
+
+<DT>Error Manager
 
 <DD>This module manages an information stack which contains
 information of all errors occurred during the communication with a
 remote server or simply information about the current state. Using a
 stack for this kind of information provides the possibility of nested
-error messages like:
+error messages where each message can be classified and filtered
+according to its impact on the current request, for example "Fatal",
+"Non-Fatal", "Warning" etc. The filtering can be used to decide which
+level of messages will be passed back to the user.
 
-<PRE>
-	Error 500
-	Can't access document (ftp://info.cern.ch/foo.bar)
-	Reason: FTP-server replies: foo.bar: No such file or directory
-</PRE>
+<DT>Event Manager 
 
-<DT><A HREF="../../Implementation/HTDirBrw.html">Directory Listing
-Manager</A>
-
-<DD>This module handles long directory listings with icons for HTTP
-and FTP, and local file access. Long directory listings are supported
-for Unix, VMS, and Window NT.
+<DD>The event manager is a "session layer" handling which thread
+should be the active thread. A thread can either be an internal libwww
+thread or an external thread, for example a Posix thread, and the
+event manager can itself be either the internal Library manager or an
+external event manager. Currently the internal event manager uses a
+select function call to decide which thread should be made the active
+one, however an external event manager can use another decision
+model. One of the design ideas behind the event manager is that it can
+be extended to a full session layer manager handling for example the
+control of a HTTP-NG connection. The event manager is described
+together with the internal thread model in the section "<A
+HREF="Threads.html">Libwww Threads</A>".
 
 </DL>
 
+<P>
 <HR>
-
-<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
-libwww@w3.org, April 1995</ADDRESS>
-
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
 </BODY>
 </HTML>
