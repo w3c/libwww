@@ -15,4 +15,4 @@ BUILT_SOURCES = \
 SUFFIXES = .html
 
 Extrnals.html:
-	$(top_srcdir)/config/makeindx.pl $(srcdir)/../src $(srcdir)/../src/WWW*.html > Extrnals.html
+	$(top_srcdir)/config/makeindx.pl $(srcdir)/../src $(srcdir)/../src/WWW*.html > $(srcdir)/Extrnals.html

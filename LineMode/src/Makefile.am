@@ -34,7 +34,8 @@ PURIFY_CACHE = @PURIFY_CACHE@
 purify: $(www_OBJECTS) $(www_DEPENDENCIES)
 	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(LINK) $(www_OBJECTS) $(www_LDADD) $(LIBS)
+	$(CC) $(LDFLAGS) -o purify $(www_OBJECTS) \
+	../../Library/src/.libs/libwww.a -lm $(LIBS)
 
 # need the WAIS library and the cyrrilic support!
 
