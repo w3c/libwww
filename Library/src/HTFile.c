@@ -10,6 +10,8 @@
 **	26 Jun 92 (JFG) When running over DECnet, suppressed FTP.
 **			Fixed access bug for relative names on VMS.
 **	   Sep 92 (MD)  Access to VMS files allows sharing.
+**	 4 Nov 93 (AL)	Changed HTSetSuffix() so that if suffix
+**			definition already exists it is replaced.
 **
 ** Bugs:
 **	FTP: Cannot access VMS files from a unix machine.

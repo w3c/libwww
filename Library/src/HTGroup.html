@@ -42,6 +42,7 @@ typedef enum {
     HTAA_NO_ENTRY,	/* 403 Forbidden, no ACL entry		*/
     HTAA_SETUP_ERROR,	/* 403 Forbidden, server setup error	*/
     HTAA_DOTDOT,	/* 403 Forbidden, URL with /../ illegal	*/
+    HTAA_HTBIN,		/* 403 Forbidden, /htbin not enabled	*/
     HTAA_NOT_FOUND	/* 404 Not found, or read protected	*/
 } HTAAFailReasonType;
 

@@ -101,7 +101,6 @@ PUBLIC char *HTAA_encryptPasswd ARGS1(CONST char *, password)
 
 	tmp = crypt((char*)password, salt);  /*crypt() doesn't change its args*/
 	strcat(result, tmp);
-	free(tmp);
 
 	cur += 8;
 	len -= 8;
@@ -166,7 +165,6 @@ PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
 
 	tmp = crypt((char*)password, salt);
 	strcat(result, tmp);
-	free(tmp);
 
 	cur1 += 8;
 	cur2 += 13;

@@ -41,6 +41,8 @@ typedef struct _rule {
 */
 PUBLIC char *HTBinDir = NULL;	/* Physical /htbin directory path.	*/
                                 /* In future this should not be global.	*/
+PUBLIC char *HTSearchScript = NULL;	/* Search script name.		*/
+
 
 /*	Module-wide variables
 **	---------------------
@@ -349,8 +351,12 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );
 
-    } else if (0==strcasecomp(word1, "htbin")) { /* Physical /htbin location */
-	StrAllocCopy(HTBinDir, word2);
+    } else if (0==strncasecomp(word1, "htbin", 5) ||
+	       0==strncasecomp(word1, "bindir", 6)) {
+	StrAllocCopy(HTBinDir, word2);	/* Physical /htbin location */
+
+    } else if (0==strncasecomp(word1, "search", 6)) {
+	StrAllocCopy(HTSearchScript, word2);	/* Search script name */
 
     } else {
 	op =	0==strcasecomp(word1, "map")  ?	HT_Map

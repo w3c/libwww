@@ -114,10 +114,9 @@ PUBLIC char *HTAA_statusMessage NOARGS
       case HTAA_DOTDOT:
 	return "Forbidden -- URL containing /../ disallowed";
 	break;
-	/*
-	** It ought to, using an executable script (TBL)
-	** What do you mean, Tim?? (AL)
-	*/
+      case HTAA_HTBIN:
+	return "Forbidden -- /htbin feature not enabled on this server";
+	break;
 
     /* 404 cases */
       case HTAA_NOT_FOUND:
@@ -172,6 +171,9 @@ PRIVATE char *status_name ARGS1(HTAAFailReasonType, reason)
 	break;
       case HTAA_DOTDOT:
 	return "SLASH-DOT-DOT";
+	break;
+      case HTAA_HTBIN:
+	return "HTBIN-OFF";
 	break;
 
     /* 404 cases */
@@ -432,7 +434,9 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
     char *local_copy = NULL;
     HTAAMethod method = HTAAMethod_enum(method_name);
     HTAAScheme scheme = HTAAScheme_enum(scheme_name);
-    
+
+    HTAAFailReason = HTAA_OK;
+
     /*
     ** Translate into absolute pathname, and
     ** check for "protect" and "defprot" rules.
@@ -458,15 +462,17 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
 	                                    /* a /htbin call to set up */
 	                                    /* protections.	       */
 	if (0 == strncmp(local_copy, "/htbin/", 7)) {
-	    char *end = strchr(local_copy+7, '/');
-	    if (end)
-		*end = (char)0;
 	    if (!HTBinDir)
-		StrAllocCopy(HTBinDir, HTBINDIR);
-	    FREE(pathname);
-	    pathname = (char*)malloc(strlen(HTBinDir)+strlen(local_copy)-4);
-	    strcpy(pathname, HTBinDir);
-	    strcat(pathname, local_copy+6);
+		HTAAFailReason = HTAA_HTBIN;
+	    else {
+		char *end = strchr(local_copy+7, '/');
+		if (end)
+		    *end = (char)0;
+		FREE(pathname);
+		pathname=(char*)malloc(strlen(HTBinDir)+strlen(local_copy)+1);
+		strcpy(pathname, HTBinDir);
+		strcat(pathname, local_copy+6);
+	    }
 	}
 
 	if (!pathname) {		/* Forbidden by rule */
@@ -474,9 +480,10 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
 			       "HTAA_checkAuthorization: Forbidden by rule\n");
 	    HTAAFailReason = HTAA_BY_RULE;
 	}
-	else {	/* pathname != NULL */
+	else if (HTAAFailReason != HTAA_HTBIN) {
+	    /* pathname != NULL */
 	    char *access = HTParse(pathname, "", PARSE_ACCESS);
-	    if (!*access  ||  0 == strcmp(access, "file")) { /*Local file, do AA*/
+	    if (!*access || 0 == strcmp(access,"file")) { /*Local file, do AA*/
 		if (!HTSecure && 0 != strncmp(local_copy, "/htbin/", 7)) {
 		    char *localname = HTLocalName(pathname);
 		    free(pathname);
@@ -529,6 +536,7 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
       case HTAA_NO_ENTRY:
       case HTAA_SETUP_ERROR:
       case HTAA_DOTDOT:
+      case HTAA_HTBIN:
 	return 403;
 	break;
 

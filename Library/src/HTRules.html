@@ -39,10 +39,25 @@ typedef enum _HTRuleOp {
 	HT_Protect
 } HTRuleOp;
 
-#ifndef HTBINDIR
-#define HTBINDIR "/htbin"	/* Default /htbin location */
-#endif
+#ifdef SHORT_NAMES
+#define HTSearSc HTSearchScript
+#endif /*SHORT_NAMES*/
+
+</PRE>
+
+<H2>Server Side Script Execution</H2>
+
+If a URL starts with <CODE>/htbin/</CODE> it is understood
+to mean a script execution request on server.
+This feature needs to
+be turned on by setting <CODE>HTBinDir</CODE> by the
+<CODE>htbin</CODE> rule.  Index searching is enabled by
+setting <CODE>HTSearchScript</CODE> into the name of script
+in BinDir doing the actual search by <CODE>search</CODE> rule
+(BinDir must also be set in this case, of course).
+<PRE>
 extern char * HTBinDir;		/* Physical /htbin location */
+extern char * HTSearchScript;	/* Search script name */
 
 </PRE>
 <H2>HTAddRule:  Add rule to the list</H2>
