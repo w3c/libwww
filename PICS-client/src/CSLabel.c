@@ -711,7 +711,7 @@ PRIVATE BOOL charSetOK(CSParse_t * pCSParse, char * checkMe, CharSet_t set)
              *checkMe == '#' || *checkMe == '%' || 
              *checkMe == '/' || *checkMe == '.' ||
              *checkMe == '-' || *checkMe == '_' ||
-			 *checkMe == '\\'))
+	     *checkMe == '~' || *checkMe == '\\'))
             continue;
 /* '.' | ' ' | ',' | ';' | ':' | '&' | '=' | '?' | '!' | '*' | '~' | '@' | '#' */
         if (set & CharSet_EXTENS && 
