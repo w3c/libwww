@@ -67,6 +67,14 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"text/x-nntp-over",	"*/*",		HTNewsGroup,	1.0, 0.0, 0.0);
 
     /*
+    ** If we have the XML expat parser linked in
+    */
+#ifdef HT_EXPAT
+    HTConversion_add(c, "text/xml",		"*/*",		HTXML_new,	1.0, 0.0, 0.0);
+    HTConversion_add(c, "application/xml",	"*/*",		HTXML_new,	1.0, 0.0, 0.0);
+#endif
+
+    /*
     ** We also register a special content type guess stream that can figure out
     ** the content type by reading the first bytes of the stream
     */

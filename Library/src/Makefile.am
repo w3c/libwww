@@ -70,7 +70,8 @@ EXTRA_libwww_la_SOURCES = \
 	HTWAIS.c \
 	HTZip.c \
 	HTSQL.c \
-	HTSQLLog.c
+	HTSQLLog.c \
+	HTXML.c
 
 libwww_la_DEPENDENCIES = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
 
@@ -125,7 +126,7 @@ BUILT_SOURCES = wwwsys.h \
 	HTHstMan.h	HTMemLog.h	HTTimer.h \
 	HTWAIS.h	HTZip.h		HTSQL.h \
 	HTSQLLog.h	HTextImp.h	HTDigest.h \
-	md5.h
+	HTXML.h		md5.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 
