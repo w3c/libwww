@@ -46,7 +46,7 @@ Library</A>.
 #include "HTReq.h"
 </PRE>
 <H2>
-  Message Opcodes and Messages
+  <A NAME="Message">Message Opcodes and Messages</A>
 </H2>
 <P>
 The callback functions are defined as a generic callback where the caller
@@ -87,12 +87,13 @@ typedef BOOL HTAlertCallback   (HTRequest * request, HTAlertOpcode op,
 If you don't expect any return values then <CODE>reply</CODE> can be NULL.
 The return value of the callback function can be used to indicate confirmation
 on a prompt (Yes or No).
-<H3>
-  String Messages
-</H3>
+<H2>
+  <A NAME="String">User Prompts and Questions</A>
+</H2>
 <P>
 This is an enumerated list of messages that can be converted into a string
-table etc.
+table etc. See the <A HREF="HTDialog.html#Prompt">HTDialog module</A> for
+default initialization of these strings.
 <PRE>
 typedef enum _HTAlertMsg {
     HT_MSG_NULL = -1,
@@ -115,35 +116,12 @@ typedef enum _HTAlertMsg {
     HT_MSG_REDIRECTION,
     HT_MSG_PROXY,
     HT_MSG_CACHE_LOCK,
+    HT_MSG_ACCEPT_COOKIE,
     HT_MSG_ELEMENTS		            /* This MUST be the last element */
 } HTAlertMsg;
-
-#define HT_MSG_ENGLISH_INITIALIZER \
-    "Please enter username:", \
-    "Please enter username for proxy authentication:", \
-    "Please enter username for this FTP server:", \
-    "Password:", \
-    "Please give name of file to save in:", \
-    "Plase enter account:", \
-    "You might not be allowed to use this method here, continue?", \
-    "Location has moved, continue?", \
-    "A new set of rules is requested to be added to your setup - continue?", \
-    "This file already exists - replace existing file?", \
-    "Authentication failed - retry?", \
-    "Proxy authentication failed - retry?", \
-    "This method has already been performed - repeat operation?", \
-    "This document is very big - continue operation?", \
-    "The source document for this operation has moved - continue operation \
-with new location?", \
-    "The destination document for this operation has moved - continue \
-operation with new location?", \
-    "A redirection may change the behavior of this method - proceed anyway?", \
-    "An automatic request for changing proxy has been encountered - continue?", \
-    "The persistent cache is already in use by another user. If this is not \
-the case then you can manually delete this lock and restart."
 </PRE>
 <H2>
-  Enable or Disable Messages
+  <A NAME="Enable">Enable or Disable Messages</A>
 </H2>
 <P>
 If you really don't want the library to prompt for anything at all then enable
@@ -153,7 +131,7 @@ extern void HTAlert_setInteractive	(BOOL interative);
 extern BOOL HTAlert_interactive		(void);
 </PRE>
 <H2>
-  Creation and Deletion Methods
+  <A NAME="Creation">Creation and Deletion Methods</A>
 </H2>
 <P>
 Message methods are registered in lists. By default a list is not enabled
