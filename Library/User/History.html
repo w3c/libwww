@@ -15,6 +15,58 @@ src="../../Icons/WWW/Lib48x" width="48" height="48" border="0"></a></p>
 chronological order. See also the <a href="ReleaseNotes.html">release
 notes</a> for the <a href="../cvs.html#Releases">latest release</a>.</p>
 
+<h2><a name="5.3.11">Release 5.3.2, Dec 20, 2000</a></h2>
+
+<p>This is a minor release that mainly provides bug fixes and small
+enhancements that have been commited to CVS since the last release.  Vladimir
+Koslov provided indispensable help for testing and preparing the Win32
+release. Special thanks to Wayne Davison, Art Barstow,  Peter Stamfest, Zhu
+Qun-Ying, Jens Meggers,  Ken Olum for their contributions.</p>
+<ul>
+  <li>Summary of principal changes (the <a
+    href="http://dev.w3.org/cvsweb/~checkout~libwww/ChangeLog?content-type=text/plain&amp;only_with_tag=HEAD">ChangeLog</a>
+    provides a detailed account)
+    <ul>
+      <li>The following sample applications could core dump under Windows:
+        <code>head.c, getheaders.c, chunk.c, chunkbody.c,
+      multichunk.c</code></li>
+      <li>When retrieving an object from the cache, the HTTP headers
+        associated with the object weren't stored in the HTResponse
+      object.</li>
+      <li>The cache garbage collector could go into an endless loop.</li>
+      <li>The HTResponse object now returns the HTTP reason.</li>
+      <li>Update of expat to version 19990728.</li>
+      <li>Optimization, enhancements, and bugs fixes to the  HTRDF module</li>
+      <li>Some memory leaks and compiler warning  fixes.</li>
+      <li>The robot could hang when accessing local files.</li>
+      <li>Optimization of the HTChunk and HTHash modules.</li>
+    </ul>
+  </li>
+  <li>Outstanding bugs
+    <ul>
+      <li>The <code>webbot</code> crashes from time to time under Windows. It
+        seems to be a problem while reading the <code>robots.txt</code> file,
+        where the application frees a request that's still registred in the
+        Windows async. loop.,</li>
+      <li>The <code>tiny.c</code> sample application doesn't prompt the user
+        with a text input.</li>
+      <li>Interpretation of <a
+        href="http://lists.w3.org/Archives/Public/www-lib/2000JulSep/0050.html">FD_CLOSE</a>
+        under Windows.</li>
+      <li>The FTP implementation has memory leaks and doesn't remember the
+        path or authentication information correctly.</li>
+      <li>Compiling with -O2 and -Wall reveals some unitialized variables in
+        HTDIR and HTFTP.</li>
+    </ul>
+  </li>
+  <li>To do
+    <ul>
+      <li>Compile the answers to the libwww survey (volunteers are
+      welcome).</li>
+    </ul>
+  </li>
+</ul>
+
 <h2><a name="5.3.1">Release 5.3.1, Aug 4, 2000</a></h2>
 
 <p>This is the proper first 5.3 release. We changed the minor release number
@@ -70,8 +122,8 @@ as many people had started to refer to the previous release as 5.3.0.</p>
 
 <p>This is the first release done after Henrik's depart from W3C. We're
 calling it a pre-release, as we're not sure if we prepared it correctly.
-Special thanks to Henrik Frystik, Fox One, Vladimir Koslov, Rafaelle Sena, and
-all the other libwww User's Community for their patches and continuous
+Special thanks to Henrik Frystik, Fox One, Vladimir Koslov, Rafaelle Sena,
+and all the other libwww User's Community for their patches and continuous
 support.</p>
 <ul>
   <li>What's new
@@ -89,7 +141,7 @@ support.</p>
   </li>
 </ul>
 
-<h2><a name="5.2.8">Release 5.2.8, Apr 14, 1999 </a></h2>
+<h2><a name="5.2.8">Release 5.2.8, Apr 14, 1999</a></h2>
 
 <p>For this release, special thanks go to the <a
 href="Collaborators.html#Collaborators">libwww hackers</a> Olga Antropova,
@@ -176,11 +228,12 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
     posting forms and returning the response as a <a
     href="../src/HTChunk.html">HTChunk object</a></li>
   <li>Added handler for unknown content encodings in the <a
-    href="../../ComLine/">Command Line tool</a> to be a through line (identity
-    decoding) using the <a href="#bestmatch">best matching mechanism</a></li>
+    href="../../ComLine/">Command Line tool</a> to be a through line
+    (identity decoding) using the <a href="#bestmatch">best matching
+    mechanism</a></li>
   <li>Added support for <a href="../src/HTProxy.html">regex handling of
-    proxies</a> so that you can now say something like this: all URIs matching
-    this regex goes to this proxy, all others go to this, etc.</li>
+    proxies</a> so that you can now say something like this: all URIs
+    matching this regex goes to this proxy, all others go to this, etc.</li>
   <li>Better control of how much data is being sent in the <a
     href="../src/HTReq.html"> REQUEST OBJECT</a>. Now you can both get the
     total number of bytes read and written as well as the number of entity
@@ -194,8 +247,8 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
     bytes read/written.</li>
   <li>Added support for version conflict detection in <a
     href="../../WinCom/">Web Commander</a> (update all of WinCom area)</li>
-  <li>The <a href="../../WinCom/">Web Commander</a> - the Win32 GUI PUT sample
-    application has been updated from the ground up - try it out!</li>
+  <li>The <a href="../../WinCom/">Web Commander</a> - the Win32 GUI PUT
+    sample application has been updated from the ground up - try it out!</li>
 </ul>
 
 <h3>Bug Fixes</h3>
@@ -223,12 +276,12 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
     interrupt alert message</a> to <a href="../../src/HTTP.c">HTTP.c</a></li>
   <li><a
     href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTFilter.c?r1=2.27&amp;r2=2.28">Added
-    alert message when status is 503 Retry</a> to the information filter in <a
-    href="../../src/HTFilter.c">HTFilter.c</a></li>
+    alert message when status is 503 Retry</a> to the information filter in
+    <a href="../../src/HTFilter.c">HTFilter.c</a></li>
   <li><a
     href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTFile.c?r1=1.146&amp;r2=1.147">The
-    last modified time is now stored in the anchor object when opening a local
-    file</a></li>
+    last modified time is now stored in the anchor object when opening a
+    local file</a></li>
   <li><a
     href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.143&amp;r2=1.144">Added
     support for preconditions in the save document calls in HTAccess</a></li>
@@ -239,15 +292,15 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
     href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTResponse.html?r1=2.8&amp;r2=2.9">Fixed
     typo in function prototype in HTResponse.html</a></li>
   <li>Made <tt>WWW_TraceFlag</tt> unsigned integer in <a
-    href="../src/HTUtils.html">HTUtils.html</a> (was signed) and changed order
-    in wwwsys.html so that netinet/in.h now is included before netinet/tcp.h
-    in wwwsys.html. This was a problem on RC6000.</li>
+    href="../src/HTUtils.html">HTUtils.html</a> (was signed) and changed
+    order in wwwsys.html so that netinet/in.h now is included before
+    netinet/tcp.h in wwwsys.html. This was a problem on RC6000.</li>
   <li>Put in a few checks for invalid function arguments (NULL etc.) in <a
     href="../src/HTEscape.c">HTEscape.c</a> and <a
     href="../src/HTParse.c">HTParse.c</a></li>
-  <li>Added explicit support for HTTP preconditions (the if-* headers) so that
-    they can now be turned on and off on a pr request basis. This affects <a
-    href="../src/HTReqMan.c">HTReqMan.c</a> <a
+  <li>Added explicit support for HTTP preconditions (the if-* headers) so
+    that they can now be turned on and off on a pr request basis. This
+    affects <a href="../src/HTReqMan.c">HTReqMan.c</a> <a
     href="../src/HTReq.html">HTReq.html</a> and <a
     href="../src/HTReqMan.html">HTReqMan.html</a></li>
   <li>Changed the <a name="bestmatch"
@@ -297,8 +350,8 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
   <li><a
     href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47"
     name="Auth1">Fixed problem in the template generation in the access
-    authentication module</a>. This can cause the authentication module to not
-    find the credentials already given.</li>
+    authentication module</a>. This can cause the authentication module to
+    not find the credentials already given.</li>
   <li><a
     href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTHost.c?r1=2.46&amp;r2=2.47">Fixed
     strange deletion of semaphore control for non-persistent
@@ -316,9 +369,9 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
 
 <h3>New Features</h3>
 <ul>
-  <li>Changed the <a href="../src/HTFormat.html#encoding">encoding streamstack
-    builder</a> to support <em>best matching</em> capabilities. This means
-    that you now can register a default decoder like this:
+  <li>Changed the <a href="../src/HTFormat.html#encoding">encoding
+    streamstack builder</a> to support <em>best matching</em> capabilities.
+    This means that you now can register a default decoder like this:
     <code>HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding,
     0.3)</code>, for example where <code>HTIdentityCoding</code> is a coder
     provided by libwww.</li>
@@ -327,13 +380,13 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
     href="../src/HTAccess.html">uploading a document</a>. The <tt>Link:</tt>
     header field is use to represent link relationship between documents</li>
   <li>Changed <a href="../src/HTEscape.html">HTEscape</a> to deal with silly
-    MSDos file type escaping of  the drive name (using ":").</li>
+    MSDos file type escaping of &nbsp;the drive name (using ":").</li>
   <li>Added support for <a
     href="../../ComLine/User/CommandLine.html#auth">automatic authentication
     (!)</a> in the <a href="../../ComLine/">Command Line</a> Tool so that it
     is now possible to authenticate from scripts etc.</li>
-  <li><a href="../cvs.html">Direct access to the CVS repository</a> - checkout
-    libwww and work with the latest version!</li>
+  <li><a href="../cvs.html">Direct access to the CVS repository</a> -
+    checkout libwww and work with the latest version!</li>
   <li>Made sure that we write more often as we check for expired timers in
     HTWriter.c</li>
   <li>Added a "repetitive" flag to timers so that they can be created to say
@@ -344,14 +397,15 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
     configure</a> with the <code>--disable-shared</code> flag and you will
     only get the static version. If you are using libwww as a shared library
     but do <em>not</em> use the <a href="../src/WWWHTML.html">libwww HTML
-    parser</a> then you MUST include this <a href="../src/HTextImp.html">dummy
-    implementation</a> of the <a href="../src/HText.html">HText interface</a>
-    somewhere in your code. The reason for this is that the HText interface
-    may be called (it depends a bit on how your platform supports shared
-    libraries) but an implementation isn't provided.</li>
+    parser</a> then you MUST include this <a
+    href="../src/HTextImp.html">dummy implementation</a> of the <a
+    href="../src/HText.html">HText interface</a> somewhere in your code. The
+    reason for this is that the HText interface may be called (it depends a
+    bit on how your platform supports shared libraries) but an implementation
+    isn't provided.</li>
   <li>Added support for <a href="http://www.tcx.se/">MySQL</a> access in <a
-    href="../src/HTSQL.html">this simple SQL interface</a> which takes care of
-    most os the common problems encountered when talking to an SQL server.
+    href="../src/HTSQL.html">this simple SQL interface</a> which takes care
+    of most os the common problems encountered when talking to an SQL server.
     Currently I use this for <a href="../src/HTSQLLog.html">handling
     logging</a> in <a href="../../Robot/User/CommandLine.html#Logging">the
     webbot </a>but many other features like persistent caching, preferences,
@@ -371,9 +425,9 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
 <h3>Bug Fixes</h3>
 <ul>
   <li>Fixed a bug in the <a href="../src/HTParse.html">generation of relative
-    URIs</a> which caused the creation of incorrect relative URIs. Libwww uses
-    relative URIs in the HTTP referer field and other places to save (often
-    significant) amount of bandwidth.</li>
+    URIs</a> which caused the creation of incorrect relative URIs. Libwww
+    uses relative URIs in the HTTP referer field and other places to save
+    (often significant) amount of bandwidth.</li>
   <li>Decreased default max number of outstanding (pipelined) requests from
     100 to 50</li>
   <li>Does now check whether we get a broken pipe when writing to the network
@@ -387,8 +441,8 @@ href="../Collaborators.html">bug fixes, extensions, and new features</a>.</p>
 
 <h2>Release 5.1l March 25, 1998</h2>
 
-<p>This is a small add-on to 5.1k that was released two days ago. It has a few
-fixes that was discovered while working with the latest <a
+<p>This is a small add-on to 5.1k that was released two days ago. It has a
+few fixes that was discovered while working with the latest <a
 href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
 
 <h3>Bug Fixes</h3>
@@ -414,8 +468,9 @@ href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
 
 <h3>Bug Fixes</h3>
 <ul>
-  <li><a href="Patch/5.1j/">These are the patches</a> that I have received for
-    the current release. They will be applied to this upcoming release.</li>
+  <li><a href="Patch/5.1j/">These are the patches</a> that I have received
+    for the current release. They will be applied to this upcoming
+  release.</li>
   <li>Fixed a few bugs that make <a
     href="http://www.yggdrasil.com/Products/Arena/">Arena</a> run on top of
     the latest version</li>
@@ -448,8 +503,8 @@ href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
   <li>Fixed a problem handling wrong HTTP responses from NCSA HTTPD derived
     servers (they don't include a version number when responding to an
     HTTP/1.1 request)</li>
-  <li>PUT now works much more reliable, and it also works on Windows (at least
-     NT, I haven't tested it on 95).</li>
+  <li>PUT now works much more reliable, and it also works on Windows (at
+    least &nbsp;NT, I haven't tested it on 95).</li>
   <li>Fixed a refresh problem in the <a href="../../LineMode/">Line Mode
     Browser</a> which caused it to sometimes render the screen twice.</li>
 </ul>
@@ -461,8 +516,8 @@ href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
   <li>Changed the referer HTTP header field to use relative URIs instead of
     absolute. This saves a lot of bytes on the wire</li>
   <li>Added support for <a
-    href="../../Robot/User/CommandLine.html#Logging">logging the charset media
-    type parameter</a></li>
+    href="../../Robot/User/CommandLine.html#Logging">logging the charset
+    media type parameter</a></li>
   <li>Added support for <a
     href="../../Robot/User/CommandLine.html#Inlined">logging when the ALT tag
     is missing</a> from inlined images</li>
@@ -503,8 +558,8 @@ href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
 <h3>Bug Fixes</h3>
 <ul>
   <li>Lots of bug fixes in the <a
-    href="../../Protocols/HTTP/Forum/PipeliningNotes.html">pipelining code</a>
-    and increased performance</li>
+    href="../../Protocols/HTTP/Forum/PipeliningNotes.html">pipelining
+    code</a> and increased performance</li>
 </ul>
 
 <h3>New Features</h3>
@@ -544,8 +599,8 @@ href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
     href="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00250.html">this
     bug report</a>.</li>
   <li>A limitation in the current persistent cache is that it only works in
-    non-preemptive mode. Hence if using blocking sockets then the cache should
-    be disabled. This is now the default behavior in the <a
+    non-preemptive mode. Hence if using blocking sockets then the cache
+    should be disabled. This is now the default behavior in the <a
     href="../src/HTProfil.html">libwww profiles</a>.</li>
   <li>Bug fixed that caused the <code>maxsock</code> variable used in
     <code>select()</code> not to be decreased when deleting a socket in the
@@ -562,8 +617,8 @@ href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
     advanced so that we take into account any information given in the
     "<tt>Keep-Alive</tt>" header but isn't for now.</li>
   <li>Fixed a problem when a HTTP/1.1 server sent a response including a
-    <tt>Connection: close</tt> header using the close of the TCP connection as
-    a delimiter. This problem was pointed out in <a
+    <tt>Connection: close</tt> header using the close of the TCP connection
+    as a delimiter. This problem was pointed out in <a
     href="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00254.html">this
     bug report</a></li>
   <li>Fixed security hole handling <a href="../src/HTTP.c">HTTP 305 proxy
@@ -579,7 +634,7 @@ href="http://www.yggdrasil.com/Products/Arena/">Arena browser</a>.</p>
 
 <h3>New Features and APIs</h3>
 <ul>
-  <li>Added support  pipelining</li>
+  <li>Added support &nbsp;pipelining</li>
   <li>Support for zlib based decompression in content encoding</li>
 </ul>
 
@@ -657,8 +712,8 @@ noting.</p>
     not include any notification messages. Any messages to be transmitted to
     the user is now handled by the <a href="../src/HTAlert.html">Alert
     manager</a>.</li>
-  <li>Added <a href="../src/WWWCache.html">persistent cache manager</a> to the
-    <a href="../src/HTProfil.html">client profile</a>.</li>
+  <li>Added <a href="../src/WWWCache.html">persistent cache manager</a> to
+    the <a href="../src/HTProfil.html">client profile</a>.</li>
   <li>Added <i>validation</i> command to the line mode browser</li>
   <li>Changed the cache validation management in the <a
     href="../src/HTReq.html">Request object</a>. The validation scheme is now
@@ -694,19 +749,20 @@ recovering from a closed connection between sent requests. The beta 4 version
 of libwww supports automatic connection recovery and provides the
 functionality for performing pipelining of requests. That is, there can be
 multiple outstanding requests on the same connection In order to do this, the
-release contains  modifications to the <a href="../src/HTChannl.html">Channel
-Object</a>, the <a href="../src/HTHost.html">Host object</a> and the <a
+release contains &nbsp;modifications to the <a
+href="../src/HTChannl.html">Channel Object</a>, the <a
+href="../src/HTHost.html">Host object</a> and the <a
 href="../src/HTNet.html">Net object</a>.</p>
 
 <h3>New Features</h3>
 <ul>
-  <li>Added support for case-insensitive searching for proxies via environment
-    variables</li>
+  <li>Added support for case-insensitive searching for proxies via
+    environment variables</li>
   <li>Added support for proxy authentication</li>
-  <li>Changed handling of proxies so that they are not included in the URL but
-    is now instead part of the request object. This allows for better handling
-    of proxies and also for more freely use of the proxy filter as it doesn't
-    affect the other filters anymore.</li>
+  <li>Changed handling of proxies so that they are not included in the URL
+    but is now instead part of the request object. This allows for better
+    handling of proxies and also for more freely use of the proxy filter as
+    it doesn't affect the other filters anymore.</li>
   <li>Added support for TRACE HTTP method in the <a
     href="../src/HTAccess.html">HTAccess module</a>.</li>
   <li>Updated News DLL and incorporated News patches from <i>Maciej
@@ -752,8 +808,8 @@ href="../src/HTNet.html">Net object</a>.</p>
 
 <p>The <a href="../src/HTFile.html">file access module</a> now does content
 negotiation by default. This means that all local file access (including from
-client applications) <b>do</b> content negotiation when accessing local files.
-Content negotiation can be turned off by setting a flag in the <a
+client applications) <b>do</b> content negotiation when accessing local
+files. Content negotiation can be turned off by setting a flag in the <a
 href="../src/HTReq.html">request object</a>.</p>
 
 <p>A main difference in beta 3 is that we now have a set of "<a
@@ -777,14 +833,14 @@ searching the cache, looking for rule file matching, and logging etc.</p>
 supply this functionality. However, in beta 3 we have split up the
 <code>HTLoadStart</code> and <code>HTLoadTerminte</code> functions into a <a
 href="../src/HTFilter.html">set of filters</a> which each perform only a
-single function, for example looking for proxies. The split has two functions:
-first it shows how you can use filtes to add new functionality to the Library
-and second it can be used by more types of applications. A result of the new
-filters is that we also have default redirection and authentication filters so
-you don't have to provide this anymore.</p>
+single function, for example looking for proxies. The split has two
+functions: first it shows how you can use filtes to add new functionality to
+the Library and second it can be used by more types of applications. A result
+of the new filters is that we also have default redirection and
+authentication filters so you don't have to provide this anymore.</p>
 
-<p>The <a href="../src/HTFilter.html">filters</a> are set up as part of the <a
-href="../src/HTProfil.html">profiles</a> so you will normally not have to
+<p>The <a href="../src/HTFilter.html">filters</a> are set up as part of the
+<a href="../src/HTProfil.html">profiles</a> so you will normally not have to
 register them individually.</p>
 
 <h3>New features and Changes</h3>
@@ -803,8 +859,8 @@ register them individually.</p>
     interface</a></li>
   <li>Updated the <a href="../src/HTIcons.html">Icon module</a> and added
     icons to the distribution file</li>
-  <li>Added a <a href="../src/HTSChunk.html">Stream to Chunk converter </a>for
-    easier conversion of streams into dynamic memory buffers</li>
+  <li>Added a <a href="../src/HTSChunk.html">Stream to Chunk converter
+    </a>for easier conversion of streams into dynamic memory buffers</li>
   <li>Introduced <a href="../src/HTLib.html">HTLib</a> as a new core module.
     It contains generic information about the core which used to be in the
     HTAccess module.</li>
@@ -812,12 +868,12 @@ register them individually.</p>
     HTTP/1.1 specification is now in place, we still need some headers and
     some features but this version can be considered to be compliant.</li>
   <li>Added suport for proxy authentication as specified by HTTP/1.1</li>
-  <li>Added support for case-insensitive searching for proxies via environment
-    variables</li>
-  <li>Changed handling of proxies so that they are not included in the URL but
-    is now instead part of the request object. This allows for better handling
-    of proxies and also for more freely use of the proxy filter as it doesn't
-    affect the other filters anymore.</li>
+  <li>Added support for case-insensitive searching for proxies via
+    environment variables</li>
+  <li>Changed handling of proxies so that they are not included in the URL
+    but is now instead part of the request object. This allows for better
+    handling of proxies and also for more freely use of the proxy filter as
+    it doesn't affect the other filters anymore.</li>
 </ul>
 
 <h3>Bug Fixes</h3>
@@ -836,19 +892,21 @@ register them individually.</p>
 
 <h3>New Features</h3>
 <ul>
-  <li>Introduced GNU autoconf configure script for compiling on Unix platforms
-    instead of the old BUILD script. This should make it a lot easier to
-    compile on Unix as we get all the advantages of GNU autoconf.</li>
+  <li>Introduced GNU autoconf configure script for compiling on Unix
+    platforms instead of the old BUILD script. This should make it a lot
+    easier to compile on Unix as we get all the advantages of GNU
+  autoconf.</li>
   <li>Introduction of the <a href="../src/HTUser.html">HTUserprofile Class
     </a>which keeps track of a "user" known to the Library</li>
-  <li>New access authentication interface allowing for dynamic registration of
-    new access authentication mechanisms. It provides an easy API for hooking
-    in new schemes.</li>
-  <li>Improved handling of trace messages which allows for easy redirection of
-    trace messages</li>
-  <li>Support for registration of content coders/decoders and content transfer
-    encoders/decoders. This is done the same way as for media types by
-    registering a set of streams that can handle the various encodings.</li>
+  <li>New access authentication interface allowing for dynamic registration
+    of new access authentication mechanisms. It provides an easy API for
+    hooking in new schemes.</li>
+  <li>Improved handling of trace messages which allows for easy redirection
+    of trace messages</li>
+  <li>Support for registration of content coders/decoders and content
+    transfer encoders/decoders. This is done the same way as for media types
+    by registering a set of streams that can handle the various
+  encodings.</li>
   <li>Support for <i>chunked</i> decoding</li>
   <li>Introduction of the <a href="../src/HTHost.html">HTHost Class</a> which
     keeps track of information about remote hosts</li>
@@ -864,15 +922,17 @@ register them individually.</p>
     demonstrated in <a href="../../LineMode/src/HTBrowse.c">HTBrowse</a>.</li>
   <li>The <a href="../src/HTStream.html">HTStream module</a> has been created
     containing a set of basiv streams such as an error stream etc.</li>
-  <li>Introduction of the <a href="../src/HTTrans.html">HTTransport Class</a>.
-    This allows for dynamic registration of transport protocols such as for
-    example the W3Mux protocol, TCP access, local file access etc.</li>
+  <li>Introduction of the <a href="../src/HTTrans.html">HTTransport
+    Class</a>. This allows for dynamic registration of transport protocols
+    such as for example the W3Mux protocol, TCP access, local file access
+  etc.</li>
   <li>All MIME parsing is now done with registered parsers. The <a
-    href="../src/HTMIME.html">HTMIME</a> module only unwraps the  MIME header
-    fields and calls the best parser. The header parsing origonally done in
-    HTMIME can be found in <a href="../src/HTInit.c">HTInit.c</a> and is
-    registered with <a href="../src/HTInit.html">HTMIMEInit</a>. This call is
-    demonstrated in <a href="../../LineMode/src/HTBrowse.c">HTBrowse</a>.</li>
+    href="../src/HTMIME.html">HTMIME</a> module only unwraps the &nbsp;MIME
+    header fields and calls the best parser. The header parsing origonally
+    done in HTMIME can be found in <a href="../src/HTInit.c">HTInit.c</a> and
+    is registered with <a href="../src/HTInit.html">HTMIMEInit</a>. This call
+    is demonstrated in <a
+  href="../../LineMode/src/HTBrowse.c">HTBrowse</a>.</li>
 </ul>
 
 <h2><a name="4.0D">Release 4.0D February 12 1996</a></h2>
@@ -882,8 +942,8 @@ data from memory. This is the full list of changes:</p>
 <ul>
   <li>Optimized HTTP request header by taken away an "Accept:" line pr
     accepted content type and instead use the commna notation.</li>
-  <li>Introduced <a href="../src/HTMemory.html">HTMemory</a> as dynamic memory
-    handler. This module is a part of the <a
+  <li>Introduced <a href="../src/HTMemory.html">HTMemory</a> as dynamic
+    memory handler. This module is a part of the <a
     href="../src/WWWUtil.html">WWWUtils interface</a> and it handles better
     management of dynamic memory. You can find a full description in the <a
     href="Using/Memory.html">User's Guide.</a></li>
@@ -903,8 +963,8 @@ data from memory. This is the full list of changes:</p>
     event loop and is therefore highly portable. It is not intended to be a
     full featured server but a test implementation which shows how to use the
     Library in server applications.</li>
-  <li>Bug fixed that caused the following problem: If there hasn't been made a
-    connection between the net-&gt;target and the request-&gt;output_stream
+  <li>Bug fixed that caused the following problem: If there hasn't been made
+    a connection between the net-&gt;target and the request-&gt;output_stream
     then the latter is not freed if the request is interrupted.</li>
   <li>The <em>referer URL</em> header can now contain a unlimited length
   URL</li>
@@ -917,9 +977,9 @@ data from memory. This is the full list of changes:</p>
     allows errors from writing to a file to propagate back to the request
     object.</li>
   <li>The three streams <code>HTSaveLocally</code>,
-    <code>HTSaveAndExecute</code> and <code>HTSaveAndCallBack</code> have been
-    optimized and they now all use the <a href="../src/HTFWrite.html">HTFWrite
-    stream creation method</a></li>
+    <code>HTSaveAndExecute</code> and <code>HTSaveAndCallBack</code> have
+    been optimized and they now all use the <a
+    href="../src/HTFWrite.html">HTFWrite stream creation method</a></li>
   <li>We have a new module called <a href="../src/HTTPGen.html">HTTPGen</a>.
     It generates general HTTP headers. These headers were a part of the MIME
     header generator, but by isolating them, we can use the MIME header as a
@@ -944,10 +1004,11 @@ data from memory. This is the full list of changes:</p>
 <h2>Release 4.0C January 23 1996</h2>
 <ul>
   <li>Automatic redirection and Access authentication has been take n out of
-    the HTTP module. Instead the new mechanism with request callback functions
-    are used so that the application can register handlers to handle these
-    situations. The reason for this change is that not all applications are
-    interested in having this functionality performed automatically.</li>
+    the HTTP module. Instead the new mechanism with request callback
+    functions are used so that the application can register handlers to
+    handle these situations. The reason for this change is that not all
+    applications are interested in having this functionality performed
+    automatically.</li>
   <li>Authentication handler and redirection handler added to both the Line
     Mode Browser and the Command Line Tool</li>
   <li>Added three possible return codes on which a request callback function
@@ -1020,11 +1081,11 @@ data from memory. This is the full list of changes:</p>
     href="../src/HTTCP.html">HTDoListen() function</a></li>
   <li>Added a parameter for handling <code>server modules</code> to the <a
     href="../src/HTProt.html">Protocol</a> module. An access scheme (for
-    example HTTP, can now be registered together with a <em>client module</em>
-    and a <em>server modele</em></li>
+    example HTTP, can now be registered together with a <em>client
+    module</em> and a <em>server modele</em></li>
   <li>Added <a href="../src/HTAccess.html">HTServDocument</a> to the <a
-    href="../src/HTAccess.html">HTAccess module</a> in order to better support
-    server applications.</li>
+    href="../src/HTAccess.html">HTAccess module</a> in order to better
+    support server applications.</li>
   <li>Made <a href="../src/WWWNews.html">WWWNews.html</a>, <a
     href="../src/WWWHTTP.html">WWWHTTP.html</a>, <a
     href="../src/WWWMIME.html">WWWMIME.html</a>, and <a
@@ -1042,11 +1103,11 @@ data from memory. This is the full list of changes:</p>
   <li>Changed <a href="../src/HTAlert.html">HTAlert</a> to be a registration
     module instead of a module to be overriden by an application. Now you can
     register a <a href="../src/HTDialog.html">Dialog</a> module as a callback
-    function which is a much more generic moduel. It also means that there are
-    no more English text in the <a href="../src/WWWCore.html">Core</a> of the
-    Library - it's all in a application module. The Library provides a default
-    implementation in the new <a href="../src/HTDialog.html">HTDialog</a>
-    module.</li>
+    function which is a much more generic moduel. It also means that there
+    are no more English text in the <a href="../src/WWWCore.html">Core</a> of
+    the Library - it's all in a application module. The Library provides a
+    default implementation in the new <a
+    href="../src/HTDialog.html">HTDialog</a> module.</li>
   <li>Taken the WWW relevant stuff out of <a
     href="../src/HTString.html">HTString</a> and put it into the new module
     called <a href="../src/HTWWWStr.html">HTWWWStr</a>. The latter is a part
@@ -1060,37 +1121,39 @@ data from memory. This is the full list of changes:</p>
       <dt><a href="../src/WWWUtil.html">WWWUtil.h</a></dt>
         <dd>The WWW Utility module contains a lot of the functionality that
           makes it possible to make applications, that is container modules
-          for data objects, basic string functionality etc. This module is the
-          basis for all of the following modules and is used extensively.</dd>
+          for data objects, basic string functionality etc. This module is
+          the basis for all of the following modules and is used
+        extensively.</dd>
       <dt><a href="../src/WWWCore.html">WWWCore.h</a></dt>
-        <dd>The WWW Core module is a set of registration modules that glues an
-          application together. It contains no real functionality in itself;
-          it is for example not capable of loading a HTML document. It only
-          provides a large set of hooks which can be used to add functionality
-          to the Library and to give an application real life. We will here a
-          lot more to the structure of the core, and much of this guide is
-          actually describing how to add functionality to the core.</dd>
+        <dd>The WWW Core module is a set of registration modules that glues
+          an application together. It contains no real functionality in
+          itself; it is for example not capable of loading a HTML document.
+          It only provides a large set of hooks which can be used to add
+          functionality to the Library and to give an application real life.
+          We will here a lot more to the structure of the core, and much of
+          this guide is actually describing how to add functionality to the
+          core.</dd>
       <dt><a href="../src/WWWLib.html">WWWLib.h</a></dt>
         <dd>This include is the main include file for the Library. It
           basically consists of the WWWUtil.h and the WWWCore.h so that the
           application only needs to include this one instead of two.</dd>
       <dt><a href="../src/WWWApp.html">WWWApp.h</a></dt>
-        <dd>This module contains a huge set of modules that can be hooked into
-          the Core Library and make the application work. In contrast to the
-          Core part, you can pick exactly the modules you want from the
-          WWWApp.h in order to create your special application whether it is a
-          server, a client, a proxy, a robot or any other Web
+        <dd>This module contains a huge set of modules that can be hooked
+          into the Core Library and make the application work. In contrast to
+          the Core part, you can pick exactly the modules you want from the
+          WWWApp.h in order to create your special application whether it is
+          a server, a client, a proxy, a robot or any other Web
         application.</dd>
     </dl>
   </li>
-  <li><a href="../src/HTGuess.html">HTGuess stream</a> is now a converter just
-    like any other converter, and it can be registered by the application if
-    wanted</li>
-  <li><code>HTClientHost</code> (global var) is removed from the Library as it
-    wasn't use there at all</li>
-  <li>Introduced <a href="../src/HTHome.html">HTHome module</a> as part of the
-    application specific part of the Library. It contains handy functions for
-    the application.</li>
+  <li><a href="../src/HTGuess.html">HTGuess stream</a> is now a converter
+    just like any other converter, and it can be registered by the
+    application if wanted</li>
+  <li><code>HTClientHost</code> (global var) is removed from the Library as
+    it wasn't use there at all</li>
+  <li>Introduced <a href="../src/HTHome.html">HTHome module</a> as part of
+    the application specific part of the Library. It contains handy functions
+    for the application.</li>
   <li>HTGetCurrentDirectoryURL() and HTHomeAnchor() are moved from HTAccess.c
     to the new module HTHome.c</li>
   <li>HTImProxy is taken out as it can be handled in the setup of the
@@ -1102,11 +1165,11 @@ data from memory. This is the full list of changes:</p>
     can register any action to be executed either <em>before</em> and/or
     <em>after</em> a request is done. This is described in detail in the <a
     href="Using/Net.html">User's Guide.</a></li>
-  <li><a href="../src/HTHome.html">HTHome module</a> contains default callback
-    functions to be called before and after a request.</li>
+  <li><a href="../src/HTHome.html">HTHome module</a> contains default
+    callback functions to be called before and after a request.</li>
   <li>Removed the HTInputSocket_get* functions from <a
-    href="../src/HTSocket.html"> HTSocket</a> as they are no more needed (they
-    were non-reentrant and belonged to the old interface)</li>
+    href="../src/HTSocket.html"> HTSocket</a> as they are no more needed
+    (they were non-reentrant and belonged to the old interface)</li>
   <li>Added the following HTLib_* functions to the <a
     href="../src/HTAccess.html">HTAccess module</a>:
     <ul>
@@ -1164,12 +1227,12 @@ object is an opaque object.</p>
     href="../src/WWWApp.html">WWWApp.h</a> which contains applications
     specific modules. None of these modules are actually required to compile
     and link the Library, but the application can use them if needed.</li>
-  <li>None of the access modules (HTTP, FTP, NNTP, etc.) are set up by default
-    anymore. This is now for the applications to do.</li>
+  <li>None of the access modules (HTTP, FTP, NNTP, etc.) are set up by
+    default anymore. This is now for the applications to do.</li>
   <li>Changed <em>TRACE</em> to <em>WWWTRACE</em> as it interferes with macro
     on NT</li>
-  <li>The balanced binary tree in <a href="../src/HTBTree.html">HTBtree</a> is
-    not used anymore. The functionality is now provided by the new <a
+  <li>The balanced binary tree in <a href="../src/HTBTree.html">HTBtree</a>
+    is not used anymore. The functionality is now provided by the new <a
     href="../src/HTArray.html"> HTArray module</a> that is a dynamic array of
     pointers. It is much like the <a href="../src/HTChunk.html">HTChunk
     module</a> but for pointers instead of dynamic strings. The advantage is
@@ -1181,34 +1244,34 @@ object is an opaque object.</p>
   <li>It is now possible to register a call back function together with a
     timeout that is used in the select call of the event loop. When the
     select() call times out, the call back function is called. The
-    registration can either be so that the call back <em>always</em> is called
-    when that the select call times out <em>or</em> only when Library sockets
-    are in use.</li>
+    registration can either be so that the call back <em>always</em> is
+    called when that the select call times out <em>or</em> only when Library
+    sockets are in use.</li>
   <li>We have a port to PowerMac and 68K!!! This has been provided by Steven
     T. Roussey &lt;sroussey@eng.uci.edu&gt; and Brad Barber
     &lt;barber@well.com&gt;</li>
   <li>We have changed HTThread to <a href="../src/HTNet.c"> HTNet.c</a> as
-    thread was too confusing. This module has been cleaned up and rewritten so
-    that <a href="../src/HTNet.c">HTNet.c</a> now contains the Net manager.
-    The Net manager controls the net access so that we only keeps a specified
-    amount of sockets open simultaneously (called a request queue). It also
-    partly controls the management of persistent connections together with the
-    <a href="../src/HTDNS.html"> DNS Manager.</a></li>
+    thread was too confusing. This module has been cleaned up and rewritten
+    so that <a href="../src/HTNet.c">HTNet.c</a> now contains the Net
+    manager. The Net manager controls the net access so that we only keeps a
+    specified amount of sockets open simultaneously (called a request queue).
+    It also partly controls the management of persistent connections together
+    with the <a href="../src/HTDNS.html"> DNS Manager.</a></li>
   <li>The <em>HTRequest Object</em> is now known to the <a
     href="../src/HTReq.html">Request Manager</a> only. It is accessible
     through a lot of methods just like the <a
     href="../src/HTAnchor.html">Anchor object</a> etc. The <a
-    href="../src/HTAccess.html">HTAccess module</a> is now a user interface to
-    the Request Manager but it doesn't have to be used - you can use the
+    href="../src/HTAccess.html">HTAccess module</a> is now a user interface
+    to the Request Manager but it doesn't have to be used - you can use the
     Request Manager directly but often it is easier to go through the Access
     Module.</li>
   <li>The Protocol object has been turned into an object internal to the <a
     href="../src/HTProt.html">Protocol manager</a>. This means that protocol
     information can be accessed via a set of methods provided by the
   manager.</li>
-  <li>We have changed case sensitive search to insensitive search when finding
-    an access methods (HTTP, FTP, telnet etc.) for a URL. This catches silly
-    errors in URLs like <em>HTTP://www.foo.com</em></li>
+  <li>We have changed case sensitive search to insensitive search when
+    finding an access methods (HTTP, FTP, telnet etc.) for a URL. This
+    catches silly errors in URLs like <em>HTTP://www.foo.com</em></li>
   <li>The static protocol declarations have been replaced with a set of
     parameters to the creation method of a protocol object in the <a
     href="../src/HTProt.html"> Protocol Manager</a> which is more handy.</li>
@@ -1217,9 +1280,9 @@ object is an opaque object.</p>
     possible to <em>unregister</em> a protocol at runtime. If you are on a
     platform with dynamic linking (for example DLLs) then this can save a lot
     of space.</li>
-  <li>Introduction of application call back function for memory cache. This is
-    a part of separating the <a href="../src/HText.html">HText module</a> and
-    also to make the memory cache manager more flexible. An example
+  <li>Introduction of application call back function for memory cache. This
+    is a part of separating the <a href="../src/HText.html">HText module</a>
+    and also to make the memory cache manager more flexible. An example
     implementation can be found in the <a
     href="../../LineMode/src/GridText.c">GridText module</a> in the <a
     href="../../LineMode/">Line Mode Browser</a>.</li>
@@ -1232,14 +1295,14 @@ object is an opaque object.</p>
   <li>Added <code>result</code> field to the <a
     href="../src/HTAnchor.html#links"> HTLink</a> so that the result of a
     posting operation is stored in the link object. This means that the
-    application can see which post operations succeeded and which didn't. This
-    can for example be used in a GUI client to show the relations between the
-    source and destination anchor as "dim" links.</li>
-  <li>Fixed bug in put mechanism that caused destinations to accumulate in the
-    postweb. Now `old' destinations are still registered but not included in a
-    new postweb - they can, however, be discarded all together, but often the
-    information is nice to have. On a GUI client, it can be shown as 'dimmed'
-    destinations.</li>
+    application can see which post operations succeeded and which didn't.
+    This can for example be used in a GUI client to show the relations
+    between the source and destination anchor as "dim" links.</li>
+  <li>Fixed bug in put mechanism that caused destinations to accumulate in
+    the postweb. Now `old' destinations are still registered but not included
+    in a new postweb - they can, however, be discarded all together, but
+    often the information is nice to have. On a GUI client, it can be shown
+    as 'dimmed' destinations.</li>
   <li>Removed remaining outputs directly to stdout using <em>fprintf()</em>.
     Now all goes through <a href="../src/HTAlert.html"> HTAlert module</a>.
     This was a problem in some of the protocol modules as well (especially in
@@ -1256,14 +1319,15 @@ object is an opaque object.</p>
     address. You can now control the garbage collection of DNS entries based
     on time. The DNS object keeps also information about the remote server
     (class of request, for example HTTP or FTP and the type of server, for
-    example HTTP/1.0, HTTP/0.0 etc.). This means that it is possible to adjust
-    a request to a remote server once the type is known. For example, the
-    Library now distinguishes between HTTP servers version 0.9, 1.0, and 1.1.
-    New classes and versions can be registered at run time just like protocol
-    modules.</li>
-  <li><a href="../src/HTTCP.html">HTDoConnect</a> rewritten as a state machine
-    which makes it a lot easier to understand and change. It is furthermore
-    and important part of the persistent connection management.</li>
+    example HTTP/1.0, HTTP/0.0 etc.). This means that it is possible to
+    adjust a request to a remote server once the type is known. For example,
+    the Library now distinguishes between HTTP servers version 0.9, 1.0, and
+    1.1. New classes and versions can be registered at run time just like
+    protocol modules.</li>
+  <li><a href="../src/HTTCP.html">HTDoConnect</a> rewritten as a state
+    machine which makes it a lot easier to understand and change. It is
+    furthermore and important part of the persistent connection
+  management.</li>
   <li>Removed <code>HTMaxRedirect</code> as a global variable. It is now
     private to <a href="../src/HTReq.html">Request manager</a> with two
     methods to access it</li>
@@ -1304,14 +1368,15 @@ object is an opaque object.</p>
     module now also uses non-blocking I/O as the HTTP module and the file
     module. A result of using streams is that you now can obtain the "real"
     source (the ASCII object sent by the gopher server) by using
-    <em>WWW_SOURCE</em> as the output format. Before the source was equivalent
-    of the source of the HTML object that was generated on the fly.</li>
+    <em>WWW_SOURCE</em> as the output format. Before the source was
+    equivalent of the source of the HTML object that was generated on the
+  fly.</li>
   <li>Updated <a href="../src/HTTelnet.c">Telnet module</a> to understand URL
-    format <em>user:passwd@host:port</em>. Cleaned up the code and fixed a set
-    of bugs at the same time.</li>
+    format <em>user:passwd@host:port</em>. Cleaned up the code and fixed a
+    set of bugs at the same time.</li>
   <li>Support for <em>Host</em> header in <a href="../src/HTTPReq.html">HTTP
-    Request module</a>. Actually this was <em>Orig-URI</em> but it was changed
-    on the fly.</li>
+    Request module</a>. Actually this was <em>Orig-URI</em> but it was
+    changed on the fly.</li>
   <li>Fixed bug on HTTP redirect if no body part was present. This is the new
     "trend" especially from Netscape's server. The old servers always sent
     back a small HTML document explaining if the client didn't understand
@@ -1321,17 +1386,17 @@ object is an opaque object.</p>
 <h3>Stream Modules</h3>
 <ul>
   <li>We now have a <a href="../src/HTBound.html">MIME multipart parser
-    stream</a> which supports nested MIME multipart messages. This stream sets
-    up a new MIME parser stream each time it finds a new body. Preamble and
-    epilog messages are ignored by default but can be redirected to the
-    special <a href="../src/HTReq.html">Debug Stream</a> output of the Request
-    object.</li>
+    stream</a> which supports nested MIME multipart messages. This stream
+    sets up a new MIME parser stream each time it finds a new body. Preamble
+    and epilog messages are ignored by default but can be redirected to the
+    special <a href="../src/HTReq.html">Debug Stream</a> output of the
+    Request object.</li>
   <li>We have added a content counter stream and a buffer stream in <a
-    href="../src/HTConLen.html">HTConLen module</a>. This can be used to count
-    the number of bytes in a data object either to be sent to a remote server
-    or as a check of a received body. Together with the Content Length counter
-    stream there is also a buffer stream that can buffer up to a certain
-    amount of dat before it goes transparent.</li>
+    href="../src/HTConLen.html">HTConLen module</a>. This can be used to
+    count the number of bytes in a data object either to be sent to a remote
+    server or as a check of a received body. Together with the Content Length
+    counter stream there is also a buffer stream that can buffer up to a
+    certain amount of dat before it goes transparent.</li>
   <li>We have replaced the internal format identifier <code>www/mime</code>
     with the MIME conforming <code>message/rfc822</code> format. This may
     affect the setup of stream converters that used the old format.</li>
@@ -1351,18 +1416,18 @@ object is an opaque object.</p>
     anywhere anymore except where necessary. The structured stream definition
     can be found in <a href="../src/HTStruct.html">HTStruct module</a></li>
   <li>Make registration of callback function for unknown MIME headers in the
-    <a href="../src/HTMIME.html">MIME parser</a>. The application can now more
-    easily experiment with new headers. The registration process is described
-    in the section <a href="Using.html">How to get Started Writing an
-  App</a></li>
+    <a href="../src/HTMIME.html">MIME parser</a>. The application can now
+    more easily experiment with new headers. The registration process is
+    described in the section <a href="Using.html">How to get Started Writing
+    an App</a></li>
   <li>Added support for png (lossless graphics format) (patch from unknown?)
     into the <a href="../src/HTGuess.html">Guess stream</a></li>
   <li>Bug fixed in <a href="../src/HTML.html">HTML parser</a> It couldn't
     handle more than 20 nested HTML tags which can happen for example in
     auto-generated HTML documents.</li>
   <li>HTLoadError taken out completely. Replaced by the <a
-    href="../src/HTError.html">error manager</a>. It was for (stupid) historic
-    reasons put into the HTML parser.</li>
+    href="../src/HTError.html">error manager</a>. It was for (stupid)
+    historic reasons put into the HTML parser.</li>
 </ul>
 
 <h3>Application Modules</h3>
@@ -1371,17 +1436,17 @@ object is an opaque object.</p>
     <a href="../src/HTAlert.c">HTAlert.c</a>. It can now be reached via two
     methods in the module.</li>
   <li>All functions in the <a href="../src/HTAlert.html">Alert Module</a> now
-    has a request object as part of the calling parameters. The reason is that
-    then the implementation of this module can call a registered call back
-    function (as described above) so that the user message can be put into the
-    right context.</li>
-  <li>Mem leak fixed in <a href="../src/HTLog.html">HTLog module</a> and added
-    result of request to the log file. The log module is no longer called in
-    the Library at all so if you do not use then it is not included in the
-    application.</li>
-  <li>Rewritten <a href="../src/HTHist.html">HTHistory module</a> to perform a
-    better history mechanism - the old version did not work properly. Some of
-    the new features are
+    has a request object as part of the calling parameters. The reason is
+    that then the implementation of this module can call a registered call
+    back function (as described above) so that the user message can be put
+    into the right context.</li>
+  <li>Mem leak fixed in <a href="../src/HTLog.html">HTLog module</a> and
+    added result of request to the log file. The log module is no longer
+    called in the Library at all so if you do not use then it is not included
+    in the application.</li>
+  <li>Rewritten <a href="../src/HTHist.html">HTHistory module</a> to perform
+    a better history mechanism - the old version did not work properly. Some
+    of the new features are
     <ul>
       <li>Support for multiple history lists. You can use the context
         information in the request object to find the right list at any given
@@ -1419,8 +1484,8 @@ object is an opaque object.</p>
     href="http://www.ics.uci.edu/pub/ietf/uri/rfc1808.txt">RFC 1808
     Specification</a></li>
   <li>Fixed bug in <a href="../src/HTParse.c">HTCanon()</a> that got confused
-    about &lt;http://teller.datawave.net:80/test/../imx/weelogo.gif&gt; thanks
-    to Henry Minsky</li>
+    about &lt;http://teller.datawave.net:80/test/../imx/weelogo.gif&gt;
+    thanks to Henry Minsky</li>
   <li><a href="../src/HTParse.c">HTCanon()</a> made private to <a
     href="../src/HTParse.html">HTParse module</a> as it is called from
     HTSimplify() only</li>
@@ -1439,9 +1504,10 @@ object is an opaque object.</p>
 <h2>Library 3.1pre3 Release Notes, November 13</h2>
 
 <p>This is a last test of the 3.1 release. The official 3.1 release will
-follow in a few days. The purpose of this third pre-release is simply to avoid
-any obvious problems while we still have time. Very little will change in the
-final release! The big difference is that Windows NT is fully supported!</p>
+follow in a few days. The purpose of this third pre-release is simply to
+avoid any obvious problems while we still have time. Very little will change
+in the final release! The big difference is that Windows NT is fully
+supported!</p>
 
 <h3>New Features and Interfaces</h3>
 <ul>
@@ -1496,9 +1562,9 @@ rewritten, and some other important features have been incorporated. The Post
 Web model is described in the new documentation, see the reference below.</p>
 
 <p>In addition to the new set of features and functionality this release also
-is the first example of source code distributed under the W3C conditions. This
-means that the code is available to consortium members only within a month
-from the release date.</p>
+is the first example of source code distributed under the W3C conditions.
+This means that the code is available to consortium members only within a
+month from the release date.</p>
 
 <p>A lot of the work put into this release has been to update the API of the
 Library. This is mainly described in the new "User Guide", so please do read
@@ -1518,9 +1584,9 @@ this and remember that comments are welcome!</p>
   </li>
   <li><a href="../src/HTFile.html">HTFile module</a> is completely rewritten
     as a state machine much like the <a href="../src/HTTP.html">HTTP
-    module</a>. It is now possible to have non-blocking, interruptible I/O and
-    to PUT and POTS from a local file as well as from a remote HTTP
-  server.</li>
+    module</a>. It is now possible to have non-blocking, interruptible I/O
+    and to PUT and POTS from a local file as well as from a remote HTTP
+    server.</li>
   <li>HTCopyAnchor is rewritten to use the PostWeb</li>
   <li>The thread model is extended to include a HTThread_kill() function so
     that threads are terminated immediately upon request</li>
@@ -1532,13 +1598,13 @@ this and remember that comments are welcome!</p>
   <li>Taken socket read/write functionality out of HTFormat and created <a
     href="../src/HTSocket.html">HTSocket module</a> which handles all the
     basic network access</li>
-  <li>Spawned <a href="../src/HTMethod.html">HTMethod module</a> from HTAccess
-    module</li>
+  <li>Spawned <a href="../src/HTMethod.html">HTMethod module</a> from
+    HTAccess module</li>
   <li>Better handling of WAIS src files and use of gateway information</li>
   <li>Upgraded the WAIS to handle version 0.5 of the freeWAIS library.</li>
   <li>Better handling of media types from WAIS responses (guessing)</li>
-  <li>All HTTP headers can now be transmitted and received and they can all be
-    enabled/disabled using a bitmask.</li>
+  <li>All HTTP headers can now be transmitted and received and they can all
+    be enabled/disabled using a bitmask.</li>
   <li>New functions to support accept encoding, language, and charset</li>
   <li>Guess stream now handles macbinhex format</li>
   <li>No more circular references in any of the Library include files</li>
@@ -1590,8 +1656,8 @@ so please do read this and remember that comments are welcome!</p>
   <li>Separated HTStructured into its own stream definition module (<a
     href="../src/HTStruct.html">HTStruct.h</a>)</li>
   <li>Introduced STREAM_TRACE and BIND_TRACE as new debug flag</li>
-  <li>Original reason messages are now passed back as a parameter by the error
-    handler when talking to a remote HTTP server</li>
+  <li>Original reason messages are now passed back as a parameter by the
+    error handler when talking to a remote HTTP server</li>
   <li>Introduction of error_format in the request object. This can be used to
     get debug information out of the Library</li>
   <li>Better handling of media types in FTP and Gopher including recognition
@@ -1610,15 +1676,15 @@ so please do read this and remember that comments are welcome!</p>
 </big></big></b><big><big><i><a href="http://www.cern.ch">CERN</a> terminated
 its direct engagement in the World Wide Web with the release of Library
 version 3.0. The code is now developed and maintained by <a
-href="http://www.w3.org">W3C</a>. </i></big></big></p>
+href="http://www.w3.org">W3C</a>.</i></big></big></p>
 
 <h2>Library 3.0, Mar 21 1995</h2>
 
 <p>Many of the modifications and new features are mentioned under the
 pre-releases.</p>
 <ul>
-  <li>Changed all <em>float</em> to <em>double</em> in order get it consistent
-    with the working floating type in C</li>
+  <li>Changed all <em>float</em> to <em>double</em> in order get it
+    consistent with the working floating type in C</li>
   <li>Fixed problems with memory in HTML.c</li>
   <li>Introduced definition of <code>errno</code> constants for WIN32, as
     WinSock doesn't define them using BSD notation</li>
@@ -1647,12 +1713,13 @@ pre-releases.</p>
     </ul>
   </li>
   <li>Move EnableFrom to <a href="../src/HTAccess.html">HTAccess module</a>.
-    This variable determines whether the HTTP header <em>From: </em> should be
-    generated. The default value is <em>off</em></li>
+    This variable determines whether the HTTP header <em>From: </em> should
+    be generated. The default value is <em>off</em></li>
   <li>Sockets are no longer assumed to be small, non-negative integers, but
     uses macros. This should ensure portability to Windows NT.</li>
-  <li>Introduced socerrno and errno so that WinSock can use its own definition
-    whereas `local' errno can still use the well-known version.</li>
+  <li>Introduced socerrno and errno so that WinSock can use its own
+    definition whereas `local' errno can still use the well-known
+  version.</li>
   <li>Introduced <code>error_stream</code> as field a HTRequest object. All
     information contained in HTTP responses which don't naturally contain a
     body entity, for example redirection codes (3xx) and client error codes
@@ -1692,15 +1759,15 @@ pre-releases.</p>
     <code>HTEventRequestTerminate()</code> even when the request never enters
     the eventloop. This is necesary so that the client can cancel busy icons,
     spinning globes etc.</li>
-  <li>Introduced <code>EVENT_TERM</code> as return code for the HTEventHandler
-    function</li>
+  <li>Introduced <code>EVENT_TERM</code> as return code for the
+    HTEventHandler function</li>
   <li><code>HTEventHandler() now</code> has a double pointer so that the
     request pointer can be modified from the client</li>
   <li>Fixed bug in <code>HTSearch()</code> and <code>HTLoadRelative()</code>
     where wrong return code was returned (BOOL instead of int)</li>
   <li>Introduced BlockingIO field in the request object to override the the
-    mode registered in the protocol object. This can be used as an easy way to
-    make blocking I/O</li>
+    mode registered in the protocol object. This can be used as an easy way
+    to make blocking I/O</li>
 </ul>
 
 <h2>Library 3.0 Prerelease 1, Nov 26 1994</h2>
@@ -1712,14 +1779,14 @@ pre-releases.</p>
   <li>Introduced the modules HTThread and HTEvent. HTEvent is the client
     interface when using multithreaded functionality and HTThread is the
     internal socket management</li>
-  <li>All __STDC__ defines now concentrated to HTUtils.html where it is called
-    _STANDARD_CODE_ so that _cplusplus also handles this</li>
+  <li>All __STDC__ defines now concentrated to HTUtils.html where it is
+    called _STANDARD_CODE_ so that _cplusplus also handles this</li>
   <li>`new' and `template' not used a names anymore (confuses C++)</li>
   <li>Removed from field in HTRequest object. This is now handled by the
     functions HTGetMailAddres and HTSetMailAddress and the flag HTEnableFrom
     in the HTTP module.</li>
-  <li>Changed HTSetMailAddress so that a call with parameter equals NULL or ""
-    clears the contents of the mail-address.</li>
+  <li>Changed HTSetMailAddress so that a call with parameter equals NULL or
+    "" clears the contents of the mail-address.</li>
   <li>The number of parameters to Streamstack function is now compatible with
     the arguments to a stream converter, so that we don't loose any
     information while putting up the stream stack.</li>
@@ -1730,16 +1797,16 @@ pre-releases.</p>
   <li>The stream methods `abort' and `_free' now returns int instead of void.
     On success from these methods `_free' returns 0 and `abort' return
   EOF</li>
-  <li>Taken HTEscape and HTUnescape and put them into the HTEscape module. The
-    functionality is the same but now they can be used in utility programs
-    without linking in the whole Library</li>
+  <li>Taken HTEscape and HTUnescape and put them into the HTEscape module.
+    The functionality is the same but now they can be used in utility
+    programs without linking in the whole Library</li>
 </ul>
 
 <h3>Bug Fixes</h3>
 <ul>
   <li>Removed bug in WAIS module which caused a lot of core dumps</li>
-  <li>Removed bug in format classification from URL suffix in HTGoper when the
-    file was plaintext</li>
+  <li>Removed bug in format classification from URL suffix in HTGoper when
+    the file was plaintext</li>
   <li><em>localhost</em> is now recognized again after canonicalization in
     <code>HTLoadFile()</code></li>
   <li>WAIS SEARCH now produces proper HTML</li>
@@ -1748,8 +1815,8 @@ pre-releases.</p>
   <li>Bug fixed in <code>HTGetHostName()</code> if we must use the
     getdomainname() function.</li>
   <li>Added some support for SCO</li>
-  <li>Handling of gopher items of type ERROR (3) changed so no more core dumps
-    in server</li>
+  <li>Handling of gopher items of type ERROR (3) changed so no more core
+    dumps in server</li>
 </ul>
 
 <h2>2.17 Release on November 25 1994</h2>
@@ -1769,8 +1836,8 @@ pre-releases.</p>
     on URLs such like the Server document cache and the hostname cache</p>
   </li>
   <li>TRACE is now differentiated into a bit flag so that TRACE messages can
-    be turned on and off for individual groups of messages. This was necessary
-    as the amount of verbose output was growing too much</li>
+    be turned on and off for individual groups of messages. This was
+    necessary as the amount of verbose output was growing too much</li>
   <li>Redirection understands now `URI:' and `Location:'. Implemented after
     discussion on www-talk</li>
   <li>Changed 404 Error Message to `Access Forbidden'. The URL is no more
@@ -1788,10 +1855,10 @@ pre-releases.</p>
     `name' and `files' any more</li>
   <li>Support of Gopher info items. They are treated as normal messages. The
     gopher code for this is `i'</li>
-  <li>WAIS module now guesses the stream format when TEXT is returned from the
-    WAIS library as it might be HTML.</li>
-  <li>The Protocol modules: FTP, WAIS, and Gopher now produce proper HTML with
-    etc. in the beginning</li>
+  <li>WAIS module now guesses the stream format when TEXT is returned from
+    the WAIS library as it might be HTML.</li>
+  <li>The Protocol modules: FTP, WAIS, and Gopher now produce proper HTML
+    with etc. in the beginning</li>
   <li>Added a function that returns the domain name taken from the same
     location as HTGetHostName(). The functionality of obtaining current host
     names, mail addresses etc. have improved, see HTTCP.html for more</li>
@@ -1801,15 +1868,15 @@ pre-releases.</p>
   <li>The common BUILD for the Line Mode Browser, the CERN Server and the W3C
     Sample Code Library now accepts a command line option:
     <pre>        BUILD linemode | daemon | library</pre>
-    <p>to build a specific component. The default action is to build all three
-    parts. BUILD is now also provided in a Bourne Shell version</p>
+    <p>to build a specific component. The default action is to build all
+    three parts. BUILD is now also provided in a Bourne Shell version</p>
   </li>
 </ul>
 
 <h3>Bug Fixes</h3>
 <ul>
-  <li>Fixed memory leak in HTWAIS Doc retrieval. However, the functionality or
-    performance has not changes</li>
+  <li>Fixed memory leak in HTWAIS Doc retrieval. However, the functionality
+    or performance has not changes</li>
   <li>If no host is found in the URL then no attempt is made to connect to
     host 0.0.0.0 that is localhost. Some hosts do have an alias for this
     address</li>
@@ -1832,9 +1899,9 @@ pre-releases.</p>
     Before it was called 2-3 times.</li>
   <li>Bug found in FTP URLs containing UserID and Passwd fixed</li>
   <li>Bug fixed in name generation in client cache</li>
-  <li>Removed bug in FTP and IP-rotation on multi-homed hosts. When FTP server
-    is in PASV mode it sends back a port number on a specific host. In this
-    case we can't use IP-address rotation.</li>
+  <li>Removed bug in FTP and IP-rotation on multi-homed hosts. When FTP
+    server is in PASV mode it sends back a port number on a specific host. In
+    this case we can't use IP-address rotation.</li>
   <li>Bug with FTP IP-address network order fixed for PASV mode</li>
   <li>Gopher errors (code 3) are now just put as a string as they are not
     <b>real</b> error</li>
@@ -1878,8 +1945,8 @@ pre-releases.</p>
 client. The module is now reorganized and made more modular.</p>
 <dl>
   <dt>Automatic Redirection</dt>
-    <dd>Now supported by the HTTP Module. The name of the new URL is parsed to
-      the client via the error_stack as a ERR_INFO message, see <a
+    <dd>Now supported by the HTTP Module. The name of the new URL is parsed
+      to the client via the error_stack as a ERR_INFO message, see <a
       href="../src/HTError.html">HTError</a> module. The maximum number of
       redirections is set by the variable HTMaxRedirections.</dd>
   <dt>Referer Field in HTTP request</dt>
@@ -1888,9 +1955,9 @@ client. The module is now reorganized and made more modular.</p>
       href="../../Protocols/">HTTP Request</a>. This is done by filling out
       the HTRequest-&gt;parentAnchor field.</dd>
   <dt>From field in HTTP Request</dt>
-    <dd>Clients can now send the full email address of the current user in the
-      <a href="../../Protocols/">HTTP From field</a>. The feature is turned
-      off by default as it might get a bit tricky through a Proxy.</dd>
+    <dd>Clients can now send the full email address of the current user in
+      the <a href="../../Protocols/">HTTP From field</a>. The feature is
+      turned off by default as it might get a bit tricky through a Proxy.</dd>
   <dt>204 Response</dt>
     <dd>Support of return code `204 No Response'</dd>
 </dl>
@@ -1898,9 +1965,9 @@ client. The module is now reorganized and made more modular.</p>
 <h4>FTP Client</h4>
 
 <p><a href="../src/HTFTP.html">HTFTP</a> module contains the code for the FTP
-client. The FTP client has changed a lot in this release. It is now a complete
-state machine where the actual action executed is a function of the current
-state.</p>
+client. The FTP client has changed a lot in this release. It is now a
+complete state machine where the actual action executed is a function of the
+current state.</p>
 <ul>
   <li>The client now follows the suggestions given in rfc 1123: "Requirements
     for Internet Hosts -- Application and Support".</li>
@@ -1921,11 +1988,11 @@ state.</p>
   </li>
   <li>Both directory listings and file retrieval use the same procedure:
     <ol>
-      <li>First try to go to the location directly, as we are often talking to
-        a UNIX server or one that 'understands' UNIX syntax</li>
-      <li>If it fails, then go to the location step by step using CWD. In that
-        way we should not have any problems on any platform, and thus it is
-        not necessary to make special hacks for VMS, etc.</li>
+      <li>First try to go to the location directly, as we are often talking
+        to a UNIX server or one that 'understands' UNIX syntax</li>
+      <li>If it fails, then go to the location step by step using CWD. In
+        that way we should not have any problems on any platform, and thus it
+        is not necessary to make special hacks for VMS, etc.</li>
     </ol>
   </li>
   <li>Long directory listings are supported for unix-like systems and VMS.
@@ -1938,16 +2005,16 @@ state.</p>
         the 'login' message (might be a concatenation of several messages)
         just like in a normal ftp session.</li>
       <li>If you have a more specific URL, then you probably already know the
-        site and are less interested in the login message. Instead we show any
-        local message when making a CWD to the right location.</li>
+        site and are less interested in the login message. Instead we show
+        any local message when making a CWD to the right location.</li>
     </ol>
   </li>
 </ul>
 
 <h4>Gopher Client</h4>
 
-<p>The <a href="../src/HTGopher.html">Gopher</a> has been revised and improved
-error handling has been implemented.</p>
+<p>The <a href="../src/HTGopher.html">Gopher</a> has been revised and
+improved error handling has been implemented.</p>
 <dl>
   <dt>Information Messages</dt>
     <dd>Some Gopher servers send back information messages in a line
@@ -1957,12 +2024,12 @@ error handling has been implemented.</p>
   <dt>Iconized Listings</dt>
     <dd>Listings now contain icons in the same way as the other listings.</dd>
   <dt>CSO Name Server</dt>
-    <dd>The CSO Name Server client outputs in HTML and not only &lt;PRE&gt; as
-      before.</dd>
+    <dd>The CSO Name Server client outputs in HTML and not only &lt;PRE&gt;
+      as before.</dd>
   <dt>Content Type Recognition</dt>
     <dd>The Gopher module uses it's own content-type recognition inherited
-      from HTTP when handling gopher text and gopher binary files. This means,
-      that e.g. PostScript files get handled correctly.</dd>
+      from HTTP when handling gopher text and gopher binary files. This
+      means, that e.g. PostScript files get handled correctly.</dd>
 </dl>
 
 <h4>Local File Access</h4>
@@ -1979,9 +2046,9 @@ and HTDoAccept() respectively.</p>
 <h4>Cache of Host Names and Addresses</h4>
 
 <p>HTInetParse() that is called from within HTDoConnect now has an internal
-cache of the names and (possible multiple) IP-addresses of visited hosts. This
-minimizes the access to the file /etc/hosts and the Domain Name Server, even
-though aliases are not recognized in the cache.</p>
+cache of the names and (possible multiple) IP-addresses of visited hosts.
+This minimizes the access to the file /etc/hosts and the Domain Name Server,
+even though aliases are not recognized in the cache.</p>
 
 <p>The default cache size is 500 entries and a host stays as long as a
 connect() succeeds. That is, if connection is refused for some reason, the
@@ -1994,9 +2061,9 @@ fastest IP-address.</p>
 <h4>Improved Functionality of DNS requests</h4>
 
 <p>The Library now provides functionality for obtaining the full mail address
-of the user, full domain name of the host and also the possibility for setting
-both values. This means that the user can use his official email address, e.g.
-in the HTTP request.</p>
+of the user, full domain name of the host and also the possibility for
+setting both values. This means that the user can use his official email
+address, e.g. in the HTTP request.</p>
 
 <h4><a name="z20">Long Directory Listings</a></h4>
 
@@ -2007,8 +2074,8 @@ which columns to show etc. is exploited.</p>
 <h4>Icon Management</h4>
 
 <p>Icons in directory listings are bound to MIME content-types and encoding.
-They can be found in the <a href="../src/HTIcons.html">HTIcons</a> module. The
-default set of icons is set up using HTStdIconInit() and new icons can be
+They can be found in the <a href="../src/HTIcons.html">HTIcons</a> module.
+The default set of icons is set up using HTStdIconInit() and new icons can be
 added dynamicly using HTAddIcon().</p>
 
 <h4>File Descriptions in Directory Listings</h4>
@@ -2047,8 +2114,8 @@ with the highest probability from a statistical analysis.</p>
   <dt>tmpnam()</dt>
     <dd>Because of problems on NeXT platforms the tmpnam() function is now
       replaced by HTFWriter_filename() in HTFWriter.c. The function has two
-      modes: Give back a hash name or the last part of the URL (which normally
-      is more readable).</dd>
+      modes: Give back a hash name or the last part of the URL (which
+      normally is more readable).</dd>
   <dt>HTMLPutImg()</dt>
     <dd>New function to make it easier to put out an HTML &lt;IMG&gt;
     tag.</dd>
@@ -2074,21 +2141,21 @@ with the highest probability from a statistical analysis.</p>
 <p>This is a list of fixed bugs from earlier versions.</p>
 <ul>
   <li>Memory faults in HTSimplify() in HTParse.c has been fixed</li>
-  <li>README files in directory listings now know how to handle '&lt;', '&gt;'
-    and '&amp;' correctly. Though the file still has to be Ascii.</li>
+  <li>README files in directory listings now know how to handle '&lt;',
+    '&gt;' and '&amp;' correctly. Though the file still has to be Ascii.</li>
   <li>tmpnam is no more used in the Library because of problems on NeXT
     platform. Instead a new function called HTFWriter_filename() in
     HTFWriter.c is written.</li>
   <li>HTInputSocket_getCharacter now returns a int and not a char so that EOF
     is no longer a member of the char set.</li>
-  <li>HTMLGen_start_element() is only allowed to put extra '\n' in &lt;PRE&gt;
-    mode if it is between parameters in a tag</li>
+  <li>HTMLGen_start_element() is only allowed to put extra '\n' in
+    &lt;PRE&gt; mode if it is between parameters in a tag</li>
   <li>Changed type of &lt;IMG&gt; into SGML_EMPTY so that it doesn't expect
     end tag &lt;\IMG&gt;</li>
   <li>Nested &lt;PRE&gt; is no more a problem in HTMLGen_start_element.</li>
   <li>Removed all #elif as not all compilers on HPUX likes it.</li>
-  <li>Changed HTChunk such that chunk-&gt;data is '\0' terminated at any time.
-    This actually makes HTChunkTerminate less needed but be aware that
+  <li>Changed HTChunk such that chunk-&gt;data is '\0' terminated at any
+    time. This actually makes HTChunkTerminate less needed but be aware that
     HTChunk-&gt;size changes.</li>
   <li>Removed non-portable d_namlen field in HTMulti.</li>
   <li>Moved definition of NO_GROUPS to tch.html</li>
@@ -2119,16 +2186,16 @@ with the highest probability from a statistical analysis.</p>
     back-compatibility.</li>
   <li>Backup files created on PUT to local file (in server or client)
     according to global flag HTTakeBackup, defaults to YES.</li>
-  <li>Changed interface to <a name="z13" href="../src/HText.html">HText</a> --
-    added<a name="z12" href="../src/HText.html#z0"> HText_new3</a> creation
-    method. All clients using this interface should ensure that the structured
-    stream used during creation is reopen()ed if it is still needed to hold
-    dcoument structure after the original load has been done. In this case it
-    should later be freed.</li>
-  <li>CHANGED INTERFACE to <a href="../src/HTAccess.html">HTAccess</a>: Now an
-    HTRequest environment is passed to almost all calls. Allows better
-    reentrant use of library for image embedding, etc. Implies (minor) changes
-    to all clients.</li>
+  <li>Changed interface to <a name="z13" href="../src/HText.html">HText</a>
+    -- added<a name="z12" href="../src/HText.html#z0"> HText_new3</a>
+    creation method. All clients using this interface should ensure that the
+    structured stream used during creation is reopen()ed if it is still
+    needed to hold dcoument structure after the original load has been done.
+    In this case it should later be freed.</li>
+  <li>CHANGED INTERFACE to <a href="../src/HTAccess.html">HTAccess</a>: Now
+    an HTRequest environment is passed to almost all calls. Allows better
+    reentrant use of library for image embedding, etc. Implies (minor)
+    changes to all clients.</li>
   <li>Changed HTConverter definition. Should be internal only, uness you
     register new converters. Now take more useful parameters.</li>
   <li>HTSaveAndCallBack stream allows simple implementation of embedded
@@ -2137,14 +2204,14 @@ with the highest probability from a statistical analysis.</p>
     image is on disk.</li>
   <li>Initialization: Calling of HTInit functions now not done by library --
     if you want them, you call them from the application.</li>
-  <li>xxx_proxy environment variables for forwarding requests to a proxy (e.g.
-    http_proxy , ftp_proxy , gopher_proxy ).</li>
+  <li>xxx_proxy environment variables for forwarding requests to a proxy
+    (e.g. http_proxy , ftp_proxy , gopher_proxy ).</li>
   <li>no_proxy environment variable to override the proxy; e.g.
     <pre>        setenv no_proxy "cern.ch, foo.bar:8001, ncsa.uiuc.edu"</pre>
   </li>
   <li>Bug causing FTP binary file transfers failing fixed.</li>
-  <li>Fix to Gopher code -- Now tries to do own filetyping with unknown gopher
-    types. Even if this fails doesn't truncate binary files.</li>
+  <li>Fix to Gopher code -- Now tries to do own filetyping with unknown
+    gopher types. Even if this fails doesn't truncate binary files.</li>
   <li>Local directory listing bug with trailing slash fixed.</li>
   <li>Better multiformat handling, HTMulti(), with welcome page support.</li>
   <li>The eight misplaced cern_httpd access authorization modules moved away
@@ -2171,8 +2238,8 @@ with the highest probability from a statistical analysis.</p>
   <li>Patches for parsing SGML with 2-byte<a name="z15"
     href="http://www.ntt.jp/japan/note-on-JP/encoding.html"> japanese
     encoding</a> included, from<a name="z16"
-    href="http://www.brl.ntt.jp/~takada/takada.html"> takada@seraph.ntt.jp</a>
-    .</li>
+    href="http://www.brl.ntt.jp/~takada/takada.html">
+    takada@seraph.ntt.jp</a> .</li>
 </ul>
 
 <h3>Bug Fixes</h3>
@@ -2214,8 +2281,8 @@ with the highest probability from a statistical analysis.</p>
 <ul>
   <li>Authroization in. See Ari's documentation. Everything is
     back-compatible, but there are large extenions to the rule file syntax,
-    plus new ACL and protection setup files. Authorization is done by password
-    in the clear now, with hooks for public key later.</li>
+    plus new ACL and protection setup files. Authorization is done by
+    password in the clear now, with hooks for public key later.</li>
   <li>Some other bug fixes. Not all the reported ones.</li>
 </ul>
 
@@ -2265,8 +2332,7 @@ effect of this is to get the proper mode selected for FTP transfers. This
 means you can do a</p>
 
 <p></p>
-<pre>        www -source ftp:/xx.yy.edu/pub/junk/foo.tar.Z &gt; junk.tar.Z
-</pre>
+<pre>        www -source ftp:/xx.yy.edu/pub/junk/foo.tar.Z &gt; junk.tar.Z</pre>
 
 <p>and it will work as expected.</p>
 
@@ -2349,10 +2415,10 @@ MIME-style 'content type". This is done in the rule file too.</p>
 
 <h2>15 Mar 93 Version 2.0 alpha:</h2>
 
-<p>Incompatible library release has cleaned up interfaces. Developers read the
-.h files! Version 2 libraries must be compiled with version 2 products and
-vice-versa. Version 2 clients will access (most) version 1 servers OK, version
-2 servers will respond correctly to (all) version 1 clients.</p>
+<p>Incompatible library release has cleaned up interfaces. Developers read
+the .h files! Version 2 libraries must be compiled with version 2 products
+and vice-versa. Version 2 clients will access (most) version 1 servers OK,
+version 2 servers will respond correctly to (all) version 1 clients.</p>
 <ul>
   <li>Bug fix: Gopher connections wasted socket numbers and eventually used
     them all up. (Thanks Marc Andreessen)</li>
@@ -2369,8 +2435,8 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
     use of the library easier with clients, and allow more code in common
     between clients and servers.</li>
   <li>Hooks for handling new formats with other applications</li>
-  <li>General hooks for status messages, user query, progress monitoring, etc.
-    (HTAlert module)</li>
+  <li>General hooks for status messages, user query, progress monitoring,
+    etc. (HTAlert module)</li>
 </ul>
 
 <h2>6 January 1993, Version1.1a</h2>
@@ -2379,8 +2445,8 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
   <li>Tn3270 access type accepted.</li>
   <li>FTP password for anonymous is now WWWuser@ withouyt a hostname, for
     software on ftp.uu.net etc.</li>
-  <li>Bug fix in HTML.c: Would crash when a list was the first visible element
-    in a text object.</li>
+  <li>Bug fix in HTML.c: Would crash when a list was the first visible
+    element in a text object.</li>
 </ul>
 
 <h2><a name="z4">11 December 1992, Version 1.1</a></h2>
