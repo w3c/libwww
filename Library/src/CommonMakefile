@@ -172,15 +172,6 @@ uninstall :
 
 #	Needs www version 2.4 or later to do this
 inc : $(HFILES)
-
-#	.h files are distributed but originally are made from the
-#	self-documenting hypertext files.
-
-.SUFFIXES: .h .html
-.html.h:
-#	- chmod +w $*.h
-	www -w90 -na -p -to text/x-c $*.html > $*.h
-#	chmod -w $*.h
 	echo Include files generated from hypertext.
 
 binary : /mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
