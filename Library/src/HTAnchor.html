@@ -25,15 +25,17 @@ application could build up a higher knowledge about the Web topology.
 
 <h2><a name="When">When to Escape and Unescape Addresses</a></h2>
 
-<p>The <em>URI escape policy</em> in libwww is that <b>all</b> URIs created as
+<P>
+The <em>URI escape policy</em> in libwww is that <b>all</b> URIs created as
 anchors <b>must already have been escaped</b>. The reason for this is that if
 URIs are not escaped then the URI parser is not guaranteed to work as
 expected. Imagine, for example, that you have a <tt><code>":"</code></tt> in a
 host name, then you could get something like this:
-tt>http://my:host:8000/</tt> instead of <tt>http://my%3Ahost:8000/</tt>.</p>
+<tt>http://my:host:8000/</tt> instead of <tt>http://my%3Ahost:8000/</tt>.
 
-<p>Libwww provides <a href="HTEscape.html">support for escaping and unescaping
-URIs using this set of APIs</a>.</p>
+<P>
+Libwww provides <a href="HTEscape.html">support for escaping and unescaping
+URIs using this set of APIs</a>.
 
 <P>
 This module is implemented by <A HREF="HTAnchor.c">HTAnchor.c</A>, and it
