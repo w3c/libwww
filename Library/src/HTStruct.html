@@ -1,0 +1,93 @@
+<HTML>
+<HEAD>
+<TITLE>Structured Stream Definition</TITLE>
+</HEAD>
+<BODY>
+
+<H1>Structured Stream Definition</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module is a part of the <A
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTSTRUCT_H
+#define HTSTRUCT_H
+
+#include "HTStream.h"
+</PRE>
+
+A structured object is something which can reasonably be represented
+in for eaxmple SGML.  I'll rephrase that.  A structured object is am
+ordered tree-structured arrangement of data which is representable as
+text. An example is the SGML parser which outputs to a
+<CODE>Structured Object</CODE>. A Structured object can output its
+contents to another <CODE>Structured Object</CODE>. It's a kind of
+typed stream. The architecure is largely Dan Conolly's. Elements and
+entities are passed to the sob by number, implying a knowledge of the
+DTD.<P>
+
+The <CODE>Streuctured Stream</CODE> is a subclass of a <A
+HREF="HTStream.html">Generic Stream Object</A>. As always, we don't
+have classes in basic C so we have to do this by hand! <P>
+
+<B>NOTE:</B> The <CODE>put_block</CODE> method was <CODE>write</CODE>,
+but this upset systems which had macros for <CODE>write()</CODE>. See
+the <A HREF="HTStream.html">Generic Stream Definition</A> for valid
+return codes.<P>
+
+<PRE>
+typedef struct _HTStructured HTStructured;
+
+typedef struct _HTStructuredClass {
+
+    char * name;
+
+    int (*flush)		PARAMS((HTStructured *	me));
+
+    int (*_free)		PARAMS((HTStructured *	me));
+
+    int (*abort)		PARAMS((HTStructured *	me, HTError e));
+
+    int (*put_character)	PARAMS((HTStructured *	me,
+					char		ch));
+
+    int (*put_string)		PARAMS((HTStructured *	me,
+					CONST char *	str));
+
+    int (*put_block)		PARAMS((HTStructured *	me,
+					CONST char *	str,
+					int		len));
+</PRE>
+
+See the <A HREF="HTStream.html">Generic Stream Definition</A> for an
+explanation of these methods. Note that they all have a
+<CODE>HTStructured</CODE> object a the parameter, not a generic
+stream. This is to avoid <EM>incompatible pointer</EM> warnings
+
+<PRE>
+    void (*start_element)	PARAMS((HTStructured *	me,
+					int		element_number,
+					CONST BOOL *	attribute_present,
+					CONST char **	attribute_value));
+
+    void (*end_element)		PARAMS((HTStructured *	me,
+					int		element_number));
+
+    void (*put_entity)		PARAMS((HTStructured *	me,
+					int		entity_number));
+		
+} HTStructuredClass;
+
+#endif
+</PRE>
+End of Structured Stream definition
+</BODY>
+</HTML>
