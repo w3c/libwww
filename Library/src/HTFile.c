@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This is unix-specific code in general, with some VMS bits.
 **	These are routines for file access used by browsers.
@@ -17,6 +18,7 @@
 **	22 Feb 94 (MD)  Excluded two routines if we are not READING directories
 **	18 May 94 (HF)	Directory stuff removed and stream handling updated,
 **			error messages introduced etc.
+**		  HFN	Separated transport
 **
 ** Bugs:
 **	FTP: Cannot access VMS files from a unix machine.
@@ -26,25 +28,15 @@
 
 /* Library Includes */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTTCP.h"
-#include "HTAnchor.h"
-#include "HTAtom.h"
-#include "HTWriter.h"
-#include "HTFWrite.h"
-#include "HTFormat.h"
-#include "HTWWWStr.h"
-#include "HTAccess.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTMulti.h"
 #include "HTIcons.h"
 #include "HTDir.h"
-#include "HTBind.h"
-#include "HTSocket.h"
-#include "HTNetMan.h"
-#include "HTError.h"
+#include "HTLocal.h"
 #include "HTReqMan.h"
+#include "HTNetMan.h"
+
 #include "HTFile.h"		/* Implemented here */
 
 /* Final states have negative value */
@@ -56,7 +48,6 @@ typedef enum _FileState {
     FS_BEGIN		= 0,
     FS_DO_CN,
     FS_NEED_OPEN_FILE,
-    FS_NEED_TARGET,
     FS_NEED_BODY,
     FS_PARSE_DIR,
     FS_TRY_FTP
@@ -66,16 +57,14 @@ typedef enum _FileState {
 typedef struct _file_info {
     FileState		state;		  /* Current state of the connection */
     char *		local;		/* Local representation of file name */
-#ifdef NO_UNIX_IO    
-    FILE *		fp;        /* If we can't use sockets on local files */
-    HTFileBuffer *	fbuf;
-#endif
 } file_info;
 
-/* Local definition */
 struct _HTStream {
     const HTStreamClass *	isa;
-    /* ... */
+};
+
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
 };
 
 PRIVATE BOOL		HTTakeBackup = YES;
@@ -285,7 +274,7 @@ PRIVATE BOOL HTEditable (const char * filename, struct stat * stat_info)
 #endif /* GETGROUPS_T */
 }
 
-
+#if 0
 /*	Make a save stream
 **	------------------
 **
@@ -347,7 +336,7 @@ PUBLIC HTStream * HTFileSaveStream (HTRequest * request)
     } else
     	return HTFWriter_new(request, fp, NO);
 }
-
+#endif
 
 /*	FileCleanup
 **	-----------
@@ -371,18 +360,6 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
     }
 
     if (file) {
-#ifdef NO_UNIX_IO
-	HTFileBuffer_delete(file->fbuf);
-	if (file->fp) {
-	    if (PROT_TRACE)
-		HTTrace("FileCleanup. Closing file %p\n", file->fp);
-#ifdef WWW_WIN_DLL
-	    HTSocket_DLLHackFclose(file->fp);
-#else
-	    fclose(file->fp);
-#endif
-	}
-#endif
 	HT_FREE(file->local);
 	HT_FREE(file);
     }
@@ -509,124 +486,68 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case FS_NEED_OPEN_FILE:
-	    /*
-	    ** If we have unix file descriptors then use this otherwise use
-	    ** the ANSI C file descriptors
-	    */
+	    status = HTFileOpen(net, file->local, HT_FT_RDONLY);
+	    if (status == HT_OK) {
+		/* 
+		** Create the stream pipe FROM the channel to the application.
+		** The target for the input stream pipe is set up using the
+		** stream stack. If we are reading from the cache then use the
+		** MIME parser as well.
+		*/
+		if (HTAnchor_cacheHit(anchor))
+		    HTAnchor_setFormat(anchor, WWW_MIME);
+		HTNet_getInput(net, HTStreamStack(HTAnchor_format(anchor),
+						  request->output_format,
+						  request->output_stream,
+						  request, YES), NULL, 0);
+		/*
+		** Create the stream pipe TO the channel from the application
+		** and hook it up to the request object
+		*/
+		{
+		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+		    HTRequest_setInputStream(request, (HTStream *) output);
+		}
+
+		/*
+		** Set up concurrent read/write if this request isn't the
+		** source for a PUT or POST. As source we don't start reading
+		** before all destinations are ready. If destination then
+		** register the input stream and get ready for read
+		*/
+		if (HTRequest_isDestination(request)) {
+		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+				     HTLoadFile, net->priority);
+		    HTRequest_linkDestination(request);
+		}
+		if (HTRequest_isSource(request) &&
+		    !HTRequest_destinationsReady(request))
+		    return HT_OK;
+
+		file->state = FS_NEED_BODY;
+
 #ifndef NO_UNIX_IO
-	    if ((net->sockfd = open(file->local, O_RDONLY)) == -1) {
-		HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "open");
-		file->state = FS_ERROR;
-		break;
-	    }
-	    if (PROT_TRACE)
-		HTTrace("HTLoadFile.. `%s' opened using socket %d \n",
-			file->local, net->sockfd);
-
-	    /* If non-blocking protocol then change socket status
-	    ** I use fcntl() so that I can ask the status before I set it.
-	    ** See W. Richard Stevens (Advan. Prog. in UNIX env, p.364)
-	    ** Be CAREFULL with the old `O_NDELAY' - it wont work as read()
-	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
-	    ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
-	    */
-#ifdef HAVE_FCNTL
-	    if (!request->net->preemptive) {
-		if ((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
-#ifdef O_NONBLOCK
-		    status |= O_NONBLOCK;			    /* POSIX */
-#else
-#ifdef F_NDELAY
-		    status |= F_NDELAY;				      /* BSD */
-#endif /* F_NDELAY */
-#endif /* O_NONBLOCK */
-		    status = fcntl(net->sockfd, F_SETFL, status);
+		/* If we are _not_ using preemptive mode and we are Unix fd's
+		** then return here to get the same effect as when we are
+		** connecting to a socket. That way, HTFile acts just like any
+		** other protocol module even though we are in fact doing
+		** blocking connect
+		*/
+		if (!net->preemptive) {
+		    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
+		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+				     net->cbf, net->priority);
+		    return HT_WOULD_BLOCK;
 		}
-		if (PROT_TRACE) {
-		    if (status == -1)
-			HTTrace("HTLoadFile.. Can't make socket non-blocking\n");
-		    else
-			HTTrace("HTLoadFile.. Using NON_BLOCKING I/O\n");
-		}
-	    }
-#endif /* HAVE_FCNTL */
-#else
-#ifdef VMS	
-	    if (!(file->fp = fopen(file->local,"r","shr=put","shr=upd"))) {
-#else
-#ifdef WWW_WIN_DLL
-	    if ((file->fp = HTSocket_DLLHackFopen(file->local,"r")) == NULL) {
-#else /* !WWW_WIN_DLL */
-	    if ((file->fp = fopen(file->local,"r")) == NULL) {
-#endif /* !WWW_WIN_DLL */
-#endif /* !VMS */
-		HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
-		file->state = FS_ERROR;
-		break;
-	    }
-	    if (PROT_TRACE)
-		HTTrace("HTLoadFile.. `%s' opened using FILE %p\n",
-			file->local, file->fp);
-#endif /* !NO_UNIX_IO */
-
-	    /* Set up stream TO local file system */
-	    request->input_stream = HTBufWriter_new(net, YES, 512);
-
-	    /*
-	    ** Set up concurrent read/write if this request isn't the
-	    ** source for a PUT or POST. As source we don't start reading
-	    ** before all destinations are ready. If destination then
-	    ** register the input stream and get ready for read
-	    */
-	    if (HTRequest_isDestination(request)) {
-		HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
-				 HTLoadFile, net->priority);
-		HTRequest_linkDestination(request);
-	    }
-	    file->state = FS_NEED_TARGET;
-	    if (HTRequest_isSource(request) && !HTRequest_destinationsReady(request))
+#endif
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;
-
-#ifndef NO_UNIX_IO
-	    /* If we are _not_ using preemptive mode and we are Unix file descriptors
-	    ** then return here to get the same effect as when we are connecting
-	    ** to a socket. That way, HTFile acts just like any other protocol
-	    ** module.
-	    */
-	    if (!net->preemptive) {
-	      if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
-	      HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
-			       net->cbf, net->priority);
-	      return HT_WOULD_BLOCK;
-	    }
-#endif
-	    break;
-
-	  case FS_NEED_TARGET:
-	    /*
-	    ** Set up read buffer and streams.
-	    ** If cache element, we know that it's MIME, so call MIME parser
-	    ** If ANSI then sockfd=INVSOC
-	    */
-#ifndef NO_UNIX_IO
-	    HTChannel_new(net->sockfd, HT_CH_PLAIN, NO);
-#else
-	    file->fbuf = HTFileBuffer_new();
-#endif
-	    if (HTAnchor_cacheHit(anchor))HTAnchor_setFormat(anchor, WWW_MIME);
-	    net->target = HTStreamStack(HTAnchor_format(anchor),
-					request->output_format,
-					request->output_stream,
-					request, YES);
-	    file->state = net->target ? FS_NEED_BODY : FS_ERROR;
+	    else
+		file->state = FS_ERROR;		       /* Error or interrupt */
 	    break;
 
 	  case FS_NEED_BODY:
-#ifndef NO_UNIX_IO
-	    status = HTChannel_readSocket(request, net);
-#else
-	    status = HTChannel_readFile(request, net, file->fbuf, file->fp);
-#endif
+	    status = (*net->input->isa->read)(net->input);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED) {

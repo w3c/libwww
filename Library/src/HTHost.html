@@ -1,0 +1,149 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library libwww Remote host information</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+</HEAD>
+<BODY>
+
+<H1>Remote Host Information</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This object manages the information that we know about a remote host.
+This can for example be what type of host it is, and what version it
+is using. Notive that a host can be both a server or a client. All
+information in this module can be shared regardless of whether it is
+to be used in a server application or a client application.<P>
+
+This module is implemented by <A HREF="HTHost.c">HTHost.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTHOST_H
+#define HTHOST_H
+
+typedef struct _HTHost HTHost;
+
+#include "HTChannl.h"
+#include "HTReq.h"
+#include "HTEvntrg.h"
+</PRE>
+
+<H2>The Host Object</H2>
+
+The Host object contains information about the remote host, for
+example the type (HTTP/1.0, HTTP/1.1, FTP etc.) along with information
+on how the connections can be used (if it supports persistent
+connections, interleaved access etc.)
+
+<H2>Create a Host Object</H2>
+
+We keep a cache of information that we know about a remote host. This
+allows us to be much more detailed in geneating requests. Search the
+host info cache for a host object or create a new one and add
+it. Examples of host names are
+
+<UL>
+<LI>www.w3.org
+<LI>www.foo.com:8000
+</UL>
+
+<PRE>
+extern HTHost * HTHost_new (char * host);
+</PRE>
+
+<H2>Remote Host Information</H2>
+
+This is what we know about the remote host
+
+<H3>Set the Host Class and Version</H3>
+
+Define the <EM>host class</EM> of the host at the other end. A
+class is a generic description of the protocol which is exactly like
+the access method in a URL, for example "http" etc. The <EM>host
+version</EM> is a finer distinction (sub-class) between various
+versions of the host class, for example HTTP/0.9, HTTP/1.1 etc. The
+host version is a bit flag that the protocol module can define on
+its own. That way we don't have to change this module when registering
+a new protocol module. The <EM>host type</EM> is a description of
+whether we can keep the connection persistent or not.
+
+<PRE>
+extern char * HTHost_class	(HTHost * host);
+extern void HTHost_setClass	(HTHost * host, char * s_class);
+
+extern int  HTHost_version	(HTHost * host);
+extern void HTHost_setVersion	(HTHost * host, int version);
+</PRE>
+
+<H2>Persistent Channels</H2>
+
+The HTHost object is also responsible for handline persistent connections 
+
+<H3>Register a Persistent Channel</H3>
+
+We don't want more than MaxSockets-2 connections to be persistent in order to avoid deadlock.
+
+<PRE>
+extern BOOL HTHost_setChannel (HTHost * host, HTChannel * channel);
+extern BOOL HTHost_clearChannel (HTHost * host);
+
+extern HTChannel * HTHost_channel (HTHost * host);
+</PRE>
+
+<H3>Is this host Persistent?</H3>
+
+Check whether we have a persistent channel or not
+
+<PRE>
+extern BOOL HTHost_isPersistent (HTHost * host);
+</PRE>
+
+<H3>Catching a Close Event</H3>
+
+This function is registered when the socket is idle so that we get a
+notification if the socket closes at the other end. At this point we
+can't use the request object as it might have been freed a long time
+ago.
+
+<PRE>
+extern int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops);
+</PRE>
+
+<H3>Timing Persistent Channels</H3>
+
+Normally we wait for the peer process to close persistent connections
+but in order not to use up our own resources, we have a timeout on our
+own. The default value is 1 hour, but you can modify the value using
+the following methods:
+
+<PRE>
+extern time_t HTHost_persistTimeout (time_t timeout);
+extern void HTHost_setPersistTimeout (time_t timeout);
+</PRE>
+
+Each persistent connection has an absolute value of when this
+connection most likely will expire. If the peer process does not
+inform us, we use our own timeout.
+
+<PRE>
+extern void HTHost_setPersistExpires (HTHost * host, time_t expires);
+extern time_t HTHost_persistExpires (HTHost * host);
+</PRE>
+
+<PRE>
+#endif /* HTHOST_H */
+</PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This module provides a default implementation of the application part
 **	of the Message and Dialog part or the Library. You do not have to do

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	Define a basic set of suffixes and presentations
 */
@@ -55,10 +56,10 @@ PUBLIC void HTConverterInit (HTList * c)
 #if 0
     HTConversion_add(c,"text/x-gopher",		"www/present",	HTGopherMenu,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-cso",		"www/present",	HTGopherCSO,	1.0, 0.0, 0.0);
-#endif
     HTConversion_add(c,"text/x-nntp-list",	"*/*",		HTNewsList,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-nntp-over",	"*/*",		HTNewsGroup,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-wais-source",	"*/*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
+#endif
 
     /*
     ** We also register a special content type guess stream that can figure out
@@ -149,6 +150,16 @@ PUBLIC void HTAlertInit (void)
     HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
 }
 
+#if 0
+/*	REGISTER ALL KNOWN TRANSPORTS IN THE LIBRARY
+**	--------------------------------------------
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTTransportInit (void)
+{
+    HTTransport_add("tcp_buffered", NO, HTLoadFTP, NULL);
+}
+#endif
 
 /*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY
 **	-------------------------------------------
@@ -157,20 +168,20 @@ PUBLIC void HTAlertInit (void)
 PUBLIC void HTAccessInit (void)
 {
 #ifndef DECNET
-    HTProtocol_add("ftp", NO, HTLoadFTP, NULL);
-    HTProtocol_add("nntp", NO, HTLoadNews, NULL);
-    HTProtocol_add("news", NO, HTLoadNews, NULL);
-    HTProtocol_add("gopher", NO, HTLoadGopher, NULL);
+    HTProtocol_add("ftp", "tcp", NO, HTLoadFTP, NULL);
+    HTProtocol_add("nntp", "tcp", NO, HTLoadNews, NULL);
+    HTProtocol_add("news", "tcp", NO, HTLoadNews, NULL);
+    HTProtocol_add("gopher", "tcp", NO, HTLoadGopher, NULL);
 #ifdef HT_DIRECT_WAIS
-    HTProtocol_add("wais", YES, HTLoadWAIS, NULL);
+    HTProtocol_add("wais", "", YES, HTLoadWAIS, NULL);
 #endif
 #endif /* DECNET */
 
-    HTProtocol_add("http", NO, HTLoadHTTP, NULL);
-    HTProtocol_add("file", NO, HTLoadFile, NULL);
-    HTProtocol_add("telnet", YES, HTLoadTelnet, NULL);
-    HTProtocol_add("tn3270", YES, HTLoadTelnet, NULL);
-    HTProtocol_add("rlogin", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("http", "tcp", NO, HTLoadHTTP, NULL);
+    HTProtocol_add("file", "local", NO, HTLoadFile, NULL);
+    HTProtocol_add("telnet", "", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("tn3270", "", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("rlogin", "", YES, HTLoadTelnet, NULL);
 }
 
 #if 0

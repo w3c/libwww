@@ -1,0 +1,103 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library libwww Local File Access</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
+</HEAD>
+<BODY>
+
+<H1>Locsl File Access</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module has the common code for opening and closing local files.<P>
+
+This module is implemented by <A HREF="HTTCP.c">HTTCP.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTLOCAL_H
+#define HTLOCAL_H
+
+#include "HTNet.h"
+</PRE>
+
+<H2>Mode of File</H2>
+
+A file can be opened in variuos modes dependent on whether it is to be
+opened for reading or writing or both. We here define a set that is
+largely equivalent to what we know from ANSI C file modes and Unix
+file modes:
+
+<PRE>
+#ifndef NO_UNIX_IO
+typedef int HTLocalMode;
+
+#define HT_FB_RDONLY	O_RDONLY
+#define HT_FT_RDONLY	HT_FB_RDONLY
+
+#define HT_FB_WRONLY	O_WRONLY|O_CREAT
+#define HT_FT_WRONLY	HT_FB_WRONLY
+
+#define HT_FB_RDWR	O_RDWR
+#define HT_FT_RDWR	HT_FB_RDWR
+
+#define HT_FB_APPEND	O_APPEND
+#define HT_FT_APPEND	HT_FB_APPEND
+
+#else 
+typedef const char HTLocalMode[10];
+
+#define HT_FB_RDONLY	"rb"
+#define HT_FT_RDONLY	"r"
+
+#define HT_FB_WRONLY	"wb"
+#define HT_FT_WRONLY	"w"
+
+#define HT_FB_RDWR	"r+b"
+#define HT_FT_RDWR	"r+"
+
+#define HT_FB_APPEND	"ab"
+#define HT_FT_APPEND	"a"
+
+#endif
+</PRE>
+
+<H2>Open a Local File</H2>
+
+Opens a local file using whatever means are available on the current
+platform. If we have unix file descriptors then use that as we can use
+select on them. On windows we want to use asynchrounous handles - just
+like we handle the socket interface as well. On other platforms, we
+use ANSI C file descriptors.
+
+<PRE>
+extern int HTFileOpen (HTNet * net, char * local, HTLocalMode mode);
+</PRE>
+
+<H2>Close a Local File</H2>
+
+Closes a file descriptor whatever means are available on the current
+platform. If we have unix file descriptors then use this otherwise use
+the ANSI C file descriptors
+
+<PRE>
+extern int HTFileCLose (HTNet * net);
+</PRE>
+
+
+<PRE>
+#endif   /* HTLOCAL_H */
+</PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

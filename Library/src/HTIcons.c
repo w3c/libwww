@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This module contains the functions for initializing, adding
 **	and selecting the icon for local directory listings, FTP and Gopher.

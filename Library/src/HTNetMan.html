@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -33,6 +33,7 @@ Reference Library</A>.
 #include "HTDNS.h"
 #include "HTSocket.h"
 #include "HTEvntrg.h"
+#include "HTProt.h"
 </PRE>
 
 <H2>The HTNet Object</H2>
@@ -56,24 +57,35 @@ typedef enum _TCPState {
 
 struct _HTNet {
     SOCKET		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;	     /* SockA is defined in sysdep.h */
+    FILE *		fp;			 /* If we can't use a socket */
+
     HTPriority		priority;	 /* Priority of this request (event) */
+    BOOL		preemptive;  /* Eff result from Request and Protocol */
 
-    HTStream *		target;				    /* Target stream */
-    HTEventCallback *	cbf;			   /* Protocol state machine */
-
-    HTdns *		dns;			       /* Link to DNS object */
+    /* Link to other objects */
     HTRequest *		request;		   /* Link to request object */
+    HTProtocol *	protocol;		 /* Protocol to this request */
+    HTTransport *	transport;	       /* Transport for this request */
+    HTChannel *		channel;		 /* Channel for this request */
+    HTHost *		host;	       /* What we know about the remote host */
+    HTdns *		dns;			       /* Link to DNS object */
 
+    /* For speed */
+    HTEventCallback *	cbf;			   /* Protocol state machine */
+    HTInputStream *	input;
+
+    /* For progress notifications */
     long		bytes_read;		  /* Bytes read from network */
     long		bytes_written;		 /* Bytes written to network */
 
+    /* Connection dependent stuff */
     TCPState		tcpstate;		      /* State in connection */
+    SockA 		sock_addr;	     /* SockA is defined in sysdep.h */
     int			retry;		     /* Counting attempts to connect */
     int 		home;			 /* Current home if multiple */
     time_t		connecttime;		 /* Used on multihomed hosts */
-    BOOL		preemptive;  /* Eff result from Request and Protocol */
-    BOOL		persistent;	  /* YES if persistent, otherwise NO */
+
+    /* User specific stuff */
     void *		context;		/* Protocol Specific context */
 };
 
@@ -82,16 +94,15 @@ struct _HTNet {
 
 #define HTNet_setBytesRead(me,l)	((me) ? (me-&gt;bytes_read=(l)) : -1)
 #define HTNet_setBytesWritten(me,l)	((me) ? (me-&gt;bytes_written=(l)) :-1)
-
-#define HTNet_dns(me)			((me) ? (me)-&gt;dns : NULL)
 </PRE>
 
 <PRE>
 #endif /* HTNETMAN_H */
 </PRE>
 
-End of declaration module
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>
-
-

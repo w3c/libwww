@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -29,8 +29,6 @@ Reference Library</A>.
 <PRE>
 #ifndef HTNET_H
 #define HTNET_H
-#include "HTEvntrg.h"
-#include "HTReq.h"
 </PRE>
 
 <H2>The HTNet Object</H2>
@@ -42,6 +40,13 @@ service a request. <P>
 
 <PRE>
 typedef struct _HTNet HTNet;
+
+#include "HTEvntrg.h"
+#include "HTReq.h"
+#include "HTTrans.h"
+#include "HTHost.h"
+#include "HTChannl.h"
+#include "HTDNS.h"
 </PRE>
 
 <H2>Request Call Back Functions</H2>
@@ -345,7 +350,24 @@ if success, NO on error
 extern BOOL HTNet_killAll (void);
 </PRE>
 
+<H3>Create Input and Output Streams</H3>
+
+You create the input stream and bind it to the channel using the
+following methods. Please read the description in the <A
+HREF="HTIOStream.html">HTIOStream module</A> on the parameters
+<EM>target</EM>, <EM>param</EM>, and <EM>mode</EM>. Both methods
+return YES if OK, else NO.
+
+<PRE>
+extern HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
+				       void * param, int mode);
+
+extern HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode);
+</PRE>
+
 <H2>Data Access Methods</H2>
+
+We have some methods for accessing the internals of the Net object
 
 <H3>Socket Descriptor</H3>
 
@@ -354,12 +376,44 @@ extern BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd);
 extern SOCKET HTNet_socket (HTNet * net);
 </PRE>
 
+<H3>The Transport Object</H3>
+
+The <A HREF="HTTransport.html">transport object</A> is normally set up
+automatically but can be changed at a later time.
+
+<PRE>
+extern BOOL HTNet_setTransport (HTNet * net, HTTransport * tp);
+extern HTTransport * HTNet_transport (HTNet * net);
+</PRE>
+
+<H3>The Channel Object</H3>
+
+<PRE>
+extern BOOL HTNet_setChannel (HTNet * net, HTChannel * channel);
+extern HTChannel * HTNet_channel (HTNet * net);
+</PRE>
+
+<H3>The Host Object</H3>
+
+<PRE>
+extern BOOL HTNet_setHost (HTNet * net, HTHost * host);
+extern HTHost * HTNet_host (HTNet * net);
+</PRE>
+
+<H3>The DNS Object</H3>
+
+<PRE>
+extern BOOL HTNet_setDns (HTNet * net, HTdns * dns);
+extern HTdns * HTNet_dns (HTNet * net);
+</PRE>
+
 <PRE>
 #endif /* HTNET_H */
 </PRE>
 
-End of declaration module
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>
-
-

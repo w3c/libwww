@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This module manages rule files in the Library
 **
@@ -216,6 +217,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, const char * config)
 	HTBind_add(word2,				/* suffix */
 		   word3,				/* type */
 		   encoding ? encoding : "binary",	/* encoding */
+		   NULL,				/* cte */
 		   NULL,				/* language */
 		   status >= 1? quality : 1.0);		/* quality */
 

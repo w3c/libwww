@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** history:
 **	Nov 13 94	Spawned from HTParse, as it then can be used in utility

@@ -1,6 +1,10 @@
 /*								     HTTPGen.c
 **	HTTP GENERAL HEADER GENERATION
 **
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
+**
 **	This module implements the output stream for General HTTP headers
 **
 ** History:
@@ -17,7 +21,6 @@
 #include "HTAncMan.h"
 #include "HTNetMan.h"
 #include "HTTCP.h"
-#include "HTWriter.h"
 #include "HTHeader.h"
 #include "HTReqMan.h"
 #include "HTTPReq.h"					       /* Implements */

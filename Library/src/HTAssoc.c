@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	NAMES NOT CASE SENSITIVE, AND ONLY COMMON LENGTH
 **	IS CHECKED (allows abbreviations; well, length is

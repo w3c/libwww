@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This is the implementaion of an error message reporting system that 
 **	reports errors occured either in a stream module (structured streams
@@ -16,10 +17,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTTCP.h"
-#include "HTList.h"
+#include "WWWUtil.h"
+#include "HTInet.h"
 #include "HTError.h"					 /* Implemented here */
 
 struct _HTError {

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww  NETWORK COMMUNICATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Feb-1996 -->
+<TITLE>W3C Reference Library libwww  Network Communication</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -79,149 +79,13 @@ BSD and 32 on SVR4). Returns HT_ERROR or HT_OK.
 extern int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog);
 </PRE>
 
-<A NAME="errormsg"><H2>System Description of Error Message</H2></A>
-
-Return error message corresponding to errno number given. We need to
-pass the error number as a parameter as we on some platforms get
-different codes from sockets and local file access.
-
 <PRE>
-extern const char * HTErrnoString	(int errnum);
-extern int HTInetStatus			(int errnum, char * where);
-</PRE>
-
-<H3>Parse a Cardinal Value</H3>
-
-<PRE>
-/*	Parse a cardinal value				       parse_cardinal()
-**	----------------------
-**
-** On entry:
-** 	*pp points to first character to be interpreted, terminated by
-** 	non 0..9 character.
-** 	*pstatus points to status already valid,
-** 	maxvalue gives the largest allowable value.
-**
-** On exit:
-** 	*pp points to first unread character,
-** 	*pstatus points to status updated iff bad
-*/
-
-extern unsigned int HTCardinal (int *		pstatus,
-				char **		pp,
-				unsigned int	max_value);
-</PRE>
-
-<A NAME="DNS"><H2>Internet Name Server Functions</H2></A>
-
-The following functions are available to get information about a
-specified host.
-
-<H3>Produce a string for an internet address</H3>
-
-This function is equivalent to the BSD system call <B>inet_ntoa</B> in that it
-converts a numeric 32-bit IP-address to a dotted-notation decimal string. The
-pointer returned points to static memory which must be copied if it is to be
-kept.
-
-<PRE>
-extern const char * HTInetString (struct sockaddr_in * sin);
-</PRE>
-
-<A NAME="HTGetHostName"><H3>Get Name of This Machine</H3></A>
-
-This function returns a CONET char pointer to a static location containing
-the name of this host or NULL if not available.
-
-<PRE>
-extern const char * HTGetHostName (void);
-</PRE>
-
-
-<H3>Set Name of This Machine</H3>
-
-This function overwrites any other value of current host name. This might
-be set by the user to change the value in the ID value parsed to a news host
-when posting. The change doesn't influence the <A HREF="HTTCP.html#Mailaddress">Mail Address</A> as they are stored in two different locations. If, however,
-the change is done before the first call to HTGetMailAddress() then this 
-function will use the new host and domain name.
-
-<PRE>
-extern void HTSetHostName (char * host);
-</PRE>
-
-<H3>Cleanup Memory</H3>
-
-Called from <A HREF="HTReq.html#Library">HTLibTerminate</A>
-
-<PRE>
-extern void HTFreeHostName (void);
-</PRE>
-
-<H3>Get Domain Name of This Machine</H3>
-
-This function rerturns the domain name part of the host name as returned by
-HTGetHostName() function. Changing the domain name requires a call to 
-HTSetHostname().
-
-<PRE>
-extern const char *HTGetDomainName (void);
-</PRE>
-
-
-<A NAME="Mailaddress"><H3>Get User Mail Address</H3></A>
-
-This functions returns a char pointer to a static location containing the
-mail address of the current user. The static location is different from the
-one of the current host name so different values can be assigned. The default
-value is &lt;USER&gt;@hostname where hostname is as returned by HTGetHostName().
-
-<PRE>
-#ifndef HT_DEFAULT_LOGIN
-#define HT_DEFAULT_LOGIN	"libwww"
-#endif
-
-extern const char * HTGetMailAddress (void);
-</PRE>
-
-
-<H3>Set User Mail Address</H3>
-
-This function overwrites any other value of current mail address. This might
-be set by the user to change the value in the  <A HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A> in the <A HREF="http://www.w3.org/pub/WWW/Protocols/HTTP/HTTP2.html">HTTP Protocol</A>.
-
-<PRE>
-extern void HTSetMailAddress (char * address);
-</PRE>
-
-<H3>Free Memory</H3>
-
-Called by <A HREF="HTReq.html#Library">HTLibTerminate</A>
-
-<PRE>
-extern void HTFreeMailAddress (void);
-</PRE>
-
-<H2>Signal Handling</H2>
-
-This is only necessary to compile on a few platforms and only if the
-application does not have its own signal handling. It is required on
-Solaris 2.3 (and other SVR4 platforms?) due to a bug in the TCP
-kernel. When a <CODE>connect()</CODE> is tried to a illegal port,
-solaris gives a SIGPIPE signal instead of returning <EM>Connection
-refused</EM>.
-
-<PRE>
-#ifdef WWWLIB_SIG
-extern void HTSetSignal (void);
-#endif
-
 #endif   /* HTTCP_H */
 </PRE>
 
-End of file
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>
-
-
-

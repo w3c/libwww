@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This module allows a WWW server or client to read data from a
 **	remote  WAIS server, and provide that data to a WWW client in

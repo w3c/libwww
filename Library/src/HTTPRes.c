@@ -1,6 +1,10 @@
 /*								      HTTPRes.c
 **	HTTP RESPONSE GENERATION
 **
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
+**
 **	This module implements the output stream for HTTP used for sending
 **	responces with or without a entity body. It is the server equivalent
 **	to the HTTPReq module
@@ -15,9 +19,7 @@
 #include "HTString.h"
 #include "HTWWWStr.h"
 #include "HTAccess.h"
-#include "HTWriter.h"
 #include "HTError.h"
-#include "HTFWrite.h"
 #include "HTEvntrg.h"
 #include "HTNetMan.h"
 #include "HTReqMan.h"

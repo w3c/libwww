@@ -10,6 +10,11 @@ SUFFIXES = .h .html .txt
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
+inc: $(BUILT_SOURCES)
+	@echo Generated built sources
+
+AUTOMAKE_OPTIONS = foreign no-dependencies
+
 www_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \
 	HTMethod.c 	HTProt.c 	HTCache.c \
@@ -36,12 +41,15 @@ www_SOURCES = \
 	HTTP.c		HTTPServ.c	HTNewsRq.c \
 	HTTPGen.c 	HTTPReq.c 	HTTPRes.c \
 	HTNet.c 	HTEvntrg.c	HTNewsLs.c \
-	HTMux.c		@HTWAIS@
+	HTMux.c		HTStream.c	HTTrans.c \
+	HTChannl.c	HTInet.c	HTHost.c \
+	HTLocal.c	HTReader.c	HTANSI.c\
+	@HTWAIS@
 
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
 	WWWDir.h 	WWWFTP.h 	WWWFile.h \
-	WWWGuess.h 	WWWHTML.h 	WWWHTTP.h \
+	WWWStream.h 	WWWHTML.h 	WWWHTTP.h \
 	WWWNews.h 	WWWRules.h 	WWWTelnt.h \
 	WWWCache.h 	WWWApp.h 	WWWInit.h \
 	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
@@ -73,7 +81,10 @@ BUILT_SOURCES = sysdep.h \
 	HTHome.h 	HTDialog.h 	HTEscape.h \
 	HTTP.h		HTTPServ.h	HTNews.h \
 	HTTPGen.h 	HTTPReq.h 	HTTPRes.h \
-	HTTPUtil.h	HTMux.h
+	HTTPUtil.h	HTMux.h		HTTrans.h \
+	HTIOStream.h	HTChannl.h	HTInet.h \
+	HTHost.h	HTLocal.h	HTReader.h \
+	HTANSI.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** history:	AL, HF	28 Apr 94, Now chunk->data is filled by '\0' so
 **			that the string is terminated at any time. That makes

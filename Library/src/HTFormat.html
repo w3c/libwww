@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww FORMAT NEGOTIATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Apr-1996 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -23,7 +23,9 @@ term <EM>format</EM> is often used as it is shorter). The content of
 this module is:
 
 <UL>
-<LI><A HREF="#converter">Converters</A>
+<LI><A HREF="#converter">Content Type Converters</A>
+<LI><A HREF="#coder">Content Coders</A>
+
 <LI><A HREF="#user">Generic preferences (media type, language, charset etc.)</A>
 <LI><A HREF="#global">Global Preferences</A>
 <LI><A HREF="#Rank">Content Negotiation</A>
@@ -38,15 +40,19 @@ Reference Library</A>.
 #ifndef HTFORMAT_H
 #define HTFORMAT_H
 
-#include <A HREF="HTUtils.html">"HTUtils.h"</A>
-#include <A HREF="HTStream.html">"HTStream.h"</A>
-#include <A HREF="HTAtom.html">"HTAtom.h"</A>
-#include <A HREF="HTList.html">"HTList.h"</A>
-#include <A HREF="HTAnchor.html">"HTAnchor.h"</A>
-#include <A HREF="HTReq.html">"HTReq.h"</A>
+#include "<A HREF="HTUtils.html">HTUtils.h</A>"
+#include "<A HREF="HTStream.html">HTStream.h</A>"
+#include "<A HREF="HTAtom.html">HTAtom.h</A>"
+#include "<A HREF="HTList.html">HTList.h</A>"
+#include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
+#include "<A HREF="HTReq.html">HTReq.h</A>"
 </PRE>
 
-<A NAME="converter"><H2>Stream Converters</H2></A>
+<H2>Content Types</H2>
+
+This is the description of how we hande content types (media types)
+
+<A NAME="converter"><H3>Content Type Converters</H3></A>
 
 A <CODE><A NAME="z12">converter</A></CODE> is a stream with a special
 set of parameters and which is registered as capable of converting
@@ -63,20 +69,7 @@ typedef HTStream * HTConverter	(HTRequest *	request,
 				 HTStream *	output_stream);
 </PRE>
 
-<A NAME="user"><H2>Generic Preferences</H2></A>
-
-The Library contains functionality for letting the application (or
-user) express the preferences for the rendition of a given data object
-when issuing a request. The categories supported are:
-
-<UL>
-<LI>Content type (media type)
-<LI>Encoding
-<LI>Language
-<LI>Charset
-</UL>
-
-<A NAME="FormatTypes"><H3>Registration of Accepted Content Types</H3></A>
+<H3>The HTPresentation Object</H3>
 
 A <CODE>presenter</CODE> is a module (possibly an external program)
 which can present a graphic object of a certain MIME type to the
@@ -100,7 +93,17 @@ typedef struct _HTPresentation {
 } HTPresentation;
 </PRE>
 
-<H4>Predefined Content Types</H4>
+<H3>Basic Content type Converters</H3>
+
+We have a small set of basic converters that can be hooked in
+anywhere. They don't "convert" anything but are nice to have.
+
+<PRE>
+extern HTConverter HTThroughLine;
+extern HTConverter HTBlackHoleConverter;
+</PRE>
+
+<H3>Predefined Content Types</H3>
 
 These macros (which used to be constants) define some basic internally
 referenced representations. The <CODE>www/xxx</CODE> ones are of
@@ -168,6 +171,8 @@ These are regular MIME types defined. Others can be added!
 #define WWW_VIDEO 	HTAtom_for("video/mpeg")
 
 #define WWW_GIF 	HTAtom_for("image/gif")
+#define WWW_JPEG 	HTAtom_for("image/jpeg")
+#define WWW_TIFF 	HTAtom_for("image/tiff")
 #define WWW_PNG 	HTAtom_for("image/png")
 
 #define WWW_BINARY 	HTAtom_for("application/octet-stream")
@@ -199,7 +204,7 @@ can be handled by a special converter.
 #define WWW_RULES	HTAtom_for("application/x-www-rules")
 </PRE>
 
-<H4>Add a Presenter</H4>
+<H3>Register Presenters</H3>
 
 This function creates a presenter object and adds to the list of
 conversions.
@@ -229,15 +234,11 @@ extern void HTPresentation_add (HTList *	conversions,
 				double		quality,
 				double		secs, 
 				double		secs_per_byte);
-</PRE>
 
-<H4>Delete a list of Presenters</H4>
-
-<PRE>
 extern void HTPresentation_deleteAll	(HTList * list);
 </PRE>
 
-<H4>Add a Converter</H4>
+<H3>Register Converters</H3>
 
 This function creates a presenter object and adds to the list of
 conversions.
@@ -267,52 +268,108 @@ extern void HTConversion_add   (HTList *	conversions,
 				double		quality,
 				double		secs, 
 				double		secs_per_byte);
-</PRE>
 
-<H4>Delete a list of Converters</H4>
-
-<PRE>
 extern void HTConversion_deleteAll	(HTList * list);
 </PRE>
 
-<A NAME="Encoding"><H3>Registration of Accepted Content Encodings</H3></A>
+<A NAME="coders"><H2>Content Codings</H2>
 
-Encodings are the HTTP extension of transfer encodings. Encodings
-include compress, gzip etc.
+Content codings are the HTTP extension of transfer encodings. Encodings include
+compress, gzip etc.
 
-<PRE>
-typedef struct _HTAcceptNode {
-    HTAtom *	atom;
-    double	quality;
-} HTAcceptNode;
-</PRE>
+<H3>Content Encoders and Decoders</H3>
 
-<H4>Predefined Encoding Types</H4>
+<EM>Content Coders</EM> are subclassed from the <A HREF="HTStream.html">generic
+stream class</A>. <EM>Encoders</EM> are capable of adding a content coding to a
+data object and <EM>decoders</EM> can remove a content coding.
 
 <PRE>
-#define WWW_ENC_7BIT		HTAtom_for("7bit")
-#define WWW_ENC_8BIT		HTAtom_for("8bit")
-#define WWW_ENC_BINARY		HTAtom_for("binary")
-#define WWW_ENC_BASE64		HTAtom_for("base64")
-#define WWW_ENC_COMPRESS	HTAtom_for("compress")
-#define WWW_ENC_GZIP		HTAtom_for("gzip")
+typedef HTStream * HTContentCoder	(HTRequest *	request,
+					 void *		param,
+					 HTEncoding	coding,
+					 HTStream *	target);
 </PRE>
 
-<H4>Register an Encoding</H4>
+<H3>The HTContentCoding Object</H3>
 
 <PRE>
-extern void HTEncoding_add (HTList * 		list,
-			    const char *	enc,
-			    double		quality);
+typedef struct _HTContentCoding HTContentCoding;
+
+extern const char * HTContentCoding_name (HTContentCoding * me);
 </PRE>
 
-<H4>Delete a list of Encoders</H4>
+<H3>Predefined Coding Types</H4>
 
 <PRE>
-extern void HTEncoding_deleteAll (HTList * list);
+#define WWW_CTE_7BIT		HTAtom_for("7bit")
+#define WWW_CTE_8BIT		HTAtom_for("8bit")
+#define WWW_CTE_BINARY		HTAtom_for("binary")
+#define WWW_CTE_BASE64		HTAtom_for("base64")
+#define WWW_CTE_MACBINHEX	HTAtom_for("macbinhex")
+
+#define WWW_CE_COMPRESS		HTAtom_for("compress")
+#define WWW_CE_GZIP		HTAtom_for("gzip")
 </PRE>
 
-<H3><A NAME="charset">Accepted Charsets</A></H3>
+<H3>Register Content Coders</H3>
+
+There is no difference in registrering a content encoder or a content decoder,
+it all depends on how you use the list of encoders/decoders.
+
+<PRE>
+extern BOOL HTContentCoding_add (HTList * 		list,
+				 const char *		encoding,
+				 HTContentCoder *	encoder,
+				 HTContentCoder *	decoder,
+				 double			quality);
+
+extern void HTContentCoding_deleteAll (HTList * list);
+</PRE>
+
+<H3>Content Coding Stream Stack</H3>
+
+When creating a content coding stream stack, it is important that we keep the
+right order of encoders and decoders. The HTTP spec specifies that the list in
+the <EM>Content-Encoding</EM> header follows the order in which the encodings
+have been applied to the object. Internally, we represent the content encodings
+as <A HREF="HTAtom.html">atoms</A> in a linked <A HREF="HTList.html">list
+object</A>.<P>
+
+The creation of the content coding stack is not based on quality factors as we
+don't have the freedom as with content types. When using content codings we
+<EM>must</EM> apply the codings specified or fail. 
+
+<PRE>
+extern HTStream * HTCodingStack (HTEncoding	coding,
+				 HTStream *	target,
+				 HTRequest *	request,
+				 void *		param,
+				 BOOL		encoding);
+</PRE>
+
+Here you can provide a complete list instead of a single token. The list has to
+be filled up in the order the _encodings_ are to be applied
+
+<PRE>
+extern HTStream * HTEncodingStack (HTList *	encodings,
+				   HTStream *	target,
+				   HTRequest *	request,
+				   void *	param);
+</PRE>
+
+Here you can provide a complete list instead of a single token. The list has to
+be in the order the _encodings_ were applied - that is, the same way that
+_encodings_ are to be applied. This is all consistent with the order of the
+Content-Encoding header.
+
+<PRE>
+extern HTStream * HTDecodingStack (HTList *	encodings,
+				   HTStream *	target,
+				   HTRequest *	request,
+				   void *	param);
+</PRE>
+
+<H2><A NAME="charset">Content Charsets</A></H2>
 
 <H4>Register a Charset</H4>
 
@@ -323,6 +380,13 @@ extern void HTCharset_add (HTList *		list,
 </PRE>
 
 <H4>Delete a list of Charsets</H4>
+
+<PRE>
+typedef struct _HTAcceptNode {
+    HTAtom *	atom;
+    double	quality;
+} HTAcceptNode;
+</PRE>
 
 <PRE>
 extern void HTCharset_deleteAll	(HTList * list);
@@ -364,7 +428,7 @@ extern void HTFormat_setConversion	(HTList *list);
 extern HTList * HTFormat_conversion	(void);
 </PRE>
 
-<H3>Content Encodings</H3>
+<H3>Content Encodings and Decodings</H3>
 
 <PRE>
 extern void HTFormat_setEncoding	(HTList *list);
@@ -402,9 +466,10 @@ the client request.
 <PRE>
 typedef struct _HTContentDescription {
     char *	filename;
-    HTAtom *	content_type;
-    HTAtom *	content_language;
-    HTAtom *	content_encoding;
+    HTFormat	content_type;
+    HTLanguage	content_language;
+    HTEncoding	content_encoding;
+    HTCte	content_transfer;
     int		content_length;
     double	quality;
 } HTContentDescription;
@@ -434,7 +499,7 @@ extern HTStream * HTStreamStack (HTFormat	rep_in,
 				 BOOL		guess);
 </PRE>
 
-<H2>Cost of a Stream Stack</H2>
+<H3>Cost of a Stream Stack</H3>
 
 Must return the cost of the same stack which HTStreamStack would set
 up.
@@ -449,7 +514,9 @@ extern double HTStackValue	(HTList *	conversions,
 #endif /* HTFORMAT */
 </PRE>
 
-End of declaration module
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This version of the HTML object sends HTML markup to the output stream.
 **
@@ -25,7 +26,6 @@
 #include "HTMLPDTD.h"
 #include "HTStruct.h"
 #include "HTFormat.h"
-#include "HTFWrite.h"
 #include "HTMLGen.h"				         /* Implemented here */
 
 #define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */

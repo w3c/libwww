@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww EVENTS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -26,6 +26,16 @@ Reference Library</A>. <P>
 <PRE>
 #ifndef HTEVNTRG_H
 #define HTEVNTRG_H
+
+typedef enum _HTPriority {
+    HT_PRIORITY_INV = -1,
+    HT_PRIORITY_OFF = 0,
+    HT_PRIORITY_MIN = 1,
+    HT_PRIORITY_MAX = 20
+} HTPriority; 
+
+typedef u_long SockOps; 
+
 #include "HTReq.h"
 #include "sysdep.h"
 </PRE>
@@ -47,18 +57,9 @@ The appplication registers a set of event handlers to be used on a
 specified set of sockets. The eventhandlers must be defined as follows:
 
 <PRE>
-typedef u_long SockOps; 
-
 #define FD_NONE	0
 #define FD_ALL (FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT |FD_CLOSE)
 #define FD_UNREGISTER (((FD_ALL) &lt;&lt; 1) & (~(FD_ALL)))
-
-typedef enum _HTPriority {
-    HT_PRIORITY_INV = -1,
-    HT_PRIORITY_OFF = 0,
-    HT_PRIORITY_MIN = 1,
-    HT_PRIORITY_MAX = 20
-} HTPriority; 
 
 typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
 </PRE>
@@ -158,7 +159,9 @@ extern void HTEvent_stopLoop (void);
 #endif /* HTEvent_H */
 </PRE>
 
-End of declartion module
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

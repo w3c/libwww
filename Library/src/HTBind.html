@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww File Suffix Binding</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -68,12 +68,13 @@ extern void HTBind_setDelimiters	(const char * new_suffixes);
 
 <H2>Set up Bindings Associated with a File Suffix</H2>
 
-There are three types of bindings:
+There are four types of bindings:
 
 <UL>
 <LI>Content Type (media type)
 <LI>Language
 <LI>Content Encoding
+<LI>Content Transfer Encoding
 </UL>
 
 And the associated set of methods is defined as:
@@ -82,6 +83,7 @@ And the associated set of methods is defined as:
 extern BOOL HTBind_add		(const char *	suffix,
 				 const char *	representation,
 				 const char *	encoding,
+				 const char *	transfer,
 				 const char *	language,
 				 double		value);
 
@@ -91,6 +93,10 @@ extern BOOL HTBind_addType	(const char *	suffix,
 
 extern BOOL HTBind_addEncoding	(const char *	suffix,
 				 const char *	encoding,
+				 double		value);
+
+extern BOOL HTBind_addTransfer	(const char *	suffix,
+				 const char *	transfer,
 				 double		value);
 
 extern BOOL HTBind_addLanguage	(const char *	suffix,
@@ -146,11 +152,12 @@ one lowest. Returns the format, encoding, and language found. See also
 <CODE>HTBind_getBindings</CODE>.
 
 <PRE>
-extern BOOL HTBind_getFormat	(const char *	filename,
-				 HTFormat *	format,
-				 HTEncoding *	encoding,
-				 HTLanguage *	language,
-				 double *	quality);
+extern BOOL HTBind_getFormat (const char *	filename,
+			      HTFormat *	format,
+			      HTEncoding *	enc,
+			      HTCte *		cte,
+			      HTLanguage *	lang,
+			      double *		quality);
 </PRE>
 
 <H2>Multi Format Management</H2>
@@ -174,5 +181,9 @@ End of declaration module
 #endif /* HTBIND_H */
 </PRE>
 
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

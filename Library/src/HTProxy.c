@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	Replaces the old env variables for gateways and proxies. However for
 **	backward compatibility there is a function that reads the env variables

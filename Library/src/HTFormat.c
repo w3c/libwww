@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** Bugs:
 **	Assumes the incoming stream is ASCII, rather than a local file
@@ -16,20 +17,19 @@
 
 /* Library Include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTTCP.h"
-#include "HTFWrite.h"
-#include "HTNetMan.h"
-#include "HTError.h"
+#include "WWWUtil.h"
 #include "HTReqMan.h"
+#include "HTNetMan.h"
+#include "HTStream.h"
+#include "HTFWrite.h"
+#include "HTError.h"
 #include "HTFormat.h"					 /* Implemented here */
 
 #define NO_VALUE_FOUND	-1e30		 /* Stream Stack Value if none found */
 
-PRIVATE HTList * HTConversions = NULL;
+PRIVATE HTList * HTConversions = NULL;			    /* Content types */
+PRIVATE HTList * HTEncodings = NULL;			 /* Content encoders */
 PRIVATE HTList * HTCharsets = NULL;
-PRIVATE HTList * HTEncodings = NULL;
 PRIVATE HTList * HTLanguages = NULL;
 
 PRIVATE double HTMaxSecs = 1e10;		/* No effective limit */
@@ -37,6 +37,40 @@ PRIVATE double HTMaxSecs = 1e10;		/* No effective limit */
 struct _HTStream {
     const HTStreamClass *	isa;
 };
+
+struct _HTContentCoding {
+    HTEncoding		coding;
+    HTContentCoder *	encoder;
+    HTContentCoder *	decoder;
+    double		quality;
+};
+
+/* ------------------------------------------------------------------------- */
+/*				BASIC CONVERTERS			     */
+/* ------------------------------------------------------------------------- */
+
+PUBLIC HTStream * HTBlackHoleConverter (HTRequest *	request,
+					void *		param,
+					HTFormat	input_format,
+					HTFormat	output_format,
+					HTStream *	output_stream)
+{
+    return HTBlackHole();
+}
+/*	HTThroughLine
+**	-------------
+**
+** This function is a dummy function that returns the same output stream
+** as given as a parameter. Henrik 01/03-94
+*/
+PUBLIC HTStream* HTThroughLine (HTRequest *	request,
+				void *		param,
+				HTFormat	input_format,
+				HTFormat	output_format,
+				HTStream *	output_stream)
+{
+    return output_stream;
+}
 
 /* ------------------------------------------------------------------------- */
 /* 	  ACCEPT LISTS OF CONVERSIONS, ENCODINGS, LANGUAGE, AND CHARSET	     */
@@ -112,9 +146,8 @@ PUBLIC void HTConversion_add (HTList *		conversions,
 			      double		secs_per_byte)
 {
     HTPresentation * pres;
-    if ((pres = (HTPresentation  *) HT_CALLOC(1,sizeof(HTPresentation))) == NULL)
+    if ((pres = (HTPresentation*) HT_CALLOC(1,sizeof(HTPresentation))) == NULL)
         HT_OUTOFMEM("HTSetPresentation");
-    
     pres->rep = HTAtom_for(representation_in);
     pres->rep_out = HTAtom_for(representation_out);
     pres->converter = converter;
@@ -131,34 +164,43 @@ PUBLIC void HTConversion_deleteAll (HTList * list)
     HTPresentation_deleteAll(list);
 }
 
-PUBLIC void HTEncoding_add (HTList * 		list,
-			    const char *	enc,
-			    double		quality)
+PUBLIC BOOL HTContentCoding_add (HTList * 		list,
+				 const char *		coding,
+				 HTContentCoder *	encoder,
+				 HTContentCoder *	decoder,
+				 double			quality)
 {
-    HTAcceptNode * node;
-    if (!list || !enc || !*enc) {
-	if (WWWTRACE)
-	    HTTrace("Encodings... Bad argument\n");
-	return;
+    if (list && coding && (encoder || decoder)) {
+	HTContentCoding * me;
+	if ((me=(HTContentCoding*)HT_CALLOC(1, sizeof(HTContentCoding)))==NULL)
+	    HT_OUTOFMEM("HTContentCoding_add");
+	me->coding = HTAtom_for(coding);
+	me->encoder = encoder;
+	me->decoder = decoder;
+	me->quality = quality;
+	if (CORE_TRACE)
+	    HTTrace("Codings..... Adding %s with quality %.2f\n",
+		    coding, quality);
+	return HTList_addObject(list, (void *) me);
     }
-    if ((node = (HTAcceptNode *) HT_CALLOC(1, sizeof(HTAcceptNode))) == NULL)
-        HT_OUTOFMEM("HTAcceptEncoding");
-    HTList_addObject(list, (void*)node);
-
-    node->atom = HTAtom_for(enc);
-    node->quality = quality;
+    if (CORE_TRACE) HTTrace("Codings..... Bad argument\n");
+    return NO;
 }
 
-PUBLIC void HTEncoding_deleteAll (HTList * list)
+PUBLIC void HTContentCoding_deleteAll (HTList * list)
 {
     if (list) {
-	HTList *cur = list;
-	HTAcceptNode *pres;
-	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+	HTList * cur = list;
+	HTContentCoding * pres;
+	while ((pres = (HTContentCoding *) HTList_nextObject(cur)))
 	    HT_FREE(pres);
-	}
 	HTList_delete(list);
     }
+}
+
+PUBLIC const char * HTContentCoding_name (HTContentCoding * me)
+{
+    return me ? HTAtom_name(me->coding) : NULL;
 }
 
 PUBLIC void HTLanguage_add (HTList *		list,
@@ -167,7 +209,7 @@ PUBLIC void HTLanguage_add (HTList *		list,
 {
     HTAcceptNode * node;
     if (!list || !lang || !*lang)  {
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("Languages... Bad argument\n");
 	return;
     }
@@ -181,7 +223,14 @@ PUBLIC void HTLanguage_add (HTList *		list,
 
 PUBLIC void HTLanguage_deleteAll (HTList * list)
 {
-    HTEncoding_deleteAll(list);
+    if (list) {
+	HTList *cur = list;
+	HTAcceptNode *pres;
+	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+	    HT_FREE(pres);
+	}
+	HTList_delete(list);
+    }
 }
 
 PUBLIC void HTCharset_add (HTList *		list,
@@ -190,7 +239,7 @@ PUBLIC void HTCharset_add (HTList *		list,
 {
     HTAcceptNode * node;
     if (!list || !charset || !*charset)  {
-	if (WWWTRACE)
+	if (CORE_TRACE)
 	    HTTrace("Charset..... Bad argument\n");
 	return;
     }
@@ -204,7 +253,14 @@ PUBLIC void HTCharset_add (HTList *		list,
 
 PUBLIC void HTCharset_deleteAll (HTList * list)
 {
-    HTEncoding_deleteAll(list);
+    if (list) {
+	HTList *cur = list;
+	HTAcceptNode *pres;
+	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+	    HT_FREE(pres);
+	}
+	HTList_delete(list);
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -226,7 +282,7 @@ PUBLIC HTList * HTFormat_conversion (void)
 }
 
 /*
-**	Global Accept Encodings
+**	Global Content Encodings
 **	list can be NULL
 */
 PUBLIC void HTFormat_setEncoding (HTList *list)
@@ -281,7 +337,7 @@ PUBLIC void HTFormat_deleteAll (void)
 	HTLanguages = NULL;
     }
     if (HTEncodings) {
-	HTEncoding_deleteAll(HTEncodings);
+	HTContentCoding_deleteAll(HTEncodings);
 	HTEncodings = NULL;
     }
     if (HTCharsets) {
@@ -480,8 +536,8 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 	}
     }
 
-    if (PROT_TRACE) HTTrace("Ranking.....\n");
-    if (PROT_TRACE) HTTrace(
+    if (CORE_TRACE) HTTrace("Ranking.....\n");
+    if (CORE_TRACE) HTTrace(
 	   "\nRANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING    FILE\n");
 
     sorted = HTList_new();
@@ -493,7 +549,7 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 		worst = d;
 	}
 	if (worst) {
-	    if (PROT_TRACE)
+	    if (CORE_TRACE)
 		HTTrace("%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
 			accepted_cnt+1,
 			worst->quality,
@@ -509,7 +565,7 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 	    HTList_addObject(sorted, (void*)worst);
 	}
     }
-    if (PROT_TRACE) HTTrace("\n");
+    if (CORE_TRACE) HTTrace("\n");
     HTList_delete(accepted);
     HTList_delete(possibilities->next);
     possibilities->next = sorted->next;
@@ -521,9 +577,8 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 }
 
 
-/*		Create a filter stack
-**		---------------------
-**
+/*	Create a Content Type filter stack
+**	----------------------------------
 **	If a wildcard match is made, a temporary HTPresentation
 **	structure is made to hold the destination format while the
 **	new stack is generated. This is just to pass the out format to
@@ -544,17 +599,17 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
     double best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *best_match=NULL;
     if (rep_out == WWW_RAW) {
-	if (STREAM_TRACE) HTTrace("StreamStack. Raw output...\n");
+	if (CORE_TRACE) HTTrace("StreamStack. Raw output...\n");
 	return output_stream ? output_stream : HTErrorStream();
     }
 
     if (rep_out == rep_in) {
-	if (STREAM_TRACE)
+	if (CORE_TRACE)
 	    HTTrace("StreamStack. Identical input/output format (%s)\n",
 		     HTAtom_name(rep_out));
 	return output_stream ? output_stream : HTErrorStream();
     }
-    if (STREAM_TRACE) {
+    if (CORE_TRACE) {
 	char *p = HTAtom_name(rep_in);
 	char *q = HTAtom_name(rep_out); 
 	HTTrace("StreamStack. Constructing stream stack for %s to %s\n",
@@ -576,7 +631,7 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 		    int result=0;
 		    if (pres->test_command) {
 			result = system(pres->test_command);
-			if (STREAM_TRACE) 
+			if (CORE_TRACE) 
 			    HTTrace("StreamStack. system(%s) returns %d\n", pres->test_command, result);
 		    }
 		    if (!result) {
@@ -594,18 +649,18 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 
     if (best_match) {
  	if (rep_out == WWW_SOURCE && best_match->rep_out != WWW_SOURCE) {
-	    if (STREAM_TRACE) HTTrace("StreamStack. Source output\n");
+	    if (CORE_TRACE) HTTrace("StreamStack. Source output\n");
 	    return output_stream ? output_stream : HTErrorStream();
 	}
 	return (*best_match->converter)(request, best_match->command,
 					rep_in, rep_out, output_stream);
     }
     if (rep_out == WWW_SOURCE) {
-	if (STREAM_TRACE) HTTrace("StreamStack. Source output\n");
+	if (CORE_TRACE) HTTrace("StreamStack. Source output\n");
 	return output_stream ? output_stream : HTErrorStream();
     }
 
-    if (STREAM_TRACE)
+    if (CORE_TRACE)
 	HTTrace("StreamStack. No match found, dumping to local file\n");
     return HTSaveLocally(request, NULL, rep_in, rep_out, output_stream);
 }
@@ -628,7 +683,7 @@ PUBLIC double HTStackValue (HTList *	theseConversions,
     int which_list;
     HTList* conversion[2];
     
-    if (STREAM_TRACE) {
+    if (CORE_TRACE) {
 	HTTrace("StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
 		HTAtom_name(rep_in),	initial_value,
 		HTAtom_name(rep_out));
@@ -657,4 +712,89 @@ PUBLIC double HTStackValue (HTList *	theseConversions,
     return NO_VALUE_FOUND;		/* Really bad */
 }
 
+/*	Create a new coder and insert it into stream chain
+**	--------------------------------------------------
+**	Creating the content decoding stack is not based on quality factors as
+**	we don't have the freedom as with content types. Specify whether you
+**	you want encoding or decoding using the BOOL "encoding" flag.
+*/
+PUBLIC HTStream * HTCodingStack (HTEncoding	coding,
+				 HTStream *	target,
+				 HTRequest *	request,
+				 void *		param,
+				 BOOL		encoding)
+{
+    HTList * coders[2];
+    HTStream * top = target;
+    HTContentCoding * pres = NULL;
+    int cnt;
+    if (!coding || !request) {
+	if (CORE_TRACE) HTTrace("Codings... Nothing applied...\n");
+	return target ? target : HTErrorStream();
+    }
+    coders[0] = request->encodings;
+    coders[1] = HTEncodings;
+    if (CORE_TRACE)
+	HTTrace("Codings..... Looking for %s\n", HTAtom_name(coding));
+    for (cnt=0; cnt < 2; cnt++) {
+	HTList * cur = coders[cnt];
+	while ((pres = (HTContentCoding *) HTList_nextObject(cur))) {
+	    if (pres->coding == coding) {
+		if (CORE_TRACE) HTTrace("Codings..... Found...\n");
+		if (encoding) {
+		    if (pres->encoder)
+			top = (*pres->encoder)(request, param, coding, top);
+		    break;
+		} else if (pres->decoder) {
+		    top = (*pres->decoder)(request, param, coding, top);
+		    break;
+		}
+	    }
+	}
+    }
+    return top;
+}
 
+/*
+**  Here you can provide a complete list instead of a single token.
+**  The list has to filled up in the order the _encodings_ are to be applied
+*/
+PUBLIC HTStream * HTEncodingStack (HTList *	encodings,
+				   HTStream *	target,
+				   HTRequest *	request,
+				   void *	param)
+{
+    if (encodings) {
+	HTList * cur = encodings;
+	HTEncoding pres;
+	HTStream * top = target;
+	while ((pres = (HTEncoding) HTList_nextObject(cur)))
+	    top = HTCodingStack(pres, top, request, param, YES);
+	return top;
+    }
+    return HTErrorStream();
+}
+
+/*
+**  Here you can provide a complete list instead of a single token.
+**  The list has to be in the order the _encodings_ were applied - that
+**  is, the same way that _encodings_ are to be applied. This is all consistent
+**  with the order of the Content-Encoding header.
+*/
+PUBLIC HTStream * HTDecodingStack (HTList *	encodings,
+				   HTStream *	target,
+				   HTRequest *	request,
+				   void *	param)
+{
+    if (encodings) {
+	HTEncoding pres;
+	int cnt = HTList_count(encodings);
+	HTStream * top = target;
+	while (cnt > 0) {
+	    pres = (HTEncoding) HTList_objectAt(encodings, --cnt);
+	    top = HTCodingStack(pres, top, request, param, NO);
+	}
+	return top;
+    }
+    return HTErrorStream();
+}

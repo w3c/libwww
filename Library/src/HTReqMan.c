@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** Authors
 **	TBL	Tim Berners-Lee timbl@w3.org
@@ -458,6 +459,19 @@ PUBLIC void HTRequest_setDebugFormat (HTRequest *request, HTFormat format)
 PUBLIC HTFormat HTRequest_debugFormat (HTRequest *request)
 {
     return request ? request->debug_format : NULL;
+}
+
+/*
+**	Input stream
+*/
+PUBLIC void HTRequest_setInputStream (HTRequest *request, HTStream *input)
+{
+    if (request) request->input_stream = input;
+}
+
+PUBLIC HTStream *HTRequest_inputStream (HTRequest *request)
+{
+    return request ? request->input_stream : NULL;
 }
 
 /*

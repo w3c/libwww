@@ -16,17 +16,10 @@
 
 /* Library Include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTFWrite.h"
-#include "HTWriter.h"
-#include "HTConLen.h"
-#include "HTSocket.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTTCP.h"
-#include "HTError.h"
-#include "HTChunk.h"
-#include "HTEscape.h"
+#include "HTConLen.h"
 #include "HTReqMan.h"				/* @@@ */
 #include "HTNetMan.h"				/* @@@ */
 #include "HTNewsRq.h" 
@@ -100,6 +93,10 @@ struct _HTStream {
     BOOL			junk;
     char 			buffer[MAX_NEWS_LINE+1];
     int				buflen;
+};
+
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
 };
 
 PRIVATE char *HTNewsHost = NULL;
@@ -505,25 +502,45 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
             }
             if (status == HT_OK) {
 		BOOL greeting = NO;
-		char *s_class = HTDNS_serverClass(net->dns);
-		if (s_class && strcasecomp(s_class, "nntp")) {
-		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
-				       NULL, 0, "HTLoadNews");
-		    news->state = NEWS_ERROR;
-		    break;
-		}
-		HTDNS_setServerClass(net->dns, "nntp");
+
+		/* Set up the persistent connection */
 		if (!HTNet_persistent(net)) {
 		    HTNet_setPersistent(net, YES);
 		    greeting = YES;
 		}
-		if (PROT_TRACE)
-		    HTTrace("News........ Connected, socket %d\n",
-			    net->sockfd);
 
-		/* Set up stream TO network */
-		request->input_stream = HTWriter_new(net, YES);
-	      
+		/*
+		** Check the protocol class to see if we have connected to a
+		** the right class of server, in this case HTTP.
+		*/
+		{
+		    HTHost * host = HTNet_host(net);
+		    char * s_class = HTHost_class(host);
+		    if (s_class && strcasecomp(s_class, "nntp")) {
+			HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
+					   NULL, 0, "HTLoadNews");
+			news->state = NEWS_ERROR;
+			break;
+		    }
+		    HTHost_setClass(host, "nntp");
+		}
+
+		/* 
+		** Create the stream pipe FROM the channel to the application.
+		** The target for the input stream pipe is set up using the
+		** stream stack.
+		*/
+		HTNet_getInput(net, HTNewsStatus_new(request, news), NULL, 0);
+
+		/*
+		** Create the stream pipe TO the channel from the application
+		** and hook it up to the request object
+		*/
+		{
+		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+		    HTRequest_setInputStream(request, (HTStream *) output);
+		}
+
 		/*
 		** Set up concurrent read/write if this request isn't the
 		** source for a PUT or POST. As source we don't start reading
@@ -535,10 +552,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 				     HTLoadNews, net->priority);
 		    HTRequest_linkDestination(request);
 		}
-
-		/* Set up stream FROM network and corresponding read buffer */
-		net->target = HTNewsStatus_new(request, news);
 		news->state = greeting ? NEWS_NEED_GREETING : NEWS_NEED_SWITCH;
+
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;
 	    else
@@ -546,7 +561,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case NEWS_NEED_GREETING:
-	    status = HTChannel_readSocket(request, net);
+	    status = (*net->input->isa->read)(net->input);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED) {
@@ -601,7 +616,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_MIME;
 		news->sent = YES;
 	    } else {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -626,7 +641,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
  		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -651,7 +666,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_NNTP_LIST;
 		news->sent = YES;
 	    } else {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -674,7 +689,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -707,7 +722,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		news->format = WWW_NNTP_OVER;
 		news->sent = YES;
 	    } else {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_OK)
@@ -736,7 +751,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    news->state = NEWS_ERROR;
 		news->sent = YES;
 	    } else {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
@@ -752,12 +767,15 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case NEWS_NEED_POST:
-	    request->input_stream =
-		HTNewsPost_new(request, HTBuffer_new(request->input_stream,
-						     request, 512));
+	  {
+	      HTStream * oldinput = HTRequest_inputStream(request);
+	      HTStream * newinput =
+		  HTNewsPost_new(request, HTBuffer_new(oldinput, request,512));
+	      HTRequest_setInputStream(request, newinput);
+	      
+	      /* Remember to convert to CRLF */
 
-	    /* Remember to convert to CRLF */
-
+	  }
 	    news->state = NEWS_NEED_BODY;
 	    break;
 
@@ -778,7 +796,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
                 else 	
                     ops = FD_READ;	  /* Trick to ensure that we do READ */
 	    } else if (ops == FD_READ) {
-                status = HTChannel_readSocket(request, net);
+                status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
                 else if (status == HT_LOADED)

@@ -21,7 +21,6 @@
 #include "HTString.h"
 #include "HTAlert.h"
 #include "HTNetMan.h"
-#include "HTFWrite.h"
 #include "HTStream.h"
 #include "HTMux.h"					 /* Implemented here */
 
@@ -72,9 +71,17 @@ typedef struct _HTMuxHdr {
 typedef int HTSessionId;
 #define INVSID	-1				       /* Invalid session id */
 
+typedef enum _HTMuxState {
+    MUX_HEAD	= 0,
+    MUX_BODY	= 1,
+    MUX_PAD	= 2
+} HTMuxState;
+
 struct _HTW3mux {
     unsigned int	next_head;  /* Number of bytes until next mux header */
     HTStream *		mux;			/* Target for our mux stream */
+    HTMuxState		mux_state;
+    int			pads;			   /* Number of bytes to pad */
     HTSessionId		ctrl_sid;		       /* Control session id */
     int			shutdown;
     HTStream *		sessions [MAX_SESSIONS];
@@ -94,6 +101,9 @@ struct _HTStream {
     HTW3mux *			w3mux;
     BOOL			transparent;
 };
+
+/* We have to able to padd up until the nearest 64 bit boundary */
+PRIVATE char padding[] = {'\0', '\0', '\0', '\0', '\0', '\0', '\0'};
 
 /* ------------------------------------------------------------------------- */
 /*				SESSION CONTROL				     */
@@ -158,40 +168,74 @@ PRIVATE BOOL HTSession_setStream (HTW3mux * w3mux, HTSessionId sid,
 
 PRIVATE int HTMux_put_block (HTStream * me, const char * b, int len)
 {
+    int status = HT_OK;
     HTMuxHdr hdr[2];
     HTW3mux * w3mux = me->w3mux;
-    hdr[0].c.len = 0;
-    if (!me->transparent) {
-	hdr[0].c.data.syn = 1;
-	me->transparent = YES;
-    }
-    hdr[0].c.data.sid = me->sid;
+    while (1) {
+	switch (w3mux->mux_state) {
+
+	  case MUX_HEAD:
+	    hdr[0].c.len = 0;
+	    if (!me->transparent) {
+		hdr[0].c.data.syn = 1;
+		me->transparent = YES;
+	    }
+	    hdr[0].c.data.sid = me->sid;
 #ifndef HT_MUX_ALIGN_64
-    if (len <= MUX_LENGTH) {
-	hdr[0].c.data.size = len;	
+	    if (len <= MUX_LENGTH) {
+		hdr[0].c.data.size = len;	
 #ifdef WORDS_BIGENDIAN
-	{
-	    register unsigned int tmp = hdr[0].c.len;
-	    hdr[0].c.len = HT_SWAP_WORD(tmp);
-	}
+		{
+		    register unsigned int tmp = hdr[0].c.len;
+		    hdr[0].c.len = HT_SWAP_WORD(tmp);
+		}
 #endif
-	MUX_BLOCK((const char *) &hdr, sizeof(int));
-    } else
+		w3mux->pads = len % 4;
+#ifdef MUX_WRITE
+		status = MUX_BLOCK((const char *) &hdr, sizeof(int));
+#endif
+	    } else
 #endif /* HT_MUX_ALIGN_64 */
-    {
-	hdr[0].c.data.long_len = 1;
-	hdr[1].c.len = len;
+	    {
+		hdr[0].c.data.long_len = 1;
+		hdr[1].c.len = len;
 #ifdef WORDS_BIGENDIAN
-	{
-	    register unsigned int tmp = hdr[0].c.len;
-	    hdr[0].c.len = HT_SWAP_WORD(tmp);
-	    tmp = hdr[1].c.len;
-	    hdr[1].c.len = HT_SWAP_WORD(tmp);
-	}
+		{
+		    register unsigned int tmp = hdr[0].c.len;
+		    hdr[0].c.len = HT_SWAP_WORD(tmp);
+		    tmp = hdr[1].c.len;
+		    hdr[1].c.len = HT_SWAP_WORD(tmp);
+		}
 #endif
-	MUX_BLOCK((const char *) &hdr, sizeof(int)+sizeof(int));
-    }
-    return MUX_BLOCK(b, len);
+		w3mux->pads = len % 8;
+#ifdef MUX_WRITE
+		status = MUX_BLOCK((const char *)&hdr,sizeof(int)+sizeof(int));
+#endif
+	    }
+	    if (PROT_TRACE) HTTrace("Mux......... header %d\n", hdr[0].c.len);
+	    if (status != HT_OK) return status;
+	    w3mux->mux_state = MUX_BODY;
+	    break;
+	    
+	  case MUX_BODY:
+#ifdef MUX_WRITE
+	    status = MUX_BLOCK(b, len);
+#endif
+	    if (status != HT_OK) return status;
+	    w3mux->mux_state = MUX_PAD;
+	    break;
+	    
+	  case MUX_PAD:
+	    if (PROT_TRACE) HTTrace("Mux......... pad %d bytes\n",w3mux->pads);
+#ifdef MUX_WRITE
+	    status = MUX_BLOCK(padding, w3mux->pads);
+#endif
+	    if (status != HT_OK) return status;
+	    w3mux->mux_state = MUX_HEAD;
+	    return HT_OK;
+
+	}
+    } /* End of while (1) */
 }
 
 PRIVATE int HTMux_put_string (HTStream * me, const char * s)
@@ -225,10 +269,6 @@ PRIVATE int HTMux_free (HTStream * me)
 #endif
 	MUX_BLOCK((const char *) &hdr, sizeof(int));
     }
-    if (w3mux->mux) {
-	if ((status = (*w3mux->mux->isa->_free)(w3mux->mux)) == HT_WOULD_BLOCK)
-	    return HT_WOULD_BLOCK;
-    }
     HTSession_delete(w3mux, me->sid);
     if (PROT_TRACE) HTTrace("Session stream FREEING....\n");
     HT_FREE(me);
@@ -251,7 +291,6 @@ PRIVATE int HTMux_abort (HTStream * me, HTList * e)
 #endif
 	MUX_BLOCK((const char *) &hdr, sizeof(int));
     }
-    if (w3mux->mux) status = (*w3mux->mux->isa->abort)(w3mux->mux, e);
     HTSession_delete(w3mux, me->sid);
     if (PROT_TRACE) HTTrace("Session stream ABORTING...\n");
     HT_FREE(me);
@@ -430,13 +469,13 @@ PRIVATE HTStream * HTDemux_new (HTW3mux * w3mux, HTSessionId sid)
 **	Create a new W3mux protocol object.
 **	Returns new W3Mux object or NULL on error
 */
-PUBLIC HTW3mux * HTW3mux_new (HTStream * mux, BOOL active)
+PUBLIC HTW3mux * HTW3mux_new (HTStream * target, BOOL active)
 {
     HTW3mux * w3mux = NULL;
-    if (mux) {
+    if (target) {
 	if ((w3mux = (HTW3mux *) HT_CALLOC(1, sizeof(HTW3mux))) == NULL)
 	    HT_OUTOFMEM("HTW3mux_new");	    
-	w3mux->mux = mux;
+	w3mux->mux = target;
 	w3mux->ctrl_sid = active ? CLIENT_CTRL_SID : SERVER_CTRL_SID;
 	if (PROT_TRACE) HTTrace("W3mux....... Created %p\n", w3mux);
     }

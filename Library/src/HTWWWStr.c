@@ -3,15 +3,15 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **      Now 13 95	Spwaned from HTString.c
 */
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTTCP.h"
+#include "WWWUtil.h"
+#include "HTInet.h"
 #include "HTParse.h"
 #include "HTWWWStr.h"					 /* Implemented here */
 

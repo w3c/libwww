@@ -58,6 +58,11 @@
 #include "WWWApp.h"
 #include "WWWInit.h"
 
+#include "HTTrans.h"
+#include "HTReader.h"
+#include "HTWriter.h"
+#include "HTANSI.h"
+
 #include "GridText.h"				     /* Hypertext definition */
 #include "HTBrowse.h"			     /* Things exported, short names */
 #include "CSLApp.h" /* the PICApp library should provide everything the app needs */
@@ -178,6 +183,10 @@ PRIVATE FILE *		OUTPUT = stdout;
  
 PRIVATE InputParser_t parse_command;
 InputParser_t * PInputParser = &parse_command;
+
+#include "HTZip.h"
+PRIVATE HTList * encoders = NULL;
+
 /* ------------------------------------------------------------------------- */
 
 /*	Create a Context Object
@@ -1065,19 +1074,19 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 		OutputData(lm->pView, "\n  ");
 		perror (next_word);
 	    } else {		    /* Success : display new local directory */
-#ifdef HAVE_GETWD
-		OutputData(lm->pView, "\nLocal directory is now:\n %s\n",
-			   (char *) getwd (choice));
-#else
 #ifdef HAVE_GETCWD
 		OutputData(lm->pView, "\nLocal directory is now:\n %s\n",
 			   getcwd (choice, sizeof(choice)));
 #else
+#ifdef HAVE_GETWD
+		OutputData(lm->pView, "\nLocal directory is now:\n %s\n",
+			   (char *) getwd (choice));
+#else
 #error "This platform doesn't support getwd or getcwd"
 		if (SHOW_MSG)
 		    HTTrace("This platform doesn't support getwd or getcwd\n");
-#endif /* HAVE_GETCWD */
 #endif /* HAVE_GETWD */
+#endif /* HAVE_GETCWD */
 	    }
 	}
 #endif /* HAVE_CHDIR */
@@ -1585,6 +1594,7 @@ PRIVATE int timeout_handler (HTRequest * request)
     if (!HTAlert_interactive()) {
 	Context * context = (Context *) HTRequest_context(request);
 	LineMode * lm = context->lm;
+	if (SHOW_MSG) HTTrace("Request timed out");
 	HTNet_killAll();
 	Cleanup(lm, -1);
     }
@@ -1882,6 +1892,7 @@ int main (int argc, char ** argv)
 		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
 		      case 'h': WWWTRACE |= SHOW_AUTH_TRACE; break;
 		      case 'i': WWWTRACE |= SHOW_PICS_TRACE; break;
+		      case 'o': WWWTRACE |= SHOW_CORE_TRACE; break;
 		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
 		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
 		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;
@@ -1932,6 +1943,11 @@ int main (int argc, char ** argv)
     lm->converters = HTList_new();
     HTConverterInit(lm->converters);
     HTFormat_setConversion(lm->converters);
+
+    /* Set up encoders and decoders */
+    encoders = HTList_new();
+    HTContentCoding_add(encoders, "zip", HTZip_new, HTZip_new, 1.0);
+    HTFormat_setEncoding(encoders);
 
     /* Initialize bindings between file suffixes and media types */
     HTFileInit();
@@ -2035,6 +2051,10 @@ int main (int argc, char ** argv)
     HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
     HTNetCall_addAfter(terminate_handler, HT_ALL);
+
+    /* Register a transport */
+    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
+    HTTransport_add("local", HT_CH_SINGLE, HTANSIReader_new, HTANSIWriter_new);
 
     /* Register our own MIME header handler for extra headers */
 /*    HTHeader_addParser("*", NO, header_handler);

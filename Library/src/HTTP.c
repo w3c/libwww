@@ -18,26 +18,15 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWCache.h"
+#include "WWWMIME.h"
+#include "WWWStream.h"
 #include "HTTCP.h"
-#include "HTFormat.h"
-#include "HTSocket.h"
 #include "HTReqMan.h"
-#include "HTAlert.h"
-#include "HTAABrow.h"		/* Access Authorization */
-#include "HTTee.h"		/* Tee off a cache stream */
-#include "HTFWrite.h"		/* Write to cache file */
-#include "HTCache.h"
-#include "HTWriter.h"
-#include "HTError.h"
-#include "HTAccess.h"
-#include "HTChunk.h"
-#include "HTWWWStr.h"
 #include "HTNetMan.h"
 #include "HTTPUtil.h"
-#include "HTMIMERq.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
 
@@ -91,6 +80,10 @@ struct _HTStream {
     int				buflen;
 };
 
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
+};
+
 /* ------------------------------------------------------------------------- */
 /* 			          Help Functions			     */
 /* ------------------------------------------------------------------------- */
@@ -117,8 +110,10 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     }
 
     /* Free user part of stream pipe if error */
+#if 0
     if (!net->target && req->output_stream)
 	(*req->output_stream->isa->abort)(req->output_stream, NULL);
+#endif
 
     /* Remove the request object and our own context structure for http */
     HTNet_delete(net, req->internal ? HT_IGNORE : status);
@@ -312,8 +307,9 @@ PRIVATE void HTTPNextState (HTStream * me)
 */
 PRIVATE int stream_pipe (HTStream * me)
 {
-    HTRequest *req = me->request;
-    HTNet *net = req->net;
+    HTRequest * req = me->request;
+    HTNet * net = req->net;
+    HTHost * host = HTNet_host(net);
     if (me->target) {
 	int status = PUTBLOCK(me->buffer, me->buflen);
 	if (status == HT_OK)
@@ -335,14 +331,14 @@ PRIVATE int stream_pipe (HTStream * me)
 	me->http->next = HTTP_GOT_DATA;
 	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
 	    me->transparent = YES;
-	HTDNS_setServerVersion(net->dns, HTTP_09);
+	HTHost_setVersion(host, HTTP_09);
 	return status;
     } else {
 	char *ptr = me->buffer+5;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
 
 	/* here we want to find out when to use persistent connection */
-	HTDNS_setServerVersion(net->dns, HTTP_10);
+	HTHost_setVersion(host, HTTP_10);
 
 	me->status = atoi(HTNextField(&ptr));
 	me->reason = ptr;
@@ -552,31 +548,46 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    }
 	    break;
 	    
-	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
-	    status = HTDoConnect(net, HTAnchor_physical(anchor),
-				 HTTP_PORT);
+	case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
+	    status = HTDoConnect(net, HTAnchor_physical(anchor), HTTP_PORT);
 	    if (status == HT_OK) {
-
-		/* Check the protocol class */
-		char *s_class = HTDNS_serverClass(net->dns);
-		if (s_class && strcasecomp(s_class, "http")) {
-		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
-			       NULL, 0, "HTLoadHTTP");
-		    http->state = HTTP_ERROR;
-		    break;
-		}
-		HTDNS_setServerClass(net->dns, "http");
-
-		if (PROT_TRACE)
-		    HTTrace("HTTP........ Connected, socket %d\n",
-			    net->sockfd);
-
-		/* Set up stream TO network. If we include a data object in
-		** the request then add a MIME stream
+		/*
+		** Check the protocol class to see if we have connected to a
+		** the right class of server, in this case HTTP.
 		*/
-		request->input_stream = HTMethod_hasEntity(request->method) ?
-		    HTMIMERequest_new(request, HTTPRequest_new(request, HTBufWriter_new(net, YES, 512), NO), YES) :
-			HTTPRequest_new(request, HTBufWriter_new(net,YES,512), YES);
+		{
+		    HTHost * host = HTNet_host(net);
+		    char * s_class = HTHost_class(host);
+		    if (s_class && strcasecomp(s_class, "http")) {
+			HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
+					   NULL, 0, "HTLoadHTTP");
+			http->state = HTTP_ERROR;
+			break;
+		    }
+		    HTHost_setClass(host, "http");
+		}
+
+		/* 
+		** Create the stream pipe FROM the channel to the application.
+		** The target for the input stream pipe is set up using the
+		** stream stack.
+		*/
+		HTNet_getInput(net, HTStreamStack(WWW_HTTP,
+						  request->output_format,
+						  request->output_stream,
+						  request, YES), NULL, 0);
+		/*
+		** Create the stream pipe TO the channel from the application
+		** and hook it up to the request object
+		*/
+		{
+		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+		    HTStream * app = HTMethod_hasEntity(request->method) ?
+		        HTMIMERequest_new(request,
+			  HTTPRequest_new(request,(HTStream*) output,NO),YES) :
+			    HTTPRequest_new(request, (HTStream*) output, YES);
+		    HTRequest_setInputStream(request, app);
+		}
 
 		/*
 		** Set up concurrent read/write if this request isn't the
@@ -589,20 +600,6 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 				     HTLoadHTTP, net->priority);
 		    HTRequest_linkDestination(request);
 		}
-
-		/* Set up stream FROM network */
-#if 1
-		net->target=HTStreamStack(WWW_HTTP, request->output_format,
-					  request->output_stream, request, NO);
-#else
-		{
-		    HTStream * target = HTStreamStack(WWW_HTTP,
-						      request->output_format,
-						      request->output_stream,
-						      request, NO);
-		    HTNet_setTarget(net, target);
-		}
-#endif
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;
@@ -631,7 +628,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		else
 		    ops = FD_READ;	  /* Trick to ensure that we do READ */
 	    } else if (ops == FD_READ) {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status==HT_LOADED || status==HT_CLOSED)

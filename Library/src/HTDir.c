@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This is unix-specific code in general
 **	The module is intended for use in HTFile.c and HTFTP.c where
@@ -159,7 +160,7 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	HTIconNode *icon;
 	HTHrefNode *href;
 	if (node->mode == HT_IS_FILE)
-	    HTBind_getFormat(node->fname, &format, &encoding, NULL, &q);
+	    HTBind_getFormat(node->fname, &format, &encoding, NULL, NULL, &q);
 	icon = HTGetIcon(node->mode, format, encoding);
 	href = HTGetHref(node->fname);
 

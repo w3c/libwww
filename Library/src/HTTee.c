@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	The Tee class just writes to two streams.  Easy.
 **	See also the Black Hole stream which is even easier.
@@ -75,8 +76,9 @@ PRIVATE int HTTee_free (HTStream * me)
 {
     int ret1 = (*me->s1->isa->_free)(me->s1);
     int ret2 = (*me->s2->isa->_free)(me->s2);
-    return me->resolver(&ret1, &ret2);
+    int ret = me->resolver(&ret1, &ret2);
     HT_FREE(me);
+    return ret;
 }
 
 PRIVATE int HTTee_abort (HTStream * me, HTList * e)

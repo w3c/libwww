@@ -125,20 +125,11 @@
 /* Define this if the extern timezone is negative. */
 #undef NEGATIVE_TIMEZONE
 
-/* The number of bytes in a char.  */
-#undef SIZEOF_CHAR
-
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT
 
 /* The number of bytes in a long.  */
 #undef SIZEOF_LONG
-
-/* The number of bytes in a unsigned int.  */
-#undef SIZEOF_UNSIGNED_INT
-
-/* The number of bytes in a unsigned long.  */
-#undef SIZEOF_UNSIGNED_LONG
 
 /* Define if you have the chdir function.  */
 #undef HAVE_CHDIR

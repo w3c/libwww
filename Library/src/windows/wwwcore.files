@@ -2,7 +2,6 @@ HTAccess.c
 HTAlert.c
 HTAnchor.c
 HTBind.c
-HTConLen.c
 HTDNS.c
 HTError.c
 HTEscape.c
@@ -15,7 +14,7 @@ HTParse.c
 HTProt.c
 HTReqMan.c
 HTSocket.c
+HTStream.c
 HTTCP.c
-HTTee.c
 HTWriter.c
 HTWWWStr.c

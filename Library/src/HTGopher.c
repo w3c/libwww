@@ -19,21 +19,13 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWHTML.h"
+#include "WWWDir.h"
 #include "HTTCP.h"
-#include "HTIcons.h"
 #include "HTReqMan.h"
-#include "HTSocket.h"
-#include "HTFormat.h"
-#include "HTError.h"
-#include "HTWriter.h"
 #include "HTNetMan.h"
-#include "HTBind.h"
-#include "HTMLPDTD.h"
-#include "HTMLGen.h"
-#include "HTDir.h"
 #include "HTGopher.h"					 /* Implemented here */
 
 /* Macros and other defines */
@@ -111,6 +103,10 @@ struct _HTStream {
     int				buflen;
 };
 
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
+};
+
 PRIVATE HTDirShow	dir_show = HT_DS_ICON;
 
 /* ------------------------------------------------------------------------- */
@@ -164,12 +160,6 @@ PRIVATE HTIconNode *GopherIcon (HTGopherType type)
 	break;
       case GT_ERROR:
 	content_type = HTAtom_for("www/unknown");
-	break;
-      case GT_MACBINHEX:
-      case GT_PCBINHEX:
-      case GT_UUENCODED:
-	content_type = WWW_BINARY;
-	content_encoding = WWW_ENC_BASE64;
 	break;
       case GT_BINARY:
 	content_type = WWW_BINARY;
@@ -728,24 +718,51 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	  case GOPHER_NEED_CONNECTION:
 	    status = HTDoConnect(net, url, GOPHER_PORT);
 	    if (status == HT_OK) {
-		if (PROT_TRACE)
-		    HTTrace("Gopher...... Connected, socket %d\n",
-			    net->sockfd);
+		/*
+		** Check the protocol class to see if we have connected to a
+		** the right class of server, in this case HTTP.
+		*/
+		{
+		    HTHost * host = HTNet_host(net);
+		    char * s_class = HTHost_class(host);
+		    if (s_class && strcasecomp(s_class, "gopher")) {
+			HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
+					   NULL, 0, "HTLoadGopher");
+			gopher->state = GOPHER_ERROR;
+			break;
+		    }
+		    HTHost_setClass(host, "gopher");
+		}
 
-		/* Set up stream TO network */
-		request->input_stream = HTWriter_new(net, YES);
+		/* 
+		** Create the stream pipe FROM the channel to the application.
+		** The target for the input stream pipe is set up using the
+		** stream stack.
+		*/
+		{
+		    HTStream * target;
+		    if (gopher->type == GT_MENU || gopher->type == GT_INDEX)
+			target = GopherMenu_new(request, url, NO);
+		    else if (gopher->type == GT_CSO)
+			target = GopherMenu_new(request, url, YES);
+		    else
+			target = HTStreamStack(WWW_UNKNOWN,
+					       request->output_format,
+					       request->output_stream,
+					       request, NO);
+		    HTNet_getInput(net, target, NULL, 0);
+		}
 
-		/* Set up stream FROM network and corresponding read buffer */
-                if (gopher->type == GT_MENU || gopher->type == GT_INDEX)
-		    net->target = GopherMenu_new(request, url, NO);
-		else if (gopher->type == GT_CSO)
-		    net->target = GopherMenu_new(request, url, YES);
-		else
-		    net->target = HTStreamStack(WWW_UNKNOWN,
-						request->output_format,
-						request->output_stream,
-						request, NO);
+		/*
+		** Create the stream pipe TO the channel from the application
+		** and hook it up to the request object
+		*/
+		{
+		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
+		    HTRequest_setInputStream(request, (HTStream *) output);
+		}
 		gopher->state = GOPHER_NEED_REQUEST;
+
 	    } else if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else
@@ -765,7 +782,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case GOPHER_NEED_RESPONSE:
-	    status = HTChannel_readSocket(request, net);
+	    status = (*net->input->isa->read)(net->input);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED)

@@ -1,5 +1,7 @@
 ## Process this file with Automake to create Makefile.in.
 
+AUTOMAKE_OPTIONS = foreign
+
 bin_PROGRAMS = webbot
 
 webbot_LDADD = ../../Library/src/libwww.a -lm

@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww GENERIC STREAM CLASS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
+<TITLE>W3C Reference Library libwww Output Stream Class</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Mar-1996 -->
 </HEAD>
 <BODY>
 
-<H1>Stream Object definition</H1>
+<H1>Output Stream Class Definition</H1>
 
 <PRE>
 /*
@@ -14,7 +14,7 @@
 */
 </PRE>
 
-A Stream object is something which accepts a stream of text. See also
+A stream object is something which accepts a stream of text. See also
 the <A HREF="HTStruct.html">Structured stream
 definition.</A>. Generally streams are cascaded into stream pipes
 where the output of a stream is directed into the input of the down
@@ -110,11 +110,37 @@ for example from <CODE>put_character</CODE> to <CODE>put_block</CODE>
 
 <PRE>
 } HTStreamClass;
-
-#endif /* HTSTREAM_H */
-
 </PRE>
 
-End of HTStream definition
+<A NAME="utils"><H2>Basic Utility Streams</H2></A>
+
+These streams can be plugged in everywhere in a stream pipe.
+
+<H3>Black Hole Stream</H3>
+
+This stream simply absorbs data without doing anything what so ever.
+
+<PRE>
+extern HTStream * HTBlackHole (void);
+</PRE>
+
+<H3>Generic Error Stream</H3>
+
+The Error stream simply returns HT_ERROR on all methods. This can be
+used to stop a stream as soon as data arrives, for example from the
+network.
+
+<PRE>
+extern HTStream * HTErrorStream (void);
+</PRE>
+
+<PRE>
+#endif /* HTSTREAM_H */
+</PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	An anchor represents a region of a hypertext document which is
 **	linked to another anchor in the same or a different document.
@@ -21,7 +22,6 @@
 #include "HTFormat.h"
 #include "HTParse.h"
 #include "HTMethod.h"
-#include "HTFWrite.h"					  /* for cache stuff */
 #include "HTAncMan.h"					 /* Implemented here */
 
 #define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
@@ -553,6 +553,8 @@ PRIVATE void * delete_parent (HTParentAnchor * me)
 
     /* Then remove entity header information (metainformation) */
     HT_FREE(me->title);
+    if (me->content_encoding) HTList_delete(me->content_encoding);
+    if (me->content_language) HTList_delete(me->content_language);
     HT_FREE(me->derived_from);
     HT_FREE(me->version);
     if (me->extra_headers) {
@@ -820,28 +822,35 @@ PUBLIC void HTAnchor_setLevel (HTParentAnchor * me, HTLevel level)
 /*
 **	Content Encoding
 */
-PUBLIC HTEncoding HTAnchor_encoding (HTParentAnchor * me)
+PUBLIC HTList * HTAnchor_encoding (HTParentAnchor * me)
 {
     return me ? me->content_encoding : NULL;
 }
 
-PUBLIC void HTAnchor_setEncoding (HTParentAnchor * me, HTEncoding encoding)
+PUBLIC BOOL HTAnchor_addEncoding (HTParentAnchor * me, HTEncoding  encoding)
 {
-    if (me) me->content_encoding = encoding;
+    if (me && encoding) {
+	if (!me->content_encoding) me->content_encoding = HTList_new();
+	return HTList_addObject(me->content_encoding, encoding);
+    }
+    return NO;
 }
 
 /*
 **	Content Language
-**	@@@ SHOULD BE A LIST @@@
 */
-PUBLIC HTLanguage HTAnchor_language (HTParentAnchor * me)
+PUBLIC HTList * HTAnchor_language (HTParentAnchor * me)
 {
     return me ? me->content_language : NULL;
 }
 
-PUBLIC void HTAnchor_setLanguage (HTParentAnchor * me, HTLanguage language)
+PUBLIC BOOL HTAnchor_addLanguage (HTParentAnchor * me, HTLanguage  language)
 {
-    if (me) me->content_language = language;
+    if (me && language) {
+	if (!me->content_language) me->content_language = HTList_new();
+	return HTList_addObject(me->content_language, language);
+    }
+    return NO;
 }
 
 /*

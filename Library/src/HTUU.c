@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** ACKNOWLEDGEMENT:
 **	This code is taken from rpem distribution, and was originally

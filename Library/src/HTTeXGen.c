@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** 	This version of the HTML object sends LaTeX to the output stream.
 ** 	No attributes are considered in the translation!

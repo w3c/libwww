@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This module sets up the binding between a file Bind and a media
 **	type, language, encoding etc. In a client application the Binds
@@ -32,10 +33,8 @@
 
 /* Library Includes */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTAncMan.h"
-#include "HTAtom.h"
 #include "HTParse.h"
 #include "HTBind.h"					 /* Implemented here */
 
@@ -43,6 +42,7 @@ typedef struct _HTBind {
     char *	suffix;
     HTFormat	type;			/* Content-Type */
     HTEncoding	encoding;		/* Content-Encoding */
+    HTCte	transfer;		/* Content-Transfer-Encoding */
     HTLanguage	language;		/* Content-Language */
     double	quality;
 } HTBind;
@@ -55,8 +55,8 @@ PRIVATE char *HTDelimiters = NULL;			  /* Set of suffixes */
 
 PRIVATE HTList **HTBindings = NULL;   /* Point to table of lists of bindings */
 
-PRIVATE HTBind no_suffix = { "*", NULL, NULL, NULL, 0.5 };
-PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, 0.5 };
+PRIVATE HTBind no_suffix = { "*", NULL, NULL, NULL, NULL, 0.5 };
+PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, NULL, 0.5 };
 
 /* ------------------------------------------------------------------------- */
 
@@ -71,9 +71,9 @@ PUBLIC BOOL HTBind_init (void)
     }
     StrAllocCopy(HTDelimiters, DEFAULT_SUFFIXES);
     no_suffix.type = WWW_UNKNOWN;
-    no_suffix.encoding = WWW_ENC_BINARY;
+    no_suffix.encoding = WWW_CTE_BINARY;
     unknown_suffix.type = WWW_UNKNOWN;
-    unknown_suffix.encoding = WWW_ENC_BINARY;
+    unknown_suffix.encoding = WWW_CTE_BINARY;
     return YES;
 }
 
@@ -149,26 +149,34 @@ PUBLIC BOOL HTBind_addType (const char *	suffix,
 			    const char *	representation,
 			    double		value)
 {
-    return HTBind_add(suffix, representation, NULL, NULL, value);
+    return HTBind_add(suffix, representation, NULL, NULL, NULL, value);
 }
 
 PUBLIC BOOL HTBind_addEncoding (const char *	suffix,
 				const char *	encoding,
 				double		value)
 {
-    return HTBind_add(suffix, NULL, encoding, NULL, value);
+    return HTBind_add(suffix, NULL, encoding, NULL, NULL, value);
+}
+
+PUBLIC BOOL HTBind_addTransfer (const char *	suffix,
+				const char *	transfer,
+				double		value)
+{
+    return HTBind_add(suffix, NULL, NULL, transfer, NULL, value);
 }
 
 PUBLIC BOOL HTBind_addLanguage (const char *	suffix,
 				const char *	language,
 				double		value)
 {
-    return HTBind_add(suffix, NULL, NULL, language, value);
+    return HTBind_add(suffix, NULL, NULL, NULL, language, value);
 }
 
 PUBLIC BOOL HTBind_add (const char *	suffix,
 			const char *	representation,
 			const char *	encoding,
+			const char *	transfer,
 			const char *	language,
 			double		value)
 {
@@ -211,27 +219,41 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 
     /* Set the appropriate values */
     {
-	char *str = NULL;
+	HTChunk * chunk = HTChunk_new(32);
 	char *ptr;
 	if (representation) {
-	    StrAllocCopy(str, representation);
-	    for (ptr=str; *ptr; ptr++)
+	    HTChunk_puts(chunk, representation);
+	    ptr = HTChunk_data(chunk);
+	    for (; *ptr; ptr++)
 		*ptr = TOLOWER(*ptr);
-	    suff->type = HTAtom_for(str);
-	}
-	if (language) {
-	    StrAllocCopy(str, language);
-	    for (ptr=str; *ptr; ptr++)
-		*ptr = TOLOWER(*ptr);
-	    suff->language = HTAtom_for(str);
+	    suff->type = HTAtom_for(HTChunk_data(chunk));
+	    HTChunk_clear(chunk);
 	}
 	if (encoding) {
-	    StrAllocCopy(str, encoding);
-	    for (ptr=str; *ptr; ptr++)
+	    HTChunk_puts(chunk, encoding);
+	    ptr = HTChunk_data(chunk);
+	    for (; *ptr; ptr++)
 		*ptr = TOLOWER(*ptr);
-	    suff->encoding = HTAtom_for(str);
+	    suff->encoding = HTAtom_for(HTChunk_data(chunk));
+	    HTChunk_clear(chunk);
 	}
-	HT_FREE(str);
+	if (transfer) {
+	    HTChunk_puts(chunk, transfer);
+	    ptr = HTChunk_data(chunk);
+	    for (; *ptr; ptr++)
+		*ptr = TOLOWER(*ptr);
+	    suff->transfer = HTAtom_for(HTChunk_data(chunk));
+	    HTChunk_clear(chunk);
+	}
+	if (language) {
+	    HTChunk_puts(chunk, language);
+	    ptr = HTChunk_data(chunk);
+	    for (; *ptr; ptr++)
+		*ptr = TOLOWER(*ptr);
+	    suff->language = HTAtom_for(HTChunk_data(chunk));
+	    HTChunk_clear(chunk);
+	}
+	HTChunk_delete(chunk);
 	suff->quality = value;
     }
     return YES;
@@ -244,7 +266,7 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 **  for a certain combination of language, media type and encoding
 **  given in the anchor.
 **
-**  Returns a pointer to a suitable suffix string that must be HT_FREEd 
+**  Returns a pointer to a suitable suffix string that must be freed 
 **  by the caller. If more than one suffix is found they are all
 **  concatenated using the first delimiter in HTDelimiters.
 **  If no suffix is found, NULL is returned.
@@ -261,17 +283,18 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = HTBindings[cnt])) { 
 		HTBind *pres;
-		while ((pres = (HTBind *) HTList_nextObject(cur)) != NULL) {
-		    if ((pres->type && pres->type==anchor->content_type) ||
-			(pres->encoding &&
-			 pres->encoding!=WWW_ENC_7BIT &&
-			 pres->encoding!=WWW_ENC_8BIT &&
-			 pres->encoding!=WWW_ENC_BINARY &&
-			 pres->encoding==anchor->content_encoding) ||
-			(pres->language &&
-			 pres->language == anchor->content_language)) {
+		while ((pres = (HTBind *) HTList_nextObject(cur))) {
+		    if ((pres->type && pres->type==anchor->content_type)) {
 			StrAllocCat(suffix, delimiter);
 			StrAllocCat(suffix, pres->suffix);
+		    } else if (pres->encoding && anchor->content_encoding) {
+
+			/* @@@ Search list @@@ */
+
+		    } else if (pres->language && anchor->content_language) {
+
+			/* @@@ Search list @@@ */
+
 		    }
 		}
 	    }
@@ -289,7 +312,7 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 **  has highest priority, the first one lowest. See also HTBind_getFormat()
 **
 **  Returns a contentdescription object with the representations found. This
-**  must be HT_FREE by the caller
+**  must be freed by the caller
 */
 PUBLIC HTContentDescription * HTBind_getDescription (char * file)
 {
@@ -297,7 +320,8 @@ PUBLIC HTContentDescription * HTBind_getDescription (char * file)
     if ((cd = (HTContentDescription  *) HT_CALLOC(1, sizeof(HTContentDescription))) == NULL)
         HT_OUTOFMEM("HTContentDescription");
     if (HTBind_getFormat(file, &cd->content_type, &cd->content_encoding,
-			 &cd->content_language, &cd->quality))
+			 &cd->content_transfer, &cd->content_language,
+			 &cd->quality))
 	return cd;
     else {
 	HT_FREE(cd);
@@ -309,7 +333,7 @@ PUBLIC HTContentDescription * HTBind_getDescription (char * file)
 **	----------------------------------
 **  Use the set of bindings to find the combination of language,
 **  media type and encoding of a given anchor.
-**
+**  We comprise here as bindings only can have one language and one encoding.
 **  If more than one suffix is found they are all searched. The last suffix
 **  has highest priority, the first one lowest. See also HTBind_getFormat()
 **
@@ -328,12 +352,19 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 	    (end = strchr(path, '#')))
 	    *end = '\0';
 	if ((file = strrchr(path, '/'))) {
- 	    if (BIND_TRACE)
-		HTTrace("Get Binding. for file: `%s\'\n", path);
-	    status = HTBind_getFormat(file, &anchor->content_type,
-				      &anchor->content_encoding,
-				      &anchor->content_language,
-				      &quality);
+	    HTFormat format = NULL;
+	    HTEncoding encoding = NULL;
+	    HTCte cte = NULL;
+	    HTLanguage language = NULL;
+ 	    if (BIND_TRACE) HTTrace("Get Binding. for file: `%s\'\n", path);
+	    status = HTBind_getFormat(file, &format, &encoding, &cte,
+				      &language, &quality);
+	    if (status) {
+		HTAnchor_setFormat(anchor, format);
+		HTAnchor_setCte(anchor, cte);
+		HTAnchor_addEncoding(anchor, encoding);
+		HTAnchor_addLanguage(anchor, language);
+	    }
 	}
 	HT_FREE(path);
     }
@@ -344,16 +375,18 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 /*	Determine the content of an file name
 **	-------------------------------------
 **  Use the set of bindings to find the combination of language,
-**  media type and encoding of a given anchor.
-**
+**  media type, encoding, and transfer encoding  of a given anchor.
 **  If more than one suffix is found they are all searched. The last suffix
 **  has highest priority, the first one lowest. See also HTBind_getBindings()
 **  Either of format, encoding, or language can be NULL
 **  Returns the format, encoding, and language found
 */
-PUBLIC BOOL HTBind_getFormat (const char * filename, HTFormat * format,
-			      HTEncoding * enc, HTLanguage * lang,
-			      double * quality)
+PUBLIC BOOL HTBind_getFormat (const char *	filename,
+			      HTFormat *	format,
+			      HTEncoding *	enc,
+			      HTCte *		cte,
+			      HTLanguage *	lang,
+			      double *		quality)
 {
     int sufcnt=0;
     char *file=NULL;
@@ -395,6 +428,7 @@ PUBLIC BOOL HTBind_getFormat (const char * filename, HTFormat * format,
 			if (BIND_TRACE) HTTrace("Found!\n");
 			if (suff->type && format) *format = suff->type;
 			if (suff->encoding && enc) *enc = suff->encoding;
+			if (suff->transfer && cte) *enc = suff->transfer;
 			if (suff->language && lang) *lang = suff->language;
 			if (suff->quality > HT_EPSILON)
 			    *quality *= suff->quality;
@@ -407,6 +441,7 @@ PUBLIC BOOL HTBind_getFormat (const char * filename, HTFormat * format,
 		    HTTrace("Not found - use default for \'*.*\'\n");
 		if (format) *format = unknown_suffix.type;
 		if (enc) *enc = unknown_suffix.encoding;
+		if (cte) *cte = unknown_suffix.transfer;
 		if (lang) *lang = unknown_suffix.language;
 		*quality = unknown_suffix.quality;
 	    }
@@ -417,14 +452,16 @@ PUBLIC BOOL HTBind_getFormat (const char * filename, HTFormat * format,
 	    HTTrace("Get Binding. No suffix found - using default '%s\'\n", filename);
 	if (format) *format = no_suffix.type;
 	if (enc) *enc = no_suffix.encoding;
+	if (cte) *cte = no_suffix.transfer;
 	if (lang) *lang = no_suffix.language;
 	*quality = no_suffix.quality;
     }
     if (BIND_TRACE)
-	HTTrace("Get Binding. Result for '%s\' is: type='%s\', encoding='%s\', language='%s\' with quality %.2f\n",
+	HTTrace("Get Binding. Result for '%s\' is: type='%s\', encoding='%s\', cte='%s\', language='%s\' with quality %.2f\n",
 		filename,
 		(format && *format) ? HTAtom_name(*format) : "unknown",
 		(enc && *enc) ? HTAtom_name(*enc) : "unknown",
+		(cte && *cte) ? HTAtom_name(*cte) : "unknown",
 		(lang && *lang) ? HTAtom_name(*lang) : "unknown",
 		*quality);
     HT_FREE(file);

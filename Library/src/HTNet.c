@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This is the implementation of the internal library multithreading
 **	functions. This includes an interrupt handler and a event loop.
@@ -17,22 +18,16 @@
 #include "sysdep.h"
 
 /* Library include files */
-#include "HTUtils.h"
+#include "WWWUtil.h"
 #include "HTProt.h"
 #include "HTError.h"
 #include "HTAlert.h"
 #include "HTParse.h"
+#include "HTTrans.h"
 #include "HTReqMan.h"
 #include "HTEvntrg.h"
 #include "HTStream.h"
-
-#include "HTMux.h"
-
 #include "HTNetMan.h"					 /* Implemented here */
-
-#ifdef WIN32
-#include <io.h>
-#endif
 
 #ifndef HT_MAX_SOCKETS
 #define HT_MAX_SOCKETS	6
@@ -301,42 +296,6 @@ PUBLIC HTList *HTNet_pendingQueue (void)
 }
 
 /* ------------------------------------------------------------------------- */
-/*			    Connection Specifics 			     */
-/* ------------------------------------------------------------------------- */
-
-/*	HTNet_Persistent
-**	----------------
-**	Check whether the net object handles persistent connections
-**	If we have a DNS entry then check that as well.
-*/
-PUBLIC BOOL HTNet_persistent (HTNet * net)
-{
-    if (net) {
-	return net->dns ?
-	    (net->persistent = HTDNS_socket(net->dns)!=INVSOC) :
-		net->persistent;
-    }
-    return NO;
-}
-
-/*	HTNet_persistent
-**	----------------
-**	Set the net object to handle persistent connections
-**	If we also have a DNS entry then update that as well
-*/
-PUBLIC BOOL HTNet_setPersistent (HTNet * net, BOOL persistent)
-{
-    if (net) {
-	if (PROT_TRACE) HTTrace("Net......... Persistent connection set %s\n",
-				persistent ? "ON" : "OFF");
-	net->persistent = persistent;
-	return net->dns ?
-	    HTDNS_setSocket(net->dns, persistent ? net->sockfd : INVSOC) : YES;
-    }
-    return NO;
-}
-
-/* ------------------------------------------------------------------------- */
 /*			  Creation and deletion methods  		     */
 /* ------------------------------------------------------------------------- */
 
@@ -440,6 +399,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
     /* Create new net object and bind it to the request object */
     if ((me = create_object(request)) == NULL) return NO;
     me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
+    me->protocol = protocol;
     me->priority = request->priority;
     me->sockfd = sockfd;
     if (!(me->cbf = HTProtocol_server(protocol))) {
@@ -468,8 +428,9 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
 PUBLIC BOOL HTNet_newClient (HTRequest * request)
 {
     int status;
-    HTNet * me;
-    HTProtocol * protocol;
+    HTNet * me = NULL;
+    HTProtocol * protocol = NULL;
+    HTTransport * tp = NULL;
     char * physical = NULL;
     if (!request) return NO;
     /*
@@ -504,12 +465,21 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 	}
 	HT_FREE(access);
     }
-	
+
+    /* Find a transport object for this protocol */
+    tp = HTTransport_find(request, HTProtocol_transport(protocol));
+    if (tp == NULL) {
+	if (PROT_TRACE) HTTrace("HTNet....... NO TRANSPORT OBJECT\n");
+	return NO;
+    }
+
     /* Create new net object and bind it to the request object */
     if ((me = create_object(request)) == NULL) return NO;
     me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
     me->priority = request->priority;
     me->sockfd = INVSOC;
+    me->protocol = protocol;
+    me->transport = tp;
     if (!(me->cbf = HTProtocol_client(protocol))) {
 	if (CORE_TRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
 	HT_FREE(me);
@@ -552,6 +522,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
     if (net) {
 
 	/* Free stream with data FROM network to application */
+#if 0
 	if (net->target) {
 	    if (status == HT_INTERRUPTED)
 		(*net->target->isa->abort)(net->target, NULL);
@@ -559,22 +530,22 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 		(*net->target->isa->_free)(net->target);
 	    net->target = NULL;
 	}
+#endif
 
 	/* Close socket */
 	if (net->sockfd != INVSOC) {
 	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
-	    if (HTDNS_socket(net->dns) == INVSOC) {
-		HTChannel_delete(net->sockfd);
-		if ((status = NETCLOSE(net->sockfd)) < 0)
-		    HTRequest_addSystemError(net->request, ERR_FATAL,
-					     socerrno, NO, "NETCLOSE");
-		if (CORE_TRACE) HTTrace("HTNet_delete closing %d\n",net->sockfd);
+	    HTChannel_downSemaphore(net->channel);
+	    if (HTHost_channel(net->host) == NULL) {
+		HTChannel_delete(net->channel);
+		if (CORE_TRACE)
+		    HTTrace("HTNet_delete closing %d\n", net->sockfd);
 	    } else {
-		if (CORE_TRACE) HTTrace("HTNet_delete keeping %d\n",net->sockfd);
-		HTDNS_clearActive(net->dns);
+		if (CORE_TRACE)
+		    HTTrace("HTNet_delete keeping %d\n", net->sockfd);
 		/* Here we should probably use a low priority */
 		HTEvent_Register(net->sockfd, net->request, (SockOps) FD_READ,
-				 HTDNS_closeSocket, net->priority);
+				 HTHost_catchClose, net->priority);
 	    }
 	}
 	if (net->request)
@@ -770,47 +741,141 @@ PUBLIC BOOL HTNet_killAll (void)
 }
 
 /* ------------------------------------------------------------------------- */
+/*			    Connection Specifics 			     */
+/* ------------------------------------------------------------------------- */
+
+/*	HTNet_Persistent
+**	----------------
+**	Check whether the net object handles persistent connections
+**	If we have a DNS entry then check that as well.
+*/
+PUBLIC BOOL HTNet_persistent (HTNet * net)
+{
+    return (net && HTHost_isPersistent(net->host));
+}
+
+/*	HTNet_persistent
+**	----------------
+**	Set the net object to handle persistent connections
+**	If we also have a DNS entry then update that as well
+*/
+PUBLIC BOOL HTNet_setPersistent (HTNet * net, BOOL persistent)
+{
+    if (net) {
+	if (PROT_TRACE) HTTrace("Net......... Persistent connection set %s\n",
+				persistent ? "ON" : "OFF");
+	if (persistent)
+	    HTHost_setChannel(net->host, net->channel);
+	else
+	    HTHost_clearChannel(net->host);
+    }
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
 /*			      Data Access Methods  			     */
 /* ------------------------------------------------------------------------- */
 
 /*
-**  Get and set the socket number
+**  Get and set the HTTransport object
 */
-PUBLIC BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd)
+PUBLIC BOOL HTNet_setTransport (HTNet * net, HTTransport * tp)
 {
-    if (net) {
-	net->sockfd = sockfd;
+    if (net && tp) {
+	net->transport = tp;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC SOCKET HTNet_socket (HTNet * net)
+PUBLIC HTTransport * HTNet_transport (HTNet * net)
 {
-    return (net ? net->sockfd : INVSOC);
+    return (net ? net->transport : NULL);
 }
 
 /*
-**  Get and set the target for this Net object. If we have a interleaved socket
-**  then add the HTDemux stream so that we can get the right part back
+**  Get and set the HTChannel object
 */
-PUBLIC BOOL HTNet_setTarget (HTNet * net, HTStream * target)
+PUBLIC BOOL HTNet_setChannel (HTNet * net, HTChannel * channel)
 {
-#ifdef NEW_CODE
-    if (net) {
-	HTChannelMode mode = HTChannel_mode(net->sockfd, NULL);
-	net->target = (mode==HT_CH_INTERLEAVED) ?
-	    HTDemux_new(net, target) : target;
-	net->target = HTDemux_new(net, target);
+    if (net && channel) {
+	net->channel = channel;
 	return YES;
     }
     return NO;
-#endif
-    net->target = target;
-    return YES;
 }
 
-PUBLIC HTStream * HTNet_target (HTNet * net)
+PUBLIC HTChannel * HTNet_channel (HTNet * net)
 {
-    return (net ? net->target : NULL);
+    return (net ? net->channel : NULL);
+}
+
+/*
+**  Get and set the HTHost object
+*/
+PUBLIC BOOL HTNet_setHost (HTNet * net, HTHost * host)
+{
+    if (net && host) {
+	net->host = host;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTHost * HTNet_host (HTNet * net)
+{
+    return (net ? net->host : NULL);
+}
+
+/*
+**  Get and set the HTdns object
+*/
+PUBLIC BOOL HTNet_setDns (HTNet * net, HTdns * dns)
+{
+    if (net && dns) {
+	net->dns = dns;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTdns * HTNet_dns (HTNet * net)
+{
+    return (net ? net->dns : NULL);
+}
+
+
+/*
+**	Create the input stream and bind it to the channel
+**	Please read the description in the HTIOStream module for the parameters
+*/
+PUBLIC HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
+				       void * param, int mode)
+{
+    if (net && net->channel && net->transport) {
+	HTTransport * tp = net->transport;
+	HTChannel * ch = net->channel;
+	net->input = (*tp->input_new)(net, ch, target, param, mode);
+	HTChannel_setInput(ch, net->input, tp->mode);
+	return net->input;
+    }
+    if (WWWTRACE) HTTrace("Net......... Can't create input stream\n");
+    return NULL;
+}
+
+/*
+**	Create the output stream and bind it to the channel
+**	Please read the description in the HTIOStream module on the parameters
+*/
+PUBLIC HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode)
+{
+    if (net && net->request && net->channel && net->transport) {
+	HTTransport * tp = net->transport;
+	HTChannel * ch = net->channel;
+	HTOutputStream * output = (*tp->output_new)(net, ch, param, mode);
+	HTChannel_setOutput(ch, output, tp->mode);
+	return output;
+    }
+    if (WWWTRACE) HTTrace("Net......... Can't create output stream\n");
+    return NULL;
 }

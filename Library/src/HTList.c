@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	A list is represented as a sequence of linked nodes of type HTList.
 **	The first node is a header which contains no object.

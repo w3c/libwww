@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	Atoms are names which are given representative pointer values
 **	so that they can be stored more efficiently, and comparisons

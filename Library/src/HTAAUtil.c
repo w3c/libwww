@@ -4,6 +4,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	The authentication information is stored in a list of authentication
 **	data bases, each uniquely identified by a hostname and a port number.

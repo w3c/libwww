@@ -8,6 +8,9 @@ www_LDADD = \
 www_DEPENDENCIES = \
 	../../Library/src/libwww.a ../../PICS/src/libpics.a
 
+#	For easier use - NOT THE DEFAULT!
+AUTOMAKE_OPTIONS = foreign no-dependencies
+
 SUBDIRS = windows vms
 
 INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS/src
@@ -20,7 +23,8 @@ SUFFIXES = .h .html
 
 www_SOURCES = \
 	HTBrowse.c	GridText.c	ConView.c \
-	GridStyle.c	DefaultStyles.c
+	GridStyle.c	DefaultStyles.c \
+	HTZip.c
 
 BUILT_SOURCES = \
 	HTBrowse.h	GridStyle.h	GridText.h \

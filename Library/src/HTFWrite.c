@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This version of the stream object just writes to a C file.
 **	The file is assumed open and left open.
@@ -43,7 +44,7 @@ struct _HTStream {
     const HTStreamClass *isa;
     
     FILE *		fp;
-    BOOL		leave_open;		    /* Close file when HT_FREE? */
+    BOOL		leave_open;		    /* Close file when free? */
     char * 		end_command;		       /* Command to execute */
     BOOL 		remove_on_close;		     /* Remove file? */
     char *		filename;			     /* Name of file */
@@ -51,154 +52,8 @@ struct _HTStream {
     HTRequestCallback *	callback;
 };
 
-PRIVATE HTStream	HTBaseStreamInstance;		      /* Made static */
-
 PRIVATE char *		HTTmpRoot = NULL;   	       /* Dest for tmp files */
 
-/* ------------------------------------------------------------------------- */
-/*  			     BASIC STREAM CLASSES			     */
-/* ------------------------------------------------------------------------- */
-
-/*
-**
-**		B L A C K    H O L E    C L A S S
-**
-**	There is only one black hole instance shared by anyone
-**	who wants a black hole.  These black holes don't radiate,
-**	they just absorb data.
-*/
-PRIVATE int HTBlackHole_put_character (HTStream * me, char c)
-{
-    return HT_OK;
-}
-
-PRIVATE int HTBlackHole_put_string (HTStream * me, const char * s)
-{
-    return HT_OK;
-}
-
-PRIVATE int HTBlackHole_write (HTStream * me, const char * s, int l)
-{
-    return HT_OK;
-}
-
-PRIVATE int HTBlackHole_flush (HTStream * me)
-{
-    return HT_OK;
-}
-
-PRIVATE int HTBlackHole_free (HTStream * me)
-{
-    return HT_OK;
-}
-
-PRIVATE int HTBlackHole_abort (HTStream * me, HTList * e)
-{
-    return HT_ERROR;
-}
-
-
-/*	Black Hole stream
-**	-----------------
-*/
-PRIVATE const HTStreamClass HTBlackHoleClass =
-{		
-    "BlackHole",
-    HTBlackHole_flush,
-    HTBlackHole_free,
-    HTBlackHole_abort,
-    HTBlackHole_put_character,
-    HTBlackHole_put_string,
-    HTBlackHole_write
-}; 
-
-PUBLIC HTStream * HTBlackHole (void)
-{
-    if (STREAM_TRACE) HTTrace("BlackHole... Created\n");
-    HTBaseStreamInstance.isa = &HTBlackHoleClass;      /* The rest is random */
-    return &HTBaseStreamInstance;
-}
-
-PUBLIC HTStream * HTBlackHoleConverter (HTRequest *	request,
-					void *		param,
-					HTFormat	input_format,
-					HTFormat	output_format,
-					HTStream *	output_stream)
-{
-    return HTBlackHole();
-}
-
-/*
-**	ERROR STREAM
-**	------------
-**	There is only one error stream shared by anyone who wants a
-**	generic error returned from all stream methods.
-*/
-PRIVATE int HTErrorStream_put_character (HTStream * me, char c)
-{
-    return HT_ERROR;
-}
-
-PRIVATE int HTErrorStream_put_string (HTStream * me, const char * s)
-{
-    return HT_ERROR;
-}
-
-PRIVATE int HTErrorStream_write (HTStream * me, const char * s, int l)
-{
-    return HT_ERROR;
-}
-
-PRIVATE int HTErrorStream_flush (HTStream * me)
-{
-    return HT_ERROR;
-}
-
-PRIVATE int HTErrorStream_free (HTStream * me)
-{
-    return HT_ERROR;
-}
-
-PRIVATE int HTErrorStream_abort (HTStream * me, HTList * e)
-{
-    return HT_ERROR;
-}
-
-PRIVATE const HTStreamClass HTErrorStreamClass =
-{		
-    "ErrorStream",
-    HTErrorStream_flush,
-    HTErrorStream_free,
-    HTErrorStream_abort,
-    HTErrorStream_put_character,
-    HTErrorStream_put_string,
-    HTErrorStream_write
-}; 
-
-PUBLIC HTStream * HTErrorStream (void)
-{
-    if (STREAM_TRACE) HTTrace("ErrorStream. Created\n");
-    HTBaseStreamInstance.isa = &HTErrorStreamClass;    /* The rest is random */
-    return &HTBaseStreamInstance;
-}
-
-/*	HTThroughLine
-**	-------------
-**
-** This function is a dummy function that returns the same output stream
-** as given as a parameter. Henrik 01/03-94
-*/
-PUBLIC HTStream* HTThroughLine (HTRequest *	request,
-				void *		param,
-				HTFormat	input_format,
-				HTFormat	output_format,
-				HTStream *	output_stream)
-{
-    return output_stream;
-}
-
-/* ------------------------------------------------------------------------- */
-/*  			     SOCKET WRITER STREAM			     */
 /* ------------------------------------------------------------------------- */
 
 PRIVATE int HTFWriter_put_character (HTStream * me, char c)
@@ -322,7 +177,7 @@ PUBLIC void HTTmp_freeRoot (void)
 
 /*
 **   This function tries really hard to find a non-existent filename relative
-**   to the path given. Returns a string that must be HT_FREEd by the caller or
+**   to the path given. Returns a string that must be freed by the caller or
 **   NULL on error. The base must be '/' terminated which!
 */
 PRIVATE char *get_filename (char * base, const char * url, const char * suffix)
@@ -470,9 +325,12 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     if (fp) {
 	HTStream * me = HTFWriter_new(request, fp, NO);
 	me->filename = filename;
-	if ((me->end_command = (char  *) HT_MALLOC((strlen((char *) param) + 10 + 3*strlen(filename)))) == NULL)
-	    HT_OUTOFMEM("SaveAndExecute");
-        sprintf (me->end_command, (char *)param, filename, filename, filename);
+	if (param) {
+	    if ((me->end_command = (char  *) HT_MALLOC((strlen((char *) param) + 10 + 3*strlen(filename)))) == NULL)
+		HT_OUTOFMEM("SaveAndExecute");
+	    sprintf (me->end_command,
+		     (char *)param, filename, filename, filename);
+	}
 	return me;
     }
     HT_FREE(filename);

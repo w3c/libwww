@@ -1,0 +1,105 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library libwww Streams</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Mar-1996 -->
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference Library Streams</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The stream part of the Library is a set of streams that can be used in
+many contexts throughout the Library.
+
+<PRE>
+#ifndef WWWSTREAM_H
+#define WWWSTREAM_H
+</PRE>
+
+<H2>System dependencies</H2>
+
+<PRE>
+#include "sysdep.h"
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<H2>Stream Modules</H2>
+
+These are the streams describing this interface
+
+<H3>Content Length Counter</H3>
+
+This stream also buffers the result to find out the content length.
+If a maximum buffer limit is reached Content-Length is calculated for
+logs but it is not sent to the client -- rather the buffer is flushed
+right away.
+
+<PRE>
+#include "HTConLen.h"			/* Content Length Counter */
+</PRE>
+
+<H3>Content Guess Stream</H3>
+
+This interface provides functionality for guessing unknown media types
+from magic words. The stream is a one that reads first a chunk of
+stuff, tries to figure out the format, and calls
+<CODE>HTStreamStack()</CODE>. This is a kind of lazy-evaluation of
+<CODE>HTStreamStack()</CODE>. This could be extended arbitrarily to
+recognize all the possible file formats in the world, if someone only
+had time to do it. <P>
+
+<PRE>
+#include "HTGuess.h"			/* Guess stream */
+</PRE>
+
+<H3>Tee Stream</H3>
+
+The Tee stream just writes everything you put into it into two oter
+streams. One use (the only use?!) is for taking a cached copey on disk
+while loading the main copy, without having to wait for the disk copy
+to be finished and reread it.
+
+<PRE>
+#include "HTTee.h"			/* T streem for splitting a stream */
+</PRE>
+
+<H3>Memory Buffer</H3>
+
+This version of the stream object is a hook for clients that want an
+unparsed stream from libwww. The HTXParse_put_* and HTXParse_write
+routines copy the content of the incoming buffer into a buffer that is
+realloced whenever necessary. This buffer is handed over to the client
+in HTXParse_free. See also <A HREF="HTFWrite.html">HTFWriter</A> for
+writing to C files.
+
+<PRE>
+#include "HTXParse.h"			/* External parse stream */
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

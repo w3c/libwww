@@ -20,7 +20,7 @@
 #include "WWWFTP.h"
 #include "WWWFile.h"
 #include "WWWGophe.h"
-#include "WWWGuess.h"				     /* Content type guesser */
+#include "WWWStream.h"
 #include "WWWRules.h"
 
 #include "HTPlain.h"
@@ -315,12 +315,12 @@ int main (int argc, char ** argv)
     HTAlert_setInteractive(YES);
 
     /* Initialize the protocol modules */
-    HTProtocol_add("http", NO, HTLoadHTTP, NULL);
-    HTProtocol_add("file", NO, HTLoadFile, NULL);
-    HTProtocol_add("ftp", NO, HTLoadFTP, NULL);
-    HTProtocol_add("nntp", NO, HTLoadNews, NULL);
-    HTProtocol_add("news", NO, HTLoadNews, NULL);
-    HTProtocol_add("gopher", NO, HTLoadGopher, NULL);
+    HTProtocol_add("http", "tcp", NO, HTLoadHTTP, NULL);
+    HTProtocol_add("file", "local", NO, HTLoadFile, NULL);
+    HTProtocol_add("ftp", "tcp", NO, HTLoadFTP, NULL);
+    HTProtocol_add("nntp", "tcp", NO, HTLoadNews, NULL);
+    HTProtocol_add("news", "tcp", NO, HTLoadNews, NULL);
+    HTProtocol_add("gopher", "tcp", NO, HTLoadGopher, NULL);
 
     /* Initialize set of converters */
     conv = HTList_new();

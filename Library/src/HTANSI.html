@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library ANSI File Streams</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Mar-1996 -->
+<NEXTID N="z18">
+</HEAD>
+<BODY>
+
+<H1>Manages Read and Write to and from an ANSI C File Descriptor</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module defines the read and write functions to and from the
+network. As we are having reentrant function and a smarter network I/O
+this will get very small :-) <P>
+
+This module is implemented by <A HREF="HTAnsi.c">HTAnsi.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTANSI_H
+#define HTANSI_H
+
+#include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
+</PRE>
+
+<H2>Input Buffering</H2>
+
+In order to optimize reading a channel, we bind a buffer to each
+channel object. The size of this buffer is a compromise between speed
+and memory.
+
+<PRE>
+#define FILE_BUFFER_SIZE	8192
+</PRE>
+
+<H2>Read Stream</H2>
+
+<PRE>
+extern HTInput_new HTANSIReader_new;
+</PRE>
+
+<H2>Write Stream</H2>
+
+<PRE>
+extern HTOutput_new HTANSIWriter_new;
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+End of declaration module
+
+</BODY>
+</HTML>

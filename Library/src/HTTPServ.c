@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This module implments the HTTP protocol as a state machine
 **
@@ -13,21 +14,14 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTWWWStr.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWMIME.h"
+#include "WWWStream.h"
 #include "HTTCP.h"
-#include "HTSocket.h"
-#include "HTAlert.h"
-#include "HTError.h"
-#include "HTAccess.h"
 #include "HTWriter.h"
-#include "HTChunk.h"
 #include "HTReqMan.h"
-#include "HTConLen.h"
 #include "HTNetMan.h"
-#include "HTMIMERq.h"
 #include "HTTPUtil.h"
 #include "HTTPRes.h"
 #include "HTTPServ.h"					       /* Implements */
@@ -64,6 +58,10 @@ struct _HTStream {
     HTEOLState			state;
     HTChunk *			buffer;
     BOOL			transparent;
+};
+
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -112,10 +110,12 @@ PRIVATE int MakeReplyPipe (HTStream *me, HTRequest *server, HTRequest *client)
 
     /* Check if we can forward the response untouched */
     if (client->net) {
-	HTdns * cdns = client->net->dns;
-	char * s_class = HTDNS_serverClass(cdns);
-	int version = HTDNS_serverVersion(cdns);
+	HTHost * host = HTNet_host(client->net);
+	char * s_class = HTHost_class(host);
+	int version = HTHost_version(host);
+
 	/* We are not using the version info for the moment */
+
 	if (s_class && !strcasecomp(s_class, "http")) {
 	    if (STREAM_TRACE) HTTrace("HTTP Reply.. Direct output\n");
 	    return HT_OK;
@@ -449,8 +449,12 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    status = HTDoAccept(net);
 	    if (status == HT_OK) {
 
-		/* Setup Request parser stream */
-		net->target = HTTPReceive_new(request, http);
+		/* 
+		** Create the stream pipe FROM the channel to the application.
+		** The target for the input stream pipe is set up using the
+		** stream stack.
+		*/
+		HTNet_getInput(net, HTTPReceive_new(request, http), NULL, 0);
 
 		http->state = HTTPS_NEED_REQUEST;
 	    } else {
@@ -461,7 +465,7 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case HTTPS_NEED_REQUEST:
 	    if (ops == FD_READ || ops == FD_NONE) {
-		status = HTChannel_readSocket(request, net);
+		status = (*net->input->isa->read)(net->input);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_PAUSE) {
@@ -481,9 +485,11 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    ** Set up our reply stream. This is responsible for
 		    ** generating a HTTP reply
 		    */
+#if 0
 		    http->client->output_stream = request->output_stream =
 			HTTPReply_new(request, http->client,
 				      HTWriter_new(request->net,YES));
+#endif
 
 		    /* Start the load of the "client" request */
 		    return HTLoad(http->client, NO) == YES ? HT_OK : HT_ERROR;

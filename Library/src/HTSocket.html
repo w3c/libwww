@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Socket Interface</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -27,76 +27,10 @@ Reference Library</A>.
 #ifndef HTSOCKET_H
 #define HTSOCKET_H
 
-#include <A HREF="HTReq.html">"HTReq.h"</A>
-#include <A HREF="HTNet.html">"HTNet.h"</A>
+#include <A HREF="HTReq.html">"HTEvntrg.h"</A>
 </PRE>
 
-<H2>The HTChannel Object</H2>
-
-A <CODE>channel</CODE> represents the front end for receiving
-data. The definition of a channel describes how we are to read the
-data coming in on a socket, for example. A channel represents the
-first part of how to get handle incoming data in the Library:
-
-<UL>
-<LI>Reading data on a channel
-<LI>Defining a target for incoming data
-<LI>Defining a protocol state machine that can handle the data
-</UL>
-
-All three things are part of the <A HREF="HTNet.html">HTNet object</A>
-definition and this module defines the channel. A channel can be in a
-certain <CODE>mode</CODE> which determines how it behaves. The set of
-modes is defined as:
-
-<PRE>
-typedef enum _HTChannelMode {
-    HT_CH_UNKNOWN	= 0x0,
-    HT_CH_PLAIN		= 0x1,
-    HT_CH_PERSISTENT	= 0x2,				       /* Persistent */
-    HT_CH_BATCH		= 0x4,			       /* Use batch requests */
-    HT_CH_INTERLEAVED	= 0x8 	  	      /* Can we interleave requests? */
-} HTChannelMode;
-
-typedef struct _HTChannel HTChannel;
-</PRE>
-
-<H3>Channel Buffering</H3>
-
-In order to optimize reading a channel, we bind a buffer to each
-channel object. The size of this buffer is a compromise between speed
-and memory. Here it is chosen as the default TCP High Water Mark
-(sb_hiwat) for receiving data. By default, we have chosen a value that
-equals the normal TCP High Water Mark (sb_hiwat) for receiving data.
-
-<PRE>
-#define CHANNEL_BUFFER_SIZE 8192
-</PRE>
-
-<H3>Creating and Deleting Channels</H3>
-
-The following methods can be used to instantiate objects of a
-particular channel mode:
-
-<PRE>
-extern HTChannel * HTChannel_new (SOCKET sockfd, HTChannelMode mode,
-				  BOOL active);
-extern BOOL HTChannel_delete (SOCKET sockfd);
-
-extern HTChannel * HTChannel_find (SOCKET);
-</PRE>
-
-<H3>Control the Channel Mode</H3>
-
-<PRE>
-extern HTChannelMode HTChannel_mode (SOCKET sockfd, BOOL * active);
-
-extern BOOL HTChannel_setMode (SOCKET sockfd, HTChannelMode mode);
-
-extern BOOL HTChannel_addMode (SOCKET sockfd, HTChannelMode mode);
-</PRE>
-
-<A NAME="Read"><H2>Read Loops for Reading Data into a Channel</H2></A>
+<H2>Reading CRLF</H2>
 
 The Library provides a default set of read routines that can handle
 the most common situations. However, before we start we make following
@@ -113,39 +47,6 @@ typedef enum _HTEOLState {
     EOL_SCR,
     EOL_SLF
 } HTEOLState;
-</PRE>
-
-<H3>Serial Read From a Socket</H3>
-
-This function has replaced many other functions for doing read from a
-socket. It automatically converts from ASCII if we are on a NON-ASCII
-machine. This assumes that we do <B>not</B> use this function to read
-a local file on a NON-ASCII machine.
-
-<PRE>
-extern int HTChannel_readSocket (HTRequest * request, HTNet * net);
-</PRE>
-
-<H3>Read from an ANSI file Descriptor</H3>
-
-This is the default read routine for any ANSI C file descriptors. By
-default it is registered for channels of type
-<CODE>HT_CH_LOCAL_ANSI</CODE>. Because we have to treat open file
-descriptors specially in MS Windows DLLs, we have to define two dummy
-functions for opening and closing the file descriptor. This is not
-used on any other platform.
-
-<PRE>
-extern FILE * HTSocket_DLLHackFopen (const char * filename, const char * mode);
-extern int HTSocket_DLLHackFclose (FILE * file);
-
-typedef struct _HTFileBuffer HTFileBuffer;
-
-extern HTFileBuffer * HTFileBuffer_new (void);
-extern void HTFileBuffer_free (HTFileBuffer * me);
-
-extern int HTChannel_readFile (HTRequest * request, HTNet * net,
-			       HTFileBuffer * isoc, FILE * fp);
 </PRE>
 
 <H2>Load Data from a Socket</H2>
@@ -165,7 +66,9 @@ extern HTEventCallback HTLoadSocket;
 #endif
 </PRE>
 
-End of declaration module
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

@@ -1,6 +1,10 @@
 /*								     HTNewsRq.c
 **	NNTP MESSAGE GENERATION
 **
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
+**
 **	This module implements the output stream for MIME used for sending
 **	requests with or without a entity body to HTTP, NEWS, etc.
 **
@@ -10,13 +14,10 @@
 
 /* Library Includes */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTTCP.h"
-#include "HTWriter.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+
 #include "HTReqMan.h"
-#include "HTChunk.h"
 #include "HTMIMERq.h"
 #include "HTNewsRq.h"					       /* Implements */
 

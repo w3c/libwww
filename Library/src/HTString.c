@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	Original version came with listserv implementation.
 **	Version TBL Oct 91 replaces one which modified the strings.

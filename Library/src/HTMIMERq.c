@@ -24,11 +24,12 @@
 #include "HTNetMan.h"
 #include "HTDNS.h"
 #include "HTTCP.h"
-#include "HTWriter.h"
 #include "HTHeader.h"
 #include "HTReqMan.h"
 #include "HTTPReq.h"					       /* Implements */
 
+#define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
+#define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
@@ -49,26 +50,43 @@ struct _HTStream {
 */
 PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 {
+    char crlf[3];
     char linebuf[256];			/* @@@ */
     HTParentAnchor *entity = request->source_anchor ?
 	request->source_anchor : request->anchor;
+    *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
     if (request->EntityMask & HT_E_ALLOW) {
 	/* @@@@@@@@@@ */
     }
-    if (request->EntityMask & HT_E_CONTENT_ENCODING &&
-	entity->content_encoding) {
-	sprintf(linebuf, "Content-Encoding: %s%c%c",
-		HTAtom_name(entity->content_encoding), CR, LF);
-	PUTBLOCK(linebuf, (int) strlen(linebuf));
+    if (request->EntityMask&HT_E_CONTENT_ENCODING && entity->content_encoding){
+	BOOL first = YES;
+	HTList * cur = entity->content_encoding;
+	HTEncoding pres;
+	while ((pres = (HTEncoding) HTList_nextObject(cur))) {
+	    if (first) {
+		PUTS("Content-Encoding: ");
+		first = NO;
+	    } else
+		PUTC(',');
+	    PUTS(HTAtom_name(pres));
+	}
+	if (!first) PUTBLOCK(crlf, 2);
     }
     
-    /* @@@ SHOULD BE A LIST @@@ */
-    if (request->EntityMask & HT_E_CONTENT_LANGUAGE &&
-	entity->content_language) {
-	sprintf(linebuf, "Content-Language: %s%c%c",
-		HTAtom_name(entity->content_language), CR, LF);
-	PUTBLOCK(linebuf, (int) strlen(linebuf));
+    if (request->EntityMask&HT_E_CONTENT_LANGUAGE && entity->content_language){
+	BOOL first = YES;
+	HTList * cur = entity->content_language;
+	HTLanguage pres;
+	while ((pres = (HTLanguage) HTList_nextObject(cur))) {
+	    if (first) {
+		PUTS("Content-Language: ");
+		first = NO;
+	    } else
+		PUTC(',');
+	    PUTS(HTAtom_name(pres));
+	}
+	if (!first) PUTBLOCK(crlf, 2);
     }
     if (request->EntityMask & HT_E_CONTENT_LENGTH) { /* Must be there!!! */
 	sprintf(linebuf, "Content-Length: %ld%c%c",

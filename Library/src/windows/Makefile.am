@@ -6,11 +6,13 @@ SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
 PL  := $(wildcard *.pl)
 
+AUTOMAKE_OPTIONS = foreign
+
 BUILT_SOURCES = \
 	wwwapp.def	wwwapp.def	wwwcache.def \
 	wwwcore.def	wwwdir.def	wwwdll.def \
 	wwwfile.def	wwwftp.def	wwwgophe.def \
-	wwwguess.def	wwwhtml.def	wwwhttp.def \
+	wwwstream.def	wwwhtml.def	wwwhttp.def \
 	wwwmime.def	wwwnews.def	wwwrules.def \
 	wwwtelnt.def	wwwutils.def	wwwwais.def \
 	wwwlist.txt

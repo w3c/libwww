@@ -30,7 +30,7 @@ dnl Remove next line and you get an error -- autoconf
 dnl should deal with this automatically.
 AC_ISC_POSIX
 AC_PATH_X
-AC_PATH_XTRA
+dnl AC_PATH_XTRA 	Causes problems...
 
 dnl Various compiler directives
 case "$target" in
@@ -115,9 +115,10 @@ if test -n "$have_resolv_conf" ; then
 fi
 
 dnl Checks for libraries:
-AC_CHECK_LIB(socket, main)
-AC_CHECK_LIB(inet, main)
-AC_CHECK_LIB(nsl, main)
+AC_CHECK_LIB(ICE, IceConnectionNumber)
+AC_CHECK_LIB(socket, socket)
+AC_CHECK_LIB(inet, connect)
+AC_CHECK_LIB(nsl, t_accept)
 
 dnl Checks for header files:
 AC_CHECK_HEADERS(stdio.h)

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww ANSI C FILE STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
 <NEXTID N="z4">
 </HEAD>
 <BODY>
@@ -37,39 +37,6 @@ Reference Library</A>.
 
 #include "HTStream.h"
 #include "HTFormat.h"
-</PRE>
-
-<A NAME="utils"><H2>Basic Utility Streams</H2></A>
-
-These streams can be plugged in everywhere in a stream pipe.
-
-<H3><A NAME="BlackHole">Black Hole Stream</A></H3>
-
-This stream simply absorbs data without doing anything what so
-ever. The <CODE>HTBlackHoleConverter</CODE> declaration can be used in
-the stream stack as a converter.
-
-<PRE>
-extern HTStream * HTBlackHole (void);
-extern HTConverter HTBlackHoleConverter;
-</PRE>
-
-<H3>Through Line</H3>
-
-This stream just pumps data right through.
-
-<PRE>
-extern HTConverter HTThroughLine;
-</PRE>
-
-<H3>Generic Error Stream</H3>
-
-The Error stream simply returns HT_ERROR on all methods. This can be
-used to stop a stream as soon as data arrives, for example from the
-network.
-
-<PRE>
-extern HTStream * HTErrorStream (void);
 </PRE>
 
 <H2><A NAME="write">An ANSI C File Writer Stream</A></H2>
@@ -140,6 +107,9 @@ value is defined in <A HREF="HTAccess.html#Addresses">HTReq.html</A>
 #endif
 </PRE>
 
-End of declaration module
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

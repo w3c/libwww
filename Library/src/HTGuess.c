@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This version of the stream object just writes its input
 **	to its output, but prepends Content-Type: field and an
@@ -21,7 +22,6 @@
 #include "HTAlert.h"
 #include "HTAncMan.h"
 #include "HTList.h"
-#include "HTFWrite.h"
 #include "HTGuess.h"
 
 #define SAMPLE_SIZE	200	/* Number of chars to look at */
@@ -55,9 +55,6 @@ struct _HTStream {
 #define PUT_STRING(s)		(*me->target->isa->put_string)(me->target,s)
 #define PUT_BLOCK(b,l)		(*me->target->isa->put_block)(me->target,b,l)
 
-#define CONTENT_TYPE(t)		HTAnchor_setFormat(me->anchor, HTAtom_for(t))
-#define CONTENT_ENCODING(t)	HTAnchor_setEncoding(me->anchor, HTAtom_for(t))
-
 /* ------------------------------------------------------------------------- */
 
 PRIVATE BOOL is_html (char * buf)
@@ -78,6 +75,7 @@ PRIVATE BOOL is_html (char * buf)
 PRIVATE int HTGuess_flush (HTStream * me)
 {
     if (!me->transparent) {
+	HTParentAnchor * anchor = me->anchor;
 	if (STREAM_TRACE)
 	    HTTrace("GUESSING.... text=%d newline=%d ctrl=%d high=%d\n",
 		     me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
@@ -98,66 +96,74 @@ PRIVATE int HTGuess_flush (HTStream * me)
 	    *me->write_ptr = 0;	/* terminate buffer */
 	    
 	    if (me->high_cnt > 0)
-		CONTENT_ENCODING("8bit");
+		HTAnchor_setCte(anchor, WWW_CTE_8BIT);
 	    else
-		CONTENT_ENCODING("7bit");
+		HTAnchor_setCte(anchor, WWW_CTE_7BIT);
 	    
 	    if (is_html(me->buffer))
-		CONTENT_TYPE("text/html");
+		HTAnchor_setFormat(anchor, HTAtom_for("text/html"));
 	    
 	    else if (!strncmp(me->buffer, "%!", 2))
-		CONTENT_TYPE("application/postscript");
+		HTAnchor_setFormat(anchor, HTAtom_for("application/postscript"));
 	    
 	    else if (strstr(me->buffer, "#define") &&
 		     strstr(me->buffer, "_width") &&
 		     strstr(me->buffer, "_bits"))
-		CONTENT_TYPE("image/x-xbitmap");
+		HTAnchor_setFormat(anchor, HTAtom_for("image/x-xbitmap"));
 	    
 	    else if ((ptr = strstr(me->buffer, "converted with BinHex"))!=NULL)
-		CONTENT_ENCODING("macbinhex");
+		HTAnchor_setCte(anchor, WWW_CTE_MACBINHEX);
 
 	    else if (!strncmp(me->buffer, "begin ", 6))
-		CONTENT_ENCODING("base64");
+		HTAnchor_setCte(anchor, WWW_CTE_BASE64);
 
 	    else
-		CONTENT_TYPE("text/plain");
+		HTAnchor_setFormat(anchor, WWW_PLAINTEXT);
 	}
 	else {
 	    if (!strncmp(me->buffer, "GIF", 3))
-		CONTENT_TYPE("image/gif");
+		HTAnchor_setFormat(anchor, WWW_GIF);
 
 	    else if (!strncmp(me->buffer, "\377\330\377\340", 4))
-		CONTENT_TYPE("image/jpeg");
+		HTAnchor_setFormat(anchor, WWW_JPEG);
 
 	    else if (!strcmp(me->buffer, "MM"))	/* MM followed by a zero */
-		CONTENT_TYPE("image/tiff");
+		HTAnchor_setFormat(anchor, WWW_TIFF);
 
  	    else if (!strncmp(me->buffer, "\211PNG\r\n\032\n", 8))
- 		CONTENT_TYPE("image/x-png");
+ 		HTAnchor_setFormat(anchor, WWW_PNG);
 
 	    else if (!strncmp(me->buffer, ".snd", 4))
-		CONTENT_TYPE("audio/basic");
+		HTAnchor_setFormat(anchor, WWW_AUDIO);
 
 	    else if (!strncmp(me->buffer, "\037\235", 2))
-		CONTENT_ENCODING("x-compress");
+		HTAnchor_addEncoding(anchor, WWW_CE_COMPRESS);
 
 	    else if (!strncmp(me->buffer, "\037\213", 2))
-		CONTENT_ENCODING("x-gzip");
+		HTAnchor_addEncoding(anchor, WWW_CE_GZIP);
 
 	    else
-		CONTENT_TYPE("application/octet-stream");
+		HTAnchor_setFormat(anchor, WWW_BINARY);
 	}
 	
-	if (me->anchor->content_type == WWW_UNKNOWN)
-	    CONTENT_TYPE("application/octet-stream");
-	if (!me->anchor->content_encoding)
-	    CONTENT_ENCODING("binary");
+	if (anchor->content_type == WWW_UNKNOWN)
+	    HTAnchor_setFormat(anchor, WWW_BINARY);
+	if (!anchor->content_encoding)
+	    HTAnchor_setCte(anchor, WWW_CTE_BINARY);
 	
-	if (STREAM_TRACE) HTTrace("Guessed..... %s\n",
-				HTAtom_name(me->anchor->content_type));
-	if (STREAM_TRACE) HTTrace("Encoding.... %s\n",
-				HTAtom_name(me->anchor->content_encoding));
-	if ((me->target = HTStreamStack(me->anchor->content_type,
+	if (STREAM_TRACE) {
+	    HTTrace("Guessed..... C-T  : %s\n",
+		    HTAtom_name(anchor->content_type));
+	    HTTrace("............ C-E  : %s\n");
+
+	    /* @@@ */
+
+	    HTTrace("............ C-T-E: %s\n");
+
+	    /* @@@ */
+
+	}
+	if ((me->target = HTStreamStack(anchor->content_type,
 					me->output_format, me->output_stream,
 					me->req, NO)) == NULL) {
 	    if (STREAM_TRACE)

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This module provides two basic streams that converts from CRLF to
 **	an internal C representation (\n) and from the C representation to

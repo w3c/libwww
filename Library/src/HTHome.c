@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** Authors
 **	TBL	Tim Berners-Lee timbl@w3.org
@@ -56,16 +57,16 @@ PUBLIC char * HTFindRelatedName (void)
     {
 	char wd[HT_MAX_PATH+1];
 
-#ifdef HAVE_GETWD
-	char *result = (char *) getwd(wd);
-#else
 #ifdef HAVE_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
 	char *result = (char *) getcwd(wd, sizeof(wd)); 
 #else
+#ifdef HAVE_GETWD
+	char *result = (char *) getwd(wd);
+#else
 #error "This platform does not support neither getwd nor getcwd\n"
 	char *result = NULL;
-#endif /* HAVE_GETCWD */
 #endif /* HAVE_GETWD */
+#endif /* HAVE_GETCWD */
 	*(wd+HT_MAX_PATH) = '\0';
 	if (result) {
 #ifdef VMS 

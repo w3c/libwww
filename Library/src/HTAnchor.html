@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Anchor Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -413,17 +413,15 @@ extern void HTAnchor_setLevel		(HTParentAnchor * me,
 <H3>Content Language</H3>
 
 <PRE>
-extern HTLanguage HTAnchor_language	(HTParentAnchor *me);
-extern void HTAnchor_setLanguage	(HTParentAnchor *me,
-					 HTLanguage	language);
+extern HTList * HTAnchor_language	(HTParentAnchor * me);
+extern BOOL HTAnchor_addLanguage	(HTParentAnchor *me, HTLanguage lang);
 </PRE>
 
 <H3>Content Encoding</H3>
 
 <PRE>
-extern HTEncoding HTAnchor_encoding	(HTParentAnchor *me);
-extern void HTAnchor_setEncoding	(HTParentAnchor *me,
-					 HTEncoding	encoding);
+extern HTList * HTAnchor_encoding	(HTParentAnchor * me);
+extern BOOL HTAnchor_addEncoding	(HTParentAnchor * me, HTEncoding enc);
 </PRE>
 
 <H3>Content Transfer Encoding</H3>
@@ -518,5 +516,10 @@ extern void HTAnchor_clearHeader	(HTParentAnchor *me);
 
 #endif /* HTANCHOR_H */
 </PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

@@ -1,0 +1,204 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library libwww I/O Stream Class</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
+</HEAD>
+<BODY>
+
+<H1>I/O Stream Class Definition</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+A stream object is something which accepts a stream of text. Generally
+streams are cascaded into stream pipes where the output of a stream is
+directed into the input of the down stream object. The input and
+output streams differs from other streams in that they are used to
+communicate directly with a <A HREF="HTTrans.html">transport</A>.<P>
+
+This module is a part of the <A
+HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>. <P>
+
+All methods in the stream definition return an integer. The general
+return codes from the methods are:
+
+<UL>
+<LI><B>HT_WOULD_BLOCK</B>
+<LI><B>HT_ERROR</B>
+<LI><B>HT_OK</B>
+
+<LI><B>&gt;0</B> - any return greater than 0 will result in that the
+return code will be parsed on from the <A
+HREF="HTTrans.html">Transport read routine</A>. This can be used by
+inidividual stream to introduce their own return codes.
+
+</UL>
+
+As streams now have a return value, it is <B>very</B> important that
+these return values are passed upstream to all the other streams in
+the stream pipe. <P>
+
+<PRE>
+#ifndef HTIOSTREAM_H
+#define HTIOSTREAM_H
+
+typedef struct _HTInputStream HTInputStream;
+typedef struct _HTOutputStream HTOutputStream;
+
+#include "HTList.h"
+#include "HTStream.h"
+#include "HTChannl.h"
+#include "HTNet.h"
+</PRE>
+
+<H2>Input Stream</H2>
+
+An input stream is a stream that can read data from a transport and
+via a channel putting the data down to the application.
+
+<PRE>
+
+typedef struct _HTInputStreamClass {
+
+    char * name;
+</PRE>
+
+This field is for diagnostics only
+
+<PRE>
+    int (*flush)	(HTInputStream * me);
+</PRE>
+
+The <CODE>flush</CODE> method is introduced in order to allow the
+stream to put any buffered data down the stream pipe but without
+taking the stream pipe down. It is for the stream to decide whether it
+has buffered data or not. In some situations, the stream might not
+want to send buffered data down the target as the date might be
+relevant for this stream only.
+
+<PRE>
+    int (*_free)	(HTInputStream * me);
+</PRE>
+
+The <CODE>free</CODE> method is like the <CODE>flush</CODE> method but
+it also frees the current stream object and all stream objects down
+stream. When the <CODE>free</CODE> method has been called, the
+<EM>whole</EM> stream pipe (not only this object) should not accept
+any more data. See also the <CODE>close</CODE> method below
+
+<PRE>
+    int (*abort)	(HTInputStream * me, HTList * errorlist);
+</PRE>
+
+The <CODE>abort</CODE> method should only be used if a stream is
+interrupted, for example by the user, or an error occurs.
+
+<PRE>
+    int (*read)		(HTInputStream * me);
+</PRE>
+
+The <CODE>read</CODE> method is the method by which we can read data
+from the <A HREF="HTTrans.html">transport layer</A>.
+
+<PRE>
+    int (*close)	(HTInputStream * me);
+</PRE>
+
+The <CODE>close</CODE> method closes the transport and deletes the
+input stream object. Note that this is different than the free method
+which doesn't have to delete the input stream object itself.
+
+<PRE>
+} HTInputStreamClass;
+</PRE>
+
+<H2>Output Stream</H2>
+
+The output stream is similar to the <A HREF="HTStream.html">generic
+stream definition</A> in that it has a superset of methods. The
+<CODE>param</CODE> parameter and the <CODE>mode</CODE> parameter can
+be used for whatever purpose suited.
+
+<PRE>
+typedef struct _HTOutputStreamClass {
+
+    char * name;
+
+    int (*flush)	(HTOutputStream * me);
+
+    int (*_free)	(HTOutputStream * me);
+
+    int (*abort)	(HTOutputStream * me, HTList * errorlist);
+
+    int (*put_character)(HTOutputStream * me, char ch);
+
+    int (*put_string)	(HTOutputStream * me, const char * str);
+
+    int (*put_block)	(HTOutputStream * me, const char * str, int len);
+</PRE>
+
+See the <A HREF="HTStream.html">Generic Stream Definition</A> for an
+explanation of these methods. Note that they all have a
+<CODE>HTOutputStream</CODE> object a the parameter, not a generic
+stream. This is to avoid <EM>incompatible pointer</EM> warnings
+
+<PRE>
+    int (*close)	(HTOutputStream * me);
+</PRE>
+
+The <CODE>close</CODE> method closes the transport and deletes the
+input stream object. Note that this is different than the free method
+which doesn't have to delete the input stream object itself.
+
+<PRE>
+} HTOutputStreamClass;
+</PRE>
+
+<H2>Transport Streams</H2>
+
+Transport streams are special streams with creation methods like
+defined below. Transport streams can be registered in the <A
+HREF="HTTrans.html">HTTransport module</A> as ways of communicating
+with the a transport.
+
+<H3>Transport Input Stream</H3>
+
+We have two modes of the input stream depending on model used for data
+reading is <B>PUSH</B> or <B>PULL</B>. The PUSH model is suitable if
+we are using pseudo threads based on a <CODE>select()</CODE> call or
+equivalent and the <B>PULL</B> is suitable in a real thread
+environment. In the latter case it doesn't matter if a read procedure
+blocks as this only concerns a single thread.
+
+<PRE>
+typedef HTInputStream * HTInput_new	(HTNet *	net,
+					 HTChannel *	ch,
+					 HTStream *	target,
+					 void *		param,
+					 int		mode);
+</PRE>
+
+<H3>Transport Output Stream</H3>
+
+<PRE>
+typedef HTOutputStream * HTOutput_new	(HTNet *	net,
+					 HTChannel *	ch,
+					 void *		param,
+					 int		mode);
+</PRE>
+
+<PRE>
+#endif /* HTIOSTREAM_H */
+</PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This stream parses a MIME multipart stream and builds a set of new
 **	streams via the stream stack each time we encounter a boundary start.
@@ -23,7 +24,6 @@
 #include "HTParse.h"
 #include "HTSocket.h"
 #include "HTStream.h"
-#include "HTFWrite.h"
 #include "HTReqMan.h"
 #include "HTBound.h"					 /* Implemented here */
 

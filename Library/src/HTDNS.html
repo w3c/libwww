@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Domain Name Service</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -36,8 +36,6 @@ Reference Library</A>.
 <PRE>
 #ifndef HTDNS_H
 #define HTDNS_H
-#include "sysdep.h"
-#include "HTEvntrg.h"
 </PRE>
 
 <H2>The DNS Object</H2>
@@ -52,65 +50,13 @@ connections, interleaved access etc.)
 typedef struct _HTdns HTdns;
 </PRE>
 
-<H2>Cache Timeouts</H2>
+<H3>Cache Timeouts</H3>
 
-When to remove an entry in the cache. The default value is 48h.
+When to remove an entry in the cache. The default value is 12h.
 
 <PRE>
 extern void HTDNS_setTimeout (time_t timeout);
 extern time_t HTDNS_timeout  (time_t timeout);
-</PRE>
-
-<H2>Object Methods</H2>
-
-<H3>Persistent Sockets</H3>
-
-<PRE>
-extern SOCKET HTDNS_socket	(HTdns *dns);
-extern BOOL   HTDNS_setSocket	(HTdns *dns, SOCKET socket);
-extern void   HTDNS_clearActive	(HTdns *dns);
-extern int    HTDNS_socketCount (void);
-</PRE>
-
-<H3>Persistent Connection Timeouts</H3>
-
-When should we drop a socket. The default value is 1h
-
-<PRE>
-extern time_t HTDNS_sockTimeout (time_t timeout);
-extern void HTDNS_setSockTimeout (time_t timeout);
-</PRE>
-
-<H3>Persistent Connection Expiration</H3>
-
-Absolute value of when this socket will expire. Default value can be
-set with the function HTDNS_setSockTimeout and is normally 1 h.
-
-<PRE>
-extern HTEventCallback HTDNS_closeSocket;
-
-extern void HTDNS_setSockExpires (HTdns * dns, time_t expires);
-extern time_t HTDNS_sockExpires (HTdns * dns);
-</PRE>
-
-<H3>Set the Server Class and Version</H3>
-
-Define the <EM>server class</EM> of the server at the other end. A
-class is a generic description of the protocol which is exactly like
-the access method in a URL, for example "http" etc. The <EM>server
-version</EM> is a finer distinction (sub-class) between various
-versions of the server class, for example HTTP/0.9, HTTP/1.1 etc. The
-server version is a bit flag that the protocol module can define on
-its own. That way we don't have to change this module when registering
-a new protocol module. The <EM>server type</EM> is a description of
-whether we can keep the connection persistent or not.
-
-<PRE>
-extern char * HTDNS_serverClass		(HTdns * dns);
-extern void HTDNS_setServerClass	(HTdns * dns, char * s_class);
-
-extern int  HTDNS_serverVersion		(HTdns * dns);
-extern void HTDNS_setServerVersion	(HTdns * dns, int version);
 </PRE>
 
 <H3>Recalculating the Time-Weights on Multihomed Hosts</H3>
@@ -168,6 +114,9 @@ extern int HTGetHostByName (struct _HTNet *net, char *host);
 #endif
 </PRE>
 
-End of declaration file
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

@@ -1,9 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Public REQUEST OBJECT PUBLIC</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Feb-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 21-Mar-1996 -->
-<NEXTID N="z11">
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -34,11 +32,11 @@ Reference Library</A>. <P>
 typedef long HTRequestID;
 typedef struct _HTRequest HTRequest;
 
+#include "HTEvntrg.h"
 #include "HTList.h"
 #include "HTAssoc.h"
 #include "HTFormat.h"
 #include "HTStream.h"
-#include "HTEvntrg.h"
 #include "HTError.h"
 #include "HTNet.h"
 </PRE>
@@ -119,17 +117,6 @@ only lives as long as the request is being serviced.
 <PRE>
 extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
 extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
-</PRE>
-
-<H2>Bind an Access to a request</H2>
-
-This is done if you are a server. In this case you do not need an anchor
-
-<PRE>
-#if 0
-extern void HTRequest_setAccess (HTRequest * request, char * access);
-extern const char * HTRequest_access (HTRequest * request);
-#endif
 </PRE>
 
 <H2>Set the Method</H2>
@@ -280,7 +267,7 @@ extern void HTRequest_setConversion (HTRequest *request, HTList *type, BOOL over
 extern HTList * HTRequest_conversion (HTRequest *request);
 </PRE>
 
-<H3>Content Encodings</H3>
+<H3>Content Encodings and Decodings</H3>
 
 The list of encodings acceptable in the output stream.
 
@@ -459,6 +446,17 @@ following type using the methods provided in the next section.
 
 <PRE>
 typedef int HTPostCallback (HTRequest * request, HTStream * target);
+</PRE>
+
+<H3>Input Stream</H3>
+
+The input stream is to be used to put data <EM>to</EM> the
+network. Normally each protocol sets the input stream in order to
+generate the protocol headers while making a request.
+
+<PRE>
+extern void HTRequest_setInputStream (HTRequest * request, HTStream * input);
+extern HTStream *HTRequest_inputStream (HTRequest * request);
 </PRE>
 
 <H3>Extra Headers</H3>
@@ -685,6 +683,10 @@ extern BOOL HTRequest_kill(HTRequest * request);
 <PRE>
 #endif /* HTREQ_H */
 </PRE>
-End of declaration
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

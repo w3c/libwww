@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This stream counts the number of bytes in a stream until it reaches
 **	max number of bytes it can occupy. If this happens then	it gives up.

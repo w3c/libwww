@@ -6,6 +6,8 @@ FTP = /afs/w3.org/devel/Dist/$(PROD)
 #	self-documenting hypertext files.
 SUFFIXES = .h .html
 
+AUTOMAKE_OPTIONS = foreign
+
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
@@ -24,6 +26,14 @@ EXTRA_DIST = \
 	README.html \
 	$(LEGAL)
 
+#
+#	We do not have _all_ GNU files so add this to avoid warnings
+#
+AUTOMAKE_OPTIONS = foreign
+
+#
+#	These are the sub directories
+#
 SUBDIRS = Library PICS LineMode Robot ComLine MiniServ Listen Icons
 
 #

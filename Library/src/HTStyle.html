@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww STYLE MANAGER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -98,17 +98,19 @@ typedef struct _HTParagraphStyle HTParagraphStyle;
 */
 
 typedef struct _HTStyle HTStyle;
+</PRE>
 
-</pre>
 <h2>Style Creation</h2>
+
 <h3>HtStyleModify</h3>
+
 This routine is passed the style for a particular SGML nesting state,
 and the element number of a new element whithin that state.
 The routine returns a suitable style for text within the new element.
 It is passed a popinter tothe nesting state so that it can link
 the style back to the nesting state for later manipulation
 of the SGML nesting tree.
-<pre>
+<PRE>
 
 extern HTStyle * HTStyleModify (
 		HTStyle * 	style, 
@@ -154,7 +156,11 @@ extern HTStyleSheet * HTStyleSheetWrite (HTStyleSheet * self,
 #endif
 #define CLEAR_POINTER ((void *)-1)	/* Pointer value means "clear me" */
 #endif /* HTStyle_H */
+</PRE>
 
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

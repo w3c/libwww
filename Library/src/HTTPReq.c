@@ -1,6 +1,10 @@
 /*								      HTTPReq.c
 **	HTTP REQUEST GENERATION
 **
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
+**
 **	This module implements the output stream for HTTP used for sending
 **	requests with or without a entity body.
 **
@@ -11,14 +15,9 @@
 /* Library Includes */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTParse.h"
-#include "HTFormat.h"
+#include "WWWCore.h"
+
 #include "HTNetMan.h"
-#include "HTDNS.h"
-#include "HTTCP.h"
-#include "HTAccess.h"
-#include "HTWWWStr.h"
-#include "HTWriter.h"
 #include "HTReqMan.h"
 #include "HTTPGen.h"
 #include "HTTPUtil.h"
@@ -142,18 +141,14 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	for (list=0; list<2; list++) {
 	    if ((!list && ((cur = HTFormat_encoding()) != NULL)) ||
 		(list && ((cur = HTRequest_encoding(request)) != NULL))) {
-		HTAcceptNode *pres;
-		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
+		HTContentCoding * pres;
+		while ((pres = (HTContentCoding *) HTList_nextObject(cur))) {
 		    if (first) {
 			PUTS("Accept-Encoding: ");
-			first=NO;
+			first = NO;
 		    } else
 			PUTC(',');
-		    PUTS(HTAtom_name(pres->atom));
-		    if (pres->quality != 1.0) {
-			sprintf(qstr, ";q=%1.1f", pres->quality);
-			PUTS(qstr);
-		    }
+		    PUTS(HTContentCoding_name(pres));
 		}
 	    }
 	}
@@ -325,14 +320,14 @@ PRIVATE const HTStreamClass HTTPRequestClass =
 PUBLIC HTStream * HTTPRequest_new (HTRequest * request, HTStream * target,
 				   BOOL endHeader)
 {
-    HTdns *dns = HTNet_dns(request->net);
+    HTHost * host = HTNet_host(request->net);
     HTStream * me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
         HT_OUTOFMEM("HTTPRequest_new");
     me->isa = &HTTPRequestClass;
     me->target = target;
     me->request = request;
-    me->version = HTDNS_serverVersion(dns);
+    me->version = HTHost_version(host);
     me->transparent = NO;
 
     /* Return general HTTP header stream */

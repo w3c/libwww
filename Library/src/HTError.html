@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww ERRORS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -27,6 +27,17 @@ Reference Library</A>.
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
+
+typedef struct _HTError HTError;
+
+typedef enum _HTSeverity {
+    ERR_UNKNOWN		  = 0x0,
+    ERR_FATAL		  = 0x1,
+    ERR_NON_FATAL	  = 0x2,
+    ERR_WARN	 	  = 0x4,
+    ERR_INFO	 	  = 0x8
+} HTSeverity;
+
 #include "HTReq.h"
 </PRE>
 
@@ -101,16 +112,6 @@ specify a length inferior to strlen((char *) par).  The string is '\0'
 terminated automaticly.  See also HTError_addSystem for system errors. Returns YES if OK, else NO.
 
 <PRE>
-typedef struct _HTError HTError;
-
-typedef enum _HTSeverity {
-    ERR_UNKNOWN		  = 0x0,
-    ERR_FATAL		  = 0x1,
-    ERR_NON_FATAL	  = 0x2,
-    ERR_WARN	 	  = 0x4,
-    ERR_INFO	 	  = 0x8
-} HTSeverity;
-
 extern BOOL HTError_add (HTList * 	list,
 			 HTSeverity	severity,
 			 BOOL		ignore,
@@ -225,8 +226,10 @@ extern const char * HTError_location	(HTError * info);
 <PRE>
 #endif
 </PRE>
-End of Declaration Manager
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>
-
-

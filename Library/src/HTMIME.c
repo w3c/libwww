@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This is RFC 1341-specific code.
 **	The input stream pushed into this parser is assumed to be
@@ -19,18 +20,15 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTFormat.h"
 #include "HTCache.h"
 #include "HTAlert.h"
 #include "HTAncMan.h"
-#include "HTChunk.h"
 #include "HTMethod.h"
 #include "HTHeader.h"
 #include "HTSocket.h"
 #include "HTWWWStr.h"
-#include "HTFWrite.h"
 #include "HTNetMan.h"
 #include "HTReqMan.h"
 #include "HTMIME.h"					 /* Implemented here */
@@ -103,11 +101,11 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 			 HTParentAnchor * anchor)
 {
     MIME_state state = BEGINNING_OF_LINE;
-    MIME_state ok_state;			  /* got this state if match */
+    MIME_state ok_state = UNKNOWN;		  /* got this state if match */
     char *ptr = me->buffer->data-1;     /* We dont change the data in length */
     char *stop = ptr+me->buffer->size;			     /* When to stop */
     char *header = ptr;      				  /* For diagnostics */
-    const char * check_pointer;				   /* checking input */
+    char *check_pointer = "";				   /* checking input */
     char *value;
 
     /* In case we get an empty header consisting of a CRLF, we fall thru */
@@ -415,28 +413,28 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	  case CONNECTION:
  	    if ((value = HTNextField(&ptr)) != NULL) {
 		if (!strcasecomp(value, "keep-alive")) {
+		    HTNet_setPersistent(me->net, YES);
 		    if (STREAM_TRACE)
 			HTTrace("MIMEParser.. Persistent Connection\n");
-		    HTNet_setPersistent(me->net, YES);
 		}
 	    }
 	    state = JUNK_LINE;
 	    break;
 
 	  case CONTENT_ENCODING:
-	    if ((value = HTNextField(&ptr)) != NULL) {
-		char *lc = value;
+	    while ((value = HTNextField(&ptr)) != NULL) {
+		char * lc = value;
 		while ((*lc = TOLOWER(*lc))) lc++;
-		anchor->content_encoding = HTAtom_for(value);
+		HTAnchor_addEncoding(anchor, HTAtom_for(value));
 	    }
 	    state = JUNK_LINE;
 	    break;
 
-	  case CONTENT_LANGUAGE:		 /* @@@ SHOULD BE A LIST @@@ */
-	    if ((value = HTNextField(&ptr)) != NULL) {
-		char *lc = value;
+	  case CONTENT_LANGUAGE:
+	    while ((value = HTNextField(&ptr)) != NULL) {
+		char * lc = value;
 		while ((*lc = TOLOWER(*lc))) lc++;
-		anchor->content_language = HTAtom_for(value);
+		HTAnchor_addLanguage(anchor, HTAtom_for(value));
 	    }
 	    state = JUNK_LINE;
 	    break;
@@ -582,15 +580,28 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
     /* If HEAD method then we just stop here */
     if (request->method == METHOD_HEAD) return HT_LOADED;
 
-    /* News server almost never send content type or content length */
+    /*
+    ** Handle any Content Type
+    ** News server almost never send content type or content length
+    */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
-	if (STREAM_TRACE) HTTrace("MIMEParser.. Convert %s to %s\n",
+	if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
 				   HTAtom_name(anchor->content_type),
 				   HTAtom_name(me->target_format));
 	me->target = HTStreamStack(anchor->content_type, me->target_format,
 				   me->target, request, YES);
     }
-    if (!me->target) me->target = HTErrorStream();
+
+    /* Handle any Content Encoding */
+    if (anchor->content_encoding) {
+	if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
+	me->target = HTDecodingStack(anchor->content_encoding,
+				     me->target, request, NULL);
+    }
+
+    /* Handle any Transfer encoding */
+    /* @@@ */
+
     return HT_OK;
 }
 
@@ -608,6 +619,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    if (*b == CR) {				    /* End of header */
 		int status;
 		HTChunk_putb(me->buffer, start, end-start);
+		start=b, end=b+1;
 		status = parseheader(me, me->request, me->anchor);
 		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
@@ -631,6 +643,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    else if (*b == LF) {			    /* End of header */
 		int status;
 		HTChunk_putb(me->buffer, start, end-start);
+		start=b, end=b+1;
 		status = parseheader(me, me->request, me->anchor);
 		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
@@ -650,6 +663,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    if (*b==CR || *b==LF) {			    /* End of header */
 		int status;
 		HTChunk_putb(me->buffer, start, end-start);
+		start=b, end=b+1;
 		status = parseheader(me, me->request, me->anchor);
 		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
@@ -686,7 +700,11 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    return (cl>=0 && HTNet_bytesRead(me->net)>=cl) ? HT_LOADED : HT_OK;
 	} else
 	    return status;
+    } else {
+	if (end-start > 1)
+	    HTChunk_putb(me->buffer, start, end-start);
     }
+	
     return HT_OK;
 }
 

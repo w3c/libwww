@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	This is a try with a non-buffered output stream which remembers
 **	state using the write_pointer. As normally we have a big buffer
@@ -13,8 +14,7 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTReq.h"
 #include "HTNetMan.h"
 #include "HTConLen.h"
@@ -22,18 +22,38 @@
 #include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {
-	const HTStreamClass *	isa;
-	SOCKET			sockfd;
-	HTNet *			net;
-	char			*wptr;
-	BOOL			leave_open;
+    const HTStreamClass *	isa;
+    /* ... */
+};
+
+struct _HTOutputStream {
+    const HTOutputStreamClass *	isa;
+    HTChannel *			ch;
+    HTNet *			net;
+    char *			write;
 #ifdef NOT_ASCII
-	BOOL			make_ascii;    /* Are we writing to the net? */
-	char *			ascbuf;	    /* Buffer for TOASCII conversion */
+    BOOL			make_ascii;    /* Are we writing to the net? */
+    char *			ascbuf;	    /* Buffer for TOASCII conversion */
 #endif
+    BOOL			leave_open;
 };
 
 /* ------------------------------------------------------------------------- */
+
+PRIVATE int HTWriter_flush (HTOutputStream * me)
+{
+    return HT_OK;		       /* As we don't have any output buffer */
+}
+
+PRIVATE int HTWriter_free (HTOutputStream * me)
+{
+    return HT_OK;
+}
+
+PRIVATE int HTWriter_abort (HTOutputStream * me, HTList * e)
+{
+    return HT_ERROR;
+}
 
 /*	Write to the socket
 **
@@ -65,12 +85,12 @@ struct _HTStream {
 **	the  pipe  has been read, write() transfers at least
 **	{PIPE_BUF} bytes.
 */
-PRIVATE int HTWriter_write (HTStream * me, const char * buf, int len)
+PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 {
+    HTNet * net = me->net;
+    SOCKET soc = net->sockfd;
     int b_write;
     const char *limit = buf+len;
-    HTRequest * request = me->net->request;
-    HTNet * net = me->net;
 
 #ifdef NOT_ASCII
     if (me->make_ascii && len && !me->ascbuf) {	      /* Generate new buffer */
@@ -84,19 +104,19 @@ PRIVATE int HTWriter_write (HTStream * me, const char * buf, int len)
 	    *dest = TOASCII(*orig);
 	    dest++, orig++;
 	}
-	me->wptr = me->ascbuf;
+	me->write = me->ascbuf;
 	limit = me->ascbuf+len;
     }
 #else
-    if (!me->wptr)
-	me->wptr = (char *) buf;
+    if (!me->write)
+	me->write = (char *) buf;
     else
-	len -= (me->wptr - buf);
+	len -= (me->write - buf);
 #endif
 
     /* Write data to the network */
-    while (me->wptr < limit) {
-	if ((b_write = NETWRITE(me->sockfd, me->wptr, len)) < 0) {
+    while (me->write < limit) {
+	if ((b_write = NETWRITE(soc, me->write, len)) < 0) {
 
 #ifdef EAGAIN
 	    if (socerrno == EAGAIN || socerrno == EWOULDBLOCK)/* POSIX, SVR4 */
@@ -105,32 +125,33 @@ PRIVATE int HTWriter_write (HTStream * me, const char * buf, int len)
 #endif
 	    {
 		if (PROT_TRACE)
-		    HTTrace("Write Socket WOULD BLOCK %d\n",me->sockfd);
-		HTEvent_Register(me->sockfd, request, (SockOps) FD_WRITE,
+		    HTTrace("Write Socket WOULD BLOCK %d\n",soc);
+		HTEvent_Register(soc, net->request, (SockOps) FD_WRITE,
 				 net->cbf, net->priority);
 		return HT_WOULD_BLOCK;
 	    } else {
-		HTRequest_addSystemError(request,  ERR_FATAL, socerrno, NO,
+		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 					 "NETWRITE");
 		return HT_ERROR;
 	    }
 	}
-	HTEvent_UnRegister(me->sockfd, (SockOps) FD_WRITE);
-	me->wptr += b_write;
+	HTEvent_UnRegister(soc, (SockOps) FD_WRITE);
+	me->write += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
 	    HTTrace("Write Socket %d bytes written to socket %d\n",
-		    b_write, me->sockfd);
+		    b_write, soc);
 	net->bytes_written += b_write;
 	{
 	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
-	    if (cbf) (*cbf)(request, HT_PROG_WRITE,HT_MSG_NULL,NULL,NULL,NULL);
+	    if (cbf) (*cbf)(net->request, HT_PROG_WRITE,
+			    HT_MSG_NULL, NULL, NULL, NULL);
 	}
     }
 #ifdef NOT_ASCII
     HT_FREE(me->ascbuf);
 #else
-    me->wptr = NULL;
+    me->write = NULL;
 #endif
     return HT_OK;
 }
@@ -138,7 +159,7 @@ PRIVATE int HTWriter_write (HTStream * me, const char * buf, int len)
 /*	Character handling
 **	------------------
 */
-PRIVATE int HTWriter_put_character (HTStream * me, char c)
+PRIVATE int HTWriter_put_character (HTOutputStream * me, char c)
 {
     return HTWriter_write(me, &c, 1);
 }
@@ -148,40 +169,24 @@ PRIVATE int HTWriter_put_character (HTStream * me, char c)
 **
 **	Strings must be smaller than this buffer size.
 */
-PRIVATE int HTWriter_put_string (HTStream * me, const char * s)
+PRIVATE int HTWriter_put_string (HTOutputStream * me, const char * s)
 {
     return HTWriter_write(me, s, (int) strlen(s));
 }
-
-PRIVATE int HTWriter_flush (HTStream * me)
-{
-    return HT_OK;	       /* As we don't keep any buffer in this stream */
-}
-
-PRIVATE int HTWriter_free (HTStream * me)
-{
-    int status = HT_OK;
-    if (!me->leave_open) {
-	if (NETCLOSE(me->sockfd) < 0)
-	    status = HT_ERROR;
-    }
-    HT_FREE(me);
-    return status;
-}
-
-PRIVATE int HTWriter_abort (HTStream * me, HTList * e)
-{
-    if (!me->leave_open)
-	NETCLOSE(me->sockfd);
-    HT_FREE(me);
-    return HT_ERROR;
-}
-
-
-/*	Structured Object Class
-**	-----------------------
+/*
+**	The difference between the close and the free method is that we don't
+**	close the connection in the free method - we only call the free method
+**	of the target stream. That way, we can keep the output stream as long 
+**	as the channel itself.
 */
-PRIVATE const HTStreamClass HTWriter =
+PRIVATE int HTWriter_close (HTOutputStream * me)
+{
+    if (PROT_TRACE) HTTrace("Socket write FREEING....\n");
+    HT_FREE(me);
+    return HT_OK;
+}
+
+PRIVATE const HTOutputStreamClass HTWriter =
 {		
     "SocketWriter",
     HTWriter_flush,
@@ -189,23 +194,25 @@ PRIVATE const HTStreamClass HTWriter =
     HTWriter_abort,
     HTWriter_put_character,
     HTWriter_put_string,
-    HTWriter_write
+    HTWriter_write,
+    HTWriter_close
 }; 
 
-
-/*	Subclass-specific Methods
-**	-------------------------
-*/
-PUBLIC HTStream* HTWriter_new (HTNet *net, BOOL leave_open)
+PUBLIC HTOutputStream * HTWriter_new (HTNet * net, HTChannel * ch,
+				      void * param, int mode)
 {
-    HTStream* me;
-    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-        HT_OUTOFMEM("HTWriter_new");
-    me->isa = &HTWriter;       
-    me->leave_open = leave_open;
-    me->sockfd = net->sockfd;
-    me->net = net;
-    return me;
+    if (net && ch) {
+	HTOutputStream * me = HTChannel_output(ch);
+	if (me == NULL) {
+	    if ((me=(HTOutputStream *) HT_CALLOC(1, sizeof(HTOutputStream)))==NULL)
+		HT_OUTOFMEM("HTWriter_new");
+	    me->isa = &HTWriter;
+	    me->ch = ch;
+	}
+	me->net = net;
+	return me;
+    }
+    return NULL;
 }
 
 /*
@@ -215,14 +222,13 @@ PUBLIC HTStream* HTWriter_new (HTNet *net, BOOL leave_open)
 */
 PUBLIC HTStream* HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size)
 {
+#if 0
     return HTBuffer_new(HTWriter_new(net, leave_open), net->request, buf_size);
-
-#ifdef NEW_CODE
-#include "HTMux.h"
-    HTStream * mux = HTMux_new(net, HTWriter_new(net, leave_open), YES);
-    return HTBuffer_new(mux, net->request, buf_size);
-#endif /* NEW_CODE */
+#else
+    return HTErrorStream();
+#endif
 }
+
 
 /*	Subclass-specific Methods
 **	-------------------------

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww PROTOCOLS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Mar-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -30,6 +30,7 @@ Reference Library</A>. <P>
 #include "HTReq.h"
 #include "HTAnchor.h"
 #include "HTEvntrg.h"
+#include "HTTrans.h"
 </PRE>
 
 After the new architecture based on call back functions managed by an
@@ -63,6 +64,7 @@ event loop when used in non-preemptive mode.
 
 <PRE>
 extern BOOL HTProtocol_add (const char *       	name,
+			    const char *	transport,
 			    BOOL		preemptive,
 			    HTEventCallback *	client,
 			    HTEventCallback *	server);
@@ -115,11 +117,21 @@ preemptive access only.
 extern BOOL HTProtocol_preemptive (HTProtocol * protocol);
 </PRE>
 
+<H3>Get and Set the Transport</H3>
+
+<PRE>
+extern BOOL HTProtocol_setTransport (HTProtocol * protoccol,
+				     const char * transport);
+extern const char * HTProtocol_transport (HTProtocol * protocol);
+</PRE>
+
 <PRE>
 #endif /* HTPROT_H */
 </PRE>
 
-End of Declaration
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

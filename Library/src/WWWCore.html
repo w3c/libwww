@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww CORE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  4-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -49,30 +49,57 @@ extern "C" {
 #endif
 </PRE>
 
-<H2>Core Modules</H2>
+<H2>Higher Level Access Methods</H2>
+
+Even though you may use the API for the HTRequest object directly in
+order to issue a request, you will probably find that in real life it
+is easier to use a higher level abstraction API. This API is provided
+by the <A HREF="HTAccess.html">HTAccess module</A> where you will find
+all kind of functions for down loading a URL etc.
 
 <PRE>
-#include "HTAccess.h"			/* Document access network code */
-#include "HTAlert.h"			/* User Messages and Dialogs */
-#include "HTAnchor.h"			/* Anchor class Definition */
+#include "HTAccess.h"			/* Higher level access methods */
+</PRE>
+
+<H2>Core Objects</H2>
+
+The library core contains a set of objects for handling various
+tasks. We introduce them as we go along in the following but you can
+find much more information in the documentation on the library.
+
+<H3>The Alert Object</H3>
+
+<PRE>
+#include "HTAlert.h"			/* The HTAlert object */
+</PRE>
+
+<H3>The Anchor Object</H3>
+
+<PRE>
+#include "HTAnchor.h"			/* The HTAnchor object */
+</PRE>
+
+<PRE>
 #include "HTBind.h"			/* Binding to file suffixes */
-#include "HTConLen.h"			/* Content Length Counter */
-#include "HTDNS.h"			/* Host name cache */
-#include "HTError.h"			/* Error manager */
+#include "HTDNS.h"			/* The HTdns object */
+#include "HTError.h"			/* The HTError object */
 #include "HTEscape.h"			/* Escape and unescape URLs */
-#include "HTEvntrg.h"			/* Event manager */
-#include "HTFWrite.h"			/* Write to an ANSI file descriptor */
+#include "HTEvntrg.h"			/* The Event manager */
 #include "HTFormat.h"			/* Stream Stack and content neg. */
+#include "HTHost.h"			/* The HTHost object */
 #include "HTMethod.h"			/* Request methods like PUT, GET */
-#include "HTNet.h"			/* public part of Net Manager */
+#include "HTNet.h"			/* The HTNet object */
 #include "HTParse.h"			/* Parse URLs */
-#include "HTProt.h"			/* Protocol Manager */
-#include "HTReq.h"			/* public part of Request Manager */
-#include "HTSocket.h"			/* public part of Net Manager */
-#include "HTTCP.h"			/* GetXbyY functions */
-#include "HTTee.h"			/* T streem for splitting a stream */
+#include "HTProt.h"			/* The HTProtocol object */
+#include "HTReq.h"			/* The HTRequest object */
+#include "HTStream.h"			/* Generic stream object */
+#include "HTIOStream.h"			/* Input/Output stream objects */
+#include "HTInet.h"			/* GetXbyY functions */
 #include "HTWWWStr.h"			/* Web Related String Functions */
-#include "HTWriter.h"			/* Write to a unix file descriptor */
+#include "HTTrans.h"
+
+#include "HTFWrite.h"			/* Write to an ANSI file descriptor */
+#include "HTSocket.h"			/* public part of Net Manager */
 </PRE>
 
 End of Core modules
@@ -85,7 +112,9 @@ End of Core modules
 #endif
 </PRE>
 
-End of WWWCore API definition
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww SYSTEM DEPENDENCIES</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -1159,16 +1159,12 @@ This is necessary in order to support Windows NT...
 <H2>Definition of NGROUPS</H2>
 
 <PRE>
-#ifdef NO_UNIX_IO
-#define NO_GROUPS
-#endif
-
-#ifndef NO_GROUPS
+#ifdef GETGROUPS_T
 #ifndef NGROUPS
 #ifdef NGROUPS_MAX
-#define NGROUPS NGROUPS_MAX
+#define NGROUPS		NGROUPS_MAX
 #else
-#define NGROUPS 20				/* Any better ideas? */
+#define NGROUPS		20			/* Any better ideas? */
 #endif
 #endif
 #endif
@@ -1258,6 +1254,10 @@ safe versions of some system calls.
 <PRE>
 #endif
 </PRE>
-End of system-specific file
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

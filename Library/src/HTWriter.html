@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww SOCKET WRITER STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Oct-1995 -->
+<TITLE>W3C Reference Library libwww Socket Write Stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -31,8 +31,7 @@ Reference Library</A>. <P>
 #ifndef HTWRITE_H
 #define HTWRITE_H
 
-#include "HTStream.h"
-#include "HTNet.h"
+#include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
 </PRE>
 
 <H2>Unbuffered output</H2>
@@ -43,7 +42,7 @@ stream chain an extra output buffer will often not be needed. There is
 also a small buffer stream that can be used if this is not the case.
 
 <PRE>
-extern HTStream * HTWriter_new (HTNet *net, BOOL leave_open);
+extern HTOutput_new HTWriter_new;
 </PRE>
 
 <H2>Buffered Output</H2>
@@ -55,7 +54,9 @@ buf_size > 0 then we set up buffered output used for at most buf_size
 bytes. Otherwise we'll use nonbuffered output.
 
 <PRE>
+#if 0
 extern HTStream * HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size);
+#endif
 </PRE>
 
 <H2>ASCII Stream Converter</H2>
@@ -71,7 +72,9 @@ extern HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open);
 #endif
 </PRE>
 
-End of socket stream declaration
-
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
 </BODY>
 </HTML>

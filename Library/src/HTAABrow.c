@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **	Contains code for parsing challenges and creating credentials for 
 **	basic and digest authentication schemes. See also the HTAAUtil module

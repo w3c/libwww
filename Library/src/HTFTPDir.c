@@ -3,6 +3,7 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 ** Authors
 **	HF	Henrik Frystyk <frystyk@w3.org>
@@ -19,7 +20,6 @@
 #include "HTParse.h"
 #include "HTSocket.h"
 #include "HTStream.h"
-#include "HTFWrite.h"
 #include "HTWWWStr.h"
 #include "HTDir.h"
 #include "HTIcons.h"
