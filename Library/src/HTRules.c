@@ -142,19 +142,6 @@ PUBLIC int HTClearRules NOARGS
 }
 
 
-PRIVATE char * wrap ARGS1(char *, s)
-{
-    if (s && *s=='/') {
-	char * n = (char*)malloc(strlen(s) + 6);
-	if (!n) outofmem(__FILE__, "HTRules:wrap");
-	sprintf(n, "file:%s", s);
-	free(s);
-	return n;
-    }
-    return s;
-}
-
-
 
 /*	Translate by rules					HTTranslate()
 **	------------------
@@ -211,7 +198,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 	case HT_Pass:				/* Authorised */
     		if (!r->equiv) {
 		    CTRACE(stderr, "HTRule: Pass `%s'\n", current);
-		    return wrap(current);
+		    return current;
 	        }
 		/* Else fall through ...to map and pass */
 		
@@ -247,7 +234,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 		}
 		if (r->op == HT_Pass) {
 		    CTRACE(stderr, "HTRule: ...and pass `%s'\n", current);
-		    return wrap(current);
+		    return current;
 		}
 		break;
 

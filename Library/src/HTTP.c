@@ -47,6 +47,8 @@ struct _HTStream {
 };
 
 #ifdef NeXT
+#include "sys/types.h"
+#include "sys/stat.h"
 #define S_ISDIR(m) (m & S_IFDIR)
 #define S_ISREG(m) (m & S_IFREG)
 #endif
