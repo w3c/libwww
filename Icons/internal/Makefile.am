@@ -5,6 +5,8 @@ AUTOMAKE_OPTIONS = foreign
 ICONS := $(wildcard *.xbm)
 
 icondir = @icondir@
-icon_DATA = $(ICONS)
+datadir = $(icondir)
+data_DATA = $(ICONS)
 
-
+EXTRA_DIST = \
+	$(ICONS)
