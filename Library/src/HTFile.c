@@ -57,7 +57,6 @@ typedef struct _HTSuffix {
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
 #define END(e) (*target->isa->end_element)(target, e)
-#define END_TARGET (*target->isa->end_document)(target)
 #define FREE_TARGET (*target->isa->free)(target)
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
@@ -598,7 +597,7 @@ PUBLIC void HTDirEntry ARGS3(HTStructured *, target,
 			      strlen(tail) + strlen(escaped)+2);
     if (relative == NULL) outofmem(__FILE__, "DirRead");
     sprintf(relative, "%s/%s", tail, escaped);
-    HTStartAnchor(target, "", relative);
+    HTStartAnchor(target, NULL, relative);
     free(escaped);
     free(relative);
     PUTS(entry);
@@ -1006,7 +1005,6 @@ forget_multi:
 
 		    if (HTDirReadme == HT_DIR_README_BOTTOM)
 			  do_readme(target, localname);
-		    END_TARGET;
 		    FREE_TARGET;
 		    free(localname);
 		    return HT_LOADED;	/* document loaded */

@@ -105,7 +105,6 @@ typedef struct _connection {
 #define PUTS(s) (*targetClass.put_string)(target, s)
 #define START(e) (*targetClass.start_element)(target, e, 0, 0)
 #define END(e) (*targetClass.end_element)(target, e)
-#define END_TARGET (*targetClass.end_document)(target)
 #define FREE_TARGET (*targetClass.free)(target)
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
@@ -736,7 +735,6 @@ ARGS4 (
 	    }
 	}
 	END(HTML_DIR);
-	END_TARGET;
 	FREE_TARGET;
 	HTBTreeAndObject_free(bt);
     }

@@ -11,6 +11,7 @@
 **
 */
 
+
 /* Implements:
 */
 #include "HTFormat.h"
@@ -48,9 +49,18 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 PUBLIC	BOOL HTOutputSource = NO;	/* Flag: shortcut parser to stdout */
 extern  BOOL interactive;
 
+#ifdef ORIGINAL
 struct _HTStream {
       CONST HTStreamClass*	isa;
       /* ... */
+};
+#endif
+
+/* this version used by the NetToText stream */
+struct _HTStream {
+	CONST HTStreamClass *		isa;
+	BOOL			had_cr;
+	HTStream * 		sink;
 };
 
 
@@ -210,44 +220,65 @@ PUBLIC int HTOutputBinary ARGS2( int, 		input,
 **	new stack is generated. This is just to pass the out format to
 **	MIME so far.  Storing the format of a stream in the stream might
 **	be a lot neater.
+**
+**	The www/source format is special, in that if you can take
+**	that you can take anything. However, we
 */
 PUBLIC HTStream * HTStreamStack ARGS4(
-	HTFormat,		format_in,
+	HTFormat,		rep_in,
 	HTFormat,		rep_out,
 	HTStream*,		sink,
 	HTParentAnchor*,	anchor)
 {
     HTAtom * wildcard = HTAtom_for("*");
-    HTPresentation temp;
+    HTFormat source = WWW_SOURCE;
     if (TRACE) fprintf(stderr,
     	"HTFormat: Constructing stream stack for %s to %s\n",
-	HTAtom_name(format_in),	
+	HTAtom_name(rep_in),	
 	HTAtom_name(rep_out));
 		
     if (rep_out == WWW_SOURCE ||
-    	rep_out == format_in) return sink;
+    	rep_out == rep_in) return sink;
 
     if (!HTPresentations) HTFormatInit();	/* set up the list */
     
     {
 	int n = HTList_count(HTPresentations);
 	int i;
-	HTPresentation * pres;
+	HTPresentation * pres, *match, *wildcard_match=0,
+			*source_match=0, *source_wildcard_match=0;
 	for(i=0; i<n; i++) {
 	    pres = HTList_objectAt(HTPresentations, i);
-	    if (pres->rep == format_in) {
+	    if (pres->rep == rep_in) {
 	        if (pres->rep_out == rep_out)
 	            return (*pres->converter)(pres, anchor, sink);
 		if (pres->rep_out == wildcard) {
-		    temp = *pres;/* make temp conversion to needed fmt */
-		    temp.rep_out = rep_out;		/* yuk */
-	            return (*pres->converter)(&temp, anchor, sink);
+		    wildcard_match = pres;
+		}
+	    }
+	    if (pres->rep == source) {
+	        if (pres->rep_out == rep_out)
+	            source_match = pres;
+		if (pres->rep_out == wildcard) {
+		    source_wildcard_match = pres;
 		}
 	    }
 	}
+	
+	match = wildcard_match ? wildcard_match :
+		source_match ?	source_match : 
+		source_wildcard_match;
+	
+	if (match) {
+		HTPresentation temp = *match;	/* Specific instance */
+		temp.rep = rep_in;		/* yuk */
+		temp.rep_out = rep_out;		/* yuk */
+		return (*match->converter)(&temp, anchor, sink);
+        }
     }
+
     
-#ifdef XMOSAIC_HACK
+#ifdef XMOSAIC_HACK_REMOVED_NOW  /* Use above source method instead */
     return sink;
 #else
     return NULL;
@@ -264,7 +295,7 @@ PUBLIC HTStream * HTStreamStack ARGS4(
 **	length	The size of the data to be converted
 */
 PUBLIC float HTStackValue ARGS4(
-	HTFormat,		format_in,
+	HTFormat,		rep_in,
 	HTFormat,		rep_out,
 	float,			initial_value,
 	long int,		length)
@@ -273,11 +304,11 @@ PUBLIC float HTStackValue ARGS4(
 
     if (TRACE) fprintf(stderr,
     	"HTFormat: Evaluating stream stack for %s worth %.3f to %s\n",
-	HTAtom_name(format_in),	initial_value,
+	HTAtom_name(rep_in),	initial_value,
 	HTAtom_name(rep_out));
 		
     if (rep_out == WWW_SOURCE ||
-    	rep_out == format_in) return 0.0;
+    	rep_out == rep_in) return 0.0;
 
     if (!HTPresentations) HTFormatInit();	/* set up the list */
     
@@ -287,7 +318,7 @@ PUBLIC float HTStackValue ARGS4(
 	HTPresentation * pres;
 	for(i=0; i<n; i++) {
 	    pres = HTList_objectAt(HTPresentations, i);
-	    if (pres->rep == format_in && (
+	    if (pres->rep == rep_in && (
 	    		pres->rep_out == rep_out ||
 			pres->rep_out == wildcard)) {
 	        float value = initial_value * pres->quality;
@@ -327,6 +358,8 @@ PUBLIC void HTCopy ARGS2(
     targetClass = *(sink->isa);	/* Copy pointers to procedures */
     
     /*	Push binary from socket down sink
+    **
+    **		This operation could be put into a main event loop
     */
     for(;;) {
 	int status = NETREAD(
@@ -441,7 +474,7 @@ PUBLIC void HTCopyNoCR ARGS2(
 **
 */
 PUBLIC int HTParseSocket ARGS5(
-	HTFormat,		format_in,
+	HTFormat,		rep_in,
 	HTFormat,		format_out,
 	HTParentAnchor *,	anchor,
 	int,			file_number,
@@ -450,14 +483,14 @@ PUBLIC int HTParseSocket ARGS5(
     HTStream * stream;
     HTStreamClass targetClass;    
 
-    stream = HTStreamStack(format_in,
+    stream = HTStreamStack(rep_in,
 			format_out,
 	 		sink , anchor);
     
     if (!stream) {
         char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
-		HTAtom_name(format_in), HTAtom_name(format_out));
+		HTAtom_name(rep_in), HTAtom_name(format_out));
 	if (TRACE) fprintf(stderr, "HTFormat: %s\n", buffer);
         return HTLoadError(sink, 501, buffer);
     }
@@ -470,14 +503,13 @@ PUBLIC int HTParseSocket ARGS5(
 **   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
-    if (format_in == WWW_BINARY || HTOutputSource
-        || strstr(HTAtom_name(format_in), "image/")
-	|| strstr(HTAtom_name(format_in), "video/")) { /* @@@@@@ */
+    if (rep_in == WWW_BINARY || HTOutputSource
+        || strstr(HTAtom_name(rep_in), "image/")
+	|| strstr(HTAtom_name(rep_in), "video/")) { /* @@@@@@ */
         HTCopy(file_number, stream);
     } else {   /* ascii text with CRLFs :-( */
         HTCopyNoCR(file_number, stream);
     }
-    (*targetClass.end_document)(stream);
     (*targetClass.free)(stream);
     
     return HT_LOADED;
@@ -491,12 +523,12 @@ PUBLIC int HTParseSocket ARGS5(
 **   graphic (or other) objects described by the file.
 **
 **   The file number given is assumed to be a TELNET stream ie containing
-**   CRLF at the end of lines which need to be stripped to LF for unix
+**   CRLF at the end of lines which need to be stripped to \n for unix
 **   when the format is textual.
 **
 */
 PUBLIC int HTParseFile ARGS5(
-	HTFormat,		format_in,
+	HTFormat,		rep_in,
 	HTFormat,		format_out,
 	HTParentAnchor *,	anchor,
 	FILE *,			fp,
@@ -505,14 +537,14 @@ PUBLIC int HTParseFile ARGS5(
     HTStream * stream;
     HTStreamClass targetClass;    
 
-    stream = HTStreamStack(format_in,
+    stream = HTStreamStack(rep_in,
 			format_out,
 	 		sink , anchor);
     
     if (!stream) {
         char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
-		HTAtom_name(format_in), HTAtom_name(format_out));
+		HTAtom_name(rep_in), HTAtom_name(format_out));
 	if (TRACE) fprintf(stderr, "HTFormat(in HTParseFile): %s\n", buffer);
         return HTLoadError(sink, 501, buffer);
     }
@@ -521,16 +553,91 @@ PUBLIC int HTParseFile ARGS5(
 **
 **
 **   @@  Bug:  This decision ought to be made based on "encoding"
-**   rather than on format.  @@@  When we handle encoding.
+**   rather than on content-type.  @@@  When we handle encoding.
 **   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
     HTFileCopy(fp, stream);
-    (*targetClass.end_document)(stream);
     (*targetClass.free)(stream);
     
     return HT_LOADED;
 }
 
+
+/*	Converter stream: Network Telnet to internal character text
+**	-----------------------------------------------------------
+**
+**	The input is assumed to be in ASCII, with lines delimited
+**	by (13,10) pairs, These pairs are converted into (CR,LF)
+**	pairs in the local representation.  The (CR,LF) sequence
+**	when found is changed to a '\n' character, the internal
+**	C representation of a new line.
+*/
+
+
+PRIVATE void NetToText_put_character ARGS2(HTStream, * me, char, net_char)
+{
+    char c = FROMASCII(net_char);
+    if (me->had_cr) {
+        if (c==LF) {
+	    me->sink->isa->put_character(me->sink, '\n');	/* Newline */
+	    me->had_cr = NO;
+	    return;
+        } else {
+	    me->sink->isa->put_character(me->sink, CR);	/* leftover */
+	}
+    }
+    me->had_cr = (c==CR);
+    if (!me->had_cr)
+	me->sink->isa->put_character(me->sink, c);		/* normal */
+}
+
+PRIVATE void NetToText_put_string ARGS2(HTStream, * me, CONST char *, s)
+{
+    CONST char * p;
+    for(p=s; *p; p++) NetToText_put_character(me, *p);
+}
+
+PRIVATE void NetToText_put_block ARGS3(HTStream, * me, CONST char*, s, int, l)
+{
+    CONST char * p;
+    for(p=s; p<(s+l); p++) NetToText_put_character(me, *p);
+}
+
+PRIVATE void NetToText_free ARGS1(HTStream *, me)
+{
+    me->sink->isa->free(me->sink);		/* Close rest of pipe */
+    free(me);
+}
+
+PRIVATE void NetToText_abort ARGS2(HTStream *, me, HTError, e)
+{
+    me->sink->isa->abort(me->sink,e);		/* Abort rest of pipe */
+    free(me);
+}
+
+/*	The class structure
+*/
+PRIVATE HTStreamClass NetToTextClass = {
+    "NetToText",
+    NetToText_free,
+    NetToText_abort,
+    NetToText_put_character,
+    NetToText_put_string,
+    NetToText_put_block
+};
+
+/*	The creation method
+*/
+PUBLIC HTStream * HTNetToText ARGS1(HTStream *, sink)
+{
+    HTStream* me = (HTStream*)malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "NetToText");
+    me->isa = &NetToTextClass;
+    
+    me->had_cr = NO;
+    me->sink = sink;
+    return me;
+}
 
 

@@ -144,17 +144,15 @@ PRIVATE void HTMLGen_free ARGS1(HTStructured *, me)
 
 
 
-PRIVATE void HTMLGen_end_document ARGS1(HTStructured *, me)
+PRIVATE void HTMLGen_abort ARGS2(HTStructured *, me, HTError, e)
 {
-    PUTC('\n');		/* Make sure ends with newline for sed etc etc */
-    (*me->targetClass.end_document)(me->target);
+    HTMLGen_free(me);
 }
 
 
-PRIVATE void PlainToHTML_end_document ARGS1(HTStructured *, me)
+PRIVATE void PlainToHTML_abort ARGS2(HTStructured *, me, HTError, e)
 {
-    PUTS("</PRE></BODY>\n");/* Make sure ends with newline for sed etc etc */
-    (*me->targetClass.end_document)(me->target);
+    HTMLGen_free(me);
 }
 
 
@@ -166,7 +164,7 @@ PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 {		
 	"text/html",
 	HTMLGen_free,
-	HTMLGen_end_document,
+	HTMLGen_abort,
 	HTMLGen_put_character, 	HTMLGen_put_string, HTMLGen_write,
 	HTMLGen_start_element, 	HTMLGen_end_element,
 	HTMLGen_put_entity
@@ -200,7 +198,7 @@ PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
 {		
 	"plaintexttoHTML",
 	HTMLGen_free,	
-	PlainToHTML_end_document,	
+	PlainToHTML_abort,	
 	HTMLGen_put_character,
 	HTMLGen_put_string,
 	HTMLGen_write,

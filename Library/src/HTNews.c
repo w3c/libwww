@@ -31,6 +31,9 @@
 #include "HTML.h"
 #include "HTParse.h"
 #include "HTFormat.h"
+#include "HTAlert.h"
+
+#define BIG 1024 /* @@@ */
 
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
@@ -923,23 +926,19 @@ PUBLIC int HTLoadNews ARGS4(
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
 		    HTNewsHost);
-		PUTS(message);
-		(*targetClass.end_document)(target);
-		return YES;
+		return HTLoadError(stream, 500, message);
 	    } else {
 		if (TRACE) fprintf(stderr, "HTNews: Connected to news host %s.\n",
 				HTNewsHost);
 		HTInitInput(s);		/* set up buffering */
 		if ((response(NULL) / 100) !=2) {
+			char message[BIG];
 			NETCLOSE(s);
 			s = -1;
-			START(HTML_TITLE);
-			PUTS("News host response");
-			END(HTML_TITLE);
-			PUTS("Sorry, could not retrieve information: ");
-			PUTS(response_text);
-			(*targetClass.end_document)(target);
-			return YES;
+			sprintf(message, 
+		  "Can't read news info. News host %.20s responded: %.200s",
+		  	    HTNewsHost, response_text);
+		        return HTLoadError(stream, 500, message);
 		}
 	    }
 	} /* If needed opening */
@@ -949,12 +948,10 @@ PUBLIC int HTLoadNews ARGS4(
 	status = response(command);
 	if (status<0) break;
 	if ((status/ 100) !=2) {
+	    HTProgress(response_text);
 /*	    NXRunAlertPanel("News access", response_text,
 	    	NULL,NULL,NULL);
 */
-	    
-	    PUTS(response_text);
-	    (*targetClass.end_document)(target);
 	    NETCLOSE(s);
 	    s = -1;
 /* return HT; -- no:the message might be "Timeout-disconnected" left over */
@@ -969,16 +966,14 @@ PUBLIC int HTLoadNews ARGS4(
 	else if (group_wanted) read_group(groupName, first, last);
         else read_article();
 
-	(*targetClass.end_document)(target);
 	(*targetClass.free)(target);
 	return HT_LOADED;
 	
     } /* Retry loop */
     
     
-    PUTS("Sorry, could not load requested news.\n");
-    (*targetClass.end_document)(target);
-    
+    /* HTAlert("Sorry, could not load requested news.\n"); */
+        
 /*    NXRunAlertPanel(NULL, "Sorry, could not load `%s'.",
 	    NULL,NULL,NULL, arg);No -- message earlier wil have covered it */
 

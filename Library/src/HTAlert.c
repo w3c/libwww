@@ -59,7 +59,7 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
     fprintf(stderr, "WWW: %s", Msg);
     if (deflt) fprintf(stderr, "\n (RETURN for %s)\n", deflt);
     
-    scanf("%199s",Tmp); /* get reply */
+    fgets(Tmp, 199, stdin); 
    
     StrAllocCopy(rep, *Tmp ? Tmp : deflt);
     return rep;

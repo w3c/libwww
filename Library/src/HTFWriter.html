@@ -1,5 +1,6 @@
-<HEADER>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTFWriter.html</TITLE></HEADER>
+<HTML>
+<HEAD>
+<TITLE>File Writer for libwww</TITLE></HEAD>
 <BODY>
 <H1>C File Writer</H1>It is useful to have both FWriter
 and Writer for environments in which
@@ -22,5 +23,11 @@ extern HTStream * HTSaveAndExecute PARAMS((
 	HTParentAnchor *	anchor,	/* Not used */
 	HTStream *		sink));
 
+extern HTStream * HTSaveLocally PARAMS((
+	HTPresentation *	pres,
+	HTParentAnchor *	anchor,	/* Not used */
+	HTStream *		sink));
+
 #endif
 </PRE>end</BODY>
+</HTML>

@@ -24,6 +24,7 @@ struct _HTStream {
 	FILE *			fp;
 	char * 			end_command;
 	char * 			remove_command;
+	BOOL			announce;
 };
 
 
@@ -94,9 +95,21 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 /*	End writing
 */
 
-PRIVATE void HTFWriter_end_document ARGS1(HTStream *, me)
+PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
     fflush(me->fp);
+    if (me->end_command) {		/* Temp file */
+    	fclose(me->fp);
+	if (TRACE) fprintf(stderr,
+		"HTFWriter: Aborting: file not executed.\n");
+	free (me->end_command);
+	if (me->remove_command) {
+	    system(me->remove_command);
+	    free(me->remove_command);
+	}
+    }
+
+    free(me);
 }
 
 
@@ -108,7 +121,7 @@ PRIVATE CONST HTStreamClass HTFWriter = /* As opposed to print etc */
 {		
 	"FileWriter",
 	HTFWriter_free,
-	HTFWriter_end_document,
+	HTFWriter_abort,
 	HTFWriter_put_character, 	HTFWriter_put_string,
 	HTFWriter_write
 }; 
@@ -131,6 +144,7 @@ PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
     me->fp = fp;
     me->end_command = NULL;
     me->remove_command = NULL;
+    me->announce = NO;
 
     return me;
 }
@@ -212,6 +226,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     sprintf (me->remove_command, REMOVE_COMMAND, fnam);
 #endif
 
+    me->announce = NO;
     free (fnam);
     return me;
 }
@@ -219,6 +234,59 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
 #else	/* can do remove */
 { return NULL; }
 #endif
+
+
+/*	Save Locally
+**	------------
+**
+**  Bugs:
+**	GUI Apps should open local Save panel here really.
+**
+*/
+PUBLIC HTStream* HTSaveLocally ARGS3(
+	HTPresentation *,	pres,
+	HTParentAnchor *,	anchor,	/* Not used */
+	HTStream *,		sink)	/* Not used */
+
+{
+    char *fnam;
+    char *answer;
+    CONST char * suffix;
+    
+    HTStream* me;
+    
+    me = (HTStream*)malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "SaveLocally");
+    me->isa = &HTFWriter;  
+    me->end_command = NULL;
+    me->remove_command = NULL;	/* If needed, put into end_command */
+    me->announce = YES;
+    
+    /* Save the file under a suitably suffixed name */
+    
+    suffix = HTFileSuffix(pres->rep);
+
+    fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
+    tmpnam (fnam);
+    if (suffix) strcat(fnam, suffix);
+    
+    /*	Save Panel */
+    answer = HTPrompt("Give name of file to save in", fnam);
+    
+    free(fnam);
+    
+    me->fp = fopen (answer, "w");
+    if (!me->fp) {
+	HTAlert("Can't open local file to write into.");
+        free(answer);
+	free(me);
+	return NULL;
+    }
+
+    free(answer);
+    return me;
+}
+
 
 
 /*	Format Converter using system command

@@ -1,12 +1,13 @@
-<HEADER>
+<HTML>
+<HEAD>
 <TITLE>Utitlity macros for the W3 code library</TITLE>
-<NEXTID N="2">
-</HEADER>
+<NEXTID N="z2">
+</HEAD>
 <BODY>
 <H1>Macros for general use</H1>Generates: <A
-NAME=z1 HREF="HTUtils.h">HTUtils.h</A><P>
+NAME="z1" HREF="HTUtils.h">HTUtils.h</A><P>
 See also: the system dependent file<A
-NAME=z0 HREF="tcp.html">
+NAME="z0" HREF="tcp.html">
 "tcp.h"</A>
 <PRE>
 #ifndef DEBUG
@@ -44,6 +45,14 @@ NAME=z0 HREF="tcp.html">
 #define CTRACE if(TRACE)fprintf
 #define tfp stderr
 
+</PRE>
+<H3>Error type</H3>This is passed back when streams
+are aborted. It might be nice to
+have some structure of error messages,
+numbers, and recursive pointers to
+reasons. Curently this is a placeholder
+for something more sophisticated.
+<PRE>typedef void * HTError;			/* Unused at present -- best definition? */
 
 </PRE>
 <H2>Standard C library for malloc() etc</H2>
@@ -203,8 +212,11 @@ NAME=z0 HREF="tcp.html">
 
 #ifdef CURSES
 	/* htbrowse.c; */
+#ifdef ULTRIX      /* or DECSTATION */
+#include &lt;cursesX.h>	/* Extended curses under X. Only decent one :lou. */
+#else
 #include &lt;curses.h>
-
+#endif /* ULTRIX */
 	extern        WINDOW  *w_top, *w_text, *w_prompt;
 	extern        void    user_message PARAMS((const char *fmt, ...));
 	extern        void    prompt_set PARAMS((CONST char * msg));
@@ -251,6 +263,16 @@ For safefy, we make them mandatory.
 #define TOUPPER(c) (islower(c) ? toupper(c) : (c))
 #endif /* ndef TOLOWER */
 
+</PRE>
+<H2>The local equivalents of CR and LF</H2>We can check for these after net
+ascii text has been converted to
+the local representation. Similarly,
+we include them in strings to be
+sent as net ascii after translation.
+<PRE>#define LF   FROMASCII('\012')  /* ASCII line feed LOCAL EQUIVALENT */
+#define CR   FROMASCII('\015')  /* Will be converted to ^M for transmission */
+
 #endif /* HTUTILS_H */
 
 </PRE>end of utilities</A></BODY>
+</HTML>

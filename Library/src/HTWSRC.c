@@ -361,7 +361,6 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	END(HTML_PRE);
     }
     
-    (*me->target->isa->end_document)(me->target);
     (*me->target->isa->free)(me->target);
     
     return;
@@ -405,9 +404,9 @@ PRIVATE void WSRCParser_free ARGS1(HTStream *, me)
     free(me);
 }
 
-PRIVATE void WSRCParser_end_document ARGS1(HTStream *, me)
+PRIVATE void WSRCParser_abort ARGS1(HTStream *, me)
 {
-/* Nothing */
+    WSRCParser_free(me);
 }
 
 
@@ -418,7 +417,7 @@ PRIVATE void WSRCParser_end_document ARGS1(HTStream *, me)
 HTStreamClass WSRCParserClass = {
 	"WSRCParser",
 	WSRCParser_free,
-	WSRCParser_end_document,
+	WSRCParser_abort,
 	WSRCParser_put_character,
  	WSRCParser_put_string,
 	WSRCParser_write

@@ -49,7 +49,7 @@ PRIVATE void flush ARGS1(HTStream *, me)
 			write_pointer - read_pointer);
 	if (status<0) {
 	    if(TRACE) fprintf(stderr,
-	    "HTWrite: Error on socket output stream!!!\n");
+	    "HTWrite: Error: write() on socket returns %d !!!\n", status);
 	    return;
 	}
 	read_pointer = read_pointer + status;
@@ -123,19 +123,15 @@ PRIVATE void HTWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 */
 PRIVATE void HTWriter_free ARGS1(HTStream *, me)
 {
-    NETCLOSE(me->soc);
     flush(me);
+    NETCLOSE(me->soc);
     free(me);
 }
 
-/*	End writing
-*/
-
-PRIVATE void HTWriter_end_document ARGS1(HTStream *, me)
+PRIVATE void HTWriter_abort ARGS1(HTStream *, me)
 {
-    flush(me);
+    HTWriter_free(me);
 }
-
 
 
 /*	Structured Object Class
@@ -145,7 +141,7 @@ PRIVATE CONST HTStreamClass HTWriter = /* As opposed to print etc */
 {		
 	"SocketWriter",
 	HTWriter_free,
-	HTWriter_end_document,
+	HTWriter_abort,
 	HTWriter_put_character, 	HTWriter_put_string,
 	HTWriter_write
 }; 

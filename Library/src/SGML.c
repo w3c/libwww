@@ -285,17 +285,18 @@ PRIVATE HTTag * find_tag ARGS2(CONST SGML_dtd*, dtd, char *, string)
 */
 
 
-PUBLIC void SGML_end  ARGS1(HTStream *, context)
-{
 /*	Could check that we are back to bottom of stack! @@  */
-
-    (*context->actions->end_document)(context->target);
-}
-
 
 PUBLIC void SGML_free  ARGS1(HTStream *, context)
 {
     (*context->actions->free)(context->target);
+    HTChunkFree(context->string);
+    free(context);
+}
+
+PUBLIC void SGML_abort  ARGS2(HTStream *, context, HTError, e)
+{
+    (*context->actions->abort)(context->target, e);
     HTChunkFree(context->string);
     free(context);
 }
@@ -622,7 +623,7 @@ PUBLIC CONST HTStreamClass SGMLParser =
 {		
 	"SGMLParser",
 	SGML_free,
-	SGML_end,
+	SGML_abort,
 	SGML_character, 	SGML_string,  SGML_write,
 }; 
 

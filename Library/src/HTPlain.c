@@ -83,9 +83,9 @@ PRIVATE void HTPlain_free ARGS1(HTStream *, me)
 /*	End writing
 */
 
-PRIVATE void HTPlain_end_document ARGS1(HTStream *, me)
+PRIVATE void HTPlain_abort ARGS2(HTStream *, me, HTError, e)
 {
-    HText_endAppend(me->text);
+    HTPlain_free(me);
 }
 
 
@@ -97,7 +97,7 @@ PUBLIC CONST HTStreamClass HTPlain =
 {		
 	"SocketWriter",
 	HTPlain_free,
-	HTPlain_end_document,
+	HTPlain_abort,
 	HTPlain_put_character, 	HTPlain_put_string, HTPlain_write,
 }; 
 

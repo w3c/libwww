@@ -186,6 +186,8 @@ PUBLIC char *	     log_file_name = 0;	         /* Root of log file name */
 PRIVATE BOOL	     filter=0;		               /* Load from stdin? */
 PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
 
+PRIVATE FILE *	     output = stdout;
+
 /* Forward Declaration of Functions */
 /* ================================ */
 
@@ -478,6 +480,12 @@ int main
     if (HTScreenHeight == -1)		/* Default page size */
 	HTScreenHeight = interactive ? SCREEN_HEIGHT : 999999;
 
+#ifndef NO_RULES
+    {
+    	char * rules = getenv("WWW_CONFIG");
+	if (rules) HTLoadRules(rules);
+    }
+#endif
 
 /*	Force predefined presentations etc to be set up
 **	-----------------------------------------------
@@ -496,10 +504,9 @@ int main
 			output_file_name);
 		exit(-4);
 	    }
-            HTOutputStream = HTFWriter_new(fp);   /* Out to file */
-	} else {
-            HTOutputStream = HTFWriter_new(stdout);   /* Just pump to stdout */
+	    output = fp;
 	}
+	HTOutputStream = HTFWriter_new(output);   /* Just pump to stdout */
     }
     
     
@@ -574,10 +581,10 @@ int main
 	while (YES) Selection_Prompt();
 	
     } else if (!HTOutputSource) {	/* Non-interactive but formatted */
-	printf("\f");			/* Form feed for new page */
+	fprintf(output, "\f");		/* Form feed for new page */
 	while(HText_canScrollDown(HTMainText)) {
 	    HText_scrollDown(HTMainText);
-	    printf("\f");		/* Form feed for new page */
+	    fprintf(output, "\f");		/* Form feed for new page */
 	}
 	
 	if (listrefs_option) {
@@ -748,12 +755,13 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
     int  n;
     
     if (HText_sourceAnchors(HTMainText) == 0) {
-	    printf("\n\n     There are no references from this document.\n\n");
+	fprintf(output,
+	"\n\n     There are no references from this document.\n\n");
     } else {
 	    
-	printf(refhead ? refhead 
+	fprintf(output, refhead ? refhead 
 		: "\n\n     References from this document:-\n");
-	printf("\n");    
+	fprintf(output, "\n");    
 	for (n=1; n<=HText_sourceAnchors(HTMainText); n++) {
 	    HTAnchor * destination =
 	    HTAnchor_followMainLink(
@@ -763,14 +771,14 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 	    char * address =  HTAnchor_address(destination);
 	    CONST char * title = titles ? HTAnchor_title(parent) : 0 ;
 
-	    printf(reference_mark, n);
-	    printf("%s%s\n",
+	    fprintf(output, reference_mark, n);
+	    fprintf(output, "%s%s\n",
 		    ((HTAnchor*)parent!=destination) && title ? "in " : "",
 		    (char *)(title ? title : address));
 	    free(address);
 	}
 		
-	printf("\n");
+	fprintf(output, "\n");
     }
 }      
 
@@ -1292,6 +1300,10 @@ lcd:	      if (!next_word) {  /* Missing argument */
 			this_command = the_choice + (this_word - choice);
 			other_words = the_choice + (next_word - choice);
 			goto loop;		/* Go treat as before */
+
+		} else if (Check_User_Input("SET")) {   /* config */
+			HTSetConfiguration(other_words);
+			goto ret;
 		}
 		break;
 	case 'T':

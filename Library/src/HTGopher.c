@@ -10,9 +10,6 @@
 */
 #include "HTGopher.h"
 
-#define CR	    FROMASCII('\015')	/* Carriage return */
-#define LF 	    FROMASCII('\012')	/* ASCII line feed
-				   (sometimes \n is CR on Mac) */
 
 #define GOPHER_PORT 70		/* See protocol spec */
 #define BIG 1024		/* Bug */
@@ -55,7 +52,6 @@
 #define PUTS(s) (*targetClass.put_string)(target, s)
 #define START(e) (*targetClass.start_element)(target, e, 0, 0)
 #define END(e) (*targetClass.end_element)(target, e)
-#define END_TARGET (*targetClass.end_document)(target)
 #define FREE_TARGET (*targetClass.free)(target)
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
@@ -66,14 +62,10 @@ PRIVATE HTStructured *target;			/* the new hypertext */
 PRIVATE HTStructuredClass targetClass;		/* Its action routines */
 
 
-#ifdef NeXTStep
-#include <appkit/defaults.h>
-#define GOPHER_PROGRESS(foo)
-#else
-#define GOPHER_PROGRESS(foo) fprintf(stderr, "%s\n", (foo))
-#endif
+#define GOPHER_PROGRESS(foo) HTAlert(foo)
 
-#define NEXT_CHAR HTGetChararcter()
+
+#define NEXT_CHAR HTGetChararcter() 
 
 
 
@@ -272,7 +264,6 @@ PRIVATE void parse_menu ARGS2 (
     } /* Loop over characters */
 	
     END(HTML_MENU);
-    END_TARGET;
     FREE_TARGET;
     
     return;
@@ -403,7 +394,6 @@ PRIVATE void parse_cso ARGS2 (
     PUTS("\n");
     END(HTML_PRE);
     PUTS("\n");
-    END_TARGET;
     FREE_TARGET;
 
     return;  /* all done */
@@ -429,7 +419,6 @@ PRIVATE void display_index ARGS2 (
     if (!HTAnchor_title(anAnchor))
     	HTAnchor_setTitle(anAnchor, arg);
     
-    END_TARGET;
     FREE_TARGET;
     return;
 }
@@ -455,7 +444,6 @@ PRIVATE void display_cso ARGS2 (
     if (!HTAnchor_title(anAnchor))
     	HTAnchor_setTitle(anAnchor, arg);
     
-    END_TARGET;
     FREE_TARGET;
     return;
 }

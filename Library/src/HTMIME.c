@@ -20,6 +20,7 @@
 */
 
 typedef enum _MIME_state {
+	MIME_TRANSPARENT,	/* put straight through to target ASAP! */
 	BEGINNING_OF_LINE,
 	CONTENT_T,
 	CONTENT_TRANSFER_ENCODING,
@@ -29,7 +30,7 @@ typedef enum _MIME_state {
 	JUNK_LINE,		/* Ignore the rest of this folded line */
 	NEWLINE,		/* Just found a LF .. maybe continuation */
 	CHECK,			/* check against check_pointer */
-	MIME_TRANSPARENT,	/* put straight through to target ASAP! */
+	MIME_NET_ASCII,		/* Translate from net ascii */
 	MIME_IGNORE		/* ignore entire file */
 	/* TRANSPARENT and IGNORE are defined as stg else in _WINDOWS */
 } MIME_state;
@@ -38,6 +39,7 @@ typedef enum _MIME_state {
 struct _HTStream {
 	CONST HTStreamClass *	isa;
 	
+	BOOL			net_ascii;	/* Is input net ascii? */
 	MIME_state		state;		/* current state */
 	MIME_state		if_ok;		/* got this state if match */
 	MIME_state		field;		/* remember which field */
@@ -76,13 +78,32 @@ struct _HTStream {
 
 PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 {
+    if (me->state == MIME_TRANSPARENT) {
+    	(*me->targetClass.put_character)(me->target, c);/* MUST BE FAST */
+	return;
+    }
+    
+    /* This slightly simple conversion just strips CR and turns LF to
+    ** newline. On unix LF is \n but on Mac \n is CR for example.
+    ** See NetToText for an implementation which preserves single CR or LF.
+    */
+    if (me->net_ascii) {
+        c = FROMASCII(c);
+	if (c == CR) return;
+	else if (c == LF) c = '\n';
+    }
+    
     switch(me->state) {
 
     case MIME_IGNORE:
     	return;
+
+    case MIME_TRANSPARENT:		/* Not reached see above */
+    	(*me->targetClass.put_character)(me->target, c);
+	return;
 	
-    case MIME_TRANSPARENT:
-    	(*me->targetClass.put_character)(me->target, c);	/* MUST BE FAST */
+    case MIME_NET_ASCII:
+    	(*me->targetClass.put_character)(me->target, c); /* MUST BE FAST */
 	return;
 
     case NEWLINE:
@@ -270,9 +291,10 @@ PRIVATE void HTMIME_free ARGS1(HTStream *, me)
 /*	End writing
 */
 
-PRIVATE void HTMIME_end_document ARGS1(HTStream *, me)
+PRIVATE void HTMIME_abort ARGS2(HTStream *, me, HTError, e)
 {
-    if (me->target) (*me->targetClass.end_document)(me->target);
+    if (me->target) (*me->targetClass.abort)(me->target, e);
+    free(me);
 }
 
 
@@ -280,12 +302,13 @@ PRIVATE void HTMIME_end_document ARGS1(HTStream *, me)
 /*	Structured Object Class
 **	-----------------------
 */
-PUBLIC CONST HTStreamClass HTMIME =
+PRIVATE CONST HTStreamClass HTMIME =
 {		
 	"MIMEParser",
 	HTMIME_free,
-	HTMIME_end_document,
-	HTMIME_put_character, 	HTMIME_put_string,
+	HTMIME_abort,
+	HTMIME_put_character,
+	HTMIME_put_string,
 	HTMIME_write
 }; 
 
@@ -305,13 +328,26 @@ PUBLIC HTStream* HTMIMEConvert ARGS3(
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTMIME;       
 
-    me->sink = sink;
-    me->anchor = anchor;
-    me->target = NULL;
-    me->state = BEGINNING_OF_LINE;
-    me->format = WWW_PLAINTEXT;
-    me->targetRep = pres->rep_out;
-    me->boundary = 0;		/* Not set yet */
+    me->sink = 		sink;
+    me->anchor = 	anchor;
+    me->target = 	NULL;
+    me->state = 	BEGINNING_OF_LINE;
+    me->format = 	WWW_PLAINTEXT;
+    me->targetRep = 	pres->rep_out;
+    me->boundary = 	0;		/* Not set yet */
+    me->net_ascii = 	NO;	/* Local character set */
+    return me;
+}
+
+PUBLIC HTStream* HTNetMIME ARGS3(
+	HTPresentation *,	pres,
+	HTParentAnchor *,	anchor,
+	HTStream *,		sink)
+{
+    HTStream* me = HTMIMEConvert(pres,anchor, sink);
+    if (!me) return NULL;
+    
+    me->net_ascii = YES;
     return me;
 }
 

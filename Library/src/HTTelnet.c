@@ -140,7 +140,7 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 		port ? port : "",
 		hostname);
 	} else {
-	    sprintf(command, "RLOGIN%s%s%s%s %s", access,
+	    sprintf(command, "RLOGIN%s%s%s%s %s",  /*lm 930713 */
 		user ? "/USERNAME=" : "",
 		user ? user : "",
 		port ? "/PORT=" : "",

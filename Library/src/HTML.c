@@ -681,17 +681,20 @@ PUBLIC void HTML_free ARGS1(HTStructured *, me)
     HText_endAppend(me->text);
 
     if (me->target) {
-        (*me->targetClass.end_document)(me->target);
         (*me->targetClass.free)(me->target);
-/*	HText_free(me->text);	*/		/* @@@@@@@@@@@@@@@ */
     }
     free(me);
 }
 
 
-PRIVATE void HTML_end_document ARGS1(HTStructured *, me)
+PRIVATE void HTML_abort ARGS2(HTStructured *, me, HTError, e)
 
-{			/* Obsolete */
+{
+    if (me->target) {
+        (*me->targetClass.abort)(me->target, e);
+    }
+    free(me);
+
 }
 
 
@@ -735,7 +738,7 @@ PUBLIC CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 {		
 	"text/html",
 	HTML_free,
-	HTML_end_document,
+	HTML_abort,
 	HTML_put_character, 	HTML_put_string,  HTML_write,
 	HTML_start_element, 	HTML_end_element,
 	HTML_put_entity
@@ -844,7 +847,7 @@ PUBLIC HTStream* HTMLPresent ARGS3(
 	HTParentAnchor *,	anchor,	
 	HTStream *,		sink)
 {
-    return SGML_new(&HTML_dtd, HTML_new(anchor, WWW_PRESENT, NULL));
+    return SGML_new(&HTML_dtd, HTML_new(anchor, WWW_PRESENT, sink));
 }
 #endif
 

@@ -98,7 +98,6 @@ PRIVATE char	line[2048];	/* For building strings to display */
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
 #define END(e) (*target->isa->end_element)(target, e)
-#define END_TARGET (*target->isa->end_document)(target)
 #define FREE_TARGET (*target->isa->free)(target)
 
 struct _HTStructured {
@@ -680,7 +679,6 @@ PUBLIC int HTLoadWAIS ARGS4(
 	START(HTML_P);
 	PUTS("Specify search words.");
 	
-	END_TARGET;
 	FREE_TARGET;
 	
     } else if (key) {					/* S E A R C H */
@@ -738,7 +736,6 @@ PUBLIC int HTLoadWAIS ARGS4(
 	    freeSearchResponseAPDU( query_response);
 	}	/* returned message not too large */
     
-	END_TARGET;
 	FREE_TARGET;
 
     } else {			/* D O C U M E N T    F E T C H */
@@ -826,7 +823,6 @@ PUBLIC int HTLoadWAIS ARGS4(
 	  
 	}	/* Loop over slices */
 
-	(*target->isa->end_document)(target);
 	(*target->isa->free)(target);
 
 	free (docid->bytes);

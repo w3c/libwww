@@ -214,10 +214,12 @@ $(LOB)/HTMIME.o : $(OE) $(CMN)HTMIME.c $(CMN)HTUtils.h $(CMN)HTList.h
 $(LOB)/HTHistory.o : $(OE) $(CMN)HTHistory.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTHistory.c
 
-$(LOB)/HTNews.o : $(OE) $(CMN)HTNews.c $(CMN)HTUtils.h $(CMN)HTList.h
+$(LOB)/HTNews.o : $(OE) $(CMN)HTNews.c $(CMN)HTUtils.h $(CMN)HTList.h\
+	 $(CMN)HTMLDTD.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTNews.c
 
-$(LOB)/HTGopher.o : $(OE) $(CMN)HTGopher.c $(CMN)HTUtils.h $(CMN)HTList.h
+$(LOB)/HTGopher.o : $(OE) $(CMN)HTGopher.c $(CMN)HTUtils.h $(CMN)HTList.h \
+	 $(CMN)HTMLDTD.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTGopher.c
 
 $(LOB)/HTTelnet.o : $(OE) $(CMN)HTTelnet.c $(CMN)HTUtils.h $(CMN)HTTelnet.h
@@ -276,7 +278,8 @@ $(LOB)/HTTP.o : $(OE) $(CMN)HTTP.c $(CMN)HTUtils.h
 $(LOB)/HTTCP.o : $(OE) $(CMN)HTTCP.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTCP.c
 
-$(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTUtils.h
+$(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTUtils.h \
+	 $(CMN)HTMLDTD.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFile.c
 
 $(LOB)/HTBTree.o : $(OE) $(CMN)HTBTree.c $(CMN)HTUtils.h

@@ -17,11 +17,14 @@
 #include "HTFormat.h"
 #include "HTMIME.h"
 #include "HTWSRC.h"
+#include "HTFWriter.h"
 
 PUBLIC void HTFormatInit NOARGS
 {
 #ifdef NeXT
   HTSetPresentation("application/postscript", "open %s",	1.0, 2.0, 0.0);
+  /* The following needs the GIF previewer -- you might not have it. */
+  HTSetPresentation("image/gif", 		"open %s", 	0.3, 2.0, 0.0);
   HTSetPresentation("image/x-tiff", 		"open %s", 	1.0, 2.0, 0.0);
   HTSetPresentation("audio/basic", 		"open %s", 	1.0, 2.0, 0.0);
   HTSetPresentation("*", 			"open %s", 	1.0, 0.0, 0.0);
@@ -41,6 +44,12 @@ PUBLIC void HTFormatInit NOARGS
  HTSetConversion("text/html", "www/present", HTMLPresent, 	1.0, 0.0, 0.0);
  HTSetConversion("text/plain", "text/html",  HTPlainToHTML,	1.0, 0.0, 0.0);
  HTSetConversion("text/plain", "www/present", HTPlainPresent,	1.0, 0.0, 0.0);
+ HTSetConversion("application/octet-stream", "www/present",
+ 					      HTSaveLocally,	0.1, 0.0, 0.0);
+ HTSetConversion("www/unknown", "www/present",
+ 					      HTSaveLocally,	0.3, 0.0, 0.0);
+ HTSetConversion("www/source", "www/present",
+ 					      HTSaveLocally,	0.3, 0.0, 0.0);
 }
 
 

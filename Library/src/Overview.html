@@ -1,13 +1,14 @@
 <HTML>
 <HEAD>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="z65">
+<NEXTID N="z72">
 </HEAD>
 <BODY>
-<H1>Library Internals</H1>The <A
-NAME="5" HREF="../../Architecture/../TheProject.html">WWW</A> browsers and servers share
-a common architrecure, and a library
-of common code. (See also: Browser<A
+<H1>libwww Internals</H1>The <A
+NAME="5" HREF="../../TheProject.html">WWW</A> browsers and servers share
+a common architrecure, and a <A
+NAME="z71" HREF="../Status.html">library
+of common code</A>. (See also: Browser<A
 NAME="7" HREF="../../Architecture/BrowserOperation.html">
 operation</A> , and<A
 NAME="23" HREF="../../Architecture/UtilityOverview.html"> utility modules</A> which
@@ -30,14 +31,14 @@ is HTDaemon. The application is called
 by the operating system, and manages
 the overall running of the program.
 It asks the <A
-NAME="19" HREF="#8">navigation</A> module to
+NAME="19" HREF="Overview.html#8">navigation</A> module to
 load the default page. 
 <DT><A
 NAME="8" HREF="HTAccess.html">Access Manager</A>
 <DD> The module which acually
 loads documents is based in HTAccess.c.
 This uses all the <A
-NAME="3" HREF="#2">protocol modules</A>
+NAME="3" HREF="Overview.html#2">protocol modules</A>
 .  Given an anchor ID to jump to,
 it asks the anchor object for the
 address in order to load it.
@@ -45,15 +46,15 @@ address in order to load it.
 NAME="20" HREF="HTHistory.html">History</A>
 <DD> This module records and replays
 on request the documents which the
-user vists.
+user vists.  Optional use in client.
 <DT><A
-NAME="z29" HREF="HTFormat.html">Format manager</A>
-<DD> The format manager
-uses the <A
-NAME="15" HREF="#11">parser modules</A> to load the
-document as appropriate. It can also
-decide on the format of a file from
-its name.
+NAME="z29" HREF="HTFormat.html">HTFormat: Format manager</A>
+<DD> The format
+manager uses the <A
+NAME="15" HREF="Overview.html#11">parser modules</A> to
+load the document as appropriate.
+It can also decide on the format
+of a file from its name.
 <DT><A
 NAME="9" HREF="HTAnchor.html">Anchor object</A>
 <DD> The <A
@@ -65,9 +66,10 @@ of the type of graphics object (text,
 line drawing etc). It stores hypertext
 addresses of anchors, and ensures
 that anchors with the same address
-are the same anchor. (<A
-NAME="13" HREF="../../Architecture/Anchors.html"> More on anchors</A>
-)
+are the same anchor.  The class contains
+a hash table for URLs so that (<A
+NAME="13" HREF="../../Architecture/Anchors.html"> More
+on anchors</A> )
 </DL>
 
 <H2>Configuration</H2>Much of the trouble is getting everything
@@ -88,9 +90,8 @@ but part of the server.
 <DT><A
 NAME="z62" HREF="HTRules.html">HTRule</A>
 <DD> The module which reads the
-configuartion fiole, and adoes translation
+configuartion fiole, and does translation
 of URLs according to rules.
-<DD>
 </DL>
 
 <H2><A
@@ -111,7 +112,7 @@ modules.
 NAME="z46" HREF="HTFile.html">File access</A>
 <DD> HTFile.c provides access
 to files, using <A
-NAME="z61" HREF="#z60">HTFTP</A> for remote
+NAME="z61" HREF="Overview.html#z60">HTFTP</A> for remote
 access if the hostname isn't the
 local one.  The latter uses HTTCP
 for common TCP routines.
@@ -146,34 +147,17 @@ NAME="27" HREF="../../Architecture/../Daemon/WAISGate.html"> gateway program</A>
 </DL>
 
 <H2><A
-NAME="11">Format conversion modules</A></H2>These modules allow different formats
+NAME="11">Format conversion</A></H2>These modules (streams and structured
+streams) allow different formats
 to be used to generate graphic objects.
 They invoked by the <A
-NAME="z30" HREF="HTFormat.html">format manager</A>
+NAME="z30" HREF="Overview.html#z29">format manager</A>
 . Currently we only parse HTML and
 plain text and MIME messages, but
-obviously other formats can be added.<P>
-See the format manager for the registration
-and typing of conversion modules.
-<DL>
-<DT><A
-NAME="z31" HREF="HTML.html">HTML</A>
-<DD> Basic hypertext parsing is done
-by <A
-NAME="18" HREF="../../Architecture/../Implementation/HTML.c">HTML.c</A> which uses the simple SGML
-engine SGML.c as a basic tokeniser
-and element stack manager.  This
-uses:
-<DT><A
-NAME="z58" HREF="HTMLDTD.html">HTMLDTD</A>
-<DD> The table defining some aspects
-of the HTML document type description.
-<DT><A
-NAME="z52" HREF="HTPlain.html">Plain text to HTML</A>
-<DD> Plain text can
-can be converted.
-</DL>
-
+obviously other formats can be added.
+The format manager also performs
+the registration and typing of conversion
+modules.
 <H2><A
 NAME="z37">Streams</A></H2>Streams are objects which accept
 characters (and strings and blocks).
@@ -181,30 +165,51 @@ There is a basic <A
 NAME="z35" HREF="HTStream.html">stream object</A> definition,
 and many individual modules with
 creation routines for different types
-of stream.<P>
+of stream. <P>
 Streams can be thought of as like
-files open for write.   Examples
-of specific stream objects are:
+files open for write.   The stream-based
+architecture allows the software
+to be even-driven in the sense that
+when input arrives, it is put into
+a stream, and any necessary actions
+then cascade off that.   Some streams
+write into other streams having performed
+some processing on them.  An output
+stream often refered to as the "target"
+or "sink" stream.<P>
+Examples of specific stream objects
+are:
 <DL>
 <DT><A
 NAME="z43" HREF="HTFWriter.html">HTWriter</A>
 <DD> Writes to a socket or something
-opend with open().
+opened with open().
 <DT><A
-NAME="z42" HREF="HTFWriter.html">File writer</A>
-<DD> Writes to a C  FILE *
-object, as opened by fopen(), etc.
+NAME="z42" HREF="HTFWriter.html">HTFWriter</A>
+<DD> Writes to a C  FILE * object,
+as opened by fopen(), etc.
 <DT><A
-NAME="z41" HREF="SGML.html">SGML parser</A>
-<DD> Parses a stream and generates
-a structured stream.
+NAME="z41" HREF="SGML.html">SGML</A>
+<DD> Parses the data and generates
+a structured stream. Each parser
+instance is created with reference
+to a particular DTD structure.
 <DT><A
-NAME="z36" HREF="HTWSRC.html">WAIS source parser</A>
-<DD> Parses a stream
-with a WAIS source file on it, and
-generates, via an HTML structured
-stream, a stream of the required
-type.
+NAME="z69" HREF="HTMIME.html">HTMIME</A>
+<DD> Parse a MIME format message.
+<DT><A
+NAME="z36" HREF="HTWSRC.html">HTWSRC</A>
+<DD> Parses a "WAIS source" description.
+<DT><A
+NAME="z68" HREF="HTPlain.html">HTPlain</A>
+<DD> Takes plain ASCII text and
+converts into whatever -- typically
+styled text for display or HTML.
+<DT><A
+NAME="z70" HREF="HTFormat.html#z11">HTNetToText</A>
+<DD>Converts "Net ascii" (the
+stuff telnet sessions are made of)
+info local C textual data stream.
 </DL>
 
 <H2><A
@@ -212,19 +217,28 @@ NAME="z38">Structured streams</A></H2>A structured stream is like a <A
 NAME="z32" HREF="HTStream.html">stream</A>
 , but instead of just acepting text,
 it also accepts SGML events such
-as begina nd end elements. A structured
+as begin and end elements. A structured
 stream therefore represents a structured
-document.   The elements and entites
-are referred to by number, so each
-structured stream must be created
-with knowledge of the DTD which it
-is currently using.<P>
-The structured strams are defined
-in the <A
+document.    You can think of a structured
+stream as like the output from an
+SGML parser.   It is more efficient
+for modules which generate hypertext
+objects to output a structured stream
+than to output SGML which is then
+parsed.<P>
+The elements and entites in the stream
+are referred to by numbers, rather
+than strings.   The DTD contains
+the mapping between element names
+and numbers, so each structured stream
+when created is associated with the
+DTD which it using.  <P>
+The structured stream data structures
+are defined in the <A
 NAME="z33" HREF="SGML.html">SGML module</A> .<P>
 Any instance of a structured stream
 has a related DTD which gives the
-rules and element anbd entity names
+rules and element and entity names
 for events on the structured stream.
 The only DTD which is currently in
 the library is the HTML DTD, in the<A
@@ -235,7 +249,7 @@ to a structured stream from a stream
 of SGML.  A hypertext editor will
 output to a structured stream when
 writing out a document.  Many <A
-NAME="z56" HREF="#2">protocol
+NAME="z56" HREF="Overview.html#2">protocol
 modules</A> output to a structures stream
 when generating their data structures.<P>
 Here are two structured stream modules:
@@ -245,29 +259,60 @@ NAME="z54" HREF="HTML.html">HTML</A>
 <DD> This module is an important
 one as it actually PRESENTS a hypertext
 object to the user.  GUI writers
-replcae this module with your own,
+replace this module with your own,
 or use it and replaced the <A
-NAME="z53" HREF="#12">HText</A>
+NAME="z53" HREF="Overview.html#12">HText</A>
 module which it feeds.
 <DT><A
 NAME="z55" HREF="HTMLGen.html">HTMLGen</A>
 <DD> This structured stream regenerates
 a plain stream.  It makes reference
 to the HTML DTD to regenerate the
-names of enetities and elements.
-This is used by the server to pass
-a hypertext document on to the client,
-and also by the client to save HTML.
+names of entities and elements. This
+is used by the server to pass a hypertext
+document on to the client, and also
+by the client to save HTML.
+<DT><A
+NAME="z67" HREF="HTMLDTD.html">HTMLDTD</A>
+<DD> Table describing some aspects
+of the HTML document type.
+</DL>
+
+<H2>Strucuture to Styles</H2>Some hypertext objects work by storing
+the whole structure of the document.
+Others work by converting the nested
+stucture into a linear sequence of
+styled text for display. <P>
+The library provides code for doing
+this "flattening".  You don't have
+to use these modules: if you want
+to work the first way, just replace
+the entry points in HTML with your
+own, to prevent the library modules
+from being loaded.<P>
+The <A
+NAME="z66" HREF="Overview.html#z54">HTML</A> object mentioned above flattens
+structured text into styled text.
+The HTPlain object generates a styled
+text for a plain ascii document.<P>
+The style system uses a set of names
+styles, each of which contains paragraph
+and character formating information.
+This is managed bythe HTStyle module.
+<DL>
+<DT><A
+NAME="z65" HREF="HTStyle.html">HTStyle</A>
+<DD> Style and style sheet manipulation.
 </DL>
 
 <H2><A
-NAME="14">Graphic objects</A></H2>A graphic object is a (complex) displayable
+NAME="14">Styled Text object</A></H2>A graphic object is a (complex) displayable
 entity. It is built by a protocol
 module directly or using a parser.
 Graphic objects are in general necessarily
-coded differently on diferent window
-systems. The graphic object is resposible
-for displaying istelf, catching mouse
+coded differently on different window
+systems. The graphic object is responsible
+for displaying itself, catching mouse
 clicks, and calling the navigation
 object in order to follow links.
 We use the more common term "document"
@@ -282,7 +327,12 @@ dependent. In the line mode browser,
 the <A
 NAME="17" HREF="../../Architecture/../LineMode/Internals.html#3">GridText</A> module is the hypertext
 object, providing the generic functionality
-of this module. 
+of this module.   Note that this
+interface is an alternative to the
+HTML.h interface above whn you are
+building a client: you can replace
+the library code at eitehr point
+depending on the interface you require.
 </DL>
 
 <H2>General modules</H2>
@@ -294,14 +344,14 @@ system-specific include files and
 flags for I/O to network and disk.
 <DT><A
 NAME="z64" HREF="HTAlert.html">HTAlert: User Messages</A>
-<DD>Alerts, confirmation,
+<DD> Alerts, confirmation,
 etc..
 <DT><A
-NAME="z48" HREF="HTUtils.html">Utilities</A>
-<DD> The HTUtil.h file includes
-things we need everywhere, generally
-macros for declarations, booleans,
-etc.
+NAME="z48" HREF="HTUtils.html">HTUtils:  Utilities</A>
+<DD> The HTUtil.h
+file includes things we need everywhere,
+generally macros for declarations,
+booleans, etc.
 <DT><A
 NAME="z49" HREF="HTParse.html">URL parsing</A>
 <DD> This module has various
@@ -322,5 +372,6 @@ for strings of charcters.
 </DL>
 
 <ADDRESS><A
-NAME="0" HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>
+NAME="0" HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A>
+</ADDRESS></BODY>
 </HTML>
