@@ -47,8 +47,8 @@ SHELL = /bin/sh
 WC  = $(WWW)/Library
 CMN = $(WWW)/Library/Implementation/
 VMS = $(CMN)vms
-FTP = /afs/w3.org/member/Dist
 PROD= libwww
+FTP = /afs/w3.org/devel/Dist/$(PROD)
 
 # Where shall we put the objects and built library?
 LOB = $(WTMP)/Library/$(WWW_MACH)
@@ -188,44 +188,52 @@ uninstall :
 inc : $(HFILES)
 	@echo Include files generated from hypertext.
 
-binary : $(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VC).a
+binary : $(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a
 	@echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
 
-$(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VC).a : $(PROD).a
-	-mkdir $(FTP)/bin/$(WWW_MACH)
-	cp $(PROD).a $(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VC).a
+$(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a : $(PROD).a
+	-mkdir $(FTP)/$(WWW_MACH)
+	cp $(PROD).a $(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a
 
 #	Source Distribution:
 distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
-	$(FTP)/src/$(PROD)_$(VC).tar.Z)
+	$(FTP)/$(PROD)_$(VC)_src.tar.Z)
 	(cd $(WWW); cvs tag \
 	    `sed -e 's/VC = /v/' Library/Implementation/Version.make | sed -e 's?\.?/?'` \
 	    Library)
 	@echo Distribution of Library version $(VC) up to date.
 
-$(FTP)/src/$(PROD)_$(VC).tar.Z : $(SOURCES)
-	tar cvf $(FTP)/src/$(PROD)_$(VC).tar \
+#	Source snapshot
+snapshot : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
+	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/Library/Implementation/Version.make \
+	-f WWW/Library/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VC)_src.tar.Z)
+	@echo Snapshot of Library version $(VC) up to date.
+
+$(FTP)/$(PROD)_$(VC)_src.tar.Z : $(SOURCES)
+	tar cvf $(FTP)/$(PROD)_$(VC)_src.tar \
 	    $(SOURCES) \
 	    $(SPECIFIC) \
 	    $(CMN)*.html
-	cp $(FTP)/src/$(PROD)_$(VC).tar $(FTP)/src/temp.tar
-	compress -f $(FTP)/src/$(PROD)_$(VC).tar
-	mv $(FTP)/src/temp.tar $(FTP)/src/$(PROD)_$(VC).tar
-	gzip -f $(FTP)/src/$(PROD)_$(VC).tar
+	cp $(FTP)/$(PROD)_$(VC)_src.tar $(FTP)/temp.tar
+	compress -f $(FTP)/$(PROD)_$(VC)_src.tar
+	mv $(FTP)/temp.tar $(FTP)/$(PROD)_$(VC)_src.tar
+	gzip -f $(FTP)/$(PROD)_$(VC)_src.tar
 
 # This only works on Linux or other platforms with 'zip'
 zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
-	$(FTP)/src/$(PROD)_$(VC).zip)
+	$(FTP)/$(PROD)_$(VC)_src.zip)
 	@echo Distribution of Library version $(VC) up to date.
 
-$(FTP)/src/$(PROD)_$(VC).zip : $(SOURCES)
-	zip -v $(FTP)/src/$(PROD)_$(VC).zip \
+$(FTP)/$(PROD)_$(VC)_src.zip : $(SOURCES)
+	zip -v $(FTP)/$(PROD)_$(VC)_src.zip \
 	    $(SOURCES) \
 	    $(SPECIFIC) \
 	    $(CMN)*.html

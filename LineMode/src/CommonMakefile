@@ -33,8 +33,8 @@ LM =  $(WWW)/LineMode/Implementation/
 LMD = $(WWW)/LineMode/Defaults
 CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
-FTP = /afs/w3.org/member/Dist
 PROD = www
+FTP = /afs/w3.org/devel/Dist/linemode
 
 # PURIFY_LOG = /home2/frystyk/purify-output
 PURIFY_CACHE = /home2/frystyk/purify-cache
@@ -260,32 +260,40 @@ distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
-	$(FTP)/src/$(PROD)_$(VL).tar.Z)
+	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
 	(cd $(WWW); cvs tag \
 	    `sed -e 's/V. = /v/' LineMode/Implementation/Version.make | sed -e 's?\.?/?'` \
 	    LineMode)
 	@echo Distribution of Line Mode version $(VC) up to date.
 
-$(FTP)/src/$(PROD)_$(VL).tar.Z : $(SOURCES)
-	tar cvf $(FTP)/src/$(PROD)_$(VL).tar \
+#	Source Snapshot
+snapshot : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
+	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/LineMode/Implementation/Version.make \
+	-f WWW/LineMode/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
+	@echo Snapshot of Line Mode version $(VC) up to date.
+
+$(FTP)/$(PROD)_$(VL)_src.tar.Z : $(SOURCES)
+	tar cvf $(FTP)/$(PROD)_$(VL)_src.tar \
 	    $(SOURCES) \
 	    $(DISTRIBUTION) \
 	    $(SPECIFIC) \
 	    $(LM)*.html
-	cp $(FTP)/src/$(PROD)_$(VL).tar $(FTP)/src/temp.tar
-	compress -f $(FTP)/src/$(PROD)_$(VL).tar
-	mv $(FTP)/src/temp.tar $(FTP)/src/$(PROD)_$(VL).tar
-	gzip -f $(FTP)/src/$(PROD)_$(VL).tar
+	cp $(FTP)/$(PROD)_$(VL)_src.tar $(FTP)/temp.tar
+	compress -f $(FTP)/$(PROD)_$(VL)_src.tar
+	mv $(FTP)/temp.tar $(FTP)/$(PROD)_$(VL)_src.tar
+	gzip -f $(FTP)/$(PROD)_$(VL)_src.tar
 
 zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
-	$(FTP)/src/$(PROD)_$(VL).zip)
+	$(FTP)/$(PROD)_$(VL)_src.zip)
 	@echo Distribution of LineMode version $(VL) up to date.
 
-$(FTP)/src/$(PROD)_$(VL).zip : $(SOURCES)
-	zip -v $(FTP)/src/$(PROD)_$(VL).zip \
+$(FTP)/$(PROD)_$(VL)_src.zip : $(SOURCES)
+	zip -v $(FTP)/$(PROD)_$(VL)_src.zip \
 	    $(SOURCES) \
 	    $(DISTRIBUTION) \
 	    $(SPECIFIC) \
