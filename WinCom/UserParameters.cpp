@@ -154,7 +154,7 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
         {
             long cl = HTAnchor_length(HTRequest_entityAnchor(request));
             if (cl > 0) {
-                long b_written = HTRequest_bytesWritten(request);
+                long b_written = HTRequest_bodyWritten(request);
                 double pro = (double) b_written/cl*100;
                 char buf[10];
                 HTNumToStr((unsigned long) cl, buf, 10);
