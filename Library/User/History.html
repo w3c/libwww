@@ -692,9 +692,9 @@ to register them individually.
     We have a new <A HREF="../src/HTEvent.html">HTEvent module</A> which allows
     for dynamic registration of an event manager. This will make it much easier
     to use external event managers together with libwww. If you wish to continue
-    to use the event loop from HTEvntrg, you must register it explicitly with
-    <A HREF="../src/HTEvntrg.html">HTEventrgInit</A>. This call is demonstrated
-    in <A HREF="../../LineMode/src/HTBrowse.c">HTBrowse</A>.
+    to use the event handlers from HTEvntLst, you must register them explicitly
+    with <A HREF="../src/HTEvtLst.html">HTEvent_register</A>. This call is
+    demonstrated in <A HREF="../../LineMode/src/HTBrowse.c">HTBrowse</A>.
   <LI>
     The <A HREF="../src/HTStream.html">HTStream module</A> has been created
     containing a set of basiv streams such as an error stream etc.
@@ -2715,7 +2715,7 @@ vice-versa. Version 2 clients will access (most) version 1 servers OK, version
 <P>
   <HR>
 <ADDRESS>
-  <A HREF="../../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  <A HREF="/People/Jose/">Jos&eacute; Kahan</A>,<br>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
