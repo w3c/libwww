@@ -44,7 +44,7 @@ struct _HTStream {
 /* Globals */
 extern char * HTAppName;		  /* Application name: please supply */
 extern char * HTAppVersion;	       /* Application version: please supply */
-PUBLIC int HTMaxRedirection = 10;	       /* Max number of redirections */
+PUBLIC int HTMaxRedirections = 10;	       /* Max number of redirections */
 
 #ifdef OLD_CODE
 PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
