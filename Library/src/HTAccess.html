@@ -73,6 +73,11 @@ This module contains functions for handling all HTTP/1.1 methods:
     </UL>
 </DL>
 <P>
+Furthermore, it contains a <A HREF="#serve">few access methods for handling
+incoming requests</A> - in orther words acting as a server. Although libwww
+is primarily for clients, it is in fact symmetric in that it can handle both
+client requests and server requests.
+<P>
 This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
 Library</A>.
@@ -732,6 +737,31 @@ Here the URI is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
 You can get an anchor object representing a URI by passing the URI to the
 appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTTraceAnchor (HTAnchor * anchor, HTRequest * request);
+</PRE>
+<H2>
+  Serve a Reqeust
+</H2>
+<P>
+Although libwww is primarily for clients, it is in fact symmetric in that
+it can handle both client requests and server requests. The way this is handled
+is that each <A HREF="HTProt.html">protocol</A> is registered with both a
+client handler and a server handler - depending on which type of request
+you use, one of them is called. Note that in order to be able to serve any
+document, there actually have to be a server handler. However, libwww only
+comes with a <A HREF="HTSocket.html">raw socket loader</A> which isn't much
+of a server. There is an <A HREF="HTTPServ.html">attempt of an HTTP server</A>
+but it is not complete
+<P>
+The protocol handler used to serve the request is determined by the URI -
+just as for client side requests. That is, libwww can in fact simultaneously
+be the server for multiple protocols if you really want to. Examples of URIs
+that you can use are <TT>noop://localhost:8888</TT> which means that libwww
+starts listening on port 8888 (see the <A HREF="../Examples/listen.c">listen
+example</A> for details). Other examples are <TT>http://localhost:7777</TT>
+which means that it listens for HTTP on port 7777. Again, there is no HTTP
+server in libwww - this is just an example.
+<PRE>
+extern BOOL HTServeAbsolute (const char * address, HTRequest * request);
 </PRE>
 <H2>
   Save a URI To Multiple Destinations - Not supported!!!

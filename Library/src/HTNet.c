@@ -597,47 +597,76 @@ PUBLIC HTNet * HTNet_new (HTRequest * request)
 **      more than MaxActive connections already then return NO.
 **      Returns YES if OK, else NO
 */
-
-PUBLIC BOOL HTNet_newServer (HTRequest * request, HTNet * net, char * access)
+PUBLIC BOOL HTNet_newServer (HTRequest * request)
 {
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTNet * me = NULL;
     HTProtocol * protocol;
     HTTransport * tp = NULL;    	/* added JTD:5/28/96 */
+    char * physical = NULL;
+    int status;
     HTProtCallback * cbf;
+
     if (!request) return NO;
 
+    /*
+    ** First we do all the "BEFORE" callbacks in order to see if we are to
+    ** continue with this request or not. If we receive a callback status
+    ** that is NOT HT_OK then jump directly to the after callbacks and return
+    */
+    if ((status = HTNet_executeBeforeAll(request)) != HT_OK) {
+	HTNet_executeAfterAll(request, status);
+	return YES;
+    }
+
+    /*
+    ** If no translation was provided by the filters then use the anchor
+    ** address directly
+    */
+    if (!(physical = HTAnchor_physical(anchor))) {
+	char * addr = HTAnchor_address((HTAnchor *) anchor);
+	if (CORE_TRACE) HTTrace("Net Object.. Using default address\n");
+	HTAnchor_setPhysical(anchor, addr);
+	physical = HTAnchor_physical(anchor);
+	HT_FREE(addr);
+    }
+
     /* Find a protocol object for this access scheme */
-    protocol = HTProtocol_find(request, access);
+    {
+	char * access = HTParse(physical, "", PARSE_ACCESS);      
+	if ((protocol = HTProtocol_find(request, access)) == NULL) {
+	    if (CORE_TRACE) HTTrace("Net Object.. NO PROTOCOL Object found for URI scheme `%s\'\n", access);
+	    HT_FREE(access);
+	    return NO;
+	}
+	if (!(cbf = HTProtocol_server(protocol))) {
+	    if (CORE_TRACE) HTTrace("Net Object.. NO SERVER HANDLER for URI scheme `%s\'\n", access);
+	    HT_FREE(access);
+	    HT_FREE(me);
+	    return NO;
+	}
+	HT_FREE(access);
+    }
 
-    /* added - JTD:5/28/96 */
     /* Find a transport object for this protocol */
-    tp = HTTransport_find(request, HTProtocol_transport(protocol));
-    if (tp == NULL) {
-        if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT OBJECT\n");
-        return NO;
-    }
-    /* end of additions - JTD:5/28/96 */
-
-    /* Fill out the net object and bind it to the request object */
-    net->preemptive = (HTProtocol_preemptive(protocol) || HTRequest_preemptive(request));
-#if 0
-    net->protocol = protocol;
-    net->transport = tp; 		/* added - JTD:5/28/96 */
-#endif
-    net->event.priority = HTRequest_priority(request);
-    net->request = request;
-    HTRequest_setNet(request, net);
-    if (!(cbf = HTProtocol_server(protocol))) {
-        if (CORE_TRACE) HTTrace("Net Object.. NO CALL BACK FUNCTION!\n");
+    if ((tp = HTTransport_find(request, HTProtocol_transport(protocol))) == NULL) {
+        if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT found for protocol `%s\'\n", HTProtocol_name(protocol));
         return NO;
     }
 
-    /* Increase the number of retrys for this download */
-    HTRequest_addRetry(request);
+    /* Create new net object and bind to request object */
+    if ((me = create_object()) == NULL) return NO;
+    me->preemptive = (HTProtocol_preemptive(protocol) || HTRequest_preemptive(request));
+    HTNet_setEventPriority(me, HTRequest_priority(request));
+    me->protocol = protocol;
+    me->transport = tp; 		/* added - JTD:5/28/96 */
+    me->request = request;
+    HTRequest_setNet(request, me);
 
     /* Start the server request */
     if (CORE_TRACE)
-        HTTrace("Net Object.. starting SERVER request %p with net object %p\n", request, net);
-    (*(cbf))(HTNet_socket(net), request);
+        HTTrace("Net Object.. starting SERVER request %p and net object %p\n", request, me);
+    (*(cbf))(INVSOC, request);
     return YES;
 }
 
@@ -660,6 +689,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     HTProtCallback * cbf;
 
     if (!request) return NO;
+
     /*
     ** First we do all the "BEFORE" callbacks in order to see if we are to
     ** continue with this request or not. If we receive a callback status
@@ -687,8 +717,14 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 	char * proxy = HTRequest_proxy(request);
 	char * access = HTParse(proxy ? proxy : physical, "", PARSE_ACCESS);      
 	if ((protocol = HTProtocol_find(request, access)) == NULL) {
-	    if (CORE_TRACE) HTTrace("Net Object.. NO PROTOCOL OBJECT\n");
+	    if (CORE_TRACE) HTTrace("Net Object.. NO PROTOCOL Object found for URI scheme `%s\'\n", access);
 	    HT_FREE(access);
+	    return NO;
+	}
+	if (!(cbf = HTProtocol_client(protocol))) {
+	    if (CORE_TRACE) HTTrace("Net Object.. NO CLIENT HANDLER for URI scheme `%s\'\n", access);
+	    HT_FREE(access);
+	    HT_FREE(me);
 	    return NO;
 	}
 	HT_FREE(access);
@@ -697,7 +733,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     /* Find a transport object for this protocol */
     tp = HTTransport_find(request, HTProtocol_transport(protocol));
     if (tp == NULL) {
-	if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT OBJECT\n");
+	if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT found for protocol `%s\'\n", HTProtocol_name(protocol));
 	return NO;
     }
 
@@ -712,11 +748,6 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     me->transport = tp;
     me->request = request;
     HTRequest_setNet(request, me);
-    if (!(cbf = HTProtocol_client(protocol))) {
-	if (CORE_TRACE) HTTrace("Net Object.. NO CALL BACK FUNCTION!\n");
-	HT_FREE(me);
-	return NO;
-    }
 
     /* Increase the number of retrys for this download */
     HTRequest_addRetry(request);
@@ -840,6 +871,11 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
         return YES;
     }
     return NO;
+}
+
+PUBLIC BOOL HTNet_deleteDup (HTNet * dup)
+{
+    return dup ? remove_net(dup) : NO;
 }
 
 /*	HTNet_deleteAll

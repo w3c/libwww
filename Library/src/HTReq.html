@@ -77,13 +77,17 @@ typedef struct _HTRequest HTRequest;
   Issuing a Request
 </H2>
 <P>
-This is the "<I>basic request issue method</I>" provided by the Request class.
-This is a very low level API as the caller must have set up the request object
-before passing it to the Library. You can find many higher level issuing
-functions in the <A HREF="HTAccess.html">HTAccess module</A>. If you like,
-you can of course use this directly!
+These are the "<I>basic request methods</I>" provided directly by the Request
+class. This is a very low level API as the caller must have set up the request
+object before passing it to libwww. There are two versions: one for issuing
+client requests and one for issuing server requests. You will probably most
+often use the client version but libwww can in fact also deal with incoming
+connections. You can find many higher level issuing functions in the
+<A HREF="HTAccess.html">HTAccess module</A>. If you like, you can of course
+use this directly!
 <PRE>
 extern BOOL HTLoad (HTRequest * request, BOOL recursive);
+extern BOOL HTServe(HTRequest * request, BOOL recursive);
 </PRE>
 <H2>
   Killing a Request

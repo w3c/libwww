@@ -148,7 +148,7 @@ PUBLIC BOOL HTProtocol_deleteAll (void)
 */
 PUBLIC HTProtocol * HTProtocol_find (HTRequest * request, const char * access)
 {
-    if (request && access) {
+    if (access) {
 	HTList * cur = protocols;
 	HTProtocol * pres;
 	if (cur) {
@@ -156,8 +156,9 @@ PUBLIC HTProtocol * HTProtocol_find (HTRequest * request, const char * access)
 		if (!strcmp(pres->name, access)) return pres;
 	    }
 	}
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS, (char*) access,
-			   (int) strlen(access), "HTProtocol_find");
+	if (request)
+	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS, (char*) access,
+			       (int) strlen(access), "HTProtocol_find");
     }
     return NULL;
 }
@@ -184,3 +185,7 @@ PUBLIC const char * HTProtocol_transport (HTProtocol * protocol)
     return (protocol ? protocol->transport : NULL);
 }
 
+PUBLIC const char * HTProtocol_name (HTProtocol * protocol)
+{
+    return (protocol ? protocol->name : NULL);
+}

@@ -125,6 +125,14 @@ Each protocol is registered with a default protocol ID which is the default port
 extern HTProtocolId HTProtocol_id (HTProtocol * protocol);
 </PRE>
 <H3>
+  Get the Protocol Name
+</H3>
+<P>
+Get the protocol name that was registered when the protocol object was created
+<PRE>
+extern const char * HTProtocol_name (HTProtocol * protocol);
+</PRE>
+<H3>
   Is Access Scheme Preemptive
 </H3>
 <P>

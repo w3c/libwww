@@ -1279,6 +1279,63 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
     return HT_ERROR; /* @@@ - some more deletion and stuff here? */
 }
 
+PUBLIC int HTHost_accept (HTHost * host, HTNet * net, HTNet ** accepted,
+			  char * url, HTProtocolId port)
+{
+    HTRequest * request = HTNet_request(net);
+    int status = HT_OK;
+    if (!host) {
+	HTProtocol * protocol = HTNet_protocol(net);
+	if ((host = HTHost_newWParse(request, url, HTProtocol_id(protocol))) == NULL)
+	    return HT_ERROR;
+	else {
+	    SockA *sin = &host->sock_addr;
+	    sin->sin_addr.s_addr = INADDR_ANY;
+	}
+
+	/*
+	** If not already locked and without a channel
+	** then lock the darn thing
+	*/
+	if (!host->lock && !host->channel) {
+	    host->forceWriteFlush = YES;
+	    host->lock = net;
+	}
+	HTNet_setHost(net, host);
+
+	/*
+	** Start listening on the socket
+	*/
+	{
+	    status = HTDoListen(net, port, INVSOC, HT_BACKLOG);
+	    if (status != HT_OK) {
+		if (CORE_TRACE) HTTrace("Listen...... On Host %p resulted in %d\n", host, status);
+		return HT_ERROR;
+	    }
+	}
+    }
+
+    if (!host->lock || (host->lock && host->lock == net)) {
+	status = HTDoAccept(net, accepted);
+	if (status == HT_OK) {
+
+	    /* Add the new accepted Net object to the pipeline */
+	    HTList_appendObject(host->pipeline, *accepted);
+
+	    /* Unlock the accept object */
+	    host->lock = NULL;
+
+	    return HT_OK;
+	}
+	if (status == HT_WOULD_BLOCK) {
+	    host->lock = net;
+	    return status;
+	}
+	if (status == HT_PENDING) return HT_WOULD_BLOCK;
+    }
+    return HT_ERROR; /* @@@ - some more deletion and stuff here? */
+}
+
 /*
 **	Rules: SINGLE: one element in pipe, either reading or writing
 **		 PIPE: n element in pipe, n-1 reading, 1 writing

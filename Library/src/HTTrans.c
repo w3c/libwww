@@ -92,7 +92,7 @@ PUBLIC BOOL HTTransport_deleteAll (void)
 */
 PUBLIC HTTransport * HTTransport_find (HTRequest * request, const char * name)
 {
-    if (request && name) {
+    if (name) {
 	HTList * cur = transports;
 	HTTransport * pres;
 	if (cur) {
@@ -100,8 +100,9 @@ PUBLIC HTTransport * HTTransport_find (HTRequest * request, const char * name)
 		if (!strcmp(pres->name, name)) return pres;
 	    }
 	}
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS, (char *) name,
-			   (int) strlen(name), "HTTransport_find");
+	if (request)
+	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS, (char *) name,
+			       (int) strlen(name), "HTTransport_find");
     }
     return NULL;
 }

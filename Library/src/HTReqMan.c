@@ -1628,3 +1628,28 @@ PUBLIC BOOL HTLoad (HTRequest * me, BOOL recursive)
     return HTNet_newClient(me);
 }
 
+PUBLIC BOOL HTServe (HTRequest * me, BOOL recursive)
+{
+    if (!me || !me->anchor) {
+        if (CORE_TRACE) HTTrace("Serve Start. Bad argument\n");
+        return NO;
+    }
+
+    /* Make sure that we don't carry over any old physical address */
+    if (!recursive) HTAnchor_clearPhysical(me->anchor);
+
+    /* Should we keep the error stack or not? */
+    if (!recursive && me->error_stack) {
+	HTError_deleteAll(me->error_stack);
+	me->error_stack = NULL;
+    }
+
+    /* Delete any old Response Object */
+    if (me->response) {
+	HTResponse_delete(me->response);
+	me->response = NULL;
+    }
+
+    /* Now start the Net Manager */
+    return HTNet_newServer(me);
+}

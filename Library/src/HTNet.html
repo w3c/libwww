@@ -406,7 +406,7 @@ You can create a new HTNet object as a new request to be handled. If we have
 more than HTMaxActive connections already then return NO. Returns YES if
 OK, else NO
 <PRE>
-extern BOOL HTNet_newServer (HTRequest * request, HTNet * net, char *access);
+extern BOOL HTNet_newServer (HTRequest * request);
 </PRE>
 <P>
 And you can create a plain new HTNet object using the following method:
@@ -421,6 +421,7 @@ Creates a new HTNet object as a duplicate of the same request. Returns YES
 if OK, else NO.
 <PRE>
 extern HTNet * HTNet_dup (HTNet * src);
+extern BOOL HTNet_deleteDup (HTNet * dup);
 </PRE>
 <H3>
   Launch a Net Object

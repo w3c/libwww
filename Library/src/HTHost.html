@@ -211,6 +211,9 @@ it must do an explicit connect the the host.
 <PRE>
 extern int HTHost_connect (HTHost * host, HTNet * net, char * url,
                            HTProtocolId port);
+
+extern int HTHost_accept  (HTHost * host, HTNet * net, HTNet ** accepted,
+	                   char * url, HTProtocolId port);
 </PRE>
 <H3>
   Is Channel About to Close?

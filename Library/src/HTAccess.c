@@ -1755,3 +1755,32 @@ PUBLIC BOOL HTTraceAnchor (HTAnchor * anchor, HTRequest * request)
     return NO;
 }
 
+
+/* ------------------------------------------------------------------------- */
+/*				SERVER METHODS 				     */
+/* ------------------------------------------------------------------------- */
+
+PRIVATE BOOL launch_server (HTRequest * request, BOOL recursive)
+{
+    if (PROT_TRACE) {
+	HTParentAnchor *anchor = HTRequest_anchor(request);
+	char * full_address = HTAnchor_address((HTAnchor *) anchor);
+	HTTrace("HTAccess.... Serving %s\n", full_address);
+	HT_FREE(full_address);
+    }
+    return HTServe(request, recursive);
+}
+
+/*	Serving a request
+**	-----------------
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTServeAbsolute (const char * url, HTRequest * request)
+{
+    if (url && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	HTRequest_setAnchor(request, anchor);
+	return launch_server(request, NO);
+    }
+    return NO;
+}
