@@ -131,7 +131,6 @@ PRIVATE void free_channel (HTChannel * ch)
 
 	/* Close the socket */
 	if (ch->sockfd != INVSOC) {
-	    HTEvent_unregister(ch->sockfd, HTEvent_ALL);
 	    NETCLOSE(ch->sockfd);
    	    HTNet_decreaseSocket();
 	    if (PROT_TRACE)

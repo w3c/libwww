@@ -71,6 +71,7 @@ PRIVATE int FlushEvent (HTTimer * timer, void * param, HTEventType type)
     /*
     **  Delete the timer
     */
+    HTTimer_delete(me->timer);
     me->timer = NULL;
     return HT_OK;
 }
