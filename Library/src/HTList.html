@@ -54,7 +54,8 @@ element just after the head element.
 <P>
 <A NAME="appendObject"></A> You can also append an element to the end of
 the list (the end is the first entered object) by using the following function:
-<PRE>extern BOOL HTList_appendObject (HTList * me, void * newObject);
+<PRE>
+extern BOOL HTList_appendObject (HTList * me, void * newObject);
 </PRE>
 <H2>
   Remove List Elements
@@ -67,6 +68,7 @@ occurances of <CODE>oldObject</CODE>.
 
 <PRE>
 extern BOOL	HTList_removeObject		(HTList * me, void * oldObject);
+extern BOOL	HTList_quickRemoveObject	(HTList * me, HTList * last);
 extern BOOL	HTList_removeObjectAll		(HTList * me, void * oldObject);
 
 extern void *	HTList_removeLastObject		(HTList * me);

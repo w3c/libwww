@@ -82,6 +82,16 @@ PUBLIC BOOL HTList_removeObject (HTList *  me, void *  oldObject)
     return NO;			/* object not found or NULL list */
 }
 
+PUBLIC BOOL HTList_quickRemoveObject (HTList *  me, HTList * last)
+{
+    if (me && last) {
+	last->next = me->next;
+	HT_FREE(me);
+	return YES;	/* Success */
+    }
+    return NO;			/* object not found or NULL list */
+}
+
 PUBLIC BOOL HTList_removeObjectAll (HTList *  me, void *  oldObject)
 {
     BOOL found = NO;

@@ -13,23 +13,24 @@
 #include "HTUtils.h"
 #include "HTMemLog.h"
 
-PRIVATE size_t LogBuffSize = 1024; /* default size is 1k */
-PRIVATE int LogFile = 2;
-PRIVATE const char * LogFileName = NULL;
-PRIVATE char * LogBuff  = NULL;
-PRIVATE size_t LogLen = 0;
+PRIVATE size_t		LogBuffSize = 1024; /* default size is 1k */
+PRIVATE int		LogFd = 2;
+PRIVATE const char *	LogName = NULL;
+PRIVATE char *		LogBuff  = NULL;
+PRIVATE size_t		LogLen = 0;
+PRIVATE BOOL		KeepOpen = YES;
 
-PUBLIC int HTMemLog_open (const char *ident, const size_t size)
+PUBLIC int HTMemLog_open (const char * logName, const size_t size, BOOL keepOpen)
 {
 #ifdef USE_SYSLOG
-    openlog(ident, LOG_NDELAY, LOG_USER);
+    openlog(LogName, LOG_NDELAY, LOG_USER);
 #else /* USE_SYSLOG */
-    LogFileName = ident;
-#if 0
-    if ((LogFile = open(ident, O_CREAT|O_TRUNC)) == -1)
+    LogName = logName;
+    KeepOpen = keepOpen;
+    if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_TRUNC, 0666)) == -1)
 	return HT_ERROR;
-    close(LogFile);
-#endif
+    if (!KeepOpen)
+	close(LogFd);
     LogBuffSize = size;
     if ((LogBuff = (char *) HT_MALLOC(size)) == NULL)
 	HT_OUTOFMEM("HTMemLog_open");
@@ -40,22 +41,13 @@ PUBLIC int HTMemLog_open (const char *ident, const size_t size)
 
 PRIVATE int HTMemLog_flush(void)
 {
-    if ((LogFile = open(LogFileName, O_CREAT|O_APPEND)) == -1)
-	return HT_ERROR;
-    if (write(LogFile, LogBuff, LogLen) == -1) {
-	switch (errno) {
-	case EBADF: printf("EBADF\n"); break;
-	case EINVAL: printf("EINVAL\n"); break;
-	case EFAULT: printf("EFAULT\n"); break;
-	case EPIPE: printf("EPIPE\n"); break;
-	case EAGAIN: printf("EAGAIN\n"); break;
-	case EINTR: printf("EINTR\n"); break;
-	case ENOSPC: printf("ENOSPC\n"); break;
-	default: printf("default\n"); break;
-	}
-    }
+    if (!KeepOpen)
+	if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_TRUNC, 0666)) == -1)
+	    return HT_ERROR;
+    write(LogFd, LogBuff, LogLen);
     LogLen = 0;
-    close(LogFile);
+    if (!KeepOpen)
+	close(LogFd);
     return HT_OK;
 }
 
@@ -67,6 +59,7 @@ PUBLIC int HTMemLog_add(const char * buf, const size_t len)
     while (len + LogLen > LogBuffSize) {
 	size_t toWrite = LogBuffSize-LogLen;
 	memcpy(LogBuff+LogLen, buf, toWrite);
+	LogLen = LogBuffSize;	/* same as += toWrite */
 	HTMemLog_flush();
 	buf += toWrite;
 	len -= toWrite;
@@ -95,7 +88,7 @@ PRIVATE int HTMemLog_addTime(void)
 
     gettimeofday(&tp, &tz);
     tp.tv_sec = HTMemLog_adjustGMT(tp.tv_sec)%(24*60*60);
-    len = sprintf(buff, "%02d:%02d:%02d.%d ", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
+    len = sprintf(buff, "%02d:%02d:%02d.%d", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
     HTMemLog_add(buff, len);
     return tp.tv_sec;
 }
@@ -107,19 +100,25 @@ PUBLIC void HTMemLog_close (void)
 #else /* USE_SYSLOG */
     if (LogLen)
 	HTMemLog_flush();
-    if (LogFile > 2)
-	close(LogFile);
+    if (LogFd > 2)
+	close(LogFd);
     if (LogBuff != NULL)
 	HT_FREE(LogBuff);
 #endif /* !USE_SYSLOG */
 }
 
+#ifdef USE_SYSLOG
+#define PRINT_BUFF_SIZE	8200
+#else /* USE_SYSLOG */
+#define PRINT_BUFF_SIZE	200
+#endif /* !USE_SYSLOG */
+
 PUBLIC int HTMemLog_callback (const char * data, const size_t len, const char * fmt, va_list pArgs)
 {
-    char buff[8200];
+    char buff[PRINT_BUFF_SIZE];
     int ret;
-    ret = vsprintf(buff, fmt, pArgs);
 #ifdef USE_SYSLOG
+    ret = vsprintf(buff, fmt, pArgs);
     syslog(LOG_DEBUG, "%s\n", buff);
     if (len > 8192)
 	len = 8192;
@@ -127,15 +126,19 @@ PUBLIC int HTMemLog_callback (const char * data, const size_t len, const char * 
     buff[len] = 0;
     syslog(LOG_DEBUG, "%s\n", buff);
 #else /* USE_SYSLOG */
-    /*
-    time(&now);
-    tptr = ctime(&now);
-    HTMemLog_add(tptr, strlen(tptr));
-    */
     HTMemLog_addTime();
+
+    ret = sprintf(buff, " %d ", len);
     HTMemLog_add(buff, ret);
+
+    if (fmt) {
+      ret = vsprintf(buff, fmt, pArgs);
+      HTMemLog_add(buff, ret);
+    }
     HTMemLog_add("\n", 1);
+
     HTMemLog_add(data, len);
+    HTMemLog_add("\n", 1);
 #endif /* !USE_SYSLOG */
     return ret;
 }

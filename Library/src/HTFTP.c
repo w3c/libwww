@@ -142,6 +142,7 @@ struct _HTStream {
     BOOL			first_line;
     char 			buffer[MAX_FTP_LINE+1];
     int				buflen;
+    HTHost *			host;
 };
 
 struct _HTInputStream {
@@ -239,14 +240,17 @@ PRIVATE int ScanResponse (HTStream * me)
 **	is found
 */
 PRIVATE int FTPStatus_put_block (HTStream * me, const char * b, int l)
-{    
+{
+    int startingLength = l;
     int status;
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
 	    if (*b == LF) {
 		if (!me->junk) {
-		    if ((status = ScanResponse(me)) != HT_OK)
+		    if ((status = ScanResponse(me)) != HT_OK) {
+			HTHost_setConsumed(me->host, startingLength - l);
 			return status;
+		    }
 		} else {
 		    me->buflen = 0;		
 		    me->junk = NO;
@@ -256,8 +260,10 @@ PRIVATE int FTPStatus_put_block (HTStream * me, const char * b, int l)
 	    me->state = EOL_FCR;
 	} else if (*b == LF) {
 	    if (!me->junk) {
-		if ((status = ScanResponse(me)) != HT_OK)
+		if ((status = ScanResponse(me)) != HT_OK) {
+		    HTHost_setConsumed(me->host, startingLength - l);
 		    return status;
+		}
 	    } else {
 		me->buflen = 0;		
 		me->junk = NO;
@@ -270,6 +276,7 @@ PRIVATE int FTPStatus_put_block (HTStream * me, const char * b, int l)
 		me->junk = YES;
 		if ((status = ScanResponse(me)) != HT_OK) {
 		    me->junk = NO;
+		    HTHost_setConsumed(me->host, startingLength - l);
 		    return status;	
 		}
 	    }
@@ -331,7 +338,7 @@ PRIVATE const HTStreamClass FTPStatusClass =
     FTPStatus_put_block
 };
 
-PRIVATE HTStream * FTPStatus_new (HTRequest * request, ftp_ctrl * ctrl)
+PRIVATE HTStream * FTPStatus_new (HTRequest * request, ftp_ctrl * ctrl, HTHost * host)
 {
     HTStream * me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
@@ -342,6 +349,7 @@ PRIVATE HTStream * FTPStatus_new (HTRequest * request, ftp_ctrl * ctrl)
     me->welcome = HTChunk_new(256);
     me->ctrl = ctrl;
     me->state = EOL_BEGIN;
+    me->host = host;
     return me;
 }
 
@@ -1033,14 +1041,15 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	  case NEED_CONNECT:
-	    status = HTDoConnect(dnet, data->host, FTP_DATA);
+	    status = HTHost_connect(dnet->host, dnet, data->host, FTP_DATA);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_OK) {
 		if (PROT_TRACE)
 		    HTTrace("FTP Data.... Active data socket %d\n",
 			    HTNet_socket(dnet));
-		HTNet_setPersistent(dnet, YES, HT_TP_INTERLEAVE);
+		/*		HTNet_setPersistent(dnet, YES, HT_TP_INTERLEAVE); */
+		HTNet_setPersistent(dnet, YES, HT_TP_SINGLE);
 		ctrl->substate = NEED_ACTION;
 	    } else {			 	  /* Swap to PORT on the fly */
 		NETCLOSE(HTNet_socket(dnet));
@@ -1271,12 +1280,21 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request)
     ctrl->state = FTP_BEGIN;
     ctrl->server = FTP_UNSURE;
     ctrl->dnet = HTNet_dup(cnet);
+#if 0
     cnet->context = ctrl;		   /* Context for control connection */
     ctrl->dnet->context = data;	      /* Context for data connection */
+#endif
     ctrl->net = cnet;
     HTNet_setContext(cnet, ctrl);
     HTNet_setEventCallback(cnet, FTPEvent);
-    HTNet_setEventParam(cnet, ctrl);  /* callbacks get http* */
+    HTNet_setEventParam(cnet, ctrl);
+
+    /* for now, the dnet comes back to the same place
+    ** - vestigial from when the callback was from the request object
+    */
+    HTNet_setContext(ctrl->dnet, data);
+    HTNet_setEventCallback(ctrl->dnet, FTPEvent);
+    HTNet_setEventParam(ctrl->dnet, ctrl);
     return FTPEvent(soc, ctrl, HTEvent_BEGIN);
 }
 
@@ -1369,7 +1387,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** The target for the input stream pipe is set up using the
 		** stream stack.
 		*/
-		cnet->readStream = FTPStatus_new(request, ctrl);
+		cnet->readStream = FTPStatus_new(request, ctrl, host);
 
 		/*
 		** Create the stream pipe TO the channel from the application

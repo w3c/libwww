@@ -169,7 +169,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 **	existing host object - you're not guaranteed a new one each time.
 */
 
-PUBLIC HTHost * HTHost_new (char * host)
+PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
 {
     HTList * list = NULL;			    /* Current list in cache */
     HTHost * pres = NULL;
@@ -197,7 +197,7 @@ PUBLIC HTHost * HTHost_new (char * host)
     {
 	HTList * cur = list;
 	while ((pres = (HTHost *) HTList_nextObject(cur))) {
-	    if (!strcmp(pres->hostname, host)) {
+	    if (!strcmp(pres->hostname, host) && u_port == pres->u_port) {
 		if (HTHost_isIdle(pres) && time(NULL)>pres->ntime+HostTimeout){
 		    if (CORE_TRACE)
 			HTTrace("Host info... Collecting host info %p\n",pres);
@@ -228,6 +228,7 @@ PUBLIC HTHost * HTHost_new (char * host)
 	    HT_OUTOFMEM("HTHost_add");
 	pres->hash = hash;
 	StrAllocCopy(pres->hostname, host);
+	pres->u_port = u_port;
 	pres->ntime = time(NULL);
 	pres->mode = HT_TP_SINGLE;
 	pres->events[HTEvent_INDEX(HTEvent_READ)] = HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, -1);
@@ -239,7 +240,7 @@ PUBLIC HTHost * HTHost_new (char * host)
     return pres;
 }
 
-PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short default_port)
+PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_port)
 {
 	      char * port;
 	      char * fullhost = NULL;
@@ -271,22 +272,22 @@ PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short defau
 		  *port++ = '\0';
 		  if (!*port || !isdigit(*port))
 		      port = 0;
+		  u_port = atol(port);
 	      }
 	      /* Find information about this host */
-	      if ((me = HTHost_new(parsedHost)) == NULL) {
+	      if ((me = HTHost_new(parsedHost, u_port)) == NULL) {
 		  if (PROT_TRACE)HTTrace("HTDoConnect. Can't get host info\n");
 		  me->tcpstate = TCP_ERROR;
 		  return NULL;
 	      }
 	      sin = &me->sock_addr;
 	      memset((void *) sin, '\0', sizeof(SockA));
-
 #ifdef DECNET
 	      sin->sdn_family = AF_DECnet;
 	      net->sock_addr.sdn_objnum = port ? (unsigned char)(strtol(port, (char **) 0, 10)) : DNP_OBJ;
 #else  /* Internet */
 	      sin->sin_family = AF_INET;
-	      sin->sin_port = htons(port ? atol(port) : default_port);
+	      sin->sin_port = htons(u_port);
 #endif
 	      HT_FREE(fullhost);	/* parsedHost points into fullhost */
 	      return me;
@@ -1087,7 +1088,11 @@ PUBLIC int HTHost_hash (HTHost * host)
 
 PUBLIC int HTHost_writeDelay(HTHost * host, ms_t lastFlushTime, int buffSize)
 {
-    if (host->forceWriteFlush)
+    unsigned short mtu;
+    int ret;
+    int socket = HTChannel_socket(host->channel);
+    ret = ioctl(socket, 666, (unsigned long)&mtu);
+    if ((ret == 0 && buffSize >= mtu) || host->forceWriteFlush)
 	return 0;
     return 1000;
 }

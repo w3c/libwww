@@ -178,11 +178,10 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_BEGIN:
 	  {
 	      char * proxy = HTRequest_proxy(request);
-	      char * physical = HTAnchor_physical(HTRequest_anchor(request));
 	      HTProtocol * protocol = HTNet_protocol(net);
 
 	      /* Check to see whether we connect directly or via a proxy */
-	      if ((net->host = HTHost_newWParse(request, proxy ? proxy : physical, 
+	      if ((net->host = HTHost_newWParse(request, proxy ? proxy : url, 
 						HTProtocol_id(protocol))) == NULL)
 		  return NO;
 	      me = net->host;

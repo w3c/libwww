@@ -52,6 +52,7 @@ struct _HTHost {
 
     /* Information about the otherend */
     char *  		hostname;	     /* name of host + optional port */
+    u_short		u_port;
     time_t		ntime;				    /* Creation time */
     char *		type;				        /* Peer type */
     int 		version;			     /* Peer version */

@@ -38,10 +38,11 @@
 #define PRIME_TABLE_SIZE	67
 #define MILLI_PER_SECOND	1000
 #define HASH(s)			((s) % PRIME_TABLE_SIZE) 
+#define HT_EVENT_ORDER				  /* use event ordering code */
+#define EVENTS_TO_EXECUTE	5  /* how many to execute in one select loop */
 
 typedef struct rq_t RQ;
 struct rq_t {
-    RQ * 	next ;	  
     SOCKET 	s ;	 	/* our socket */
     BOOL 	unregister;	/* notify app when completely unregistered */
     HTEvent * 	events[3];	/* event parameters for read, write, oob */
@@ -53,7 +54,7 @@ typedef enum _RQ_action {
     RQ_find
 } RQ_action;
 
-PRIVATE RQ * table[PRIME_TABLE_SIZE]; 
+HTList * HashTable[PRIME_TABLE_SIZE]; 
 PRIVATE SOCKET max_sock = 0 ;			  /* max socket value in use */
 
 PRIVATE fd_set FdArray[HTEvent_TYPES];
@@ -63,24 +64,25 @@ PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 
 /* ------------------------------------------------------------------------- */
 
-PRIVATE RQ * RQ_get(SOCKET s, RQ_action action)
+PRIVATE RQ * RQ_get (SOCKET s, RQ_action action)
 {
-    RQ * rqp;
-    RQ * last = NULL;
     long v = HASH(s);
-    for (rqp = table[v]; rqp; rqp = rqp->next) {
-        if (rqp->s == s) {
-	    return rqp;
-	}
-	last = rqp;  /* to set next pointer when creating new */
-    }
+    HTList* cur;
+    RQ * pres;
+
+    if (HashTable[v] == NULL)
+	HashTable[v] = HTList_new();
+    cur = HashTable[v];
+    while ((pres = (RQ *) HTList_nextObject(cur)))
+	if (pres->s == s)
+	    return pres;
+
     if (action == RQ_mayCreate) {
-        if ((rqp = (RQ *) HT_CALLOC(1, sizeof(RQ))) == NULL)
+        if ((pres = (RQ *) HT_CALLOC(1, sizeof(RQ))) == NULL)
 	    HT_OUTOFMEM("HTEventList_register");
-	if (last) last->next = rqp;
-	else table[v] = rqp;
-	rqp->s = s;
-	return rqp;
+	pres->s = s;
+	HTList_addObject(HashTable[v], (void *)pres);
+	return pres;
     }
     return NULL;
 }
@@ -89,7 +91,7 @@ PRIVATE RQ * RQ_get(SOCKET s, RQ_action action)
 **  A simple debug function that dumps all the socket arrays
 **  as trace messages
 */
-PRIVATE void __DumpFDSet( fd_set * fdp, const char * str) 
+PRIVATE void __DumpFDSet (fd_set * fdp, const char * str) 
 {
     SOCKET s ;
 #ifdef _WINSOCKAPI_
@@ -113,7 +115,107 @@ PRIVATE void __DumpFDSet( fd_set * fdp, const char * str)
 }
 
 /* ------------------------------------------------------------------------- */
+/*		E V E N T   O R D E R I N G   S T U F F			     */
+#ifdef HT_EVENT_ORDER
+typedef struct {
+    HTEvent *	event;
+    SOCKET	s;
+    HTEventType	type;
+    HTPriority	skipped;
+} EventOrder;
 
+HTList * EventOrderList = NULL;
+#if 0
+/*
+**	return -1 if a should be after b
+ */
+int EventOrderComparer (const void * a, const void * b)
+{
+    EventOrder * placeMe = (EventOrder *)a;
+    EventOrder * maybeHere = (EventOrder *)b;
+    if (placeMe->event->priority+placeMe->skipped >= maybeHere->event->priority+maybeHere->skipped)
+	return 1;
+    return -1;
+}
+#endif
+
+int EventOrder_add (SOCKET s, HTEventType type)
+{
+    EventOrder * pres;
+    HTList * cur = EventOrderList;
+    HTList * insertAfter = cur;
+    HTEvent * event = HTEventList_lookup(s, type);
+
+    if (event == NULL) {
+	HTTrace("EventOrder.. no event found for socket %d, type %x.\n", s, type);
+	return HT_ERROR;
+    }
+
+    /*
+    **	Look to see if it's already here from before
+    */
+    while ((pres = (EventOrder *) HTList_nextObject(cur))) {
+	if (pres->s == s && pres->event == event && pres->type == type) {
+	    pres->skipped++;
+	    return HT_OK;
+	}
+	if (pres->event->priority+pres->skipped > event->priority)
+	    insertAfter = cur;
+    }
+
+    /*
+    **	No, so create a new element
+    */
+    if ((pres = (EventOrder *) HT_CALLOC(1, sizeof(EventOrder))) == NULL)
+	HT_OUTOFMEM("EventOrder_add");
+    pres->event = event;
+    pres->s = s;
+    pres->type = type;
+    HTList_addObject(insertAfter, (void *)pres);
+    return HT_OK;
+}
+
+PUBLIC int EventOrder_executeAndDelete (void) 
+{
+    HTList * cur;
+    EventOrder * pres;
+    int i = 0;
+
+    if (cur == NULL)
+	return NO;
+#if 0
+    HTList_insertionSort(EventOrderList, EventOrderComparer);
+#endif
+    cur = EventOrderList;
+    if (THD_TRACE) HTTrace("EventOrder.. execute ordered events\n");
+    while ((pres = (EventOrder *) HTList_removeLastObject(cur)) && i < EVENTS_TO_EXECUTE) {
+	int ret = (*pres->event->cbf)(pres->s, pres->event->param, pres->type);
+	HT_FREE(pres);
+	if (ret != HT_OK)
+	    return ret;
+	i++;
+    }
+    return HT_OK;
+}
+
+PUBLIC BOOL EventOrder_deleteAll (void) 
+{
+    HTList * cur = EventOrderList;
+    EventOrder * pres;
+
+    if (cur == NULL)
+	return NO;
+    if (THD_TRACE) HTTrace("EventOrder.. all ordered events\n");
+    while ((pres = (EventOrder *) HTList_nextObject(cur)))
+	HT_FREE(pres);
+    HTList_delete(EventOrderList);
+    EventOrderList = NULL;
+    return YES;
+}
+#endif /* HT_EVENT_ORDER */
+
+/* ------------------------------------------------------------------------- */
+/*		T I M E O U T   H A N D L E R				     */
 PRIVATE int EventListTimerHandler (HTTimer * timer, void * param)
 {
     RQ * rqp = (RQ *)param;
@@ -195,16 +297,18 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 */
 PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type) 
 {
-    RQ * rqp;
-    RQ * last = NULL;
     long v = HASH(s);
-    for (rqp = table[v]; rqp; rqp = rqp->next) {
-        if (rqp->s == s) {
+    HTList * cur = HashTable[v];
+    HTList * last = cur;
+    RQ * pres;
+
+    while ((pres = (RQ *) HTList_nextObject(cur))) {
+        if (pres->s == s) {
 
 	    /*
 	    **  Unregister the event from this action
 	    */
-	    rqp->events[HTEvent_INDEX(type)] = NULL;
+	    pres->events[HTEvent_INDEX(type)] = NULL;
 	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
 
 	    /*
@@ -212,7 +316,7 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    **  If so then delete the timeout as well.
 	    */
 	    {
-		HTTimer * timer = rqp->timeouts[HTEvent_INDEX(type)];
+		HTTimer * timer = pres->timeouts[HTEvent_INDEX(type)];
 		if (timer) HTTimer_delete(timer);
 	    }
 	    
@@ -220,21 +324,20 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    **  Check to see if we can delete the action completely. We do this
 	    **  if there are no more events registered.
 	    */
-	    if (rqp->events[HTEvent_INDEX(HTEvent_READ)] == NULL && 
-		rqp->events[HTEvent_INDEX(HTEvent_WRITE)] == NULL && 
-		rqp->events[HTEvent_INDEX(HTEvent_OOB)] == NULL) {
+	    if (pres->events[HTEvent_INDEX(HTEvent_READ)] == NULL && 
+		pres->events[HTEvent_INDEX(HTEvent_WRITE)] == NULL && 
+		pres->events[HTEvent_INDEX(HTEvent_OOB)] == NULL) {
 		if (THD_TRACE)
 		    HTTrace("Event....... No more events registered for socket %d\n", s);
-		if (last) last->next = rqp->next;
-		else table[v] = rqp->next;
-		HT_FREE(rqp);
+		HT_FREE(pres);
 		FD_CLR(s, &all_fds);
-	    }
+		HTList_quickRemoveObject(cur, last);
+	    } else
+		last = cur;  /* to set next pointer when creating new */
 	    if (THD_TRACE)
 		HTTrace("Event....... Socket %d unregisterd for %x\n", s, type);
 	    return HT_OK;
 	}
-	last = rqp;  /* to set next pointer when creating new */
     }
     if (THD_TRACE) HTTrace("Event....... Couldn't find socket %d.\n", s);
     return HT_ERROR;
@@ -245,23 +348,26 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 ** N.B. we just remove them for our internal data structures: it is up to the 
 ** application to actually close the socket. 
 */
-PUBLIC int HTEventList_unregisterAll( void ) 
+PUBLIC int HTEventList_unregisterAll (void) 
 {
     int i;
-    register RQ * rqp, * next ;
     if (THD_TRACE) HTTrace("Unregister.. all sockets\n");
     for (i = 0 ; i < PRIME_TABLE_SIZE; i++) {
-	for (rqp = table[i]; rqp != 0; rqp = next) {
-	    next = rqp->next;
-	    HT_FREE(rqp);
-	}
-	table[i] = NULL;
+	HTList * cur = HashTable[i];
+	RQ * pres;
+	while ((pres = (RQ *) HTList_nextObject(cur)))
+	    HT_FREE(pres);
+	HTList_delete(HashTable[i]);
+	HashTable[i] = NULL;
     }
     max_sock = 0 ;
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_READ));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_WRITE));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_OOB));
     FD_ZERO(&all_fds);
+#ifdef HT_EVENT_ORDER
+    EventOrder_deleteAll();
+#endif /* HT_EVENT_ORDER */
     return 0;
 }
 
@@ -316,6 +422,8 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
     int status = 0;
     HTEndLoop = 0;
 
+    EventOrderList = HTList_new();	/* is kept around until EventOrder_deleteAll */
+
     /* Don't leave this loop until we leave the application */
     do {
         treadset = FdArray[HTEvent_INDEX(HTEvent_READ)];
@@ -338,18 +446,21 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	    wt = &waittime;
 	}
 
+	HTTraceData((char*)&treadset, maxfds/8 + 1, "HTEventList_loop pre treadset: (maxfd:%d)", maxfds);
+	HTTraceData((char*)&twriteset, maxfds/8 + 1, "HTEventList_loop pre twriteset:");
+	HTTraceData((char*)&texceptset, maxfds/8 + 1, "HTEventList_loop pre texceptset:");
+
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
 				(int *)&texceptset, wt);
 #else
         active_sockets = select(maxfds+1, &treadset, &twriteset, &texceptset, wt);
 #endif
-	/*
-	HTTraceData("", 0, "HTEventList_loop: select returned %d", active_sockets);
-	HTTraceData(&treadset, (active_sockets+7)/8, "                  treadset");
-	HTTraceData(&twriteset, (active_sockets+7)/8, "                  twriteset");
-	HTTraceData(&texceptset, (active_sockets+7)/8, "                  texceptset");
-	*/
+
+	HTTraceData((char*)&treadset, maxfds/8 + 1, "HTEventList_loop post treadset: (active_sockets:%d)", active_sockets);
+	HTTraceData((char*)&twriteset, maxfds/8 + 1, "HTEventList_loop post twriteset: (errno:%d)", errno);
+	HTTraceData((char*)&texceptset, maxfds/8 + 1, "HTEventList_loop post texceptset:");
+
 	if (THD_TRACE) HTTrace("Event Loop.. select returns %d\n", active_sockets);
 
         if (active_sockets == -1) {
@@ -372,17 +483,26 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	/*
 	**  There were active sockets. Determine which fd sets they were in
 	*/
+#ifdef HT_EVENT_ORDER
+#define DISPATCH(socket, type) EventOrder_add(socket, type)
+#else /* HT_EVENT_ORDER */
+#define DISPATCH(socket, type) HTEventList_dispatch(socket, type)
+#endif /* !HT_EVENT_ORDER */
 	for (s = 0 ; s <= maxfds ; s++) { 
 	    if (FD_ISSET(s, &texceptset))
-		if ((status = HTEventList_dispatch(s, HTEvent_OOB)) != HT_OK)
+		if ((status = DISPATCH(s, HTEvent_OOB)) != HT_OK)
 		    return status;
 	    if (FD_ISSET(s, &twriteset))
-		if ((status = HTEventList_dispatch(s, HTEvent_WRITE)) != HT_OK)
+		if ((status = DISPATCH(s, HTEvent_WRITE)) != HT_OK)
 		    return status;
 	    if (FD_ISSET(s, &treadset))
-		if ((status = HTEventList_dispatch(s, HTEvent_READ)) != HT_OK)
+		if ((status = DISPATCH(s, HTEvent_READ)) != HT_OK)
 		    return status;
 	}
+#ifdef HT_EVENT_ORDER
+	if ((status = EventOrder_executeAndDelete()) != HT_OK)
+	    return status;
+#endif /* HT_EVENT_ORDER */
     } while (!HTEndLoop);
 
     return HT_OK;

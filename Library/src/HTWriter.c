@@ -142,7 +142,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	}
 	/* We do this unconditionally, should we check to see if we ever blocked? */
 	HTHost_unregister(host, net, HTEvent_WRITE);
-	HTTraceData(me->write, b_write, "HTWriter_write %d bytes:", b_write);
+	HTTraceData(me->write, b_write, "HTWriter_write me->write:");
 	me->write += b_write;
 	len -= b_write;
 	if (PROT_TRACE)

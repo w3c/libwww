@@ -57,8 +57,8 @@ names are
   Add a Host Object
 </H3>
 <PRE>
-extern HTHost * HTHost_new (char * host);
-extern HTHost * HTHost_newWParse(HTRequest * request, char * url, u_short default_port);
+extern HTHost * HTHost_new (char * host, u_short u_port);
+extern HTHost * HTHost_newWParse(HTRequest * request, char * url, u_short u_port);
 extern int HTHost_hash (HTHost * host);
 </PRE>
 <H3>

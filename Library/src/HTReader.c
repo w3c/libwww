@@ -144,7 +144,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    }
 
 	    /* Remember how much we have read from the input socket */
-	    HTTraceData(me->data, me->b_read, "HTReader_read %d bytes:", me->b_read);
+	    HTTraceData(me->data, me->b_read, "HTReader_read me->data:");
 	    me->write = me->data;
 	    me->read = me->data + me->b_read;
 

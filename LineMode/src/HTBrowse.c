@@ -67,7 +67,7 @@
 #include "CSUser.h"
 #include "CSUsrLst.h"
 
-#include "HTWatch.h"
+#include "HTMemLog.h"
 
 #ifndef W3C_VERSION
 #define W3C_VERSION		"Unspecified"
@@ -368,6 +368,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
 
     LineMode_delete(me);
     HTProfile_delete();
+    HTMemLog_close();
 #ifdef VMS
     exit(status ? status : 1);
 #else
@@ -1569,6 +1570,8 @@ int main (int argc, char ** argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
+    HTMemLog_open("/usr/local/src/WWW/the-dart/LineMode/src/data.log", 8192, YES);
+    HTTraceData_setCallback(HTMemLog_callback);
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newClient(APP_NAME, APP_VERSION);
     
