@@ -27,7 +27,6 @@
 #define ID_BROWSE                       1009
 #define IDC_LINK_TYPE                   1011
 #define IDC_CONTENT_LENGTH              1015
-#define IDC_DERIVED_FROM                1015
 #define IDC_LAST_MODIFIED               1016
 #define IDC_LINK                        1018
 #define IDS_WINCOM                      61446
@@ -35,6 +34,7 @@
 #define IDS_CANNOT_OPEN_FILE            61448
 #define IDS_CANNOT_WRITE_TO_FILE        61449
 #define IDS_CANNOT_READ_FILE            61451
+#define IDS_SUBMIT                      61452
 
 // Next default values for new objects
 // 

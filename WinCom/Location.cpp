@@ -102,7 +102,7 @@ void CLocation::OnBrowse()
         if (m_appendSource) {
             CString file = fd.GetFileName();
         	if (file) {
-	        m_destination += file; 
+	        m_destination += "edit/" + file; 
 	        SetDlgItemText(IDC_DESTINATION_URI, m_destination);
 	    }
             m_appendSource = FALSE;

@@ -131,6 +131,8 @@ BOOL CWinComApp::InitInstance()
 
         // add and initialize the general page....
 	CPropertySheet WinCom( IDS_WINCOM );
+        WinCom.m_psh.dwFlags ^= PSH_NOAPPLYNOW;
+        WinCom.m_psh.dwFlags |= PSH_HASHELP;
 
         // add and initialize the location page....
 	CLocation locationPage( m_pRequest );
