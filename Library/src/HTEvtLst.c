@@ -64,6 +64,7 @@ typedef enum {
 PRIVATE HTList * HashTable [HT_M_HASH_SIZE]; 
 PRIVATE HTList * EventOrderList = NULL;
 PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
+PRIVATE BOOL HTInLoop = NO;
 
 #ifdef WWW_WIN_ASYNC
 #define TIMEOUT	1 /* WM_TIMER id */
@@ -325,14 +326,22 @@ PUBLIC int EventOrder_executeAndDelete (void)
     return HT_OK;
 }
 
-PUBLIC BOOL EventOrder_deleteAll (void) 
+PRIVATE BOOL EventOrder_clearAll (void)
 {
     HTList * cur = EventOrderList;
     EventOrder * pres;
-    HTTRACE(THD_TRACE, "EventOrder.. all ordered events\n");
-    if (cur == NULL) return NO;
-    while ((pres = (EventOrder *) HTList_nextObject(cur)))
-	HT_FREE(pres);
+    HTTRACE(THD_TRACE, "EventOrder.. Clearing all ordered events\n");
+    if (cur) {
+	while ((pres = (EventOrder *) HTList_nextObject(cur)))
+	    HT_FREE(pres);
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL EventOrder_deleteAll (void) 
+{
+    EventOrder_clearAll();
     HTList_delete(EventOrderList);
     EventOrderList = NULL;
     return YES;
@@ -631,7 +640,18 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
     SOCKET s;
     int status = HT_OK;
 
-    EventOrderList = HTList_new();	/* is kept around until EventOrder_deleteAll */
+    /* Check that we don't have multiple loops started at once */
+    if (HTInLoop) {
+	HTTRACE(THD_TRACE, "Event Loop.. Already one loop running - exiting\n");
+	return HT_ERROR;
+    }
+    HTInLoop = YES;
+
+    /* Set up list of events - is kept around until EventOrder_deleteAll */
+    if (!EventOrderList)
+	EventOrderList = HTList_new();
+    else
+	EventOrder_clearAll();
 
     /* Don't leave this loop until we leave the application */
     while (!HTEndLoop) {
@@ -742,6 +762,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
     /* Reset HTEndLoop in case we want to start again */
  stop_loop:
     HTEndLoop = 0;
+    HTInLoop = NO;
     return status;
 #endif /* !WWW_WIN_ASYNC */
 }

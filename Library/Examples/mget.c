@@ -41,8 +41,18 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
+    HTChunk * chunk = (HTChunk *) HTRequest_context(request);
+
     /* Check for status */
     HTPrint("Load %d resulted in status %d\n", remaining, status);
+
+#if 0
+    if (status == HT_LOADED && chunk && HTChunk_data(chunk))
+	HTPrint("%s", HTChunk_data(chunk));
+#endif
+
+    /* Remember to delete our chunk of data */
+    if (chunk) HTChunk_delete(chunk);
 	
     /* We are done with this request */
     HTRequest_delete(request);
@@ -94,6 +104,7 @@ int main (int argc, char ** argv)
     }
 
     if (addr && *addr) {
+	HTChunk * chunk;
 	int cnt = 0;
 
 	/* We don't wany any progress notification or other user stuff */
@@ -107,15 +118,15 @@ int main (int argc, char ** argv)
 	    /* Create a request */
 	    request = HTRequest_new();
 
-	    /* Set the output format to source and put output to stdout */
+	    /* Set the output format to source */
 	    HTRequest_setOutputFormat(request, WWW_SOURCE);
-	    HTRequest_setOutputStream(request, HTFWriter_new(request, stdout, YES));
 
 	    /* Now start the load */
-	    if (HTLoadToChunk(addr, request) == NULL) {
+	    if ((chunk = HTLoadToChunk(addr, request)) == NULL) {
 		status = NO;
 		break;
-	    }
+	    } else
+		HTRequest_setContext(request, chunk);
 	}
 
 	/* Go into the event loop... */

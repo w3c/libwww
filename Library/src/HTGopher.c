@@ -737,7 +737,7 @@ PRIVATE int GopherEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case GOPHER_NEED_CONNECTION:
-	    status = HTHost_connect(host, net, url, GOPHER_PORT);
+	    status = HTHost_connect(host, net, url);
 	    host = HTNet_host(net);
 	    if (status == HT_OK) {
 		/*

@@ -1052,7 +1052,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
     while (1) {
 	switch (http->state) {
 	case HTTP_BEGIN:
-	    status = HTHost_connect(host, net, HTAnchor_physical(anchor), HTTP_PORT);
+	    status = HTHost_connect(host, net, HTAnchor_physical(anchor));
 	    host = HTNet_host(net);
             if (status == HT_OK) {
 

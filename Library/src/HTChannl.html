@@ -123,9 +123,11 @@ and output streams and the Channel object contains the actualy stream objects.
 <PRE>
 extern BOOL HTChannel_setInput (HTChannel * ch, HTInputStream * input);
 extern HTInputStream * HTChannel_input (HTChannel * ch);
+extern BOOL HTChannel_deleteInput (HTChannel * channel, int status);
 
 extern BOOL HTChannel_setOutput (HTChannel * ch, HTOutputStream * output);
 extern HTOutputStream * HTChannel_output (HTChannel * ch);
+extern BOOL HTChannel_deleteOutput (HTChannel * channel, int status);
 
 extern HTInputStream * HTChannel_getChannelIStream (HTChannel * ch);
 extern HTOutputStream * HTChannel_getChannelOStream (HTChannel * ch);

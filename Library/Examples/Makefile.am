@@ -39,10 +39,10 @@ EXTRA_DIST = \
 
 PURIFY_CACHE = @PURIFY_CACHE@
 
-purify: $(stri_OBJECTS) $(stri_DEPENDENCIES)
+purify: $(mget_OBJECTS) $(mget_DEPENDENCIES)
 	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(CC) $(LDFLAGS) -o purify $(stri_OBJECTS) \
+	$(CC) $(LDFLAGS) -o purify $(mget_OBJECTS) \
 	-lm \
 	../src/.libs/libwwwinit.a \
 	../src/.libs/libwwwapp.a \

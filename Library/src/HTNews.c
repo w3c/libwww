@@ -401,14 +401,14 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    char *newshack = NULL;    /* Then we can use HTParse :-) */
 		    StrAllocCopy(newshack, "news://");
 		    StrAllocCat(newshack, newshost);
-		    status = HTHost_connect(host, net, (char *) newshack, NEWS_PORT);
+		    status = HTHost_connect(host, net, (char *) newshack);
 		    host = HTNet_host(net);
 		    HT_FREE(newshack);
 		} else
 		    news->state = NEWS_ERROR;
 	    } else if (!strncasecomp(url, "nntp:", 5)) {
 		news->name = HTParse(url, "", PARSE_PATH);
-		status = HTHost_connect(host, net, url, NEWS_PORT);
+		status = HTHost_connect(host, net, url);
 		host = HTNet_host(net);
 	    } else {
 		HTTRACE(PROT_TRACE, "News........ Huh?");

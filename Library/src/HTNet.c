@@ -603,18 +603,19 @@ PUBLIC BOOL HTNet_start (HTNet * net)
 **	This function creates a new HTNet object and assigns the socket number
 **	to it. This is intended to be used when you are going to listen on a 
 **	socket using the HTDoListen() function in HTTCP.c. The function do NOT
-**	call any of the callback functions.
+**	call any of the before or after filter functions.
 **	Returns new object or NULL on error
 */
-PUBLIC HTNet * HTNet_new (HTRequest * request)
+PUBLIC HTNet * HTNet_new (HTHost * host)
 {
-    HTNet * me;
-    if ((me = create_object()) == NULL) return NULL;
-    me->preemptive = HTRequest_preemptive(request);
-    HTNet_setEventPriority(me, HTRequest_priority(request));
-    me->request = request;
-    HTRequest_setNet(request, me);
-    return me;
+    if (host) {
+	HTNet * me;
+	HTTRACE(CORE_TRACE, "Net Object.. Creating listen object for host %p\n" _ host);
+	me = create_object();
+	me->host = host;
+	return me;
+    }
+    return NULL;
 }
 
 /*      HTNet_newServer
@@ -705,8 +706,8 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request)
     return YES;
 }
 
-/*	HTNet_new
-**	---------
+/*	HTNet_newClient
+**	---------------
 **	Create a new HTNet object as a new request to be handled. If we have
 **	more than MaxActive connections already then put this into the
 **	pending queue, else start the request by calling the call back
@@ -834,7 +835,7 @@ PRIVATE BOOL free_net (HTNet * net)
 {
     HTTRACE(CORE_TRACE, "Net Object.. Freeing object %p\n" _ net);
     if (net) {
-        HTRequest_setNet(net->request, NULL);
+        if (net == HTRequest_net(net->request)) HTRequest_setNet(net->request, NULL);
         HT_FREE(net);
 	return YES;
     }
@@ -916,7 +917,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
         free_net(net);
 
     	/* Call AFTER filters */
-	HTNet_executeAfterAll(request, status);
+	if (status != HT_IGNORE) HTNet_executeAfterAll(request, status);
         
 	/*
 	** Truely delete the HTNet object. Thanks to Mikhail Grouchinski

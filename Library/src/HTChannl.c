@@ -221,28 +221,16 @@ PUBLIC HTChannel * HTChannel_find (SOCKET sockfd)
 PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 {
     if (channel) {
-	HTTRACE(PROT_TRACE, "Channel..... Delete %p with semaphore %d\n" _ 
-				channel _ channel->semaphore);
+	HTTRACE(PROT_TRACE, "Channel..... Delete %p with semaphore %d, status %d\n" _ 
+		channel _ channel->semaphore _ status);
 	/*
 	**  We call the free methods on both the input stream and the output
 	**  stream so that we can free up the stream pipes. However, note that
 	**  this doesn't mean that we close the input stream and output stream
 	**  them selves - only the generic streams
 	*/
-	if (status != HT_IGNORE) {
-	    if (channel->input) {
-                if (status==HT_INTERRUPTED || status==HT_TIMEOUT)
-		    (*channel->input->isa->abort)(channel->input, NULL);
-		else
-		    (*channel->input->isa->_free)(channel->input);
-	    }
-	    if (channel->output) {
-		if (status==HT_INTERRUPTED || status==HT_TIMEOUT)
-		    (*channel->output->isa->abort)(channel->output, NULL);
-		else
-		    (*channel->output->isa->_free)(channel->output);
-	    }
-	}
+	HTChannel_deleteInput(channel, status);
+	HTChannel_deleteOutput(channel, status);
 
 	/*
 	**  Check whether this channel is used by other objects or we can
@@ -317,11 +305,24 @@ PUBLIC SOCKET HTChannel_socket (HTChannel * channel)
     return channel ? channel->sockfd : INVSOC;
 }
 
-PUBLIC BOOL HTChannel_setSocket (HTChannel * channel, SOCKET socket)
+PUBLIC BOOL HTChannel_setSocket (HTChannel * channel, SOCKET sockfd)
 {
     if (channel) {
-      channel->sockfd = socket;
-      return YES;
+	
+	/*
+	** As we use the socket number as the hash entry then we have to
+	** update the hash table as well.
+	*/
+	int old_hash = HASH(channel->sockfd);
+	int new_hash = sockfd < 0 ? 0 : HASH(sockfd);
+	HTList * list = channels[old_hash];
+	if (list) HTList_removeObject(list, channel);
+	if (!channels[new_hash]) channels[new_hash] = HTList_new();
+	list = channels[new_hash];
+	HTList_addObject(list, channel);
+
+	channel->sockfd = sockfd;
+	return YES;
     }
     return NO;
 }
@@ -423,6 +424,21 @@ PUBLIC HTInputStream * HTChannel_input (HTChannel * ch)
     return ch ? ch->input : NULL;
 }
 
+PUBLIC BOOL HTChannel_deleteInput (HTChannel * channel, int status)
+{	
+    if (channel && channel->input && status != HT_IGNORE) {
+	HTTRACE(PROT_TRACE,
+		"Channel..... Delete input stream %p from channel %p\n" _ 
+		channel->input _ channel);
+	if (status==HT_INTERRUPTED || status==HT_TIMEOUT)
+	    (*channel->input->isa->abort)(channel->input, NULL);
+	else
+	    (*channel->input->isa->_free)(channel->input);
+	return YES;
+    }
+    return NO;
+}
+
 /*
 **	Create the output stream and bind it to the channel
 **	Please read the description in the HTIOStream module on the parameters
@@ -439,6 +455,21 @@ PUBLIC BOOL HTChannel_setOutput (HTChannel * ch, HTOutputStream * output)
 PUBLIC HTOutputStream * HTChannel_output (HTChannel * ch)
 {
     return ch ? ch->output : NULL;
+}
+
+PUBLIC BOOL HTChannel_deleteOutput (HTChannel * channel, int status)
+{	
+    if (channel && channel->output && status != HT_IGNORE) {
+	HTTRACE(PROT_TRACE,
+		"Channel..... Delete input stream %p from channel %p\n" _ 
+		channel->input _ channel);
+	if (status==HT_INTERRUPTED || status==HT_TIMEOUT)
+	    (*channel->output->isa->abort)(channel->output, NULL);
+	else
+	    (*channel->output->isa->_free)(channel->output);
+	return YES;
+    }
+    return NO;
 }
 
 PUBLIC HTInputStream * HTChannel_getChannelIStream (HTChannel * ch)

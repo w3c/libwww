@@ -39,7 +39,7 @@ host having multiple IP-addresses with the same host name) &nbsp;then
 <CODE>HTDoConnect()</CODE> measures the time it takes to connect and updates
 the calculated weights in the <A HREF="HTDNS.html">DNS object</A>.
 <PRE>
-extern int HTDoConnect (HTNet * net, char * url, u_short default_port);
+extern int HTDoConnect (HTNet * net);
 </PRE>
 <H2>
   Passive Connection Establishment
@@ -56,21 +56,20 @@ when the <A HREF="HTProt.html">protocol module</A> has finished. If the
 is - the same object all along - then we reuse the same Net obejct; closes
 the original socket and replaces it wik the accepted one. This is a quick
 way of accepting a single connection.
-<PRE>extern int HTDoAccept (HTNet * net, HTNet ** accepted);
+<PRE>
+extern int HTDoAccept (HTNet * listen, HTNet * accept);
 </PRE>
 <H2>
   Listen on a Socket
 </H2>
 <P>
-Listens on the specified port. Passing port <CODE>0</CODE> means that we
-don't care and a temporary one will be assigned. If
-<CODE>master</CODE>==INVSOC then we listen on all local interfaces (using
-a wildcard). If <CODE>INVSOC</CODE> is <I>not</I> <CODE>NULL</CODE> then
-use this as the local interface. <CODE>backlog</CODE> is the number of
-connections that can be queued on the socket - you can use
-<CODE>HT_BACKLOG</CODE> for a platform dependent value (typically 5 on BSD
-and 32 on SVR4). Returns <CODE>HT_ERROR</CODE> or <CODE>HT_OK</CODE>.
-<PRE>extern int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog);
+Listens on the specified port described in the Net
+object. <CODE>backlog</CODE> is the number of connections that can be
+queued on the socket - you can use <CODE>HT_BACKLOG</CODE> for a
+platform dependent value (typically 5 on BSD and 32 on SVR4). Returns
+<CODE>HT_ERROR</CODE> or <CODE>HT_OK</CODE>.
+<PRE>
+extern int HTDoListen (HTNet * net, HTNet * accept, int backlog);
 </PRE>
 <H2>
   Closing a socket

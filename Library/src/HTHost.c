@@ -181,11 +181,11 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
              * of previous socket has been dispensed by the library,
              * the section below makes sure the event does not get miss attributed
              */
-	    if (HTChannel_socket(host->channel) != soc) {
-		 HTTRACE(CORE_TRACE, "Host Event.. wild socket %d type = %s real socket is %d\n" _ soc _ 
-			 type == HTEvent_CLOSE ? "Event_Close" : "Event_Read" _ 
-			 HTChannel_socket(host->channel));
-		 return HT_OK;
+	    if (HTChannel_socket(host->channel) != soc && type != HTEvent_ACCEPT && !host->listening) {
+		HTTRACE(CORE_TRACE, "Host Event.. wild socket %d type = %s real socket is %d\n" _ soc _ 
+			type == HTEvent_CLOSE ? "Event_Close" : "Event_Read" _ 
+			HTChannel_socket(host->channel));
+		return HT_OK;
 	    }
 
 	    targetNet = (HTNet *)HTList_firstObject(host->pipeline);
@@ -363,7 +363,7 @@ PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_por
 
     fullhost = HTParse(proxy ? proxy : url, "", PARSE_HOST);
 
-	      /* If there's an @ then use the stuff after it as a hostname */
+    /* If there's an @ then use the stuff after it as a hostname */
     if (fullhost) {
 	char * at_sign;
 	if ((at_sign = strchr(fullhost, '@')) != NULL)
@@ -1278,7 +1278,7 @@ PUBLIC int HTHost_numberOfPendingNetObjects (HTHost * host)
 **	multiple pipelined engines. It then registers its own engine 
 **	(HostEvent) with the event manager.
 */
-PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId port)
+PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url)
 {
     HTRequest * request = HTNet_request(net);
     int status = HT_OK;
@@ -1303,7 +1303,7 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
     }
 
     if (!host->lock || (host->lock && host->lock == net)) {
-	status = HTDoConnect(net, url, port);
+	status = HTDoConnect(net);
 	if (status == HT_PENDING)
 	    return HT_WOULD_BLOCK;
 	else if (status == HT_WOULD_BLOCK) {
@@ -1318,7 +1318,7 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
 	    HTNet * next_pending = NULL;
 	    if ((next_pending = HTList_firstObject(host->pending))) {
 		HTTRACE(CORE_TRACE, "Host connect Changing lock on Host %p to %p\n" _ 
-					host _ next_pending);
+			host _ next_pending);
 		host->lock = next_pending;	    
 	    } else {
 		HTTRACE(CORE_TRACE, "Host connect Unlocking Host %p\n" _ host);
@@ -1335,8 +1335,7 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
     return HT_ERROR; /* @@@ - some more deletion and stuff here? */
 }
 
-PUBLIC int HTHost_accept (HTHost * host, HTNet * net, HTNet ** accepted,
-			  char * url, HTProtocolId port)
+PUBLIC int HTHost_listen (HTHost * host, HTNet * net, char * url)
 {
     HTRequest * request = HTNet_request(net);
     int status = HT_OK;
@@ -1344,52 +1343,75 @@ PUBLIC int HTHost_accept (HTHost * host, HTNet * net, HTNet ** accepted,
 	HTProtocol * protocol = HTNet_protocol(net);
 	if ((host = HTHost_newWParse(request, url, HTProtocol_id(protocol))) == NULL)
 	    return HT_ERROR;
-	else {
-	    SockA *sin = &host->sock_addr;
-	    sin->sin_addr.s_addr = INADDR_ANY;
-	}
 
 	/*
 	** If not already locked and without a channel
-	** then lock the darn thing
+	** then lock the darn thing with the first Net object
+	** pending.
 	*/
 	if (!host->lock && !host->channel) {
 	    host->forceWriteFlush = YES;
 	    host->lock = net;
 	}
 	HTNet_setHost(net, host);
+    }
 
-	/*
-	** Start listening on the socket
-	*/
-	{
-	    status = HTDoListen(net, port, INVSOC, HT_BACKLOG);
-	    if (status != HT_OK) {
-		HTTRACE(CORE_TRACE, "Listen...... On Host %p resulted in %d\n" _ host _ status);
-		return HT_ERROR;
-	    }
-	}
+    /*
+    ** See if we already have a dedicated listen Net object. If not 
+    ** then create one.
+    */
+    if (!host->listening) host->listening = HTNet_new(host);
+
+    /*
+    ** Start listening on the Net object
+    */
+    status = HTDoListen(host->listening, net, HT_BACKLOG);
+    if (status != HT_OK) {
+	HTTRACE(CORE_TRACE, "Host listen. On Host %p resulted in %d\n" _ host _ status);
+	return status;
+    }
+    return HT_OK;
+}
+
+PUBLIC int HTHost_accept (HTHost * host, HTNet * net, char * url)
+{
+    int status = HT_OK;
+    if (!host || !host->listening) {
+	HTTRACE(CORE_TRACE, "Host accept. No host object or not listening on anything\n");
+	return HT_ERROR;
     }
 
     if (!host->lock || (host->lock && host->lock == net)) {
-	status = HTDoAccept(net, accepted);
-	if (status == HT_OK) {
-
-	    /* Add the new accepted Net object to the pipeline */
-	    HTList_appendObject(host->pipeline, *accepted);
-
-	    /* Unlock the accept object */
-	    host->lock = NULL;
-
-	    return HT_OK;
-	}
-	if (status == HT_WOULD_BLOCK) {
+	status = HTDoAccept(host->listening, net);
+	if (status == HT_PENDING)
+	    return HT_WOULD_BLOCK;
+	else if (status == HT_WOULD_BLOCK) {
 	    host->lock = net;
 	    return status;
+	} else {
+
+	    /*
+	    **  See if there is already a new pending request that should
+	    **  take over the current lock
+	    */
+	    HTNet * next_pending = NULL;
+	    if ((next_pending = HTList_firstObject(host->pending))) {
+		HTTRACE(CORE_TRACE, "Host connect Changing lock on Host %p to %p\n" _ 
+			host _ next_pending);
+		host->lock = next_pending;	    
+	    } else {
+		HTTRACE(CORE_TRACE, "Host connect Unlocking Host %p\n" _ host);
+		host->lock = NULL;	    
+	    }
+	    return status;
 	}
-	if (status == HT_PENDING) return HT_WOULD_BLOCK;
+    } else {
+	HTTRACE(CORE_TRACE, "Host connect Host %p already locked with %p\n" _ host _ host->lock);
+	if ((status = HTHost_addNet(host, net)) == HT_PENDING) {
+	    return HT_PENDING;
+	}
     }
-    return HT_ERROR; /* @@@ - some more deletion and stuff here? */
+    return HT_ERROR;
 }
 
 /*

@@ -7,7 +7,7 @@
 **
 **	A cache of control connections is kept.
 **
-** Note: Port allocation
+** Note: Port allocation (not used anymore)
 **
 **	It is essential that the port is allocated by the system, rather
 **	than chosen in rotation by us (FTP_POLL_PORTS), or the following
@@ -72,18 +72,6 @@
 #include "HTFTPDir.h"
 #include "HTFTP.h"					 /* Implemented here */
 
-/* Macros and other defines */
-#if 0
-/* Only use this if ABSOLUTELY necessary! */
-#define FTP_POLL_PORTS	      /* If allocation does not work, poll ourselves.*/
-#endif
-
-#ifdef FTP_POLL_PORTS
-#define FIRST_TCP_PORT	 1024	       /* Region to try for a listening port */
-#define LAST_TCP_PORT	 5999
-PRIVATE	int DataPort = FIRST_TCP_PORT;
-#endif
-
 #ifndef FTP_PORT
 #define FTP_PORT	21
 #define FTP_DATA	20
@@ -121,10 +109,7 @@ typedef struct _ftp_ctrl {
     FTPServerType	server;		         	   /* Type of server */
     HTNet *		cnet;			       /* Control connection */
     HTNet *		dnet;			   	  /* Data connection */
-/* begin _GM_ */
-/* Note: libwww bug ID: GM3 */
     BOOL		alreadyLoggedIn;
-/* end _GM_ */
 } ftp_ctrl;
 
 typedef struct _ftp_data {
@@ -155,12 +140,13 @@ struct _HTInputStream {
     const HTInputStreamClass *	isa;
 };
 
+/* Determine whether we should use passive or active data TCP connections */
 typedef enum _FTPDataCon {
     FTP_DATA_PASV = 0x1,
     FTP_DATA_PORT = 0x2
 } FTPDataCon;
 
-PRIVATE FTPDataCon FTPMode = FTP_DATA_PASV;
+PRIVATE FTPDataCon FTPMode = FTP_DATA_PORT;
 
 /* Added by Neil Griffin */
 PRIVATE FTPTransferMode g_FTPTransferMode = FTP_DEFAULT_TRANSFER_MODE;
@@ -204,7 +190,7 @@ PRIVATE int FTPCleanup (HTRequest * request, int status)
 		(*input->isa->_free)(input);
 	}
 	
-	/* Remove the request object and our own context structure for http */
+	/* Remove the request object and our own context structure for ftp */
 	if (cnet && ctrl) {
 	    HTNet * dnet = ctrl->dnet;
 	    ftp_data * data = (ftp_data *) HTNet_context(dnet);
@@ -218,14 +204,16 @@ PRIVATE int FTPCleanup (HTRequest * request, int status)
 		HT_FREE(data->file);
 		HT_FREE(data);
 	    }
-#if 0
-	    HTNet_setPersistent(dnet, NO, HT_TP_SINGLE);
-#endif
+
 	    /* See if we got a content length */
             if (status == HT_LOADED)
                 HTAnchor_setLength(HTRequest_anchor(request), HTNet_bytesRead(dnet));
 
-            HTNet_delete(dnet, HT_IGNORE);
+	    /* Delete the data net object */
+	    HTChannel_deleteInput(HTNet_channel(dnet), status);
+	    HTChannel_deleteOutput(HTNet_channel(dnet), status);
+	    HTNet_delete(dnet, HT_IGNORE);
+
 	}
 	HTNet_delete(cnet, status);
 	return YES;
@@ -429,10 +417,8 @@ PRIVATE BOOL HTFTPParseURL (HTRequest * request,
 	HTUnEscape(login);
 	StrAllocCopy(ctrl->uid, login);
     } else if (g_FTPControlMode & FTP_ALWAYS_ASK_UID_PW) {
-/* Added by Marek Nagy. */
 	ctrl->uid=NULL;
 	ctrl->passwd=NULL;
-/* End of adding. */
     } else {				    /* Use anonymous */
 	HTUserProfile * up = HTRequest_userProfile(request);
         const char * mailaddress = HTUserProfile_email(up);
@@ -442,29 +428,23 @@ PRIVATE BOOL HTFTPParseURL (HTRequest * request,
 	else
 	    StrAllocCopy(ctrl->passwd, WWW_FTP_CLIENT);
     }
-/* begin _GM_ */
-/* Note: libwww bug ID: GM6 */
-    {
-/*	char tempParams[512];
-	sprintf(tempParams, "Username='%s', Password='%s'", ctrl->uid, ctrl->passwd);
-	HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
-			   tempParams, strlen(tempParams), "HTFTPParseURL");
-*/  }
-/* end _GM_ */
     HTTRACE(PROT_TRACE, "FTPParse.... uid `%s\' pw `%s\'\n" _ 
-		ctrl->uid ? ctrl->uid : "<null>" _ 
-		ctrl->passwd ? ctrl->passwd : "<null>");	
+	    ctrl->uid ? ctrl->uid : "<null>" _ 
+	    ctrl->passwd ? ctrl->passwd : "<null>");	
 
-    ptr = strchr(path, ';');
-    if (ptr) {
+    /*
+    ** Look for any type in the URI. If not 'type' parameter then look for
+    ** trailing slash.
+    */
+    if ((ptr = strchr(path, ';')) != NULL) {
 	*ptr = '\0';
 	if (strncasecomp(ptr, ";type=", 6))		    /* Look for type */
 	    data->type = TOUPPER(*(ptr+6));
 	else if (*(ptr-1) == '/')
-	    data->type = 'N';
+	    data->type = 'D';
     } else if (*(path+strlen(path)-1) == '/') {
 	*(path+strlen(path)-1) = '\0';
-	data->type = 'N';
+	data->type = 'D';
     }
     HTTRACE(PROT_TRACE, "FTPParse.... Datatype %c\n" _ data->type ? data->type : '?');
     StrAllocCopy(data->file, path);
@@ -503,48 +483,33 @@ PRIVATE BOOL FTPListType (ftp_data * data, FTPServerType type)
 **	Set up a port to listen for data
 **	Returns YES if OK, else NO
 */
-PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
+PRIVATE BOOL AcceptDataSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 {
-#ifdef FTP_POLL_PORTS
-    unsigned short old_DataPort = DataPort;
-    for (DataPort=old_DataPort+1;; DataPort++) {
-	if (DataPort > LAST_TCP_PORT)
-	    DataPort = FIRST_TCP_PORT;
-	if (DataPort == old_DataPort) {
-	    HTTRACE(PROT_TRACE, "FTP......... No data port found\n");
-	    return NO;
-	}
-	if (HTDoListen(dnet, DataPort, 1) == HT_OK)
-	    break;
-#if 0
-	if (HTNet_socket(dnet) != INVSOC) {
-	    NETCLOSE(HTNet_socket(dnet));
-	    HTNet_socket(dnet) = INVSOC;
-	}
-#else
-	HTDoClose(dnet);
-#endif
-    }
-#else
-    if (HTDoListen(dnet, 0, HTNet_socket(cnet), 1) != HT_OK) return NO;
-#endif /* FTP_POLL_PORTS */
+    if (HTHost_listen(NULL, dnet, "ftp://localhost:0") == HT_ERROR)
+	return NO;
 
-    /* Now we must find out who we are to tell the other guy */
+    /*
+    ** Now we must find out who we are to tell the other guy
+    ** We have to get the local IP interface from the control connection as
+    ** this is not yet set in the unaccepted data socket
+    */
     {
-	SockA local_addr;
-	int addr_size = sizeof(local_addr);
-	memset((void *) &local_addr, '\0', sizeof(local_addr));
-	if (getsockname(HTNet_socket(dnet), (struct sockaddr *) &local_addr,
-			&addr_size) < 0) {
+	SockA local_port, local_host;
+	int addr_size = sizeof(local_port);
+	memset((void *) &local_host, '\0', addr_size);
+	memset((void *) &local_port, '\0', addr_size);
+	if (getsockname(HTNet_socket(cnet),
+			(struct sockaddr *) &local_host, &addr_size) < 0 || 
+	    getsockname(HTNet_socket(dnet),
+			(struct sockaddr *) &local_port, &addr_size) < 0) {
 	    HTRequest_addSystemError(HTNet_request(dnet), ERR_FATAL, socerrno,
 				     NO, "getsockname");
 	    return NO;
 	}
-	HTTRACE(PROT_TRACE, "FTP......... This host is `%s\'\n" _ 
-				HTInetString(&local_addr));
+	HTTRACE(PROT_TRACE, "FTP......... This host is `%s\'\n" _ HTInetString(&local_host));
 	{
-	    u_long addr = local_addr.sin_addr.s_addr;
-	    u_short port = local_addr.sin_port;
+	    u_long addr = local_host.sin_addr.s_addr;
+	    u_short port = local_port.sin_port;
 	    sprintf(data->host, "%d,%d,%d,%d,%d,%d",
 		    (int)*((unsigned char *)(&addr)+0),
 		    (int)*((unsigned char *)(&addr)+1),
@@ -586,13 +551,13 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    {
 		HTAlertCallback * cbf = HTAlert_find(HT_PROG_LOGIN);
 		if (cbf) (*cbf)(request, HT_PROG_LOGIN, HT_MSG_NULL, NULL, NULL, NULL);
-		HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_SELECT\n");
+		HTTRACE(PROT_TRACE, "FTP Login... now in state NEED_SELECT\n");
 		ctrl->substate = ctrl->reset ? NEED_REIN : NEED_GREETING;
 	    }
 	    break;
 
 	  case NEED_GREETING:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_GREETING\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state NEED_GREETING\n");
 	    status = HTHost_read(HTNet_host(cnet), cnet);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
@@ -609,7 +574,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_REIN:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_REIN\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state NEED_REIN\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "REIN", NULL);
 		if (status == HT_WOULD_BLOCK)
@@ -622,13 +587,11 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
-/* begin _GM_ */
-/* Note: libwww bug ID: GM8 */
-		    /* if (ctrl->repcode/100 == 2) { */
-		    /* If the FTP server doesn't support the REIN command, then
-		       the return code will be 502 */
+		    /* 
+		    ** If the FTP server doesn't support the REIN command, then
+		    ** the return code will be 502
+		    */
 		    if ((ctrl->repcode/100 == 2) || (ctrl->repcode == 502)) {
-/* end _GM_ */
 			ctrl->substate = (ctrl->uid && *ctrl->uid) ?
 			    NEED_UID : PROMPT_USER;
 		    } else {
@@ -642,7 +605,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_UID:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_UID\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state NEED_UID\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "USER", ctrl->uid);
 		if (status == HT_WOULD_BLOCK)
@@ -668,10 +631,10 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    } else if (ctrl->repcode == 530) {
 			if (ctrl->alreadyLoggedIn == YES) {
 			    ctrl->substate = SUB_SUCCESS;
-			    HTTRACE(PROT_TRACE, "FTP Login.. Already logged in\n");
+			    HTTRACE(PROT_TRACE, "FTP Login... Already logged in\n");
 			} else {
 			    ctrl->substate = PROMPT_USER;
-			    HTTRACE(PROT_TRACE, "FTP Login.. User Unknown\n");
+			    HTTRACE(PROT_TRACE, "FTP Login... User Unknown\n");
 			}
 		    }
 /* end _GM_ */
@@ -684,7 +647,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_PASSWD:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_PASSWD\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state NEED_PASSWD\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "PASS", ctrl->passwd);
 		if (status == HT_WOULD_BLOCK)
@@ -721,7 +684,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_ACCOUNT:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_ACCOUNT\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state NEED_ACCOUNT\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "ACCT", ctrl->account);
 		if (status == HT_WOULD_BLOCK)
@@ -746,7 +709,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case PROMPT_USER:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state PROMPT_USER\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state PROMPT_USER\n");
 	    {
 		HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
 		HTAlertPar * reply = HTAlert_newReply();
@@ -766,7 +729,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case SUB_ERROR:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state SUB_ERROR\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state SUB_ERROR\n");
 	    HTRequest_addError(request, ERR_FATAL, NO,
 			       HTERR_FTP_LOGIN_FAILURE, NULL, 0, "HTFTPLogin");
 	    HTTRACE(PROT_TRACE, "FTP......... Login failed\n");
@@ -775,7 +738,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case SUB_SUCCESS:
-	    HTTRACE(PROT_TRACE, "FTP Login.. now in state SUB_SUCCESS\n");
+	    HTTRACE(PROT_TRACE, "FTP Login... now in state SUB_SUCCESS\n");
 	    HTTRACE(PROT_TRACE, "FTP......... Logged in as `%s\'\n" _ ctrl->uid);
 	    ctrl->substate = 0;
 	    return HT_OK;
@@ -842,7 +805,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 	    HTTRACE(PROT_TRACE, "FTP Data.... now in state NEED_SELECT\n");
 	    if (FTPMode & FTP_DATA_PASV && !data->pasv)
 		ctrl->substate = NEED_PASV;
-	    else if (ListenSocket(cnet, dnet, data))
+	    else if (AcceptDataSocket(cnet, dnet, data))
 		ctrl->substate = NEED_PORT;
 	    else
 		ctrl->substate = SUB_ERROR;
@@ -885,7 +848,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 			    ctrl->substate = SUB_SUCCESS;
 			}
 		    } else {
-			ctrl->substate = ListenSocket(cnet, dnet, data) ?
+			ctrl->substate = AcceptDataSocket(cnet, dnet, data) ?
 			    NEED_PORT : SUB_ERROR;
 		    }
 		} else
@@ -1129,16 +1092,12 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 
 	  case NEED_CONNECT:
 	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_CONNECT\n");
-	    status = HTHost_connect(HTNet_host(dnet), dnet, data->host, FTP_DATA);
+	    status = HTHost_connect(HTNet_host(dnet), dnet, data->host);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_OK) {
-		HTTRACE(PROT_TRACE, "FTP Get Data.... Active data socket %d\n" _ 
+		HTTRACE(PROT_TRACE, "FTP Get Data Active data socket %d\n" _ 
 			    HTNet_socket(dnet));
-#if 0
-		/*		HTNet_setPersistent(dnet, YES, HT_TP_INTERLEAVE); */
-		HTNet_setPersistent(dnet, YES, HT_TP_SINGLE);
-#endif
 		ctrl->substate = NEED_ACTION;
 	    } else {			 	  /* Swap to PORT on the fly */
 		NETCLOSE(HTNet_socket(dnet));
@@ -1152,18 +1111,15 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 
 	  case NEED_ACCEPT:
 	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_ACCEPT\n");
-	    {
-		status = HTDoAccept(ctrl->dnet, &ctrl->dnet);
-		dnet = ctrl->dnet;
-		if (status == HT_WOULD_BLOCK)
-		    return HT_WOULD_BLOCK;
-		else if (status == HT_OK) {
-		    HTTRACE(PROT_TRACE, "FTP Get Data.... Passive data socket %d\n" _ 
-				HTNet_socket(dnet));
-		    ctrl->substate = NEED_STREAM;
-		} else
-		    ctrl->substate = SUB_ERROR;
-	    }
+	    status = HTHost_accept(HTNet_host(dnet), dnet, NULL);
+	    if (status == HT_WOULD_BLOCK)
+		return HT_WOULD_BLOCK;
+	    else if (status == HT_OK) {
+		HTTRACE(PROT_TRACE, "FTP Get Data Passive data socket %d\n" _
+			HTNet_socket(dnet));
+		ctrl->substate = NEED_STREAM;
+	    } else
+		ctrl->substate = SUB_ERROR;
 	    break;
 
 	  case NEED_ACTION:
@@ -1191,10 +1147,6 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 			ctrl->substate = data->pasv ? NEED_STREAM : NEED_ACCEPT;
 		    else if (code/100==5 && !ctrl->cwd)
 			ctrl->substate = NEED_SEGMENT;
-/* begin _GM_ */
-/* Note: libwww bug ID: GM9 */
-		    /* else */
-		    /* 	ctrl->substate = SUB_ERROR; */
 		    else {
 			if (ctrl->repcode == 550) {
 			    HTTRACE(PROT_TRACE, "FTP Get Data no such file or directory\n");
@@ -1202,7 +1154,6 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 			}
 		    	ctrl->substate = SUB_ERROR;
 		    }
-/* end _GM_ */
 		} else
 		    ctrl->substate = SUB_ERROR;
 		ctrl->sent = NO;
@@ -1278,8 +1229,8 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 				  HTRequest_outputStream(request),
 				  request, YES);
 		HTNet_setReadStream(dnet, target);
+		HTRequest_setOutputConnected(request, YES);
 	    }
-	    HTRequest_setOutputConnected(request, YES);
 	    data_is_active = YES;
 	    ctrl->substate = NEED_BODY;
 	    break;
@@ -1357,7 +1308,6 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request)
     ftp_data * data = NULL;
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * url = HTAnchor_physical(anchor);
-
 
     /*
     ** Initiate a new FTP ctrl and data structure and bind to request structure
@@ -1472,7 +1422,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 	case FTP_NEED_CCON:
 	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_NEED_CONN\n");
-	    status = HTHost_connect(host, cnet, url, FTP_PORT);
+	    status = HTHost_connect(host, cnet, url);
 	    host = HTNet_host(cnet);
 	    if (status == HT_OK) {
 
