@@ -46,7 +46,7 @@ dist-hook:
 # checks fail.  Also, make sure the NEWS file is up-to-date.
 CVSDIRS = Library LineMode Robot ComLine MiniServ Listen
 cvs-tag:
-	cvs -q tag `echo "Release-$(VERSION)" | sed 's/\./-/g'` $(CVSDIRS)
+	cvs -q tag -F `echo "Release-$(VERSION)" | sed 's/\./-/g'` $(CVSDIRS)
 
 cvs-export-member:
 	for subdir in $(CVSDIRS); do \

@@ -7,11 +7,15 @@ Please first read the full copyright statement in the file COPYRIGH.
 
 The PICS Label Parser is an example for using the PICS label parsing
 utilities. It is also useful as a mechanism for testing the syntax 
-of labels. 
+of labels.
 
-For more information on the application, please look at the page
+Plese see README.html for convenient links to all the source.
 
-	http://www.w3.org/pub/WWW/PicsLablPars/
+Source files for LablPars can be found in these directories:
+
+	http://www.w3.org/pub/WWW/PICS-client/LablPars/
+	http://www.w3.org/pub/WWW/PICS-client/src/
+	http://www.w3.org/pub/WWW/PICS-client/HTUtils/
 
 Have fun!
 

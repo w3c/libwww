@@ -12,45 +12,82 @@
   Before and After Filters
 </H1>
 <P>
-Until now we have not mentioned a lot about what the Library actually can
-do. The fact is that the core part of libwww actually doesn't do much. All
-the functionality must be registered by the application - in orther words
-- the application programmer builds a libwww profile for an application by
-registrering a specific set of protocol modules, callbacks and filters.
+Until now we have not mentioned a lot about what the Library actually
+<I>can</I> do. The fact is that the <A HREF="../../src/WWWCore.html">core
+part </A>of libwww actually doesn't do much. All the functionality must be
+registered by the application - in other words - the application programmer
+builds a <A HREF="../../src/HTProfil.html">libwww profile</A> for an application
+by registering a specific set of protocol modules, callbacks and filters.
+Filters are called <I>before</I> a request is to be issued to the Network,
+and <I>after</I> when the request has terminated. 
+<P>
+All filters are registered at run-time, and filters can be cascaded so that
+one filter can call other filters and so on. Filters can also start new requests
+or terminate existing requests, so the set of possibilities is very big.
+Normally, filters do only handle metainformation about a resource. For example,
+the authentication filters looks to see if we have been asked to provide
+some credentials in order to access a URL. If so then it adds a protocol
+defined header to the request, and if not then the request just proceeds.
+Handling the actual data object is done by <A HREF="Streams.html">streams</A>
+which can &nbsp;modify the contents of a data object.
+<P>
+The Library can handle local and global filters - local filters are associated
+with a single request and global filters are associated with all requests.
+That is, if you can decorate a request with a specialized filter or you can
+use a generalized filter for handling all requests. A global filter is useful
+if the filter is to be performed very often and local filters can either
+add to or override the global set of filters. 
+<P>
+Often, a before and an after filter needs to share a context which is unique
+to this set of filters. There are various ways this can be handled by the
+Library. Either a context can associated at registration time or it can be
+built while the filters are run. The <A HREF="../../src/HTUTree.html">URL
+tree</A> is a useful data object for keeping information associated with
+realms or sets of URLs. 
 <H2>
   Use the Standard Filters
 </H2>
 <P>
-The libwww distribution package somes with a large set of
-<A HREF="../src/HTFilter.html">standard filters</A>. These are filters that
-can be used in most applications and will do 80% of the job. The standard
-filters cover the following functions
-<P>
-Proxy and Gateway redirection
-<P>
-Memory and Persistent cache
-<P>
-Rule Files
-<P>
-Logging
-<P>
-Error Message Generation
-<P>
-Redirection
-<P>
-Authentication
+The libwww distribution package comes with a large set of
+<A HREF="../../src/HTFilter.html">standard filters</A>. These are filters
+that can be used in most applications and will do 80% of the job. The
+<A HREF="../../src/HTFilter.html">standard filters </A>cover the following
+functions
+<UL>
+  <LI>
+    Proxy and Gateway redirection
+  <LI>
+    Memory and Persistent cache
+  <LI>
+    Rule Files
+  <LI>
+    Logging
+  <LI>
+    Error Message Generation
+  <LI>
+    Redirection
+  <LI>
+    Authentication
+</UL>
 <H2>
   Where the Standard Filters Aren't Enough
 </H2>
 <P>
-In some situations, you can not use the standard filters
-<H2>
-  Write you own Filters
-</H2>
+In some situations, you can not use the standard filters, for example if
+you want to get very specific information out of the request or want to interact
+more actively. For example if you want to keep track of all the redirections
+performed by the redirection filter then the only way is to roll your own
+filter. However, the filter mechanism provides the application writer with
+a powerful method for extending the functionality of the application at runtime
+and can be used for many different extensions.
 <P>
-A great way extending the fucntionallity of your application is to write
-a new filter that can either be hooked in globally or locally depending on
-its nature.
+Filters can also be nested - that is for example the case of authentication
+filters and PEP filters. For example, the authentication filter before and
+after filter are generalized authentication filters that do not know about
+specific schemes like basic authentication. However, the authentication filters
+contain a mechanism for registering specific authentication filters like
+basic and digest, and it will look at the information in the URL tree to
+see what authentication scheme to call for a particular request.
 <P>
   <HR>
 <ADDRESS>

@@ -31,9 +31,9 @@ NULL=nul
 ################################################################################
 # Begin Project
 # PROP Target_Last_Scanned "www - Win32 Debug"
-MTL=mktyplib.exe
 CPP=cl.exe
 RSC=rc.exe
+MTL=mktyplib.exe
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -52,20 +52,20 @@ ALL : "$(OUTDIR)\www.exe"
 
 CLEAN : 
 	-@erase "..\..\..\Bin\Release\www.exe"
-	-@erase ".\WinRel\HTHInit.obj"
-	-@erase ".\WinRel\HTML.obj"
-	-@erase ".\WinRel\GridStyle.obj"
-	-@erase ".\WinRel\HTBrowse.obj"
-	-@erase ".\WinRel\GridText.obj"
+	-@erase ".\WinRel\lib.obj"
+	-@erase ".\WinRel\HTPlain.obj"
 	-@erase ".\WinRel\www.obj"
+	-@erase ".\WinRel\scroll.obj"
 	-@erase ".\WinRel\HTBInit.obj"
 	-@erase ".\WinRel\DefaultStyles.obj"
-	-@erase ".\WinRel\HTProfil.obj"
-	-@erase ".\WinRel\scroll.obj"
-	-@erase ".\WinRel\lib.obj"
 	-@erase ".\WinRel\HTInit.obj"
-	-@erase ".\WinRel\HTPlain.obj"
 	-@erase ".\WinRel\HTMLPDTD.obj"
+	-@erase ".\WinRel\HTBrowse.obj"
+	-@erase ".\WinRel\GridText.obj"
+	-@erase ".\WinRel\GridStyle.obj"
+	-@erase ".\WinRel\HTML.obj"
+	-@erase ".\WinRel\HTProfil.obj"
+	-@erase ".\WinRel\HTHInit.obj"
 	-@erase ".\WinRel\www.res"
 
 "$(OUTDIR)" :
@@ -98,40 +98,39 @@ LINK32_FLAGS=wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib\
  odbc32.lib odbccp32.lib /nologo /subsystem:windows /incremental:no\
  /pdb:"$(OUTDIR)/www.pdb" /machine:I386 /out:"../../../Bin/Release/www.exe" 
 LINK32_OBJS= \
-	"$(INTDIR)/HTHInit.obj" \
-	"$(INTDIR)/HTML.obj" \
-	"$(INTDIR)/GridStyle.obj" \
-	"$(INTDIR)/HTBrowse.obj" \
-	"$(INTDIR)/GridText.obj" \
+	"$(INTDIR)/lib.obj" \
+	"$(INTDIR)/HTPlain.obj" \
 	"$(INTDIR)/www.obj" \
+	"$(INTDIR)/scroll.obj" \
 	"$(INTDIR)/HTBInit.obj" \
 	"$(INTDIR)/DefaultStyles.obj" \
-	"$(INTDIR)/HTProfil.obj" \
-	"$(INTDIR)/scroll.obj" \
-	"$(INTDIR)/lib.obj" \
 	"$(INTDIR)/HTInit.obj" \
-	"$(INTDIR)/HTPlain.obj" \
 	"$(INTDIR)/HTMLPDTD.obj" \
+	"$(INTDIR)/HTBrowse.obj" \
+	"$(INTDIR)/GridText.obj" \
+	"$(INTDIR)/GridStyle.obj" \
+	"$(INTDIR)/HTML.obj" \
+	"$(INTDIR)/HTProfil.obj" \
+	"$(INTDIR)/HTHInit.obj" \
 	"$(INTDIR)/www.res" \
-	"..\..\..\Bin\wwwhtml.lib" \
-	"..\..\..\Bin\wwwfile.lib" \
-	"..\..\..\Bin\wwwtelnt.lib" \
+	"..\..\..\Bin\wwwapp.lib" \
 	"..\..\..\Bin\wwwmime.lib" \
 	"..\..\..\Bin\wwwhttp.lib" \
-	"..\..\..\Bin\wwwftp.lib" \
-	"..\..\..\Bin\wwwcore.lib" \
-	"..\..\..\Bin\wwwgophe.lib" \
-	"..\..\..\Bin\wwwwais.lib" \
-	"..\..\..\Bin\wwwdll.lib" \
-	"..\..\..\Bin\wwwnews.lib" \
-	"..\..\..\Bin\wwwcache.lib" \
-	"..\..\..\Bin\wwwapp.lib" \
-	"..\..\..\Bin\wwwutils.lib" \
-	"..\..\..\Bin\wwwrules.lib" \
 	"..\..\..\Bin\pics.lib" \
+	"..\..\..\Bin\wwwwais.lib" \
+	"..\..\..\Bin\wwwnews.lib" \
+	"..\..\..\Bin\wwwdir.lib" \
 	"..\..\..\Bin\wwwstream.lib" \
+	"..\..\..\Bin\wwwgophe.lib" \
+	"..\..\..\Bin\wwwfile.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwcache.lib" \
+	"..\..\..\Bin\wwwftp.lib" \
+	"..\..\..\Bin\wwwtelnt.lib" \
+	"..\..\..\Bin\wwwdll.lib" \
+	"..\..\..\Bin\wwwutils.lib" \
 	"..\..\..\Bin\wwwtrans.lib" \
-	"..\..\..\Bin\wwwdir.lib"
+	"..\..\..\Bin\wwwhtml.lib"
 
 "$(OUTDIR)\www.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -157,20 +156,20 @@ CLEAN :
 	-@erase ".\WinDebug\vc40.pdb"
 	-@erase ".\WinDebug\vc40.idb"
 	-@erase "..\..\..\Bin\Debug\www.exe"
-	-@erase ".\WinDebug\HTMLPDTD.obj"
-	-@erase ".\WinDebug\GridStyle.obj"
-	-@erase ".\WinDebug\HTML.obj"
-	-@erase ".\WinDebug\HTPlain.obj"
-	-@erase ".\WinDebug\HTBrowse.obj"
-	-@erase ".\WinDebug\GridText.obj"
-	-@erase ".\WinDebug\scroll.obj"
-	-@erase ".\WinDebug\HTHInit.obj"
-	-@erase ".\WinDebug\HTProfil.obj"
-	-@erase ".\WinDebug\lib.obj"
-	-@erase ".\WinDebug\HTInit.obj"
-	-@erase ".\WinDebug\DefaultStyles.obj"
-	-@erase ".\WinDebug\www.obj"
 	-@erase ".\WinDebug\HTBInit.obj"
+	-@erase ".\WinDebug\GridStyle.obj"
+	-@erase ".\WinDebug\HTMLPDTD.obj"
+	-@erase ".\WinDebug\HTBrowse.obj"
+	-@erase ".\WinDebug\HTPlain.obj"
+	-@erase ".\WinDebug\HTML.obj"
+	-@erase ".\WinDebug\HTProfil.obj"
+	-@erase ".\WinDebug\scroll.obj"
+	-@erase ".\WinDebug\GridText.obj"
+	-@erase ".\WinDebug\www.obj"
+	-@erase ".\WinDebug\HTInit.obj"
+	-@erase ".\WinDebug\HTHInit.obj"
+	-@erase ".\WinDebug\DefaultStyles.obj"
+	-@erase ".\WinDebug\lib.obj"
 	-@erase ".\WinDebug\www.res"
 	-@erase "..\..\..\Bin\Debug\www.ilk"
 	-@erase ".\WinDebug\www.pdb"
@@ -207,40 +206,39 @@ LINK32_FLAGS=wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib\
  /pdb:"$(OUTDIR)/www.pdb" /debug /machine:I386 /out:"../../../Bin/Debug/www.exe"\
  
 LINK32_OBJS= \
-	"$(INTDIR)/HTMLPDTD.obj" \
-	"$(INTDIR)/GridStyle.obj" \
-	"$(INTDIR)/HTML.obj" \
-	"$(INTDIR)/HTPlain.obj" \
-	"$(INTDIR)/HTBrowse.obj" \
-	"$(INTDIR)/GridText.obj" \
-	"$(INTDIR)/scroll.obj" \
-	"$(INTDIR)/HTHInit.obj" \
-	"$(INTDIR)/HTProfil.obj" \
-	"$(INTDIR)/lib.obj" \
-	"$(INTDIR)/HTInit.obj" \
-	"$(INTDIR)/DefaultStyles.obj" \
-	"$(INTDIR)/www.obj" \
 	"$(INTDIR)/HTBInit.obj" \
+	"$(INTDIR)/GridStyle.obj" \
+	"$(INTDIR)/HTMLPDTD.obj" \
+	"$(INTDIR)/HTBrowse.obj" \
+	"$(INTDIR)/HTPlain.obj" \
+	"$(INTDIR)/HTML.obj" \
+	"$(INTDIR)/HTProfil.obj" \
+	"$(INTDIR)/scroll.obj" \
+	"$(INTDIR)/GridText.obj" \
+	"$(INTDIR)/www.obj" \
+	"$(INTDIR)/HTInit.obj" \
+	"$(INTDIR)/HTHInit.obj" \
+	"$(INTDIR)/DefaultStyles.obj" \
+	"$(INTDIR)/lib.obj" \
 	"$(INTDIR)/www.res" \
-	"..\..\..\Bin\wwwhtml.lib" \
-	"..\..\..\Bin\wwwfile.lib" \
-	"..\..\..\Bin\wwwtelnt.lib" \
+	"..\..\..\Bin\wwwapp.lib" \
 	"..\..\..\Bin\wwwmime.lib" \
 	"..\..\..\Bin\wwwhttp.lib" \
-	"..\..\..\Bin\wwwftp.lib" \
-	"..\..\..\Bin\wwwcore.lib" \
-	"..\..\..\Bin\wwwgophe.lib" \
-	"..\..\..\Bin\wwwwais.lib" \
-	"..\..\..\Bin\wwwdll.lib" \
-	"..\..\..\Bin\wwwnews.lib" \
-	"..\..\..\Bin\wwwcache.lib" \
-	"..\..\..\Bin\wwwapp.lib" \
-	"..\..\..\Bin\wwwutils.lib" \
-	"..\..\..\Bin\wwwrules.lib" \
 	"..\..\..\Bin\pics.lib" \
+	"..\..\..\Bin\wwwwais.lib" \
+	"..\..\..\Bin\wwwnews.lib" \
+	"..\..\..\Bin\wwwdir.lib" \
 	"..\..\..\Bin\wwwstream.lib" \
+	"..\..\..\Bin\wwwgophe.lib" \
+	"..\..\..\Bin\wwwfile.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwcache.lib" \
+	"..\..\..\Bin\wwwftp.lib" \
+	"..\..\..\Bin\wwwtelnt.lib" \
+	"..\..\..\Bin\wwwdll.lib" \
+	"..\..\..\Bin\wwwutils.lib" \
 	"..\..\..\Bin\wwwtrans.lib" \
-	"..\..\..\Bin\wwwdir.lib"
+	"..\..\..\Bin\wwwhtml.lib"
 
 "$(OUTDIR)\www.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -2155,18 +2153,6 @@ SOURCE="..\..\..\Bin\wwwtelnt.lib"
 # Begin Source File
 
 SOURCE="..\..\..\Bin\wwwstream.lib"
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE="..\..\..\Bin\wwwrules.lib"
 
 !IF  "$(CFG)" == "www - Win32 Release"
 

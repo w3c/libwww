@@ -17,6 +17,11 @@ OBJ = $(WWW)/PICS-client/LablPars
 CMN = $(WWW)/Library/src
 PICS= $(WWW)/PICS-client/src
 CL  = $(WWW)/PICS-client/LablPars
+#	Or, if compiling without libwww, use these instead
+#OBJ = .
+#CMN = ../HTUtils
+#PICS= ../src
+#CL  = .
 #	Configuration
 CC  = gcc
 # use the config.h from the LablPars directory
