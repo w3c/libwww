@@ -4345,10 +4345,26 @@ appendAttributeValue(XML_Parser parser, const ENCODING *enc, XML_Bool isCdata,
             skippedEntityHandler(handlerArg, name, 0);
           */
           if ((pool == &tempPool) && defaultHandler)
-            reportDefault(parser, enc, ptr, next);
-          break;
-        }
-        if (entity->open) {
+#ifdef XML_AMAYA
+	    {
+	      /* Laurent Carcone (carcone@w3.org) 14/March/2003
+	      ** For attributes values, Expat is skipping the general entities
+	      ** it doesn't know. This patch keeps those entities untranslated.
+	      */
+	      const char *ent;
+	      if (!poolAppendChar(pool, (unsigned char) (26)))
+		return XML_ERROR_NO_MEMORY;
+	      for (ent = ptr+1; ent < next; ent++) {
+		if (!poolAppendChar(pool, ent[0]))
+		  return XML_ERROR_NO_MEMORY; 
+	      }
+	    }
+#else /* XML_AMAYA */
+	  reportDefault(parser, enc, ptr, next);
+#endif /* XML_AMAYA */
+	  break;
+	}
+	if (entity->open) {
           if (enc == encoding)
             eventPtr = ptr;
           return XML_ERROR_RECURSIVE_ENTITY_REF;
