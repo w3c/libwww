@@ -31,8 +31,13 @@ Library</A>.
 #include "HTAtom.h"
 </PRE>
 <H2>
-  Next word or quoted string
+  MIME Parsing and other String Based Utilities
 </H2>
+<P>
+A bunch of "finding the next whatever" functions.
+<H3>
+  Next word or quoted string
+</H3>
 <P>
 This function returns a RFC822 word separated by space, comma, or semi-colons.
 <CODE>pstr</CODE> points to a string containing a word separated by white
@@ -44,9 +49,9 @@ to the first word or NULL on error
 <PRE>
 extern char * HTNextField (char** pstr);
 </PRE>
-<H2>
+<H3>
   Next Name-value Pair
-</H2>
+</H3>
 <P>
 This is the same as <CODE>HTNextField</CODE> but it does not look for '='
 as a separator so if there is a name-value pair then both parts are returned.
@@ -54,32 +59,36 @@ Returns a pointer to the first word or NULL on error
 <PRE>
 extern char * HTNextPair (char ** pstr);
 </PRE>
-
 <H3>
   Next LWS Delimited Token
 </H3>
-
-A simpler version of the above that only looks for linear white space
-as the delimiter.
-
+<P>
+A simpler version of the above that only looks for linear white space as
+the delimiter.
 <PRE>
 extern char * HTNextLWSToken (char ** pstr);
 </PRE>
-
 <H3>
   Find next "/" Delimited Segment
 </H3>
-
-This is the same as HTNextField but it includes "/" as a delimiter.
-Returns	a pointer to the first segment or NULL on error
-
+<P>
+This is the same as HTNextField but it includes "/" as a delimiter. Returns
+a pointer to the first segment or NULL on error
 <PRE>
 extern char * HTNextSegment (char ** pstr);
 </PRE>
-
-<H2>
+<H3>
+  Next Comma Separated String (or Element)
+</H3>
+<P>
+This is the same as HTNextPair but it does not look for anything else than
+',' as separator Returns a pointer to the first word or NULL on error
+<PRE>
+extern char * HTNextElement (char ** pstr);
+</PRE>
+<H3>
   Next S-expression
-</H2>
+</H3>
 <P>
 Find the next s-expression token from a string of characters. We return the
 <CODE>name</CODE> of this expression and the <CODE>param</CODE> points to
@@ -197,10 +206,10 @@ extern char * HTWWWToLocal (const char * url, const char * base,
   Convert a local file name into a URL
 </H3>
 <P>
-Generates a WWW URL name from a local file name or NULL if
-error. Returns URL (that must be freed by caller) if OK, else
-NULL. The access parameter can be used to indicate any special scheme
-used for local file access. If NULL then "<CODE>file:</CODE>" is used.
+Generates a WWW URL name from a local file name or NULL if error. Returns
+URL (that must be freed by caller) if OK, else NULL. The access parameter
+can be used to indicate any special scheme used for local file access. If
+NULL then "<CODE>file:</CODE>" is used.
 <PRE>
 extern char * HTLocalToWWW (const char * local, const char * access);
 </PRE>

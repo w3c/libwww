@@ -166,6 +166,48 @@ PUBLIC char * HTNextPair (char ** pstr)
     return start;
 }
 
+/*	Find next element in a comma separated string
+**	---------------------------------------------
+**	This is the same as HTNextPair but it does not look for anything
+**	else than ',' as separator
+**	Returns	a pointer to the first word or NULL on error
+*/
+PUBLIC char * HTNextElement (char ** pstr)
+{
+    char * p = *pstr;
+    char * start = NULL;
+    if (!pstr || !*pstr) return NULL;
+
+    /* Strip white space and other delimiters */
+    while (*p && ((isspace((int) *p)) || *p==',')) p++;
+    if (!*p) {
+	*pstr = p;
+	return NULL;					   	 /* No field */
+    }
+    start = p;
+    while (1) {
+	if (*p == '"') {				     /* quoted field */
+	    for(;*p && *p!='"'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    p++;
+	} else if (*p == '<') {				     /* quoted field */
+	    for(;*p && *p!='>'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    p++;
+	} else if (*p == '(') {					  /* Comment */
+	    for(;*p && *p!=')'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    p++;
+	} else {					      /* Spool field */
+	    while (*p && *p!=',') p++;
+	    break;						   /* Got it */
+	}
+    }
+    if (*p) *p++ = '\0';
+    *pstr = p;
+    return start;
+}
+
 /*	Find next "/" delimied segment
 **	------------------------------
 **	This is the same as HTNextField but it includes "/" as a delimiter.
