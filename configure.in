@@ -481,7 +481,7 @@ AC_ARG_WITH(expat,
     WWWXML="libwwwxml.la"
     LWWWXML="-lwwwxml -lxmltok -lxmlparse"
     LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-    SHOWXML="showxml ptri stri"
+    SHOWXML="showxml ptri stri rdf_parse_file rdf_parse_buffer"
     ;;
   esac ],
   AC_MSG_RESULT(yes)
@@ -493,7 +493,7 @@ AC_ARG_WITH(expat,
   WWWXML="libwwwxml.la"
   LWWWXML="-lwwwxml -lxmltok -lxmlparse"
   LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-  SHOWXML="showxml ptri stri"
+  SHOWXML="showxml ptri stri rdf_parse_file rdf_parse_buffer"
 )
 AC_SUBST(HTXML)		# for old style big library
 AC_SUBST(HTLIBXML)	# for old style big library
