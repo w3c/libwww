@@ -208,6 +208,9 @@ typedef struct _MetaDist {
     int			hits;
 } MetaDist;
  
+#ifdef HT_POSIX_REGEX
+PUBLIC regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags);
+#endif
 
 PUBLIC int OutputData(const char  * fmt, ...);
 PUBLIC HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth);
@@ -216,7 +219,6 @@ PUBLIC Robot * Robot_new (void);
 PUBLIC Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod method);
 PUBLIC void Cleanup (Robot * me, int status);
 PUBLIC void SetSignal (void);
-PUBLIC regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags);
 PUBLIC void VersionInfo (void);
 PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) ;

@@ -32,17 +32,17 @@ extern char * skip_comments(char *ptr);
 
 extern UserAgent * new_user_agent(void);
 
-extern void set_name_user_agent(UserAgent *ua,char *name);
+extern BOOL set_name_user_agent(UserAgent *ua,char *name);
 
 extern char * get_name_user_agent(UserAgent *ua);
 
-extern void add_disallow_user_agent(UserAgent *ua, char *disallow);
+extern BOOL add_disallow_user_agent(UserAgent *ua, char *disallow);
 
 extern HTList * get_disallow_user_agent(UserAgent *ua);
 
-extern void delete_user_agent(UserAgent *ua);
+extern BOOL delete_user_agent(UserAgent *ua);
 
-extern void delete_all_user_agents(HTList *user_agents);
+extern BOOL delete_all_user_agents(HTList *user_agents);
 
 extern void print_user_agent(UserAgent *ua);
 
@@ -52,7 +52,7 @@ extern HTList * get_all_user_agents(char *rob_str);
 
 extern BOOL get_user_agents(char * ptr, HTList *user_agents);
 
-extern void put_string_disallow(HTChunk *ch, UserAgent *ua);
+extern BOOL put_string_disallow(HTChunk *ch, UserAgent *ua);
 
 extern char * get_regular_expression(HTList* user_agents, char *name_robot);
 

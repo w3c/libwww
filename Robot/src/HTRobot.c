@@ -1004,8 +1004,11 @@ PUBLIC void Serving_queue(Robot *mr)
 
 	      HTRequest_setParent(newreq,get_last_parent(nhd->anchor));
 
+	      /* @@@ Should be done using a timer and not sleep! @@@ */
+#if 0
 	      if(mr->waits)
 		  sleep(mr->waits);
+#endif
 	      
 	      if (HTLoadAnchor((HTAnchor *)nhd->anchor , newreq) != YES) 
 		{

@@ -23,166 +23,174 @@
 #include "HTRobMan.h"
 #include "RobotTxt.h"
 
-UserAgent *
-new_user_agent(void)
+PUBLIC UserAgent * new_user_agent (void)
 {
-  UserAgent *ua = (UserAgent *)calloc(1,sizeof(UserAgent));
-  ua->disallow = HTList_new();
-  return ua;
+    UserAgent * ua;
+    if ((ua = (UserAgent *) HT_CALLOC(1, sizeof(UserAgent))) == NULL)
+        HT_OUTOFMEM("new_user_agent");
+    ua->disallow = HTList_new();
+    return ua;
 }
 
-char *
-get_name_user_agent(UserAgent *ua)
+PUBLIC char * get_name_user_agent (UserAgent * ua)
 {
-  return ua->name;
+    return ua ? ua->name : NULL;
 }
 
-HTList *
-get_disallow_user_agent(UserAgent *ua)
+PUBLIC HTList * get_disallow_user_agent (UserAgent * ua)
 {
-  return ua->disallow;
-}
-void
-set_name_user_agent(UserAgent *ua,char *name)
-{
-  ua->name = strdup(name);
+    return ua ? ua->disallow : NULL;
 }
 
-void
-add_disallow_user_agent(UserAgent *ua, char *disallow)
+PUBLIC BOOL set_name_user_agent (UserAgent * ua, char * name)
 {
-  HTList_addObject (ua->disallow, (void *)strdup(disallow));
-}
-
-void 
-delete_user_agent(UserAgent *ua)
-{
-  if(ua->name)
-    HT_FREE(ua->name);
-  if(ua->disallow)
-    {
-      HTList *cur = ua->disallow;
-      char *pres;
-      while ((pres = (char *) HTList_nextObject(cur)))
-	HT_FREE(pres);
-      HTList_delete(ua->disallow);
+    if (ua && name) {
+	StrAllocCopy(ua->name, name);
+	return YES;
     }
+    return NO;
 }
 
-void 
-delete_all_user_agents(HTList *user_agents)
+PUBLIC BOOL add_disallow_user_agent (UserAgent * ua, char * disallow)
 {
-  HTList *cur = user_agents;
-  UserAgent *pres;
-  while ((pres = (UserAgent *) HTList_nextObject(cur)))
-    delete_user_agent(pres);
-  HTList_delete(user_agents);
+    if (ua && disallow) {
+	char * da = NULL;
+	StrAllocCopy(da, disallow);
+
+	/* @@@ Should be an association list (HTAssocList) @@@ */
+	return HTList_addObject(ua->disallow, da);
+    }
+    return NO;
 }
 
-
-char *
-get_regular_expression(HTList* user_agents, char *name_robot)
+PUBLIC BOOL delete_user_agent (UserAgent * ua)
 {
-  HTChunk *ch = HTChunk_new (1024);
-  HTList *cur = user_agents;
-  UserAgent *pres;
-  UserAgent *ua_gen=NULL;
-  int found=0;
-
-  while ((pres = (UserAgent *) HTList_nextObject(cur)))
-    {
-      char *name = get_name_user_agent(pres);
-
-      if(!strcmp(name,"*"))
-	ua_gen = pres;
-
-      if(!strcmp(name,name_robot))
-	{
-	  put_string_disallow(ch,pres);
-	  found = 1;
+    if (ua) {
+	HT_FREE(ua->name);
+	if (ua->disallow) {
+	    HTList *cur = ua->disallow;
+	    char *pres;
+	    while ((pres = (char *) HTList_nextObject(cur)))
+		HT_FREE(pres);
+	    HTList_delete(ua->disallow);
 	}
+	return YES;
     }
-  if(!found && ua_gen)
-    put_string_disallow(ch,ua_gen);
-
-  return (HTChunk_toCString (ch));
+    return NO;
 }
 
-void
-put_string_disallow(HTChunk *ch,UserAgent *ua)
+PUBLIC BOOL delete_all_user_agents(HTList *user_agents)
 {
-  HTList *cur = get_disallow_user_agent(ua);
-  char *pres;
-  int first = 1;
-  
-  while ((pres = (char *) HTList_nextObject(cur)))
-    {
-      if(!first)
-	HTChunk_puts (ch,"|");
-      else
-	first = 0;
-      HTChunk_puts (ch,pres);
+    if (user_agents) {
+	HTList *cur = user_agents;
+	UserAgent *pres;
+	while ((pres = (UserAgent *) HTList_nextObject(cur)))
+	    delete_user_agent(pres);
+	return HTList_delete(user_agents);
     }
+    return NO;
 }
 
-void
-print_user_agent(UserAgent *ua)
+PUBLIC char * get_regular_expression (HTList * user_agents, char * name_robot)
+{
+    if (user_agents && name_robot) {
+	HTChunk *ch = HTChunk_new (1024);
+	HTList *cur = user_agents;
+	UserAgent *pres;
+	UserAgent *ua_gen=NULL;
+	int found=0;
+
+	while ((pres = (UserAgent *) HTList_nextObject(cur))) {
+	    char *name = get_name_user_agent(pres);
+
+	    if(!strcmp(name,"*"))
+		ua_gen = pres;
+
+	    if(!strcmp(name,name_robot)) {
+		put_string_disallow(ch,pres);
+		found = 1;
+	    }
+	}
+	if(!found && ua_gen) put_string_disallow(ch,ua_gen);
+
+	return (HTChunk_toCString (ch));
+    }
+    return NULL;
+}
+
+PUBLIC BOOL put_string_disallow (HTChunk * ch, UserAgent * ua)
+{
+    if (ch && ua) {
+	HTList *cur = get_disallow_user_agent(ua);
+	char *pres;
+	int first = 1;
+  
+	while ((pres = (char *) HTList_nextObject(cur))) {
+	    if(!first)
+		HTChunk_puts (ch,"|");
+	    else
+		first = 0;
+	    HTChunk_puts (ch,pres);
+	}
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC void print_user_agent(UserAgent *ua)
 {
   HTList *cur = ua->disallow;
   char *pres;
-  printf("User Agent : %s \n", ua->name);
+  HTTrace("User Agent : %s \n", ua->name);
   while ((pres = (char*) HTList_nextObject(cur)))
-    printf("Disallow : %s \n", pres);
+    HTTrace("Disallow : %s \n", pres);
 }
 
-void 
-print_all_user_agents(HTList *user_agents)
+PUBLIC void print_all_user_agents(HTList * user_agents)
 {
-  HTList *cur = user_agents;
-  UserAgent *pres;
-  while ((pres = (UserAgent *) HTList_nextObject(cur)))
+    HTList *cur = user_agents;
+    UserAgent *pres;
+    while ((pres = (UserAgent *) HTList_nextObject(cur)))
     {
-      printf("\nNew User Agent\n");
-      print_user_agent(pres);
+	HTTrace("\nNew User Agent\n");
+	print_user_agent(pres);
     }
 }
 
-HTList *
-get_all_user_agents(char *rob_str)
+PUBLIC HTList * get_all_user_agents(char * rob_str)
 {
-  char *ptr = rob_str;
+    if (rob_str) {
+	char * ptr = rob_str;
+	HTList * user_agents = HTList_new();
 
-  HTList * user_agents = HTList_new();
-
-  /* skip blank spaces */
-  while(isspace((int)*ptr))
-    ptr++;
-  /* skip comments */
-  ptr = skip_comments(ptr);
-
-  if(!get_user_agents(ptr,user_agents))
-    fprintf(stderr,"Something is wrong in robots.txt\n");
-
-  return user_agents;
-}
-
-char *
-skip_comments(char *ptr)
-{
-  if(*ptr == '#')
-    {
-      do {
-	while(*ptr != '\n')
-	  ptr++;
+	/* skip blank spaces */
 	while(isspace((int)*ptr))
-	  ptr++;
-      } while(*ptr == '#');
+	    ptr++;
+
+	/* skip comments */
+	ptr = skip_comments(ptr);
+
+	if(!get_user_agents(ptr,user_agents))
+	    HTTrace("Something is wrong in robots.txt\n");
+
+	return user_agents;
     }
-  return ptr;
 }
 
-void 
-scan_name_until_eoline(char *robot_str, char *name)
+PUBLIC char * skip_comments(char *ptr)
+{
+    if (ptr && *ptr == '#') {
+	do {
+	    while(*ptr != '\n')
+		ptr++;
+	    while(isspace((int)*ptr))
+		ptr++;
+	} while (*ptr == '#');
+    }
+    return ptr;
+}
+
+PUBLIC void scan_name_until_eoline(char *robot_str, char *name)
 {
   char *ptr = robot_str;
   char *ntr = name;
@@ -196,8 +204,7 @@ scan_name_until_eoline(char *robot_str, char *name)
   *ntr = '\0';
 }
 
-void 
-scan_name_until_space(char *robot_str, char *name)
+PUBLIC void scan_name_until_space(char *robot_str, char *name)
 {
   char *ptr = robot_str;
   char *ntr = name;
@@ -211,8 +218,7 @@ scan_name_until_space(char *robot_str, char *name)
   *ntr = '\0';
 }
 
-BOOL
-get_user_agents(char * ptr, HTList *user_agents)
+PUBLIC BOOL get_user_agents(char * ptr, HTList *user_agents)
 {
   char *uastr = "user-agent:";
   char *disstr = "disallow:";
@@ -221,8 +227,7 @@ get_user_agents(char * ptr, HTList *user_agents)
   char name[2000];
   int indices[200];
   int i = 0;
-  if(!strncasecmp(ptr,uastr,luastr))
-    {
+  if (ptr && !strncasecomp(ptr,uastr,luastr)) {
       UserAgent *ua = NULL;
       do {
 	i=0;
@@ -239,9 +244,9 @@ get_user_agents(char * ptr, HTList *user_agents)
 	    ptr++;
 	  ptr = skip_comments(ptr);
 	  set_name_user_agent(ua,name);
-	} while(!strncasecmp(ptr,uastr,luastr));
+	} while(!strncasecomp(ptr,uastr,luastr));
 
-	if(!strncasecmp(ptr, disstr,ldisstr))
+	if(!strncasecomp(ptr, disstr,ldisstr))
 	  {
 	    do {
 	      ptr += ldisstr + 1;
@@ -261,20 +266,19 @@ get_user_agents(char * ptr, HTList *user_agents)
 		      add_disallow_user_agent(ua,name);
 		    }
 		}
-	    } while(!strncasecmp(ptr,disstr,ldisstr));
+	    } while(!strncasecomp(ptr,disstr,ldisstr));
 	  }
 	else
 	  return NO;
 
-      } while(!strncasecmp(ptr,uastr,luastr));
+      } while(!strncasecomp(ptr,uastr,luastr));
       return YES;
     }
   else
     return NO;
 }
 
-PUBLIC char *
-scan_robots_txt(char *rob_str, char *name_robot)
+PUBLIC char * scan_robots_txt(char *rob_str, char *name_robot)
 {
   char *reg_exp_exclude = NULL;
   HTList * user_agents = get_all_user_agents(rob_str);
@@ -304,18 +308,18 @@ main(int argc, char *argv[])
       if((statb.st_mode & S_IFMT) == S_IFREG)
 	perror(filename);
       else
-	fprintf(stderr, "%s : not a regular file \n", filename);
+	HTTrace("%s : not a regular file \n", filename);
       return 1;
     }
 
   if(!(text = malloc((unsigned)(statb.st_size +1))))
     {
-      fprintf(stderr, "Can't alloc enough space for %s", filename);
+      HTTrace("Can't alloc enough space for %s", filename);
       fclose(fp);
       return;
     }
   if(!fread(text,sizeof(char), statb.st_size + 1, fp))
-    fprintf(stderr, "Warning: may not have read entire file!\n");
+    HTTrace("Warning: may not have read entire file!\n");
   text[statb.st_size] = 0; /* be sure to NULL-terminate */
   fclose(fp);
   if(argc > 2)
@@ -323,7 +327,7 @@ main(int argc, char *argv[])
       reg_exp = scan_robots_txt(text,argv[2]);
       if(reg_exp)
 	{
-	  printf("REG EXP : %s \n",reg_exp);
+	  HTTrace("REG EXP : %s \n",reg_exp);
 	  free(reg_exp);
 	}
     }
