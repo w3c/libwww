@@ -1068,11 +1068,21 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
             */
             HTStream * me = HTNet_readStream( net );
             if ( me == NULL ) {
-                me=HTStreamStack(WWW_HTTP,
-				                 HTRequest_outputFormat(request),
-				                 HTRequest_outputStream(request),
-				                 request, YES);
-				HTNet_setReadStream(net, me);
+                me = HTStreamStack(WWW_HTTP,
+				   HTRequest_outputFormat(request),
+				   HTRequest_outputStream(request),
+				   request, YES);
+#ifdef HTTP_DUMP
+		if (PROT_TRACE) {
+		    if (!htfp) htfp = fopen(HTTP_OUTPUT, "ab");
+		    if (htfp) {
+			me = HTTee(me, HTFWriter_new(request, htfp, YES), NULL);
+			HTTrace("HTTP........ Dumping response to `%s\'\n", HTTP_OUTPUT);
+		    }
+		}
+#endif /* HTTP_DUMP */
+
+		HTNet_setReadStream(net, me);
             }
             HTRequest_setOutputConnected(request, YES);
 	    }
