@@ -103,6 +103,9 @@ extern int  HTMuxSession_fragment (HTMuxSession * session);
 
 extern BOOL HTMuxSession_setFragment (HTMuxChannel * muxch,
 				      HTMuxSessionId sid, int fragment);
+
+estern int HTMuxSession_disposeData (HTMuxSession * me,
+				     const char * buf, int len);
 </PRE>
 <H2>
   Mux Protocol
