@@ -275,6 +275,10 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-version")) { 
 		VersionInfo();
 		Cleanup(mr, 0);
+		
+	    /* run in BFS mode */
+	    } else if (!strcmp(argv[arg], "-bfs")) { 
+		mr->flags |= MR_BFS;
 
 	    /* run in quiet mode */
 	    } else if (!strcmp(argv[arg], "-q")) { 
@@ -499,8 +503,10 @@ int main (int argc, char ** argv)
 
     /* Register our own terminate filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-    /* This is new */
-    HTNet_addAfter(my_terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+
+    /* If doing breath first search */
+    if (mr->flags & MR_BFS)
+	HTNet_addAfter(my_terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Setting event timeout */
     HTHost_setEventTimeout(mr->timer);
@@ -544,7 +550,7 @@ int main (int argc, char ** argv)
 
     /* Go into the event loop... */
 
-    if(mr->flags & MR_PREEMPTIVE)
+    if((mr->flags & MR_PREEMPTIVE) && (mr->flags & MR_BFS))
       Serving_queue(mr);
     else
       HTEventList_loop(finger->request);
