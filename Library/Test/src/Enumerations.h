@@ -25,3 +25,8 @@ extern HTPriority HTPriority_enum(char *);
 
 extern char *HTPriority_name(HTPriority);
 
+extern char * HTAlertOpcode_name(HTAlertOpcode opcode);
+
+extern HTAlertOpcode HTAlertOpcode_enum(char *name);
+
+

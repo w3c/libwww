@@ -87,6 +87,25 @@ char *HTSeverity_names[] =
   NULL
 };
 
+char *HTAlertOpcode_names[] =
+{
+  "HT_PROG_DNS",
+  "HT_PROG_CONNECT",
+  "HT_PROG_ACCEPT", 
+  "HT_PROG_READ",
+  "HT_PROG_WRITE",
+  "HT_PROG_DONE", 
+  "HT_PROG_WAIT", 
+  "HT_A_PROGRESS", 
+  "HT_A_MESSAGE", 
+  "HT_A_CONFIRM",
+  "HT_A_PROMPT",
+  "HT_A_SECRET", 
+  "HT_A_PROGRESS",
+  NULL  
+};
+
+
 char *HTPriority_names[] =
 {
   "HT_PRIORITY_INV",
@@ -255,6 +274,37 @@ HTSeverity HTSeverity_enum(char *name) {
   return ERR_FATAL;
 }
 
+HTAlertOpcode HTAlertOpcode_enum(char *name) {
+  if (name) {
+    if (!strcasecomp(name, *(HTAlertOpcode_names+1) )) 
+      return HT_PROG_CONNECT;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+2) ) )
+      return HT_PROG_ACCEPT;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+3) ) )
+      return HT_PROG_READ;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+4) ) )
+      return HT_PROG_WRITE;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+5) ) )
+      return HT_PROG_DONE;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+6) ) )
+      return HT_PROG_WAIT;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+7)))
+      return HT_A_PROGRESS;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+8) ) )
+      return HT_A_MESSAGE;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+9) ) )
+      return HT_A_CONFIRM;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+10) ) )
+      return HT_A_PROMPT;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+11) ) )
+      return HT_A_SECRET;
+    if (!strcasecomp(name, *(HTAlertOpcode_names+12) ) )
+      return HT_A_USER_PW;
+  }
+  return HT_PROG_DNS;
+}
+
+
 char *HTSeverity_name(HTSeverity severity) {
   if (severity & ERR_NON_FATAL)
     return *(HTSeverity_names+1);
@@ -265,6 +315,36 @@ char *HTSeverity_name(HTSeverity severity) {
   else
     return *HTSeverity_names;
 }
+
+char * HTAlertOpcode_name(HTAlertOpcode opcode) {
+  if (opcode == HT_PROG_CONNECT)
+    return *(HTAlertOpcode_names+1);
+  if (opcode == HT_PROG_ACCEPT)
+    return *(HTAlertOpcode_names+2);
+  if (opcode == HT_PROG_READ) 
+    return *(HTAlertOpcode_names+3);
+  if (opcode == HT_PROG_WRITE) 
+    return *(HTAlertOpcode_names+4);
+  if (opcode == HT_PROG_DONE)
+    return *(HTAlertOpcode_names+5);
+  if (opcode == HT_PROG_WAIT)
+    return *(HTAlertOpcode_names+6);
+  if (opcode == HT_A_PROGRESS) 
+    return *(HTAlertOpcode_names+7);
+  if (opcode == HT_A_MESSAGE)
+    return *(HTAlertOpcode_names+8);
+  if (opcode == HT_A_CONFIRM)
+    return *(HTAlertOpcode_names+9);
+  if (opcode == HT_A_PROMPT)
+    return *(HTAlertOpcode_names+10);
+  if (opcode == HT_A_SECRET) 
+    return *(HTAlertOpcode_names+11);
+  if (opcode == HT_A_USER_PW)
+    return *(HTAlertOpcode_names+12);
+
+  return *HTAlertOpcode_names;
+}
+
 
 /* HTPRIORITY */
 

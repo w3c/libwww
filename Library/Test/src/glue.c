@@ -15,6 +15,9 @@
 #include "URLgen.h"
 #include "HTFormat_glue.h"
 #include "HTProt_glue.h"
+#include "HTLog_glue.h"
+#include "HTError_glue.h"
+#include "HTAlert_glue.h"
 
 #define appname     "WWWtest"
 #define appversion  "1.0"
@@ -40,6 +43,9 @@ Tcl_HashTable   HTableChunk;
 Tcl_HashTable   HTableProt;
 Tcl_HashTable   HTableConverter;
 Tcl_HashTable   HTableCoder;
+Tcl_HashTable   HTableAlertCallback;
+Tcl_HashTable   HTableAlertPar;
+Tcl_HashTable   HTableError;
 
 typedef struct{
     char           *name;
@@ -517,6 +523,46 @@ static LibraryFunction www_commands[] = {
   { "HTContentDecodingStack", HTContentDecodingStack_tcl,     NULL, 0 },
   { "HTTransferCodingStack",  HTTransferCodingStack_tcl,      NULL, 0 },
 
+  /*HTLog*/
+  { "HTLog_open",             HTLog_open_tcl,                 NULL, 0 },
+  { "HTLog_close",            HTLog_close_tcl,                NULL, 0 },
+  { "HTLog_isOpen",           HTLog_isOpen_tcl,               NULL, 0 },
+  { "HTLog_add",              HTLog_add_tcl,                  NULL, 0 }, 
+  /*HTAlert*/
+  { "HTAlert_setInteractive", HTAlert_setInteractive_tcl,     NULL, 0 },
+  { "HTAlert_interactive",    HTAlert_interactive_tcl,        NULL, 0 },
+  { "HTAlertCall_add",        HTAlertCall_add_tcl,            NULL, 0 },
+  { "HTAlertCall_delete",     HTAlertCall_delete_tcl,         NULL, 0 },
+  { "HTAlertCall_deleteAll",  HTAlertCall_deleteAll_tcl,      NULL, 0 },
+  { "HTAlertCall_find",       HTAlertCall_find_tcl,           NULL, 0 }, 
+  { "HTAlert_newReply",       HTAlert_newReply_tcl,           NULL, 0 },
+  { "HTAlert_deleteReply",    HTAlert_deleteReply_tcl,        NULL, 0 },
+  { "HTAlert_setReplyMessage",HTAlert_setReplyMessage_tcl,    NULL, 0 },
+  { "HTAlert_assignReplyMessage",HTAlert_assignReplyMessage_tcl,NULL, 0},
+  { "HTAlert_replyMessage",   HTAlert_replyMessage_tcl,       NULL, 0 },
+  { "HTAlert_replySecret",    HTAlert_replySecret_tcl,        NULL, 0 },
+  { "HTAlert_setReplySecret", HTAlert_setReplySecret_tcl,     NULL, 0 },
+  { "HTAlert_replyOutput",    HTAlert_replyOutput_tcl,        NULL, 0 },
+  { "HTAlert_setReplyOutput", HTAlert_setReplyOutput_tcl,     NULL, 0 },
+  { "HTAlert_setGlobal",      HTAlert_setGlobal_tcl,          NULL, 0 },
+  { "HTAlert_global",         HTAlert_global_tcl,             NULL, 0 },
+  { "HTAlert_add",            HTAlert_add_tcl,                NULL, 0 }, 
+  { "HTAlert_delete",         HTAlert_delete_tcl,             NULL, 0 },
+  { "HTAlert_find",           HTAlert_find_tcl,               NULL, 0 },
+
+  /*HTError*/
+  { "HTError_add",            HTError_add_tcl,                NULL, 0 },
+  { "HTError_addSystem",      HTError_addSystem_tcl,          NULL, 0 },
+  { "HTError_deleteAll",      HTError_deleteAll_tcl,          NULL, 0 },
+  { "HTError_deleteLast",     HTError_deleteLast_tcl,         NULL, 0 },
+  { "HTError_doShow",         HTError_doShow_tcl,             NULL, 0 }, 
+  { "HTError_ignoreLast",     HTError_ignoreLast_tcl,         NULL, 0 },
+  { "HTError_setIgnore",      HTError_setIgnore_tcl,          NULL, 0 },
+  { "HTError_index",          HTError_index_tcl,              NULL, 0 },
+  { "HTError_severity",       HTError_severity_tcl,           NULL, 0 },
+  { "HTError_hasSeverity",    HTError_hasSeverity_tcl,        NULL, 0 },
+  { "HTError_parameter",      HTError_parameter_tcl,          NULL, 0 },
+  { "HTError_location",       HTError_location_tcl,           NULL, 0 },
     { 0 }
 };
 
@@ -538,6 +584,9 @@ int WWWLib_Init(Tcl_Interp *interp) {
   Tcl_InitHashTable(&HTableProt,  TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableConverter, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableCoder, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableAlertCallback, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableAlertPar, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableError, TCL_STRING_KEYS);
 
   /*added by xing, not sure if needed? */
 
@@ -567,6 +616,9 @@ void WWWLib_Terminate() {
     Tcl_DeleteHashTable(&HTableChunk);
     Tcl_DeleteHashTable(&HTableProt);
     Tcl_DeleteHashTable(&HTableCoder);
+    Tcl_DeleteHashTable(&HTableAlertCallback);
+    Tcl_DeleteHashTable(&HTableAlertPar);
+    Tcl_DeleteHashTable(&HTableError);
 }
 
 /*=================================================*/

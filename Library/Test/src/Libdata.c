@@ -303,5 +303,17 @@ Tcl_HashEntry *CreateNewEntry(Tcl_HashTable *table, char *name, char **final_key
  return entryPtr;
 }
 
+Tcl_HashEntry *FindVoidEntry(char *void_key){
+  Tcl_HashEntry *entryPtr;
+  
+  entryPtr = Tcl_FindHashEntry(&HTableAnchor, void_key);
+  if (!entryPtr) return entryPtr;
+  
+  entryPtr = Tcl_FindHashEntry(&HTableReq, void_key);
+  if (!entryPtr) return entryPtr;
 
+  return NULL;
+}
+
+  
 

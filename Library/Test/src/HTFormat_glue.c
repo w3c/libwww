@@ -36,7 +36,8 @@ int HTPresentation_add_tcl(ClientData clientData, Tcl_Interp *interp,
     int success3=Tcl_GetDouble(interp, argv[7], &secs_per_byte);
 
     if(keyname && representation && command && test_command &&
-       (success1 == success2 == success3 == TCL_OK)) {
+       (success1 == TCL_OK) && (success2 == TCL_OK) &&
+       (success3 == TCL_OK)) {
       Tcl_HashEntry *entryPtr = Tcl_FindHashEntry(&HTableList, keyname);
       if(entryPtr) {
 	HTList * conversions = Tcl_GetHashValue(entryPtr);
@@ -97,7 +98,8 @@ int HTConversion_add_tcl(ClientData clientData, Tcl_Interp *interp,
     int success3=Tcl_GetDouble(interp, argv[7], &secs_per_byte);
 
     if(list_key && rep_in && rep_out && converter_key &&
-       (success1 == success2 == success3 == TCL_OK)) {
+       (success1 == TCL_OK) && (success2 == TCL_OK) && 
+       (success3 == TCL_OK)) {
       Tcl_HashEntry *list_entry = Tcl_FindHashEntry(&HTableList, list_key);
       Tcl_HashEntry *converter_entry = Tcl_FindHashEntry(&HTableConverter, 
 							 converter_key);
@@ -392,7 +394,8 @@ int HTFormat_addConversion_tcl(ClientData clientData, Tcl_Interp *interp,
     int success3 = Tcl_GetDouble(interp, argv[6], &secs_per_byte);
 
     if(input_format && output_format && converter_key &&
-       (success1 == success2 == success3 == TCL_OK)) {
+       (success1 == TCL_OK) && (success2 == TCL_OK) && 
+       (success3 == TCL_OK)) {
       Tcl_HashEntry *converter_entry = Tcl_FindHashEntry(&HTableConverter, 
 							 converter_key);
       if(converter_entry) {
@@ -770,7 +773,7 @@ int HTStackValue_tcl(ClientData clientData, Tcl_Interp *interp,
     int tmp_length;
     int success2 = Tcl_GetInt(interp, argv[6], &tmp_length);
     if (list_key && format_in_string && format_out_string && 
-	(success1 == success2 == TCL_OK)) {
+	(success1 == TCL_OK) && (success2 == TCL_OK)) {
       Tcl_HashEntry *list_entry = Tcl_FindHashEntry(&HTableList, list_key);
       HTFormat format_in = HTAtom_for(format_in_string);
       HTFormat format_out = HTAtom_for(format_out_string);
