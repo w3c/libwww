@@ -391,7 +391,9 @@ PRIVATE void WSRCParser_write ARGS3(
 PRIVATE void WSRCParser_free ARGS1(HTStream *, me)
 {
     WSRC_gen_html(me, YES);
+#ifdef CACHE_FILE_PREFIX
     write_cache(me);
+#endif
     {
 	int p;
 	for(p=0; par_name[p]; p++) {	/* Clear out old values */

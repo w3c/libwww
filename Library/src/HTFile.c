@@ -51,7 +51,6 @@ typedef struct _HTSuffix {
 #define STRUCT_DIRENT struct direct
 #endif
 
-#ifdef GOT_READ_DIR	/* if this is to compile on a UNIX machine */
 #include "HTML.h"		/* For directory object building */
 
 #define PUTC(c) (*target->isa->put_character)(target, c)
@@ -64,8 +63,6 @@ struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	/* ... */
 };
-
-#endif				/* unix */
 
 
 /*                   Controlling globals
@@ -586,7 +583,6 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTParentAnchor *, anchor)
     
 }
 
-#ifdef GOT_READ_DIR
 /*      Output one directory entry
 **
 */
@@ -671,7 +667,6 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
     }
     free(path);
 }
-#endif /* GOT_READ_DIR */
 		
 
 
