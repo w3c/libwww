@@ -21,34 +21,18 @@
   jobs etc.
   <UL>
     <LI>
-      Really fast <A HREF="../Library/">libwww HTTP/1.1 engine</A> - uses
-      <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which speeds
-      up performance a lot
+      A large set of <A HREF="#Features">features</A>
     <LI>
-      Smart use of <CODE>GET</CODE> and <CODE>HEAD</CODE> - only downloads the
-      strictly necessary
+      <A HREF="User/">Documentation Overview</A>
     <LI>
-      Support for regular expressions allows detailed Web traversal constraints
+      <A HREF="../Library/User/ReleaseNotes.html">Release Notes</A>
     <LI>
-      Support for traditional Common Log File formats and Referer log file formats
+      <A HREF="../INSTALL.html">Installation Guide</A> and <A HREF="#How">how to
+      run</A> the robot
     <LI>
-      A <A HREF="User/CommandLine.html">wealth of logging facilities</A> including:
-      <UL>
-	<LI>
-	  Missing or empty ALT tags in inlined images
-	<LI>
-	  Broken links
-	<LI>
-	  Document titles based on the <CODE>TITLE</CODE> HTML tag and the
-	  <CODE>Title</CODE> HTTP header field
-	<LI>
-	  Link relationships between documents based on the <CODE>LINK</CODE> HTML
-	  tag
-	<LI>
-	  Modification dates based on the <CODE>Last-Modified</CODE> HTTP header field
-	<LI>
-	  Distributions of content-types and charsets encountered in the traversal
-      </UL>
+      <A HREF="../Library/User/Patch/">Known Bugs and Patches</A>
+    <LI>
+      <A HREF="User/CommandLine.html">Command Line Options</A>
   </UL>
 </DIV>
 <P>
@@ -101,10 +85,42 @@
     <A HREF="../PATCHES.html">Corrections, Modifications, and Patches</A> and
     send it to us. Otherwise we can not use the patch!
 </DL>
-<P>
-  <HR>
 <H2>
-  How to Run
+  <A NAME="Features">Features</A>
+</H2>
+<UL>
+  <LI>
+    Really fast <A HREF="../Library/">libwww HTTP/1.1 engine</A> - uses
+    <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which speeds
+    up performance a lot
+  <LI>
+    Smart use of <CODE>GET</CODE> and <CODE>HEAD</CODE> - only downloads the
+    strictly necessary
+  <LI>
+    Support for regular expressions allows detailed Web traversal constraints
+  <LI>
+    Support for traditional Common Log File formats and Referer log file formats
+  <LI>
+    A <A HREF="User/CommandLine.html">wealth of logging facilities</A> including:
+    <UL>
+      <LI>
+	Missing or empty ALT tags in inlined images
+      <LI>
+	Broken links
+      <LI>
+	Document titles based on the <CODE>TITLE</CODE> HTML tag and the
+	<CODE>Title</CODE> HTTP header field
+      <LI>
+	Link relationships between documents based on the <CODE>LINK</CODE> HTML
+	tag
+      <LI>
+	Modification dates based on the <CODE>Last-Modified</CODE> HTTP header field
+      <LI>
+	Distributions of content-types and charsets encountered in the traversal
+    </UL>
+</UL>
+<H2>
+  <A NAME="How">How to Run</A>
 </H2>
 <P>
 Be careful - this is a robot and hence can be used to traverse many links
@@ -117,21 +133,6 @@ The robot has a large set of <A HREF="User/CommandLine.html">command line
 options</A> that can be used in a large set of different combinations. You
 can try and <A HREF="src/robot.sh">see this simple script</A> in order to
 see an example of how it can be run.
-<H2>
-  More information
-</H2>
-<UL>
-  <LI>
-    <A HREF="User/">Documentation Overview</A>
-  <LI>
-    <A HREF="../Library/User/ReleaseNotes.html">Release Notes</A>
-  <LI>
-    <A HREF="../INSTALL.html">Installation Guide</A>
-  <LI>
-    <A HREF="../Library/User/Patch/">Known Bugs and Patches</A>
-  <LI>
-    <A HREF="User/CommandLine.html">Command Line Options</A>
-</UL>
 <P>
   <HR>
 <ADDRESS>
