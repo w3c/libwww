@@ -75,8 +75,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
 	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o \
 	$(LOB)/HTDirBrw.o $(LOB)/HTDescript.o $(LOB)/HTGuess.o \
-	$(LOB)/HTIcons.o $(LOB)/HTError.o $(LOB)/HTErrorMsg.o \
-	$(LOB)/HTArray.o
+	$(LOB)/HTIcons.o $(LOB)/HTError.o $(LOB)/HTErrorMsg.o
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
         $(CMN)HTBTree.c $(CMN)HTMulti.c \
@@ -92,8 +91,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTAAUtil.c $(CMN)HTAABrow.c $(CMN)HTAssoc.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTDescript.c $(CMN)HTGuess.c \
-	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTErrorMsg.c \
-	$(CMN)HTArray.c
+	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTErrorMsg.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
@@ -113,8 +111,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTAAUtil.h $(CMN)HTAABrow.h $(CMN)HTAssoc.h \
 	$(CMN)HTUU.h $(CMN)HTTeXGen.h \
 	$(CMN)HTDirBrw.h $(CMN)HTDescript.h $(CMN)HTGuess.h \
-	$(CMN)HTIcons.h $(CMN)HTError.h \
-	$(CMN)HTArray.h
+	$(CMN)HTIcons.h $(CMN)HTError.h
 
 SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
 	$(CMN)CommonMakefile $(CMN)Makefile \
@@ -266,9 +263,6 @@ $(LOB)/HTAtom.o : $(OE) $(CMN)HTAtom.c $(CMN)HTUtils.h $(CMN)HTList.h
 
 $(LOB)/HTChunk.o : $(OE) $(CMN)HTChunk.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTChunk.c
-
-$(LOB)/HTArray.o : $(OE) $(CMN)HTArray.c $(CMN)HTArray.h
-	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTArray.c
 
 $(LOB)/HTString.o : $(OE) $(CMN)HTString.c $(CMN)HTUtils.h $(CMN)Version.make
 	$(CC) -c -o $@ $(CFLAGS2) -DVC=\"$(VC)\" $(CMN)HTString.c

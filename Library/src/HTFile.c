@@ -569,7 +569,7 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 	    "File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
     	    (unsigned int) fileStatus.st_mode, (int) fileStatus.st_uid,
 	    (int) fileStatus.st_gid, (int) myUid, ngroups);
-	for (i=0; i<ngroups; i++) fprintf(stderr, " %d", groups[i]);
+	for (i=0; i<ngroups; i++) fprintf(stderr, " %d", (int) groups[i]);
 	fprintf(stderr, ")\n");
     }
     

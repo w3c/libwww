@@ -23,10 +23,7 @@
 */
 
 #ifndef DEFAULT_WAIS_GATEWAY
-#define DEFAULT_WAIS_GATEWAY "http://ptsun00.cern.ch:7001/"
-#if 0
 #define DEFAULT_WAIS_GATEWAY "http://info.cern.ch:8001/"
-#endif
 #endif
 
 /* Implements:

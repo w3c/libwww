@@ -111,7 +111,6 @@
 #include "HTError.h"
 #include "HTAlert.h"
 #include "HTTP.h"
-#include "HTArray.h"
 
 #ifdef THINK_C					 /* Macintosh Think C development system */
 #include <console.h>
