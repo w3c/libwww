@@ -768,6 +768,9 @@ PRIVATE BOOL add_preconditions (HTRequest * request)
     if (request) {
 	HTPreconditions precons = HTRequest_preconditions(request);
 	switch (precons) {
+	case HT_NO_MATCH:
+	    break;
+
 	case HT_MATCH_THIS:
 	    HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
 	    break;
@@ -783,6 +786,10 @@ PRIVATE BOOL add_preconditions (HTRequest * request)
 	case HT_DONT_MATCH_ANY:
 	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH_ANY);
 	    break;
+
+	default:
+	    if (APP_TRACE) HTTrace("Precondition %d not understood\n", precons);
+
 	}
 	return YES;
     }
