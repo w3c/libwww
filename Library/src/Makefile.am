@@ -41,9 +41,8 @@ SUFFIXES = .h .html .txt
 	$(WWW) -w90 -na -p -to text/x-c $(srcdir)/$(*F).html -o $(srcdir)/$(*F).h
     else
 	@echo "**************************************************"
-	@echo "Need to regenerate one or more .h files but can't find the libwww"
-	@echo "Line Mode Browser (www). Attempting to generate them using the"
-	@echo "winConfigure.pl script - it may generate a few warnings."
+	"Generating the .h files using the"
+	"winConfigure.pl script - it may generate a few warnings."
 	@echo "**************************************************"
 	perl $(top_srcdir)/config/winConfigure.pl $(srcdir)
     endif
