@@ -295,8 +295,9 @@ PUBLIC int HTTimer_next (ms_t * pSoonest)
     return ret;
 }
 
+#ifdef WATCH_RECURSION
 extern void CheckSockEvent(HTTimer * timer, HTTimerCallback * cbf, void * param);
-PUBLIC void CheckTimers(void)
+PRIVATE void CheckTimers(void)
 {
     HTList * cur = Timers;
     HTTimer * pres;
@@ -304,4 +305,4 @@ PUBLIC void CheckTimers(void)
 	CheckSockEvent(pres, pres->cbf, pres->param);
     }
 }
-
+#endif

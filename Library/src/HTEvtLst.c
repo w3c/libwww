@@ -835,7 +835,7 @@ PUBLIC void CheckSockEvent(HTTimer * timer, HTTimerCallback * cbf, void * param)
 	sockp->timeouts[0] != timer && 
 	sockp->timeouts[1] != timer && 
 	sockp->timeouts[2] != timer) {
-	HTTrace("!!! bad timer %p.\n", timer);
+	if (THD_TRACE) HTTrace("Timer....... bad timer %p.\n", timer);
 	HTDebugBreak();
     }
 }

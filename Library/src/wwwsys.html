@@ -139,16 +139,14 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #define WWW_MSWINDOWS
 #endif
 
+#include "windows/config.h"
+
 #if defined(_WINDOWS) &amp;&amp; !defined (_CONSOLE)
 #define WWW_WIN_WINDOW
 #endif
 
 #if defined(_CONSOLE)
 #define WWW_WIN_CONSOLE
-#endif
-
-#ifndef W3C_VERSION
-#define W3C_VERSION        "5.1"
 #endif
 
 #ifdef WWW_MSWINDOWS
@@ -178,7 +176,6 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 
 #define HAVE_STDIO_H
 #define HAVE_STRERROR
-#define HT_NO_NAGLE
 
 #include &lt;stdlib.h&gt;
 #include &lt;winsock.h&gt;

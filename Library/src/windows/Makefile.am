@@ -18,6 +18,7 @@ BUILT_SOURCES = \
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
+	config.h \
 	wwwdll.def \
 	$(SRC) \
 	$(MAK)

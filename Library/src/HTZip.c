@@ -14,7 +14,6 @@
 #include "WWWCore.h"
 #include "HTZip.h"					 /* Implemented here */
 
-#ifdef ZLIB
 #include "zlib.h"
 
 #define OUTBUF_SIZE	8192
@@ -29,10 +28,8 @@ struct _HTStream {
 };
 
 PRIVATE int CompressionLevel = Z_DEFAULT_COMPRESSION;
-#endif /* ZLIB */
 
 /* ------------------------------------------------------------------------- */
-#ifdef ZLIB
 
 PRIVATE BOOL Zlib_init (HTStream * me, int level)
 {
@@ -175,7 +172,6 @@ PRIVATE const HTStreamClass HTInflate =
     HTZLibInflate_put_string,
     HTZLibInflate_write
 }; 
-#endif /* ZLIB */
 
 PUBLIC BOOL HTZLib_setCompressionLevel (int level)
 {
@@ -196,7 +192,6 @@ PUBLIC HTStream * HTZLib_inflate (HTRequest *	request,
 				  HTEncoding	coding,
 				  HTStream *	target)
 {
-#ifdef ZLIB
     HTStream * me = NULL;
     if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL ||
 	(me->zstream = (z_stream *) HT_CALLOC(1, sizeof(z_stream))) == NULL)
@@ -211,7 +206,4 @@ PUBLIC HTStream * HTZLib_inflate (HTRequest *	request,
     }
     if (STREAM_TRACE) HTTrace("zlib Inflate Stream created\n");
     return me;
-#else
-    return HTErrorStream();
-#endif
 }
