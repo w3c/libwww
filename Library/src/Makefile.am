@@ -66,6 +66,8 @@ libwwwutils_la_SOURCES = \
 	HTBTree.c \
 	HTChunk.h \
 	HTChunk.c \
+	HTHash.h \
+	HTHash.c \
 	HTList.h \
 	HTList.c \
 	HTMemory.h \
@@ -348,6 +350,8 @@ libwwwmux_la_SOURCES = \
 
 libwwwxml_la_SOURCES = \
 	WWWXML.h \
+	HTRDF.h \
+	HTRDF.c \
 	HTXML.h \
 	HTXML.c
 
@@ -424,6 +428,7 @@ BUILT_SOURCES = \
 	HTGopher.h \
 	HTGuess.h \
 	HTHInit.h \
+	HTHash.h \
 	HTHeader.h \
 	HTHist.h \
 	HTHome.h \
@@ -468,6 +473,7 @@ BUILT_SOURCES = \
 	HTProfil.h \
 	HTProt.h \
 	HTProxy.h \
+	HTRDF.h \
 	HTReader.h \
 	HTReq.h \
 	HTReqMan.h \
