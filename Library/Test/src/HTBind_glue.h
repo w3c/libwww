@@ -42,3 +42,4 @@ extern int HTBind_getBindings_tcl(ClientData clientData, Tcl_Interp *interp,
 
 
 
+extern int HTBind_getFormat_tcl(ClientData, Tcl_Interp *, int, char **);

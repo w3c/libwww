@@ -9,6 +9,7 @@
 #include "HTFWriter_glue.h"
 #include "HTAssoc_glue.h"
 #include "HTUser_glue.h"
+#include "HTAccess_glue.h"
 #include "HTBind_glue.h"
 #include "HTHost_glue.h"
 #include "URLgen.h"
@@ -30,6 +31,7 @@ Tcl_HashTable	HTableStream;
 Tcl_HashTable   HTableVoid;
 Tcl_HashTable   HTableUser;
 Tcl_HashTable   HTableAssoc;
+Tcl_HashTable   HTablePostCallback;
 Tcl_HashTable   HTableHost;
 Tcl_HashTable   HTableChannel;
 
@@ -351,6 +353,8 @@ static LibraryFunction www_commands[] = {
 
   /* HTUser */
 
+    { "HTUserProfile_new",	HTUserProfile_new_tcl,		NULL, 0 },
+
   { "HTUserProfile_new",	HTUserProfile_new_tcl,		NULL, 0 },
   { "HTUserProfile_localize",	HTUserProfile_localize_tcl,	NULL, 0 },
   { "HTUserProfile_delete",	HTUserProfile_delete_tcl,	NULL, 0 },
@@ -381,6 +385,7 @@ static LibraryFunction www_commands[] = {
   { "HTBind_addLanguage",       HTBind_addLanguage_tcl,         NULL, 0 },
   { "HTBind_getSuffix",         HTBind_getSuffix_tcl,           NULL, 0 },
   { "HTBind_getBindings",       HTBind_getBindings_tcl,         NULL, 0 },
+  { "HTBind_getFormat",         HTBind_getFormat_tcl,           NULL, 0 },
 
   /*HTHost*/
   {"HTHost_new",                HTHost_new_tcl,                 NULL, 0 },
@@ -397,6 +402,27 @@ static LibraryFunction www_commands[] = {
   {"HTHost_setPersistExpires",   HTHost_setPersistExpires_tcl,    NULL, 0 },
   {"HTHost_persistExpires",      HTHost_persistExpires_tcl,       NULL, 0 },
 
+  /* HTAccess */
+  { "HTLibInit",              HTLibInit_tcl,                  NULL, 0 },
+  { "HTLibTerminate",         HTLibTerminate_tcl,             NULL, 0 },
+  { "HTLib_name",             HTLib_name_tcl,                 NULL, 0 }, 
+  { "HTLib_version",          HTLib_version_tcl,              NULL, 0 },
+  { "HTLib_appVersion",       HTLib_appVersion_tcl,           NULL, 0 },
+  { "HTLib_secure",           HTLib_secure_tcl,               NULL, 0 }, 
+  { "HTLib_setSecure",        HTLib_setSecure_tcl,            NULL, 0 },
+  { "HTLib_userProfile",      HTLib_userProfile_tcl,          NULL, 0 },
+  { "HTLib_setUserProfile",   HTLib_setUserProfile_tcl,       NULL, 0 },
+  { "HTLoadAbsolute",         HTLoadAbsolute_tcl,             NULL, 0 },
+  { "HTLoadToStream",         HTLoadToStream_tcl,             NULL, 0 },
+  { "HTLoadRelative",         HTLoadRelative_tcl,             NULL, 0 },
+  { "HTLoadAnchor",           HTLoadAnchor_tcl,               NULL, 0 },
+  { "HTLoadAnchorRecursive",  HTLoadAnchorRecursive_tcl,      NULL, 0 },
+  { "HTSearch",               HTSearch_tcl,                   NULL, 0 },
+  { "HTSearchAbsolute",       HTSearchAbsolute_tcl,           NULL, 0 },
+  { "HTCopyAnchor",           HTCopyAnchor_tcl,               NULL, 0 },
+  { "HTUploadAnchor",         HTUploadAnchor_tcl,             NULL, 0 },
+  { "HTUpload_callback",      HTUpload_callback_tcl,          NULL, 0 },
+  
     { 0 }
 };
 
@@ -412,6 +438,7 @@ int WWWLib_Init(Tcl_Interp *interp) {
   Tcl_InitHashTable(&HTableVoid, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableAssoc, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableUser, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTablePostCallback, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableHost, TCL_STRING_KEYS);
 
   /*added by xing, not sure if needed? */
@@ -436,12 +463,12 @@ void WWWLib_Terminate() {
     Tcl_DeleteHashTable(&HTableVoid);
     Tcl_DeleteHashTable(&HTableAssoc);
     Tcl_DeleteHashTable(&HTableUser);
+    Tcl_DeleteHashTable(&HTablePostCallback);
     Tcl_DeleteHashTable(&HTableHost);
     Tcl_DeleteHashTable(&HTableChannel);
 }
 
-/*========================================================*/  
-
+/*=================================================*/
 
 
 void HText_beginAppend (HText * text) {
@@ -492,6 +519,27 @@ BOOL HText_selectAnchor(HText * text, HTChildAnchor* anchor) {
 
 BOOL HText_select (HText * text) {
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
