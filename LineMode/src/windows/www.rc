@@ -1,0 +1,81 @@
+//Microsoft Visual C++ generated resource script.
+//
+#include "wwwrc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APPSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APPSTUDIO_HIDDEN_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "wwwrc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define APPSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APPSTUDIO_HIDDEN_SYMBOLS\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""e:\\u\\eric\\projects\\winlib\\comm.rc""\r\n"
+    "\r\n"
+    "\0"
+END
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDM_SNP MENU DISCARDABLE 
+BEGIN
+    POPUP "&Settings"
+    BEGIN
+        MENUITEM "&Fonts...",                   IDM_FONT
+        MENUITEM "Local Echo",                  IDM_LOCALECHO
+        MENUITEM "CR -> CR LF",                 IDM_CRBEGETSLF
+        MENUITEM "Enable Parser",               IDM_ENABLEPARSER
+    END
+    MENUITEM "A&bout...",                   IDM_ABOUT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+IDI_SNP                 ICON    DISCARDABLE     "WWW.ICO"
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "e:\u\eric\projects\winlib\comm.rc"
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

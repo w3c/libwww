@@ -1,0 +1,14 @@
+;-----------------------------------
+; WinCom app module definition file
+;-----------------------------------
+
+;exetype        snpterm
+
+DESCRIPTION    'S&P Comstock terminal program'
+EXETYPE        WINDOWS
+PROTMODE
+STUB	       'WINSTUB.EXE'
+HEAPSIZE       20480
+
+EXPORTS
+	monitorWndProc
