@@ -709,6 +709,21 @@ typedef enum _HTReload {
 extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);
 extern HTReload HTRequest_reloadMode (HTRequest *request);
 </PRE>
+<H2>
+  Default PUT name
+</H2>
+<P>
+When publishing to a server which doesn't accept a URL ending in "/", e.g,
+the default Overview, index page, you can use
+<CODE>HTRequest_setAltPutName</CODE> to setup the intended URL. If this
+variable is defined, it'll be used during the cache lookup and update
+operationsm, so that cache-wise, it will look as if we had published
+only to "/".
+<PRE>
+extern char * HTRequest_defaultPutName (HTRequest * me);
+extern BOOL HTRequest_setDefaultPutName (HTRequest * me, char * name);
+extern BOOL HTRequest_deleteDefaultPutName (HTRequest * me);
+</PRE>
 <H3>
   HTTP Cache Control Directives
 </H3>

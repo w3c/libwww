@@ -66,6 +66,9 @@ PUBLIC HTRequest * HTRequest_new (void)
    /* Force Reload */
     me->reload = HT_CACHE_OK;
 
+    /* no default PUT name */
+    me->default_put_name = NULL;
+
     /* Set the default user profile */
     me->userprofile = HTLib_userProfile();
 
@@ -107,6 +110,8 @@ PUBLIC BOOL HTRequest_clear (HTRequest * me)
 	me->realm = NULL;
 	me->credentials = NULL;
 	me->connected = NO;
+        if (me->default_put_name)
+          HTRequest_deleteDefaultPutName (me);
 	if (me->response) {
 	    HTResponse_delete(me->response);
 	    me->response = NULL;
@@ -181,6 +186,10 @@ PUBLIC void HTRequest_delete (HTRequest * me)
 	/* Before and After Filters */
 	if (me->afters) HTNetCall_deleteAfterAll(me->afters);
 	if (me->befores) HTNetCall_deleteBeforeAll(me->befores);
+
+        /* default PUT name */
+        if (me->default_put_name)
+          HTRequest_deleteDefaultPutName (me);
 
 	/* Access Authentication */
 	HT_FREE(me->realm);
@@ -766,6 +775,39 @@ PUBLIC HTReload HTRequest_reloadMode (HTRequest * me)
 {
     return me ? me->reload : HT_CACHE_OK;
 }
+
+/*      Default name to use when publishing to a "/" URL
+**      ----------------------------
+*/
+PUBLIC char * HTRequest_defaultPutName (HTRequest * me)
+{
+    if (me)
+      return (me->default_put_name);
+    return NULL;
+}
+
+
+PUBLIC BOOL HTRequest_setDefaultPutName (HTRequest * me, char * name)
+{
+    if (me && name) {
+      if (me->default_put_name)
+        HTRequest_deleteDefaultPutName (me);
+      StrAllocCopy (me->default_put_name, name);
+      return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteDefaultPutName (HTRequest * me)
+{
+    if (me && me->default_put_name) {
+      HT_FREE (me->default_put_name);
+      me->default_put_name = NULL;
+      return YES;
+    }
+    return NO;
+}
+
 
 /*
 **	Cache control directives. The cache control can be initiated by both
