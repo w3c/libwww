@@ -209,11 +209,23 @@ PUBLIC CONST char *HTDateTimeStr ARGS2(time_t *, calendar, BOOL, local)
 
 #ifndef NO_STRFTIME
     if (local) {
+#ifdef SOLARIS					/* Due to bug in Solaris 2.3 */
+	struct tm loctime;
+	localtime_r(calendar, &loctime);
+	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", &loctime);
+#else
 	struct tm *loctime = localtime(calendar);
 	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S", loctime);
+#endif /* SOLARIS */
     } else {
+#ifdef SOLARIS
+	struct tm gmt;
+	gmtime_r(calendar, &gmt);
+    	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", &gmt);
+#else
 	struct tm *gmt = gmtime(calendar);
     	strftime(buf, 40, "%a, %d %b %Y %H:%M:%S GMT", gmt);
+#endif /* SOLARIS */
     }
 #else
     if (local) {

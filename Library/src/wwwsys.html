@@ -925,6 +925,13 @@ These are a default unix where not already defined specifically.
 #include &lt;sys/file.h&gt;	    /* For open() etc */
 #define INCLUDES_DONE
 #endif	/* Normal includes */
+
+#ifdef SUNOS
+#define NO_TIMEZONE
+#define NO_MKTIME
+#undefine HAVE_STRERROR
+#endif
+
 </PRE>
 
 <H3>Directory reading stuff - BSD or SYS V</H3>
@@ -950,17 +957,12 @@ These are a default unix where not already defined specifically.
 #define STRUCT_DIRENT struct direct
 #endif
 
-#if defined(sun) &amp;&amp; defined(__svr4__)
+#ifdef SOLARIS
 #include &lt;sys/fcntl.h&gt;
 #include &lt;limits.h&gt;
 #endif
 #ifndef FNDELAY
 #define FNDELAY		O_NDELAY
-#endif
-
-#if defined(sun) &amp;&amp; !defined(__svr4__)
-#define NO_TIMEZONE
-#define NO_MKTIME
 #endif
 
 #endif /* unix */
