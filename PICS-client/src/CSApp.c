@@ -15,6 +15,7 @@ switch to HTStrMatch
 #include <string.h>
 #include "WWWLib.h"
 #include "WWWApp.h"
+#include "WWWFile.h"
 #include "HTHeader.h"
 #include "CSLApp.h"
 #include "CSParse.h"
