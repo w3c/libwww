@@ -422,7 +422,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    */
 	    {
 		HTHost * host = NULL;
-		if ((host = HTHost_new(file->local, 0)) == NULL) return HT_ERROR;
+		if ((host = HTHost_new("localhost", 0)) == NULL) return HT_ERROR;
 		HTNet_setHost(net, host);
 		if (HTHost_addNet(host, net) == HT_PENDING)
 		    if (PROT_TRACE) HTTrace("HTLoadFile.. Pending...\n");
