@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Parser for libpics</TITLE>
-<!-- Changed by: Eric Prud'hommeaux, 24-Mar-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 20-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -97,10 +97,10 @@ string "error" may be matched in states A and C with:<P>
 of one StateToken list. This can be fixed if anyone needs a 16 bit enum.
 
 <PRE>
-typedef enum {SubState_X = -1, SubState_N = 0x100, SubState_A = 1, 
+typedef enum {SubState_X = -1, SubState_N = 0x4000, SubState_A = 1, 
 	      SubState_B = 2, SubState_C = 4, SubState_D = 8, 
 	      SubState_E = 0x10, SubState_F = 0x20, SubState_G = 0x40, 
-	      SubState_H = 0x80} SubState_t;
+	      SubState_H = 0x80, SubState_I = 0x100} SubState_t;
 </PRE>
 
 forward declaration for StateToken_t

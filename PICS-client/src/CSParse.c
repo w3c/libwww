@@ -513,8 +513,35 @@ PRIVATE void Input_dump(char * token, char demark)
     HTTrace(space);
 }
 #endif
+PUBLIC char * CSParse_subState2str(SubState_t subState)
+{
+    static char space[33];
+    space[0] = 0;
+    if (subState == SubState_N)
+        strcpy(space, "N");
+    else if (subState == SubState_X)
+        strcpy(space, "X");
+    else {
+        int i;
+	SubState_t comp;
+	char ch[] = "A";
+	for (i = 1, comp = SubState_A; i < (sizeof(SubState_t)*8 - 1); i++, (*ch)++, comp<<=1)
+	    if (comp & subState)
+	        strcat(space, ch);
+    }
+    return space;
+}
 
-PUBLIC char MatchAny[] = "MatchAny";
+extern int ParseDebug;
+
+PRIVATE int ParseTrace(const char * fmt, ...)
+{
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    if (!ParseDebug)
+        return 0;
+    return (vfprintf(stderr, fmt, pArgs));
+}
 
 PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pVoid)
 {
@@ -524,6 +551,7 @@ PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pV
     char * token = 0;
     StateRet_t ret = StateRet_OK;
     int i;
+static NowIn_t lastRet = NowIn_END;
 
     if (HTChunk_size(pCSParse->token)) {
         HTChunk_terminate(pCSParse->token);
@@ -568,7 +596,9 @@ PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pV
             }
         }
 /* open or close and do the appropriate callbacks */
-/* printf("%10s %c %20s - %s\n", token, demark, pCSParse->pTargetObject->note, pStateToken->note); */
+	if (lastRet != NowIn_CHAIN)
+	    ParseTrace("%30s %c ", token ? token : "", demark);
+        ParseTrace("%10s - %s:%10s => ", pCSParse->pTargetObject->note, CSParse_subState2str(pCSParse->currentSubState), pStateToken->note);
 	if (pStateToken->command & Command_NOTOKEN) {
 	    HTChunk_clear(pCSParse->token);
 		token = 0;
@@ -576,10 +606,13 @@ PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pV
 	if (pStateToken->command & Command_OPEN && pTargetObject->pOpen)
 	    if ((*pTargetObject->pOpen)(pCSParse, token, demark) == StateRet_ERROR)
 		return NowIn_ERROR;
-        if (pStateToken->command & (Command_OPEN|Command_CLOSE) && pCSParse->pParseContext->pTargetChangeCallback)
+        if (pStateToken->command & (Command_OPEN|Command_CLOSE) && pCSParse->pParseContext->pTargetChangeCallback) {
+	    ParseTrace("%3d", pStateToken->command & Command_CLOSE ? -pTargetObject->targetChange : pTargetObject->targetChange);
 	    if ((*pCSParse->pParseContext->pTargetChangeCallback)(pCSParse, pTargetObject, pTargetObject->targetChange, 
 		(BOOL)(pStateToken->command & Command_CLOSE), pVoid) == StateRet_ERROR)
 		return NowIn_ERROR;
+	} else
+	    ParseTrace("   ");
         if (pStateToken->command & Command_CLOSE && pTargetObject->pClose)
             ret = (*pTargetObject->pClose)(pCSParse, token, demark);
 
@@ -593,9 +626,13 @@ PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pV
 CSLabel_dump(pCSLabel);
 HTTrace(pCSParse->pTargetObject->note);
 */
-        if (pStateToken->command & Command_CHAIN)
-            return NowIn_CHAIN;
-        return ret == StateRet_ERROR_BAD_CHAR ? NowIn_ERROR : ret == StateRet_DONE ? NowIn_END : NowIn_ENGINE;
+        ParseTrace("%10s - %s", pCSParse->pTargetObject->note, CSParse_subState2str(pCSParse->currentSubState));
+        if (pStateToken->command & Command_CHAIN) {
+	    ParseTrace(" -O-O-");
+            return lastRet = NowIn_CHAIN;
+	}
+	ParseTrace("\n");
+        return lastRet = ret == StateRet_ERROR_BAD_CHAR ? NowIn_ERROR : ret == StateRet_DONE ? NowIn_END : NowIn_ENGINE;
     }
     (*pCSParse->pParseContext->pParseErrorHandler)(pCSParse, token, demark, failedOnPunct ? StateRet_WARN_BAD_PUNCT : StateRet_WARN_NO_MATCH);
     if (pTargetObject->pDestroy)

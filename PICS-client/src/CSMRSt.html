@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>Machine-readable data internals</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 22-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -44,14 +45,15 @@ struct MachRead_category_s {
     SVal_t icon;
     SVal_t name;
     SVal_t description;
-	FVal_t min;
-	FVal_t max;
-	BVal_t multi;
-	BVal_t integer;
-	BVal_t labeled;
+    FVal_t min;
+    FVal_t max;
+    BVal_t multi;
+    BVal_t unord;
+    BVal_t integer;
+    BVal_t labeled;
     HTList * machRead_enums;
     HTList * machRead_categories;
-	MachRead_category_t * pParent;
+    MachRead_category_t * pParent;
     };
 
 struct CSMachReadData_s {
@@ -64,6 +66,7 @@ struct CSMachReadData_s {
 	FVal_t min;
 	FVal_t max;
 	BVal_t multi;
+	BVal_t unord;
 	BVal_t integer;
 	BVal_t labeled;
     HTList * machRead_categories;
