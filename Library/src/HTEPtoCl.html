@@ -1,0 +1,39 @@
+<HTML>
+<HEAD>
+<TITLE>EPtoClient: interface between the ExtParse module and the Client</TITLE>
+<!-- Changed by: , 28-Nov-1994 -->
+<NEXTID N="z2">
+</HEAD>
+<BODY>
+
+<H1>EPtoClient: interface between the ExtParse module and the Client</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module contains the interface between the ExtParse module and
+the client. The dummy function is only here so that clients that use
+the ExtParse module can overwrite it. See also <A NAME="z0"
+HREF="HTXParse.html">HTExtParse</A><P>
+
+This module is implemented by <A
+HREF="HTEpToClient.c">HTEpToClient.c</A>, and it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTEPTOCLIENT_H
+#define HTEPTOCLIENT_H
+
+#include "HTStream.h"
+#include "HTXParse.h"
+
+#endif
+
+</PRE>end</BODY>
+</HTML>
+
