@@ -855,13 +855,11 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 {
     char *fnam;
     HTStream* me;
-    mode_t cmask;
 
     if (HTClientHost) {
 	if (TRACE) fprintf(stderr, "Only caching if WWW is run locally.\n");
 	return HTBlackHole();
     }
-    cmask = umask(0000);	/* howcome 30/10/94 to make cache dir's world writable */
     me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "CacheWriter");
     me->isa = &HTFWriter;  
@@ -876,7 +874,6 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 			      0, NO);
     if (!fnam) {                         /* HWL 22/9/94 */
 	free(me);
-	umask(cmask);
 	return NULL;
     }
 
@@ -888,7 +885,6 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 	if (TRACE) fprintf(stderr, "HTStream: can't open %s for writing\n",fnam);
 	free(fnam);
 	free(me);
-	umask(cmask);
 	return NULL;
     }
     
@@ -911,7 +907,6 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     me->callback = request->callback;
     me->request = request;	/* won't be freed */
     me->filename = fnam;   /* will be freed */
-    umask(cmask);
     return me;
 }
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>ExtParse: Module to get unparsed stream from libwww</TITLE>
-<!-- Changed by: , 19-Sep-1994 -->
+<!-- Changed by: , 24-Nov-1994 -->
 <NEXTID N="z2">
 </HEAD>
 <BODY>
@@ -30,12 +30,12 @@ buffer size.
 
 typedef struct {
 	void            (*call_client)();
-	int             used;      /* how much of the buffer is being used */
-	BOOL            finished;   /* document loaded? */
-        int             length;    /* how long the buffer is */
+	int             used;         /* how much of the buffer is being used */
+	BOOL            finished;     /* document loaded? */
+        int             length;       /* how long the buffer is */
 	char *          buffer;       /* buffer to store in until client takes over*/
 	char *          content_type;
-	
+	HTRequest *	request;      /* the request structure */
 } HTExtParseStruct;
 
 /*extern HTStream * HTExtParse PARAMS((void (*CallMeArg)()));*/

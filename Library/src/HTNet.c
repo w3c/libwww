@@ -114,7 +114,9 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
       case THD_CLOSE:
 	FD_CLR(sockfd, &HTfd_read);
 	FD_CLR(sockfd, &HTfd_write);
+#if 0
 	FD_CLR(sockfd, &HTfd_intr);
+#endif
 	FD_CLR(sockfd, &HTfd_set);
 	break;
 

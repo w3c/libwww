@@ -121,5 +121,6 @@ PUBLIC HTStream* HTExtParse ARGS5(
     me->eps->used = 0;
     me->eps->finished = NO;
     me->eps->length = INPUT_BUFFER_SIZE;
+    me->eps->request = request;
     return me;
 }
