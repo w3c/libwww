@@ -1,5 +1,14 @@
 Changes with libwww 5.3.2
 
+2001-03-06      Serge Adda <sAdda@infovista.com>
+	
+	* HTAnchor bug. HTAnchor_delete wasn't removing the reference to
+	  the deleted anchor. This caused a bug whenever requesting another
+	  anchor for the same URL. Thanks to Anton Belov for having
+	  reported the problem and to Serge for his patch. See
+	  http://lists.w3.org/Archives/Public/www-lib/2001JanMar/0133.html.
+	  
+
 2001-03-06      Stefan Wiesner <sw@ais-ag.de>
 
 	* Timer bug. There was a bug in the code of function HTTimer_new
