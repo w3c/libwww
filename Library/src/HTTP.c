@@ -559,6 +559,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	*/
 	HTCopy(http->sockfd, request->output_stream);
 	(*request->output_stream->isa->free)(request->output_stream);
+	HTInputSocket_free(http->isoc);
 	HTTPCleanup(http);
 	return HT_LOADED;
     } else {						    /* read response */
