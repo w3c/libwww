@@ -421,7 +421,7 @@ int main (int argc, char ** argv)
 			    break;
 			}
 
-#if 1
+#if 0
 			fprintf(stderr, "location: `%s\', user: `%s\', operation: `%s\', comment: `%s\'\n",
 				path, cvsuser, operation, comment);
 #endif
