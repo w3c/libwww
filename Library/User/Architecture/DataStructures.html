@@ -6,10 +6,67 @@
 <BODY>
 
 <A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
-<A HREF="../../Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="Guide.html"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/Tang48x.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
 
 <H1>Important Data Structures</H1>
+
+**************
+
+The Library contains many data structures of which most are for
+internal only and will not normally be referenced directly from
+outside the Library. However, as the definition of a graphic object is
+done by the application and not by the Library, a the following figure
+gives a quick overview of the three most important data structures (or
+objects) and how they are interconnected.
+
+</P><IMG SRC="DataStruc.gif" ALT="Structures"></P>
+
+<DL>
+
+<DT><A NAME="request"
+HREF="../../Implementation/HTAccess.html#z1">HTRequest
+structure</A></DT>
+
+<DD>The <CODE>request</CODE> structure contains information intended
+for the client application, the server application and for the Library
+itself for how to fulfill a request. The default values of the
+structure are appropiate for a client loadinf a document from either
+an <A HREF="../../../Architecture/Anchors.html" >anchor</A> or a <A
+HREF="../../../Addressing/Addressing.html">URI</A>.
+ Managing <CODE>requests</CODE> is described in section <A HREF="#request">
+The Request Object</A></DD>
+
+<DT><A HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor
+structure</A> </DT>
+
+<DD><A HREF="../Terms.html#anchor">Anchors</A> represent any objects
+which may be the sources or destinations of hypertext links. Anchors
+contain all information about the object, whether it has been loaded,
+known metainformation about the object (language, media type etc.),
+and relations to other objects. Managing <CODE>anchors</CODE> is
+described in section <A HREF="#anchor">The Anchor Object</A></DD>
+<DT><A HREF="../../../LineMode/Implementation/GridText.c">HyperDoc
+structure</A> </DT>
+
+<DD>The <CODE>HyperDoc</CODE> structure is only declared in the
+Library - the definition is left to the client application. For the <A
+HREF="../../../LineMode/Status.html">Line Mode Browser</A>, it is
+defined in the <A
+HREF="../../../LineMode/Implementation/GridText.c">GridText Module</A>
+where it is called <CODE>_HText</CODE>. It contains all information
+needed to present and manage a <A HREF="Overview#GraphicObject">
+graphic object</A>. The client is responsible for allocating and
+freeing all <CODE>graphic objects</CODE> which may entail tradeoffs of
+speed versus available resources. When the object is freed, the link
+from the <CODE>anchor structure</CODE> must be put to
+<CODE>NULL</CODE>. The dotted line symbolizes that it is free for the
+client to create a <CODE>HyperDoc</CODE> object including a link to
+the <CODE>request</CODE> structure.  </DD>
+
+</DL>
+
+**************
 
 The Library contains many data structures, which all are defined in
 the HTML files in the source code. This document introduces the most
@@ -46,7 +103,7 @@ Structure</A>
 
 <DD>The <CODE>HyperDoc</CODE> structure is only declared in the
 Library - the real definition is left to the client application. For
-the <A HREF="../../../LineMode/Status.html">Line Mode Browser</A>, it
+the <A HREF="../../../LineMode/">Line Mode Browser</A>, it
 is defined in the <A
 HREF="../../../LineMode/Implementation/GridText.c">GridText Module</A>
 where it is called <CODE>_HText</CODE>. It contains all information
@@ -93,10 +150,9 @@ resource must be loaded through the network.
 
 </UL>
 
+<P>
 <HR>
-
-<ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
-libwww@w3.org, June 1995</ADDRESS>
-
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+<HR>
 </BODY>
 </HTML>
