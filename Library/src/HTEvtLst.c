@@ -824,7 +824,9 @@ PRIVATE LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
     case FD_ACCEPT: type = HTEvent_ACCEPT; break;
     case FD_CONNECT: type = HTEvent_CONNECT; break;
     case FD_OOB: type = HTEvent_OOB; break;
-    case FD_CLOSE: type = HTEvent_CLOSE; break;
+    /* JK: was returning HTEvent_CLOSE before, and this was a source of
+       errors, as libwww detects the socket shutdown with a call to recv  */  
+    case FD_CLOSE: type = HTEvent_READ; break;
     default: HTDEBUGBREAK("Unknown event %d\n" _ event);
     }
     if (HTEventList_dispatch((int)sock, type, now) != HT_OK)
