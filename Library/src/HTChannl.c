@@ -287,6 +287,30 @@ PUBLIC BOOL HTChannel_deleteAll (void)
     return YES;
 }
 
+/*      HTChannel_safeDeleteAll
+**      -------------------
+**      Destroys all channels. This is called by HTLibTerminate(0
+*/
+ 
+PUBLIC BOOL HTChannel_safeDeleteAll (void)
+{
+    if (channels) {
+        HTList * cur;
+        int cnt;
+        for (cnt=0; cnt<HT_M_HASH_SIZE; cnt++) {
+          if ((cur = channels[cnt])) {
+            HTChannel * pres;
+            while ((pres = (HTChannel *) HTList_nextObject(cur)) != NULL) {
+              HTChannel_delete (pres, HT_TIMEOUT);
+              cur = channels[cnt];
+            }
+          }
+        }
+        return YES;
+    }
+    return NO;
+}
+
 /*
 **	Return the socket associated with this channel
 */

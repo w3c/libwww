@@ -49,6 +49,39 @@ PRIVATE HTTimer * InTimer = NULL;
 #define SETME(timer)
 
 #endif /* !WATCH_RECURSION */
+
+/* JK: used by Amaya */
+PUBLIC BOOL HTTimer_expireAll (void)
+{
+  HTList * cur;
+  HTTimer * timer;
+  if (Timers) {
+    /*
+    **  first delete all plattform specific timers to
+    **  avoid having a concurrent callback
+    */
+    cur = Timers;
+    while ((timer = (HTTimer *) HTList_nextObject(cur))) {
+      if (DeletePlatformTimer) DeletePlatformTimer(timer);
+    }
+ 
+    /*
+    ** simulate a timer timeout thru timer_dispatch
+    ** to kill its context
+    */
+    cur = Timers;
+    while ((timer = (HTTimer *) HTList_nextObject(cur))) {
+          /* avoid having it being refreshed */
+      timer->repetitive = NO;
+      HTTimer_dispatch (timer);
+      /* as the timer is erased, we start again from the top of the list */
+      cur = Timers;
+    }
+    return YES;
+  }
+  return NO;
+}
+
 /* ------------------------------------------------------------------------- */
 
 /*
@@ -313,3 +346,5 @@ PRIVATE void CheckTimers(void)
     }
 }
 #endif
+
+

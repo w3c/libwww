@@ -38,6 +38,7 @@ extern HTTimer * HTTimer_new (HTTimer *, HTTimerCallback *,
                               BOOL relative, BOOL repetitive);
 extern BOOL HTTimer_delete (HTTimer * timer);
 extern BOOL HTTimer_deleteAll (void);
+extern BOOL HTTimer_expireAll (void);
 </PRE>
 <H2>
   Dispatch Timer
