@@ -158,12 +158,14 @@ PRIVATE int ParseRequest (HTStream * me)
     char * request_uri = HTNextField(&line);
     char * version_str = HTNextField(&line);
 
+    /* Set up an aouput stream */
+    request->output_stream =
+	HTTPReply_new(request,HTWriter_new(request->net, YES));
+
     /* Check if method is allowed */
     if (!method_str || (request->method=HTMethod_enum(method_str))==METHOD_INVALID) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
 			   NULL, 0, "ParseRequest");
-	request->output_stream =
-	    HTTPReply_new(request,HTWriter_new(request->net, YES));
 	return HT_ERROR;
     }
 
@@ -175,22 +177,16 @@ PRIVATE int ParseRequest (HTStream * me)
     } else {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 			   NULL, 0, "ParseRequest");
-	request->output_stream =
-	    HTTPReply_new(request,HTWriter_new(request->net, YES));
 	return HT_ERROR;
     }
 
     /* Get ready to get the rest of the request */
     if (version_str) {
-	me->target = HTStreamStack(WWW_MIME, request->output_format,
+	me->target = HTStreamStack(WWW_MIME_HEAD, request->output_format,
 				   request->output_stream, request, NO);
-	request->output_stream =
-	    HTTPReply_new(request,HTWriter_new(request->net, YES));
 	return HT_OK;
     } else {
 	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is formatted as 0.9\n");
-	request->output_stream =
-	    HTTPReply_new(request,HTWriter_new(request->net, YES));
 	return HT_LOADED;
     }
 }
@@ -366,7 +362,7 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		else
 		    http->state = HTTPS_ERROR;
 	    } else if (ops == FD_WRITE) {
-		if (HTRequest_isSource(request)) {
+		if (HTRequest_mainDestination(request)) {
 		    HTNet * dest = request->mainDestination->net;
 		    HTEvent_Register(dest->sockfd, dest->request,
 				     (SockOps) FD_READ,

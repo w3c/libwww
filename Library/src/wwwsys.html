@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -132,6 +132,8 @@ August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
 #define HAVE_STRERROR
 
 #define STRUCT_DIRENT	struct dirent
+#define d_ino           d_fileno        /* backward compatibility */
+
 #define SLEEP(n)	GUSIDefaultSpin( SP_SLEEP, n/60)
 
 #define MKDIR(a,b)      mkdir(a)

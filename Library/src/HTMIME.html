@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>RFC822 Header Parser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -45,37 +45,33 @@ W3C Reference Library</A>.
 #include "HTFormat.h"
 </PRE>
 
-<H3>Converters in this Module</H3>
+<H2>Stream Converters in this Module</H2>
+
+<H3>MIME header parser stream</H3>
+
+This stream parses a complete MIME header and if a content type header
+is found then the stream stack is called. Any left over data is pumped
+right through the stream.
 
 <PRE>
-extern HTConverter HTMIMEConvert, HTNetMIME;
+extern HTConverter HTMIMEConvert;
 </PRE>
 
-<H2>Handling Unknown Headers</H2>
+<H3>MIME header ONLY parser stream</H3>
 
-If you have additional headers that you want to experient with you can
-register a header parser to handle all unknown headers. This handler
-is called whenever an unknown header is encountered when parsing the
-object header. If the returns YES then the MIME parser stores the
-metainformation in the anchor object ifself so that it can be found at
-a later point in time.  If the handler returns NO, then the header is
-discarded.<P>
-
-The header passed to the call back function will be in normal NULL
-terminated C string without any CRLF. The line will also be unwrapped
-so that it is easier to parse for the call back function.
+This stream parses a complete MIME header and then returnes HT_PAUSE.
+It does not set up any streams and resting data stays in the buffer.
+This can be used if you only want to parse the headers before you
+decide what to do next. This is for example the case in a server app.
 
 <PRE>
-typedef BOOL HTMIMEHandler	(HTRequest * request, char * header);
- 
-extern BOOL HTMIME_register	(HTMIMEHandler * cbf);
-extern BOOL HTMIME_unRegister	(void);
+extern HTConverter HTMIMEHeader;
 </PRE>
 
 <PRE>
 #endif
 </PRE>
 
-End of HTMIME
+End of HTMIME declaration
 </BODY>
 </HTML>

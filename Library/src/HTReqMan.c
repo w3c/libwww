@@ -683,7 +683,6 @@ PUBLIC BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest)
 {
     if (src && dest) {
 	dest->source = src->source = src;
-	dest->source_anchor = src->anchor;
 	if (!src->mainDestination) {
 	    src->mainDestination = dest;
 	    src->destRequests = 1;
@@ -718,7 +717,6 @@ PUBLIC BOOL HTRequest_removeDestination (HTRequest * dest)
 	HTRequest *src = dest->source;
 	if (src->mainDestination == dest) {
 	    dest->source = NULL;
-	    dest->source_anchor = NULL;
 	    src->mainDestination = NULL;
 	    src->destRequests--;
 	    found = YES;

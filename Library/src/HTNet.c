@@ -331,6 +331,7 @@ PRIVATE HTNet * create_object (HTRequest * request)
     me->request = request;
     request->net = me;
     me->tcpstate = TCP_BEGIN;
+    if (!HTNetActive) HTNetActive = HTList_new();
     return me;
 }
 
@@ -367,7 +368,6 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
     if (!request) return NO;
 
     /* Check if we can start the request, else return immediately */
-    if (!HTNetActive) HTNetActive = HTList_new();
     if (HTList_count(HTNetActive) > HTMaxActive) {
 	if (PROT_TRACE) TTYPrint(TDEST, "HTNet new... NO SOCKET AVAILABLE\n");
 	HTNetCall_execute(HTAfter, request, HT_RETRY);
@@ -426,7 +426,6 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     ** If no translation was provided by the application then use the anchor
     ** address directly
     */
-    if (!HTNetActive) HTNetActive = HTList_new();
     if (!(physical = HTAnchor_physical(request->anchor)) || !*physical) {
 	char * addr = HTAnchor_address((HTAnchor *) request->anchor);
 	if (WWWTRACE) TTYPrint(TDEST, "HTNet New... Using default address\n");

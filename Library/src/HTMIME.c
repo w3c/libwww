@@ -87,6 +87,7 @@ struct _HTStream {
     HTChunk *			buffer;
     HTSocketEOL			EOLstate;
     BOOL			transparent;
+    BOOL			head_only;
     BOOL			nntp;
 };
 
@@ -554,30 +555,21 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 	}
     }
-
-    anchor->header_parsed = YES;
     me->transparent = YES;		  /* Pump rest of data right through */
 
-#if 0
-    /* If we're a server then stop here */
-    if (request->server_net) {
-	return HTMethod_hasEntity(request->method) ? HT_PAUSE : HT_LOADED;
-    }
-#endif
+    /* If this request us a source in PostWeb then pause here */
+    if (me->head_only || HTRequest_isSource(request)) return HT_PAUSE;
+
+    /* If HEAD method then we just stop here */
     if (request->method == METHOD_HEAD) return HT_LOADED;
 
     /* News server almost never send content type or content length */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
-	if (STREAM_TRACE)
-	    TTYPrint(TDEST, "MIMEParser.. Convert %s to %s\n",
-		    HTAtom_name(anchor->content_type),
-		    HTAtom_name(me->target_format));
-	if ((me->target=HTStreamStack(anchor->content_type, me->target_format,
-				      me->target, request, YES)) == NULL) {
-	    if (STREAM_TRACE)
-		TTYPrint(TDEST, "MIMEParser.. Can't convert media type\n");
-	    me->target = HTErrorStream();
-	}
+	if (STREAM_TRACE) TTYPrint(TDEST, "MIMEParser.. Convert %s to %s\n",
+				   HTAtom_name(anchor->content_type),
+				   HTAtom_name(me->target_format));
+	me->target = HTStreamStack(anchor->content_type, me->target_format,
+				   me->target, request, YES);
     }
     return HT_OK;
 }
@@ -604,7 +596,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    } else {						 /* New line */
 		me->EOLstate = EOL_BEGIN;
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putc(me->buffer, *b);
+		HTChunk_putb(me->buffer, b, 1);
 	    }
 	} else if (me->EOLstate == EOL_FLF) {
 	    if (*b == CR)				/* LF CR or CR LF CR */
@@ -620,7 +612,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putc(me->buffer, *b);
+		HTChunk_putb(me->buffer, b, 1);
 	    }
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
@@ -634,14 +626,14 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    } else {						/* New line */
 		me->EOLstate = EOL_BEGIN;
 		HTChunk_putc(me->buffer, '\0');
-		HTChunk_putc(me->buffer, *b);
+		HTChunk_putb(me->buffer, b, 1);
 	    }
 	} else if (*b == CR) {
 	    me->EOLstate = EOL_FCR;
 	} else if (*b == LF) {
 	    me->EOLstate = EOL_FLF;			       /* Line found */
 	} else
-	    HTChunk_putc(me->buffer, *b);
+	    HTChunk_putb(me->buffer, b, 1);
 	b++;
     }
 
@@ -649,20 +641,16 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
     ** Put the rest down the stream without touching the data but make sure
     ** that we get the correct content length of data
     */
-    if (l < 0) return HT_OK;
-    if (me->target) {
-	long cl = me->anchor->content_length;
+    if (me->transparent) {
 	int status = (*me->target->isa->put_block)(me->target, b, l);
-	if (status == HT_OK)
+	if (status == HT_OK) {
 	    /* Check if CL at all - thanks to jwei@hal.com (John Wei) */
-	    return (me->request->method == METHOD_HEAD ||
-		    (cl >= 0 && HTNet_bytesRead(me->net) >= cl)) ?
-			HT_LOADED : HT_OK;
-	else
+	    long cl = HTAnchor_length(me->anchor);
+	    return (cl>=0 && HTNet_bytesRead(me->net)>=cl) ? HT_LOADED : HT_OK;
+	} else
 	    return status;
-    } else if (me->anchor->header_parsed)
-	return HT_LOADED;
-    return HT_WOULD_BLOCK;
+    }
+    return HT_OK;
 }
 
 
@@ -739,8 +727,11 @@ PRIVATE CONST HTStreamClass HTMIME =
 }; 
 
 
-/*	Subclass-specific Methods
+/*	MIME header parser stream.
 **	-------------------------
+**	This stream parses a complete MIME header and if a content type header
+**	is found then the stream stack is called. Any left over data is pumped
+**	right through the stream
 */
 PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
 				void *		param,
@@ -755,10 +746,37 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
     me->request = request;
     me->anchor = request->anchor;
     me->net = request->net;
-    me->target = output_stream;
+    me->target = output_stream ? output_stream : HTErrorStream();
     me->target_format = output_format;
     me->buffer = HTChunk_new(512);
     me->EOLstate = EOL_BEGIN;
     return me;
 }
 
+/*	MIME header ONLY parser stream
+**	------------------------------
+**	This stream parses a complete MIME header and then returnes HT_PAUSE.
+**	It does not set up any streams and resting data stays in the buffer.
+**	This can be used if you only want to parse the headers before you
+**	decide what to do next. This is for example the case in a server app.
+*/
+PUBLIC HTStream * HTMIMEHeader (HTRequest *	request,
+				void *		param,
+				HTFormat	input_format,
+				HTFormat	output_format,
+				HTStream *	output_stream)
+{
+    HTStream * me;
+    if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
+	outofmem(__FILE__, "HTMIMEConvert");
+    me->isa = &HTMIME;       
+    me->request = request;
+    me->anchor = request->anchor;
+    me->net = request->net;
+    me->target = output_stream ? output_stream : HTErrorStream();
+    me->target_format = output_format;
+    me->buffer = HTChunk_new(512);
+    me->EOLstate = EOL_BEGIN;
+    me->head_only = YES;		    /* We want to pause after header */
+    return me;
+}

@@ -294,7 +294,7 @@ PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
 	int status = HTSocketRead(request, net);
 	if (status == HT_WOULD_BLOCK)
 	    return HT_OK;
-	else if (status == HT_LOADED)
+	else if (status == HT_CLOSED)
 	    HTNet_delete(request->net, HT_LOADED);
 	else
 	    HTNet_delete(request->net, HT_ERROR);

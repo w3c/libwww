@@ -435,6 +435,9 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 	return NO;
     }
 
+    /* Set the source anchor */
+    main_dest->source_anchor = HTAnchor_parent(src_anchor);
+
     /* Build the POST web if not already there */
     if (!main_dest->source) {
 	src_req = HTRequest_dupInternal(main_dest);	  /* Get a duplicate */
