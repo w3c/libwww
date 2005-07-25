@@ -21,6 +21,12 @@
 #include <mysql/mysql.h>
 #include <mysql/errmsg.h>
 
+/* updates for to remove deprecated mysql functions */
+#define mysql_connect(m,h,u,p) mysql_real_connect((m),(h),(u),(p),NULL,0,NULL,0) 
+/* mysql documentation indicates that database names have a maximun of 65 characters */
+#define CREATE_DB_BUFFER_SIZE 128
+#define CREATE_DB_QUERY_FORMAT "create database %s"
+
 struct _HTSQL {
     MYSQL		server;
     MYSQL *		psvr;
@@ -227,6 +233,7 @@ PUBLIC BOOL HTSQL_version (HTSQL *		me,
     return NO;
 }
 
+
 PUBLIC BOOL HTSQL_selectDB (HTSQL * me, const char * db)
 {
     BOOL created = NO;
@@ -240,7 +247,12 @@ PUBLIC BOOL HTSQL_selectDB (HTSQL * me, const char * db)
 
 	    /* If the database couldn't be found then create a new one */
 	    if (err == 1049) {
-		if (mysql_create_db(me->psvr, db) < 0) {
+	      char CREATE_DB_BUFFER[CREATE_DB_BUFFER_SIZE];
+	      snprintf( CREATE_DB_BUFFER, 
+			(size_t)CREATE_DB_BUFFER_SIZE,
+			CREATE_DB_QUERY_FORMAT,
+			db );
+		if (mysql_query(me->psvr, CREATE_DB_BUFFER) < 0) {
 		    HTTRACE(SQL_TRACE, "SQL error... `%s\', errno %d\n" _ 
 					   mysql_error(me->psvr) _ err);
 		    return NO;
