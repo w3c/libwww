@@ -345,6 +345,7 @@ PUBLIC void HTIconInit (const char * url_prefix)
 {
     const char * prefix = url_prefix ? url_prefix : ICON_LOCATION;
 
+    HTIcon_deleteAll(); /* Start fresh */
     HTIcon_addBlank("blank.xbm", 	prefix,	NULL);
     HTIcon_addDir("directory.xbm", 	prefix, "DIR");
     HTIcon_addParent("back.xbm", 	prefix,	"UP");

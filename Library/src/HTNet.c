@@ -350,6 +350,7 @@ PUBLIC BOOL HTNet_addBefore (HTNetBefore * before, const char * tmplate,
 			     void * param, HTFilterOrder order)
 {
     if (!HTBefore) HTBefore = HTList_new();
+    else HTNet_deleteBefore(before); /* Ensure not listed twice */
     return HTNetCall_addBefore(HTBefore, before, tmplate, param, order);
 }
 
@@ -392,6 +393,7 @@ PUBLIC BOOL HTNet_addAfter (HTNetAfter * after, const char * tmplate,
 			    void * param, int status, HTFilterOrder order)
 {
     if (!HTAfter) HTAfter = HTList_new();
+    else HTNet_deleteAfter(after); /* Ensure not listed twice */
     return HTNetCall_addAfter(HTAfter, after, tmplate, param, status, order);
 }
 

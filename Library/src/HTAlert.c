@@ -169,6 +169,7 @@ PUBLIC HTList * HTAlert_global (void)
 PUBLIC BOOL HTAlert_add (HTAlertCallback * cbf, HTAlertOpcode opcode)
 {
     if (!HTMessages) HTMessages = HTList_new();
+    else HTAlert_delete(cbf); /* Remove duplicates */
     return HTAlertCall_add(HTMessages, cbf, opcode);
 }
 

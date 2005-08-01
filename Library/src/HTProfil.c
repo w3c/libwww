@@ -58,9 +58,34 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
     HTAlertInit();
     HTAlert_setInteractive(YES);
 
-    if (!converters) converters = HTList_new();
-    if (!transfer_encodings) transfer_encodings = HTList_new();
-    if (!content_encodings) content_encodings = HTList_new();
+    if (!converters) {
+      converters = HTList_new();
+      /* Register the default set of converters */
+      HTConverterInit(converters);
+      /* Register the default libwww HTML parser */
+      if (HTMLParser) HTMLInit(converters);
+      /* Set the converters as global converters for all requests */
+      HTFormat_setConversion(converters);
+    }
+
+    if (!transfer_encodings) {
+      transfer_encodings = HTList_new();
+      /* Register the default set of transfer encoders and decoders */
+      HTTransferEncoderInit(transfer_encodings);
+      HTFormat_setTransferCoding(transfer_encodings);
+    }
+
+    if (!content_encodings) {
+      content_encodings = HTList_new();
+      /* Register the default set of content encoders and decoders */
+      HTContentEncoderInit(content_encodings);
+      if (HTList_count(content_encodings) > 0)
+	HTFormat_setContentCoding(content_encodings);
+      else {
+	HTList_delete(content_encodings);
+	content_encodings = NULL;
+      }
+    }
 
     /* Register the default set of transport protocols */
     HTTransportInit();
@@ -88,28 +113,6 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 
     /* Get any proxy or gateway environment variables */
     HTProxy_getEnvVar();
-
-    /* Register the default set of converters */
-    HTConverterInit(converters);
-
-    /* Register the default libwww HTML parser */
-    if (HTMLParser) HTMLInit(converters);
-
-    /* Set the convertes as global converters for all requests */
-    HTFormat_setConversion(converters);
-
-    /* Register the default set of transfer encoders and decoders */
-    HTTransferEncoderInit(transfer_encodings);
-    HTFormat_setTransferCoding(transfer_encodings);
-
-    /* Register the default set of content encoders and decoders */
-    HTContentEncoderInit(content_encodings);
-    if (HTList_count(content_encodings) > 0)
-	HTFormat_setContentCoding(content_encodings);
-    else {
-	HTList_delete(content_encodings);
-	content_encodings = NULL;
-    }
 
     /* Register the default set of MIME header parsers */
     HTMIMEInit();
@@ -176,9 +179,33 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
     /* If the Library is not already initialized then do it */
     if (!HTLib_isInitialized()) HTLibInit(AppName, AppVersion);
 
-    if (!converters) converters = HTList_new();
-    if (!transfer_encodings) transfer_encodings = HTList_new();
-    if (!content_encodings) content_encodings = HTList_new();
+    if (!converters) {
+      converters = HTList_new();
+      /* Register the default set of converters including the HTML parser */
+      HTConverterInit(converters);
+      HTMLInit(converters);
+      /* Set the converters as global converters for all requests */
+      HTFormat_setConversion(converters);
+    }
+
+    if (!transfer_encodings) {
+      transfer_encodings = HTList_new();
+      /* Register the default set of transfer encoders and decoders */
+      HTTransferEncoderInit(transfer_encodings);
+      HTFormat_setTransferCoding(transfer_encodings);
+    }
+
+    if (!content_encodings) {
+      content_encodings = HTList_new();
+      /* Register the default set of content encoders and decoders */
+      HTContentEncoderInit(content_encodings);
+      if (HTList_count(content_encodings) > 0)
+	HTFormat_setContentCoding(content_encodings);
+      else {
+	HTList_delete(content_encodings);
+	content_encodings = NULL;
+      }
+    }
 
     /* Register the default set of transport protocols */
     HTTransportInit();
@@ -199,26 +226,6 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
 
     /* Get any proxy or gateway environment variables */
     HTProxy_getEnvVar();
-
-    /* Register the default set of converters including the HTML parser */
-    HTConverterInit(converters);
-    HTMLInit(converters);
-
-    /* Set the convertes as global converters for all requests */
-    HTFormat_setConversion(converters);
-
-    /* Register the default set of transfer encoders and decoders */
-    HTTransferEncoderInit(transfer_encodings);
-    HTFormat_setTransferCoding(transfer_encodings);
-
-    /* Register the default set of content encoders and decoders */
-    HTContentEncoderInit(content_encodings);
-    if (HTList_count(content_encodings) > 0)
-	HTFormat_setContentCoding(content_encodings);
-    else {
-	HTList_delete(content_encodings);
-	content_encodings = NULL;
-    }
 
     /* Register the default set of MIME header parsers */
     HTMIMEInit();

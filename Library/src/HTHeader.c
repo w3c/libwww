@@ -1,4 +1,4 @@
-/*								     HTHeader.c
+/*						     HTHeader.c
 **	EXTRA HEADER MANAGER
 **
 **	(c) COPYRIGHT MIT 1995.
@@ -69,6 +69,7 @@ PUBLIC BOOL HTHeader_addParser (const char * token, BOOL case_sensitive,
 				HTParserCallback * callback)
 {
     if (!ParseSet) ParseSet = HTMIMEParseSet_new(MIME_HASH_SIZE);
+    else HTHeader_deleteParser(token); /* Remove duplicates */
     return (HTMIMEParseSet_add(ParseSet, token, case_sensitive, callback) != NULL);
 }
 
@@ -120,3 +121,4 @@ PUBLIC void HTHeader_deleteAll (void)
 	HTGenerators = NULL;
     }
 }
+

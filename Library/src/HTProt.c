@@ -64,6 +64,7 @@ PUBLIC BOOL HTProtocol_add (const char *       	name,
 	newProt->client = client;
 	newProt->server = server;
 	if (!protocols) protocols = HTList_new();
+	else HTProtocol_delete(name); /* Ensure not listed twice */
 	HTTRACE(CORE_TRACE, "Protocol.... Adding `%s'\n" _ name);
 	return HTList_addObject(protocols, (void *) newProt);
     }
