@@ -1,6 +1,71 @@
+2005-08-01       Vic Bancroft <bancroft@america.net>
+
+	* Library/src/: HTAlert.c, HTHeader.c, HTInit.c, HTNet.c,
+	  HTProfil.c, HTProt.c, HTTrans.c: Patch to greatly speed up
+	  repeated requests, from Arthur Smith
+
+2005-07-25       Vic Bancroft <bancroft@america.net>
+
+	* Library/src/HTSQL.c: modifications to compile without using
+	  deprecated mysql functions
+	* config/: config.sub, ltmain.sh: updates for recent version of
+	  libtool
+
+2005-04-04       Jose Kahan <jose@w3.org>
+
+	* INSTALL.html, Library/src/HTEvtLst.c: cleaning
+
+2005-03-09 Vic Bancroft <bancroft@america.net>
+
+	* libwww-config.in: include -lwwwssl, thanks to mgoddard at
+	  itgs-presearch.com
+
+2005-02-28       Vic Bancroft <bancroft@america.net>
+07:28  vbancrof
+
+	* Library/src/SSL/HTSSLWriter.c: avoids an eternal loop in libwww
+	  (thanks to Steinar Bang)
+
+2005-02-27       Vic Bancroft <bancroft@america.net>
+
+	* Library/src/SSL/HTSSL.html, Robot/src/RobotMain.c: fix for webbot
+	  -v option check and documentation addition
+	* configure.ac, Library/src/SSL/HTSSL.c,
+	  Library/src/SSL/windows/wwwssl.def, Robot/src/HTRobMan.html,
+	  Robot/src/Makefile.am, Robot/src/RobotMain.c: basic support for
+	  client side certificates using PEM format
+
+2005-01-23       Vic Bancroft <bancroft@america.net>
+
+	* Library/src/SSL/: HTSSL.c, HTSSLReader.c, HTSSLWriter.c: add
+	  openssl to include for ssl.h and rand.h
+	* config/: config.guess, config.sub, ltmain.sh: update after
+	  running libtoolize
+	* Robot/src/Makefile.am: use SSL directory for libwwwssl.la
+	* Robot/src/RobotMain.c: include HTSSL.h
+	* configure.ac: fix aclocal underquoting warnings
+	* Robot/src/: RobotMain.c, Makefile.am: update to enable https
+	  protocol
+
+2005-01-05       Martin Duerst <duerst@w3.org>
+
+	* Library/src/HTTPReq.c: fixed , to _ in HTTRACE call
+	* Library/src/HTTPReq.c: removed LIBWWW_USEIDN, because unnecessary
+	* modules/idn/unicode_template.c: forgot one file
+	* Library/src/HTDNS.html: moved IDN to main branch
+	* Library/src/HTDNS.c: moved IDN to main branch
+	* Library/src/HTTPReq.c: added "LIBWWW_USEIDN" conditional
+	* Library/src/HTTPReq.c: moved IDN to main branch
+
+2004-01-29       Jose Kahan <jose@w3.org>
+
+	* Library/Overview.html: JK: Added the libwww survey results
+
+
 Changes with libwww 5.40
 
 2003-11-17      Jose Kahan <jose@w3.org>
+
         * Added a public patch to expat that kept if from compiling 
           under C++ (misplaced enum). 
           http://downloads.linuxfromscratch.org/blfs-patches/
