@@ -1,3 +1,10 @@
+2005-10-16       Vic Bancroft <bancroft@america.net>
+
+	* Library/src/HTBound.c: libwww security advisory fix from 
+	  Sam Varshavchik, fix double-counting of processed bytes,
+	  rewrote HTBoundary_put_block, to fix problematic HTTP 1.1 
+	  byte range requests
+	
 2005-08-01       Vic Bancroft <bancroft@america.net>
 
 	* Library/src/: HTAlert.c, HTHeader.c, HTInit.c, HTNet.c,
@@ -15,13 +22,12 @@
 
 	* INSTALL.html, Library/src/HTEvtLst.c: cleaning
 
-2005-03-09 Vic Bancroft <bancroft@america.net>
+2005-03-09       Vic Bancroft <bancroft@america.net>
 
 	* libwww-config.in: include -lwwwssl, thanks to mgoddard at
 	  itgs-presearch.com
 
 2005-02-28       Vic Bancroft <bancroft@america.net>
-07:28  vbancrof
 
 	* Library/src/SSL/HTSSLWriter.c: avoids an eternal loop in libwww
 	  (thanks to Steinar Bang)
