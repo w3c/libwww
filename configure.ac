@@ -18,7 +18,7 @@ PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED([W3C_PACKAGE], "$PACKAGE", [Define to be the package name.])
  
-VERSION=5.4.0
+VERSION=5.4.1
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED([W3C_VERSION], "$VERSION", [Define to be the version.])
 

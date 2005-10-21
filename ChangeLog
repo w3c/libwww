@@ -1,3 +1,5 @@
+Changes with libwww 5.4.1
+
 2005-10-16       Vic Bancroft <bancroft@america.net>
 
 	* Library/src/HTBound.c: libwww security advisory fix from 
