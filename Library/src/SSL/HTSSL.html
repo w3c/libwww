@@ -18,6 +18,10 @@ could be added here.
 <PRE>
 #ifndef _HTSSL_H
 #define _HTSSL_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   The HTSSL Class
@@ -77,7 +81,13 @@ extern int HTSSL_read (HTSSL * htssl, int sd, char * buff, int len);
 extern int HTSSL_write (HTSSL * htssl, int sd, char * buff, int len);
 extern int HTSSL_getError (HTSSL * htssl, int status);
 </PRE>
+
 <PRE>
+
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
 #endif /* _HTSSL_H */
 </PRE>
 <P>

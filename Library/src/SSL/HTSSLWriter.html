@@ -32,6 +32,10 @@ Library</A>.
 
 #include "<A HREF="../HTIOStream.html">HTIOStream.h</A>"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTOutput_new HTSSLWriter_new;
 
 extern BOOL HTSSLWriter_set (HTOutputStream *      me,
@@ -39,6 +43,11 @@ extern BOOL HTSSLWriter_set (HTOutputStream *      me,
                              HTChannel *           ch,
                              void *                param,
                              int                   mode);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTSSLWRITE_H */
 </PRE>

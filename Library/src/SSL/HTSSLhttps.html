@@ -16,6 +16,11 @@ could as well be negotiated instead of getting a new URI scheme.
 <PRE>
 #ifndef _HTSSLHTTPS_H
 #define _HTSSLHTTPS_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <P>
 The initialization function initialies the SSL transports by doing the following:
@@ -47,6 +52,10 @@ extern BOOL HTSSLhttps_isInitialized (void);
 extern BOOL HTSSLhttps_terminate (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* _HTSSLHTTPS_H */
 </PRE>
 <P>
