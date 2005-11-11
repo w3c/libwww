@@ -691,13 +691,13 @@ PUBLIC size_t HTFile_dirent_buf_size(DIR * dirp)
         name_max = fpathconf(dirfd(dirp), _PC_NAME_MAX);
         if (name_max == -1)
 #if defined(NAME_MAX)
-                name_max = NAME_MAX;
+                name_max = (NAME_MAX > 255) ? NAME_MAX : 255;
 #else
                 return (size_t)(-1);
 #endif
 #else
 #if defined(NAME_MAX)
-            name_max = NAME_MAX;
+            name_max = (NAME_MAX > 255) ? NAME_MAX : 255;
 #else
 #error "buffer size for readdir_r cannot be determined"
 #endif
