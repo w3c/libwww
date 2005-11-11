@@ -58,6 +58,10 @@ Library</A>.
 #ifndef HTUTREE_H
 #define HTUTREE_H
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   URL Trees
@@ -141,6 +145,10 @@ extern BOOL HTUTree_deleteNode (HTUTree * tree,
 
 
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTUTREE_H */
 </PRE>
 <P>

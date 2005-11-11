@@ -38,6 +38,10 @@ Library</A>.
 #include "HTReader.h"
 #include "HTReq.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTXParseStruct HTXParseStruct;
 
 typedef void CallClient (HTXParseStruct * me);
@@ -54,7 +58,11 @@ struct _HTXParseStruct {
 
 extern HTConverter HTXParse;
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTXPARSE_H */
 </PRE>
 <P>
 End of declaration

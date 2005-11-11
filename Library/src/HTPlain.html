@@ -24,9 +24,17 @@ Sample Code Library</A>.
 
 #include "HTFormat.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTConverter HTPlainPresent;
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTPLAIN_H */
 </PRE>
 
 <HR>

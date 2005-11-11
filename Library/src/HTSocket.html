@@ -31,11 +31,20 @@ Library</A>.
 
 #include <A HREF="HTProt.html">"HTProt.h"</A>
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTProtCallback HTLoadSocket;
 </PRE>
 <PRE>
 </PRE>
-<PRE>#endif
+<PRE>
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* HTSOCKET_H */
 </PRE>
 <P>
   <HR>

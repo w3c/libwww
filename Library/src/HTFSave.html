@@ -26,6 +26,10 @@ Library</A>.
 #define HTFSAVE_H
 
 #include "HTFWrite.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="converters">Various Converters using the File Writer Stream</A>
@@ -64,7 +68,11 @@ extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallback;
     function is called with the file name of the temporary file as parameter.
 </DL>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTFSAVE_H */
 </PRE>
 <P>
   <HR>

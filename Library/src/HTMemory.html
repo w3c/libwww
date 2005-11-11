@@ -43,6 +43,10 @@ Library</A>.
 #define HTMEMORY_H
 
 #include "<A HREF="HTUtils.html">HTUtils.h</A>"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="Allocation">Allocation, Reallocation and De-allocation</A>
@@ -141,6 +145,10 @@ then exit.
 extern void HTMemory_outofmem(char * name, char * file, unsigned long line);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTMEMORY_H */
 </PRE>
 <P>

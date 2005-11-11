@@ -35,6 +35,10 @@ Library</A>. You can also have a look at the other
 #ifndef HTHINIT_H
 #define HTHINIT_H
 #include "WWWLib.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Default HTML Parsers
@@ -53,7 +57,12 @@ The Presenters are also used in the stream stack, but are initialized separately
 extern void HTMLInit		(HTList * conversions);
 
 </PRE>
-<PRE>#endif
+<PRE>
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* HTHINIT_H */
 </PRE>
 <P>
   <HR>

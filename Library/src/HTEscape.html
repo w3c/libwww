@@ -28,6 +28,9 @@ Library</A>.
 #ifndef HTESCAPE_H
 #define HTESCAPE_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Encode Unacceptable Characters using %xy
@@ -68,6 +71,10 @@ grow.
 extern char * HTUnEscape (char * str);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif	/* HTESCAPE_H */
 </PRE>
 <P>

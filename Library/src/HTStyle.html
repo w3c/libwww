@@ -32,6 +32,10 @@ Library</A>.
 <PRE>
 #ifndef HTSTYLE_H
 #define HTSTYLE_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Creating and Deleting a StyleSheet
@@ -69,6 +73,10 @@ extern HTStyle * HTStyleSheet_findStyleWithName (HTStyleSheet * me, const char *
 extern HTStyle * HTStyleSheet_findStyleForElement (HTStyleSheet * me, int element);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTSTYLE_H */
 </PRE>
 <P>

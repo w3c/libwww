@@ -43,6 +43,11 @@ Library</A>.
 #define HTALERT_H
 
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   <A NAME="Message">Message Opcodes and Messages</A>
@@ -272,6 +277,10 @@ extern BOOL HTAlert_deleteAll (void);
 extern HTAlertCallback * HTAlert_find (HTAlertOpcode opcode);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 </PRE>
 <P>

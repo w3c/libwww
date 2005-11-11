@@ -38,6 +38,10 @@ part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTNET_H
 #define HTNET_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <P>
 The <CODE>HTNet</CODE> object is the core of the request queue management.
@@ -666,6 +670,10 @@ this may be a reasonable thing to do.
 extern BOOL HTNet_rawBytesCount (HTNet * net);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTNET_H */
 </PRE>
 <P>

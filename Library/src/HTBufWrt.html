@@ -39,6 +39,10 @@ Library</A>.
 #define HTBUFWRT_H
 
 #include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Default Output Buffering
@@ -65,7 +69,11 @@ extern HTOutput_new HTBufferWriter_new;
 extern HTOutputConverter_new HTBufferConverter_new;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTBUFWRT_H */
 </PRE>
 <P>
   <HR>

@@ -36,8 +36,13 @@ robot.</p>
 <p>This module is implemented by <a href="HTLink.c">HTLink.c</a>, and it is a
 part of the <a href="http://www.w3.org/Library/"> W3C Sample Code
 Library</a>.</p>
-<pre>#ifndef HTLINK_H
+<pre>
+#ifndef HTLINK_H
 #define HTLINK_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 
 typedef struct _HTLink        HTLink;
 
@@ -156,7 +161,13 @@ performed on a link and hence the application can ask the user whether he or
 she wants to do a re-post, for example.</p>
 <pre>extern BOOL HTLink_setResult (HTLink * link, HTLinkResult result);
 extern HTLinkResult HTLink_result (HTLink * link);</pre>
-<pre>#endif /* HTLINK_H */</pre>
+<pre>
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* HTLINK_H */
+</pre>
 
 <p></p>
 <hr>

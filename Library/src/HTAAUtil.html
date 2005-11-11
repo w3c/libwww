@@ -88,6 +88,11 @@ Library</A>.
 #include "HTReq.h"
 #include "HTNet.h"
 #include "HTUTree.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   Authentication Scheme Registration
@@ -215,6 +220,10 @@ know whether we are using a proxy or not.
 HTNetBefore HTAA_proxyBeforeFilter;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif	/* NOT HTAAUTIL_H */
 </PRE>
 <P>

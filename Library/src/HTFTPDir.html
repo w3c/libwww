@@ -27,11 +27,19 @@ Sample Code Library</A>.
 #include "HTStream.h"
 #include "HTFTP.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTStream * HTFTPDir_new (HTRequest *	request,
 				FTPServerType	server,
 				char		list);
+
+#ifdef __cplusplus
+}
 #endif
 
+#endif  /* HTFTPDIR_H */
 </PRE>
 
 <HR>

@@ -29,6 +29,11 @@ Library</A>.
 #define HTAABROW_H
 #include "HTUTree.h"
 #include "HTNet.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   Basic Authentication
@@ -53,6 +58,10 @@ extern HTUTree_gc	HTDigest_delete;
 
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif	/* NOT HTAABROW_H */
 </PRE>
 <P>

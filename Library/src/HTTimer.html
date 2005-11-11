@@ -46,6 +46,10 @@ There are several timeouts that can be set in libwww:
 #include "wwwsys.h"
 #include "HTReq.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTTimer HTTimer;
 
 typedef int HTTimerCallback (HTTimer *, void *, HTEventType type);
@@ -141,6 +145,10 @@ extern BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf);
 extern BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTTIMER_H */
 </PRE>
 <P>

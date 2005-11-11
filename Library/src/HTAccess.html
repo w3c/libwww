@@ -87,6 +87,11 @@ Library</A>.
 
 #include "HTReq.h"
 #include "HTAnchor.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   <A NAME="Load">Load a Document (Method = GET)</A>
@@ -823,6 +828,10 @@ by returning HT_LOADED from the callback.
 extern int HTUpload_callback (HTRequest * request, HTStream * target);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTACCESS_H */
 </PRE>
 <P>

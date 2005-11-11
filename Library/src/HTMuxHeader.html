@@ -21,6 +21,10 @@ This module is does not contain a <CODE>.c</CODE> file. It is a part of the
 <PRE>
 #ifndef HTMUXHEADER_H
 #define HTMUXHEADER_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Byte Swapping
@@ -116,7 +120,11 @@ Default Values
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTMUXHEADER_H */
 </PRE>
 <P>
   <HR>

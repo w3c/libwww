@@ -30,6 +30,10 @@ Library</A>.
 #ifndef HTUSER_H
 #define HTUSER_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTUserProfile HTUserProfile;
 </PRE>
 <H2>
@@ -130,6 +134,10 @@ extern void * HTUserProfile_context (HTUserProfile * up);
 extern BOOL HTUserProfile_setContext (HTUserProfile * up, void * context);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTUser_H */
 </PRE>
 <P>

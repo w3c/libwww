@@ -34,6 +34,10 @@ Library</A>.
 
 #include "HTReq.h"
 #include "HTHeader.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <PRE>
 extern HTParserCallback 
@@ -77,7 +81,11 @@ extern HTParserCallback
 	HTMIME_warning;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTMIMIMP_H */
 </PRE>
 <P>
   <HR>

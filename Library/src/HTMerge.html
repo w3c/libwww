@@ -29,7 +29,15 @@ Library</A>.
 
 #include "HTStream.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTStream * HTMerge (HTStream * target, int feeds);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTMERGE_H */
 </PRE>

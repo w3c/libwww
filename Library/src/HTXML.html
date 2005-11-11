@@ -34,6 +34,10 @@ details. Thanks so much to John Punin for writing this code!
 #endif /* HT_STRUCT_XML_STREAM */
 
 #include &lt;expat.h&gt;
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="converter">Libwww Stream Converter</A>
@@ -88,12 +92,15 @@ extern BOOL HTXMLStructured_setHandlers(
 	XML_DefaultHandler		def_handler);
 
 extern BOOL HTXMLStructured_setUserData (HTStream * me, void * user_data);
-extern HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured *
-starget);
-#endif
+extern HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured * starget);
+#endif  /* HT_STRUCT_XML_STREAM */
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTXML_H */
 </PRE>
 <P>
   <HR>

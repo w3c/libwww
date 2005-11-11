@@ -20,6 +20,10 @@ with key words.
 
 #include "HTList.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTHashtable HTHashtable;
 
 struct _HTHashtable {
@@ -99,7 +103,11 @@ extern HTArray * HTHashtable_keys  (HTHashtable *me);
 extern void HTHashtable_print (HTHashtable *me);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTHASH_H */
 </PRE>
 <P>
   <HR>

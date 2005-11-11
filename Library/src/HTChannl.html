@@ -35,6 +35,10 @@ Library</A>.
 #ifndef HTCHANNL_H
 #define HTCHANNL_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTChannel HTChannel;
 
 #include <A HREF="HTHost.html">"HTHost.h"</A>
@@ -133,6 +137,10 @@ extern HTInputStream * HTChannel_getChannelIStream (HTChannel * ch);
 extern HTOutputStream * HTChannel_getChannelOStream (HTChannel * ch);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTCHANNL */
 </PRE>
 <P>

@@ -26,6 +26,10 @@ part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 #include "HTDNS.h"
 #include "HTEvent.h"
 #include "HTProt.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <P>
 The <CODE>HTNet</CODE> object is the core of the request queue management.
@@ -123,6 +127,10 @@ extern BOOL HTNet_setEventPriority(HTNet * net, HTPriority priority);
 extern HTPriority HTNet_eventPriority(HTNet * net);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTNETMAN_H */
 </PRE>
 <P>

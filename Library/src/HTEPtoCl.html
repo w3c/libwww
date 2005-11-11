@@ -32,9 +32,18 @@ Library</A>.
 #include "HTStream.h"
 #include "HTXParse.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern CallClient HTCallClient;
 
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTEPTOCLIENT_H */
 </PRE>
 <P>
   <HR>

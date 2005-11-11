@@ -80,6 +80,10 @@ Library</A>.
 #include "HTReq.h"
 #include "HTUTree.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTPEPModule HTPEPModule;
 </PRE>
 <H2>
@@ -154,6 +158,10 @@ extern HTNetBefore HTPEP_beforeFilter;
 extern HTNetAfter  HTPEP_afterFilter;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif	/* NOT HTPEP_H */
 </PRE>
 <P>

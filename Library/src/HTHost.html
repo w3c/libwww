@@ -26,6 +26,10 @@ Library</A>.
 #ifndef HTHOST_H
 #define HTHOST_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTHost HTHost;
 #define HOST_HASH_SIZE		HT_M_HASH_SIZE
 
@@ -546,6 +550,10 @@ extern void HTHost_setActivateRequestCallback
 </PRE>
 <P>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTHOST_H */
 </PRE>
 <P>

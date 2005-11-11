@@ -26,6 +26,10 @@ CodeLibrary</A>.
 #ifndef HTDAV_H
 #define HTDAV_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 #ifdef HT_DAV
 </PRE>
 
@@ -69,7 +73,7 @@ LIST = "(" 1*( ["Not"] (STATE-TOKEN | "[" ENTITY-TAG "]" ) ) ")"
 STATE-TOKEN = CODED-URL
 
 <P>
-CODED-URL = "&lt;" AbsoluteURI "&gt;
+CODED-URL = "&lt;" AbsoluteURI "&gt;"
 
 <P>
 <STRONG>Note</STRONG>: The caller should free the strings returned by
@@ -341,6 +345,11 @@ extern BOOL HTMOVERelative (HTRequest * request, const char * relative,
                         HTDAVHeaders * headers);
 
 #endif /* HT_DAV */
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTDAV_H */
 </PRE>
 

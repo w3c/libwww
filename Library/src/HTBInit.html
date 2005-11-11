@@ -33,6 +33,11 @@ Library</A>. You can also have a look at the other
 <PRE>
 #ifndef HTBINIT_H
 #define HTBINIT_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   Default File Suffix Binding
@@ -47,6 +52,10 @@ file URL.
 extern void HTFileInit (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 </PRE>
 <P>

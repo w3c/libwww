@@ -29,6 +29,10 @@ Sample Code Library</A>.
 #define HTDIR_H
 #include "HTReq.h"
 #include "HTIcons.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 <H2>What Should the Listings Look Like?</H2>
@@ -114,6 +118,10 @@ extern BOOL HTDir_free (HTDir * dir);
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTDIR */
 </PRE>
 

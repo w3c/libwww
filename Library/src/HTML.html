@@ -28,6 +28,10 @@ of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 
 #include "HTFormat.h"
 #include "HTMLPDTD.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Converters
@@ -66,6 +70,10 @@ typedef enum _HTMLCharacterSet {
 extern BOOL HTMLUseCharacterSet (HTMLCharacterSet charset);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif		/* end HTML_H */
 </PRE>
 <P>

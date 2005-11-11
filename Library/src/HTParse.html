@@ -33,6 +33,10 @@ Library</A>.
 #define HTPARSE_H
 
 #include "HTEscape.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="Parsing">Parsing URIs</A>
@@ -177,6 +181,10 @@ hexadesimal ASCII 20-7E, and also A0-FE, inclusive.
 extern BOOL HTCleanTelnetString (char * str);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif	/* HTPARSE_H */
 </PRE>
 <P>

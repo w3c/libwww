@@ -27,6 +27,10 @@ Library</A>.
 
 #include "HTStream.h"
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H3>
   Streams Definition
@@ -40,7 +44,11 @@ extern HTStream * HTTPGen_new  (HTRequest * request, HTStream * target,
 				BOOL endHeader, int version);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTTPGEN_H */
 </PRE>
 <P>
   <HR>

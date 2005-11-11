@@ -32,6 +32,11 @@ Library</A>.
 #define HTANSI_H
 
 #include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   Input Buffering
@@ -55,6 +60,10 @@ extern HTInput_new HTANSIReader_new;
 extern HTOutput_new HTANSIWriter_new;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 </PRE>
 <P>

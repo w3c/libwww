@@ -35,6 +35,9 @@ W3C Sample Code Library</A>.
 #include "HTStream.h"
 #include "HTList.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <PRE>typedef struct _HTStructured HTStructured;
 
@@ -77,7 +80,11 @@ pointer</EM> warnings
 		
 } HTStructuredClass;
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTSTRUCT_H */
 </PRE>
 <P>
   <HR>

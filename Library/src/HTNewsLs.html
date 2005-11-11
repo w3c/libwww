@@ -27,6 +27,10 @@ Library</A>.
 #include "HTFormat.h"
 #include "HTNet.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTConverter HTNewsList, HTNewsGroup;
 </PRE>
 <H3>
@@ -40,6 +44,10 @@ HTNetBefore HTNewsCache_before;
 HTNetAfter HTNewsCache_after;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTNEWSLS_H */
 </PRE>
 <P>

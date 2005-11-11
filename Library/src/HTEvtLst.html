@@ -45,6 +45,11 @@ Library</A>.
 #include "wwwsys.h"
 #include "HTEvent.h"
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H3>
   Windows Specific Handles
@@ -146,6 +151,10 @@ does this before this function is called. This can be done using the
 extern void HTEventList_stopLoop (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTEVTLST_H */
 </PRE>
 <P>

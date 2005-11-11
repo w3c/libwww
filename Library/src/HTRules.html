@@ -30,6 +30,10 @@ Library</A>.
 #include "HTList.h"
 #include "HTReq.h"
 #include "HTFormat.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Parse a Rule File
@@ -121,7 +125,11 @@ extern char * HTRule_translate (HTList * list, const char * token,
 				BOOL ignore_case);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTRULE_H */
 </PRE>
 <P>
   <HR>

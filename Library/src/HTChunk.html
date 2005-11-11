@@ -33,6 +33,10 @@ Library</A>.
 <PRE>
 #ifndef HTCHUNK_H
 #define HTCHUNK_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Create new chunk
@@ -192,7 +196,11 @@ Don't use these in new applications
 #define HTChunkSize(ch)       HTChunk_size(ch)
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTCHUNK_H */
 </PRE>
 <P>
   <HR>

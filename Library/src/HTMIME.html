@@ -32,6 +32,10 @@ Library</A>.
 
 #include "HTStream.h"
 #include "HTFormat.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   How to Deal with Unknown Data
@@ -131,7 +135,11 @@ extern HTConverter HTCacheCopyHeaders;
 #endif
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTMIME_H */
 </PRE>
 <P>
   <HR>

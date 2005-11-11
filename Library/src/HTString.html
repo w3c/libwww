@@ -23,6 +23,10 @@ Sample Code Library</A>.
 <PRE>
 #ifndef HTSTRING_H
 #define HTSTRING_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="dyn">Dynamic String Manipulation</A>
@@ -115,6 +119,10 @@ trailing white space is OVERWRITTEN with zero.
 extern char * HTStrip (char * s);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* !HTSTRING_H */
 </PRE>
 <P>

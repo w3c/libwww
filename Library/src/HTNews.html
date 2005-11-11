@@ -24,6 +24,10 @@ Library</A>.
 #ifndef HTNEWS_H
 #define HTNEWS_H
 #include "HTProt.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <P>
 We define the max NNTP line as rather long as the result coming from a
@@ -49,6 +53,10 @@ at once. This is also the default behavior.
 extern int HTNews_maxArticles (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTNEWS_H */
 </PRE>
 <P>

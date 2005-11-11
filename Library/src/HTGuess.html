@@ -32,7 +32,15 @@ Library</A>.
 #include "HTStream.h"
 #include "HTFormat.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTConverter HTGuess_new;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* !HTGUESS_H */
 </PRE>

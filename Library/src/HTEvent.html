@@ -46,6 +46,11 @@ a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 #ifndef HTEVENT_H
 #define HTEVENT_H
 #include "wwwsys.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 #ifdef IN_EVENT
 typedef struct _HTTimer HTTimer;
 #endif
@@ -216,6 +221,10 @@ struct _HTEvent {
 You can register the event manager provided together with libwww by using
 the <CODE>HTEventInit()</CODE> in the <A HREF="HTInit.html">HTInit module</A>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTEVENT_H */
 </PRE>
 <P>

@@ -38,7 +38,15 @@ Sample Code Library</A>.
 #include "HTStream.h"
 #include "HTArray.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTStream * HTTee (HTStream * s1, HTStream * s2, HTComparer * resolver);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTTEE_H */
 </PRE>

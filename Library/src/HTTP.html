@@ -25,6 +25,10 @@ of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 
 #include "HTProt.h"
 #include "HTStream.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H3>
   HTTP Client Connection Mode
@@ -73,6 +77,10 @@ the communication.
 <PRE>
 extern HTProtCallback HTLoadHTTP;
 extern HTConverter HTTPStatus_new;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTTP_H */
 </PRE>

@@ -28,6 +28,10 @@ Library</A>.
 #ifndef HTCOOKIE_H
 #define HTCOOKIE_H
 #include "WWWLib.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="Init">Initiate and Terminate Cookie Handling</A>
@@ -144,6 +148,10 @@ extern BOOL HTCookie_setCookieMode (HTCookieMode mode);
 extern HTCookieMode HTCookie_cookieMode (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTCOOKIE_H */
 </PRE>
 <P>

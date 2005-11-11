@@ -24,6 +24,10 @@ Sample Code Library</A>.
 <PRE>
 #ifndef HTMEMLOG_H
 #define HTMEMLOG_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="all">The Whole Deal</A>
@@ -38,6 +42,10 @@ extern void HTMemLog_close (void);
 extern HTTraceDataCallback HTMemLog_callback;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* !HTMEMLOG_H */
 </PRE>
 <P>

@@ -30,6 +30,10 @@ Library</A>.
 #define HTSQLLOG_H
 
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Open and Close the Logs
@@ -105,7 +109,11 @@ count number to the log or -1 if error.
 extern int HTSQLLog_accessCount (HTSQLLog * me);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTSQLLOG_H */
 </PRE>
 <P>
   <HR>

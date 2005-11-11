@@ -30,6 +30,10 @@ Library</A>.
 #ifndef HTERROR_H
 #define HTERROR_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTError HTError;
 
 typedef enum _HTSeverity {
@@ -320,6 +324,10 @@ extern void * HTError_parameter		(HTError * info, int * length);
 extern const char * HTError_location	(HTError * info);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTERROR_H */
 </PRE>
 <P>

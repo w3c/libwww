@@ -24,6 +24,10 @@ Library</A>.
 #define HTZIP_H
 
 #include "HTFormat.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <PRE>
 #ifdef HT_ZLIB
@@ -33,6 +37,10 @@ extern HTCoder HTZLib_inflate;
 <P>
 End of definition module
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTZIP_H */
 </PRE>
 <P>

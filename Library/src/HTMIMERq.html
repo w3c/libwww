@@ -27,6 +27,10 @@ Sample Code Library</A>.
 
 #include "HTStream.h"
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 <H3>Streams Definition</H3>
@@ -39,7 +43,11 @@ mode. If <CODE>endHeader</CODE> is YES then we send an empty
 extern HTStream * HTMIMERequest_new    (HTRequest * request, HTStream * target,
 					BOOL endHeader);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTMIMERQ_H */
 </PRE>
 
 <HR>

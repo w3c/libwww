@@ -27,9 +27,17 @@ Library</A>.
 #ifndef HTNETTXT_H
 #define HTNETTXT_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTStream * HTNetToText (HTStream * target);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTNETTXT_H */
 </PRE>
 <P>
   <HR>

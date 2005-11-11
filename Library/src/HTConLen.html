@@ -30,6 +30,10 @@ Library</A>.
 <PRE>
 #ifndef HTCONLEN_H
 #define HTCONLEN_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Buffer Stream
@@ -86,6 +90,10 @@ extern HTStream * HTPipeBuffer    	(HTStream *	target,
 <P>
 End of definition module
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTCONLEN_H */
 </PRE>
 <P>

@@ -28,6 +28,10 @@ Code Library</A>.
 
 #include "<A HREF="HTStruct.html">HTStruct.h</A>"
 #include "<A HREF="SGML.html">SGML.h</A>"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Number of HTML Entities
@@ -1004,6 +1008,10 @@ by an editor in the series z1. z2,...
 extern void HTNextID (HTStructured * targetStream, const char * s);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTMLDTD_H */
 </PRE>
 <P>

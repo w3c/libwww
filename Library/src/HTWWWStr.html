@@ -29,6 +29,10 @@ Library</A>.
 
 #include "HTUser.h"
 #include "HTAtom.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   MIME Parsing and other String Based Utilities
@@ -224,7 +228,11 @@ NULL then "<CODE>file:</CODE>" is used.
 extern char * HTLocalToWWW (const char * local, const char * access);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTWWWSTR_H */
 </PRE>
 <P>
   <HR>

@@ -27,6 +27,11 @@ declarition in the <A HREF="HTAnchor.html">HTAnchorModule</A>.<P>
 #include "HTList.h"
 #include "HTAtom.h"
 #include "HTMethod.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 
 We have a set of Anchor objects which of course should be sub classes
@@ -123,6 +128,10 @@ struct _HTChildAnchor {
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTANCMAN_H */
 </PRE>
 

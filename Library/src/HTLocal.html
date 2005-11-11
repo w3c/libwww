@@ -24,6 +24,10 @@ Library</A>.
 #define HTLOCAL_H
 
 #include "HTNet.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Mode of File
@@ -87,6 +91,10 @@ descriptors
 extern int HTFileClose (HTNet * net);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif   /* HTLOCAL_H */
 </PRE>
 <P>

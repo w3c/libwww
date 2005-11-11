@@ -47,6 +47,10 @@ Library</A>. You can also have a look at the other
 #define HTPROF_H
 #include "WWWLib.h"
 #include "WWWInit.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="Client">Client Application Profiles</A>
@@ -154,7 +158,11 @@ calling this function.
 <PRE>extern void HTProfile_delete (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTPROF_H */
 </PRE>
 <P>
   <HR>

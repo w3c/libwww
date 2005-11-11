@@ -23,6 +23,10 @@ for details.
 #ifndef HTRDF_H
 #define HTRDF_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 #include "<A href="HTHash.html">HTHash.h</A>"
 
 #define RDFMS "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -416,7 +420,11 @@ extern BOOL HTRDF_parseBuffer (const char *buffer,
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTRDF_H */
 </PRE>
 <P>
   <HR>

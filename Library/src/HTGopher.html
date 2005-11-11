@@ -26,9 +26,18 @@ Sample Code Library</A>.
 
 #include "HTProt.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTProtCallback HTLoadGopher;
 
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTGOPHER_H */
 </PRE>
 
 <HR>

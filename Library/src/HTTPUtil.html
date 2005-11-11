@@ -17,8 +17,13 @@
 The HTTP <A HREF="HTTP.html">client module</A> and the
 <A HREF="HTTPServ.html">server module</A> has a few things in common which
 we keep in this file.
-<PRE>#ifndef HTTPUTIL_H
+<PRE>
+#ifndef HTTPUTIL_H
 #define HTTPUTIL_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H3>
   HTTP Version Management
@@ -40,7 +45,11 @@ typedef enum _HTTPVersion {
 #define HTTP_VERSION	"HTTP/1.1"
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTTPUTIL_H */
 </PRE>
 <P>
   <HR>

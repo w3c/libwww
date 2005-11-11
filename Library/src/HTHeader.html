@@ -29,6 +29,10 @@ Library</A>.
 
 #include "HTResponse.h"
 #include "HTStream.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <P>
 We have two call back functions: the first is for generating headers. This
@@ -99,6 +103,10 @@ extern HTList * HTHeader_generator (void);
 extern void HTHeader_deleteAll (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTHEADER_H */
 </PRE>
 <P>

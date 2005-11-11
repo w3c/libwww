@@ -26,6 +26,10 @@ a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 #define HTCACHE_H
 
 #include "WWWLib.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Initialize and Terminate the Persistent Cache
@@ -370,7 +374,11 @@ extern BOOL HTCache_hasLock     (HTCache * cache);
 extern BOOL HTCache_releaseLock (HTCache * cache);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTCACHE_H */
 </PRE>
 <P>
   <HR>

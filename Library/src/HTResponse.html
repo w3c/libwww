@@ -39,6 +39,10 @@ Library</A>.
 #ifndef HTRESPONSE_H
 #define HTRESPONSE_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTResponse HTResponse;
 
 #include "HTEvent.h"
@@ -385,6 +389,10 @@ extern BOOL HTResponse_setReason (HTResponse * me, char * reason);
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTRESPONSE_H */
 </PRE>
 <P>

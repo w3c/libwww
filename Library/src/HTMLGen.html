@@ -27,6 +27,10 @@ Sample Code Library</A>.
 
 #include "HTStruct.h"
 #include "HTFormat.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 The HTML generator stream is almost a converter stream but it returns
@@ -44,7 +48,11 @@ extern HTStructured* HTMLGenerator (HTRequest *	request,
 
 extern HTConverter HTPlainToHTML;
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTMLGEN_H */
 </PRE>
 
 <HR>

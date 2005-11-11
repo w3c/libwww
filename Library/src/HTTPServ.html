@@ -27,7 +27,15 @@ Sample Code Library</A>. <P>
 
 #include "HTProt.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTProtCallback HTServHTTP;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTTPSERV_H */
 </PRE>

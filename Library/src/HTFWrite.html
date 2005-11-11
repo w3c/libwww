@@ -28,6 +28,10 @@ Library</A>.
 
 #include "HTStream.h"
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="write">Basic ANSI C File Writer Stream</A>
@@ -44,7 +48,11 @@ extern HTStream * HTFWriter_new	(
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTFWRITE_H */
 </PRE>
 <P>
   <HR>

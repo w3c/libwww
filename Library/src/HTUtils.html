@@ -20,6 +20,10 @@ Code Library</A>. See also the system dependent file
 <PRE>
 #ifndef HTUTILS_H
 #define HTUTILS_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Destination for User Print Messages
@@ -364,6 +368,10 @@ The Library has it's own dynamic memory API which is declared in
 #include "HTMemory.h"
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HT_UTILS.h */
 </PRE>
 <P>

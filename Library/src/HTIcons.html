@@ -29,6 +29,10 @@ Library</A>.
 #define HTICONS_H
 
 #include "WWWLib.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <PRE>
 typedef struct _HTIconNode HTIconNode;
@@ -168,6 +172,10 @@ interface</A>
     <CODE>compressed.xbm</CODE> for compressed and gzipped files
 </UL>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTICONS */
 </PRE>
 <P>

@@ -26,6 +26,10 @@ Library</A>.
 
 #include "HTProt.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTProtCallback HTLoadFile;
 </PRE>
 <H2>
@@ -79,7 +83,19 @@ libwww should do thi or not using the following methods:
 extern BOOL HTFile_doFileSuffixBinding (BOOL mode);
 extern BOOL HTFile_fileSuffixBinding (void);
 </PRE>
+Calculate the required buffer size (in bytes) for directory       
+entries read from the given directory handle, as per security advisory
+from Ben Hutchings.
+Return -1 if this this cannot be done.   
 <PRE>
+extern size_t HTFile_dirent_buf_size(DIR * dirp);
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTFILE_H */
 </PRE>
 <P>

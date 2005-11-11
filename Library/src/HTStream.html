@@ -64,6 +64,10 @@ Library</A>.
 
 #include "HTList.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTStream HTStream;
 
 typedef struct _HTStreamClass {
@@ -136,6 +140,10 @@ network.
 extern HTStream * HTErrorStream (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTSTREAM_H */
 </PRE>
 <P>

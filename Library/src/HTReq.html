@@ -60,6 +60,10 @@ Library</A>.
 #ifndef HTREQ_H
 #define HTREQ_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef long HTRequestID;
 typedef struct _HTRequest HTRequest;
 
@@ -1145,6 +1149,10 @@ extern long HTRequest_bytesRead (HTRequest * request);
 extern long HTRequest_bytesWritten (HTRequest * request);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTREQ_H */
 </PRE>
 <P>

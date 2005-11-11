@@ -27,6 +27,10 @@ Sample Code Library</A>.
 #define HTFTP_H
 #include "HTProt.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTProtCallback HTLoadFTP;
 
 typedef enum _FTPServerType {
@@ -84,7 +88,11 @@ extern void HTFTP_setControlMode (FTPControlMode mode);
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTFTP_H */
 </PRE>
 
 <HR>

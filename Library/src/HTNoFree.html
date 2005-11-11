@@ -29,9 +29,17 @@ Code Library</A>.
 
 #include "<A HREF="HTStream.html">HTStream.h</A>"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTStream * HTNoFreeStream_new (HTStream * target);
 
 extern int HTNoFreeStream_delete (HTStream * me);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTNOFREE_H */
 </PRE>

@@ -25,6 +25,10 @@ a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 #define HTINET_H
 #include "HTReq.h"
 #include "HTHstMan.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H3>
   System Description of Error Message
@@ -140,6 +144,10 @@ signal instead of returning <EM>Connection refused</EM>.
 <PRE>
 #ifdef WWWLIB_SIG
 extern void HTSetSignal (void);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif   /* HTINET_H */

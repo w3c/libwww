@@ -36,6 +36,10 @@ Library</A>. You can also have a look at the other
 #define HTINIT_H
 #include "<A HREF="WWWLib.html">WWWLib.h</A>"
 #include "<A HREF="WWWApp.html">WWWApp.h</A>"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Default Transport Protocol Modules
@@ -245,7 +249,11 @@ directories etc.
 extern void HTIconInit (const char * url_prefix);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTINIT_H */
 </PRE>
 <P>
   <HR>

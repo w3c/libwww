@@ -26,6 +26,10 @@ Library</A>.
 #ifndef HTDIALOG_H
 #define HTDIALOG_H
 #include "WWWLib.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="English">Default English Error Messages and Progress Notifications</A>
@@ -280,6 +284,10 @@ extern BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
 			      HTAlertPar * reply);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTDIALOG_H */
 </PRE>
 <P>

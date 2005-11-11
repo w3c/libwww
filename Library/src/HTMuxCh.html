@@ -24,15 +24,27 @@ Library</A>.
 #ifndef HTMUXCHANNEL_H
 #define HTMUXCHANNEL_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTMuxChannel     HTMuxChannel;
 typedef struct _HTMuxSession     HTMuxSession;
 typedef struct _HTMuxProtocol    HTMuxProtocol;
 
 typedef unsigned char            HTMuxSessionId;
 
+#ifdef __cplusplus
+}
+#endif
+
 #include "HTMuxHeader.h"
 #include "HTChannl.h"
 #include "HTHost.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 
 #define INVSID		0		/* Invalid session id */
 #define INVPID          0               /* Invalid protocol id */
@@ -117,7 +129,11 @@ extern BOOL HTMuxProtocol_add (HTMuxChannel * muxch,
 extern BOOL HTMuxProtocol_delete (HTMuxChannel * muxch, HTProtocolId pid);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTMUXCHANNEL_H */
 </PRE>
 <P>
   <HR>

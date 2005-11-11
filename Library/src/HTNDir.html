@@ -25,6 +25,10 @@ Library</A>.
 #ifndef HTNDIR_H
 #define HTNDIR_H
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   What Should the Listings Look Like?
@@ -94,6 +98,10 @@ the end of the list.
 extern BOOL HTNewsDir_free (HTNewsDir * dir);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTNDIR */
 </PRE>
 <P>

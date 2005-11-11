@@ -26,6 +26,11 @@ Sample Code Library</A>.
 #define HTBTREE_H
 
 #include "HTArray.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 
 <PRE>
@@ -80,7 +85,11 @@ extern HTBTElement * HTBTree_next (HTBTree * tree, HTBTElement * element);
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* HTBTTEE_H */
 </PRE>
 
 <HR>

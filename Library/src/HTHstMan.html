@@ -26,6 +26,10 @@ a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 #include "HTEvent.h"
 #include "HTProt.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 #define PIPE_BUFFER_SIZE	8192
 </PRE>
 <P>
@@ -112,6 +116,10 @@ struct _HTHost {
 #define HTHost_setDNS (host, dns)	((me) ? (me-&gt;dns=(dns)) :-1)
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTHSTMAN_H */
 </PRE>
 <P>

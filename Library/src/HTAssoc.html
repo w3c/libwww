@@ -27,6 +27,10 @@ Library</A>.
 
 #include "<A HREF="HTList.html">HTList.h</A>"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef HTList HTAssocList;
 
 typedef struct {
@@ -144,6 +148,10 @@ it with the same variable until it returns NULL.
 	((me) &amp;&amp; ((me) = (me)-&gt;next) ? (me)-&gt;object : NULL)
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* not HTASSOC_H */
 </PRE>
 <P>

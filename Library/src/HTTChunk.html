@@ -32,15 +32,24 @@ This module is implemented by <A HREF="HTTChunk.c">HTTChunk.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
 Library</A>.
 <P>
-<PRE>#ifndef HTTCHUNK_H
+<PRE>
+#ifndef HTTCHUNK_H
 #define HTTCHUNK_H
 
 #include "HTFormat.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <PRE>
 extern HTCoder HTChunkedDecoder, HTChunkedEncoder;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTTCHUNK_H */
 </PRE>
 <P>

@@ -32,6 +32,10 @@ Library</A>.
 #include "HTChunk.h"
 #include "HTStream.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTStream * HTStreamToChunk (HTRequest * 	request,
 				   HTChunk **	chunk,
 				   int 		max_size);
@@ -39,6 +43,10 @@ extern HTStream * HTStreamToChunk (HTRequest * 	request,
 <P>
 End of definition module
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTSCHUNK_H */
 </PRE>
 <P>

@@ -45,6 +45,10 @@ Library</A>.
 #ifndef HTANCHOR_H
 #define HTANCHOR_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   Types defined and used by the Anchor Object
@@ -590,6 +594,10 @@ extern BOOL HTAnchor_setHeader       (HTParentAnchor * me, HTAssocList * list);
 extern HTAssocList * HTAnchor_header (HTParentAnchor * me);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTANCHOR_H */
 </PRE>
 <P>

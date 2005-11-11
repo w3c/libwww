@@ -28,6 +28,9 @@ Library</A>.
 
 #include "HTHeader.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Data Types
@@ -88,6 +91,10 @@ extern int HTMIMEParseSet_dispatch (HTMIMEParseSet * me, HTRequest * request,
 				    char * token, char * value, BOOL * pFound);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTMIMPRS_H */
 </PRE>
 <P>

@@ -24,6 +24,10 @@ part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 #define HTLIB_H
 
 #include "<A HREF="HTUser.html">HTUser.h</A>"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Initializing and Terminating libwww
@@ -106,6 +110,10 @@ user profiles to every request object or may set the default user profile.
 extern BOOL HTLib_setUserProfile (HTUserProfile * up);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTLIB_H */
 </PRE>
 <P>

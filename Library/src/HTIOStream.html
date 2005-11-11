@@ -27,12 +27,17 @@ Sample Code Library</A>.
 #ifndef HTIOSTREAM_H
 #define HTIOSTREAM_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTInputStream HTInputStream;
 typedef struct _HTOutputStream HTOutputStream;
 
 #include "HTList.h"
 #include "HTStream.h"
 #include "HTChannl.h"
+
 </PRE>
 <H2>
   Input Stream
@@ -178,6 +183,10 @@ typedef HTOutputStream * HTOutputConverter_new(
 	HTOutputStream *	target);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTIOSTREAM_H */
 </PRE>
 <P>

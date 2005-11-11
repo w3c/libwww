@@ -32,6 +32,10 @@ Sample Code Library</A>.
 
 #include "HTFormat.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern  HTConverter HTWSRCConvert;
 </PRE>
 
@@ -47,7 +51,12 @@ extern char * HTDeSlash (const char * str);
 
 extern char * HTEnSlash (const char * str);
 
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /*  HTWSRC_H */
 </PRE>
 
 <HR>

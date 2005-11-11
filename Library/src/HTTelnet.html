@@ -24,9 +24,17 @@ Sample Code Library</A>.
 
 #include "HTProt.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 extern HTProtCallback HTLoadTelnet;
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTTELNET_H */
 </PRE>
 
 <HR>

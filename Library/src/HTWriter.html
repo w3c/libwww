@@ -34,6 +34,9 @@ Library</A>.
 
 #include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <PRE>extern HTOutput_new HTWriter_new;
 
@@ -44,7 +47,12 @@ extern BOOL HTWriter_set (HTOutputStream *	me,
 			  int			mode);
 
 </PRE>
-<PRE>#endif
+<PRE>
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* HTWRITE_H */
 </PRE>
 <P>
   <HR>

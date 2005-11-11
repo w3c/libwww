@@ -48,6 +48,10 @@ GridText</A> module.
 
 #include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
 #include "<A HREF="HTStream.html">HTStream.h</A>"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="htext">The HText Object</A>
@@ -245,6 +249,10 @@ extern BOOL HText_registerUnparsedEntityCallback (HText_unparsedEntity *);
 extern BOOL HText_unregisterUnparsedEntityCallback (void);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTEXT_H */
 </PRE>
 <P>

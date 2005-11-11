@@ -32,6 +32,10 @@ W3C Sample Code Library</A>.
 #define HTHISTORY_H
 
 #include "HTAnchor.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>
@@ -182,6 +186,10 @@ Return the next object in the list or NULL if none
 
 <PRE>
 extern HTAnchor * HTHistory_forward 	(HTHistory *hist);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTHISTORY_H */
 </PRE>

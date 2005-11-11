@@ -29,6 +29,10 @@ W3C Sample Code Library</A>.
 #define HTTEXGEN_H
 #include "HTStruct.h"
 #include "HTFormat.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 <H2>Conversion Module</H2>
@@ -40,7 +44,11 @@ extern HTConverter HTMLToTeX;
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTTEXGEN_H */
 </PRE>
 
 <HR>

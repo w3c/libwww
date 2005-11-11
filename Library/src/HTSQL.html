@@ -29,6 +29,10 @@ part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 #define HTSQL_H
 
 #include &lt;mysql/mysql.h&gt;
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   The HTSQL Object
@@ -149,7 +153,11 @@ When you are done with a query result then call this to clean up
 extern BOOL HTSQL_freeResult (MYSQL_RES * me);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTSQL_H */
 </PRE>
 <P>
   <HR>

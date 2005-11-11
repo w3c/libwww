@@ -52,6 +52,11 @@ Library</A>.
 
 #include "HTFormat.h"
 #include "HTAnchor.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 </PRE>
 <H2>
   Initialization of the Module
@@ -195,6 +200,10 @@ extern BOOL HTBind_getFormat (const char *	filename,
 <P>
 End of declaration module
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTBIND_H */
 </PRE>
 <P>

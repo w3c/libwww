@@ -24,6 +24,10 @@ Sample Code Library</A>.
 #define HTLIBLOG_H
 
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 <H2>Create a new Log Object</H2>
@@ -88,7 +92,11 @@ extern BOOL HTLog_addText (HTLog * log, const char * fmt, ...);
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTLIBLOG_H */
 </PRE>
 
 <HR>

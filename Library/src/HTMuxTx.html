@@ -28,6 +28,10 @@ Library</A>.
 <PRE>
 #ifndef HTMUXWRITE_H
 #define HTMUXWRITE_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 <PRE>
@@ -35,7 +39,12 @@ Library</A>.
 
 extern HTOutput_new HTMuxBuffer_new;
 </PRE>
-<PRE>#endif
+<PRE>
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* HTMUXWRITE_H */
 </PRE>
 <P>
   <HR>

@@ -28,6 +28,9 @@ Library</A>.
 #ifndef HTMETHOD_H
 #define HTMETHOD_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <P>
 <B>NOTE:</B> The anchor list of allowed methods is a bitflag, not at list!
@@ -133,6 +136,10 @@ extern BOOL HTMethod_deleteExtensionMethod (HTMethod method);
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTMETHOD_H */
 </PRE>
 <P>

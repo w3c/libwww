@@ -299,7 +299,8 @@ AC_CHECK_FUNCS(getcwd gethostname getdomainname getwd  \
 		select socket strerror strtol opendir getpid strchr memcpy \
 		getlogin getpass fcntl readdir sysinfo ioctl chdir tempnam \
 		getsockopt setsockopt \
-		gettimeofday mktime timegm tzset)
+		gettimeofday mktime timegm tzset \
+		fpathconf dirfd )
 # AC_CHECK_FUNC(unlink, , AC_CHECK_FUNC(remove, AC_DEFINE(unlink, remove)))
 ## Path submitted by thurog@gmx.de for autoconf 2.53
 AC_CHECK_FUNC(unlink)

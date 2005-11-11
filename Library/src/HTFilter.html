@@ -26,6 +26,10 @@ Library</A>.
 #ifndef HTFILTER_H
 #define HTFILTER_H
 #include "WWWLib.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   BEFORE Filters
@@ -162,6 +166,10 @@ extern HTNetAfter HTRefererFilter;
 </PRE>
 
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTFILTER_H */
 </PRE>
 <P>

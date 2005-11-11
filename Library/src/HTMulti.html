@@ -32,6 +32,10 @@ Library</A>
 #define HTMULTI_H
 
 #include "HTReq.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <P>
 This function is used when the best match among several possible documents
@@ -55,6 +59,10 @@ extern char * HTMulti (HTRequest *	req,
 		      struct stat *	stat_info);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTMULTI_H */
 </PRE>
 <P>

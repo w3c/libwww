@@ -33,6 +33,10 @@ Library</A>.
 #define HTREADER_H
 
 #include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Input Buffering
@@ -53,7 +57,11 @@ Water Mark (sb_hiwat) for receiving data.
 extern HTInput_new HTReader_new;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTREADER_H */
 </PRE>
 <P>
   <HR>

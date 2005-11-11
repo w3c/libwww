@@ -27,6 +27,10 @@ Library</A>.
 
 #include "HTArray.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTList HTList;
 
 struct _HTList {
@@ -149,6 +153,10 @@ list gets very long then you may wanna use a quicksort instead.
 </H2>
 <PRE>
 #define HTList_free(x)  HT_FREE(x)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTLIST_H */
 </PRE>

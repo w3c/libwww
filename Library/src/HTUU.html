@@ -31,6 +31,9 @@ Sample Code Library</A>.
 #ifndef HTUU_H
 #define HTUU_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 
 extern int HTUU_encode (unsigned char * bufin, unsigned int nbytes,
 			char * bufcoded);
@@ -38,7 +41,11 @@ extern int HTUU_encode (unsigned char * bufin, unsigned int nbytes,
 extern int HTUU_decode (char * bufcoded, unsigned char * bufplain,
 			int outbufsize);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTUU_H */
 </PRE>
 
 <HR>

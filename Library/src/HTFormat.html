@@ -73,6 +73,10 @@ Library</A>.
 #include "<A HREF="HTList.html">HTList.h</A>"
 #include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
 #include "<A HREF="HTReq.html">HTReq.h</A>"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   <A NAME="type">Converters and Presenters</A>
@@ -669,6 +673,10 @@ This object is not to be used - it should have been hidden&nbsp;
 } HTPresentation;
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTFORMAT */
 </PRE>
 <P>

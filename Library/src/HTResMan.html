@@ -35,6 +35,10 @@ Library</A>.
 #include "<A HREF="HTStream.html">HTStream.h</A>"
 #include "<A HREF="HTNet.html">HTNet.h</A>"
 #include "<A HREF="HTMIMPrs.html">HTMIMPrs.h</A>"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <P>
 When a request is handled, all kinds of things about it need to be passed
@@ -202,6 +206,10 @@ useful custom information in it
 <P>
 End of Declaration
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* HTRESMAN_H */
 </PRE>
 <P>

@@ -34,6 +34,9 @@ part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 #ifndef HTDNS_H
 #define HTDNS_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <PRE>typedef struct _HTdns HTdns;
 </PRE>
@@ -134,7 +137,11 @@ if error.
 extern int HTGetHostByName (HTHost * host, char *hostname, HTRequest * request);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTDNS_H */
 </PRE>
 <P>
   <HR>

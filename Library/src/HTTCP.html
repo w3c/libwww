@@ -25,6 +25,10 @@ Library</A>.
 #define HTTCP_H
 #include "HTReq.h"
 #include "HTNet.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 <H2>
   Active Connection Establishment
@@ -80,6 +84,10 @@ Closes a socket
 extern int HTDoClose (HTNet * net);
 </PRE>
 <PRE>
+#ifdef __cplusplus
+}
+#endif
+
 #endif   /* HTTCP_H */
 </PRE>
 <P>

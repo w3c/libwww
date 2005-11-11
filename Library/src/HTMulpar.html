@@ -23,6 +23,10 @@ HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 
 #include "HTStream.h"
 #include "HTList.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 </PRE>
 
 The MIME multipart stream is used to parse MIME multipart messages. It
@@ -70,7 +74,11 @@ stream. This is to avoid <EM>incompatible pointer</EM> warnings
 		
 } HTMultipartClass;
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTMULPAR_H */
 </PRE>
 
 <HR>

@@ -50,8 +50,13 @@ href="/Gateways/WAISGate.html">WWW-WAIS gateway</a>.</p>
 <p>This module is implemented by <a href="HTProt.c">HTProt.c</a>, and it is a
 part of the <a href="http://www.w3.org/Library/"> W3C Sample Code
 Library</a>.</p>
-<pre>#ifndef HTPROT_H
+<pre>
+#ifndef HTPROT_H
 #define HTPROT_H
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 
 typedef struct _HTProtocol HTProtocol;
 typedef u_short HTProtocolId;
@@ -140,9 +145,14 @@ thansport layer.</p>
 <pre>extern BOOL HTProtocol_setTransport (HTProtocol * protoccol,
                                      const char * transport);
 extern const char * HTProtocol_transport (HTProtocol * protocol);</pre>
-<pre>#endif /* HTPROT_H */</pre>
+<pre>
+#ifdef __cplusplus
+}
+#endif
 
-<p></p>
+#endif /* HTPROT_H */
+</pre>
+
 <hr>
 
 <address>

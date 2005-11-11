@@ -33,6 +33,10 @@ Library</A>.
 
 #include "HTList.h"
 
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
 typedef struct _HTAtom HTAtom;
 struct _HTAtom {
 	HTAtom *	next;
@@ -78,6 +82,10 @@ In order to cleanup memory, call this function. This is done automaticly
 from the <A HREF="HTReq.html#Library">HTLibTerminate</A> function.
 <PRE>
 extern void HTAtom_deleteAll (void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 </PRE>
