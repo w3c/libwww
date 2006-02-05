@@ -46,6 +46,7 @@ struct _HTElement {
     char * 			m_sName;
     HTAssocList *		m_attributes;
     HTList *			m_children;
+    HTList *			m_lastChild;
     char * 			m_sID;
     char * 			m_sBagID;
     HTList *			m_vTargets;
@@ -231,6 +232,7 @@ PUBLIC HTElement * HTElement_new (char * sName, HTAssocList * al)
 	StrAllocCopy(me->m_sName, sName);
 	me->m_attributes = al ? al : HTAssocList_new();
 	me->m_children = HTList_new();
+	me->m_lastChild = me->m_children;
 	/*me->m_nodes = HTAssocList_new();*/ /* Sirpac does not use nodes list */
 	me->m_vTargets = HTList_new();
 	me->m_bDone = FALSE;
@@ -251,6 +253,7 @@ PUBLIC HTElement * HTElement_new2 (char * sContent)
 	StrAllocMCopy(&me->m_sName, "[DATA: ", sContent, "]", NULL);
 	me->m_attributes = NULL;
 	me->m_children = HTList_new();
+	me->m_lastChild = me->m_children;
 	/*me->m_nodes = HTAssocList_new();*/
 	me->m_vTargets = HTList_new();
 	me->m_bDone = FALSE;
@@ -290,7 +293,14 @@ PUBLIC BOOL HTElement_delete (HTElement * me)
 
 PUBLIC BOOL HTElement_addChild (HTElement * me, HTElement * element)
 {
-    return (me && element) ? HTList_appendObject(me->m_children, element) : NO;
+  if (me && element) {
+    HTList *lastChild;
+    if ((lastChild = HTList_addList(me->m_lastChild, element))) {
+      me->m_lastChild = lastChild;
+      return YES;
+    }
+  }
+  return NO;
 }
 
 PUBLIC BOOL HTElement_addAttribute (HTElement * me, char * sName, char * sValue)
