@@ -209,7 +209,6 @@ AC_CHECK_LIB(nsl, t_accept)
 AC_CHECK_LIB(dl, dlopen)
 
 dnl Checks for header files:
-AC_CHECK_HEADERS(appkit/appkit.h appkit.h)
 AC_CHECK_HEADERS(arpa/inet.h inet.h)
 AC_CHECK_HEADERS(net/errno.h sys/errno.h errno.h)
 AC_CHECK_HEADERS(netinet/in.h in.h)
