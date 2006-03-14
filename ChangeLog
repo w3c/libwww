@@ -1,5 +1,15 @@
 Changes with libwww 5.4.1
 
+2006-03-14       Vic Bancroft <bancroft@america.net>
+
+	* configure.ac: remove unecessary check for appkit.h as
+	  suggested by Roger Persson
+
+2006-03-12       Vic Bancroft <bancroft@america.net>
+
+	* Library/src/wwwsys.html: change genuine angle bracket characters
+	  into the angle bracket entities, thanks to Bobby Jack
+	
 2005-11-11       Vic Bancroft <bancroft@america.net>
 
 	* Library/src/HT*.html, Library/src/SSL/HT*.html: wrap
