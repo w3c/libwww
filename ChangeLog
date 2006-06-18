@@ -1,5 +1,10 @@
 Changes with libwww 5.4.1
 
+2006-06-18       Vic Bancroft <bancroft@america.net>
+
+	* Library/src/HTCookie.c: add private function HTCookie_splitPair to
+	  split a KEY=VALUE pair, from Jesse Morgan
+	
 2006-03-14       Vic Bancroft <bancroft@america.net>
 
 	* configure.ac: remove unecessary check for appkit.h as

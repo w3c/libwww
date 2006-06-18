@@ -242,6 +242,25 @@ PRIVATE BOOL HTCookieHolder_deleteAll (void)
 /* ------------------------------------------------------------------------- */
 
 /*
+** Added By Jesse Morgan <jesse@jesterpm.net> on 2006-05-22
+** Splits a KEY=VALUE pair into a KEY and VALUE
+*/
+PRIVATE int HTCookie_splitPair (char * pair, char ** key, char ** value)
+{
+	char * index = strchr(pair, '=');
+
+	if (index == NULL) {
+			return HT_ERROR;
+	}
+	
+	*key 	= pair;
+	*index	= '\0';
+	*value	= ++index;
+
+	return HT_OK;
+}
+
+/*
 **  MIME header parser for the Set-Cookie header field. We parse the cookies
 **  and create HTCookie objects and store them in the cookie holder so that
 **  the cookie after filter can deal with them accordingly.
@@ -250,8 +269,13 @@ PRIVATE int HTCookie_parseSetCookie (HTRequest * request, HTResponse * response,
 				     char * token, char * value)
 
 {
-    char * cookie_name = HTNextField(&value);
-    char * cookie_value = HTNextField(&value);
+    char * cookie_name = NULL;
+    char * cookie_value = NULL;
+  
+    if (HTCookie_splitPair(HTNextParam(&value), &cookie_name, &cookie_value) != HT_OK) {
+       return HT_ERROR; /* Malformed Cookie */
+    }
+
     if (cookie_name && *cookie_name && cookie_value) {
 	HTCookie * cookie = HTCookie_new();
 	char * param_pair;
@@ -264,8 +288,13 @@ PRIVATE int HTCookie_parseSetCookie (HTRequest * request, HTResponse * response,
 
 	/* Parse cookie parameters */
 	while ((param_pair = HTNextParam(&value))) {
-	    char * tok = HTNextField(&param_pair);
-	    char * val = param_pair;
+	    char * tok = NULL;
+	    char * val = NULL;
+
+	    if (HTCookie_splitPair(param_pair, &tok, &val) != HT_OK) {
+	      return HT_ERROR; /* Malformed Cookie */
+	    }
+		
 	    if (tok) {
 		if (!strcasecomp(tok, "expires") && val && *val) {
 		    HTTRACE(STREAM_TRACE, "Cookie...... Expires `%s\'\n" _ val);
