@@ -409,7 +409,7 @@ PRIVATE void process_boundary(HTStream *me, int isterminal)
 
 	if (!isterminal)
 		me->target = HTStreamStack(WWW_MIME,me->format,
-					   HTMerge(me->orig_target, 2),
+					   HTMerge(me->orig_target, 1),
 					   me->request, YES);
 }
 
