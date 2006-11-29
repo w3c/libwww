@@ -1,5 +1,10 @@
 Changes with libwww 5.4.1
 
+2006-11-29       Vic Bancroft <bancroft@america.net>
+
+	* added flag MR_KEEP_META for -title option detected by Jan Hutaø
+
+	
 2006-07-09       Vic Bancroft <bancroft@america.net>
 
 	* close leak in HTBound process_boundary() detected by Sam Varshavchik
