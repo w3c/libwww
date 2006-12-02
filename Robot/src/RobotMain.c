@@ -159,7 +159,7 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-lm")) {
 		mr->lmfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_LM_FILE;
-		mr->flags |= MR_DISTRIBUTIONS;
+		mr->flags |= (MR_KEEP_META | MR_DISTRIBUTIONS);
 
   	    /* title log file */
 	    } else if (!strcmp(argv[arg], "-title")) {

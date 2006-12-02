@@ -1,5 +1,9 @@
 Changes with libwww 5.4.1
 
+2006-12-02       Vic Bancroft <bancroft@america.net>
+
+	* added flag MR_KEEP_META for -lm last modified option detected by Jan Hutaø
+
 2006-11-29       Vic Bancroft <bancroft@america.net>
 
 	* added flag MR_KEEP_META for -title option detected by Jan Hutaø
