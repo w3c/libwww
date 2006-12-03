@@ -17,7 +17,7 @@
 #include "HTSQL.h"
 #include "HTSQLLog.h"					 /* Implemented here */
 
-#include <mysql/mysql.h>
+#include <mysql.h>
 
 struct _HTSQLLog {
     HTSQL *		sql;

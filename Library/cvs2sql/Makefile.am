@@ -21,7 +21,9 @@ LDADD = \
 	../src/libwwwtrans.la \
 	../src/libwwwcore.la \
 	../src/libwwwutils.la \
-	-lm @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@
+	-lm @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@ \
+	$(MYSQL_LIBS)
 
 INCLUDES = \
-	-I$(srcdir)/../../Library/src
+	-I$(srcdir)/../../Library/src \
+	$(MYSQL_CFLAGS)

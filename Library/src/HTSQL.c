@@ -18,8 +18,8 @@
 #include "WWWLib.h"
 #include "HTSQL.h"					 /* Implemented here */
 
-#include <mysql/mysql.h>
-#include <mysql/errmsg.h>
+#include <mysql.h>
+#include <errmsg.h>
 
 /* updates for to remove deprecated mysql functions */
 #define mysql_connect(m,h,u,p) mysql_real_connect((m),(h),(u),(p),NULL,0,NULL,0) 
@@ -188,9 +188,13 @@ PUBLIC BOOL HTSQL_connect (HTSQL * me)
 {
     if (me && me->host) {
 	HTTRACE(SQL_TRACE, "SQL connect. Open a link to server `%s\'\n" _ me->host);
-	if ((me->psvr = mysql_connect(&(me->server), me->host,
-				      me->user ? me->user : "",
-				      me->password ? me->password : "")) == NULL) {
+	me->psvr = mysql_real_connect(
+			     &(me->server),
+			     me->host,
+			     me->user ? me->user : "",
+			     me->password ? me->password : "",
+			     NULL,0,NULL,0) ;
+	if ( NULL == me->psvr ) {
 	    HTTRACE(SQL_TRACE, "SQL connect. `%s\' errno %d\n" _ 
 			mysql_error(&me->server) _ mysql_errno(&me->server));
 	    return NO;

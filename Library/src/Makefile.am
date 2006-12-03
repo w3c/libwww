@@ -383,12 +383,13 @@ libwwwsql_la_SOURCES = \
 	HTSQLLog.h \
 	HTSQLLog.c
 
-libwwwsql_la_LDFLAGS = -rpath $(libdir)
+libwwwsql_la_LDFLAGS = -rpath $(libdir) $(MYSQL_LIBS)
 
 INCLUDES = \
 	-I/usr/local/include \
 	-I${top_srcdir}/modules/md5 \
-	-I${top_srcdir}/modules/expat/lib
+	-I${top_srcdir}/modules/expat/lib \
+	$(MYSQL_CFLAGS)
 
 BUILT_SOURCES = \
 	wwwsys.h \

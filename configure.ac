@@ -504,14 +504,46 @@ AC_ARG_WITH(mysql,
     AC_MSG_RESULT(yes)
     if test "x$withval" = "xyes"; then
       if test -f '/usr/local/lib/mysql/libmysqlclient.a'; then
-         AC_ADDLIB("/usr/local/lib/mysql/libmysqlclient.a")
+#         AC_ADDLIB("/usr/local/lib/mysql/libmysqlclient.a")
+          mysql_dir="/usr/local/bin"
+          # Try to find the mysql_config program
+          AC_PATH_PROG(MYSQL_CONFIG, mysql_config, no, $mysql_dir $PATH )
+          if test "$MYSQL_CONFIG" = no ; then
+             AC_MSG_ERROR([cannot find mysql_config])
+          fi
+          MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
+          AC_SUBST(MYSQL_CFLAGS)
+          MYSQL_LIBS=$($MYSQL_CONFIG --libs_r)
+          AC_SUBST(MYSQL_LIBS)
       elif test -f '/usr/lib/mysql/libmysqlclient.a'; then
-         AC_ADDLIB("/usr/lib/mysql/libmysqlclient.a")
+#        AC_ADDLIB("/usr/lib/mysql/libmysqlclient.a")
+         mysql_dir="/usr/bin"
+         # Try to find the mysql_config program
+         AC_PATH_PROG(MYSQL_CONFIG, mysql_config, no, $mysql_dir $PATH )
+         if test "$MYSQL_CONFIG" = no ; then
+            AC_MSG_ERROR([cannot find mysql_config])
+         fi
+         MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
+         AC_SUBST(MYSQL_CFLAGS)
+         MYSQL_LIBS=$($MYSQL_CONFIG --libs_r)
+         AC_SUBST(MYSQL_LIBS)
+
       else
          AC_MSG_ERROR(Could not find the mysql client library.)
       fi
     else
-      AC_ADDLIB($withval)
+#     AC_ADDLIB($withval)
+      AC_MSG_CHECKING("$withval")
+      mysql_dir="$withval/bin"
+      # Try to find the mysql_config program
+      AC_PATH_PROG(MYSQL_CONFIG, mysql_config, no, $mysql_dir $PATH )
+      if test "$MYSQL_CONFIG" = no ; then
+         AC_MSG_ERROR([cannot find mysql_config])
+      fi
+      MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
+      AC_SUBST(MYSQL_CFLAGS)
+      MYSQL_LIBS=$($MYSQL_CONFIG --libs_r)
+      AC_SUBST(MYSQL_LIBS)
     fi
     AC_DEFINE(HT_MYSQL, 1, [Define to enable mysql access.])
     HTSQL="HTSQL.lo"

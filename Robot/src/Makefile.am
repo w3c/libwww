@@ -21,14 +21,16 @@ webbot_LDADD = \
 	$(top_builddir)/Library/src/libwwwcore.la \
 	$(top_builddir)/Library/src/libwwwutils.la \
 	-lm @LIBWWWXML@ @LIBWWWZIP@ @LIBWWWWAIS@ \
-	@LIBWWWSQL@ @LIBWWWMD5@ @LIBWWWSSL@
+	@LIBWWWSQL@ @LIBWWWMD5@ @LIBWWWSSL@ \
+	$(MYSQL_LIBS)
 
 SUBDIRS = windows
 
 INCLUDES = \
 	-I$(srcdir)/../../Library/src \
 	-I$(srcdir)/../../Library/src/SSL \
-	-I$(top_srcdir)/modules/expat/lib
+	-I$(top_srcdir)/modules/expat/lib \
+	$(MYSQL_CFLAGS)
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
