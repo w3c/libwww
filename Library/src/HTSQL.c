@@ -186,17 +186,18 @@ PUBLIC BOOL HTSQL_delete (HTSQL * me)
 
 PUBLIC BOOL HTSQL_connect (HTSQL * me)
 {
+    me->psvr = mysql_init( &(me->server) );
     if (me && me->host) {
 	HTTRACE(SQL_TRACE, "SQL connect. Open a link to server `%s\'\n" _ me->host);
-	me->psvr = mysql_real_connect(
-			     &(me->server),
-			     me->host,
-			     me->user ? me->user : "",
-			     me->password ? me->password : "",
-			     NULL,0,NULL,0) ;
+	me->psvr = mysql_real_connect( &(me->server),
+				       me->host,
+				       me->user ? me->user : "",
+				       me->password ? me->password : "",
+				       NULL,0,NULL,0) ;
 	if ( NULL == me->psvr ) {
-	    HTTRACE(SQL_TRACE, "SQL connect. `%s\' errno %d\n" _ 
-			mysql_error(&me->server) _ mysql_errno(&me->server));
+	    HTTRACE( SQL_TRACE, 
+		     "SQL connect. `%s\' errno %d\n" _ 
+		     mysql_error( &(me->server) ) _ mysql_errno( &(me->server) ) );
 	    return NO;
 	}
 	return YES;
