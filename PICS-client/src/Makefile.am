@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libpics.la
 
 SUBDIRS = windows
 
-INCLUDES = -I$(srcdir)/../../Library/src
+AM_CPPFLAGS = -I$(srcdir)/../../Library/src
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.

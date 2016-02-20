@@ -24,6 +24,6 @@ LDADD = \
 	-lm @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@ \
 	$(MYSQL_LIBS)
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(srcdir)/../../Library/src \
 	$(MYSQL_CFLAGS)

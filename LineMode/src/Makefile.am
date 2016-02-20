@@ -25,7 +25,7 @@ www_LDADD = \
 
 SUBDIRS = windows vms
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(srcdir)/../../Library/src \
 	-I$(top_srcdir)/modules/expat/lib \
 	-I$(srcdir)/../../PICS-client/src
