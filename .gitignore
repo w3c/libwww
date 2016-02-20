@@ -20,7 +20,7 @@ Makefile.in
 /install-sh
 /missing
 /stamp-h1
-
+m4/*.m4
 
 ### C++ ###
 # Compiled Object files
