@@ -13,7 +13,7 @@ cache:
     apt: true
 
 before_script:
-  - autoreconf `pwd`/m4
+  - autoreconf -iv -I `pwd`/m4
   - ./configure
 
 script:
