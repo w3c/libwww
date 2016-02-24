@@ -1,128 +1,213 @@
-/*                                                   HTParse:  URL parsing in the WWW Library
-                                         HTPARSE
-                                             
-   This module of the WWW library contains code to parse URLs and various related things.
-   
- */
+/*
+
+  
+  					W3C Sample Code Library libwww URI Management
+
+
+!
+  URI Management
+!
+*/
+
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+
+/*
+
+This module contains code to parse URIs and various related things such as:
+	 
+	   o 
+	     Parse a URI for tokens
+  o 
+	     Canonicalization of URIs
+  o 
+	     Search a URI for illegal characters in order to prevent
+    security holes
+
+	 
+This module is implemented by HTParse.c, and it is
+a part of the  W3C Sample Code
+Library.
+*/
+
 #ifndef HTPARSE_H
 #define HTPARSE_H
-#include "HTUtils.h"
+
+#include "HTEscape.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 
 /*
+.
+  Parsing URIs
+.
 
-   The following are flag bits which may be ORed together to form a number to give the
-   'wanted' argument to HTParse.
-   
- */
-#define PARSE_ACCESS            16
-#define PARSE_HOST               8
-#define PARSE_PATH               4
-#define PARSE_ANCHOR             2
-#define PARSE_PUNCTUATION        1
-#define PARSE_ALL               31
+These functions can be used to get information in a URI.
+(
+  Parse a URI relative to another URI
+)
 
-
-/*
-
-HTParse:  Parse a Name relative to another name
-
-   This returns those parts of a name which are given (and requested) substituting bits
-   from the related name where necessary.
-   
-  ON ENTRY
-  
-  aName                   A filename given
-                         
-  relatedName             A name relative to which aName is to be parsed
-                         
-  wanted                  A mask for the bits which are wanted.
-                         
-  ON EXIT,
-  
-  returns                 A pointer to a malloc'd string which MUST BE FREED
-                         
- */
-
-extern char * HTParse  PARAMS((const char * aName, const char * relatedName, int wanted));
-
-
-/*
-
-HTStrip: Strip white space off a string
-
-  ON EXIT
-  
-   Return value points to first non-white character, or to 0 if none.
-   
-   All trailing white space is OVERWRITTEN with zero.
-   
- */
-#ifdef __STDC__
-extern char * HTStrip(char * s);
-#else
-extern char * HTStrip();
-#endif
-
-/*
-
-HTSimplify: Simplify a filename
-
-   A URL is allowed to contain the seqeunce xxx/../ which may be replaced by "" , and the
-   seqeunce "/./" which may be replaced by "/". Simplification helps us recognize
-   duplicate filenames. It doesn't deal with soft links, though. The new (shorter)
-   filename overwrites the old.
-   
- */
-/*
-**      Thus,   /etc/junk/../fred       becomes /etc/fred
-**              /etc/junk/./fred        becomes /etc/junk/fred
+This returns those parts of a name which are given (and requested) substituting
+bits from the related name where necessary. The aName argument
+is the (possibly relative) URI to be parsed, the relatedName
+is the URI which the aName is to be parsed relative to. Passing
+an empty string means that the aName is an absolute URI. The
+following are flag bits which may be OR'ed together to form a number to give
+the 'wanted' argument to HTParse. As an example we have the URL:
+"/TheProject.html#news"
 */
-#ifdef __STDC__
-extern void HTSimplify(char * filename);
-#else
-extern void HTSimplify();
-#endif
+
+#define PARSE_ACCESS		16	/* Access scheme, e.g. "HTTP" */
+#define PARSE_HOST		 8	/* Host name, e.g. "www.w3.org" */
+#define PARSE_PATH		 4	/* URL Path, e.g. "pub/WWW/TheProject.html" */
+
+#define PARSE_VIEW               2      /* Fragment identifier, e.g. "news" */
+#define PARSE_FRAGMENT           PARSE_VIEW
+#define PARSE_ANCHOR		 PARSE_VIEW
+
+#define PARSE_PUNCTUATION	 1	/* Include delimiters, e.g, "/" and ":" */
+#define PARSE_ALL		31
 
 /*
 
-HTRelative:  Make Relative Name
+where the format of a URI is as follows: "ACCESS :// HOST / PATH #
+ANCHOR"
 
-   This function creates and returns a string which gives an expression of one address as
-   related to another. Where there is no relation, an absolute address is retured.
-   
-  ON ENTRY,
+PUNCTUATION means any delimiter like '/', ':', '#' between the
+tokens above. The string returned by the function must be freed by the caller.
+*/
+
+extern char * HTParse  (const char * aName, const char * relatedName,
+			int wanted);
+
+/*
+(
+  Create a Relative (Partial) URI
+)
+
+This function creates and returns a string which gives an expression of one
+address as related to another. Where there is no relation, an absolute address
+is retured.
+
   
-   Both names must be absolute, fully qualified names of nodes (no anchor bits)
-   
-  ON EXIT,
+    On entry,
   
-   The return result points to a newly allocated name which, if parsed by HTParse relative
-   to relatedName, will yield aName. The caller is responsible for freeing the resulting
-   name later.
-   
- */
-#ifdef __STDC__
-extern char * HTRelative(const char * aName, const char *relatedName);
-#else
-extern char * HTRelative();
+    Both names must be absolute, fully qualified names of nodes (no anchor bits)
+  
+    On exit,
+  
+    The return result points to a newly allocated name which, if parsed by HTParse
+    relative to relatedName, will yield aName. The caller is responsible for
+    freeing the resulting name later.
+
+*/
+
+extern char * HTRelative (const char * aName, const char *relatedName);
+
+/*
+.
+  Is a URL Relative or Absolute?
+.
+
+Search the URL and determine whether it is a relative or absolute URL. We
+check to see if there is a ":" before any "/", "?", and "#". If this is the
+case then we say it is absolute. Otherwise we say it is relative.
+*/
+
+extern BOOL HTURL_isAbsolute (const char * url);
+
+/*
+.
+  URL Canonicalization
+.
+
+Canonicalization of URIs is a difficult job, but it saves a lot of down loads
+and double entries in the cache if we do a good job. A URI is allowed to
+contain the seqeunce xxx/../ which may be replaced by "" , and the seqeunce
+"/./" which may be replaced by "/". Simplification helps us recognize duplicate
+URIs. Thus, the following transformations are done:
+	 
+	   o 
+	     /etc/junk/../fred becomes /etc/fred
+	   o 
+	     /etc/junk/./fred becomes /etc/junk/fred
+	 
+	 
+but we should NOT change
+	 
+	   o 
+	     http://fred.xxx.edu/../.. or
+	   o 
+	     ../../albert.html
+	 
+	 
+In the same manner, the following prefixed are preserved:
+	 
+	   o 
+	     ./<etc>
+	   o 
+	     //<etc>
+	 
+	 
+In order to avoid empty URIs the following URIs become:
+	 
+	   o 
+	     /fred/.. becomes /fred/..
+	   o 
+	     /fred/././.. becomes /fred/..
+	   o 
+	     /fred/.././junk/.././ becomes /fred/..
+	 
+	 
+If more than one set of `://' is found (several proxies in cascade) then
+only the part after the last `://' is simplified.
+*/
+
+extern char *HTSimplify (char **filename);
+
+/*
+.
+  Prevent Security Holes
+.
+
+In many telnet like protocols, it can be very dangerous to allow a full ASCII
+character set to be in a URI. Therefore we have to strip them out.
+HTCleanTelnetString() makes sure that the given string doesn't
+contain characters that could cause security holes, such as newlines in ftp,
+gopher, news or telnet URLs; more specifically: allows everything between
+hexadesimal ASCII 20-7E, and also A0-FE, inclusive.
+
+  
+    str
+  
+    the string that is *modified* if necessary. The string will be truncated
+    at the first illegal character that is encountered.
+  
+    returns
+  
+    YES, if the string was modified. NO, otherwise.
+
+*/
+
+extern BOOL HTCleanTelnetString (char * str);
+
+/*
+*/
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif	/* HTPARSE_H */
 
 /*
 
-HTUnEscape: Decode %xx escaped characters
+  
 
-   This function takes a pointer to a string in which character smay have been encoded in
-   %xy form, where xy is the acsii hex code for character 16x+y. The string is converted
-   in place, as it will never grow.
-   
- */
-extern char * HTUnEscape PARAMS(( char * str));
+  @(#) $Id$
 
-
-#endif
-
-
-
-/*
-
-    */
+*/

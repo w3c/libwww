@@ -1,28 +1,70 @@
-/*  */
+/*
 
-/*              Unix File or Socket Writer                      HTWriter.c
-**              --------------------------
-**
-**      This version of the stream object just writes to a socket.
-**      The socket is assumed open and closed afterward.
-**
-**      There are two versions (identical on ASCII machines)
-**      one of which converts to ASCII on output.
-**
-**      Bugs:
-**              strings written must be less than buffer size.
+  
+  					W3C Sample Code Library libwww Unbuffered Socket Writer Stream
+
+
+!
+  Unbuffered Socket Writer Stream
+!
+*/
+
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+
+/*
+
+The Socket Writer Stream is an output stream
+&nbsp;which knows how to write to a BSD type socket. It is part of the
+Transport interface and may be registered as
+part of a Transport Object. The application
+can&nbsp;initialize this stream together with the
+HTReader stream, for example. In the
+default initialization module, you can find the
+HTTransportInit() function which sets up this stream as a default
+transport for handling unbuffered socket write operations. See also the
+buffered writer stream.
+
+This module is implemented by HTWriter.c, and it
+is a part of the W3C Sample Code
+Library.
 */
 
 #ifndef HTWRITE_H
 #define HTWRITE_H
 
-#include "HTStream.h"
+#include "HTIOStream.h"
 
-extern HTStream * HTWriter_new PARAMS((int soc));
+#ifdef __cplusplus
+extern "C" { 
+#endif 
 
-extern HTStream * HTASCIIWriter PARAMS((int soc));
+/*
+*/
+extern HTOutput_new HTWriter_new;
 
+extern BOOL HTWriter_set (HTOutputStream *	me,
+			  HTNet *		net,
+			  HTChannel *		ch,
+			  void *		param,
+			  int			mode);
+
+
+/*
+*/
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* HTWRITE_H */
+
 /*
 
-    */
+  
+
+  @(#) $Id$
+
+*/
