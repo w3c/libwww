@@ -1,6 +1,61 @@
 
 # Created by https://www.gitignore.io/api/autotools,c++
 
+### libwww specific
+# find Library/Examples/ -type f -executable -print | sed -e 's/\.\///g'
+
+Library/Examples/post
+Library/Examples/postform
+Library/Examples/listen
+Library/Examples/libapp_2
+Library/Examples/rdf_parse_file
+Library/Examples/tzcheck
+Library/Examples/showlinks
+Library/Examples/range
+Library/Examples/upgrade
+Library/Examples/isredirected
+Library/Examples/libapp_4
+Library/Examples/cookie
+Library/Examples/rdf_parse_buffer
+Library/Examples/showtext
+Library/Examples/head
+Library/Examples/chunkbody
+Library/Examples/trace
+Library/Examples/libapp_1
+Library/Examples/eventloop
+Library/Examples/stri
+Library/Examples/libapp_3
+Library/Examples/memput
+Library/Examples/LoadToFile
+Library/Examples/multichunk
+Library/Examples/put
+Library/Examples/init
+Library/Examples/showtags
+Library/Examples/showxml
+Library/Examples/chunk
+Library/Examples/ptri
+Library/Examples/getheaders
+Library/Examples/tiny
+Library/Examples/mget
+
+# Some other executable files
+ComLine/src/w3c
+Robot/src/webbot
+
+# Generated header files
+ComLine/src/*.h
+#Library/src/*.h
+#Library/src/SSL/*.h
+Library/src/windows/*.def
+Library/User/*.h
+Library/User/*.html
+LineMode/src/*.h
+LineMode/src/*.c
+LineMode/src/www
+PICS-client/src/*.h
+PICS-client/src/windows/*.def
+Robot/src/*.h
+
 ### Autotools ###
 # http://www.gnu.org/software/automake
 
@@ -22,6 +77,11 @@ Makefile.in
 /stamp-h1
 /ltmain.sh
 m4/*.m4
+config.*
+*.Po
+*.Plo
+Makefile
+libtool
 
 **/*/autom4te.cache
 **/*/autoscan.log
@@ -38,7 +98,9 @@ m4/*.m4
 **/*/ltmain.sh
 **/*/*.h.in
 **/*/m4/*.m4
-
+**/*/.libs
+expat_config.h
+stamp-h
 
 ### C++ ###
 # Compiled Object files

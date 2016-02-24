@@ -2,18 +2,10 @@ dnl Process this file with Autoconf to create configure
 dnl (c) COPYRIGHT MIT 1995.
 dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
-
 AC_REVISION([$Id$])
 AC_PREREQ(2.67)
-AC_INIT
 AC_CONFIG_SRCDIR([Library])
-
-AC_CONFIG_AUX_DIR(config)
-
 AC_CONFIG_MACRO_DIRS([m4])
-
-AC_CANONICAL_TARGET([])
-AC_ARG_PROGRAM
 
 dnl Initialize Automake.
 PACKAGE=w3c-libwww
@@ -32,6 +24,10 @@ dnl See http://www.gnu.org/software/automake/manual/automake.html#Modernize-AM_0
 AC_INIT(PACKAGE, VERSION)
 dnl libwww can't use portable style Makefile
 AM_INIT_AUTOMAKE([-Wno-portability])
+
+dnl AC_ARG_PROGRAM should be called after AC_INIT/AM_INIT_AUTOMAKE
+dnl AC_CANONICAL_TARGET is called in aclocal.m4 with default
+AC_ARG_PROGRAM
 
 AM_CONFIG_HEADER(wwwconf.h)
 
@@ -1170,25 +1166,52 @@ AH_TEMPLATE([HAVE_LONG_SIZE_T],
 	[Define if size_t is of type long])
 
 dnl Create output files
-AC_CONFIG_FILES([Makefile libwww-config w3c-libwww.spec
-config/Makefile
-modules/Makefile
-modules/md5/Makefile
-Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
-Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
-Library/User/Style/Makefile Library/User/Platform/Makefile
-Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile
-Library/src/SSL/Makefile Library/src/SSL/windows/Makefile
-Library/Examples/Makefile
-Library/cvs2sql/Makefile
-Library/External/Makefile
-PICS-client/Makefile PICS-client/User/Makefile PICS-client/src/Makefile PICS-client/src/windows/Makefile
-LineMode/Makefile LineMode/User/Makefile
-LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
-Robot/Makefile Robot/User/Makefile Robot/src/Makefile Robot/tcl/Makefile Robot/src/windows/Makefile
-ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile ComLine/src/windows/Makefile
-WinCom/Makefile WinCom/hlp/Makefile WinCom/res/Makefile
-Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile Icons/internal/Makefile
-])
+AC_CONFIG_FILES([Makefile
+		 libwww-config
+		 w3c-libwww.spec
+                 modules/Makefile
+                 modules/md5/Makefile
+                 Library/Makefile
+		 Library/User/Makefile
+		 Library/User/Patch/Makefile
+                 Library/User/Architecture/Makefile
+		 Library/User/Using/Makefile
+		 Library/User/Guide/Makefile
+                 Library/User/Style/Makefile
+		 Library/User/Platform/Makefile
+                 Library/src/Makefile
+		 Library/src/windows/Makefile
+		 Library/src/vms/Makefile
+                 Library/src/SSL/Makefile
+		 Library/src/SSL/windows/Makefile
+                 Library/Examples/Makefile
+                 Library/cvs2sql/Makefile
+                 Library/External/Makefile
+                 PICS-client/Makefile
+		 PICS-client/User/Makefile
+		 PICS-client/src/Makefile
+		 PICS-client/src/windows/Makefile
+                 LineMode/Makefile
+		 LineMode/User/Makefile
+                 LineMode/src/Makefile
+		 LineMode/src/windows/Makefile
+		 LineMode/src/vms/Makefile
+                 Robot/Makefile
+		 Robot/User/Makefile
+		 Robot/src/Makefile
+		 Robot/tcl/Makefile
+		 Robot/src/windows/Makefile
+                 ComLine/Makefile
+		 ComLine/User/Makefile
+		 ComLine/src/Makefile
+		 ComLine/src/windows/Makefile
+                 WinCom/Makefile
+		 WinCom/hlp/Makefile
+		 WinCom/res/Makefile
+                 Icons/Makefile
+		 Icons/WWW/Makefile
+		 Icons/32x32/Makefile
+		 Icons/internal/Makefile
+		 ])
 AC_CONFIG_COMMANDS([default],[[date>stamp-h]],[[]])
 AC_OUTPUT

@@ -43,7 +43,7 @@ bin_SCRIPTS = libwww-config
 AUTOMAKE_OPTIONS = foreign
 
 # These are the sub directories
-SUBDIRS = config modules Library PICS-client LineMode Robot ComLine WinCom Icons
+SUBDIRS = modules Library PICS-client LineMode Robot ComLine WinCom Icons
 
 # Extra distribution files in zip format and in compress
 dist-hook:
@@ -54,7 +54,7 @@ dist-hook:
 
 # Tag before making distribution.  Also, don't make a distribution if
 # checks fail.
-CVSSTUFF = config modules Library PICS-client LineMode Robot ComLine WinCom Icons \
+CVSSTUFF = modules Library PICS-client LineMode Robot ComLine WinCom Icons \
 Makefile.am acconfig.h aclocal.m4 wwwconf.h.in configure.in
 
 # If not indicated otherwise then use this to make the CVS diff with
