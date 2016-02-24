@@ -30,7 +30,7 @@ LDADD = \
 	@LIBWWWSSL@ \
 	-lm @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(srcdir)/../src \
 	-I$(top_srcdir)/modules/expat/lib \
 	-I$(srcdir)/../src/SSL

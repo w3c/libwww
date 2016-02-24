@@ -2,31 +2,32 @@ dnl Process this file with Autoconf to create configure
 dnl (c) COPYRIGHT MIT 1995.
 dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
-
 AC_REVISION([$Id$])
-AC_PREREQ(2.53)
-AC_INIT
+AC_PREREQ(2.67)
 AC_CONFIG_SRCDIR([Library])
-
-AC_CONFIG_AUX_DIR(config)
-
-AC_CANONICAL_TARGET([])
-AC_ARG_PROGRAM
+AC_CONFIG_MACRO_DIRS([m4])
 
 dnl Initialize Automake.
 PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED([W3C_PACKAGE], "$PACKAGE", [Define to be the package name.])
- 
+
 VERSION=5.4.1
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED([W3C_VERSION], "$VERSION", [Define to be the version.])
 
-#dnl for CVS to be able to make a release diff
+dnl for CVS to be able to make a release diff
 PREVIOUS_VERSION=5.3.2
 AC_SUBST(PREVIOUS_VERSION)
 
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
+dnl See http://www.gnu.org/software/automake/manual/automake.html#Modernize-AM_005fINIT_005fAUTOMAKE-invocation
+AC_INIT(PACKAGE, VERSION)
+dnl libwww can't use portable style Makefile
+AM_INIT_AUTOMAKE([-Wno-portability])
+
+dnl AC_ARG_PROGRAM should be called after AC_INIT/AM_INIT_AUTOMAKE
+dnl AC_CANONICAL_TARGET is called in aclocal.m4 with default
+AC_ARG_PROGRAM
 
 AM_CONFIG_HEADER(wwwconf.h)
 
@@ -40,13 +41,13 @@ AC_DEFUN([AC_STRUCT_WINSIZE],
 	  AC_CACHE_VAL( [libwww_cv_struct_winsize_header],
 			[AC_TRY_COMPILE( [#include <sys/types.h>
 					  #include <sys/ioctl.h>
-					 ],	  
+					 ],
 					 [struct winsize x;],
 					 libwww_cv_struct_winsize_header=ioctl_h,
-					 [AC_TRY_COMPILE( [#include <sys/types.h> 
-							   #include <termios.h>], 
+					 [AC_TRY_COMPILE( [#include <sys/types.h>
+							   #include <termios.h>],
 							   [struct winsize x;],
-							   libwww_cv_struct_winsize_header=termios_h, 
+							   libwww_cv_struct_winsize_header=termios_h,
 							   libwww_cv_struct_winsize_header=other)
 					])
 			])
@@ -61,7 +62,7 @@ AC_DEFUN([AC_STRUCT_WINSIZE],
 dnl Check if time_t is long
 
 AC_DEFUN([AC_TIME_T_IS_LONG],
-     [AC_RUN_IFELSE([AC_LANG_SOURCE([[ 
+     [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -82,7 +83,7 @@ int main()
           [AC_DEFINE(HAVE_LONG_TIME_T)])])
 
 AC_DEFUN([AC_SIZE_T_IS_LONG],
-     [AC_RUN_IFELSE([AC_LANG_SOURCE([[ 
+     [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 
 int main()
@@ -285,7 +286,7 @@ AC_SIZE_T_IS_LONG
 AC_C_CONST
 AC_C_BIGENDIAN
 AC_C_CHAR_UNSIGNED
-AC_C_LONG_DOUBLE 
+AC_C_LONG_DOUBLE
 
 AC_STRUCT_TM
 AC_CHECK_MEMBER(struct tm.tm_gmtoff, HAVE_TM_GMTOFF)
@@ -738,7 +739,7 @@ AC_ARG_WITH(ssl,
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ SSL_library_init(); ]])],[],[ AC_MSG_ERROR(Could not find the $withval libraries.  You must first install openSSL.) ])
     AC_MSG_RESULT(yes)
     WWWSSL="libwwwssl.la"
-    LWWWSSL="-lwwwssl" 
+    LWWWSSL="-lwwwssl"
     LIBWWWSSL='${top_builddir}/Library/src/SSL/libwwwssl.la'
     WWWSSLEX='wwwssl$(EXEEXT)'
     AC_DEFINE(HT_SSL, 1, [Define to enable ssl transport.])
@@ -773,7 +774,7 @@ AC_ARG_ENABLE(nagle,
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_NO_NAGLE, 1, [Define to disable Nagle's algorithm])
     ;;
-  *) 
+  *)
     AC_MSG_RESULT(no)
     ;;
   esac ],
@@ -789,7 +790,7 @@ AC_ARG_ENABLE(autorules,
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_AUTOMATIC_RULES, 1, [Define to enable support for enabling a rules file w/o user interaction.])
     ;;
-  *) 
+  *)
     AC_MSG_RESULT(no)
     ;;
   esac ],
@@ -804,7 +805,7 @@ AC_ARG_ENABLE(pipelining,
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_NO_PIPELINING, 1, [Define to disable HTTP/1.1 pipelining])
     ;;
-  *) 
+  *)
     AC_MSG_RESULT(no)
     ;;
   esac ],
@@ -820,7 +821,7 @@ AC_ARG_ENABLE(mux,
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_MUX, 1, [Define to enable MUX as HTTP transport])
     ;;
-  *) 
+  *)
     AC_MSG_RESULT(no)
     ;;
   esac ],
@@ -834,7 +835,7 @@ AC_ARG_ENABLE(reentrant, [  --enable-reentrant      define _REENTRANT to enable 
     AC_MSG_RESULT(no)
     ac_cv_reentrant=no
     ;;
-  *) 
+  *)
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_REENTRANT, 1, [Define to build using reentrant system calls.]) [CFLAGS="$CFLAGS -D_REENTRANT"]
     ac_cv_reentrant=yes
@@ -899,7 +900,7 @@ if test "$ac_cv_reentrant" = "yes"; then
 	]])],[ac_cv_readdir_args=2],[])
     fi
     if test -z "$ac_cv_readdir_args"; then
-	
+
         AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #if defined(HAVE_DIRENT_H)
@@ -1000,7 +1001,7 @@ rc = gethostbyname_r(name, &h, buf, 10, &hp, &h_errno);
                 int rc;
                 rc = gethostbyaddr_r(address, length, type, &h, &hdata);
 	    ]])],[ac_cv_gethostbyaddr_args=5],[])
-	
+
     fi
     if test -z "$ac_cv_gethostbyaddr_args"; then
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -1118,7 +1119,7 @@ AC_ARG_ENABLE(posix, [  --enable-posix          define _POSIX_SOURCE],
   no)
     AC_MSG_RESULT(no)
     ;;
-  *) 
+  *)
     AC_MSG_RESULT(yes)
     AC_DEFINE(_POSIX_SOURCE,1,[Enable POSIX]) [CFLAGS="$CFLAGS -D_POSIX_SOURCE"]
     ;;
@@ -1165,25 +1166,52 @@ AH_TEMPLATE([HAVE_LONG_SIZE_T],
 	[Define if size_t is of type long])
 
 dnl Create output files
-AC_CONFIG_FILES([Makefile libwww-config w3c-libwww.spec
-config/Makefile
-modules/Makefile
-modules/md5/Makefile
-Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
-Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
-Library/User/Style/Makefile Library/User/Platform/Makefile
-Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile 
-Library/src/SSL/Makefile Library/src/SSL/windows/Makefile
-Library/Examples/Makefile
-Library/cvs2sql/Makefile
-Library/External/Makefile
-PICS-client/Makefile PICS-client/User/Makefile PICS-client/src/Makefile PICS-client/src/windows/Makefile
-LineMode/Makefile LineMode/User/Makefile
-LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
-Robot/Makefile Robot/User/Makefile Robot/src/Makefile Robot/tcl/Makefile Robot/src/windows/Makefile
-ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile ComLine/src/windows/Makefile
-WinCom/Makefile WinCom/hlp/Makefile WinCom/res/Makefile
-Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile Icons/internal/Makefile
-])
+AC_CONFIG_FILES([Makefile
+		 libwww-config
+		 w3c-libwww.spec
+                 modules/Makefile
+                 modules/md5/Makefile
+                 Library/Makefile
+		 Library/User/Makefile
+		 Library/User/Patch/Makefile
+                 Library/User/Architecture/Makefile
+		 Library/User/Using/Makefile
+		 Library/User/Guide/Makefile
+                 Library/User/Style/Makefile
+		 Library/User/Platform/Makefile
+                 Library/src/Makefile
+		 Library/src/windows/Makefile
+		 Library/src/vms/Makefile
+                 Library/src/SSL/Makefile
+		 Library/src/SSL/windows/Makefile
+                 Library/Examples/Makefile
+                 Library/cvs2sql/Makefile
+                 Library/External/Makefile
+                 PICS-client/Makefile
+		 PICS-client/User/Makefile
+		 PICS-client/src/Makefile
+		 PICS-client/src/windows/Makefile
+                 LineMode/Makefile
+		 LineMode/User/Makefile
+                 LineMode/src/Makefile
+		 LineMode/src/windows/Makefile
+		 LineMode/src/vms/Makefile
+                 Robot/Makefile
+		 Robot/User/Makefile
+		 Robot/src/Makefile
+		 Robot/tcl/Makefile
+		 Robot/src/windows/Makefile
+                 ComLine/Makefile
+		 ComLine/User/Makefile
+		 ComLine/src/Makefile
+		 ComLine/src/windows/Makefile
+                 WinCom/Makefile
+		 WinCom/hlp/Makefile
+		 WinCom/res/Makefile
+                 Icons/Makefile
+		 Icons/WWW/Makefile
+		 Icons/32x32/Makefile
+		 Icons/internal/Makefile
+		 ])
 AC_CONFIG_COMMANDS([default],[[date>stamp-h]],[[]])
 AC_OUTPUT

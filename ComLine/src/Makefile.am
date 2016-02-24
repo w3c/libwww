@@ -24,7 +24,7 @@ w3c_LDADD = \
 
 SUBDIRS = windows
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(srcdir)/../../Library/src \
 	-I$(top_srcdir)/modules/expat/lib
 

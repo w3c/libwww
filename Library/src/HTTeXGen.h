@@ -1,26 +1,66 @@
-/*                 /Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTTeXGen.html
-                                      TEX GENERATOR
-                                             
-   This module converts structed stream into stream.  That is, given a stream to write to,
-   it will give you a structured stream to
-   
- */
-#ifndef HTTEXGEN_H
-#define HTTEXGEN_H
+/*
 
-#include "HTML.h"
-#include "HTStream.h"
+					W3C Sample Code Library libwww HTML TO LATEX CONVERTER STREAM
 
-/* Subclass:
+
+
+
+!LaTeX generator!
+
 */
-/* extern CONST HTStructuredClass HTTeXGeneration; */
 
-/* Special Creation:
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
 */
-extern HTStructured * HTTeXGenerator PARAMS((HTStream * output));
-
-#endif
 
 /*
 
-    */
+This module converts a structured stream from HTML into LaTeX format. The
+conversion is mostly a 1:1 translation, but as the LaTeX compiler is much
+more strict than a typical HTML converter some typographical constraints
+are put on the translation. Only text is translated for the moment. 
+
+This module is implemented by HTTeXGen.c, and
+it is a part of the 
+W3C Sample Code Library.
+
+*/
+
+#ifndef HTTEXGEN_H
+#define HTTEXGEN_H
+#include "HTStruct.h"
+#include "HTFormat.h"
+
+#ifdef __cplusplus
+extern "C" { 
+#endif 
+
+/*
+
+.Conversion Module.
+
+The conversion module is defined as
+
+*/
+
+extern HTConverter HTMLToTeX;
+
+/*
+
+*/
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* HTTEXGEN_H */
+
+/*
+
+
+
+@(#) $Id$
+
+
+*/

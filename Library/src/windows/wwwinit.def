@@ -3,12 +3,26 @@ EXPORTS
 HTConverterInit		@ 101
 HTPresenterInit		@ 102
 HTFormatInit		@ 103
-HTNetInit		@ 104
-HTAlertInit		@ 105
-HTAccessInit		@ 106
+HTTransferEncoderInit	@ 104
+HTContentEncoderInit	@ 105
+HTBeforeInit		@ 106
+HTAfterInit		@ 107
+HTAAInit		@ 108
+HTNetInit		@ 109
+HTAlertInit		@ 110
+HTTransportInit		@ 111
+HTProtocolInit		@ 112
+HTProtocolPreemptiveInit @ 113
+HTIconInit		@ 114
+HTMIMEInit		@ 115
 
-;HTBInit.c		@ 200
-HTFileInit		@ 201
-
-;			@ 300
+;HTProfil.c		@ 200
+HTProfile_delete	@ 201
+HTProfile_newClient	@ 202
+HTProfile_newHTMLClient	@ 203
+HTProfile_newPreemptiveClient @ 204
+HTProfile_newNoCacheClient @ 205
+HTProfile_newHTMLNoCacheClient @ 206
+HTProfile_newRobot	@ 207
+HTProfile_newPreemptiveRobot @ 208
 
