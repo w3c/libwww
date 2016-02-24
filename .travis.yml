@@ -1,0 +1,29 @@
+os:
+  - linux
+
+language: cpp
+
+sudo: required
+
+compiler:
+  - gcc
+  - clang
+
+cache:
+    apt: true
+
+before_script:
+  - autoreconf `pwd`/m4
+  - ./configure
+
+script:
+  - make
+
+branches:
+  only:
+    - master
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
