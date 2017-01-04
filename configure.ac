@@ -4,7 +4,7 @@ dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
 
 AC_REVISION([$Id$])
-AC_PREREQ(2.53)
+AC_PREREQ([2.69])
 AC_INIT
 AC_CONFIG_SRCDIR([Library])
 
@@ -38,12 +38,9 @@ dnl taken from the DDD configure.in
 AC_DEFUN([AC_STRUCT_WINSIZE],
 	 [AC_MSG_CHECKING( [for struct winsize in sys/ioctl.h and termios.h] )
 	  AC_CACHE_VAL( [libwww_cv_struct_winsize_header],
-			[AC_TRY_COMPILE( [#include <sys/types.h>
+			[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
 					  #include <sys/ioctl.h>
-					 ],	  
-					 [struct winsize x;],
-					 libwww_cv_struct_winsize_header=ioctl_h,
-					 [AC_TRY_COMPILE( [#include <sys/types.h> 
+					 ]], [[struct winsize x;]])],[libwww_cv_struct_winsize_header=ioctl_h],[_au_m4_changequote([,])AC_TRY_COMPILE( [#include <sys/types.h> 
 							   #include <termios.h>], 
 							   [struct winsize x;],
 							   libwww_cv_struct_winsize_header=termios_h, 
@@ -97,7 +94,7 @@ dnl Regular configure...
 dnl
 AC_PROG_CC
 if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 dnl AC_PROG_CXX		Caused problems and is not needed...
 dnl You should probably use all three of these for maximum portability
 
@@ -263,7 +260,17 @@ AC_TYPE_PID_T
 AC_TYPE_GETGROUPS
 AC_TYPE_MODE_T
 AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
+dnl See http://www.manpagez.com/info/autoconf/autoconf-2.69/autoconf_227.php#AC_005fTYPE_005fSIGNAL
+AC_CACHE_CHECK([return type of signal handlers],[ac_cv_type_signal],[AC_COMPILE_IFELSE(
+[AC_LANG_PROGRAM([#include <sys/types.h>
+#include <signal.h>
+],
+		 [return *(signal (0, 0)) (0) == 1;])],
+		   [ac_cv_type_signal=int],
+		   [ac_cv_type_signal=void])])
+AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type of signal handlers
+		    (`int' or `void').])
+
 
 if test "$MINGW32" != "yes"; then
     AC_CHECK_TYPE(BOOLEAN, char)
@@ -285,7 +292,7 @@ AC_SIZE_T_IS_LONG
 AC_C_CONST
 AC_C_BIGENDIAN
 AC_C_CHAR_UNSIGNED
-AC_C_LONG_DOUBLE 
+AC_TYPE_LONG_DOUBLE
 
 AC_STRUCT_TM
 AC_CHECK_MEMBER(struct tm.tm_gmtoff, HAVE_TM_GMTOFF)
