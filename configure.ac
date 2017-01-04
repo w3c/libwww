@@ -3,30 +3,31 @@ dnl (c) COPYRIGHT MIT 1995.
 dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
 
+PACKAGE=w3c-libwww
+VERSION=5.4.1
+#dnl for CVS to be able to make a release diff
+PREVIOUS_VERSION=5.3.2
+CODE_URL=https://github.com/w3c/libwww
+
 AC_REVISION([$Id$])
 AC_PREREQ([2.69])
-AC_INIT
-AC_CONFIG_SRCDIR([Library])
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+AC_SUBST(CODE_URL)
 
+AC_INIT(PACKAGE, VERSION, CODE_URL)
+AC_CONFIG_SRCDIR([Library])
 AC_CONFIG_AUX_DIR(config)
 
 AC_CANONICAL_TARGET([])
 AC_ARG_PROGRAM
 
 dnl Initialize Automake.
-PACKAGE=w3c-libwww
-AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED([W3C_PACKAGE], "$PACKAGE", [Define to be the package name.])
- 
-VERSION=5.4.1
-AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED([W3C_VERSION], "$VERSION", [Define to be the version.])
-
-#dnl for CVS to be able to make a release diff
-PREVIOUS_VERSION=5.3.2
 AC_SUBST(PREVIOUS_VERSION)
 
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
+AM_INIT_AUTOMAKE
 
 AM_CONFIG_HEADER(wwwconf.h)
 
@@ -38,11 +39,17 @@ dnl taken from the DDD configure.in
 AC_DEFUN([AC_STRUCT_WINSIZE],
 	 [AC_MSG_CHECKING( [for struct winsize in sys/ioctl.h and termios.h] )
 	  AC_CACHE_VAL( [libwww_cv_struct_winsize_header],
-			[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+			[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+			                  #include <sys/types.h>
 					  #include <sys/ioctl.h>
-					 ]], [[struct winsize x;]])],[libwww_cv_struct_winsize_header=ioctl_h],[_au_m4_changequote([,])AC_TRY_COMPILE( [#include <sys/types.h> 
-							   #include <termios.h>], 
-							   [struct winsize x;],
+					 ]],	  
+					 [[struct winsize x;]])],
+					 libwww_cv_struct_winsize_header=ioctl_h,
+					 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+					                   #include <sys/types.h> 
+							   #include <termios.h>
+							   ]], 
+							   [[struct winsize x;]])],
 							   libwww_cv_struct_winsize_header=termios_h, 
 							   libwww_cv_struct_winsize_header=other)
 					])
