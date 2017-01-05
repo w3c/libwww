@@ -111,8 +111,8 @@ extern "C" {
 
 typedef struct position {
   /* first line and first column are 0 not 1 */
-  unsigned long lineNumber;
-  unsigned long columnNumber;
+  XML_Size lineNumber;
+  XML_Size columnNumber;
 } POSITION;
 
 typedef struct {
@@ -129,6 +129,12 @@ typedef int (PTRCALL *SCANNER)(const ENCODING *,
                                const char *,
                                const char *,
                                const char **);
+
+enum XML_Convert_Result {
+  XML_CONVERT_COMPLETED = 0,
+  XML_CONVERT_INPUT_INCOMPLETE = 1,
+  XML_CONVERT_OUTPUT_EXHAUSTED = 2  /* and therefore potentially input remaining as well */
+};
 
 struct encoding {
   SCANNER scanners[XML_N_STATES];
@@ -158,12 +164,12 @@ struct encoding {
                             const char *ptr,
                             const char *end,
                             const char **badPtr);
-  void (PTRCALL *utf8Convert)(const ENCODING *enc,
+  enum XML_Convert_Result (PTRCALL *utf8Convert)(const ENCODING *enc,
                               const char **fromP,
                               const char *fromLim,
                               char **toP,
                               const char *toLim);
-  void (PTRCALL *utf16Convert)(const ENCODING *enc,
+  enum XML_Convert_Result (PTRCALL *utf16Convert)(const ENCODING *enc,
                                const char **fromP,
                                const char *fromLim,
                                unsigned short **toP,
@@ -281,7 +287,8 @@ int FASTCALL XmlUtf8Encode(int charNumber, char *buf);
 int FASTCALL XmlUtf16Encode(int charNumber, unsigned short *buf);
 int XmlSizeOfUnknownEncoding(void);
 
-typedef int (*CONVERTER)(void *userData, const char *p);
+
+typedef int (XMLCALL *CONVERTER) (void *userData, const char *p);
 
 ENCODING *
 XmlInitUnknownEncoding(void *mem,

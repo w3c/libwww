@@ -255,6 +255,10 @@ libwwwhttp_la_SOURCES = \
 libwwwhttp_la_DEPENDENCIES = \
 	../../modules/md5/libmd5.la
 
+libwwwhttp_la_CPPFLAGS = \
+	-I/usr/local/include \
+	-I${top_srcdir}/modules/md5
+
 libwwwnews_la_SOURCES = \
 	WWWNews.h \
 	HTNDir.h \
@@ -385,7 +389,7 @@ libwwwsql_la_SOURCES = \
 
 libwwwsql_la_LDFLAGS = -rpath $(libdir) $(MYSQL_LIBS)
 
-INCLUDES = \
+libwwwsql_la_CPPFLAGS = \
 	-I/usr/local/include \
 	-I${top_srcdir}/modules/md5 \
 	-I${top_srcdir}/modules/expat/lib \

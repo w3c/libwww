@@ -3,30 +3,32 @@ dnl (c) COPYRIGHT MIT 1995.
 dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
 
-AC_REVISION([$Id$])
-AC_PREREQ(2.53)
-AC_INIT
-AC_CONFIG_SRCDIR([Library])
+PACKAGE=w3c-libwww
+VERSION=5.4.1
+#dnl for CVS to be able to make a release diff
+PREVIOUS_VERSION=5.3.2
+CODE_URL=https://github.com/w3c/libwww
 
+AC_REVISION([$Id$])
+AC_PREREQ([2.69])
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+AC_SUBST(CODE_URL)
+
+AC_INIT(PACKAGE, VERSION, CODE_URL)
+AC_CONFIG_SRCDIR([Library])
 AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_MACRO_DIR([config/m4])
 
 AC_CANONICAL_TARGET([])
 AC_ARG_PROGRAM
 
 dnl Initialize Automake.
-PACKAGE=w3c-libwww
-AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED([W3C_PACKAGE], "$PACKAGE", [Define to be the package name.])
- 
-VERSION=5.4.1
-AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED([W3C_VERSION], "$VERSION", [Define to be the version.])
-
-#dnl for CVS to be able to make a release diff
-PREVIOUS_VERSION=5.3.2
 AC_SUBST(PREVIOUS_VERSION)
 
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
+AM_INIT_AUTOMAKE
 
 AM_CONFIG_HEADER(wwwconf.h)
 
@@ -38,14 +40,17 @@ dnl taken from the DDD configure.in
 AC_DEFUN([AC_STRUCT_WINSIZE],
 	 [AC_MSG_CHECKING( [for struct winsize in sys/ioctl.h and termios.h] )
 	  AC_CACHE_VAL( [libwww_cv_struct_winsize_header],
-			[AC_TRY_COMPILE( [#include <sys/types.h>
+			[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+			                  #include <sys/types.h>
 					  #include <sys/ioctl.h>
-					 ],	  
-					 [struct winsize x;],
+					 ]],	  
+					 [[struct winsize x;]])],
 					 libwww_cv_struct_winsize_header=ioctl_h,
-					 [AC_TRY_COMPILE( [#include <sys/types.h> 
-							   #include <termios.h>], 
-							   [struct winsize x;],
+					 [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+					                   #include <sys/types.h> 
+							   #include <termios.h>
+							   ]], 
+							   [[struct winsize x;]])],
 							   libwww_cv_struct_winsize_header=termios_h, 
 							   libwww_cv_struct_winsize_header=other)
 					])
@@ -97,7 +102,7 @@ dnl Regular configure...
 dnl
 AC_PROG_CC
 if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 dnl AC_PROG_CXX		Caused problems and is not needed...
 dnl You should probably use all three of these for maximum portability
 
@@ -263,7 +268,17 @@ AC_TYPE_PID_T
 AC_TYPE_GETGROUPS
 AC_TYPE_MODE_T
 AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
+dnl See http://www.manpagez.com/info/autoconf/autoconf-2.69/autoconf_227.php#AC_005fTYPE_005fSIGNAL
+AC_CACHE_CHECK([return type of signal handlers],[ac_cv_type_signal],[AC_COMPILE_IFELSE(
+[AC_LANG_PROGRAM([#include <sys/types.h>
+#include <signal.h>
+],
+		 [return *(signal (0, 0)) (0) == 1;])],
+		   [ac_cv_type_signal=int],
+		   [ac_cv_type_signal=void])])
+AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type of signal handlers
+		    (`int' or `void').])
+
 
 if test "$MINGW32" != "yes"; then
     AC_CHECK_TYPE(BOOLEAN, char)
@@ -285,7 +300,7 @@ AC_SIZE_T_IS_LONG
 AC_C_CONST
 AC_C_BIGENDIAN
 AC_C_CHAR_UNSIGNED
-AC_C_LONG_DOUBLE 
+AC_TYPE_LONG_DOUBLE
 
 AC_STRUCT_TM
 AC_CHECK_MEMBER(struct tm.tm_gmtoff, HAVE_TM_GMTOFF)
