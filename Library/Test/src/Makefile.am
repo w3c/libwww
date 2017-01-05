@@ -19,7 +19,7 @@ w3clib_DEPENDENCIES = \
 #	For easier use - NOT THE DEFAULT!
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I$(srcdir)/../../src -I$(tclinclude)
+w3clib_CPPFLAGS = -I$(srcdir)/../../src -I$(tclinclude)
 
 w3clib_SOURCES = \
 	HTAnchor_glue.c 	HTAnchor_glue.h \

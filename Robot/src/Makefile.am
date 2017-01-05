@@ -26,7 +26,7 @@ webbot_LDADD = \
 
 SUBDIRS = windows
 
-INCLUDES = \
+webbot_CPPFLAGS = \
 	-I$(srcdir)/../../Library/src \
 	-I$(srcdir)/../../Library/src/SSL \
 	-I$(top_srcdir)/modules/expat/lib \

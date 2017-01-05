@@ -44,7 +44,7 @@ libwwwssl_la_LDFLAGS = -rpath $(libdir)
 LDADD = \
 	libwwwssl.la
 
-INCLUDES = \
+libwwwssl_la_CPPFLAGS = \
 	-I/usr/local/include \
 	-I${top_srcdir}/modules/md5 \
 	-I${top_srcdir}/modules/expat/xmlparse \

@@ -41,6 +41,7 @@ bin_SCRIPTS = libwww-config
 
 # We do not have _all_ GNU files so add this to avoid warnings
 AUTOMAKE_OPTIONS = foreign
+ACLOCAL_AMFLAGS = -I config/m4
 
 # These are the sub directories
 SUBDIRS = config modules Library PICS-client LineMode Robot ComLine WinCom Icons

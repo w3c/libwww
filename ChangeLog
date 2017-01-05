@@ -1,5 +1,9 @@
 Changes with libwww 5.4.1
 
+2017-01-04	 Jose Kahan <jose@w3.org>
+	* Updated expat to 2.2.0
+	* Updated autotools to the current versions
+
 2006-12-04       Vic Bancroft <bancroft@america.net>
 	* Library/src/HTSQL.c: add missing mysql_init to HTSQL_connect reported by Xavier Torne
 
