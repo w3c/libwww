@@ -7,7 +7,6 @@ PACKAGE=w3c-libwww
 VERSION=5.4.1
 #dnl for CVS to be able to make a release diff
 PREVIOUS_VERSION=5.3.2
-CODE_URL=https://github.com/w3c/libwww
 
 AC_REVISION([$Id$])
 AC_PREREQ([2.69])
@@ -15,7 +14,8 @@ AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(CODE_URL)
 
-AC_INIT(PACKAGE, VERSION, CODE_URL)
+dnl I don't know how to reuse the above variables, so I have to repeat it
+AC_INIT([w3c-libwww], [5.4.1], [https://github.com/w3c/libwww])
 AC_CONFIG_SRCDIR([Library])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([config/m4])
