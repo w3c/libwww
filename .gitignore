@@ -1,0 +1,10 @@
+aclocal.m4
+autom4te.cache
+configure
+stamp-h.in
+Makefile
+Makefile.in
+Library/src/*.h
+Library/src/*/*.h
+Library/src/*/*.def
+wwwconf.h.in
