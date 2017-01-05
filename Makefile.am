@@ -26,7 +26,9 @@ EXTRA_DIST = \
 	config/netmon2tcpdump.pl \
 	config/makedefs.pl \
 	config/winConfigure.pl \
-	config/depcomp
+	config/depcomp \
+	config/m4 \
+	modules
 
 
 # We need to install the config.h header file as well. As this file
