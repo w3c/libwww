@@ -27,7 +27,7 @@ SUBDIRS = windows vms
 
 www_CPPFLAGS = \
 	-I$(srcdir)/../../Library/src \
-	-I$(top_srcdir)/modules/expat/lib \
+	-I$(top_srcdir)/modules/expat/expat/lib \
 	-I$(srcdir)/../../PICS-client/src
 
 #	.h files are distributed but originally are made from the

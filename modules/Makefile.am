@@ -5,5 +5,5 @@ DOCS :=	$(wildcard *.html *.gif)
 EXTRA_DIST = \
 	$(DOCS)
 
-SUBDIRS = expat md5
+SUBDIRS = expat/expat md5
 
