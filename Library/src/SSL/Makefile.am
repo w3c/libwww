@@ -47,7 +47,7 @@ LDADD = \
 libwwwssl_la_CPPFLAGS = \
 	-I/usr/local/include \
 	-I${top_srcdir}/modules/md5 \
-	-I${top_srcdir}/modules/expat/xmlparse \
+	-I${top_srcdir}/modules/expat/expat/xmlparse \
 	-I$(top_srcdir)/Library/src \
 	@SSLINC@
 

@@ -26,7 +26,7 @@ SUBDIRS = windows
 
 w3c_CPPFLAGS = \
 	-I$(srcdir)/../../Library/src \
-	-I$(top_srcdir)/modules/expat/lib
+	-I$(top_srcdir)/modules/expat/expat/lib
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
@@ -85,7 +85,7 @@ purify: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
 	../../Library/src/.libs/libwwwutils.a \
 	../../Library/src/.libs/libwwwzip.a \
 	../../modules/md5/.libs/libmd5.a \
-	../../modules/expat/xmlparse/.libs/libxmlparse.a \
-	../../modules/expat/xmltok/.libs/libxmltok.a \
+	../../modules/expat/expat/xmlparse/.libs/libxmlparse.a \
+	../../modules/expat/expat/xmltok/.libs/libxmltok.a \
 	$(LIBS)
 

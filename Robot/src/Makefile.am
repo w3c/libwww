@@ -29,7 +29,7 @@ SUBDIRS = windows
 webbot_CPPFLAGS = \
 	-I$(srcdir)/../../Library/src \
 	-I$(srcdir)/../../Library/src/SSL \
-	-I$(top_srcdir)/modules/expat/lib \
+	-I$(top_srcdir)/modules/expat/expat/lib \
 	$(MYSQL_CFLAGS)
 
 #	.h files are distributed but originally are made from the
@@ -72,7 +72,7 @@ purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	-lm \
 	../../Library/src/.libs/libwww.a \
 	../../modules/md5/.libs/libmd5.a \
-	../../modules/expat/.libs/libexpat.a
+	../../modules/expat/expat/.libs/libexpat.a
 	$(LIBS)
 
 

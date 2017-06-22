@@ -32,7 +32,7 @@ LDADD = \
 
 AM_CPPFLAGS = \
 	-I$(srcdir)/../src \
-	-I$(top_srcdir)/modules/expat/lib \
+	-I$(top_srcdir)/modules/expat/expat/lib \
 	-I$(srcdir)/../src/SSL
 
 DOCS :=	$(wildcard *.html)
@@ -68,7 +68,7 @@ purify: $(mget_OBJECTS) $(mget_DEPENDENCIES)
         ../src/.libs/libwwwdav.a \
 	../src/.libs/libwwwzip.a \
 	../../modules/md5/.libs/libmd5.a \
-	../../modules/expat/.libs/libexpat.a
+	../../modules/expat/expat/.libs/libexpat.a
 	$(LIBS)
 
 
