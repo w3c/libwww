@@ -4,9 +4,9 @@ dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
 
 PACKAGE=w3c-libwww
-VERSION=5.4.1
+VERSION=5.4.2
 #dnl for CVS to be able to make a release diff
-PREVIOUS_VERSION=5.3.2
+PREVIOUS_VERSION=5.4.1
 
 AC_REVISION([$Id$])
 AC_PREREQ([2.69])
