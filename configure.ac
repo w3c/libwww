@@ -15,7 +15,7 @@ AC_SUBST(VERSION)
 AC_SUBST(CODE_URL)
 
 dnl I don't know how to reuse the above variables, so I have to repeat it
-AC_INIT([w3c-libwww], [5.4.1], [https://github.com/w3c/libwww])
+AC_INIT([w3c-libwww], [5.4.2], [https://github.com/w3c/libwww])
 AC_CONFIG_SRCDIR([Library])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([config/m4])
