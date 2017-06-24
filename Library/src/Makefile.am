@@ -366,10 +366,9 @@ libwwwxml_la_SOURCES = \
 	HTXML.h \
 	HTXML.c
 
-libwwwxml_la_DEPENDENCIES = \
-	../../modules/expat/libexpat.la
+libwwwxml_la_DEPENDENCIES =
 
-libwwwxml_la_LDFLAGS = -rpath $(libdir)
+libwwwxml_la_LDFLAGS = -rpath $(libdir) $(EXPAT_LIBS)
 
 libwwwzip_la_SOURCES = \
 	WWWZip.h \
@@ -392,7 +391,6 @@ libwwwsql_la_LDFLAGS = -rpath $(libdir) $(MYSQL_LIBS)
 libwwwsql_la_CPPFLAGS = \
 	-I/usr/local/include \
 	-I${top_srcdir}/modules/md5 \
-	-I${top_srcdir}/modules/expat/lib \
 	$(MYSQL_CFLAGS)
 
 BUILT_SOURCES = \

@@ -4,9 +4,9 @@ dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
 
 PACKAGE=w3c-libwww
-VERSION=5.4.1
+VERSION=5.4.2
 #dnl for CVS to be able to make a release diff
-PREVIOUS_VERSION=5.3.2
+PREVIOUS_VERSION=5.4.1
 
 AC_REVISION([$Id$])
 AC_PREREQ([2.69])
@@ -599,27 +599,29 @@ AC_ARG_WITH(expat,
     ;;
   *)
     AC_MSG_RESULT(yes)
+    AC_CHECK_HEADER(expat.h, [], [AC_MSG_ERROR(missing expat.h file)])
+    AC_CHECK_LIB(expat, XML_ParserCreate, [], [AC_MSG_ERROR(missing libexpat)])
     AC_DEFINE(HT_EXPAT, 1, [Define to enable expat XML parser.])
     HTXML="HTXML.lo"
-    HTLIBXML='${top_builddir}/modules/expat/libexpat.la'
+    HTLIBXML=""
     WWWXML="libwwwxml.la"
     LWWWXML="-lwwwxml -lexpat"
-    LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/libexpat.la'
+    LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la'
     SHOWXML='showxml$(EXEEXT) ptri$(EXEEXT) stri$(EXEEXT) rdf_parse_file$(EXEEXT) rdf_parse_buffer$(EXEEXT)'
     ;;
   esac ],
   AC_MSG_RESULT(yes)
+  AC_CHECK_HEADER(expat.h, [], [AC_MSG_ERROR(missing expat.h file)])
+  AC_CHECK_LIB(expat, XML_ParserCreate, [], [AC_MSG_ERROR(missing libexpat)])
   AC_DEFINE(HT_EXPAT)
   HTXML="HTXML.lo"
-  HTLIBXML='${top_builddir}/modules/expat/libexpat.la'
+  HTLIBXML=""
   WWWXML="libwwwxml.la"
   LWWWXML="-lwwwxml -lexpat"
-  LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/libexpat.la'
+  LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la'
   SHOWXML='showxml$(EXEEXT) ptri$(EXEEXT) stri$(EXEEXT) rdf_parse_file$(EXEEXT) rdf_parse_buffer$(EXEEXT)'
 )
 
-dnl @@ JK: add something like (if test, then do this config)
-AC_CONFIG_SUBDIRS(modules/expat)
 AC_SUBST(HTXML)		# for old style big library
 AC_SUBST(HTLIBXML)	# for old style big library
 AC_SUBST(WWWXML)
