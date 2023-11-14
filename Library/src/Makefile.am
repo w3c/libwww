@@ -408,7 +408,6 @@ BUILT_SOURCES = \
 	HTBInit.h \
 	HTBTree.h \
 	HTBind.h \
-	HTBind.h \
 	HTBound.h \
 	HTBufWrt.h \
 	HTCache.h \
